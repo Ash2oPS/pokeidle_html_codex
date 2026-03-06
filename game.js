@@ -21,9 +21,10 @@ const BASE_STEP_MS = 1000 / 60;
 const ATTACK_INTERVAL_MS = 800;
 const PROJECTILE_SPEED_PX_PER_SECOND = 260;
 const DAMAGE_SCALE = 1.7;
-const KO_RESPAWN_DELAY_MS = 1350;
-const KO_FLASH_DURATION_MS = 650;
+const KO_RESPAWN_DELAY_MS = 420;
+const KO_ANIMATION_DURATION_MS = 210;
 const FLOATING_TEXT_LIFETIME_MS = 950;
+const PROJECTILE_SPRITE_PX = 72;
 
 const SPECIAL_ATTACK_TYPES = new Set([
   "fire",
@@ -131,6 +132,7 @@ const TYPE_COLORS = {
 
 const canvas = document.getElementById("game-canvas");
 const ctx = canvas.getContext("2d");
+const projectileSpriteCache = new Map();
 
 const state = {
   mode: "loading",
@@ -247,6 +249,276 @@ function getTypeColor(typeName) {
   return TYPE_COLORS[String(typeName || "normal").toLowerCase()] || [220, 236, 255];
 }
 
+function normalizeType(typeName) {
+  return String(typeName || "normal").toLowerCase();
+}
+
+function drawProjectileGlyph(spriteCtx, typeName, size) {
+  const mid = size * 0.5;
+  const outer = size * 0.34;
+
+  spriteCtx.save();
+  spriteCtx.translate(mid, mid);
+  spriteCtx.fillStyle = "rgba(255, 255, 255, 0.97)";
+  spriteCtx.strokeStyle = "rgba(6, 11, 24, 0.35)";
+  spriteCtx.lineWidth = Math.max(1.2, size * 0.03);
+
+  switch (typeName) {
+    case "fire": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer);
+      spriteCtx.bezierCurveTo(outer * 0.6, -outer * 0.22, outer * 0.56, outer * 0.4, 0, outer * 0.86);
+      spriteCtx.bezierCurveTo(-outer * 0.6, outer * 0.4, -outer * 0.62, -outer * 0.22, 0, -outer);
+      spriteCtx.fill();
+      break;
+    }
+    case "water": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer);
+      spriteCtx.quadraticCurveTo(outer * 0.88, -outer * 0.1, outer * 0.34, outer * 0.58);
+      spriteCtx.quadraticCurveTo(0, outer * 0.92, -outer * 0.34, outer * 0.58);
+      spriteCtx.quadraticCurveTo(-outer * 0.88, -outer * 0.1, 0, -outer);
+      spriteCtx.fill();
+      break;
+    }
+    case "grass": {
+      spriteCtx.beginPath();
+      spriteCtx.ellipse(0, 0, outer * 0.86, outer * 0.56, -0.68, 0, Math.PI * 2);
+      spriteCtx.fill();
+      spriteCtx.strokeStyle = "rgba(6, 11, 24, 0.26)";
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(-outer * 0.56, outer * 0.36);
+      spriteCtx.lineTo(outer * 0.52, -outer * 0.32);
+      spriteCtx.stroke();
+      break;
+    }
+    case "electric": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(-outer * 0.28, -outer * 0.82);
+      spriteCtx.lineTo(outer * 0.1, -outer * 0.14);
+      spriteCtx.lineTo(-outer * 0.06, -outer * 0.14);
+      spriteCtx.lineTo(outer * 0.29, outer * 0.84);
+      spriteCtx.lineTo(-outer * 0.12, outer * 0.14);
+      spriteCtx.lineTo(outer * 0.08, outer * 0.14);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "ice": {
+      spriteCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+      spriteCtx.lineWidth = Math.max(1.8, size * 0.045);
+      for (let i = 0; i < 3; i += 1) {
+        const angle = (Math.PI / 3) * i;
+        const dx = Math.cos(angle) * outer * 0.84;
+        const dy = Math.sin(angle) * outer * 0.84;
+        spriteCtx.beginPath();
+        spriteCtx.moveTo(-dx, -dy);
+        spriteCtx.lineTo(dx, dy);
+        spriteCtx.stroke();
+      }
+      break;
+    }
+    case "psychic": {
+      spriteCtx.beginPath();
+      spriteCtx.arc(0, 0, outer * 0.82, 0, Math.PI * 2);
+      spriteCtx.stroke();
+      spriteCtx.beginPath();
+      spriteCtx.arc(0, 0, outer * 0.38, 0, Math.PI * 2);
+      spriteCtx.fill();
+      break;
+    }
+    case "dragon": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer * 0.86);
+      for (let i = 1; i < 8; i += 1) {
+        const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 8;
+        const r = i % 2 === 0 ? outer * 0.85 : outer * 0.38;
+        spriteCtx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+      }
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "dark": {
+      spriteCtx.beginPath();
+      spriteCtx.arc(-outer * 0.12, 0, outer * 0.78, -Math.PI * 0.86, Math.PI * 0.86);
+      spriteCtx.fill();
+      spriteCtx.globalCompositeOperation = "destination-out";
+      spriteCtx.beginPath();
+      spriteCtx.arc(outer * 0.28, -outer * 0.06, outer * 0.72, -Math.PI * 0.95, Math.PI * 0.95);
+      spriteCtx.fill();
+      spriteCtx.globalCompositeOperation = "source-over";
+      break;
+    }
+    case "fighting": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer * 0.88);
+      spriteCtx.lineTo(outer * 0.28, -outer * 0.2);
+      spriteCtx.lineTo(outer * 0.88, 0);
+      spriteCtx.lineTo(outer * 0.28, outer * 0.2);
+      spriteCtx.lineTo(0, outer * 0.88);
+      spriteCtx.lineTo(-outer * 0.28, outer * 0.2);
+      spriteCtx.lineTo(-outer * 0.88, 0);
+      spriteCtx.lineTo(-outer * 0.28, -outer * 0.2);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "poison": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer * 0.9);
+      spriteCtx.lineTo(outer * 0.82, 0);
+      spriteCtx.lineTo(0, outer * 0.9);
+      spriteCtx.lineTo(-outer * 0.82, 0);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "ground":
+    case "rock": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(-outer * 0.9, outer * 0.22);
+      spriteCtx.lineTo(-outer * 0.4, -outer * 0.8);
+      spriteCtx.lineTo(outer * 0.2, -outer * 0.62);
+      spriteCtx.lineTo(outer * 0.84, -outer * 0.08);
+      spriteCtx.lineTo(outer * 0.32, outer * 0.84);
+      spriteCtx.lineTo(-outer * 0.62, outer * 0.64);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "flying": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(-outer * 0.94, outer * 0.12);
+      spriteCtx.quadraticCurveTo(-outer * 0.1, -outer * 0.84, outer * 0.94, outer * 0.12);
+      spriteCtx.quadraticCurveTo(0, -outer * 0.2, -outer * 0.94, outer * 0.12);
+      spriteCtx.fill();
+      break;
+    }
+    case "bug": {
+      spriteCtx.beginPath();
+      spriteCtx.ellipse(0, 0, outer * 0.5, outer * 0.72, 0, 0, Math.PI * 2);
+      spriteCtx.fill();
+      for (const dir of [-1, 1]) {
+        spriteCtx.beginPath();
+        spriteCtx.moveTo(dir * outer * 0.3, -outer * 0.24);
+        spriteCtx.lineTo(dir * outer * 0.86, -outer * 0.62);
+        spriteCtx.moveTo(dir * outer * 0.38, 0);
+        spriteCtx.lineTo(dir * outer * 0.96, 0);
+        spriteCtx.moveTo(dir * outer * 0.32, outer * 0.26);
+        spriteCtx.lineTo(dir * outer * 0.86, outer * 0.62);
+        spriteCtx.stroke();
+      }
+      break;
+    }
+    case "ghost": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(-outer * 0.72, outer * 0.56);
+      spriteCtx.lineTo(-outer * 0.72, -outer * 0.1);
+      spriteCtx.quadraticCurveTo(-outer * 0.72, -outer * 0.86, 0, -outer * 0.86);
+      spriteCtx.quadraticCurveTo(outer * 0.72, -outer * 0.86, outer * 0.72, -outer * 0.1);
+      spriteCtx.lineTo(outer * 0.72, outer * 0.56);
+      spriteCtx.lineTo(outer * 0.38, outer * 0.34);
+      spriteCtx.lineTo(0, outer * 0.58);
+      spriteCtx.lineTo(-outer * 0.34, outer * 0.34);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    case "steel": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer * 0.92);
+      spriteCtx.lineTo(outer * 0.8, -outer * 0.34);
+      spriteCtx.lineTo(outer * 0.8, outer * 0.34);
+      spriteCtx.lineTo(0, outer * 0.92);
+      spriteCtx.lineTo(-outer * 0.8, outer * 0.34);
+      spriteCtx.lineTo(-outer * 0.8, -outer * 0.34);
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      spriteCtx.globalCompositeOperation = "destination-out";
+      spriteCtx.beginPath();
+      spriteCtx.arc(0, 0, outer * 0.3, 0, Math.PI * 2);
+      spriteCtx.fill();
+      spriteCtx.globalCompositeOperation = "source-over";
+      break;
+    }
+    case "fairy": {
+      spriteCtx.beginPath();
+      spriteCtx.moveTo(0, -outer * 0.9);
+      for (let i = 1; i < 10; i += 1) {
+        const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
+        const r = i % 2 === 0 ? outer * 0.9 : outer * 0.42;
+        spriteCtx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+      }
+      spriteCtx.closePath();
+      spriteCtx.fill();
+      break;
+    }
+    default: {
+      spriteCtx.beginPath();
+      spriteCtx.arc(0, 0, outer * 0.72, 0, Math.PI * 2);
+      spriteCtx.fill();
+      break;
+    }
+  }
+
+  spriteCtx.restore();
+}
+
+function createProjectileSprite(typeName) {
+  const type = normalizeType(typeName);
+  const size = PROJECTILE_SPRITE_PX;
+  const rgb = getTypeColor(type);
+  const sprite = document.createElement("canvas");
+  sprite.width = size;
+  sprite.height = size;
+  const spriteCtx = sprite.getContext("2d");
+  if (!spriteCtx) {
+    return null;
+  }
+
+  const mid = size * 0.5;
+  const aura = spriteCtx.createRadialGradient(mid, mid, size * 0.08, mid, mid, size * 0.5);
+  aura.addColorStop(0, rgba(rgb, 0.98));
+  aura.addColorStop(0.4, rgba(rgb, 0.5));
+  aura.addColorStop(1, rgba(rgb, 0));
+
+  spriteCtx.fillStyle = aura;
+  spriteCtx.beginPath();
+  spriteCtx.arc(mid, mid, size * 0.5, 0, Math.PI * 2);
+  spriteCtx.fill();
+
+  spriteCtx.fillStyle = rgba(rgb, 0.86);
+  spriteCtx.beginPath();
+  spriteCtx.arc(mid, mid, size * 0.34, 0, Math.PI * 2);
+  spriteCtx.fill();
+
+  spriteCtx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+  spriteCtx.lineWidth = Math.max(1.2, size * 0.022);
+  spriteCtx.beginPath();
+  spriteCtx.arc(mid, mid, size * 0.35, 0, Math.PI * 2);
+  spriteCtx.stroke();
+
+  drawProjectileGlyph(spriteCtx, type, size);
+
+  spriteCtx.fillStyle = "rgba(255, 255, 255, 0.36)";
+  spriteCtx.beginPath();
+  spriteCtx.ellipse(size * 0.38, size * 0.3, size * 0.12, size * 0.07, -0.38, 0, Math.PI * 2);
+  spriteCtx.fill();
+
+  return sprite;
+}
+
+function getProjectileSprite(typeName) {
+  const type = normalizeType(typeName);
+  if (projectileSpriteCache.has(type)) {
+    return projectileSpriteCache.get(type);
+  }
+  const sprite = createProjectileSprite(type);
+  projectileSpriteCache.set(type, sprite);
+  return sprite;
+}
+
 class PokemonBattleManager {
   constructor({ team, enemyRoster, attackIntervalMs, respawnDelayMs = KO_RESPAWN_DELAY_MS }) {
     this.team = team;
@@ -257,11 +529,13 @@ class PokemonBattleManager {
     this.enemyIndex = 0;
     this.projectiles = [];
     this.floatingTexts = [];
+    this.hitEffects = [];
+    this.enemyHitPulseMs = 0;
     this.lastImpact = null;
     this.enemiesDefeated = 0;
     this.attackTimerMs = attackIntervalMs;
     this.pendingRespawnMs = 0;
-    this.koFlashMs = 0;
+    this.koAnimMs = 0;
     this.defeatedEnemyName = null;
     this.enemy = this.cloneEnemyFromRoster(0);
   }
@@ -289,6 +563,14 @@ class PokemonBattleManager {
     return this.floatingTexts;
   }
 
+  getHitEffects() {
+    return this.hitEffects;
+  }
+
+  getEnemyHitPulseRatio() {
+    return clamp(this.enemyHitPulseMs / 120, 0, 1);
+  }
+
   isEnemyRespawning() {
     return this.pendingRespawnMs > 0;
   }
@@ -299,7 +581,8 @@ class PokemonBattleManager {
       enemy_name_fr: this.defeatedEnemyName,
       remaining_ms: Math.max(0, Math.round(this.pendingRespawnMs)),
       total_ms: this.enemyRespawnDelayMs,
-      flash_ms: Math.max(0, Math.round(this.koFlashMs)),
+      shrink_active: this.koAnimMs > 0,
+      shrink_progress: clamp(1 - this.koAnimMs / Math.max(1, KO_ANIMATION_DURATION_MS), 0, 1),
     };
   }
 
@@ -312,6 +595,7 @@ class PokemonBattleManager {
 
   update(deltaMs, layout) {
     this.updateFloatingTexts(deltaMs);
+    this.updateHitEffects(deltaMs);
     this.updateKoTransition(deltaMs);
 
     if (!layout || !this.enemy || this.team.length === 0) {
@@ -331,8 +615,8 @@ class PokemonBattleManager {
   }
 
   updateKoTransition(deltaMs) {
-    if (this.koFlashMs > 0) {
-      this.koFlashMs = Math.max(0, this.koFlashMs - deltaMs);
+    if (this.koAnimMs > 0) {
+      this.koAnimMs = Math.max(0, this.koAnimMs - deltaMs);
     }
 
     if (this.pendingRespawnMs <= 0) {
@@ -360,6 +644,33 @@ class PokemonBattleManager {
     this.floatingTexts = survivors;
   }
 
+  updateHitEffects(deltaMs) {
+    if (this.enemyHitPulseMs > 0) {
+      this.enemyHitPulseMs = Math.max(0, this.enemyHitPulseMs - deltaMs);
+    }
+
+    const dt = deltaMs / 1000;
+    const survivors = [];
+    for (const effect of this.hitEffects) {
+      effect.lifeMs -= deltaMs;
+      if (effect.lifeMs <= 0) {
+        continue;
+      }
+
+      if (effect.kind === "spark") {
+        effect.x += effect.vx * dt;
+        effect.y += effect.vy * dt;
+        const drag = clamp(1 - 3.2 * dt, 0.15, 1);
+        effect.vx *= drag;
+        effect.vy = effect.vy * drag + 24 * dt;
+      } else if (effect.kind === "ring") {
+        effect.radius += effect.expandSpeed * dt;
+      }
+      survivors.push(effect);
+    }
+    this.hitEffects = survivors;
+  }
+
   spawnNextProjectile(layout) {
     if (!this.team.length) {
       return;
@@ -385,6 +696,9 @@ class PokemonBattleManager {
       attackType,
       attackerIndex,
       attackerNameFr: attacker.nameFr,
+      spinPhase: Math.random() * Math.PI * 2,
+      spinVelocity: (1.8 + Math.random() * 2.2) * (Math.random() < 0.5 ? -1 : 1),
+      rotation: 0,
     });
   }
 
@@ -405,6 +719,8 @@ class PokemonBattleManager {
         continue;
       }
 
+      projectile.spinPhase += projectile.spinVelocity * (deltaMs / 1000);
+      projectile.rotation = Math.atan2(dy, dx) + projectile.spinPhase * 0.33;
       projectile.x += (dx / distance) * frameDistance;
       projectile.y += (dy / distance) * frameDistance;
       survivors.push(projectile);
@@ -437,6 +753,42 @@ class PokemonBattleManager {
     });
   }
 
+  addEnemyHitEffects({ attackType, typeMultiplier, targetX, targetY, damage }) {
+    const color = getTypeColor(attackType);
+    const impactFactor = typeMultiplier >= 2 ? 1.25 : typeMultiplier > 0 && typeMultiplier < 1 ? 0.9 : 1;
+    this.enemyHitPulseMs = 120;
+
+    this.hitEffects.push({
+      kind: "ring",
+      x: targetX,
+      y: targetY,
+      radius: 7,
+      expandSpeed: 220 * impactFactor,
+      lifeMs: 170,
+      maxLifeMs: 170,
+      lineWidth: 2.4,
+      color,
+    });
+
+    const particleCount = clamp(Math.round(6 + damage / 22), 6, 14);
+    for (let i = 0; i < particleCount; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (85 + Math.random() * 190) * impactFactor;
+      const lifeMs = 150 + Math.random() * 190;
+      this.hitEffects.push({
+        kind: "spark",
+        x: targetX + Math.cos(angle) * 4,
+        y: targetY + Math.sin(angle) * 4,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 18,
+        lifeMs,
+        maxLifeMs: lifeMs,
+        size: 1.8 + Math.random() * 2.8,
+        color,
+      });
+    }
+  }
+
   applyHit(projectile) {
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
       return;
@@ -465,12 +817,19 @@ class PokemonBattleManager {
       targetX: projectile.targetX,
       targetY: projectile.targetY,
     });
+    this.addEnemyHitEffects({
+      damage,
+      attackType: projectile.attackType,
+      typeMultiplier,
+      targetX: projectile.targetX,
+      targetY: projectile.targetY,
+    });
 
     if (this.enemy.hpCurrent <= 0) {
       this.enemiesDefeated += 1;
       this.defeatedEnemyName = this.enemy.nameFr;
       this.pendingRespawnMs = this.enemyRespawnDelayMs;
-      this.koFlashMs = KO_FLASH_DURATION_MS;
+      this.koAnimMs = KO_ANIMATION_DURATION_MS;
       this.projectiles = [];
       this.attackTimerMs = this.attackIntervalMs;
     }
@@ -485,8 +844,10 @@ class PokemonBattleManager {
     this.enemyIndex = (this.enemyIndex + 1) % this.enemyRoster.length;
     this.enemy = this.cloneEnemyFromRoster(this.enemyIndex);
     this.projectiles = [];
+    this.hitEffects = [];
+    this.enemyHitPulseMs = 0;
     this.pendingRespawnMs = 0;
-    this.koFlashMs = 0;
+    this.koAnimMs = 0;
     this.defeatedEnemyName = null;
     this.attackTimerMs = this.attackIntervalMs * 0.68;
   }
@@ -542,10 +903,9 @@ function computeLayout() {
 
   for (let i = 0; i < teamCount; i += 1) {
     const angle = -Math.PI / 2 + (Math.PI * 2 * i) / Math.max(teamCount, 1);
-    const bob = Math.sin(state.timeMs * 0.003 + i * 1.45) * 4;
     const x = centerX + Math.cos(angle) * radiusX;
-    const y = centerY + Math.sin(angle) * radiusY + bob;
-    const size = clamp(enemySize * 0.55, 70, 120);
+    const y = centerY + Math.sin(angle) * radiusY;
+    const size = clamp(enemySize * 0.64, 78, 132);
     teamMembers.push({ x, y, size });
   }
 
@@ -564,6 +924,8 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   ctx.save();
   ctx.translate(x, y);
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+  const scale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
+  ctx.scale(scale, scale);
 
   ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
   ctx.beginPath();
@@ -579,7 +941,10 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     } else {
       drawWidth = size * ratio;
     }
+    const wasSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
     ctx.drawImage(entity.spriteImage, -drawWidth * 0.5, -drawHeight * 0.45, drawWidth, drawHeight);
+    ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
     ctx.fillStyle = "rgba(180, 198, 232, 0.36)";
     ctx.strokeStyle = "rgba(226, 238, 255, 0.6)";
@@ -615,13 +980,14 @@ function drawNameAndLevel(entity, x, y, enemy = false) {
   ctx.restore();
 }
 
-function drawEnemyHpBar(enemy, centerX, centerY, width, height) {
+function drawEnemyHpBar(enemy, centerX, centerY, width, height, options = {}) {
   const ratio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
   const x = centerX - width * 0.5;
   const y = centerY;
   const radius = height * 0.36;
 
   ctx.save();
+  ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   ctx.fillStyle = "rgba(6, 16, 31, 0.78)";
   ctx.fillRect(x - 10, y - 8, width + 20, height + 16);
 
@@ -653,6 +1019,8 @@ function drawProjectiles(projectiles) {
   for (const projectile of projectiles || []) {
     const rgb = getTypeColor(projectile.attackType);
     const radius = projectile.radius || 8;
+    const sprite = getProjectileSprite(projectile.attackType);
+    const auraRadius = radius * 3.3;
 
     ctx.save();
     const aura = ctx.createRadialGradient(
@@ -661,27 +1029,65 @@ function drawProjectiles(projectiles) {
       Math.max(1, radius * 0.2),
       projectile.x,
       projectile.y,
-      radius * 2.6,
+      auraRadius,
     );
-    aura.addColorStop(0, rgba(rgb, 0.98));
-    aura.addColorStop(0.45, rgba(rgb, 0.58));
+    aura.addColorStop(0, rgba(rgb, 0.72));
+    aura.addColorStop(0.45, rgba(rgb, 0.38));
     aura.addColorStop(1, rgba(rgb, 0));
 
     ctx.fillStyle = aura;
     ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, radius * 2.6, 0, Math.PI * 2);
+    ctx.arc(projectile.x, projectile.y, auraRadius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
 
-    ctx.fillStyle = rgba(rgb, 0.95);
-    ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.save();
+    ctx.translate(projectile.x, projectile.y);
+    ctx.rotate(projectile.rotation || 0);
+    if (sprite) {
+      const size = Math.max(24, radius * 4.6);
+      ctx.drawImage(sprite, -size * 0.5, -size * 0.5, size, size);
+    } else {
+      ctx.fillStyle = rgba(rgb, 0.95);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, radius * 0.72, 0, Math.PI * 2);
-    ctx.stroke();
+function drawEnemyHitEffects(hitEffects) {
+  for (const effect of hitEffects || []) {
+    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    const rgb = Array.isArray(effect.color) ? effect.color : [220, 236, 255];
+
+    ctx.save();
+    if (effect.kind === "ring") {
+      ctx.globalAlpha = lifeRatio * 0.9;
+      ctx.strokeStyle = rgba(rgb, 0.95);
+      ctx.lineWidth = (effect.lineWidth || 2) * (0.7 + lifeRatio * 0.9);
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = lifeRatio;
+      const radius = (effect.size || 2) * (0.55 + lifeRatio * 0.9);
+      const glow = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius * 3);
+      glow.addColorStop(0, rgba(rgb, 0.95));
+      glow.addColorStop(0.5, rgba(rgb, 0.5));
+      glow.addColorStop(1, rgba(rgb, 0));
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = rgba(rgb, 1);
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 }
@@ -718,13 +1124,13 @@ function drawFloatingDamageTexts(floatingTexts) {
 }
 
 function drawEnemyKoEffect(layout, koTransition) {
-  if (!koTransition?.active) {
+  if (!koTransition?.shrink_active) {
     return;
   }
 
-  const progress = 1 - koTransition.remaining_ms / Math.max(1, koTransition.total_ms);
-  const pulse = 0.55 + 0.45 * Math.sin(state.timeMs * 0.03);
-  const radius = layout.enemySize * (0.45 + progress * 1.1 + pulse * 0.1);
+  const progress = koTransition.shrink_progress || 0;
+  const pulse = 0.65 + 0.35 * Math.sin(state.timeMs * 0.06);
+  const radius = layout.enemySize * (0.4 + progress * 0.66 + pulse * 0.05);
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
@@ -737,15 +1143,15 @@ function drawEnemyKoEffect(layout, koTransition) {
     layout.centerY,
     radius * 1.9,
   );
-  burst.addColorStop(0, "rgba(255, 247, 206, 0.65)");
-  burst.addColorStop(0.45, "rgba(255, 150, 120, 0.35)");
+  burst.addColorStop(0, "rgba(255, 247, 206, 0.58)");
+  burst.addColorStop(0.45, "rgba(255, 150, 120, 0.28)");
   burst.addColorStop(1, "rgba(255, 120, 120, 0)");
   ctx.fillStyle = burst;
   ctx.beginPath();
   ctx.arc(layout.centerX, layout.centerY, radius * 1.9, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.strokeStyle = `rgba(255, 248, 225, ${0.55 * (1 - progress) + 0.2})`;
+  ctx.strokeStyle = "rgba(255, 248, 225, " + (0.34 * (1 - progress) + 0.16) + ")";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(layout.centerX, layout.centerY, radius, 0, Math.PI * 2);
@@ -858,23 +1264,43 @@ function render() {
   const layout = state.layout || computeLayout();
   state.layout = layout;
   const koTransition = state.battle ? state.battle.getKoTransition() : null;
+  const enemyHitPulse = state.battle ? state.battle.getEnemyHitPulseRatio() : 0;
 
   drawBackground(width, height);
   drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
   drawEnemyKoEffect(layout, koTransition);
 
   if (state.enemy) {
-    const enemyAlpha = koTransition?.active ? 0.45 + 0.55 * Math.abs(Math.sin(state.timeMs * 0.035)) : 1;
-    drawEnemyHpBar(
-      state.enemy,
-      layout.centerX,
-      layout.hpBarY,
-      layout.hpBarWidth,
-      layout.hpBarHeight,
-    );
-    drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, layout.enemySize, { alpha: enemyAlpha });
-    drawNameAndLevel(state.enemy, layout.centerX, layout.centerY + layout.enemySize * 0.58, true);
+    const isKo = koTransition?.active;
+    const shrinkProgress = isKo ? koTransition?.shrink_progress || 0 : 0;
+    const shrinkActive = Boolean(koTransition?.shrink_active);
+    const enemyScale = isKo
+      ? (shrinkActive ? clamp(1 - shrinkProgress * 0.96, 0.04, 1) : 0)
+      : 1 + enemyHitPulse * 0.06;
+    const enemyAlpha = isKo
+      ? (shrinkActive ? clamp(1 - shrinkProgress * 0.85, 0.12, 1) : 0)
+      : 1;
+
+    if (!isKo) {
+      drawEnemyHpBar(
+        state.enemy,
+        layout.centerX,
+        layout.hpBarY,
+        layout.hpBarWidth,
+        layout.hpBarHeight,
+      );
+      drawNameAndLevel(state.enemy, layout.centerX, layout.centerY + layout.enemySize * 0.58, true);
+    }
+
+    if (enemyAlpha > 0.01 && enemyScale > 0.01) {
+      drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, layout.enemySize, {
+        alpha: enemyAlpha,
+        scale: enemyScale,
+      });
+    }
   }
+
+  drawEnemyHitEffects(state.battle ? state.battle.getHitEffects() : []);
 
   for (let i = 0; i < state.team.length; i += 1) {
     const member = state.team[i];
