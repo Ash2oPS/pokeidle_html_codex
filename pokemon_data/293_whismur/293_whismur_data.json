@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 293,
+  "name_fr": "Chuchmur",
+  "name_en": "whismur",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 294,
+      "name_en": "loudred",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 64,
+    "attack": 51,
+    "defense": 23,
+    "special-attack": 51,
+    "special-defense": 23,
+    "speed": 28
+  },
+  "sprites": {
+    "front": "sprites/293_whismur_sprite.png",
+    "front_shiny": "sprites/293_whismur_sprite_shiny.png"
+  }
+}

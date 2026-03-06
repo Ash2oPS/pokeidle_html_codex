@@ -1,0 +1,60 @@
+{
+  "pokedex_number": 299,
+  "name_fr": "Tarinor",
+  "name_en": "nosepass",
+  "defensive_types": [
+    "rock"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 476,
+      "name_en": "probopass",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "mt-coronet"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "chargestone-cave"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "kalos-route-13"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "blush-mountain"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "vast-poni-canyon"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "thunder-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 45,
+    "defense": 135,
+    "special-attack": 45,
+    "special-defense": 90,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/299_nosepass_sprite.png",
+    "front_shiny": "sprites/299_nosepass_sprite_shiny.png"
+  }
+}

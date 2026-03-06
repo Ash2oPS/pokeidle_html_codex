@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 40,
+  "name_fr": "Grodoudou",
+  "name_en": "wigglytuff",
+  "defensive_types": [
+    "normal",
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": {
+    "id": 39,
+    "name_en": "jigglypuff",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "moon-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 140,
+    "attack": 70,
+    "defense": 45,
+    "special-attack": 85,
+    "special-defense": 50,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/40_wigglytuff_sprite.png",
+    "front_shiny": "sprites/40_wigglytuff_sprite_shiny.png"
+  }
+}

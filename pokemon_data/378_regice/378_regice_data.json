@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 378,
+  "name_fr": "Regice",
+  "name_en": "regice",
+  "defensive_types": [
+    "ice"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 50,
+    "defense": 100,
+    "special-attack": 100,
+    "special-defense": 200,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/378_regice_sprite.png",
+    "front_shiny": "sprites/378_regice_sprite_shiny.png"
+  }
+}

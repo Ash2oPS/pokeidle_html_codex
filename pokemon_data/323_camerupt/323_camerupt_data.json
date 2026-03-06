@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 323,
+  "name_fr": "Camérupt",
+  "name_en": "camerupt",
+  "defensive_types": [
+    "fire",
+    "ground"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 322,
+    "name_en": "numel",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 33
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 100,
+    "defense": 70,
+    "special-attack": 105,
+    "special-defense": 75,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/323_camerupt_sprite.png",
+    "front_shiny": "sprites/323_camerupt_sprite_shiny.png"
+  }
+}

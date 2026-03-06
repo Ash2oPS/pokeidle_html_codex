@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 238,
+  "name_fr": "Lippouti",
+  "name_en": "smoochum",
+  "defensive_types": [
+    "ice",
+    "psychic"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 124,
+      "name_en": "jynx",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 30,
+    "defense": 15,
+    "special-attack": 85,
+    "special-defense": 65,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/238_smoochum_sprite.png",
+    "front_shiny": "sprites/238_smoochum_sprite_shiny.png"
+  }
+}

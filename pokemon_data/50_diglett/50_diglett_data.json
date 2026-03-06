@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 50,
+  "name_fr": "Taupiqueur",
+  "name_en": "diglett",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 51,
+      "name_en": "dugtrio",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 26
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 10,
+    "attack": 55,
+    "defense": 25,
+    "special-attack": 35,
+    "special-defense": 45,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/50_diglett_sprite.png",
+    "front_shiny": "sprites/50_diglett_sprite_shiny.png"
+  }
+}

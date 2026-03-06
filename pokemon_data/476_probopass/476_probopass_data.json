@@ -1,0 +1,59 @@
+{
+  "pokedex_number": 476,
+  "name_fr": "Tarinorme",
+  "name_en": "probopass",
+  "defensive_types": [
+    "rock",
+    "steel"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": {
+    "id": 299,
+    "name_en": "nosepass",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "mt-coronet"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "chargestone-cave"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "kalos-route-13"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "blush-mountain"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "vast-poni-canyon"
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "thunder-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 55,
+    "defense": 145,
+    "special-attack": 75,
+    "special-defense": 150,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/476_probopass_sprite.png",
+    "front_shiny": "sprites/476_probopass_sprite_shiny.png"
+  }
+}

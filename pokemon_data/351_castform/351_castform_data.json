@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 351,
+  "name_fr": "Morphéo",
+  "name_en": "castform",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 70,
+    "defense": 70,
+    "special-attack": 70,
+    "special-defense": 70,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/351_castform_sprite.png",
+    "front_shiny": "sprites/351_castform_sprite_shiny.png"
+  }
+}

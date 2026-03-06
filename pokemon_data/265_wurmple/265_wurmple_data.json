@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 265,
+  "name_fr": "Chenipotte",
+  "name_en": "wurmple",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 266,
+      "name_en": "silcoon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 7
+        }
+      ]
+    },
+    {
+      "id": 268,
+      "name_en": "cascoon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 7
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 45,
+    "defense": 35,
+    "special-attack": 20,
+    "special-defense": 30,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/265_wurmple_sprite.png",
+    "front_shiny": "sprites/265_wurmple_sprite_shiny.png"
+  }
+}

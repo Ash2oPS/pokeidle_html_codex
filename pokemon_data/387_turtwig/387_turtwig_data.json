@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 387,
+  "name_fr": "Tortipouss",
+  "name_en": "turtwig",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 388,
+      "name_en": "grotle",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 68,
+    "defense": 64,
+    "special-attack": 45,
+    "special-defense": 55,
+    "speed": 31
+  },
+  "sprites": {
+    "front": "sprites/387_turtwig_sprite.png",
+    "front_shiny": "sprites/387_turtwig_sprite_shiny.png"
+  }
+}

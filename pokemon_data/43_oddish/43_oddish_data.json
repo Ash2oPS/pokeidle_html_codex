@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 43,
+  "name_fr": "Mystherbe",
+  "name_en": "oddish",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 44,
+      "name_en": "gloom",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 21
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 50,
+    "defense": 55,
+    "special-attack": 75,
+    "special-defense": 65,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/43_oddish_sprite.png",
+    "front_shiny": "sprites/43_oddish_sprite_shiny.png"
+  }
+}

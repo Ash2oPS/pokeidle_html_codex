@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 244,
+  "name_fr": "Entei",
+  "name_en": "entei",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 115,
+    "attack": 115,
+    "defense": 85,
+    "special-attack": 90,
+    "special-defense": 75,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/244_entei_sprite.png",
+    "front_shiny": "sprites/244_entei_sprite_shiny.png"
+  }
+}

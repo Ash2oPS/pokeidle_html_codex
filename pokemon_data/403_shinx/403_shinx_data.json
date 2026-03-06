@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 403,
+  "name_fr": "Lixy",
+  "name_en": "shinx",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 404,
+      "name_en": "luxio",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 15
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 65,
+    "defense": 34,
+    "special-attack": 40,
+    "special-defense": 34,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/403_shinx_sprite.png",
+    "front_shiny": "sprites/403_shinx_sprite_shiny.png"
+  }
+}

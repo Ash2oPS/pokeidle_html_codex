@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 246,
+  "name_fr": "Embrylex",
+  "name_en": "larvitar",
+  "defensive_types": [
+    "rock",
+    "ground"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 247,
+      "name_en": "pupitar",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 64,
+    "defense": 50,
+    "special-attack": 45,
+    "special-defense": 50,
+    "speed": 41
+  },
+  "sprites": {
+    "front": "sprites/246_larvitar_sprite.png",
+    "front_shiny": "sprites/246_larvitar_sprite_shiny.png"
+  }
+}

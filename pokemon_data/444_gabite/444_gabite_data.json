@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 444,
+  "name_fr": "Carmache",
+  "name_en": "gabite",
+  "defensive_types": [
+    "dragon",
+    "ground"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": {
+    "id": 443,
+    "name_en": "gible",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 24
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 445,
+      "name_en": "garchomp",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 48
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 68,
+    "attack": 90,
+    "defense": 65,
+    "special-attack": 50,
+    "special-defense": 55,
+    "speed": 82
+  },
+  "sprites": {
+    "front": "sprites/444_gabite_sprite.png",
+    "front_shiny": "sprites/444_gabite_sprite_shiny.png"
+  }
+}

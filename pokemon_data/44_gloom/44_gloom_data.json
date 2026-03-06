@@ -1,0 +1,57 @@
+{
+  "pokedex_number": 44,
+  "name_fr": "Ortide",
+  "name_en": "gloom",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 43,
+    "name_en": "oddish",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 21
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 45,
+      "name_en": "vileplume",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "leaf-stone"
+        }
+      ]
+    },
+    {
+      "id": 182,
+      "name_en": "bellossom",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "sun-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 65,
+    "defense": 70,
+    "special-attack": 85,
+    "special-defense": 75,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/44_gloom_sprite.png",
+    "front_shiny": "sprites/44_gloom_sprite_shiny.png"
+  }
+}

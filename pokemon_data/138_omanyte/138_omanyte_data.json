@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 138,
+  "name_fr": "Amonita",
+  "name_en": "omanyte",
+  "defensive_types": [
+    "rock",
+    "water"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 139,
+      "name_en": "omastar",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 40,
+    "defense": 100,
+    "special-attack": 90,
+    "special-defense": 55,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/138_omanyte_sprite.png",
+    "front_shiny": "sprites/138_omanyte_sprite_shiny.png"
+  }
+}

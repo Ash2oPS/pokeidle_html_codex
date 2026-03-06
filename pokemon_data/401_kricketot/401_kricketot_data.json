@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 401,
+  "name_fr": "Crikzik",
+  "name_en": "kricketot",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 402,
+      "name_en": "kricketune",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 10
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 37,
+    "attack": 25,
+    "defense": 41,
+    "special-attack": 25,
+    "special-defense": 41,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/401_kricketot_sprite.png",
+    "front_shiny": "sprites/401_kricketot_sprite_shiny.png"
+  }
+}

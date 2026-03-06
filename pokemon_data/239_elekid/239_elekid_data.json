@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 239,
+  "name_fr": "Élekid",
+  "name_en": "elekid",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 125,
+      "name_en": "electabuzz",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 63,
+    "defense": 37,
+    "special-attack": 65,
+    "special-defense": 55,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/239_elekid_sprite.png",
+    "front_shiny": "sprites/239_elekid_sprite_shiny.png"
+  }
+}

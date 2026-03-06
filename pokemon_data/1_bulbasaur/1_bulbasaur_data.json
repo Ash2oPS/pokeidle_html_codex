@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 1,
+  "name_fr": "Bulbizarre",
+  "name_en": "bulbasaur",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 2,
+      "name_en": "ivysaur",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 49,
+    "defense": 49,
+    "special-attack": 65,
+    "special-defense": 65,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/1_bulbasaur_sprite.png",
+    "front_shiny": "sprites/1_bulbasaur_sprite_shiny.png"
+  }
+}

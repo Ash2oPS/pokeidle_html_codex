@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 93,
+  "name_fr": "Spectrum",
+  "name_en": "haunter",
+  "defensive_types": [
+    "ghost",
+    "poison"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": {
+    "id": 92,
+    "name_en": "gastly",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 25
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 94,
+      "name_en": "gengar",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 50,
+    "defense": 45,
+    "special-attack": 115,
+    "special-defense": 55,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/93_haunter_sprite.png",
+    "front_shiny": "sprites/93_haunter_sprite_shiny.png"
+  }
+}

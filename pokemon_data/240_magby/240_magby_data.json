@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 240,
+  "name_fr": "Magby",
+  "name_en": "magby",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 126,
+      "name_en": "magmar",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 75,
+    "defense": 37,
+    "special-attack": 70,
+    "special-defense": 55,
+    "speed": 83
+  },
+  "sprites": {
+    "front": "sprites/240_magby_sprite.png",
+    "front_shiny": "sprites/240_magby_sprite_shiny.png"
+  }
+}

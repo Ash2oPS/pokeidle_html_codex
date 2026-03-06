@@ -1,0 +1,40 @@
+{
+  "pokedex_number": 27,
+  "name_fr": "Sabelette",
+  "name_en": "sandshrew",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 28,
+      "name_en": "sandslash",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 22
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "ice-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 75,
+    "defense": 85,
+    "special-attack": 20,
+    "special-defense": 30,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/27_sandshrew_sprite.png",
+    "front_shiny": "sprites/27_sandshrew_sprite_shiny.png"
+  }
+}

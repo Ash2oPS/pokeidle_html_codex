@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 221,
+  "name_fr": "Cochignon",
+  "name_en": "piloswine",
+  "defensive_types": [
+    "ice",
+    "ground"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": {
+    "id": 220,
+    "name_en": "swinub",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 33
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 473,
+      "name_en": "mamoswine",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "known_move": "ancient-power"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 80,
+    "special-attack": 60,
+    "special-defense": 60,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/221_piloswine_sprite.png",
+    "front_shiny": "sprites/221_piloswine_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 423,
+  "name_fr": "Tritosor",
+  "name_en": "gastrodon",
+  "defensive_types": [
+    "water",
+    "ground"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 422,
+    "name_en": "shellos",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 111,
+    "attack": 83,
+    "defense": 68,
+    "special-attack": 92,
+    "special-defense": 82,
+    "speed": 39
+  },
+  "sprites": {
+    "front": "sprites/423_gastrodon_sprite.png",
+    "front_shiny": "sprites/423_gastrodon_sprite_shiny.png"
+  }
+}

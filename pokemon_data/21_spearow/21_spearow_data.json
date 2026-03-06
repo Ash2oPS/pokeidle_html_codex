@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 21,
+  "name_fr": "Piafabec",
+  "name_en": "spearow",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 22,
+      "name_en": "fearow",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 60,
+    "defense": 30,
+    "special-attack": 31,
+    "special-defense": 31,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/21_spearow_sprite.png",
+    "front_shiny": "sprites/21_spearow_sprite_shiny.png"
+  }
+}

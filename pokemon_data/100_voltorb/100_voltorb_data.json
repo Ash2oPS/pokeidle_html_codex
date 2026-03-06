@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 100,
+  "name_fr": "Voltorbe",
+  "name_en": "voltorb",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 101,
+      "name_en": "electrode",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 30,
+    "defense": 50,
+    "special-attack": 55,
+    "special-defense": 55,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/100_voltorb_sprite.png",
+    "front_shiny": "sprites/100_voltorb_sprite_shiny.png"
+  }
+}

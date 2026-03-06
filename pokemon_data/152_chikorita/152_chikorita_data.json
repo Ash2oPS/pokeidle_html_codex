@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 152,
+  "name_fr": "Germignon",
+  "name_en": "chikorita",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 153,
+      "name_en": "bayleef",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 49,
+    "defense": 65,
+    "special-attack": 49,
+    "special-defense": 65,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/152_chikorita_sprite.png",
+    "front_shiny": "sprites/152_chikorita_sprite_shiny.png"
+  }
+}

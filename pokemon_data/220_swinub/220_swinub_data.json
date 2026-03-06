@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 220,
+  "name_fr": "Marcacrin",
+  "name_en": "swinub",
+  "defensive_types": [
+    "ice",
+    "ground"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 221,
+      "name_en": "piloswine",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 33
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 50,
+    "defense": 40,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/220_swinub_sprite.png",
+    "front_shiny": "sprites/220_swinub_sprite_shiny.png"
+  }
+}

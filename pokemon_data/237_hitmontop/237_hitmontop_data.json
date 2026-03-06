@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 237,
+  "name_fr": "Kapoera",
+  "name_en": "hitmontop",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 236,
+    "name_en": "tyrogue",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 20,
+        "relative_physical_stats": "attack_eq_defense"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 95,
+    "defense": 95,
+    "special-attack": 35,
+    "special-defense": 110,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/237_hitmontop_sprite.png",
+    "front_shiny": "sprites/237_hitmontop_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 417,
+  "name_fr": "Pachirisu",
+  "name_en": "pachirisu",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 45,
+    "defense": 70,
+    "special-attack": 45,
+    "special-defense": 90,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/417_pachirisu_sprite.png",
+    "front_shiny": "sprites/417_pachirisu_sprite_shiny.png"
+  }
+}

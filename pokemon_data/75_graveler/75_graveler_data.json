@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 75,
+  "name_fr": "Gravalanch",
+  "name_en": "graveler",
+  "defensive_types": [
+    "rock",
+    "ground"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": {
+    "id": 74,
+    "name_en": "geodude",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 25
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 76,
+      "name_en": "golem",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 95,
+    "defense": 115,
+    "special-attack": 45,
+    "special-defense": 45,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/75_graveler_sprite.png",
+    "front_shiny": "sprites/75_graveler_sprite_shiny.png"
+  }
+}

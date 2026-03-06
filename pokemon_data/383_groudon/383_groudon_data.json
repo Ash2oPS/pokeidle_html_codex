@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 383,
+  "name_fr": "Groudon",
+  "name_en": "groudon",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 150,
+    "defense": 140,
+    "special-attack": 100,
+    "special-defense": 90,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/383_groudon_sprite.png",
+    "front_shiny": "sprites/383_groudon_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 482,
+  "name_fr": "Créfadet",
+  "name_en": "azelf",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 125,
+    "defense": 70,
+    "special-attack": 125,
+    "special-defense": 70,
+    "speed": 115
+  },
+  "sprites": {
+    "front": "sprites/482_azelf_sprite.png",
+    "front_shiny": "sprites/482_azelf_sprite_shiny.png"
+  }
+}

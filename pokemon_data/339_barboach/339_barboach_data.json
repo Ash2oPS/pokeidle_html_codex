@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 339,
+  "name_fr": "Barloche",
+  "name_en": "barboach",
+  "defensive_types": [
+    "water",
+    "ground"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 340,
+      "name_en": "whiscash",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 48,
+    "defense": 43,
+    "special-attack": 46,
+    "special-defense": 41,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/339_barboach_sprite.png",
+    "front_shiny": "sprites/339_barboach_sprite_shiny.png"
+  }
+}

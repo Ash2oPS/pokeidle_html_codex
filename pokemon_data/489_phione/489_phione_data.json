@@ -1,0 +1,29 @@
+{
+  "pokedex_number": 489,
+  "name_fr": "Phione",
+  "name_en": "phione",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 490,
+      "name_en": "manaphy",
+      "evolution_methods": []
+    }
+  ],
+  "stats": {
+    "hp": 80,
+    "attack": 80,
+    "defense": 80,
+    "special-attack": 80,
+    "special-defense": 80,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/489_phione_sprite.png",
+    "front_shiny": "sprites/489_phione_sprite_shiny.png"
+  }
+}

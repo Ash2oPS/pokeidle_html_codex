@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 51,
+  "name_fr": "Triopikeur",
+  "name_en": "dugtrio",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 50,
+    "name_en": "diglett",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 26
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 35,
+    "attack": 100,
+    "defense": 50,
+    "special-attack": 50,
+    "special-defense": 70,
+    "speed": 120
+  },
+  "sprites": {
+    "front": "sprites/51_dugtrio_sprite.png",
+    "front_shiny": "sprites/51_dugtrio_sprite_shiny.png"
+  }
+}

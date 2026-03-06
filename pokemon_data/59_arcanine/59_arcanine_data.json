@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 59,
+  "name_fr": "Arcanin",
+  "name_en": "arcanine",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 58,
+    "name_en": "growlithe",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "fire-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 110,
+    "defense": 80,
+    "special-attack": 100,
+    "special-defense": 80,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/59_arcanine_sprite.png",
+    "front_shiny": "sprites/59_arcanine_sprite_shiny.png"
+  }
+}

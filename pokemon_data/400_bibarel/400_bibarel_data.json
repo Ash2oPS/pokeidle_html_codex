@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 400,
+  "name_fr": "Castorno",
+  "name_en": "bibarel",
+  "defensive_types": [
+    "normal",
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 399,
+    "name_en": "bidoof",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 15
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 79,
+    "attack": 85,
+    "defense": 60,
+    "special-attack": 55,
+    "special-defense": 60,
+    "speed": 71
+  },
+  "sprites": {
+    "front": "sprites/400_bibarel_sprite.png",
+    "front_shiny": "sprites/400_bibarel_sprite_shiny.png"
+  }
+}

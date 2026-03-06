@@ -1,0 +1,60 @@
+{
+  "pokedex_number": 236,
+  "name_fr": "Debugant",
+  "name_en": "tyrogue",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 106,
+      "name_en": "hitmonlee",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20,
+          "relative_physical_stats": "attack_gt_defense"
+        }
+      ]
+    },
+    {
+      "id": 107,
+      "name_en": "hitmonchan",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20,
+          "relative_physical_stats": "attack_lt_defense"
+        }
+      ]
+    },
+    {
+      "id": 237,
+      "name_en": "hitmontop",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20,
+          "relative_physical_stats": "attack_eq_defense"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 35,
+    "defense": 35,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/236_tyrogue_sprite.png",
+    "front_shiny": "sprites/236_tyrogue_sprite_shiny.png"
+  }
+}

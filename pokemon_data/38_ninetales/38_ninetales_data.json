@@ -1,0 +1,38 @@
+{
+  "pokedex_number": 38,
+  "name_fr": "Feunard",
+  "name_en": "ninetales",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 37,
+    "name_en": "vulpix",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "fire-stone"
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "ice-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 73,
+    "attack": 76,
+    "defense": 75,
+    "special-attack": 81,
+    "special-defense": 100,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/38_ninetales_sprite.png",
+    "front_shiny": "sprites/38_ninetales_sprite_shiny.png"
+  }
+}

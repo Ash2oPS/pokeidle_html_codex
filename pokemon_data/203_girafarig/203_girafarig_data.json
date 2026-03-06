@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 203,
+  "name_fr": "Girafarig",
+  "name_en": "girafarig",
+  "defensive_types": [
+    "normal",
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 80,
+    "defense": 65,
+    "special-attack": 90,
+    "special-defense": 65,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/203_girafarig_sprite.png",
+    "front_shiny": "sprites/203_girafarig_sprite_shiny.png"
+  }
+}

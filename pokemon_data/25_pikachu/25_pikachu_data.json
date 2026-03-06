@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 25,
+  "name_fr": "Pikachu",
+  "name_en": "pikachu",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 172,
+    "name_en": "pichu",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 220
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 26,
+      "name_en": "raichu",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "thunder-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 55,
+    "defense": 40,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/25_pikachu_sprite.png",
+    "front_shiny": "sprites/25_pikachu_sprite_shiny.png"
+  }
+}

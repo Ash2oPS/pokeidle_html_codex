@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 399,
+  "name_fr": "Keunotor",
+  "name_en": "bidoof",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 400,
+      "name_en": "bibarel",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 15
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 59,
+    "attack": 45,
+    "defense": 40,
+    "special-attack": 35,
+    "special-defense": 40,
+    "speed": 31
+  },
+  "sprites": {
+    "front": "sprites/399_bidoof_sprite.png",
+    "front_shiny": "sprites/399_bidoof_sprite_shiny.png"
+  }
+}

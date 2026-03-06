@@ -1,0 +1,32 @@
+{
+  "pokedex_number": 68,
+  "name_fr": "Mackogneur",
+  "name_en": "machamp",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 67,
+    "name_en": "machoke",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 130,
+    "defense": 80,
+    "special-attack": 65,
+    "special-defense": 85,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/68_machamp_sprite.png",
+    "front_shiny": "sprites/68_machamp_sprite_shiny.png"
+  }
+}

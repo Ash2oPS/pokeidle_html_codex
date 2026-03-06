@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 172,
+  "name_fr": "Pichu",
+  "name_en": "pichu",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 25,
+      "name_en": "pikachu",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 220
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 20,
+    "attack": 40,
+    "defense": 15,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/172_pichu_sprite.png",
+    "front_shiny": "sprites/172_pichu_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 88,
+  "name_fr": "Tadmorv",
+  "name_en": "grimer",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 89,
+      "name_en": "muk",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 38
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 80,
+    "attack": 80,
+    "defense": 50,
+    "special-attack": 40,
+    "special-defense": 50,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/88_grimer_sprite.png",
+    "front_shiny": "sprites/88_grimer_sprite_shiny.png"
+  }
+}

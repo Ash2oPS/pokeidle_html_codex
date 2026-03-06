@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 39,
+  "name_fr": "Rondoudou",
+  "name_en": "jigglypuff",
+  "defensive_types": [
+    "normal",
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": {
+    "id": 174,
+    "name_en": "igglybuff",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 40,
+      "name_en": "wigglytuff",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "moon-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 115,
+    "attack": 45,
+    "defense": 20,
+    "special-attack": 45,
+    "special-defense": 25,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/39_jigglypuff_sprite.png",
+    "front_shiny": "sprites/39_jigglypuff_sprite_shiny.png"
+  }
+}

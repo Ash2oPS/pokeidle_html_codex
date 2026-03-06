@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 492,
+  "name_fr": "Shaymin",
+  "name_en": "shaymin-land",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 100,
+    "special-attack": 100,
+    "special-defense": 100,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/492_shaymin-land_sprite.png",
+    "front_shiny": "sprites/492_shaymin-land_sprite_shiny.png"
+  }
+}

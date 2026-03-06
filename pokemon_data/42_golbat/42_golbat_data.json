@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 42,
+  "name_fr": "Nosferalto",
+  "name_en": "golbat",
+  "defensive_types": [
+    "poison",
+    "flying"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 41,
+    "name_en": "zubat",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 22
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 169,
+      "name_en": "crobat",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 75,
+    "attack": 80,
+    "defense": 70,
+    "special-attack": 65,
+    "special-defense": 75,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/42_golbat_sprite.png",
+    "front_shiny": "sprites/42_golbat_sprite_shiny.png"
+  }
+}

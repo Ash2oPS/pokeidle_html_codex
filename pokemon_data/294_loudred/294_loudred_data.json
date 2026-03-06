@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 294,
+  "name_fr": "Ramboum",
+  "name_en": "loudred",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 293,
+    "name_en": "whismur",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 20
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 295,
+      "name_en": "exploud",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 84,
+    "attack": 71,
+    "defense": 43,
+    "special-attack": 71,
+    "special-defense": 43,
+    "speed": 48
+  },
+  "sprites": {
+    "front": "sprites/294_loudred_sprite.png",
+    "front_shiny": "sprites/294_loudred_sprite_shiny.png"
+  }
+}

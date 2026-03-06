@@ -1,0 +1,41 @@
+{
+  "pokedex_number": 19,
+  "name_fr": "Rattata",
+  "name_en": "rattata",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20,
+          "time_of_day": "night"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 56,
+    "defense": 35,
+    "special-attack": 25,
+    "special-defense": 35,
+    "speed": 72
+  },
+  "sprites": {
+    "front": "sprites/19_rattata_sprite.png",
+    "front_shiny": "sprites/19_rattata_sprite_shiny.png"
+  }
+}

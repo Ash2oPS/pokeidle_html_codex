@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 131,
+  "name_fr": "Lokhlass",
+  "name_en": "lapras",
+  "defensive_types": [
+    "water",
+    "ice"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 130,
+    "attack": 85,
+    "defense": 80,
+    "special-attack": 85,
+    "special-defense": 95,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/131_lapras_sprite.png",
+    "front_shiny": "sprites/131_lapras_sprite_shiny.png"
+  }
+}

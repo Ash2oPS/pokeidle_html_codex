@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 447,
+  "name_fr": "Riolu",
+  "name_en": "riolu",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 448,
+      "name_en": "lucario",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160,
+          "time_of_day": "day"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 70,
+    "defense": 40,
+    "special-attack": 35,
+    "special-defense": 40,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/447_riolu_sprite.png",
+    "front_shiny": "sprites/447_riolu_sprite_shiny.png"
+  }
+}

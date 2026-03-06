@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 183,
+  "name_fr": "Marill",
+  "name_en": "marill",
+  "defensive_types": [
+    "water",
+    "fairy"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 298,
+    "name_en": "azurill",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 184,
+      "name_en": "azumarill",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 20,
+    "defense": 50,
+    "special-attack": 20,
+    "special-defense": 50,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/183_marill_sprite.png",
+    "front_shiny": "sprites/183_marill_sprite_shiny.png"
+  }
+}

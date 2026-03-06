@@ -1,0 +1,40 @@
+{
+  "pokedex_number": 349,
+  "name_fr": "Barpau",
+  "name_en": "feebas",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 350,
+      "name_en": "milotic",
+      "evolution_methods": [
+        {
+          "evolution_type": "beauty",
+          "trigger": "level-up",
+          "min_beauty": 170
+        },
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "prism-scale"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 20,
+    "attack": 15,
+    "defense": 20,
+    "special-attack": 10,
+    "special-defense": 55,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/349_feebas_sprite.png",
+    "front_shiny": "sprites/349_feebas_sprite_shiny.png"
+  }
+}

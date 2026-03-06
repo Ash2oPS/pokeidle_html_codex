@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 78,
+  "name_fr": "Galopa",
+  "name_en": "rapidash",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 77,
+    "name_en": "ponyta",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 40
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 100,
+    "defense": 70,
+    "special-attack": 80,
+    "special-defense": 80,
+    "speed": 105
+  },
+  "sprites": {
+    "front": "sprites/78_rapidash_sprite.png",
+    "front_shiny": "sprites/78_rapidash_sprite_shiny.png"
+  }
+}

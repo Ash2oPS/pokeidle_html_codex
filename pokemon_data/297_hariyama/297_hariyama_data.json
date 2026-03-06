@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 297,
+  "name_fr": "Hariyama",
+  "name_en": "hariyama",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 296,
+    "name_en": "makuhita",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 24
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 144,
+    "attack": 120,
+    "defense": 60,
+    "special-attack": 40,
+    "special-defense": 60,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/297_hariyama_sprite.png",
+    "front_shiny": "sprites/297_hariyama_sprite_shiny.png"
+  }
+}

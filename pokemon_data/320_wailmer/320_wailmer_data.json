@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 320,
+  "name_fr": "Wailmer",
+  "name_en": "wailmer",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 321,
+      "name_en": "wailord",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 130,
+    "attack": 70,
+    "defense": 35,
+    "special-attack": 70,
+    "special-defense": 35,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/320_wailmer_sprite.png",
+    "front_shiny": "sprites/320_wailmer_sprite_shiny.png"
+  }
+}

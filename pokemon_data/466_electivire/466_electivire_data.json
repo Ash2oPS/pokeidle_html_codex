@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 466,
+  "name_fr": "Élekable",
+  "name_en": "electivire",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 125,
+    "name_en": "electabuzz",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "electirizer"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 123,
+    "defense": 67,
+    "special-attack": 95,
+    "special-defense": 85,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/466_electivire_sprite.png",
+    "front_shiny": "sprites/466_electivire_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 66,
+  "name_fr": "Machoc",
+  "name_en": "machop",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 67,
+      "name_en": "machoke",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 28
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 80,
+    "defense": 50,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/66_machop_sprite.png",
+    "front_shiny": "sprites/66_machop_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 298,
+  "name_fr": "Azurill",
+  "name_en": "azurill",
+  "defensive_types": [
+    "normal",
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 183,
+      "name_en": "marill",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 20,
+    "defense": 40,
+    "special-attack": 20,
+    "special-defense": 40,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/298_azurill_sprite.png",
+    "front_shiny": "sprites/298_azurill_sprite_shiny.png"
+  }
+}

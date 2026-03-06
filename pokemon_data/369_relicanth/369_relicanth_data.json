@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 369,
+  "name_fr": "Relicanth",
+  "name_en": "relicanth",
+  "defensive_types": [
+    "water",
+    "rock"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 90,
+    "defense": 130,
+    "special-attack": 45,
+    "special-defense": 65,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/369_relicanth_sprite.png",
+    "front_shiny": "sprites/369_relicanth_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 363,
+  "name_fr": "Obalie",
+  "name_en": "spheal",
+  "defensive_types": [
+    "ice",
+    "water"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 364,
+      "name_en": "sealeo",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 40,
+    "defense": 50,
+    "special-attack": 55,
+    "special-defense": 50,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/363_spheal_sprite.png",
+    "front_shiny": "sprites/363_spheal_sprite_shiny.png"
+  }
+}

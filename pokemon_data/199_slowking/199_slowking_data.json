@@ -1,0 +1,39 @@
+{
+  "pokedex_number": 199,
+  "name_fr": "Roigada",
+  "name_en": "slowking",
+  "defensive_types": [
+    "water",
+    "psychic"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 79,
+    "name_en": "slowpoke",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "kings-rock"
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "galarica-wreath"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 75,
+    "defense": 80,
+    "special-attack": 100,
+    "special-defense": 110,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/199_slowking_sprite.png",
+    "front_shiny": "sprites/199_slowking_sprite_shiny.png"
+  }
+}

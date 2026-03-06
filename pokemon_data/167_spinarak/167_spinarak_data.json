@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 167,
+  "name_fr": "Mimigal",
+  "name_en": "spinarak",
+  "defensive_types": [
+    "bug",
+    "poison"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 168,
+      "name_en": "ariados",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 22
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 60,
+    "defense": 40,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/167_spinarak_sprite.png",
+    "front_shiny": "sprites/167_spinarak_sprite_shiny.png"
+  }
+}

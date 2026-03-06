@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 429,
+  "name_fr": "Magirêve",
+  "name_en": "mismagius",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": {
+    "id": 200,
+    "name_en": "misdreavus",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "dusk-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 60,
+    "defense": 60,
+    "special-attack": 105,
+    "special-defense": 105,
+    "speed": 105
+  },
+  "sprites": {
+    "front": "sprites/429_mismagius_sprite.png",
+    "front_shiny": "sprites/429_mismagius_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 84,
+  "name_fr": "Doduo",
+  "name_en": "doduo",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 85,
+      "name_en": "dodrio",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 31
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 85,
+    "defense": 45,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 75
+  },
+  "sprites": {
+    "front": "sprites/84_doduo_sprite.png",
+    "front_shiny": "sprites/84_doduo_sprite_shiny.png"
+  }
+}

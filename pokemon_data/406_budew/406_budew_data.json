@@ -1,0 +1,37 @@
+{
+  "pokedex_number": 406,
+  "name_fr": "Rozbouton",
+  "name_en": "budew",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 315,
+      "name_en": "roselia",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160,
+          "time_of_day": "day"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 30,
+    "defense": 35,
+    "special-attack": 50,
+    "special-defense": 70,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/406_budew_sprite.png",
+    "front_shiny": "sprites/406_budew_sprite_shiny.png"
+  }
+}

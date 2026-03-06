@@ -1,0 +1,59 @@
+{
+  "pokedex_number": 462,
+  "name_fr": "Magnézone",
+  "name_en": "magnezone",
+  "defensive_types": [
+    "electric",
+    "steel"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 82,
+    "name_en": "magneton",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "mt-coronet"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "chargestone-cave"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "kalos-route-13"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "blush-mountain"
+      },
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "location": "vast-poni-canyon"
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "thunder-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 70,
+    "defense": 115,
+    "special-attack": 130,
+    "special-defense": 90,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/462_magnezone_sprite.png",
+    "front_shiny": "sprites/462_magnezone_sprite_shiny.png"
+  }
+}

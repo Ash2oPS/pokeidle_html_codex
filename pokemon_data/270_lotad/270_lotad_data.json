@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 270,
+  "name_fr": "Nénupiot",
+  "name_en": "lotad",
+  "defensive_types": [
+    "water",
+    "grass"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 271,
+      "name_en": "lombre",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 14
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 30,
+    "defense": 30,
+    "special-attack": 40,
+    "special-defense": 50,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/270_lotad_sprite.png",
+    "front_shiny": "sprites/270_lotad_sprite_shiny.png"
+  }
+}

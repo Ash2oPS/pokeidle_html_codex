@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 264,
+  "name_fr": "Linéon",
+  "name_en": "linoone",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 263,
+    "name_en": "zigzagoon",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 20
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 78,
+    "attack": 70,
+    "defense": 61,
+    "special-attack": 50,
+    "special-defense": 61,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/264_linoone_sprite.png",
+    "front_shiny": "sprites/264_linoone_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 472,
+  "name_fr": "Scorvol",
+  "name_en": "gliscor",
+  "defensive_types": [
+    "ground",
+    "flying"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 207,
+    "name_en": "gligar",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "held_item": "razor-fang",
+        "time_of_day": "night"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 95,
+    "defense": 125,
+    "special-attack": 45,
+    "special-defense": 75,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/472_gliscor_sprite.png",
+    "front_shiny": "sprites/472_gliscor_sprite_shiny.png"
+  }
+}

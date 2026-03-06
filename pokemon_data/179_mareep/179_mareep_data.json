@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 179,
+  "name_fr": "Wattouat",
+  "name_en": "mareep",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 180,
+      "name_en": "flaaffy",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 15
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 40,
+    "defense": 40,
+    "special-attack": 65,
+    "special-defense": 45,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/179_mareep_sprite.png",
+    "front_shiny": "sprites/179_mareep_sprite_shiny.png"
+  }
+}

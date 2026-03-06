@@ -1,0 +1,40 @@
+{
+  "pokedex_number": 37,
+  "name_fr": "Goupix",
+  "name_en": "vulpix",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 38,
+      "name_en": "ninetales",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "fire-stone"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "ice-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 38,
+    "attack": 41,
+    "defense": 40,
+    "special-attack": 50,
+    "special-defense": 65,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/37_vulpix_sprite.png",
+    "front_shiny": "sprites/37_vulpix_sprite_shiny.png"
+  }
+}

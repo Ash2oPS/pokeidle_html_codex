@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 177,
+  "name_fr": "Natu",
+  "name_en": "natu",
+  "defensive_types": [
+    "psychic",
+    "flying"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 178,
+      "name_en": "xatu",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 50,
+    "defense": 45,
+    "special-attack": 70,
+    "special-defense": 45,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/177_natu_sprite.png",
+    "front_shiny": "sprites/177_natu_sprite_shiny.png"
+  }
+}

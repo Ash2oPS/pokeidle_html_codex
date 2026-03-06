@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 433,
+  "name_fr": "Korillon",
+  "name_en": "chingling",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 358,
+      "name_en": "chimecho",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 220,
+          "time_of_day": "night"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 30,
+    "defense": 50,
+    "special-attack": 65,
+    "special-defense": 50,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/433_chingling_sprite.png",
+    "front_shiny": "sprites/433_chingling_sprite_shiny.png"
+  }
+}

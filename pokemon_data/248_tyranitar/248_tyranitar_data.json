@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 248,
+  "name_fr": "Tyranocif",
+  "name_en": "tyranitar",
+  "defensive_types": [
+    "rock",
+    "dark"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": {
+    "id": 247,
+    "name_en": "pupitar",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 55
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 134,
+    "defense": 110,
+    "special-attack": 95,
+    "special-defense": 100,
+    "speed": 61
+  },
+  "sprites": {
+    "front": "sprites/248_tyranitar_sprite.png",
+    "front_shiny": "sprites/248_tyranitar_sprite_shiny.png"
+  }
+}

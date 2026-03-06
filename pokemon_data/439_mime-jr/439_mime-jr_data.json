@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 439,
+  "name_fr": "Mime Jr.",
+  "name_en": "mime-jr",
+  "defensive_types": [
+    "psychic",
+    "fairy"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 122,
+      "name_en": "mr-mime",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "known_move": "mimic"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 20,
+    "attack": 25,
+    "defense": 45,
+    "special-attack": 70,
+    "special-defense": 90,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/439_mime-jr_sprite.png",
+    "front_shiny": "sprites/439_mime-jr_sprite_shiny.png"
+  }
+}

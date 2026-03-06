@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 60,
+  "name_fr": "Ptitard",
+  "name_en": "poliwag",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 61,
+      "name_en": "poliwhirl",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 50,
+    "defense": 40,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/60_poliwag_sprite.png",
+    "front_shiny": "sprites/60_poliwag_sprite_shiny.png"
+  }
+}

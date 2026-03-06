@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 249,
+  "name_fr": "Lugia",
+  "name_en": "lugia",
+  "defensive_types": [
+    "psychic",
+    "flying"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 106,
+    "attack": 90,
+    "defense": 130,
+    "special-attack": 90,
+    "special-defense": 154,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/249_lugia_sprite.png",
+    "front_shiny": "sprites/249_lugia_sprite_shiny.png"
+  }
+}

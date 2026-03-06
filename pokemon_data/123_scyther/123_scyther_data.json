@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 123,
+  "name_fr": "Insécateur",
+  "name_en": "scyther",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 212,
+      "name_en": "scizor",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "metal-coat"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 110,
+    "defense": 80,
+    "special-attack": 55,
+    "special-defense": 80,
+    "speed": 105
+  },
+  "sprites": {
+    "front": "sprites/123_scyther_sprite.png",
+    "front_shiny": "sprites/123_scyther_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 360,
+  "name_fr": "Okéoké",
+  "name_en": "wynaut",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 202,
+      "name_en": "wobbuffet",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 15
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 95,
+    "attack": 23,
+    "defense": 48,
+    "special-attack": 23,
+    "special-defense": 48,
+    "speed": 23
+  },
+  "sprites": {
+    "front": "sprites/360_wynaut_sprite.png",
+    "front_shiny": "sprites/360_wynaut_sprite_shiny.png"
+  }
+}

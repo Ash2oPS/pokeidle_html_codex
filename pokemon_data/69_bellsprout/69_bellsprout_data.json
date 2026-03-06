@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 69,
+  "name_fr": "Chétiflor",
+  "name_en": "bellsprout",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 70,
+      "name_en": "weepinbell",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 21
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 75,
+    "defense": 35,
+    "special-attack": 70,
+    "special-defense": 30,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/69_bellsprout_sprite.png",
+    "front_shiny": "sprites/69_bellsprout_sprite_shiny.png"
+  }
+}

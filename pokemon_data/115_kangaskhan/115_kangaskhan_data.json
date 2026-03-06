@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 115,
+  "name_fr": "Kangourex",
+  "name_en": "kangaskhan",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 105,
+    "attack": 95,
+    "defense": 80,
+    "special-attack": 40,
+    "special-defense": 80,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/115_kangaskhan_sprite.png",
+    "front_shiny": "sprites/115_kangaskhan_sprite_shiny.png"
+  }
+}

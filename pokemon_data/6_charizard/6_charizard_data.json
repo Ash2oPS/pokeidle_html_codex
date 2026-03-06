@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 6,
+  "name_fr": "Dracaufeu",
+  "name_en": "charizard",
+  "defensive_types": [
+    "fire",
+    "flying"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 5,
+    "name_en": "charmeleon",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 36
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 78,
+    "attack": 84,
+    "defense": 78,
+    "special-attack": 109,
+    "special-defense": 85,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/6_charizard_sprite.png",
+    "front_shiny": "sprites/6_charizard_sprite_shiny.png"
+  }
+}

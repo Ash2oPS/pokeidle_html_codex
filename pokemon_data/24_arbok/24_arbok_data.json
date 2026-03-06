@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 24,
+  "name_fr": "Arbok",
+  "name_en": "arbok",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 23,
+    "name_en": "ekans",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 22
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 95,
+    "defense": 69,
+    "special-attack": 65,
+    "special-defense": 79,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/24_arbok_sprite.png",
+    "front_shiny": "sprites/24_arbok_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 443,
+  "name_fr": "Griknot",
+  "name_en": "gible",
+  "defensive_types": [
+    "dragon",
+    "ground"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 444,
+      "name_en": "gabite",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 24
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 58,
+    "attack": 70,
+    "defense": 45,
+    "special-attack": 40,
+    "special-defense": 45,
+    "speed": 42
+  },
+  "sprites": {
+    "front": "sprites/443_gible_sprite.png",
+    "front_shiny": "sprites/443_gible_sprite_shiny.png"
+  }
+}

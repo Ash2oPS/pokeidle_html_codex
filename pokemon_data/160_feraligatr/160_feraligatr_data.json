@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 160,
+  "name_fr": "Aligatueur",
+  "name_en": "feraligatr",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 159,
+    "name_en": "croconaw",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 85,
+    "attack": 105,
+    "defense": 100,
+    "special-attack": 79,
+    "special-defense": 83,
+    "speed": 78
+  },
+  "sprites": {
+    "front": "sprites/160_feraligatr_sprite.png",
+    "front_shiny": "sprites/160_feraligatr_sprite_shiny.png"
+  }
+}

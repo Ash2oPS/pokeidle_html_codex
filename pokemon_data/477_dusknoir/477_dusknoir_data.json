@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 477,
+  "name_fr": "Noctunoir",
+  "name_en": "dusknoir",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": {
+    "id": 356,
+    "name_en": "dusclops",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "reaper-cloth"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 45,
+    "attack": 100,
+    "defense": 135,
+    "special-attack": 65,
+    "special-defense": 135,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/477_dusknoir_sprite.png",
+    "front_shiny": "sprites/477_dusknoir_sprite_shiny.png"
+  }
+}

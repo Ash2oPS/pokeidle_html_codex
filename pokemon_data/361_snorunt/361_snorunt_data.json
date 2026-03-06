@@ -1,0 +1,47 @@
+{
+  "pokedex_number": 361,
+  "name_fr": "Stalgamin",
+  "name_en": "snorunt",
+  "defensive_types": [
+    "ice"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 362,
+      "name_en": "glalie",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 42
+        }
+      ]
+    },
+    {
+      "id": 478,
+      "name_en": "froslass",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "dawn-stone",
+          "gender": "female"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 50,
+    "defense": 50,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/361_snorunt_sprite.png",
+    "front_shiny": "sprites/361_snorunt_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 410,
+  "name_fr": "Dinoclier",
+  "name_en": "shieldon",
+  "defensive_types": [
+    "rock",
+    "steel"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 411,
+      "name_en": "bastiodon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 42,
+    "defense": 118,
+    "special-attack": 42,
+    "special-defense": 88,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/410_shieldon_sprite.png",
+    "front_shiny": "sprites/410_shieldon_sprite_shiny.png"
+  }
+}

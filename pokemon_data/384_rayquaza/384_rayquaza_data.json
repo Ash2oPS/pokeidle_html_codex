@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 384,
+  "name_fr": "Rayquaza",
+  "name_en": "rayquaza",
+  "defensive_types": [
+    "dragon",
+    "flying"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 105,
+    "attack": 150,
+    "defense": 90,
+    "special-attack": 150,
+    "special-defense": 90,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/384_rayquaza_sprite.png",
+    "front_shiny": "sprites/384_rayquaza_sprite_shiny.png"
+  }
+}

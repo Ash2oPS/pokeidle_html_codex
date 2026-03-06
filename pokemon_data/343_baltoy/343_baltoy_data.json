@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 343,
+  "name_fr": "Balbuto",
+  "name_en": "baltoy",
+  "defensive_types": [
+    "ground",
+    "psychic"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 344,
+      "name_en": "claydol",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 40,
+    "defense": 55,
+    "special-attack": 40,
+    "special-defense": 70,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/343_baltoy_sprite.png",
+    "front_shiny": "sprites/343_baltoy_sprite_shiny.png"
+  }
+}

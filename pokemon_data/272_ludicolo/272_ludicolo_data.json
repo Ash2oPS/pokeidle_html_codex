@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 272,
+  "name_fr": "Ludicolo",
+  "name_en": "ludicolo",
+  "defensive_types": [
+    "water",
+    "grass"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 271,
+    "name_en": "lombre",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "water-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 70,
+    "defense": 70,
+    "special-attack": 90,
+    "special-defense": 100,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/272_ludicolo_sprite.png",
+    "front_shiny": "sprites/272_ludicolo_sprite_shiny.png"
+  }
+}

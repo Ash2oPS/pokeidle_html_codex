@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 132,
+  "name_fr": "Métamorph",
+  "name_en": "ditto",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 48,
+    "attack": 48,
+    "defense": 48,
+    "special-attack": 48,
+    "special-defense": 48,
+    "speed": 48
+  },
+  "sprites": {
+    "front": "sprites/132_ditto_sprite.png",
+    "front_shiny": "sprites/132_ditto_sprite_shiny.png"
+  }
+}

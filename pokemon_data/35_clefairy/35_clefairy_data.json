@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 35,
+  "name_fr": "Mélofée",
+  "name_en": "clefairy",
+  "defensive_types": [
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": {
+    "id": 173,
+    "name_en": "cleffa",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 36,
+      "name_en": "clefable",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "moon-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 45,
+    "defense": 48,
+    "special-attack": 60,
+    "special-defense": 65,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/35_clefairy_sprite.png",
+    "front_shiny": "sprites/35_clefairy_sprite_shiny.png"
+  }
+}

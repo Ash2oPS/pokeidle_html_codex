@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 409,
+  "name_fr": "Charkos",
+  "name_en": "rampardos",
+  "defensive_types": [
+    "rock"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": {
+    "id": 408,
+    "name_en": "cranidos",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 97,
+    "attack": 165,
+    "defense": 60,
+    "special-attack": 65,
+    "special-defense": 50,
+    "speed": 58
+  },
+  "sprites": {
+    "front": "sprites/409_rampardos_sprite.png",
+    "front_shiny": "sprites/409_rampardos_sprite_shiny.png"
+  }
+}

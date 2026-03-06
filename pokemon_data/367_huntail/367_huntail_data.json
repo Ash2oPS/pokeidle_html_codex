@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 367,
+  "name_fr": "Serpang",
+  "name_en": "huntail",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 366,
+    "name_en": "clamperl",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "deep-sea-tooth"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 55,
+    "attack": 104,
+    "defense": 105,
+    "special-attack": 94,
+    "special-defense": 75,
+    "speed": 52
+  },
+  "sprites": {
+    "front": "sprites/367_huntail_sprite.png",
+    "front_shiny": "sprites/367_huntail_sprite_shiny.png"
+  }
+}

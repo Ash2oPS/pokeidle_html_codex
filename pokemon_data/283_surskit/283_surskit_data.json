@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 283,
+  "name_fr": "Arakdo",
+  "name_en": "surskit",
+  "defensive_types": [
+    "bug",
+    "water"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 284,
+      "name_en": "masquerain",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 22
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 30,
+    "defense": 32,
+    "special-attack": 50,
+    "special-defense": 52,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/283_surskit_sprite.png",
+    "front_shiny": "sprites/283_surskit_sprite_shiny.png"
+  }
+}

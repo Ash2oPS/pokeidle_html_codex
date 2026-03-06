@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 95,
+  "name_fr": "Onix",
+  "name_en": "onix",
+  "defensive_types": [
+    "rock",
+    "ground"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 208,
+      "name_en": "steelix",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "metal-coat"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 45,
+    "defense": 160,
+    "special-attack": 30,
+    "special-defense": 45,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/95_onix_sprite.png",
+    "front_shiny": "sprites/95_onix_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 402,
+  "name_fr": "Mélokrik",
+  "name_en": "kricketune",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": {
+    "id": 401,
+    "name_en": "kricketot",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 10
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 77,
+    "attack": 85,
+    "defense": 51,
+    "special-attack": 55,
+    "special-defense": 51,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/402_kricketune_sprite.png",
+    "front_shiny": "sprites/402_kricketune_sprite_shiny.png"
+  }
+}

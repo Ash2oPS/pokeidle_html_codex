@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 461,
+  "name_fr": "Dimoret",
+  "name_en": "weavile",
+  "defensive_types": [
+    "dark",
+    "ice"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": {
+    "id": 215,
+    "name_en": "sneasel",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "held_item": "razor-claw",
+        "time_of_day": "night"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 120,
+    "defense": 65,
+    "special-attack": 45,
+    "special-defense": 85,
+    "speed": 125
+  },
+  "sprites": {
+    "front": "sprites/461_weavile_sprite.png",
+    "front_shiny": "sprites/461_weavile_sprite_shiny.png"
+  }
+}

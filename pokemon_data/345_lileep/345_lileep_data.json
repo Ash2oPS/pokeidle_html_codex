@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 345,
+  "name_fr": "Lilia",
+  "name_en": "lileep",
+  "defensive_types": [
+    "rock",
+    "grass"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 346,
+      "name_en": "cradily",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 66,
+    "attack": 41,
+    "defense": 77,
+    "special-attack": 61,
+    "special-defense": 87,
+    "speed": 23
+  },
+  "sprites": {
+    "front": "sprites/345_lileep_sprite.png",
+    "front_shiny": "sprites/345_lileep_sprite_shiny.png"
+  }
+}

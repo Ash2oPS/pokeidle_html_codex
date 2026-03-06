@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 455,
+  "name_fr": "Vortente",
+  "name_en": "carnivine",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 74,
+    "attack": 100,
+    "defense": 72,
+    "special-attack": 90,
+    "special-defense": 72,
+    "speed": 46
+  },
+  "sprites": {
+    "front": "sprites/455_carnivine_sprite.png",
+    "front_shiny": "sprites/455_carnivine_sprite_shiny.png"
+  }
+}

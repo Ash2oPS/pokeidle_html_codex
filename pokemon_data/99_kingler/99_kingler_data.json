@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 99,
+  "name_fr": "Krabboss",
+  "name_en": "kingler",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 98,
+    "name_en": "krabby",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 28
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 55,
+    "attack": 130,
+    "defense": 115,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 75
+  },
+  "sprites": {
+    "front": "sprites/99_kingler_sprite.png",
+    "front_shiny": "sprites/99_kingler_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 418,
+  "name_fr": "Mustébouée",
+  "name_en": "buizel",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 419,
+      "name_en": "floatzel",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 26
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 65,
+    "defense": 35,
+    "special-attack": 60,
+    "special-defense": 30,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/418_buizel_sprite.png",
+    "front_shiny": "sprites/418_buizel_sprite_shiny.png"
+  }
+}

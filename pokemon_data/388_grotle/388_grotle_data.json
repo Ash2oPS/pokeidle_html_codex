@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 388,
+  "name_fr": "Boskara",
+  "name_en": "grotle",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 387,
+    "name_en": "turtwig",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 18
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 389,
+      "name_en": "torterra",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 75,
+    "attack": 89,
+    "defense": 85,
+    "special-attack": 55,
+    "special-defense": 65,
+    "speed": 36
+  },
+  "sprites": {
+    "front": "sprites/388_grotle_sprite.png",
+    "front_shiny": "sprites/388_grotle_sprite_shiny.png"
+  }
+}

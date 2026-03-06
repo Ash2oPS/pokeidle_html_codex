@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 58,
+  "name_fr": "Caninos",
+  "name_en": "growlithe",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 59,
+      "name_en": "arcanine",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "fire-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 70,
+    "defense": 45,
+    "special-attack": 70,
+    "special-defense": 50,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/58_growlithe_sprite.png",
+    "front_shiny": "sprites/58_growlithe_sprite_shiny.png"
+  }
+}

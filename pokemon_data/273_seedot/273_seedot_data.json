@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 273,
+  "name_fr": "Grainipiot",
+  "name_en": "seedot",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 274,
+      "name_en": "nuzleaf",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 14
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 40,
+    "defense": 50,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/273_seedot_sprite.png",
+    "front_shiny": "sprites/273_seedot_sprite_shiny.png"
+  }
+}

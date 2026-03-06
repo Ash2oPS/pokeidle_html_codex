@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 480,
+  "name_fr": "Créhelf",
+  "name_en": "uxie",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 75,
+    "defense": 130,
+    "special-attack": 75,
+    "special-defense": 130,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/480_uxie_sprite.png",
+    "front_shiny": "sprites/480_uxie_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 217,
+  "name_fr": "Ursaring",
+  "name_en": "ursaring",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 216,
+    "name_en": "teddiursa",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 130,
+    "defense": 75,
+    "special-attack": 75,
+    "special-defense": 75,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/217_ursaring_sprite.png",
+    "front_shiny": "sprites/217_ursaring_sprite_shiny.png"
+  }
+}

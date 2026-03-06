@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 159,
+  "name_fr": "Crocrodil",
+  "name_en": "croconaw",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 158,
+    "name_en": "totodile",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 18
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 160,
+      "name_en": "feraligatr",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 65,
+    "attack": 80,
+    "defense": 80,
+    "special-attack": 59,
+    "special-defense": 63,
+    "speed": 58
+  },
+  "sprites": {
+    "front": "sprites/159_croconaw_sprite.png",
+    "front_shiny": "sprites/159_croconaw_sprite_shiny.png"
+  }
+}

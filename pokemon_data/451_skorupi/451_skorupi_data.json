@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 451,
+  "name_fr": "Rapion",
+  "name_en": "skorupi",
+  "defensive_types": [
+    "poison",
+    "bug"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 452,
+      "name_en": "drapion",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 50,
+    "defense": 90,
+    "special-attack": 30,
+    "special-defense": 55,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/451_skorupi_sprite.png",
+    "front_shiny": "sprites/451_skorupi_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 232,
+  "name_fr": "Donphan",
+  "name_en": "donphan",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 231,
+    "name_en": "phanpy",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 25
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 120,
+    "defense": 120,
+    "special-attack": 60,
+    "special-defense": 60,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/232_donphan_sprite.png",
+    "front_shiny": "sprites/232_donphan_sprite_shiny.png"
+  }
+}

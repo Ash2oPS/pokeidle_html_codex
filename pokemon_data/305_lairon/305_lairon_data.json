@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 305,
+  "name_fr": "Galegon",
+  "name_en": "lairon",
+  "defensive_types": [
+    "steel",
+    "rock"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": {
+    "id": 304,
+    "name_en": "aron",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 32
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 306,
+      "name_en": "aggron",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 42
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 90,
+    "defense": 140,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/305_lairon_sprite.png",
+    "front_shiny": "sprites/305_lairon_sprite_shiny.png"
+  }
+}

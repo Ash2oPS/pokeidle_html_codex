@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 310,
+  "name_fr": "Élecsprint",
+  "name_en": "manectric",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 309,
+    "name_en": "electrike",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 26
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 75,
+    "defense": 60,
+    "special-attack": 105,
+    "special-defense": 60,
+    "speed": 105
+  },
+  "sprites": {
+    "front": "sprites/310_manectric_sprite.png",
+    "front_shiny": "sprites/310_manectric_sprite_shiny.png"
+  }
+}

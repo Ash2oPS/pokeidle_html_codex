@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 10,
+  "name_fr": "Chenipan",
+  "name_en": "caterpie",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 11,
+      "name_en": "metapod",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 7
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 30,
+    "defense": 35,
+    "special-attack": 20,
+    "special-defense": 20,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/10_caterpie_sprite.png",
+    "front_shiny": "sprites/10_caterpie_sprite_shiny.png"
+  }
+}

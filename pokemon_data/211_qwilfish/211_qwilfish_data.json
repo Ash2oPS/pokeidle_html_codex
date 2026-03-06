@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 211,
+  "name_fr": "Qwilfish",
+  "name_en": "qwilfish",
+  "defensive_types": [
+    "water",
+    "poison"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 95,
+    "defense": 85,
+    "special-attack": 55,
+    "special-defense": 55,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/211_qwilfish_sprite.png",
+    "front_shiny": "sprites/211_qwilfish_sprite_shiny.png"
+  }
+}

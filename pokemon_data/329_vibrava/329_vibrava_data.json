@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 329,
+  "name_fr": "Vibraninf",
+  "name_en": "vibrava",
+  "defensive_types": [
+    "ground",
+    "dragon"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 328,
+    "name_en": "trapinch",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 35
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 330,
+      "name_en": "flygon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 45
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 70,
+    "defense": 50,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/329_vibrava_sprite.png",
+    "front_shiny": "sprites/329_vibrava_sprite_shiny.png"
+  }
+}

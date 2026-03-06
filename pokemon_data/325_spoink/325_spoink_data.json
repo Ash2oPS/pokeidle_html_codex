@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 325,
+  "name_fr": "Spoink",
+  "name_en": "spoink",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 326,
+      "name_en": "grumpig",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 25,
+    "defense": 35,
+    "special-attack": 70,
+    "special-defense": 80,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/325_spoink_sprite.png",
+    "front_shiny": "sprites/325_spoink_sprite_shiny.png"
+  }
+}

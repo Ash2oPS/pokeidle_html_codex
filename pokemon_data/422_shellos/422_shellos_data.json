@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 422,
+  "name_fr": "Sancoki",
+  "name_en": "shellos",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 423,
+      "name_en": "gastrodon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 76,
+    "attack": 48,
+    "defense": 48,
+    "special-attack": 57,
+    "special-defense": 62,
+    "speed": 34
+  },
+  "sprites": {
+    "front": "sprites/422_shellos_sprite.png",
+    "front_shiny": "sprites/422_shellos_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 146,
+  "name_fr": "Sulfura",
+  "name_en": "moltres",
+  "defensive_types": [
+    "fire",
+    "flying"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 100,
+    "defense": 90,
+    "special-attack": 125,
+    "special-defense": 85,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/146_moltres_sprite.png",
+    "front_shiny": "sprites/146_moltres_sprite_shiny.png"
+  }
+}

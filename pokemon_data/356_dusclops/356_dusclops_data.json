@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 356,
+  "name_fr": "Téraclope",
+  "name_en": "dusclops",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": {
+    "id": 355,
+    "name_en": "duskull",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 37
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 477,
+      "name_en": "dusknoir",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "reaper-cloth"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 70,
+    "defense": 130,
+    "special-attack": 60,
+    "special-defense": 130,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/356_dusclops_sprite.png",
+    "front_shiny": "sprites/356_dusclops_sprite_shiny.png"
+  }
+}

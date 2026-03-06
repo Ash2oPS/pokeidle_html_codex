@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 235,
+  "name_fr": "Queulorior",
+  "name_en": "smeargle",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 55,
+    "attack": 20,
+    "defense": 35,
+    "special-attack": 20,
+    "special-defense": 45,
+    "speed": 75
+  },
+  "sprites": {
+    "front": "sprites/235_smeargle_sprite.png",
+    "front_shiny": "sprites/235_smeargle_sprite_shiny.png"
+  }
+}

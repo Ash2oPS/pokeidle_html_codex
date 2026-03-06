@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 13,
+  "name_fr": "Aspicot",
+  "name_en": "weedle",
+  "defensive_types": [
+    "bug",
+    "poison"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 14,
+      "name_en": "kakuna",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 7
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 35,
+    "defense": 30,
+    "special-attack": 20,
+    "special-defense": 20,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/13_weedle_sprite.png",
+    "front_shiny": "sprites/13_weedle_sprite_shiny.png"
+  }
+}

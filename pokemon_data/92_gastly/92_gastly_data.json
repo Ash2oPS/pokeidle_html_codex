@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 92,
+  "name_fr": "Fantominus",
+  "name_en": "gastly",
+  "defensive_types": [
+    "ghost",
+    "poison"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 93,
+      "name_en": "haunter",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 35,
+    "defense": 30,
+    "special-attack": 100,
+    "special-defense": 35,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/92_gastly_sprite.png",
+    "front_shiny": "sprites/92_gastly_sprite_shiny.png"
+  }
+}

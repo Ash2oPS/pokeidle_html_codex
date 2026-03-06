@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 241,
+  "name_fr": "Écrémeuh",
+  "name_en": "miltank",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 80,
+    "defense": 105,
+    "special-attack": 40,
+    "special-defense": 70,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/241_miltank_sprite.png",
+    "front_shiny": "sprites/241_miltank_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "pokedex_number": 67,
+  "name_fr": "Machopeur",
+  "name_en": "machoke",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 66,
+    "name_en": "machop",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 28
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 68,
+      "name_en": "machamp",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 80,
+    "attack": 100,
+    "defense": 70,
+    "special-attack": 50,
+    "special-defense": 60,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/67_machoke_sprite.png",
+    "front_shiny": "sprites/67_machoke_sprite_shiny.png"
+  }
+}

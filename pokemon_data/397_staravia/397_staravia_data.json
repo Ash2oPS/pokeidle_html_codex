@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 397,
+  "name_fr": "Étourvol",
+  "name_en": "staravia",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": {
+    "id": 396,
+    "name_en": "starly",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 14
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 398,
+      "name_en": "staraptor",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 34
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 75,
+    "defense": 50,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/397_staravia_sprite.png",
+    "front_shiny": "sprites/397_staravia_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 83,
+  "name_fr": "Canarticho",
+  "name_en": "farfetchd",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 52,
+    "attack": 90,
+    "defense": 55,
+    "special-attack": 58,
+    "special-defense": 62,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/83_farfetchd_sprite.png",
+    "front_shiny": "sprites/83_farfetchd_sprite_shiny.png"
+  }
+}

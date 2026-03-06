@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 381,
+  "name_fr": "Latios",
+  "name_en": "latios",
+  "defensive_types": [
+    "dragon",
+    "psychic"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 90,
+    "defense": 80,
+    "special-attack": 130,
+    "special-defense": 110,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/381_latios_sprite.png",
+    "front_shiny": "sprites/381_latios_sprite_shiny.png"
+  }
+}

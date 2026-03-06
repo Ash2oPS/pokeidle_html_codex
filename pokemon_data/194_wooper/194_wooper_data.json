@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 194,
+  "name_fr": "Axoloto",
+  "name_en": "wooper",
+  "defensive_types": [
+    "water",
+    "ground"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 195,
+      "name_en": "quagsire",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 45,
+    "defense": 45,
+    "special-attack": 25,
+    "special-defense": 25,
+    "speed": 15
+  },
+  "sprites": {
+    "front": "sprites/194_wooper_sprite.png",
+    "front_shiny": "sprites/194_wooper_sprite_shiny.png"
+  }
+}

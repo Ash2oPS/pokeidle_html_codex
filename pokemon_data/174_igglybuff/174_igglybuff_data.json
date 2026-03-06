@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 174,
+  "name_fr": "Toudoudou",
+  "name_en": "igglybuff",
+  "defensive_types": [
+    "normal",
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 39,
+      "name_en": "jigglypuff",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 90,
+    "attack": 30,
+    "defense": 15,
+    "special-attack": 40,
+    "special-defense": 20,
+    "speed": 15
+  },
+  "sprites": {
+    "front": "sprites/174_igglybuff_sprite.png",
+    "front_shiny": "sprites/174_igglybuff_sprite_shiny.png"
+  }
+}

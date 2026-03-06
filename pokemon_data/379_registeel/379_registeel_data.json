@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 379,
+  "name_fr": "Registeel",
+  "name_en": "registeel",
+  "defensive_types": [
+    "steel"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 75,
+    "defense": 150,
+    "special-attack": 75,
+    "special-defense": 150,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/379_registeel_sprite.png",
+    "front_shiny": "sprites/379_registeel_sprite_shiny.png"
+  }
+}

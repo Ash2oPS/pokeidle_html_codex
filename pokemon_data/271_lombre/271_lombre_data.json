@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 271,
+  "name_fr": "Lombre",
+  "name_en": "lombre",
+  "defensive_types": [
+    "water",
+    "grass"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 270,
+    "name_en": "lotad",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 14
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 272,
+      "name_en": "ludicolo",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "water-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 50,
+    "defense": 50,
+    "special-attack": 60,
+    "special-defense": 70,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/271_lombre_sprite.png",
+    "front_shiny": "sprites/271_lombre_sprite_shiny.png"
+  }
+}

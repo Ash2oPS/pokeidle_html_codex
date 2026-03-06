@@ -1,0 +1,56 @@
+{
+  "pokedex_number": 61,
+  "name_fr": "Têtarte",
+  "name_en": "poliwhirl",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 60,
+    "name_en": "poliwag",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 25
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 62,
+      "name_en": "poliwrath",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "water-stone"
+        }
+      ]
+    },
+    {
+      "id": 186,
+      "name_en": "politoed",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "kings-rock"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 65,
+    "attack": 65,
+    "defense": 65,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/61_poliwhirl_sprite.png",
+    "front_shiny": "sprites/61_poliwhirl_sprite_shiny.png"
+  }
+}

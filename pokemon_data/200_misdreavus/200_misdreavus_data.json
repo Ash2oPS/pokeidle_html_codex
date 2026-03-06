@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 200,
+  "name_fr": "Feuforêve",
+  "name_en": "misdreavus",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 429,
+      "name_en": "mismagius",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "dusk-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 60,
+    "defense": 60,
+    "special-attack": 85,
+    "special-defense": 85,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/200_misdreavus_sprite.png",
+    "front_shiny": "sprites/200_misdreavus_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 313,
+  "name_fr": "Muciole",
+  "name_en": "volbeat",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 73,
+    "defense": 75,
+    "special-attack": 47,
+    "special-defense": 85,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/313_volbeat_sprite.png",
+    "front_shiny": "sprites/313_volbeat_sprite_shiny.png"
+  }
+}

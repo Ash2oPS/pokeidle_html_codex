@@ -1,0 +1,47 @@
+{
+  "pokedex_number": 315,
+  "name_fr": "Rosélia",
+  "name_en": "roselia",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 406,
+    "name_en": "budew",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160,
+        "time_of_day": "day"
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 407,
+      "name_en": "roserade",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "shiny-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 60,
+    "defense": 45,
+    "special-attack": 100,
+    "special-defense": 80,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/315_roselia_sprite.png",
+    "front_shiny": "sprites/315_roselia_sprite_shiny.png"
+  }
+}

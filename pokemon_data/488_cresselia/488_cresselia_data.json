@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 488,
+  "name_fr": "Cresselia",
+  "name_en": "cresselia",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 120,
+    "attack": 70,
+    "defense": 110,
+    "special-attack": 75,
+    "special-defense": 120,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/488_cresselia_sprite.png",
+    "front_shiny": "sprites/488_cresselia_sprite_shiny.png"
+  }
+}

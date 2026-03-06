@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 368,
+  "name_fr": "Rosabyss",
+  "name_en": "gorebyss",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 366,
+    "name_en": "clamperl",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "deep-sea-scale"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 55,
+    "attack": 84,
+    "defense": 105,
+    "special-attack": 114,
+    "special-defense": 75,
+    "speed": 52
+  },
+  "sprites": {
+    "front": "sprites/368_gorebyss_sprite.png",
+    "front_shiny": "sprites/368_gorebyss_sprite_shiny.png"
+  }
+}

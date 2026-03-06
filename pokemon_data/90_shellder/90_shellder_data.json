@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 90,
+  "name_fr": "Kokiyas",
+  "name_en": "shellder",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 91,
+      "name_en": "cloyster",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "water-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 65,
+    "defense": 100,
+    "special-attack": 45,
+    "special-defense": 25,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/90_shellder_sprite.png",
+    "front_shiny": "sprites/90_shellder_sprite_shiny.png"
+  }
+}

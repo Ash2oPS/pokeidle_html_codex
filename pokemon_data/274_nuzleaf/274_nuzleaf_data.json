@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 274,
+  "name_fr": "Pifeuil",
+  "name_en": "nuzleaf",
+  "defensive_types": [
+    "grass",
+    "dark"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 273,
+    "name_en": "seedot",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 14
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 275,
+      "name_en": "shiftry",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "leaf-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 70,
+    "defense": 40,
+    "special-attack": 60,
+    "special-defense": 40,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/274_nuzleaf_sprite.png",
+    "front_shiny": "sprites/274_nuzleaf_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 173,
+  "name_fr": "Mélo",
+  "name_en": "cleffa",
+  "defensive_types": [
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 35,
+      "name_en": "clefairy",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 25,
+    "defense": 28,
+    "special-attack": 45,
+    "special-defense": 55,
+    "speed": 15
+  },
+  "sprites": {
+    "front": "sprites/173_cleffa_sprite.png",
+    "front_shiny": "sprites/173_cleffa_sprite_shiny.png"
+  }
+}

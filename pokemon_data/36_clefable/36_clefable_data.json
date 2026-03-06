@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 36,
+  "name_fr": "Mélodelfe",
+  "name_en": "clefable",
+  "defensive_types": [
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": {
+    "id": 35,
+    "name_en": "clefairy",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "moon-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 70,
+    "defense": 73,
+    "special-attack": 95,
+    "special-defense": 90,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/36_clefable_sprite.png",
+    "front_shiny": "sprites/36_clefable_sprite_shiny.png"
+  }
+}

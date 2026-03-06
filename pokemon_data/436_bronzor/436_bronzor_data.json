@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 436,
+  "name_fr": "Archéomire",
+  "name_en": "bronzor",
+  "defensive_types": [
+    "steel",
+    "psychic"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 437,
+      "name_en": "bronzong",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 33
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 57,
+    "attack": 24,
+    "defense": 86,
+    "special-attack": 24,
+    "special-defense": 86,
+    "speed": 23
+  },
+  "sprites": {
+    "front": "sprites/436_bronzor_sprite.png",
+    "front_shiny": "sprites/436_bronzor_sprite_shiny.png"
+  }
+}

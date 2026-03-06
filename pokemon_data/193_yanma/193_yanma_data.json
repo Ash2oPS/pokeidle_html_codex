@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 193,
+  "name_fr": "Yanma",
+  "name_en": "yanma",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 469,
+      "name_en": "yanmega",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "known_move": "ancient-power"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 65,
+    "attack": 65,
+    "defense": 45,
+    "special-attack": 75,
+    "special-defense": 45,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/193_yanma_sprite.png",
+    "front_shiny": "sprites/193_yanma_sprite_shiny.png"
+  }
+}

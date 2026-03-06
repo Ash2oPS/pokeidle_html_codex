@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 247,
+  "name_fr": "Ymphect",
+  "name_en": "pupitar",
+  "defensive_types": [
+    "rock",
+    "ground"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": {
+    "id": 246,
+    "name_en": "larvitar",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 248,
+      "name_en": "tyranitar",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 55
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 84,
+    "defense": 70,
+    "special-attack": 65,
+    "special-defense": 70,
+    "speed": 51
+  },
+  "sprites": {
+    "front": "sprites/247_pupitar_sprite.png",
+    "front_shiny": "sprites/247_pupitar_sprite_shiny.png"
+  }
+}

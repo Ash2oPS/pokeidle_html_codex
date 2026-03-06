@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 452,
+  "name_fr": "Drascore",
+  "name_en": "drapion",
+  "defensive_types": [
+    "poison",
+    "dark"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 451,
+    "name_en": "skorupi",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 40
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 90,
+    "defense": 110,
+    "special-attack": 60,
+    "special-defense": 75,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/452_drapion_sprite.png",
+    "front_shiny": "sprites/452_drapion_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 304,
+  "name_fr": "Galekid",
+  "name_en": "aron",
+  "defensive_types": [
+    "steel",
+    "rock"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 305,
+      "name_en": "lairon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 70,
+    "defense": 100,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/304_aron_sprite.png",
+    "front_shiny": "sprites/304_aron_sprite_shiny.png"
+  }
+}

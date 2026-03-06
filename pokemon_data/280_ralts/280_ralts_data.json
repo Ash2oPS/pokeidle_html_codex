@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 280,
+  "name_fr": "Tarsal",
+  "name_en": "ralts",
+  "defensive_types": [
+    "psychic",
+    "fairy"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 281,
+      "name_en": "kirlia",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 28,
+    "attack": 25,
+    "defense": 25,
+    "special-attack": 45,
+    "special-defense": 35,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/280_ralts_sprite.png",
+    "front_shiny": "sprites/280_ralts_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 288,
+  "name_fr": "Vigoroth",
+  "name_en": "vigoroth",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 287,
+    "name_en": "slakoth",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 18
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 289,
+      "name_en": "slaking",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 80,
+    "attack": 80,
+    "defense": 80,
+    "special-attack": 55,
+    "special-defense": 55,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/288_vigoroth_sprite.png",
+    "front_shiny": "sprites/288_vigoroth_sprite_shiny.png"
+  }
+}

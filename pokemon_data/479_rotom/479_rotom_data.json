@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 479,
+  "name_fr": "Motisma",
+  "name_en": "rotom",
+  "defensive_types": [
+    "electric",
+    "ghost"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 50,
+    "defense": 77,
+    "special-attack": 95,
+    "special-defense": 77,
+    "speed": 91
+  },
+  "sprites": {
+    "front": "sprites/479_rotom_sprite.png",
+    "front_shiny": "sprites/479_rotom_sprite_shiny.png"
+  }
+}

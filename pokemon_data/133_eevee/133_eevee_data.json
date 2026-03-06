@@ -1,0 +1,133 @@
+{
+  "pokedex_number": 133,
+  "name_fr": "Évoli",
+  "name_en": "eevee",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 134,
+      "name_en": "vaporeon",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "water-stone"
+        }
+      ]
+    },
+    {
+      "id": 135,
+      "name_en": "jolteon",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "thunder-stone"
+        }
+      ]
+    },
+    {
+      "id": 136,
+      "name_en": "flareon",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "fire-stone"
+        }
+      ]
+    },
+    {
+      "id": 196,
+      "name_en": "espeon",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160,
+          "time_of_day": "day"
+        }
+      ]
+    },
+    {
+      "id": 197,
+      "name_en": "umbreon",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160,
+          "time_of_day": "night"
+        }
+      ]
+    },
+    {
+      "id": 470,
+      "name_en": "leafeon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "eterna-forest"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "pinwheel-forest"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "kalos-route-20"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "leaf-stone"
+        }
+      ]
+    },
+    {
+      "id": 471,
+      "name_en": "glaceon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "sinnoh-route-217"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "twist-mountain"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "frost-cavern"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "ice-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 55,
+    "defense": 50,
+    "special-attack": 45,
+    "special-defense": 65,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/133_eevee_sprite.png",
+    "front_shiny": "sprites/133_eevee_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 335,
+  "name_fr": "Mangriff",
+  "name_en": "zangoose",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 73,
+    "attack": 115,
+    "defense": 60,
+    "special-attack": 60,
+    "special-defense": 60,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/335_zangoose_sprite.png",
+    "front_shiny": "sprites/335_zangoose_sprite_shiny.png"
+  }
+}

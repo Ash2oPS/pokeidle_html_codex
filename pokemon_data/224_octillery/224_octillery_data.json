@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 224,
+  "name_fr": "Octillery",
+  "name_en": "octillery",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 223,
+    "name_en": "remoraid",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 25
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 105,
+    "defense": 75,
+    "special-attack": 105,
+    "special-defense": 75,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/224_octillery_sprite.png",
+    "front_shiny": "sprites/224_octillery_sprite_shiny.png"
+  }
+}

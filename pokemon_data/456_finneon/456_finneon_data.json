@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 456,
+  "name_fr": "Écayon",
+  "name_en": "finneon",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 457,
+      "name_en": "lumineon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 31
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 49,
+    "attack": 49,
+    "defense": 56,
+    "special-attack": 49,
+    "special-defense": 61,
+    "speed": 66
+  },
+  "sprites": {
+    "front": "sprites/456_finneon_sprite.png",
+    "front_shiny": "sprites/456_finneon_sprite_shiny.png"
+  }
+}

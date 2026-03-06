@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 302,
+  "name_fr": "Ténéfix",
+  "name_en": "sableye",
+  "defensive_types": [
+    "dark",
+    "ghost"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 75,
+    "defense": 75,
+    "special-attack": 65,
+    "special-defense": 65,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/302_sableye_sprite.png",
+    "front_shiny": "sprites/302_sableye_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 416,
+  "name_fr": "Apireine",
+  "name_en": "vespiquen",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": {
+    "id": 415,
+    "name_en": "combee",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 21,
+        "gender": "female"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 80,
+    "defense": 102,
+    "special-attack": 80,
+    "special-defense": 102,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/416_vespiquen_sprite.png",
+    "front_shiny": "sprites/416_vespiquen_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 225,
+  "name_fr": "Cadoizo",
+  "name_en": "delibird",
+  "defensive_types": [
+    "ice",
+    "flying"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 45,
+    "attack": 55,
+    "defense": 45,
+    "special-attack": 65,
+    "special-defense": 45,
+    "speed": 75
+  },
+  "sprites": {
+    "front": "sprites/225_delibird_sprite.png",
+    "front_shiny": "sprites/225_delibird_sprite_shiny.png"
+  }
+}

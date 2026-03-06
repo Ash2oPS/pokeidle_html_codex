@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 234,
+  "name_fr": "Cerfrousse",
+  "name_en": "stantler",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 73,
+    "attack": 95,
+    "defense": 62,
+    "special-attack": 85,
+    "special-defense": 65,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/234_stantler_sprite.png",
+    "front_shiny": "sprites/234_stantler_sprite_shiny.png"
+  }
+}

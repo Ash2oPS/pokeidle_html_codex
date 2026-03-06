@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 295,
+  "name_fr": "Brouhabam",
+  "name_en": "exploud",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 294,
+    "name_en": "loudred",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 40
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 104,
+    "attack": 91,
+    "defense": 63,
+    "special-attack": 91,
+    "special-defense": 73,
+    "speed": 68
+  },
+  "sprites": {
+    "front": "sprites/295_exploud_sprite.png",
+    "front_shiny": "sprites/295_exploud_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 181,
+  "name_fr": "Pharamp",
+  "name_en": "ampharos",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 180,
+    "name_en": "flaaffy",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 75,
+    "defense": 85,
+    "special-attack": 115,
+    "special-defense": 90,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/181_ampharos_sprite.png",
+    "front_shiny": "sprites/181_ampharos_sprite_shiny.png"
+  }
+}

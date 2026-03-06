@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 175,
+  "name_fr": "Togepi",
+  "name_en": "togepi",
+  "defensive_types": [
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 176,
+      "name_en": "togetic",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 20,
+    "defense": 65,
+    "special-attack": 40,
+    "special-defense": 65,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/175_togepi_sprite.png",
+    "front_shiny": "sprites/175_togepi_sprite_shiny.png"
+  }
+}

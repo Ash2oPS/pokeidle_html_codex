@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 233,
+  "name_fr": "Porygon2",
+  "name_en": "porygon2",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 137,
+    "name_en": "porygon",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "up-grade"
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 474,
+      "name_en": "porygon-z",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "dubious-disc"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 85,
+    "attack": 80,
+    "defense": 90,
+    "special-attack": 105,
+    "special-defense": 95,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/233_porygon2_sprite.png",
+    "front_shiny": "sprites/233_porygon2_sprite_shiny.png"
+  }
+}

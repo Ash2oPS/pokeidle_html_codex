@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 311,
+  "name_fr": "Posipi",
+  "name_en": "plusle",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 50,
+    "defense": 40,
+    "special-attack": 85,
+    "special-defense": 75,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/311_plusle_sprite.png",
+    "front_shiny": "sprites/311_plusle_sprite_shiny.png"
+  }
+}

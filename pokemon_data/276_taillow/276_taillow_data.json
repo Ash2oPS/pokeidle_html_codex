@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 276,
+  "name_fr": "Nirondelle",
+  "name_en": "taillow",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 277,
+      "name_en": "swellow",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 22
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 55,
+    "defense": 30,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/276_taillow_sprite.png",
+    "front_shiny": "sprites/276_taillow_sprite_shiny.png"
+  }
+}

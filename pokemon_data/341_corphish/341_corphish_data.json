@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 341,
+  "name_fr": "Écrapince",
+  "name_en": "corphish",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 342,
+      "name_en": "crawdaunt",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 43,
+    "attack": 80,
+    "defense": 65,
+    "special-attack": 50,
+    "special-defense": 35,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/341_corphish_sprite.png",
+    "front_shiny": "sprites/341_corphish_sprite_shiny.png"
+  }
+}

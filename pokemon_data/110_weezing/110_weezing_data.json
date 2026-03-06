@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 110,
+  "name_fr": "Smogogo",
+  "name_en": "weezing",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 109,
+    "name_en": "koffing",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 35
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 90,
+    "defense": 120,
+    "special-attack": 85,
+    "special-defense": 70,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/110_weezing_sprite.png",
+    "front_shiny": "sprites/110_weezing_sprite_shiny.png"
+  }
+}

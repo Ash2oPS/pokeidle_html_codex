@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 371,
+  "name_fr": "Draby",
+  "name_en": "bagon",
+  "defensive_types": [
+    "dragon"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 372,
+      "name_en": "shelgon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 75,
+    "defense": 60,
+    "special-attack": 40,
+    "special-defense": 30,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/371_bagon_sprite.png",
+    "front_shiny": "sprites/371_bagon_sprite_shiny.png"
+  }
+}

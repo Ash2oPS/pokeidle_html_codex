@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 312,
+  "name_fr": "Négapi",
+  "name_en": "minun",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 40,
+    "defense": 50,
+    "special-attack": 75,
+    "special-defense": 85,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/312_minun_sprite.png",
+    "front_shiny": "sprites/312_minun_sprite_shiny.png"
+  }
+}

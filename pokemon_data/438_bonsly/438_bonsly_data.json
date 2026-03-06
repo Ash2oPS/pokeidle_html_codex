@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 438,
+  "name_fr": "Manzaï",
+  "name_en": "bonsly",
+  "defensive_types": [
+    "rock"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 185,
+      "name_en": "sudowoodo",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "known_move": "mimic"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 80,
+    "defense": 95,
+    "special-attack": 10,
+    "special-defense": 45,
+    "speed": 10
+  },
+  "sprites": {
+    "front": "sprites/438_bonsly_sprite.png",
+    "front_shiny": "sprites/438_bonsly_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 266,
+  "name_fr": "Armulys",
+  "name_en": "silcoon",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": {
+    "id": 265,
+    "name_en": "wurmple",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 7
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 267,
+      "name_en": "beautifly",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 10
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 35,
+    "defense": 55,
+    "special-attack": 25,
+    "special-defense": 25,
+    "speed": 15
+  },
+  "sprites": {
+    "front": "sprites/266_silcoon_sprite.png",
+    "front_shiny": "sprites/266_silcoon_sprite_shiny.png"
+  }
+}

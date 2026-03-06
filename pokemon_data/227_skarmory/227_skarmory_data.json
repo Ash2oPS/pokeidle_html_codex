@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 227,
+  "name_fr": "Airmure",
+  "name_en": "skarmory",
+  "defensive_types": [
+    "steel",
+    "flying"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 80,
+    "defense": 140,
+    "special-attack": 40,
+    "special-defense": 70,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/227_skarmory_sprite.png",
+    "front_shiny": "sprites/227_skarmory_sprite_shiny.png"
+  }
+}

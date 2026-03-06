@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 14,
+  "name_fr": "Coconfort",
+  "name_en": "kakuna",
+  "defensive_types": [
+    "bug",
+    "poison"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": {
+    "id": 13,
+    "name_en": "weedle",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 7
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 15,
+      "name_en": "beedrill",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 10
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 25,
+    "defense": 50,
+    "special-attack": 25,
+    "special-defense": 25,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/14_kakuna_sprite.png",
+    "front_shiny": "sprites/14_kakuna_sprite_shiny.png"
+  }
+}

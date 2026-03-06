@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 149,
+  "name_fr": "Dracolosse",
+  "name_en": "dragonite",
+  "defensive_types": [
+    "dragon",
+    "flying"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": {
+    "id": 148,
+    "name_en": "dragonair",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 55
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 91,
+    "attack": 134,
+    "defense": 95,
+    "special-attack": 100,
+    "special-defense": 100,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/149_dragonite_sprite.png",
+    "front_shiny": "sprites/149_dragonite_sprite_shiny.png"
+  }
+}

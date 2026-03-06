@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 450,
+  "name_fr": "Hippodocus",
+  "name_en": "hippowdon",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 449,
+    "name_en": "hippopotas",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 34
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 108,
+    "attack": 112,
+    "defense": 118,
+    "special-attack": 68,
+    "special-defense": 72,
+    "speed": 47
+  },
+  "sprites": {
+    "front": "sprites/450_hippowdon_sprite.png",
+    "front_shiny": "sprites/450_hippowdon_sprite_shiny.png"
+  }
+}

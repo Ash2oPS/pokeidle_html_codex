@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 111,
+  "name_fr": "Rhinocorne",
+  "name_en": "rhyhorn",
+  "defensive_types": [
+    "ground",
+    "rock"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 112,
+      "name_en": "rhydon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 42
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 80,
+    "attack": 85,
+    "defense": 95,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/111_rhyhorn_sprite.png",
+    "front_shiny": "sprites/111_rhyhorn_sprite_shiny.png"
+  }
+}

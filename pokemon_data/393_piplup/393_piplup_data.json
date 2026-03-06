@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 393,
+  "name_fr": "Tiplouf",
+  "name_en": "piplup",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 394,
+      "name_en": "prinplup",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 53,
+    "attack": 51,
+    "defense": 53,
+    "special-attack": 61,
+    "special-defense": 56,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/393_piplup_sprite.png",
+    "front_shiny": "sprites/393_piplup_sprite_shiny.png"
+  }
+}

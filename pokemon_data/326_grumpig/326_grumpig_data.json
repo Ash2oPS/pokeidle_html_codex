@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 326,
+  "name_fr": "Groret",
+  "name_en": "grumpig",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 325,
+    "name_en": "spoink",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 32
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 45,
+    "defense": 65,
+    "special-attack": 90,
+    "special-defense": 110,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/326_grumpig_sprite.png",
+    "front_shiny": "sprites/326_grumpig_sprite_shiny.png"
+  }
+}

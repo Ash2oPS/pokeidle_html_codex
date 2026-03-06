@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 48,
+  "name_fr": "Mimitoss",
+  "name_en": "venonat",
+  "defensive_types": [
+    "bug",
+    "poison"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 49,
+      "name_en": "venomoth",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 31
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 55,
+    "defense": 50,
+    "special-attack": 40,
+    "special-defense": 55,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/48_venonat_sprite.png",
+    "front_shiny": "sprites/48_venonat_sprite_shiny.png"
+  }
+}

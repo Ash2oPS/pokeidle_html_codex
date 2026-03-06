@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 328,
+  "name_fr": "Kraknoix",
+  "name_en": "trapinch",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 329,
+      "name_en": "vibrava",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 35
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 100,
+    "defense": 45,
+    "special-attack": 45,
+    "special-defense": 45,
+    "speed": 10
+  },
+  "sprites": {
+    "front": "sprites/328_trapinch_sprite.png",
+    "front_shiny": "sprites/328_trapinch_sprite_shiny.png"
+  }
+}

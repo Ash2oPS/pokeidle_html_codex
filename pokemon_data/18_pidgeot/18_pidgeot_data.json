@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 18,
+  "name_fr": "Roucarnage",
+  "name_en": "pidgeot",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": {
+    "id": 17,
+    "name_en": "pidgeotto",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 36
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 83,
+    "attack": 80,
+    "defense": 75,
+    "special-attack": 70,
+    "special-defense": 70,
+    "speed": 101
+  },
+  "sprites": {
+    "front": "sprites/18_pidgeot_sprite.png",
+    "front_shiny": "sprites/18_pidgeot_sprite_shiny.png"
+  }
+}

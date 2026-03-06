@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 23,
+  "name_fr": "Abo",
+  "name_en": "ekans",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 24,
+      "name_en": "arbok",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 22
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 60,
+    "defense": 44,
+    "special-attack": 40,
+    "special-defense": 54,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/23_ekans_sprite.png",
+    "front_shiny": "sprites/23_ekans_sprite_shiny.png"
+  }
+}

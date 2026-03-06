@@ -1,0 +1,57 @@
+{
+  "pokedex_number": 79,
+  "name_fr": "Ramoloss",
+  "name_en": "slowpoke",
+  "defensive_types": [
+    "water",
+    "psychic"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 80,
+      "name_en": "slowbro",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 37
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "galarica-cuff"
+        }
+      ]
+    },
+    {
+      "id": 199,
+      "name_en": "slowking",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "kings-rock"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "galarica-wreath"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 90,
+    "attack": 65,
+    "defense": 65,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 15
+  },
+  "sprites": {
+    "front": "sprites/79_slowpoke_sprite.png",
+    "front_shiny": "sprites/79_slowpoke_sprite_shiny.png"
+  }
+}

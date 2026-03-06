@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 157,
+  "name_fr": "Typhlosion",
+  "name_en": "typhlosion",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 156,
+    "name_en": "quilava",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 36
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 78,
+    "attack": 84,
+    "defense": 78,
+    "special-attack": 109,
+    "special-defense": 85,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/157_typhlosion_sprite.png",
+    "front_shiny": "sprites/157_typhlosion_sprite_shiny.png"
+  }
+}

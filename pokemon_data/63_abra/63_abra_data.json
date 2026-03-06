@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 63,
+  "name_fr": "Abra",
+  "name_en": "abra",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 64,
+      "name_en": "kadabra",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 25,
+    "attack": 20,
+    "defense": 15,
+    "special-attack": 105,
+    "special-defense": 55,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/63_abra_sprite.png",
+    "front_shiny": "sprites/63_abra_sprite_shiny.png"
+  }
+}

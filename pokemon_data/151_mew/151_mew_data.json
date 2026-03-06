@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 151,
+  "name_fr": "Mew",
+  "name_en": "mew",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 100,
+    "special-attack": 100,
+    "special-defense": 100,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/151_mew_sprite.png",
+    "front_shiny": "sprites/151_mew_sprite_shiny.png"
+  }
+}

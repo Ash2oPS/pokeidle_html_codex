@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 147,
+  "name_fr": "Minidraco",
+  "name_en": "dratini",
+  "defensive_types": [
+    "dragon"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 148,
+      "name_en": "dragonair",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 41,
+    "attack": 64,
+    "defense": 45,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/147_dratini_sprite.png",
+    "front_shiny": "sprites/147_dratini_sprite_shiny.png"
+  }
+}

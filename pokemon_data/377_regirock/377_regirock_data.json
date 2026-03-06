@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 377,
+  "name_fr": "Regirock",
+  "name_en": "regirock",
+  "defensive_types": [
+    "rock"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 100,
+    "defense": 200,
+    "special-attack": 50,
+    "special-defense": 100,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/377_regirock_sprite.png",
+    "front_shiny": "sprites/377_regirock_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "pokedex_number": 82,
+  "name_fr": "Magnéton",
+  "name_en": "magneton",
+  "defensive_types": [
+    "electric",
+    "steel"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 81,
+    "name_en": "magnemite",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 462,
+      "name_en": "magnezone",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "mt-coronet"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "chargestone-cave"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "kalos-route-13"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "blush-mountain"
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "location": "vast-poni-canyon"
+        },
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "thunder-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 60,
+    "defense": 95,
+    "special-attack": 120,
+    "special-defense": 70,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/82_magneton_sprite.png",
+    "front_shiny": "sprites/82_magneton_sprite_shiny.png"
+  }
+}

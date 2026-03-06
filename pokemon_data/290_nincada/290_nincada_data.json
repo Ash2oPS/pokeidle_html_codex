@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 290,
+  "name_fr": "Ningale",
+  "name_en": "nincada",
+  "defensive_types": [
+    "bug",
+    "ground"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 291,
+      "name_en": "ninjask",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    },
+    {
+      "id": 292,
+      "name_en": "shedinja",
+      "evolution_methods": [
+        {
+          "evolution_type": "shed",
+          "trigger": "shed"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 31,
+    "attack": 45,
+    "defense": 90,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/290_nincada_sprite.png",
+    "front_shiny": "sprites/290_nincada_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "pokedex_number": 65,
+  "name_fr": "Alakazam",
+  "name_en": "alakazam",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 64,
+    "name_en": "kadabra",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 55,
+    "attack": 50,
+    "defense": 45,
+    "special-attack": 135,
+    "special-defense": 95,
+    "speed": 120
+  },
+  "sprites": {
+    "front": "sprites/65_alakazam_sprite.png",
+    "front_shiny": "sprites/65_alakazam_sprite_shiny.png"
+  }
+}

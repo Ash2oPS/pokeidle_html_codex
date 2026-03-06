@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 366,
+  "name_fr": "Coquiperl",
+  "name_en": "clamperl",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 367,
+      "name_en": "huntail",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "deep-sea-tooth"
+        }
+      ]
+    },
+    {
+      "id": 368,
+      "name_en": "gorebyss",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "deep-sea-scale"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 64,
+    "defense": 85,
+    "special-attack": 74,
+    "special-defense": 55,
+    "speed": 32
+  },
+  "sprites": {
+    "front": "sprites/366_clamperl_sprite.png",
+    "front_shiny": "sprites/366_clamperl_sprite_shiny.png"
+  }
+}

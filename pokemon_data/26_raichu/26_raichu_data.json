@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 26,
+  "name_fr": "Raichu",
+  "name_en": "raichu",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 25,
+    "name_en": "pikachu",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "thunder-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 60,
+    "attack": 90,
+    "defense": 55,
+    "special-attack": 90,
+    "special-defense": 80,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/26_raichu_sprite.png",
+    "front_shiny": "sprites/26_raichu_sprite_shiny.png"
+  }
+}

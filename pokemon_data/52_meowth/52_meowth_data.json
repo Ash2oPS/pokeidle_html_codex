@@ -1,0 +1,40 @@
+{
+  "pokedex_number": 52,
+  "name_fr": "Miaouss",
+  "name_en": "meowth",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 53,
+      "name_en": "persian",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 28
+        },
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 45,
+    "defense": 35,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/52_meowth_sprite.png",
+    "front_shiny": "sprites/52_meowth_sprite_shiny.png"
+  }
+}

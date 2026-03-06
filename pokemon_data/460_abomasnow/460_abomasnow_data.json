@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 460,
+  "name_fr": "Blizzaroi",
+  "name_en": "abomasnow",
+  "defensive_types": [
+    "grass",
+    "ice"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 459,
+    "name_en": "snover",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 40
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 92,
+    "defense": 75,
+    "special-attack": 92,
+    "special-defense": 85,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/460_abomasnow_sprite.png",
+    "front_shiny": "sprites/460_abomasnow_sprite_shiny.png"
+  }
+}

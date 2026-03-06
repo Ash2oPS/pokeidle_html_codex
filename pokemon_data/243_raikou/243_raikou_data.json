@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 243,
+  "name_fr": "Raikou",
+  "name_en": "raikou",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 85,
+    "defense": 75,
+    "special-attack": 115,
+    "special-defense": 100,
+    "speed": 115
+  },
+  "sprites": {
+    "front": "sprites/243_raikou_sprite.png",
+    "front_shiny": "sprites/243_raikou_sprite_shiny.png"
+  }
+}

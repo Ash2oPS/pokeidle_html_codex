@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 364,
+  "name_fr": "Phogleur",
+  "name_en": "sealeo",
+  "defensive_types": [
+    "ice",
+    "water"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": {
+    "id": 363,
+    "name_en": "spheal",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 32
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 365,
+      "name_en": "walrein",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 44
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 90,
+    "attack": 60,
+    "defense": 70,
+    "special-attack": 75,
+    "special-defense": 70,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/364_sealeo_sprite.png",
+    "front_shiny": "sprites/364_sealeo_sprite_shiny.png"
+  }
+}

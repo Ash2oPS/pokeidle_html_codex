@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 213,
+  "name_fr": "Caratroc",
+  "name_en": "shuckle",
+  "defensive_types": [
+    "bug",
+    "rock"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 20,
+    "attack": 10,
+    "defense": 230,
+    "special-attack": 10,
+    "special-defense": 230,
+    "speed": 5
+  },
+  "sprites": {
+    "front": "sprites/213_shuckle_sprite.png",
+    "front_shiny": "sprites/213_shuckle_sprite_shiny.png"
+  }
+}

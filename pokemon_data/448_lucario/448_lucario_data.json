@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 448,
+  "name_fr": "Lucario",
+  "name_en": "lucario",
+  "defensive_types": [
+    "fighting",
+    "steel"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 447,
+    "name_en": "riolu",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160,
+        "time_of_day": "day"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 110,
+    "defense": 70,
+    "special-attack": 115,
+    "special-defense": 70,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/448_lucario_sprite.png",
+    "front_shiny": "sprites/448_lucario_sprite_shiny.png"
+  }
+}

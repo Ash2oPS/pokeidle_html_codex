@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 316,
+  "name_fr": "Gloupti",
+  "name_en": "gulpin",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 317,
+      "name_en": "swalot",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 26
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 43,
+    "defense": 53,
+    "special-attack": 43,
+    "special-defense": 53,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/316_gulpin_sprite.png",
+    "front_shiny": "sprites/316_gulpin_sprite_shiny.png"
+  }
+}

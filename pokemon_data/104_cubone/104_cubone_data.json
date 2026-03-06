@@ -1,0 +1,41 @@
+{
+  "pokedex_number": 104,
+  "name_fr": "Osselait",
+  "name_en": "cubone",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 105,
+      "name_en": "marowak",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 28
+        },
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 28,
+          "time_of_day": "night"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 50,
+    "defense": 95,
+    "special-attack": 40,
+    "special-defense": 50,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/104_cubone_sprite.png",
+    "front_shiny": "sprites/104_cubone_sprite_shiny.png"
+  }
+}

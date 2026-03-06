@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 258,
+  "name_fr": "Gobou",
+  "name_en": "mudkip",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 259,
+      "name_en": "marshtomp",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 70,
+    "defense": 50,
+    "special-attack": 50,
+    "special-defense": 50,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/258_mudkip_sprite.png",
+    "front_shiny": "sprites/258_mudkip_sprite_shiny.png"
+  }
+}

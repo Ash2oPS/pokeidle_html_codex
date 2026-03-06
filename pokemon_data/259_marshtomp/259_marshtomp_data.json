@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 259,
+  "name_fr": "Flobio",
+  "name_en": "marshtomp",
+  "defensive_types": [
+    "water",
+    "ground"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 258,
+    "name_en": "mudkip",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 260,
+      "name_en": "swampert",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 70,
+    "attack": 85,
+    "defense": 70,
+    "special-attack": 60,
+    "special-defense": 70,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/259_marshtomp_sprite.png",
+    "front_shiny": "sprites/259_marshtomp_sprite_shiny.png"
+  }
+}

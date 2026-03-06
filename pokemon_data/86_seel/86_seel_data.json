@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 86,
+  "name_fr": "Otaria",
+  "name_en": "seel",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 87,
+      "name_en": "dewgong",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 34
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 65,
+    "attack": 45,
+    "defense": 55,
+    "special-attack": 45,
+    "special-defense": 70,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/86_seel_sprite.png",
+    "front_shiny": "sprites/86_seel_sprite_shiny.png"
+  }
+}

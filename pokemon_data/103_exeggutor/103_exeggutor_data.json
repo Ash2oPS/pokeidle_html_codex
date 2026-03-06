@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 103,
+  "name_fr": "Noadkoko",
+  "name_en": "exeggutor",
+  "defensive_types": [
+    "grass",
+    "psychic"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 102,
+    "name_en": "exeggcute",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "leaf-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 95,
+    "defense": 85,
+    "special-attack": 125,
+    "special-defense": 75,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/103_exeggutor_sprite.png",
+    "front_shiny": "sprites/103_exeggutor_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 355,
+  "name_fr": "Skelénox",
+  "name_en": "duskull",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 356,
+      "name_en": "dusclops",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 37
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 20,
+    "attack": 40,
+    "defense": 90,
+    "special-attack": 30,
+    "special-defense": 90,
+    "speed": 25
+  },
+  "sprites": {
+    "front": "sprites/355_duskull_sprite.png",
+    "front_shiny": "sprites/355_duskull_sprite_shiny.png"
+  }
+}

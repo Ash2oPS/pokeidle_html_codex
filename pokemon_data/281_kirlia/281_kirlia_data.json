@@ -1,0 +1,58 @@
+{
+  "pokedex_number": 281,
+  "name_fr": "Kirlia",
+  "name_en": "kirlia",
+  "defensive_types": [
+    "psychic",
+    "fairy"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 280,
+    "name_en": "ralts",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 20
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 282,
+      "name_en": "gardevoir",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    },
+    {
+      "id": 475,
+      "name_en": "gallade",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "dawn-stone",
+          "gender": "male"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 38,
+    "attack": 35,
+    "defense": 35,
+    "special-attack": 65,
+    "special-defense": 55,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/281_kirlia_sprite.png",
+    "front_shiny": "sprites/281_kirlia_sprite_shiny.png"
+  }
+}

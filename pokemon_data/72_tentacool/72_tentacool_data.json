@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 72,
+  "name_fr": "Tentacool",
+  "name_en": "tentacool",
+  "defensive_types": [
+    "water",
+    "poison"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 73,
+      "name_en": "tentacruel",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 40,
+    "defense": 35,
+    "special-attack": 50,
+    "special-defense": 100,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/72_tentacool_sprite.png",
+    "front_shiny": "sprites/72_tentacool_sprite_shiny.png"
+  }
+}

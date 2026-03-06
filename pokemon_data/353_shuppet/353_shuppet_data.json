@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 353,
+  "name_fr": "Polichombr",
+  "name_en": "shuppet",
+  "defensive_types": [
+    "ghost"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 354,
+      "name_en": "banette",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 37
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 44,
+    "attack": 75,
+    "defense": 35,
+    "special-attack": 63,
+    "special-defense": 33,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/353_shuppet_sprite.png",
+    "front_shiny": "sprites/353_shuppet_sprite_shiny.png"
+  }
+}

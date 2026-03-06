@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 382,
+  "name_fr": "Kyogre",
+  "name_en": "kyogre",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 90,
+    "special-attack": 150,
+    "special-defense": 140,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/382_kyogre_sprite.png",
+    "front_shiny": "sprites/382_kyogre_sprite_shiny.png"
+  }
+}

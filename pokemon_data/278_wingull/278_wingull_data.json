@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 278,
+  "name_fr": "Goélise",
+  "name_en": "wingull",
+  "defensive_types": [
+    "water",
+    "flying"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 279,
+      "name_en": "pelipper",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 30,
+    "defense": 30,
+    "special-attack": 55,
+    "special-defense": 30,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/278_wingull_sprite.png",
+    "front_shiny": "sprites/278_wingull_sprite_shiny.png"
+  }
+}

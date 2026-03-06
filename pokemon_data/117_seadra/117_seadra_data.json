@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 117,
+  "name_fr": "Hypocéan",
+  "name_en": "seadra",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 116,
+    "name_en": "horsea",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 32
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 230,
+      "name_en": "kingdra",
+      "evolution_methods": [
+        {
+          "evolution_type": "trade",
+          "trigger": "trade",
+          "held_item": "dragon-scale"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 65,
+    "defense": 95,
+    "special-attack": 95,
+    "special-defense": 45,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/117_seadra_sprite.png",
+    "front_shiny": "sprites/117_seadra_sprite_shiny.png"
+  }
+}

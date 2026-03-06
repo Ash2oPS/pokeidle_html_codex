@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 478,
+  "name_fr": "Momartik",
+  "name_en": "froslass",
+  "defensive_types": [
+    "ice",
+    "ghost"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": {
+    "id": 361,
+    "name_en": "snorunt",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "dawn-stone",
+        "gender": "female"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 80,
+    "defense": 70,
+    "special-attack": 80,
+    "special-defense": 70,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/478_froslass_sprite.png",
+    "front_shiny": "sprites/478_froslass_sprite_shiny.png"
+  }
+}

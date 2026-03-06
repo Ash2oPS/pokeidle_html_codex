@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 108,
+  "name_fr": "Excelangue",
+  "name_en": "lickitung",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 463,
+      "name_en": "lickilicky",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "known_move": "rollout"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 90,
+    "attack": 55,
+    "defense": 75,
+    "special-attack": 60,
+    "special-defense": 75,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/108_lickitung_sprite.png",
+    "front_shiny": "sprites/108_lickitung_sprite_shiny.png"
+  }
+}

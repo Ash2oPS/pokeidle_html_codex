@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 386,
+  "name_fr": "Deoxys",
+  "name_en": "deoxys-normal",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 150,
+    "defense": 50,
+    "special-attack": 150,
+    "special-defense": 50,
+    "speed": 150
+  },
+  "sprites": {
+    "front": "sprites/386_deoxys-normal_sprite.png",
+    "front_shiny": "sprites/386_deoxys-normal_sprite_shiny.png"
+  }
+}

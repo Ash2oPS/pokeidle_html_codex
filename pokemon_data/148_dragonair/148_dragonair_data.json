@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 148,
+  "name_fr": "Draco",
+  "name_en": "dragonair",
+  "defensive_types": [
+    "dragon"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": {
+    "id": 147,
+    "name_en": "dratini",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 149,
+      "name_en": "dragonite",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 55
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 61,
+    "attack": 84,
+    "defense": 65,
+    "special-attack": 70,
+    "special-defense": 70,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/148_dragonair_sprite.png",
+    "front_shiny": "sprites/148_dragonair_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 485,
+  "name_fr": "Heatran",
+  "name_en": "heatran",
+  "defensive_types": [
+    "fire",
+    "steel"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 91,
+    "attack": 90,
+    "defense": 106,
+    "special-attack": 130,
+    "special-defense": 106,
+    "speed": 77
+  },
+  "sprites": {
+    "front": "sprites/485_heatran_sprite.png",
+    "front_shiny": "sprites/485_heatran_sprite_shiny.png"
+  }
+}

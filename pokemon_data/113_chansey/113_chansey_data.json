@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 113,
+  "name_fr": "Leveinard",
+  "name_en": "chansey",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 440,
+    "name_en": "happiny",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "held_item": "oval-stone",
+        "time_of_day": "day"
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 242,
+      "name_en": "blissey",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 250,
+    "attack": 5,
+    "defense": 5,
+    "special-attack": 35,
+    "special-defense": 105,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/113_chansey_sprite.png",
+    "front_shiny": "sprites/113_chansey_sprite_shiny.png"
+  }
+}

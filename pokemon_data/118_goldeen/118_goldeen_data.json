@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 118,
+  "name_fr": "Poissirène",
+  "name_en": "goldeen",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 119,
+      "name_en": "seaking",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 33
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 67,
+    "defense": 60,
+    "special-attack": 35,
+    "special-defense": 50,
+    "speed": 63
+  },
+  "sprites": {
+    "front": "sprites/118_goldeen_sprite.png",
+    "front_shiny": "sprites/118_goldeen_sprite_shiny.png"
+  }
+}

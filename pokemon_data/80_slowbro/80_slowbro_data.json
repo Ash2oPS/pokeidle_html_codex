@@ -1,0 +1,39 @@
+{
+  "pokedex_number": 80,
+  "name_fr": "Flagadoss",
+  "name_en": "slowbro",
+  "defensive_types": [
+    "water",
+    "psychic"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 79,
+    "name_en": "slowpoke",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 37
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "galarica-cuff"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 75,
+    "defense": 110,
+    "special-attack": 100,
+    "special-defense": 80,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/80_slowbro_sprite.png",
+    "front_shiny": "sprites/80_slowbro_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 434,
+  "name_fr": "Moufouette",
+  "name_en": "stunky",
+  "defensive_types": [
+    "poison",
+    "dark"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 435,
+      "name_en": "skuntank",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 34
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 63,
+    "attack": 63,
+    "defense": 47,
+    "special-attack": 41,
+    "special-defense": 41,
+    "speed": 74
+  },
+  "sprites": {
+    "front": "sprites/434_stunky_sprite.png",
+    "front_shiny": "sprites/434_stunky_sprite_shiny.png"
+  }
+}

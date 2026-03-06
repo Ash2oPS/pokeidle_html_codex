@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 218,
+  "name_fr": "Limagma",
+  "name_en": "slugma",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 219,
+      "name_en": "magcargo",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 38
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 40,
+    "defense": 40,
+    "special-attack": 70,
+    "special-defense": 40,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/218_slugma_sprite.png",
+    "front_shiny": "sprites/218_slugma_sprite_shiny.png"
+  }
+}

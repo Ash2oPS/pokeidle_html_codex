@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 5,
+  "name_fr": "Reptincel",
+  "name_en": "charmeleon",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 4,
+    "name_en": "charmander",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 6,
+      "name_en": "charizard",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 58,
+    "attack": 64,
+    "defense": 58,
+    "special-attack": 80,
+    "special-defense": 65,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/5_charmeleon_sprite.png",
+    "front_shiny": "sprites/5_charmeleon_sprite_shiny.png"
+  }
+}

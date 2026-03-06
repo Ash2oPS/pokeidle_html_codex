@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 484,
+  "name_fr": "Palkia",
+  "name_en": "palkia",
+  "defensive_types": [
+    "water",
+    "dragon"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 120,
+    "defense": 100,
+    "special-attack": 150,
+    "special-defense": 120,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/484_palkia_sprite.png",
+    "front_shiny": "sprites/484_palkia_sprite_shiny.png"
+  }
+}

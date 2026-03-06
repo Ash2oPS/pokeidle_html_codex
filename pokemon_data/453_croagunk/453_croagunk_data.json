@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 453,
+  "name_fr": "Cradopaud",
+  "name_en": "croagunk",
+  "defensive_types": [
+    "poison",
+    "fighting"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 454,
+      "name_en": "toxicroak",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 37
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 48,
+    "attack": 61,
+    "defense": 40,
+    "special-attack": 61,
+    "special-defense": 40,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/453_croagunk_sprite.png",
+    "front_shiny": "sprites/453_croagunk_sprite_shiny.png"
+  }
+}

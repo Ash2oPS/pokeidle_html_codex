@@ -1,0 +1,38 @@
+{
+  "pokedex_number": 28,
+  "name_fr": "Sablaireau",
+  "name_en": "sandslash",
+  "defensive_types": [
+    "ground"
+  ],
+  "offensive_type": "ground",
+  "evolves_from": {
+    "id": 27,
+    "name_en": "sandshrew",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 22
+      },
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "ice-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 100,
+    "defense": 110,
+    "special-attack": 45,
+    "special-defense": 55,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/28_sandslash_sprite.png",
+    "front_shiny": "sprites/28_sandslash_sprite_shiny.png"
+  }
+}

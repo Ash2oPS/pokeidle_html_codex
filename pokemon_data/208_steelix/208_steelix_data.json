@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 208,
+  "name_fr": "Steelix",
+  "name_en": "steelix",
+  "defensive_types": [
+    "steel",
+    "ground"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": {
+    "id": 95,
+    "name_en": "onix",
+    "evolution_methods": [
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "metal-coat"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 85,
+    "defense": 200,
+    "special-attack": 55,
+    "special-defense": 65,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/208_steelix_sprite.png",
+    "front_shiny": "sprites/208_steelix_sprite_shiny.png"
+  }
+}

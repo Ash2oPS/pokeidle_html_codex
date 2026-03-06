@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 303,
+  "name_fr": "Mysdibule",
+  "name_en": "mawile",
+  "defensive_types": [
+    "steel",
+    "fairy"
+  ],
+  "offensive_type": "steel",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 85,
+    "defense": 85,
+    "special-attack": 55,
+    "special-defense": 55,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/303_mawile_sprite.png",
+    "front_shiny": "sprites/303_mawile_sprite_shiny.png"
+  }
+}

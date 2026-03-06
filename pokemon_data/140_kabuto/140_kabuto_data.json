@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 140,
+  "name_fr": "Kabuto",
+  "name_en": "kabuto",
+  "defensive_types": [
+    "rock",
+    "water"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 141,
+      "name_en": "kabutops",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 80,
+    "defense": 90,
+    "special-attack": 55,
+    "special-defense": 45,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/140_kabuto_sprite.png",
+    "front_shiny": "sprites/140_kabuto_sprite_shiny.png"
+  }
+}

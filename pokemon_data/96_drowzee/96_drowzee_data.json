@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 96,
+  "name_fr": "Soporifik",
+  "name_en": "drowzee",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 97,
+      "name_en": "hypno",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 26
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 48,
+    "defense": 45,
+    "special-attack": 43,
+    "special-defense": 90,
+    "speed": 42
+  },
+  "sprites": {
+    "front": "sprites/96_drowzee_sprite.png",
+    "front_shiny": "sprites/96_drowzee_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 196,
+  "name_fr": "Mentali",
+  "name_en": "espeon",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 133,
+    "name_en": "eevee",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160,
+        "time_of_day": "day"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 65,
+    "defense": 60,
+    "special-attack": 130,
+    "special-defense": 95,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/196_espeon_sprite.png",
+    "front_shiny": "sprites/196_espeon_sprite_shiny.png"
+  }
+}

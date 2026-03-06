@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 309,
+  "name_fr": "Dynavolt",
+  "name_en": "electrike",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 310,
+      "name_en": "manectric",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 26
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 45,
+    "defense": 40,
+    "special-attack": 65,
+    "special-defense": 40,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/309_electrike_sprite.png",
+    "front_shiny": "sprites/309_electrike_sprite_shiny.png"
+  }
+}

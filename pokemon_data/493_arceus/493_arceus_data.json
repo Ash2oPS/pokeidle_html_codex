@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 493,
+  "name_fr": "Arceus",
+  "name_en": "arceus",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 120,
+    "attack": 120,
+    "defense": 120,
+    "special-attack": 120,
+    "special-defense": 120,
+    "speed": 120
+  },
+  "sprites": {
+    "front": "sprites/493_arceus_sprite.png",
+    "front_shiny": "sprites/493_arceus_sprite_shiny.png"
+  }
+}

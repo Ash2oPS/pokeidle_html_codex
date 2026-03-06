@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 394,
+  "name_fr": "Prinplouf",
+  "name_en": "prinplup",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 393,
+    "name_en": "piplup",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 395,
+      "name_en": "empoleon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 64,
+    "attack": 66,
+    "defense": 68,
+    "special-attack": 81,
+    "special-defense": 76,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/394_prinplup_sprite.png",
+    "front_shiny": "sprites/394_prinplup_sprite_shiny.png"
+  }
+}

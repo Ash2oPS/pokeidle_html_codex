@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 201,
+  "name_fr": "Zarbi",
+  "name_en": "unown",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 48,
+    "attack": 72,
+    "defense": 48,
+    "special-attack": 72,
+    "special-defense": 48,
+    "speed": 48
+  },
+  "sprites": {
+    "front": "sprites/201_unown_sprite.png",
+    "front_shiny": "sprites/201_unown_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 57,
+  "name_fr": "Colossinge",
+  "name_en": "primeape",
+  "defensive_types": [
+    "fighting"
+  ],
+  "offensive_type": "fighting",
+  "evolves_from": {
+    "id": 56,
+    "name_en": "mankey",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 28
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 105,
+    "defense": 60,
+    "special-attack": 60,
+    "special-defense": 70,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/57_primeape_sprite.png",
+    "front_shiny": "sprites/57_primeape_sprite_shiny.png"
+  }
+}

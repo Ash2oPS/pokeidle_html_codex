@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 16,
+  "name_fr": "Roucool",
+  "name_en": "pidgey",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 17,
+      "name_en": "pidgeotto",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 45,
+    "defense": 40,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 56
+  },
+  "sprites": {
+    "front": "sprites/16_pidgey_sprite.png",
+    "front_shiny": "sprites/16_pidgey_sprite_shiny.png"
+  }
+}

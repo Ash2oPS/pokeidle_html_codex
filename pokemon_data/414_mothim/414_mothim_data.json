@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 414,
+  "name_fr": "Papilord",
+  "name_en": "mothim",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": {
+    "id": 412,
+    "name_en": "burmy",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 20,
+        "gender": "male"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 94,
+    "defense": 50,
+    "special-attack": 94,
+    "special-defense": 50,
+    "speed": 66
+  },
+  "sprites": {
+    "front": "sprites/414_mothim_sprite.png",
+    "front_shiny": "sprites/414_mothim_sprite_shiny.png"
+  }
+}

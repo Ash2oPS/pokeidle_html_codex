@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 300,
+  "name_fr": "Skitty",
+  "name_en": "skitty",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 301,
+      "name_en": "delcatty",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "moon-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 45,
+    "defense": 45,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/300_skitty_sprite.png",
+    "front_shiny": "sprites/300_skitty_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 347,
+  "name_fr": "Anorith",
+  "name_en": "anorith",
+  "defensive_types": [
+    "rock",
+    "bug"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 348,
+      "name_en": "armaldo",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 95,
+    "defense": 50,
+    "special-attack": 40,
+    "special-defense": 50,
+    "speed": 75
+  },
+  "sprites": {
+    "front": "sprites/347_anorith_sprite.png",
+    "front_shiny": "sprites/347_anorith_sprite_shiny.png"
+  }
+}

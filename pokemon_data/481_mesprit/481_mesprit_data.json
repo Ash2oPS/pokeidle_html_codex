@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 481,
+  "name_fr": "Créfollet",
+  "name_en": "mesprit",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 105,
+    "defense": 105,
+    "special-attack": 105,
+    "special-defense": 105,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/481_mesprit_sprite.png",
+    "front_shiny": "sprites/481_mesprit_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 380,
+  "name_fr": "Latias",
+  "name_en": "latias",
+  "defensive_types": [
+    "dragon",
+    "psychic"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 80,
+    "attack": 80,
+    "defense": 90,
+    "special-attack": 110,
+    "special-defense": 130,
+    "speed": 110
+  },
+  "sprites": {
+    "front": "sprites/380_latias_sprite.png",
+    "front_shiny": "sprites/380_latias_sprite_shiny.png"
+  }
+}

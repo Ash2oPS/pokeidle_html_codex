@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 318,
+  "name_fr": "Carvanha",
+  "name_en": "carvanha",
+  "defensive_types": [
+    "water",
+    "dark"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 319,
+      "name_en": "sharpedo",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 90,
+    "defense": 20,
+    "special-attack": 65,
+    "special-defense": 20,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/318_carvanha_sprite.png",
+    "front_shiny": "sprites/318_carvanha_sprite_shiny.png"
+  }
+}

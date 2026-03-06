@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 459,
+  "name_fr": "Blizzi",
+  "name_en": "snover",
+  "defensive_types": [
+    "grass",
+    "ice"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 460,
+      "name_en": "abomasnow",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 62,
+    "defense": 50,
+    "special-attack": 62,
+    "special-defense": 60,
+    "speed": 40
+  },
+  "sprites": {
+    "front": "sprites/459_snover_sprite.png",
+    "front_shiny": "sprites/459_snover_sprite_shiny.png"
+  }
+}

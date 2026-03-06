@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 473,
+  "name_fr": "Mammochon",
+  "name_en": "mamoswine",
+  "defensive_types": [
+    "ice",
+    "ground"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": {
+    "id": 221,
+    "name_en": "piloswine",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "known_move": "ancient-power"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 110,
+    "attack": 130,
+    "defense": 80,
+    "special-attack": 70,
+    "special-defense": 60,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/473_mamoswine_sprite.png",
+    "front_shiny": "sprites/473_mamoswine_sprite_shiny.png"
+  }
+}

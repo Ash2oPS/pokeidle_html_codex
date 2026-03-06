@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 153,
+  "name_fr": "Macronium",
+  "name_en": "bayleef",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 152,
+    "name_en": "chikorita",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 154,
+      "name_en": "meganium",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 62,
+    "defense": 80,
+    "special-attack": 63,
+    "special-defense": 80,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/153_bayleef_sprite.png",
+    "front_shiny": "sprites/153_bayleef_sprite_shiny.png"
+  }
+}

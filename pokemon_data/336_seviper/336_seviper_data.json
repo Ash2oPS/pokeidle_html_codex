@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 336,
+  "name_fr": "Séviper",
+  "name_en": "seviper",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 73,
+    "attack": 100,
+    "defense": 60,
+    "special-attack": 100,
+    "special-defense": 60,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/336_seviper_sprite.png",
+    "front_shiny": "sprites/336_seviper_sprite_shiny.png"
+  }
+}

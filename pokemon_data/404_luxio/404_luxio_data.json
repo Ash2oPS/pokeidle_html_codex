@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 404,
+  "name_fr": "Luxio",
+  "name_en": "luxio",
+  "defensive_types": [
+    "electric"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": {
+    "id": 403,
+    "name_en": "shinx",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 15
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 405,
+      "name_en": "luxray",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 85,
+    "defense": 49,
+    "special-attack": 60,
+    "special-defense": 49,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/404_luxio_sprite.png",
+    "front_shiny": "sprites/404_luxio_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 260,
+  "name_fr": "Laggron",
+  "name_en": "swampert",
+  "defensive_types": [
+    "water",
+    "ground"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 259,
+    "name_en": "marshtomp",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 36
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 110,
+    "defense": 90,
+    "special-attack": 85,
+    "special-defense": 90,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/260_swampert_sprite.png",
+    "front_shiny": "sprites/260_swampert_sprite_shiny.png"
+  }
+}

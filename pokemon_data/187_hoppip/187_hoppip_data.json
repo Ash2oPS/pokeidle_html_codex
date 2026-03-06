@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 187,
+  "name_fr": "Granivol",
+  "name_en": "hoppip",
+  "defensive_types": [
+    "grass",
+    "flying"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 188,
+      "name_en": "skiploom",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 35,
+    "attack": 35,
+    "defense": 40,
+    "special-attack": 35,
+    "special-defense": 55,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/187_hoppip_sprite.png",
+    "front_shiny": "sprites/187_hoppip_sprite_shiny.png"
+  }
+}

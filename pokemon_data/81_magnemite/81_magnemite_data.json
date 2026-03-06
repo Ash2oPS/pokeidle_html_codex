@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 81,
+  "name_fr": "Magnéti",
+  "name_en": "magnemite",
+  "defensive_types": [
+    "electric",
+    "steel"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 82,
+      "name_en": "magneton",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 25,
+    "attack": 35,
+    "defense": 70,
+    "special-attack": 95,
+    "special-defense": 55,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/81_magnemite_sprite.png",
+    "front_shiny": "sprites/81_magnemite_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 245,
+  "name_fr": "Suicune",
+  "name_en": "suicune",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 75,
+    "defense": 115,
+    "special-attack": 90,
+    "special-defense": 115,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/245_suicune_sprite.png",
+    "front_shiny": "sprites/245_suicune_sprite_shiny.png"
+  }
+}

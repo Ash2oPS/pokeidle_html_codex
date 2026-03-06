@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 97,
+  "name_fr": "Hypnomade",
+  "name_en": "hypno",
+  "defensive_types": [
+    "psychic"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 96,
+    "name_en": "drowzee",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 26
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 85,
+    "attack": 73,
+    "defense": 70,
+    "special-attack": 73,
+    "special-defense": 115,
+    "speed": 67
+  },
+  "sprites": {
+    "front": "sprites/97_hypno_sprite.png",
+    "front_shiny": "sprites/97_hypno_sprite_shiny.png"
+  }
+}

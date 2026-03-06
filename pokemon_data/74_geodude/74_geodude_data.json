@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 74,
+  "name_fr": "Racaillou",
+  "name_en": "geodude",
+  "defensive_types": [
+    "rock",
+    "ground"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 75,
+      "name_en": "graveler",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 80,
+    "defense": 100,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/74_geodude_sprite.png",
+    "front_shiny": "sprites/74_geodude_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 342,
+  "name_fr": "Colhomard",
+  "name_en": "crawdaunt",
+  "defensive_types": [
+    "water",
+    "dark"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 341,
+    "name_en": "corphish",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 30
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 63,
+    "attack": 120,
+    "defense": 85,
+    "special-attack": 90,
+    "special-defense": 55,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/342_crawdaunt_sprite.png",
+    "front_shiny": "sprites/342_crawdaunt_sprite_shiny.png"
+  }
+}

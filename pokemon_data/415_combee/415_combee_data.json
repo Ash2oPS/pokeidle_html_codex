@@ -1,0 +1,37 @@
+{
+  "pokedex_number": 415,
+  "name_fr": "Apitrini",
+  "name_en": "combee",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 416,
+      "name_en": "vespiquen",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 21,
+          "gender": "female"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 30,
+    "attack": 30,
+    "defense": 42,
+    "special-attack": 30,
+    "special-defense": 42,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/415_combee_sprite.png",
+    "front_shiny": "sprites/415_combee_sprite_shiny.png"
+  }
+}

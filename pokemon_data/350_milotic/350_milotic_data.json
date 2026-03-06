@@ -1,0 +1,38 @@
+{
+  "pokedex_number": 350,
+  "name_fr": "Milobellus",
+  "name_en": "milotic",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": {
+    "id": 349,
+    "name_en": "feebas",
+    "evolution_methods": [
+      {
+        "evolution_type": "beauty",
+        "trigger": "level-up",
+        "min_beauty": 170
+      },
+      {
+        "evolution_type": "trade",
+        "trigger": "trade",
+        "held_item": "prism-scale"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 60,
+    "defense": 79,
+    "special-attack": 100,
+    "special-defense": 125,
+    "speed": 81
+  },
+  "sprites": {
+    "front": "sprites/350_milotic_sprite.png",
+    "front_shiny": "sprites/350_milotic_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 145,
+  "name_fr": "Électhor",
+  "name_en": "zapdos",
+  "defensive_types": [
+    "electric",
+    "flying"
+  ],
+  "offensive_type": "electric",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 90,
+    "defense": 85,
+    "special-attack": 125,
+    "special-defense": 90,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/145_zapdos_sprite.png",
+    "front_shiny": "sprites/145_zapdos_sprite_shiny.png"
+  }
+}

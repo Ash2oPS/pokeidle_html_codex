@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 198,
+  "name_fr": "Cornèbre",
+  "name_en": "murkrow",
+  "defensive_types": [
+    "dark",
+    "flying"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 430,
+      "name_en": "honchkrow",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "dusk-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 85,
+    "defense": 42,
+    "special-attack": 85,
+    "special-defense": 42,
+    "speed": 91
+  },
+  "sprites": {
+    "front": "sprites/198_murkrow_sprite.png",
+    "front_shiny": "sprites/198_murkrow_sprite_shiny.png"
+  }
+}

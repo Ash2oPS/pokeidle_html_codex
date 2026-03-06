@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 228,
+  "name_fr": "Malosse",
+  "name_en": "houndour",
+  "defensive_types": [
+    "dark",
+    "fire"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 229,
+      "name_en": "houndoom",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 24
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 60,
+    "defense": 30,
+    "special-attack": 80,
+    "special-defense": 50,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/228_houndour_sprite.png",
+    "front_shiny": "sprites/228_houndour_sprite_shiny.png"
+  }
+}

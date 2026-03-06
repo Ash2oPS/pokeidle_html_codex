@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 420,
+  "name_fr": "Ceribou",
+  "name_en": "cherubi",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 421,
+      "name_en": "cherrim",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 25
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 35,
+    "defense": 45,
+    "special-attack": 62,
+    "special-defense": 53,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/420_cherubi_sprite.png",
+    "front_shiny": "sprites/420_cherubi_sprite_shiny.png"
+  }
+}

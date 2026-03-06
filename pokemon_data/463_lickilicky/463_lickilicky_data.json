@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 463,
+  "name_fr": "Coudlangue",
+  "name_en": "lickilicky",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 108,
+    "name_en": "lickitung",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "known_move": "rollout"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 110,
+    "attack": 85,
+    "defense": 95,
+    "special-attack": 80,
+    "special-defense": 95,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/463_lickilicky_sprite.png",
+    "front_shiny": "sprites/463_lickilicky_sprite_shiny.png"
+  }
+}

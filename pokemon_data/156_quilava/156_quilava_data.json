@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 156,
+  "name_fr": "Feurisson",
+  "name_en": "quilava",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 155,
+    "name_en": "cyndaquil",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 14
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 157,
+      "name_en": "typhlosion",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 58,
+    "attack": 64,
+    "defense": 58,
+    "special-attack": 80,
+    "special-defense": 65,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/156_quilava_sprite.png",
+    "front_shiny": "sprites/156_quilava_sprite_shiny.png"
+  }
+}

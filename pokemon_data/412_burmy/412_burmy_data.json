@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 412,
+  "name_fr": "Cheniti",
+  "name_en": "burmy",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 414,
+      "name_en": "mothim",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20,
+          "gender": "male"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 29,
+    "defense": 45,
+    "special-attack": 29,
+    "special-defense": 45,
+    "speed": 36
+  },
+  "sprites": {
+    "front": "sprites/412_burmy_sprite.png",
+    "front_shiny": "sprites/412_burmy_sprite_shiny.png"
+  }
+}

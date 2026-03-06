@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 250,
+  "name_fr": "Ho-Oh",
+  "name_en": "ho-oh",
+  "defensive_types": [
+    "fire",
+    "flying"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 106,
+    "attack": 130,
+    "defense": 90,
+    "special-attack": 110,
+    "special-defense": 154,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/250_ho-oh_sprite.png",
+    "front_shiny": "sprites/250_ho-oh_sprite_shiny.png"
+  }
+}

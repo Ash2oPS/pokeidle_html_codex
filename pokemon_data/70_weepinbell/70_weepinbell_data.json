@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 70,
+  "name_fr": "Boustiflor",
+  "name_en": "weepinbell",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 69,
+    "name_en": "bellsprout",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 21
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 71,
+      "name_en": "victreebel",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "leaf-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 65,
+    "attack": 90,
+    "defense": 50,
+    "special-attack": 85,
+    "special-defense": 45,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/70_weepinbell_sprite.png",
+    "front_shiny": "sprites/70_weepinbell_sprite_shiny.png"
+  }
+}

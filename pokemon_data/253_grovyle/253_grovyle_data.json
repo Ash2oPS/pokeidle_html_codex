@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 253,
+  "name_fr": "Massko",
+  "name_en": "grovyle",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 252,
+    "name_en": "treecko",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 254,
+      "name_en": "sceptile",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 65,
+    "defense": 45,
+    "special-attack": 85,
+    "special-defense": 65,
+    "speed": 95
+  },
+  "sprites": {
+    "front": "sprites/253_grovyle_sprite.png",
+    "front_shiny": "sprites/253_grovyle_sprite_shiny.png"
+  }
+}

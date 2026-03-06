@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 373,
+  "name_fr": "Drattak",
+  "name_en": "salamence",
+  "defensive_types": [
+    "dragon",
+    "flying"
+  ],
+  "offensive_type": "dragon",
+  "evolves_from": {
+    "id": 372,
+    "name_en": "shelgon",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 50
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 95,
+    "attack": 135,
+    "defense": 80,
+    "special-attack": 110,
+    "special-defense": 80,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/373_salamence_sprite.png",
+    "front_shiny": "sprites/373_salamence_sprite_shiny.png"
+  }
+}

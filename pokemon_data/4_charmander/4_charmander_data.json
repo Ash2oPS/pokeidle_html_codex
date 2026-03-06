@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 4,
+  "name_fr": "Salamèche",
+  "name_en": "charmander",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 5,
+      "name_en": "charmeleon",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 39,
+    "attack": 52,
+    "defense": 43,
+    "special-attack": 60,
+    "special-defense": 50,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/4_charmander_sprite.png",
+    "front_shiny": "sprites/4_charmander_sprite_shiny.png"
+  }
+}

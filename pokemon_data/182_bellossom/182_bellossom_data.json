@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 182,
+  "name_fr": "Joliflor",
+  "name_en": "bellossom",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 44,
+    "name_en": "gloom",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "sun-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 75,
+    "attack": 80,
+    "defense": 95,
+    "special-attack": 90,
+    "special-defense": 100,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/182_bellossom_sprite.png",
+    "front_shiny": "sprites/182_bellossom_sprite_shiny.png"
+  }
+}

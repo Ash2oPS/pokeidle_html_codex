@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 287,
+  "name_fr": "Parecool",
+  "name_en": "slakoth",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 288,
+      "name_en": "vigoroth",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 60,
+    "defense": 60,
+    "special-attack": 35,
+    "special-defense": 35,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/287_slakoth_sprite.png",
+    "front_shiny": "sprites/287_slakoth_sprite_shiny.png"
+  }
+}

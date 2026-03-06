@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 54,
+  "name_fr": "Psykokwak",
+  "name_en": "psyduck",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 55,
+      "name_en": "golduck",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 33
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 52,
+    "defense": 48,
+    "special-attack": 65,
+    "special-defense": 50,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/54_psyduck_sprite.png",
+    "front_shiny": "sprites/54_psyduck_sprite_shiny.png"
+  }
+}

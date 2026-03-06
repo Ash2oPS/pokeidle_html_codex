@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 491,
+  "name_fr": "Darkrai",
+  "name_en": "darkrai",
+  "defensive_types": [
+    "dark"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 90,
+    "defense": 90,
+    "special-attack": 135,
+    "special-defense": 90,
+    "speed": 125
+  },
+  "sprites": {
+    "front": "sprites/491_darkrai_sprite.png",
+    "front_shiny": "sprites/491_darkrai_sprite_shiny.png"
+  }
+}

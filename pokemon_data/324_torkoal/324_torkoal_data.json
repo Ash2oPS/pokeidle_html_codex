@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 324,
+  "name_fr": "Chartor",
+  "name_en": "torkoal",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 70,
+    "attack": 85,
+    "defense": 140,
+    "special-attack": 85,
+    "special-defense": 70,
+    "speed": 20
+  },
+  "sprites": {
+    "front": "sprites/324_torkoal_sprite.png",
+    "front_shiny": "sprites/324_torkoal_sprite_shiny.png"
+  }
+}

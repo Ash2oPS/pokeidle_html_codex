@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 29,
+  "name_fr": "Nidoran♀",
+  "name_en": "nidoran-f",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 30,
+      "name_en": "nidorina",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 47,
+    "defense": 52,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 41
+  },
+  "sprites": {
+    "front": "sprites/29_nidoran-f_sprite.png",
+    "front_shiny": "sprites/29_nidoran-f_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 144,
+  "name_fr": "Artikodin",
+  "name_en": "articuno",
+  "defensive_types": [
+    "ice",
+    "flying"
+  ],
+  "offensive_type": "ice",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 90,
+    "attack": 85,
+    "defense": 100,
+    "special-attack": 95,
+    "special-defense": 125,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/144_articuno_sprite.png",
+    "front_shiny": "sprites/144_articuno_sprite_shiny.png"
+  }
+}

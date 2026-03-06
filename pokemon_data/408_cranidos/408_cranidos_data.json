@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 408,
+  "name_fr": "Kranidos",
+  "name_en": "cranidos",
+  "defensive_types": [
+    "rock"
+  ],
+  "offensive_type": "rock",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 409,
+      "name_en": "rampardos",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 30
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 67,
+    "attack": 125,
+    "defense": 40,
+    "special-attack": 30,
+    "special-defense": 30,
+    "speed": 58
+  },
+  "sprites": {
+    "front": "sprites/408_cranidos_sprite.png",
+    "front_shiny": "sprites/408_cranidos_sprite_shiny.png"
+  }
+}

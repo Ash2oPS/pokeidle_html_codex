@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 391,
+  "name_fr": "Chimpenfeu",
+  "name_en": "monferno",
+  "defensive_types": [
+    "fire",
+    "fighting"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": {
+    "id": 390,
+    "name_en": "chimchar",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 14
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 392,
+      "name_en": "infernape",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 36
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 64,
+    "attack": 78,
+    "defense": 52,
+    "special-attack": 78,
+    "special-defense": 52,
+    "speed": 81
+  },
+  "sprites": {
+    "front": "sprites/391_monferno_sprite.png",
+    "front_shiny": "sprites/391_monferno_sprite_shiny.png"
+  }
+}

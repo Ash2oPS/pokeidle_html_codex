@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 162,
+  "name_fr": "Fouinar",
+  "name_en": "furret",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 161,
+    "name_en": "sentret",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 15
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 85,
+    "attack": 76,
+    "defense": 64,
+    "special-attack": 45,
+    "special-defense": 55,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/162_furret_sprite.png",
+    "front_shiny": "sprites/162_furret_sprite_shiny.png"
+  }
+}

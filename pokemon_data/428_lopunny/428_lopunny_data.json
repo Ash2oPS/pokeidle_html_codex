@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 428,
+  "name_fr": "Lockpin",
+  "name_en": "lopunny",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 427,
+    "name_en": "buneary",
+    "evolution_methods": [
+      {
+        "evolution_type": "happiness",
+        "trigger": "level-up",
+        "min_happiness": 160
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 76,
+    "defense": 84,
+    "special-attack": 54,
+    "special-defense": 96,
+    "speed": 105
+  },
+  "sprites": {
+    "front": "sprites/428_lopunny_sprite.png",
+    "front_shiny": "sprites/428_lopunny_sprite_shiny.png"
+  }
+}

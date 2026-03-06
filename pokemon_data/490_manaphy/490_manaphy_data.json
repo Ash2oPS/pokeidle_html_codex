@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 490,
+  "name_fr": "Manaphy",
+  "name_en": "manaphy",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 100,
+    "special-attack": 100,
+    "special-defense": 100,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "sprites/490_manaphy_sprite.png",
+    "front_shiny": "sprites/490_manaphy_sprite_shiny.png"
+  }
+}

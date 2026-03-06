@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 314,
+  "name_fr": "Lumivole",
+  "name_en": "illumise",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 47,
+    "defense": 75,
+    "special-attack": 73,
+    "special-defense": 85,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/314_illumise_sprite.png",
+    "front_shiny": "sprites/314_illumise_sprite_shiny.png"
+  }
+}

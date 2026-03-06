@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 432,
+  "name_fr": "Chaffreux",
+  "name_en": "purugly",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": {
+    "id": 431,
+    "name_en": "glameow",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 38
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 71,
+    "attack": 82,
+    "defense": 64,
+    "special-attack": 64,
+    "special-defense": 59,
+    "speed": 112
+  },
+  "sprites": {
+    "front": "sprites/432_purugly_sprite.png",
+    "front_shiny": "sprites/432_purugly_sprite_shiny.png"
+  }
+}

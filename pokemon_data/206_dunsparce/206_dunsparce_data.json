@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 206,
+  "name_fr": "Insolourdo",
+  "name_en": "dunsparce",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 70,
+    "defense": 70,
+    "special-attack": 65,
+    "special-defense": 65,
+    "speed": 45
+  },
+  "sprites": {
+    "front": "sprites/206_dunsparce_sprite.png",
+    "front_shiny": "sprites/206_dunsparce_sprite_shiny.png"
+  }
+}

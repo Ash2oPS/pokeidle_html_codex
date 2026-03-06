@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 127,
+  "name_fr": "Scarabrute",
+  "name_en": "pinsir",
+  "defensive_types": [
+    "bug"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 65,
+    "attack": 125,
+    "defense": 100,
+    "special-attack": 55,
+    "special-defense": 70,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/127_pinsir_sprite.png",
+    "front_shiny": "sprites/127_pinsir_sprite_shiny.png"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 163,
+  "name_fr": "Hoothoot",
+  "name_en": "hoothoot",
+  "defensive_types": [
+    "normal",
+    "flying"
+  ],
+  "offensive_type": "flying",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 164,
+      "name_en": "noctowl",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 30,
+    "defense": 30,
+    "special-attack": 36,
+    "special-defense": 56,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/163_hoothoot_sprite.png",
+    "front_shiny": "sprites/163_hoothoot_sprite_shiny.png"
+  }
+}

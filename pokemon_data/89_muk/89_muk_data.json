@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 89,
+  "name_fr": "Grotadmorv",
+  "name_en": "muk",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 88,
+    "name_en": "grimer",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 38
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 105,
+    "attack": 105,
+    "defense": 75,
+    "special-attack": 65,
+    "special-defense": 100,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/89_muk_sprite.png",
+    "front_shiny": "sprites/89_muk_sprite_shiny.png"
+  }
+}

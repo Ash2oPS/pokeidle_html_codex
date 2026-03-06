@@ -1,0 +1,46 @@
+{
+  "pokedex_number": 2,
+  "name_fr": "Herbizarre",
+  "name_en": "ivysaur",
+  "defensive_types": [
+    "grass",
+    "poison"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 1,
+    "name_en": "bulbasaur",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 3,
+      "name_en": "venusaur",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 62,
+    "defense": 63,
+    "special-attack": 80,
+    "special-defense": 80,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "sprites/2_ivysaur_sprite.png",
+    "front_shiny": "sprites/2_ivysaur_sprite_shiny.png"
+  }
+}

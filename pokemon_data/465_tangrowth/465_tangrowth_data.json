@@ -1,0 +1,33 @@
+{
+  "pokedex_number": 465,
+  "name_fr": "Bouldeneu",
+  "name_en": "tangrowth",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": {
+    "id": 114,
+    "name_en": "tangela",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "known_move": "ancient-power"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 100,
+    "defense": 125,
+    "special-attack": 110,
+    "special-defense": 50,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/465_tangrowth_sprite.png",
+    "front_shiny": "sprites/465_tangrowth_sprite_shiny.png"
+  }
+}

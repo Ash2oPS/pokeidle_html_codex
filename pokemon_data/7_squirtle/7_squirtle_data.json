@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 7,
+  "name_fr": "Carapuce",
+  "name_en": "squirtle",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 8,
+      "name_en": "wartortle",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 16
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 44,
+    "attack": 48,
+    "defense": 65,
+    "special-attack": 50,
+    "special-defense": 64,
+    "speed": 43
+  },
+  "sprites": {
+    "front": "sprites/7_squirtle_sprite.png",
+    "front_shiny": "sprites/7_squirtle_sprite_shiny.png"
+  }
+}

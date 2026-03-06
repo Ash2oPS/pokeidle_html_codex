@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 331,
+  "name_fr": "Cacnea",
+  "name_en": "cacnea",
+  "defensive_types": [
+    "grass"
+  ],
+  "offensive_type": "grass",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 332,
+      "name_en": "cacturne",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 32
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 85,
+    "defense": 40,
+    "special-attack": 85,
+    "special-defense": 40,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/331_cacnea_sprite.png",
+    "front_shiny": "sprites/331_cacnea_sprite_shiny.png"
+  }
+}

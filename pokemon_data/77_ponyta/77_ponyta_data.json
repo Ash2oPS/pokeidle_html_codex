@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 77,
+  "name_fr": "Ponyta",
+  "name_en": "ponyta",
+  "defensive_types": [
+    "fire"
+  ],
+  "offensive_type": "fire",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 78,
+      "name_en": "rapidash",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 40
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 50,
+    "attack": 85,
+    "defense": 55,
+    "special-attack": 65,
+    "special-defense": 65,
+    "speed": 90
+  },
+  "sprites": {
+    "front": "sprites/77_ponyta_sprite.png",
+    "front_shiny": "sprites/77_ponyta_sprite_shiny.png"
+  }
+}

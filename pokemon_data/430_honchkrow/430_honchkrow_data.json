@@ -1,0 +1,34 @@
+{
+  "pokedex_number": 430,
+  "name_fr": "Corboss",
+  "name_en": "honchkrow",
+  "defensive_types": [
+    "dark",
+    "flying"
+  ],
+  "offensive_type": "dark",
+  "evolves_from": {
+    "id": 198,
+    "name_en": "murkrow",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "dusk-stone"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 100,
+    "attack": 125,
+    "defense": 52,
+    "special-attack": 105,
+    "special-defense": 52,
+    "speed": 71
+  },
+  "sprites": {
+    "front": "sprites/430_honchkrow_sprite.png",
+    "front_shiny": "sprites/430_honchkrow_sprite_shiny.png"
+  }
+}

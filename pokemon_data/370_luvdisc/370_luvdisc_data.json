@@ -1,0 +1,23 @@
+{
+  "pokedex_number": 370,
+  "name_fr": "Lovdisc",
+  "name_en": "luvdisc",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 43,
+    "attack": 30,
+    "defense": 55,
+    "special-attack": 40,
+    "special-defense": 65,
+    "speed": 97
+  },
+  "sprites": {
+    "front": "sprites/370_luvdisc_sprite.png",
+    "front_shiny": "sprites/370_luvdisc_sprite_shiny.png"
+  }
+}

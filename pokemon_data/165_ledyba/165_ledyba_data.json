@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 165,
+  "name_fr": "Coxy",
+  "name_en": "ledyba",
+  "defensive_types": [
+    "bug",
+    "flying"
+  ],
+  "offensive_type": "bug",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 166,
+      "name_en": "ledian",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 18
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 40,
+    "attack": 20,
+    "defense": 30,
+    "special-attack": 40,
+    "special-defense": 80,
+    "speed": 55
+  },
+  "sprites": {
+    "front": "sprites/165_ledyba_sprite.png",
+    "front_shiny": "sprites/165_ledyba_sprite_shiny.png"
+  }
+}

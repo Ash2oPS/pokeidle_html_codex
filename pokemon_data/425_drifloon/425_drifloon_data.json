@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 425,
+  "name_fr": "Baudrive",
+  "name_en": "drifloon",
+  "defensive_types": [
+    "ghost",
+    "flying"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 426,
+      "name_en": "drifblim",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 28
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 90,
+    "attack": 50,
+    "defense": 34,
+    "special-attack": 60,
+    "special-defense": 44,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "sprites/425_drifloon_sprite.png",
+    "front_shiny": "sprites/425_drifloon_sprite_shiny.png"
+  }
+}

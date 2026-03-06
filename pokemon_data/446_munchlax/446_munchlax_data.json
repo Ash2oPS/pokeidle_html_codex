@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 446,
+  "name_fr": "Goinfrex",
+  "name_en": "munchlax",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 143,
+      "name_en": "snorlax",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 135,
+    "attack": 85,
+    "defense": 40,
+    "special-attack": 40,
+    "special-defense": 85,
+    "speed": 5
+  },
+  "sprites": {
+    "front": "sprites/446_munchlax_sprite.png",
+    "front_shiny": "sprites/446_munchlax_sprite_shiny.png"
+  }
+}

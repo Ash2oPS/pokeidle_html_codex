@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 209,
+  "name_fr": "Snubbull",
+  "name_en": "snubbull",
+  "defensive_types": [
+    "fairy"
+  ],
+  "offensive_type": "fairy",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 210,
+      "name_en": "granbull",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 23
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 60,
+    "attack": 80,
+    "defense": 50,
+    "special-attack": 40,
+    "special-defense": 40,
+    "speed": 30
+  },
+  "sprites": {
+    "front": "sprites/209_snubbull_sprite.png",
+    "front_shiny": "sprites/209_snubbull_sprite_shiny.png"
+  }
+}

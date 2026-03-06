@@ -1,0 +1,36 @@
+{
+  "pokedex_number": 458,
+  "name_fr": "Babimanta",
+  "name_en": "mantyke",
+  "defensive_types": [
+    "water",
+    "flying"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 226,
+      "name_en": "mantine",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "party_species": "remoraid"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 45,
+    "attack": 20,
+    "defense": 50,
+    "special-attack": 60,
+    "special-defense": 120,
+    "speed": 50
+  },
+  "sprites": {
+    "front": "sprites/458_mantyke_sprite.png",
+    "front_shiny": "sprites/458_mantyke_sprite_shiny.png"
+  }
+}

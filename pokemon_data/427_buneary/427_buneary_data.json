@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 427,
+  "name_fr": "Laporeille",
+  "name_en": "buneary",
+  "defensive_types": [
+    "normal"
+  ],
+  "offensive_type": "normal",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 428,
+      "name_en": "lopunny",
+      "evolution_methods": [
+        {
+          "evolution_type": "happiness",
+          "trigger": "level-up",
+          "min_happiness": 160
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 55,
+    "attack": 66,
+    "defense": 44,
+    "special-attack": 44,
+    "special-defense": 56,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "sprites/427_buneary_sprite.png",
+    "front_shiny": "sprites/427_buneary_sprite_shiny.png"
+  }
+}

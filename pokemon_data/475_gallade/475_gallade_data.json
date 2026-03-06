@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 475,
+  "name_fr": "Gallame",
+  "name_en": "gallade",
+  "defensive_types": [
+    "psychic",
+    "fighting"
+  ],
+  "offensive_type": "psychic",
+  "evolves_from": {
+    "id": 281,
+    "name_en": "kirlia",
+    "evolution_methods": [
+      {
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "dawn-stone",
+        "gender": "male"
+      }
+    ]
+  },
+  "evolves_to": [],
+  "stats": {
+    "hp": 68,
+    "attack": 125,
+    "defense": 65,
+    "special-attack": 65,
+    "special-defense": 115,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/475_gallade_sprite.png",
+    "front_shiny": "sprites/475_gallade_sprite_shiny.png"
+  }
+}

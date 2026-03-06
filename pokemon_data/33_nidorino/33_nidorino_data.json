@@ -1,0 +1,45 @@
+{
+  "pokedex_number": 33,
+  "name_fr": "Nidorino",
+  "name_en": "nidorino",
+  "defensive_types": [
+    "poison"
+  ],
+  "offensive_type": "poison",
+  "evolves_from": {
+    "id": 32,
+    "name_en": "nidoran-m",
+    "evolution_methods": [
+      {
+        "evolution_type": "level-up",
+        "trigger": "level-up",
+        "min_level": 16
+      }
+    ]
+  },
+  "evolves_to": [
+    {
+      "id": 34,
+      "name_en": "nidoking",
+      "evolution_methods": [
+        {
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "moon-stone"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 61,
+    "attack": 72,
+    "defense": 57,
+    "special-attack": 55,
+    "special-defense": 55,
+    "speed": 65
+  },
+  "sprites": {
+    "front": "sprites/33_nidorino_sprite.png",
+    "front_shiny": "sprites/33_nidorino_sprite_shiny.png"
+  }
+}

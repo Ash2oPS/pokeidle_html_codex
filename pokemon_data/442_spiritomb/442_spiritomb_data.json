@@ -1,0 +1,24 @@
+{
+  "pokedex_number": 442,
+  "name_fr": "Spiritomb",
+  "name_en": "spiritomb",
+  "defensive_types": [
+    "ghost",
+    "dark"
+  ],
+  "offensive_type": "ghost",
+  "evolves_from": null,
+  "evolves_to": [],
+  "stats": {
+    "hp": 50,
+    "attack": 92,
+    "defense": 108,
+    "special-attack": 92,
+    "special-defense": 108,
+    "speed": 35
+  },
+  "sprites": {
+    "front": "sprites/442_spiritomb_sprite.png",
+    "front_shiny": "sprites/442_spiritomb_sprite_shiny.png"
+  }
+}

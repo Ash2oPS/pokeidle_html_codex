@@ -1,0 +1,35 @@
+{
+  "pokedex_number": 129,
+  "name_fr": "Magicarpe",
+  "name_en": "magikarp",
+  "defensive_types": [
+    "water"
+  ],
+  "offensive_type": "water",
+  "evolves_from": null,
+  "evolves_to": [
+    {
+      "id": 130,
+      "name_en": "gyarados",
+      "evolution_methods": [
+        {
+          "evolution_type": "level-up",
+          "trigger": "level-up",
+          "min_level": 20
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "hp": 20,
+    "attack": 10,
+    "defense": 55,
+    "special-attack": 15,
+    "special-defense": 20,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "sprites/129_magikarp_sprite.png",
+    "front_shiny": "sprites/129_magikarp_sprite_shiny.png"
+  }
+}
