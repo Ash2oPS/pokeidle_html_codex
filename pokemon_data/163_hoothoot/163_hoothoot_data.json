@@ -32,5 +32,6 @@
   "sprites": {
     "front": "sprites/163_hoothoot_sprite.png",
     "front_shiny": "sprites/163_hoothoot_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

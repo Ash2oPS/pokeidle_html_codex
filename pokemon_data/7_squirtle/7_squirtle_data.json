@@ -31,5 +31,6 @@
   "sprites": {
     "front": "sprites/7_squirtle_sprite.png",
     "front_shiny": "sprites/7_squirtle_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 45
 }

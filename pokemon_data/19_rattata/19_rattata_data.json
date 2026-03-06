@@ -37,5 +37,6 @@
   "sprites": {
     "front": "sprites/19_rattata_sprite.png",
     "front_shiny": "sprites/19_rattata_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

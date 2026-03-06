@@ -30,5 +30,6 @@
   "sprites": {
     "front": "sprites/6_charizard_sprite.png",
     "front_shiny": "sprites/6_charizard_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 45
 }

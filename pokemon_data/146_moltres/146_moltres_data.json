@@ -20,5 +20,6 @@
   "sprites": {
     "front": "sprites/146_moltres_sprite.png",
     "front_shiny": "sprites/146_moltres_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 3
 }

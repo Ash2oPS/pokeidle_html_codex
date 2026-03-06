@@ -32,5 +32,6 @@
   "sprites": {
     "front": "sprites/43_oddish_sprite.png",
     "front_shiny": "sprites/43_oddish_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

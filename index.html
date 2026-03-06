@@ -7,9 +7,38 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <aside class="top-right-ui">
+      <div class="resource-pill">Argent: <span id="money-value">0</span> Poke$</div>
+      <div class="resource-pill">Pokeballs: <span id="pokeball-value">0</span></div>
+      <div class="resource-pill">Save: <span id="save-backend-value">localStorage</span></div>
+      <div class="top-right-actions">
+        <button id="link-save-file-btn" class="save-file-btn" type="button">Lier save locale</button>
+        <button id="shop-btn" class="shop-btn" type="button">Shop</button>
+        <button id="reset-save-btn" class="reset-save-btn" type="button">Supprimer la save</button>
+      </div>
+    </aside>
+    <section id="shop-panel" class="shop-panel hidden" aria-label="Shop Pokeballs">
+      <h2 class="shop-title">Shop</h2>
+      <p class="shop-line">Pokeball: 200 Poke$</p>
+      <div class="shop-actions">
+        <button id="buy-pokeball-btn" class="shop-buy-btn" type="button">Acheter x1</button>
+        <button id="buy-pokeball-quick-btn" class="shop-buy-btn" type="button">Acheter x5</button>
+      </div>
+      <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
+    </section>
     <main class="app-shell">
       <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
     </main>
+    <div id="starter-modal" class="starter-modal hidden" role="dialog" aria-modal="true">
+      <div class="starter-modal-card">
+        <h1 class="starter-title">Choisis ton starter</h1>
+        <p class="starter-subtitle">
+          Tu commences sans equipe. Prends un Pokemon niveau 1 pour debuter Route 1.
+        </p>
+        <div id="starter-choices" class="starter-choices"></div>
+      </div>
+    </div>
+    <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
     <script type="module" src="game.js"></script>
   </body>
 </html>

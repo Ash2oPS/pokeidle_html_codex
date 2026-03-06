@@ -32,5 +32,6 @@
   "sprites": {
     "front": "sprites/16_pidgey_sprite.png",
     "front_shiny": "sprites/16_pidgey_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

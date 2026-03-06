@@ -31,5 +31,6 @@
   "sprites": {
     "front": "sprites/161_sentret_sprite.png",
     "front_shiny": "sprites/161_sentret_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

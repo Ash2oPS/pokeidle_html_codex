@@ -30,5 +30,6 @@
   "sprites": {
     "front": "sprites/149_dragonite_sprite.png",
     "front_shiny": "sprites/149_dragonite_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 45
 }

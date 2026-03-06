@@ -31,5 +31,6 @@
   "sprites": {
     "front": "sprites/261_poochyena_sprite.png",
     "front_shiny": "sprites/261_poochyena_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 255
 }

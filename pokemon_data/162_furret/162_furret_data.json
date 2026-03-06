@@ -29,5 +29,6 @@
   "sprites": {
     "front": "sprites/162_furret_sprite.png",
     "front_shiny": "sprites/162_furret_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 90
 }

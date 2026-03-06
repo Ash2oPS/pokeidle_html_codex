@@ -42,5 +42,6 @@
   "sprites": {
     "front": "sprites/17_pidgeotto_sprite.png",
     "front_shiny": "sprites/17_pidgeotto_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 120
 }

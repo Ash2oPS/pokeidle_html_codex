@@ -31,5 +31,6 @@
   "sprites": {
     "front": "sprites/4_charmander_sprite.png",
     "front_shiny": "sprites/4_charmander_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 45
 }

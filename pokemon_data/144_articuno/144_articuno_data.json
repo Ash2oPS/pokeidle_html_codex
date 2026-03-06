@@ -20,5 +20,6 @@
   "sprites": {
     "front": "sprites/144_articuno_sprite.png",
     "front_shiny": "sprites/144_articuno_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 3
 }

@@ -31,5 +31,6 @@
   "sprites": {
     "front": "sprites/403_shinx_sprite.png",
     "front_shiny": "sprites/403_shinx_sprite_shiny.png"
-  }
+  },
+  "catch_rate": 235
 }
