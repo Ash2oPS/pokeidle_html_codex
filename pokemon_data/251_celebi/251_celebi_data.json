@@ -18,7 +18,66 @@
     "speed": 100
   },
   "sprites": {
-    "front": "sprites/251_celebi_sprite.png",
-    "front_shiny": "sprites/251_celebi_sprite_shiny.png"
-  }
+    "front": "sprites/251_celebi_emerald_front.png",
+    "front_shiny": "sprites/251_celebi_emerald_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "emerald",
+      "label_fr": "Emeraude",
+      "generation": 3,
+      "game_key": "emerald",
+      "front": "sprites/251_celebi_emerald_front.png",
+      "front_shiny": "sprites/251_celebi_emerald_front_shiny.png"
+    },
+    {
+      "id": "ruby_sapphire",
+      "label_fr": "Rubis / Saphir",
+      "generation": 3,
+      "game_key": "ruby-sapphire",
+      "front": "sprites/251_celebi_ruby_sapphire_front.png",
+      "front_shiny": "sprites/251_celebi_ruby_sapphire_front_shiny.png"
+    },
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/251_celebi_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/251_celebi_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/251_celebi_platinum_front.png",
+      "front_shiny": "sprites/251_celebi_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/251_celebi_diamond_pearl_front.png",
+      "front_shiny": "sprites/251_celebi_diamond_pearl_front_shiny.png"
+    },
+    {
+      "id": "crystal",
+      "label_fr": "Cristal",
+      "generation": 2,
+      "game_key": "crystal",
+      "front": "sprites/251_celebi_crystal_front.png",
+      "front_shiny": "sprites/251_celebi_crystal_front_shiny.png"
+    },
+    {
+      "id": "gold_silver",
+      "label_fr": "Or / Argent",
+      "generation": 2,
+      "game_key": "gold",
+      "front": "sprites/251_celebi_gold_silver_front.png",
+      "front_shiny": "sprites/251_celebi_gold_silver_front_shiny.png"
+    }
+  ],
+  "default_sprite_variant_id": "emerald"
 }

@@ -1,0 +1,180 @@
+{
+  "route_id": "kanto_route_8",
+  "route_name_fr": "Route 8 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-8",
+  "source_location_areas": [
+    "kanto-route-8-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_8_frlg.png",
+  "map_marker": {
+    "x": 68,
+    "y": 63
+  },
+  "encounters": [
+    {
+      "id": 16,
+      "name_en": "pidgey",
+      "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 18,
+      "max_level": 20,
+      "level_weights": [
+        {
+          "level": 18,
+          "weight": 40
+        },
+        {
+          "level": 20,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "name_en": "meowth",
+      "name_fr": "Miaouss",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 18,
+      "max_level": 20,
+      "level_weights": [
+        {
+          "level": 18,
+          "weight": 40
+        },
+        {
+          "level": 20,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name_en": "ekans",
+      "name_fr": "Abo",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 20,
+      "min_level": 17,
+      "max_level": 19,
+      "level_weights": [
+        {
+          "level": 17,
+          "weight": 15
+        },
+        {
+          "level": 19,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name_en": "sandshrew",
+      "name_fr": "Sabelette",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
+      "min_level": 17,
+      "max_level": 19,
+      "level_weights": [
+        {
+          "level": 17,
+          "weight": 15
+        },
+        {
+          "level": 19,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "name_en": "vulpix",
+      "name_fr": "Goupix",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
+      "min_level": 15,
+      "max_level": 18,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 4
+        },
+        {
+          "level": 16,
+          "weight": 10
+        },
+        {
+          "level": 17,
+          "weight": 5
+        },
+        {
+          "level": 18,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "name_en": "growlithe",
+      "name_fr": "Caninos",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 20,
+      "min_level": 15,
+      "max_level": 18,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 4
+        },
+        {
+          "level": 16,
+          "weight": 10
+        },
+        {
+          "level": 17,
+          "weight": 5
+        },
+        {
+          "level": 18,
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 6,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

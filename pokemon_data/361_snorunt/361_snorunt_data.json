@@ -41,7 +41,50 @@
     "speed": 50
   },
   "sprites": {
-    "front": "sprites/361_snorunt_sprite.png",
-    "front_shiny": "sprites/361_snorunt_sprite_shiny.png"
-  }
+    "front": "sprites/361_snorunt_emerald_front.png",
+    "front_shiny": "sprites/361_snorunt_emerald_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "emerald",
+      "label_fr": "Emeraude",
+      "generation": 3,
+      "game_key": "emerald",
+      "front": "sprites/361_snorunt_emerald_front.png",
+      "front_shiny": "sprites/361_snorunt_emerald_front_shiny.png"
+    },
+    {
+      "id": "ruby_sapphire",
+      "label_fr": "Rubis / Saphir",
+      "generation": 3,
+      "game_key": "ruby-sapphire",
+      "front": "sprites/361_snorunt_ruby_sapphire_front.png",
+      "front_shiny": "sprites/361_snorunt_ruby_sapphire_front_shiny.png"
+    },
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/361_snorunt_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/361_snorunt_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/361_snorunt_platinum_front.png",
+      "front_shiny": "sprites/361_snorunt_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/361_snorunt_diamond_pearl_front.png",
+      "front_shiny": "sprites/361_snorunt_diamond_pearl_front_shiny.png"
+    }
+  ],
+  "default_sprite_variant_id": "emerald"
 }

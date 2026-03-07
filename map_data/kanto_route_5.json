@@ -1,0 +1,138 @@
+{
+  "route_id": "kanto_route_5",
+  "route_name_fr": "Route 5 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-5",
+  "source_location_areas": [
+    "kanto-route-5-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_5_frlg.png",
+  "map_marker": {
+    "x": 58,
+    "y": 57
+  },
+  "encounters": [
+    {
+      "id": 16,
+      "name_en": "pidgey",
+      "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 40,
+      "max_chance_leafgreen": 40,
+      "spawn_weight": 40,
+      "min_level": 13,
+      "max_level": 16,
+      "level_weights": [
+        {
+          "level": 13,
+          "weight": 40
+        },
+        {
+          "level": 15,
+          "weight": 30
+        },
+        {
+          "level": 16,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "name_en": "meowth",
+      "name_fr": "Miaouss",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 35,
+      "max_chance_leafgreen": 35,
+      "spawn_weight": 35,
+      "min_level": 10,
+      "max_level": 16,
+      "level_weights": [
+        {
+          "level": 10,
+          "weight": 40
+        },
+        {
+          "level": 12,
+          "weight": 20
+        },
+        {
+          "level": 14,
+          "weight": 8
+        },
+        {
+          "level": 16,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "name_en": "oddish",
+      "name_fr": "Mystherbe",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 25,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 25,
+      "min_level": 13,
+      "max_level": 16,
+      "level_weights": [
+        {
+          "level": 13,
+          "weight": 10
+        },
+        {
+          "level": 15,
+          "weight": 10
+        },
+        {
+          "level": 16,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "name_en": "bellsprout",
+      "name_fr": "Chétiflor",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 25,
+      "spawn_weight": 25,
+      "min_level": 13,
+      "max_level": 16,
+      "level_weights": [
+        {
+          "level": 13,
+          "weight": 10
+        },
+        {
+          "level": 15,
+          "weight": 10
+        },
+        {
+          "level": 16,
+          "weight": 5
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 4,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

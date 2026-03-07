@@ -1,0 +1,157 @@
+{
+  "route_id": "kanto_dungeon_viridian_forest",
+  "route_name_fr": "Foret de Jade (Kanto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "viridian-forest",
+  "source_location_areas": [
+    "viridian-forest-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_dungeon_viridian_forest_frlg.png",
+  "map_marker": {
+    "x": 35,
+    "y": 61
+  },
+  "encounters": [
+    {
+      "id": 10,
+      "name_en": "caterpie",
+      "name_fr": "Chenipan",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 40,
+      "max_chance_leafgreen": 40,
+      "spawn_weight": 40,
+      "min_level": 3,
+      "max_level": 5,
+      "level_weights": [
+        {
+          "level": 3,
+          "weight": 20
+        },
+        {
+          "level": 4,
+          "weight": 40
+        },
+        {
+          "level": 5,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name_en": "weedle",
+      "name_fr": "Aspicot",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 40,
+      "max_chance_leafgreen": 40,
+      "spawn_weight": 40,
+      "min_level": 3,
+      "max_level": 5,
+      "level_weights": [
+        {
+          "level": 3,
+          "weight": 20
+        },
+        {
+          "level": 4,
+          "weight": 40
+        },
+        {
+          "level": 5,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name_en": "metapod",
+      "name_fr": "Chrysacier",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 10,
+      "spawn_weight": 10,
+      "min_level": 4,
+      "max_level": 6,
+      "level_weights": [
+        {
+          "level": 4,
+          "weight": 4
+        },
+        {
+          "level": 5,
+          "weight": 10
+        },
+        {
+          "level": 6,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name_en": "kakuna",
+      "name_fr": "Coconfort",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 10,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 10,
+      "min_level": 4,
+      "max_level": 6,
+      "level_weights": [
+        {
+          "level": 4,
+          "weight": 4
+        },
+        {
+          "level": 5,
+          "weight": 10
+        },
+        {
+          "level": 6,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name_en": "pikachu",
+      "name_fr": "Pikachu",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
+      "min_level": 3,
+      "max_level": 5,
+      "level_weights": [
+        {
+          "level": 3,
+          "weight": 8
+        },
+        {
+          "level": 5,
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 5,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

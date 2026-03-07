@@ -7,28 +7,180 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <aside class="top-right-ui">
-      <div class="resource-pill">Argent: <span id="money-value">0</span> Poke$</div>
-      <div class="resource-pill">Pokeballs: <span id="pokeball-value">0</span></div>
-      <div class="resource-pill">Save: <span id="save-backend-value">localStorage</span></div>
-      <div class="top-right-actions">
-        <button id="link-save-file-btn" class="save-file-btn" type="button">Lier save locale</button>
-        <button id="shop-btn" class="shop-btn" type="button">Shop</button>
-        <button id="reset-save-btn" class="reset-save-btn" type="button">Supprimer la save</button>
+    <div class="app-root">
+      <header class="ui-topbar">
+        <div class="route-nav-wrap">
+          <section class="route-nav" aria-label="Navigation des zones">
+            <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route precedente">
+              <span class="btn-icon" aria-hidden="true">&#8592;</span>
+            </button>
+            <div class="route-nav-center">
+              <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
+              <div id="route-nav-progress" class="route-nav-progress">1/47 zones debloquees</div>
+            </div>
+            <button id="route-next-btn" class="route-nav-btn" type="button" aria-label="Route suivante">
+              <span class="btn-icon" aria-hidden="true">&#8594;</span>
+            </button>
+          </section>
+        </div>
+
+        <aside class="resource-strip">
+          <div id="money-pill" class="resource-pill money-pill">
+            <span class="pill-icon" aria-hidden="true">$</span>
+            <span class="pill-label">Argent</span>
+            <span id="money-value">0</span>
+            <span class="pill-unit">Poke$</span>
+            <span id="money-anim-layer" class="money-anim-layer" aria-hidden="true"></span>
+          </div>
+          <div class="resource-pill">
+            <span class="pill-icon" aria-hidden="true">O</span>
+            <span class="pill-label">Poke Balls</span>
+            <span id="pokeball-value">0</span>
+          </div>
+          <div class="resource-pill save-pill">
+            <span class="pill-icon" aria-hidden="true">S</span>
+            <span class="pill-label">Save</span>
+            <span id="save-backend-value">localStorage</span>
+          </div>
+        </aside>
+      </header>
+
+      <main class="app-shell">
+        <div id="game-stage" class="game-stage">
+          <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
+        </div>
+      </main>
+
+      <footer class="action-dock">
+        <button id="link-save-file-btn" class="save-file-btn action-btn" type="button">
+          <span class="btn-icon" aria-hidden="true">D</span>
+          <span class="btn-label">Lier save locale</span>
+        </button>
+        <button id="map-btn" class="map-btn action-btn" type="button">
+          <span class="btn-icon" aria-hidden="true">M</span>
+          <span class="btn-label">Map</span>
+        </button>
+        <button id="shop-btn" class="shop-btn action-btn" type="button">
+          <span class="btn-icon" aria-hidden="true">B</span>
+          <span class="btn-label">Shop</span>
+        </button>
+        <button id="reset-save-btn" class="reset-save-btn action-btn" type="button">
+          <span class="btn-icon" aria-hidden="true">X</span>
+          <span class="btn-label">Supprimer la save</span>
+        </button>
+      </footer>
+
+    </div>
+
+    <section id="map-modal" class="map-modal hidden" role="dialog" aria-modal="true" aria-label="Carte de Kanto">
+      <div class="map-modal-card">
+        <div class="map-modal-header">
+          <div>
+            <h2 class="map-modal-title">Carte de Kanto</h2>
+            <p class="map-modal-subtitle">Clique une zone debloquee pour t'y rendre.</p>
+          </div>
+          <button id="map-close-btn" class="map-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="map-stage">
+          <img
+            id="map-image"
+            class="map-image"
+            src="assets/maps/kanto_map_manual.png"
+            alt="Carte de Kanto"
+            draggable="false"
+          />
+          <div id="map-markers" class="map-markers"></div>
+        </div>
       </div>
-    </aside>
-    <section id="shop-panel" class="shop-panel hidden" aria-label="Shop Pokeballs">
-      <h2 class="shop-title">Shop</h2>
-      <p class="shop-line">Pokeball: 200 Poke$</p>
-      <div class="shop-actions">
-        <button id="buy-pokeball-btn" class="shop-buy-btn" type="button">Acheter x1</button>
-        <button id="buy-pokeball-quick-btn" class="shop-buy-btn" type="button">Acheter x5</button>
-      </div>
-      <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
     </section>
-    <main class="app-shell">
-      <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
-    </main>
+
+    <section id="shop-modal" class="shop-modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
+      <div class="shop-modal-card">
+        <div class="shop-modal-header">
+          <div>
+            <h2 class="shop-modal-title">Shop</h2>
+            <p id="shop-modal-subtitle" class="shop-modal-subtitle">Achete des objets utiles pour progresser.</p>
+          </div>
+          <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
+        </div>
+
+        <div class="shop-tabs" role="tablist" aria-label="Onglets du shop">
+          <button id="shop-tab-pokeballs" class="shop-tab-btn is-active" type="button" data-shop-tab="pokeballs">
+            Poke Balls
+          </button>
+          <button id="shop-tab-combat" class="shop-tab-btn" type="button" data-shop-tab="combat">
+            Combats
+          </button>
+          <button id="shop-tab-evolutions" class="shop-tab-btn" type="button" data-shop-tab="evolutions">
+            Evolutions
+          </button>
+        </div>
+
+        <div id="shop-pokeball-qty-panel" class="shop-qty-panel">
+          <div class="shop-qty-label">Quantite a acheter</div>
+          <div class="shop-qty-presets">
+            <button class="shop-qty-btn is-active" type="button" data-shop-qty="1">x1</button>
+            <button class="shop-qty-btn" type="button" data-shop-qty="5">x5</button>
+            <button class="shop-qty-btn" type="button" data-shop-qty="10">x10</button>
+            <button class="shop-qty-btn" type="button" data-shop-qty="50">x50</button>
+            <button class="shop-qty-btn" type="button" data-shop-qty="100">x100</button>
+            <button class="shop-qty-btn" type="button" data-shop-qty="custom">Custom</button>
+          </div>
+          <label class="shop-custom-qty-wrap" for="shop-custom-qty-input">
+            Valeur custom
+            <input id="shop-custom-qty-input" class="shop-custom-qty-input" type="number" min="1" step="1" value="1" />
+          </label>
+        </div>
+
+        <div id="shop-grid" class="shop-grid"></div>
+      </div>
+    </section>
+
+    <section id="boxes-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Boites Pokemon">
+      <div class="boxes-card">
+        <div class="boxes-header">
+          <div>
+            <h2 class="boxes-title">Boites</h2>
+            <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pokemon pour remplacer ton slot d'equipe.</p>
+          </div>
+          <button id="boxes-close-btn" class="boxes-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="boxes-layout">
+          <div id="boxes-grid" class="boxes-grid"></div>
+          <aside id="boxes-info-panel" class="boxes-info-panel">
+            Survole un Pokemon de la boite pour voir ses infos detaillees.
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="appearance-modal"
+      class="appearance-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Apparence du Pokemon"
+    >
+      <div class="appearance-card">
+        <div class="appearance-header">
+          <div>
+            <h2 id="appearance-title" class="appearance-title">Apparence</h2>
+            <p id="appearance-subtitle" class="appearance-subtitle">Choisis un sprite pour ce Pokemon.</p>
+          </div>
+          <button id="appearance-close-btn" class="appearance-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="appearance-controls">
+          <button id="appearance-shiny-toggle-btn" class="appearance-shiny-toggle-btn" type="button">
+            Mode shiny: OFF
+          </button>
+          <span id="appearance-shiny-status" class="appearance-shiny-status">
+            Capture un shiny de cette espece pour debloquer ce mode.
+          </span>
+        </div>
+        <div id="appearance-grid" class="appearance-grid"></div>
+      </div>
+    </section>
+
     <div id="starter-modal" class="starter-modal hidden" role="dialog" aria-modal="true">
       <div class="starter-modal-card">
         <h1 class="starter-title">Choisis ton starter</h1>
@@ -39,6 +191,7 @@
       </div>
     </div>
     <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
+    <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
     <script type="module" src="game.js"></script>
   </body>
 </html>

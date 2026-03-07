@@ -1,0 +1,17 @@
+{
+  "route_number": 28,
+  "route_id": "kanto_route_28",
+  "route_name_fr": "Route 28 (Kanto)",
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-28",
+  "source_location_areas": [
+    "kanto-route-28-area"
+  ],
+  "background_image": null,
+  "encounters": [],
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T00:29:40.912Z"
+}

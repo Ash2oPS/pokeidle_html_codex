@@ -23,7 +23,34 @@
     "speed": 80
   },
   "sprites": {
-    "front": "sprites/489_phione_sprite.png",
-    "front_shiny": "sprites/489_phione_sprite_shiny.png"
-  }
+    "front": "sprites/489_phione_heartgold_soulsilver_front.png",
+    "front_shiny": "sprites/489_phione_heartgold_soulsilver_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/489_phione_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/489_phione_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/489_phione_platinum_front.png",
+      "front_shiny": "sprites/489_phione_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/489_phione_diamond_pearl_front.png",
+      "front_shiny": "sprites/489_phione_diamond_pearl_front_shiny.png"
+    }
+  ],
+  "default_sprite_variant_id": "heartgold_soulsilver"
 }

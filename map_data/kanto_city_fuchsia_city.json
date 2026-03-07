@@ -1,0 +1,25 @@
+{
+  "route_id": "kanto_city_fuchsia_city",
+  "route_name_fr": "Parmanie (Kanto)",
+  "zone_type": "town",
+  "combat_enabled": false,
+  "unlock_mode": "visit",
+  "unlock_defeats_required": 0,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "fuchsia-city",
+  "source_location_areas": [
+    "fuchsia-city-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_city_fuchsia_city_frlg.png",
+  "map_marker": {
+    "x": 50,
+    "y": 80
+  },
+  "encounters": [],
+  "encounter_species_count_source": 7,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

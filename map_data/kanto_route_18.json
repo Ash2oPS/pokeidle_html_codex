@@ -1,0 +1,145 @@
+{
+  "route_id": "kanto_route_18",
+  "route_name_fr": "Route 18 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-18",
+  "source_location_areas": [
+    "kanto-route-18-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_18_frlg.png",
+  "map_marker": {
+    "x": 39,
+    "y": 76
+  },
+  "encounters": [
+    {
+      "id": 84,
+      "name_en": "doduo",
+      "name_fr": "Doduo",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 35,
+      "max_chance_leafgreen": 35,
+      "spawn_weight": 35,
+      "min_level": 24,
+      "max_level": 28,
+      "level_weights": [
+        {
+          "level": 24,
+          "weight": 40
+        },
+        {
+          "level": 26,
+          "weight": 20
+        },
+        {
+          "level": 28,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 20,
+      "max_level": 22,
+      "level_weights": [
+        {
+          "level": 20,
+          "weight": 40
+        },
+        {
+          "level": 22,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "name_fr": "Rattatac",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 15,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 25,
+      "max_level": 29,
+      "level_weights": [
+        {
+          "level": 25,
+          "weight": 20
+        },
+        {
+          "level": 29,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name_en": "fearow",
+      "name_fr": "Rapasdepic",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 15,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 25,
+      "max_level": 29,
+      "level_weights": [
+        {
+          "level": 25,
+          "weight": 20
+        },
+        {
+          "level": 27,
+          "weight": 8
+        },
+        {
+          "level": 29,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
+      "min_level": 22,
+      "max_level": 22,
+      "level_weights": [
+        {
+          "level": 22,
+          "weight": 10
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 5,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

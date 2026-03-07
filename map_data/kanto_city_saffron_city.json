@@ -1,0 +1,28 @@
+{
+  "route_id": "kanto_city_saffron_city",
+  "route_name_fr": "Safrania (Kanto)",
+  "zone_type": "town",
+  "combat_enabled": false,
+  "unlock_mode": "visit",
+  "unlock_defeats_required": 0,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "saffron-city",
+  "source_location_areas": [
+    "saffron-city-fighting-dojo",
+    "saffron-city-silph-co-7f",
+    "saffron-city-silph-co",
+    "saffron-city-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_city_saffron_city_frlg.png",
+  "map_marker": {
+    "x": 59,
+    "y": 63
+  },
+  "encounters": [],
+  "encounter_species_count_source": 3,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

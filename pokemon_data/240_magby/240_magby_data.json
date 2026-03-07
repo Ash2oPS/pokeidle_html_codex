@@ -29,7 +29,66 @@
     "speed": 83
   },
   "sprites": {
-    "front": "sprites/240_magby_sprite.png",
-    "front_shiny": "sprites/240_magby_sprite_shiny.png"
-  }
+    "front": "sprites/240_magby_emerald_front.png",
+    "front_shiny": "sprites/240_magby_emerald_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "emerald",
+      "label_fr": "Emeraude",
+      "generation": 3,
+      "game_key": "emerald",
+      "front": "sprites/240_magby_emerald_front.png",
+      "front_shiny": "sprites/240_magby_emerald_front_shiny.png"
+    },
+    {
+      "id": "ruby_sapphire",
+      "label_fr": "Rubis / Saphir",
+      "generation": 3,
+      "game_key": "ruby-sapphire",
+      "front": "sprites/240_magby_ruby_sapphire_front.png",
+      "front_shiny": "sprites/240_magby_ruby_sapphire_front_shiny.png"
+    },
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/240_magby_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/240_magby_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/240_magby_platinum_front.png",
+      "front_shiny": "sprites/240_magby_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/240_magby_diamond_pearl_front.png",
+      "front_shiny": "sprites/240_magby_diamond_pearl_front_shiny.png"
+    },
+    {
+      "id": "crystal",
+      "label_fr": "Cristal",
+      "generation": 2,
+      "game_key": "crystal",
+      "front": "sprites/240_magby_crystal_front.png",
+      "front_shiny": "sprites/240_magby_crystal_front_shiny.png"
+    },
+    {
+      "id": "gold_silver",
+      "label_fr": "Or / Argent",
+      "generation": 2,
+      "game_key": "gold",
+      "front": "sprites/240_magby_gold_silver_front.png",
+      "front_shiny": "sprites/240_magby_gold_silver_front_shiny.png"
+    }
+  ],
+  "default_sprite_variant_id": "emerald"
 }

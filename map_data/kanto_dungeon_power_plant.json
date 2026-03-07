@@ -1,0 +1,183 @@
+{
+  "route_id": "kanto_dungeon_power_plant",
+  "route_name_fr": "Centrale (Kanto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "power-plant",
+  "source_location_areas": [
+    "power-plant-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_dungeon_power_plant_frlg.png",
+  "map_marker": {
+    "x": 81,
+    "y": 49
+  },
+  "encounters": [
+    {
+      "id": 101,
+      "name_en": "electrode",
+      "name_fr": "Électrode",
+      "methods": [
+        "only-one"
+      ],
+      "max_chance_firered": 200,
+      "max_chance_leafgreen": 200,
+      "spawn_weight": 200,
+      "min_level": 34,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 34,
+          "weight": 400
+        }
+      ]
+    },
+    {
+      "id": 145,
+      "name_en": "zapdos",
+      "name_fr": "Électhor",
+      "methods": [
+        "only-one"
+      ],
+      "max_chance_firered": 100,
+      "max_chance_leafgreen": 100,
+      "spawn_weight": 100,
+      "min_level": 50,
+      "max_level": 50,
+      "level_weights": [
+        {
+          "level": 50,
+          "weight": 200
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "name_en": "magnemite",
+      "name_fr": "Magnéti",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 22,
+      "max_level": 25,
+      "level_weights": [
+        {
+          "level": 22,
+          "weight": 40
+        },
+        {
+          "level": 25,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "name_en": "voltorb",
+      "name_fr": "Voltorbe",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 22,
+      "max_level": 25,
+      "level_weights": [
+        {
+          "level": 22,
+          "weight": 40
+        },
+        {
+          "level": 25,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name_en": "pikachu",
+      "name_fr": "Pikachu",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 25,
+      "max_chance_leafgreen": 25,
+      "spawn_weight": 25,
+      "min_level": 22,
+      "max_level": 26,
+      "level_weights": [
+        {
+          "level": 22,
+          "weight": 20
+        },
+        {
+          "level": 24,
+          "weight": 20
+        },
+        {
+          "level": 26,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "name_en": "magneton",
+      "name_fr": "Magnéton",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 10,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 31,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 31,
+          "weight": 14
+        },
+        {
+          "level": 34,
+          "weight": 11
+        }
+      ]
+    },
+    {
+      "id": 125,
+      "name_en": "electabuzz",
+      "name_fr": "Élektek",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 5,
+      "min_level": 32,
+      "max_level": 35,
+      "level_weights": [
+        {
+          "level": 32,
+          "weight": 4
+        },
+        {
+          "level": 35,
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 7,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

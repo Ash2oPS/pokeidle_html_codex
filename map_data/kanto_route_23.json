@@ -1,0 +1,779 @@
+{
+  "route_id": "kanto_route_23",
+  "route_name_fr": "Route 23 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-23",
+  "source_location_areas": [
+    "kanto-route-23-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_23_frlg.png",
+  "map_marker": {
+    "x": 21,
+    "y": 63
+  },
+  "encounters": [
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "max_chance_firered": 120,
+      "max_chance_leafgreen": 120,
+      "spawn_weight": 120,
+      "min_level": 5,
+      "max_level": 15,
+      "level_weights": [
+        {
+          "level": 5,
+          "weight": 204
+        },
+        {
+          "level": 6,
+          "weight": 4
+        },
+        {
+          "level": 7,
+          "weight": 4
+        },
+        {
+          "level": 8,
+          "weight": 4
+        },
+        {
+          "level": 9,
+          "weight": 4
+        },
+        {
+          "level": 10,
+          "weight": 4
+        },
+        {
+          "level": 11,
+          "weight": 4
+        },
+        {
+          "level": 12,
+          "weight": 4
+        },
+        {
+          "level": 13,
+          "weight": 4
+        },
+        {
+          "level": 14,
+          "weight": 4
+        },
+        {
+          "level": 15,
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "name_en": "psyduck",
+      "name_fr": "Psykokwak",
+      "methods": [
+        "super-rod",
+        "surf"
+      ],
+      "max_chance_firered": 105,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 105,
+      "min_level": 15,
+      "max_level": 40,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 1
+        },
+        {
+          "level": 16,
+          "weight": 1
+        },
+        {
+          "level": 17,
+          "weight": 1
+        },
+        {
+          "level": 18,
+          "weight": 1
+        },
+        {
+          "level": 19,
+          "weight": 1
+        },
+        {
+          "level": 20,
+          "weight": 15
+        },
+        {
+          "level": 21,
+          "weight": 15
+        },
+        {
+          "level": 22,
+          "weight": 15
+        },
+        {
+          "level": 23,
+          "weight": 15
+        },
+        {
+          "level": 24,
+          "weight": 15
+        },
+        {
+          "level": 25,
+          "weight": 16
+        },
+        {
+          "level": 26,
+          "weight": 1
+        },
+        {
+          "level": 27,
+          "weight": 1
+        },
+        {
+          "level": 28,
+          "weight": 1
+        },
+        {
+          "level": 29,
+          "weight": 1
+        },
+        {
+          "level": 30,
+          "weight": 2
+        },
+        {
+          "level": 31,
+          "weight": 1
+        },
+        {
+          "level": 32,
+          "weight": 1
+        },
+        {
+          "level": 33,
+          "weight": 1
+        },
+        {
+          "level": 34,
+          "weight": 1
+        },
+        {
+          "level": 35,
+          "weight": 1
+        },
+        {
+          "level": 36,
+          "weight": 1
+        },
+        {
+          "level": 37,
+          "weight": 1
+        },
+        {
+          "level": 38,
+          "weight": 1
+        },
+        {
+          "level": 39,
+          "weight": 1
+        },
+        {
+          "level": 40,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "name_en": "slowpoke",
+      "name_fr": "Ramoloss",
+      "methods": [
+        "super-rod",
+        "surf"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 105,
+      "spawn_weight": 105,
+      "min_level": 15,
+      "max_level": 40,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 1
+        },
+        {
+          "level": 16,
+          "weight": 1
+        },
+        {
+          "level": 17,
+          "weight": 1
+        },
+        {
+          "level": 18,
+          "weight": 1
+        },
+        {
+          "level": 19,
+          "weight": 1
+        },
+        {
+          "level": 20,
+          "weight": 15
+        },
+        {
+          "level": 21,
+          "weight": 15
+        },
+        {
+          "level": 22,
+          "weight": 15
+        },
+        {
+          "level": 23,
+          "weight": 15
+        },
+        {
+          "level": 24,
+          "weight": 15
+        },
+        {
+          "level": 25,
+          "weight": 16
+        },
+        {
+          "level": 26,
+          "weight": 1
+        },
+        {
+          "level": 27,
+          "weight": 1
+        },
+        {
+          "level": 28,
+          "weight": 1
+        },
+        {
+          "level": 29,
+          "weight": 1
+        },
+        {
+          "level": 30,
+          "weight": 2
+        },
+        {
+          "level": 31,
+          "weight": 1
+        },
+        {
+          "level": 32,
+          "weight": 1
+        },
+        {
+          "level": 33,
+          "weight": 1
+        },
+        {
+          "level": 34,
+          "weight": 1
+        },
+        {
+          "level": 35,
+          "weight": 1
+        },
+        {
+          "level": 36,
+          "weight": 1
+        },
+        {
+          "level": 37,
+          "weight": 1
+        },
+        {
+          "level": 38,
+          "weight": 1
+        },
+        {
+          "level": 39,
+          "weight": 1
+        },
+        {
+          "level": 40,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "name_en": "poliwag",
+      "name_fr": "Ptitard",
+      "methods": [
+        "good-rod",
+        "super-rod"
+      ],
+      "max_chance_firered": 100,
+      "max_chance_leafgreen": 100,
+      "spawn_weight": 100,
+      "min_level": 5,
+      "max_level": 25,
+      "level_weights": [
+        {
+          "level": 5,
+          "weight": 11
+        },
+        {
+          "level": 6,
+          "weight": 11
+        },
+        {
+          "level": 7,
+          "weight": 11
+        },
+        {
+          "level": 8,
+          "weight": 11
+        },
+        {
+          "level": 9,
+          "weight": 11
+        },
+        {
+          "level": 10,
+          "weight": 11
+        },
+        {
+          "level": 11,
+          "weight": 11
+        },
+        {
+          "level": 12,
+          "weight": 11
+        },
+        {
+          "level": 13,
+          "weight": 11
+        },
+        {
+          "level": 14,
+          "weight": 11
+        },
+        {
+          "level": 15,
+          "weight": 18
+        },
+        {
+          "level": 16,
+          "weight": 7
+        },
+        {
+          "level": 17,
+          "weight": 7
+        },
+        {
+          "level": 18,
+          "weight": 7
+        },
+        {
+          "level": 19,
+          "weight": 7
+        },
+        {
+          "level": 20,
+          "weight": 7
+        },
+        {
+          "level": 21,
+          "weight": 7
+        },
+        {
+          "level": 22,
+          "weight": 7
+        },
+        {
+          "level": 23,
+          "weight": 7
+        },
+        {
+          "level": 24,
+          "weight": 7
+        },
+        {
+          "level": 25,
+          "weight": 7
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "name_en": "poliwhirl",
+      "name_fr": "Têtarte",
+      "methods": [
+        "super-rod"
+      ],
+      "max_chance_firered": 40,
+      "max_chance_leafgreen": 40,
+      "spawn_weight": 40,
+      "min_level": 20,
+      "max_level": 30,
+      "level_weights": [
+        {
+          "level": 20,
+          "weight": 7
+        },
+        {
+          "level": 21,
+          "weight": 7
+        },
+        {
+          "level": 22,
+          "weight": 7
+        },
+        {
+          "level": 23,
+          "weight": 7
+        },
+        {
+          "level": 24,
+          "weight": 7
+        },
+        {
+          "level": 25,
+          "weight": 7
+        },
+        {
+          "level": 26,
+          "weight": 7
+        },
+        {
+          "level": 27,
+          "weight": 7
+        },
+        {
+          "level": 28,
+          "weight": 7
+        },
+        {
+          "level": 29,
+          "weight": 7
+        },
+        {
+          "level": 30,
+          "weight": 7
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "name_en": "mankey",
+      "name_fr": "Férosinge",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 32,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 32,
+          "weight": 40
+        },
+        {
+          "level": 34,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name_en": "fearow",
+      "name_fr": "Rapasdepic",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 25,
+      "max_chance_leafgreen": 25,
+      "spawn_weight": 25,
+      "min_level": 40,
+      "max_level": 44,
+      "level_weights": [
+        {
+          "level": 40,
+          "weight": 40
+        },
+        {
+          "level": 42,
+          "weight": 8
+        },
+        {
+          "level": 44,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name_en": "ekans",
+      "name_fr": "Abo",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 20,
+      "min_level": 32,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 32,
+          "weight": 10
+        },
+        {
+          "level": 34,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name_en": "sandshrew",
+      "name_fr": "Sabelette",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
+      "min_level": 32,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 32,
+          "weight": 10
+        },
+        {
+          "level": 34,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod"
+      ],
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 15,
+      "level_weights": [
+        {
+          "level": 5,
+          "weight": 4
+        },
+        {
+          "level": 6,
+          "weight": 4
+        },
+        {
+          "level": 7,
+          "weight": 4
+        },
+        {
+          "level": 8,
+          "weight": 4
+        },
+        {
+          "level": 9,
+          "weight": 4
+        },
+        {
+          "level": 10,
+          "weight": 4
+        },
+        {
+          "level": 11,
+          "weight": 4
+        },
+        {
+          "level": 12,
+          "weight": 4
+        },
+        {
+          "level": 13,
+          "weight": 4
+        },
+        {
+          "level": 14,
+          "weight": 4
+        },
+        {
+          "level": 15,
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 15,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 32,
+      "max_level": 34,
+      "level_weights": [
+        {
+          "level": 32,
+          "weight": 10
+        },
+        {
+          "level": 34,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 130,
+      "name_en": "gyarados",
+      "name_fr": "Léviator",
+      "methods": [
+        "super-rod"
+      ],
+      "max_chance_firered": 15,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 15,
+      "max_level": 25,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 3
+        },
+        {
+          "level": 16,
+          "weight": 3
+        },
+        {
+          "level": 17,
+          "weight": 3
+        },
+        {
+          "level": 18,
+          "weight": 3
+        },
+        {
+          "level": 19,
+          "weight": 3
+        },
+        {
+          "level": 20,
+          "weight": 3
+        },
+        {
+          "level": 21,
+          "weight": 3
+        },
+        {
+          "level": 22,
+          "weight": 3
+        },
+        {
+          "level": 23,
+          "weight": 3
+        },
+        {
+          "level": 24,
+          "weight": 3
+        },
+        {
+          "level": 25,
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "name_en": "arbok",
+      "name_fr": "Arbok",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 0,
+      "spawn_weight": 5,
+      "min_level": 44,
+      "max_level": 44,
+      "level_weights": [
+        {
+          "level": 44,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name_en": "sandslash",
+      "name_fr": "Sablaireau",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 0,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
+      "min_level": 44,
+      "max_level": 44,
+      "level_weights": [
+        {
+          "level": 44,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "name_en": "primeape",
+      "name_fr": "Colossinge",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
+      "min_level": 42,
+      "max_level": 42,
+      "level_weights": [
+        {
+          "level": 42,
+          "weight": 10
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 15,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

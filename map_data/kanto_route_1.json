@@ -1,38 +1,52 @@
 {
   "route_id": "kanto_route_1",
   "route_name_fr": "Route 1 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
   "source_games": [
     "firered",
     "leafgreen"
   ],
+  "source_location": "kanto-route-1",
   "source_location_areas": [
     "kanto-route-1-area"
   ],
   "background_image": "assets/backgrounds/kanto_route_1_frlg.png",
+  "map_marker": {
+    "x": 35,
+    "y": 82
+  },
   "encounters": [
     {
       "id": 16,
       "name_en": "pidgey",
       "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 50,
+      "max_chance_leafgreen": 50,
       "spawn_weight": 50,
       "min_level": 2,
       "max_level": 5,
       "level_weights": [
         {
           "level": 2,
-          "weight": 10
+          "weight": 20
         },
         {
           "level": 3,
-          "weight": 35
+          "weight": 70
         },
         {
           "level": 4,
-          "weight": 4
+          "weight": 8
         },
         {
           "level": 5,
-          "weight": 1
+          "weight": 2
         }
       ]
     },
@@ -40,25 +54,31 @@
       "id": 19,
       "name_en": "rattata",
       "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 50,
+      "max_chance_leafgreen": 50,
       "spawn_weight": 50,
       "min_level": 2,
       "max_level": 4,
       "level_weights": [
         {
           "level": 2,
-          "weight": 10
+          "weight": 20
         },
         {
           "level": 3,
-          "weight": 35
+          "weight": 70
         },
         {
           "level": 4,
-          "weight": 5
+          "weight": 10
         }
       ]
     }
   ],
-  "generated_from": "map_data/kanto_frlg_routes.json",
-  "generated_at_utc": "2026-03-06T14:29:32.139105+00:00"
+  "encounter_species_count_source": 2,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
 }

@@ -1,0 +1,133 @@
+{
+  "route_id": "kanto_dungeon_pokemon_tower",
+  "route_name_fr": "Tour Pokemon (Kanto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "pokemon-tower",
+  "source_location_areas": [
+    "pokemon-tower-1f",
+    "pokemon-tower-2f",
+    "pokemon-tower-3f",
+    "pokemon-tower-4f",
+    "pokemon-tower-5f",
+    "pokemon-tower-6f",
+    "pokemon-tower-7f"
+  ],
+  "background_image": "assets/backgrounds/kanto_dungeon_pokemon_tower_frlg.png",
+  "map_marker": {
+    "x": 74,
+    "y": 63
+  },
+  "encounters": [
+    {
+      "id": 92,
+      "name_en": "gastly",
+      "name_fr": "Fantominus",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 90,
+      "max_chance_leafgreen": 90,
+      "spawn_weight": 101,
+      "min_level": 13,
+      "max_level": 19,
+      "level_weights": [
+        {
+          "level": 13,
+          "weight": 60
+        },
+        {
+          "level": 14,
+          "weight": 80
+        },
+        {
+          "level": 15,
+          "weight": 160
+        },
+        {
+          "level": 16,
+          "weight": 200
+        },
+        {
+          "level": 17,
+          "weight": 170
+        },
+        {
+          "level": 18,
+          "weight": 120
+        },
+        {
+          "level": 19,
+          "weight": 54
+        }
+      ]
+    },
+    {
+      "id": 93,
+      "name_en": "haunter",
+      "name_fr": "Spectrum",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 15,
+      "max_chance_leafgreen": 15,
+      "spawn_weight": 15,
+      "min_level": 20,
+      "max_level": 25,
+      "level_weights": [
+        {
+          "level": 20,
+          "weight": 22
+        },
+        {
+          "level": 21,
+          "weight": 10
+        },
+        {
+          "level": 23,
+          "weight": 30
+        },
+        {
+          "level": 25,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "name_en": "cubone",
+      "name_fr": "Osselait",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 10,
+      "max_chance_leafgreen": 10,
+      "spawn_weight": 11,
+      "min_level": 15,
+      "max_level": 19,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 30
+        },
+        {
+          "level": 17,
+          "weight": 44
+        },
+        {
+          "level": 19,
+          "weight": 18
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

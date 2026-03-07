@@ -29,7 +29,90 @@
     "speed": 90
   },
   "sprites": {
-    "front": "sprites/60_poliwag_sprite.png",
-    "front_shiny": "sprites/60_poliwag_sprite_shiny.png"
-  }
+    "front": "sprites/60_poliwag_firered_leafgreen_front.png",
+    "front_shiny": "sprites/60_poliwag_firered_leafgreen_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "firered_leafgreen",
+      "label_fr": "Rouge Feu / Vert Feuille",
+      "generation": 3,
+      "game_key": "firered-leafgreen",
+      "front": "sprites/60_poliwag_firered_leafgreen_front.png",
+      "front_shiny": "sprites/60_poliwag_firered_leafgreen_front_shiny.png"
+    },
+    {
+      "id": "emerald",
+      "label_fr": "Emeraude",
+      "generation": 3,
+      "game_key": "emerald",
+      "front": "sprites/60_poliwag_emerald_front.png",
+      "front_shiny": "sprites/60_poliwag_emerald_front_shiny.png"
+    },
+    {
+      "id": "ruby_sapphire",
+      "label_fr": "Rubis / Saphir",
+      "generation": 3,
+      "game_key": "ruby-sapphire",
+      "front": "sprites/60_poliwag_ruby_sapphire_front.png",
+      "front_shiny": "sprites/60_poliwag_ruby_sapphire_front_shiny.png"
+    },
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/60_poliwag_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/60_poliwag_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/60_poliwag_platinum_front.png",
+      "front_shiny": "sprites/60_poliwag_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/60_poliwag_diamond_pearl_front.png",
+      "front_shiny": "sprites/60_poliwag_diamond_pearl_front_shiny.png"
+    },
+    {
+      "id": "crystal",
+      "label_fr": "Cristal",
+      "generation": 2,
+      "game_key": "crystal",
+      "front": "sprites/60_poliwag_crystal_front.png",
+      "front_shiny": "sprites/60_poliwag_crystal_front_shiny.png"
+    },
+    {
+      "id": "gold_silver",
+      "label_fr": "Or / Argent",
+      "generation": 2,
+      "game_key": "gold",
+      "front": "sprites/60_poliwag_gold_silver_front.png",
+      "front_shiny": "sprites/60_poliwag_gold_silver_front_shiny.png"
+    },
+    {
+      "id": "yellow",
+      "label_fr": "Jaune",
+      "generation": 1,
+      "game_key": "yellow",
+      "front": "sprites/60_poliwag_yellow_front.png",
+      "front_shiny": null
+    },
+    {
+      "id": "red_blue",
+      "label_fr": "Rouge / Bleu",
+      "generation": 1,
+      "game_key": "red-blue",
+      "front": "sprites/60_poliwag_red_blue_front.png",
+      "front_shiny": null
+    }
+  ],
+  "default_sprite_variant_id": "firered_leafgreen"
 }

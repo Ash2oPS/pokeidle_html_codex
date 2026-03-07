@@ -1,0 +1,96 @@
+{
+  "route_id": "kanto_dungeon_digletts_cave",
+  "route_name_fr": "Cave Taupiqueur (Kanto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "digletts-cave",
+  "source_location_areas": [
+    "digletts-cave-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_dungeon_digletts_cave_frlg.png",
+  "map_marker": {
+    "x": 44,
+    "y": 72
+  },
+  "encounters": [
+    {
+      "id": 50,
+      "name_en": "diglett",
+      "name_fr": "Taupiqueur",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 95,
+      "max_chance_leafgreen": 95,
+      "spawn_weight": 95,
+      "min_level": 15,
+      "max_level": 22,
+      "level_weights": [
+        {
+          "level": 15,
+          "weight": 20
+        },
+        {
+          "level": 16,
+          "weight": 20
+        },
+        {
+          "level": 17,
+          "weight": 30
+        },
+        {
+          "level": 18,
+          "weight": 40
+        },
+        {
+          "level": 19,
+          "weight": 40
+        },
+        {
+          "level": 20,
+          "weight": 20
+        },
+        {
+          "level": 21,
+          "weight": 10
+        },
+        {
+          "level": 22,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name_en": "dugtrio",
+      "name_fr": "Triopikeur",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
+      "min_level": 29,
+      "max_level": 31,
+      "level_weights": [
+        {
+          "level": 29,
+          "weight": 8
+        },
+        {
+          "level": 31,
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 2,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}

@@ -27,7 +27,34 @@
     "speed": 85
   },
   "sprites": {
-    "front": "sprites/421_cherrim_sprite.png",
-    "front_shiny": "sprites/421_cherrim_sprite_shiny.png"
-  }
+    "front": "sprites/421_cherrim_heartgold_soulsilver_front.png",
+    "front_shiny": "sprites/421_cherrim_heartgold_soulsilver_front_shiny.png"
+  },
+  "sprite_variants": [
+    {
+      "id": "heartgold_soulsilver",
+      "label_fr": "HeartGold / SoulSilver",
+      "generation": 4,
+      "game_key": "heartgold-soulsilver",
+      "front": "sprites/421_cherrim_heartgold_soulsilver_front.png",
+      "front_shiny": "sprites/421_cherrim_heartgold_soulsilver_front_shiny.png"
+    },
+    {
+      "id": "platinum",
+      "label_fr": "Platine",
+      "generation": 4,
+      "game_key": "platinum",
+      "front": "sprites/421_cherrim_platinum_front.png",
+      "front_shiny": "sprites/421_cherrim_platinum_front_shiny.png"
+    },
+    {
+      "id": "diamond_pearl",
+      "label_fr": "Diamant / Perle",
+      "generation": 4,
+      "game_key": "diamond-pearl",
+      "front": "sprites/421_cherrim_diamond_pearl_front.png",
+      "front_shiny": "sprites/421_cherrim_diamond_pearl_front_shiny.png"
+    }
+  ],
+  "default_sprite_variant_id": "heartgold_soulsilver"
 }

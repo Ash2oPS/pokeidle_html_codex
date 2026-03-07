@@ -1,0 +1,188 @@
+{
+  "route_id": "kanto_route_3",
+  "route_name_fr": "Route 3 (Kanto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "firered",
+    "leafgreen"
+  ],
+  "source_location": "kanto-route-3",
+  "source_location_areas": [
+    "kanto-route-3-area",
+    "kanto-route-3-pokemon-center"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_3_frlg.png",
+  "map_marker": {
+    "x": 38,
+    "y": 52
+  },
+  "encounters": [
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "gift"
+      ],
+      "max_chance_firered": 100,
+      "max_chance_leafgreen": 100,
+      "spawn_weight": 100,
+      "min_level": 5,
+      "max_level": 5,
+      "level_weights": [
+        {
+          "level": 5,
+          "weight": 200
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 35,
+      "max_chance_leafgreen": 35,
+      "spawn_weight": 35,
+      "min_level": 6,
+      "max_level": 8,
+      "level_weights": [
+        {
+          "level": 6,
+          "weight": 40
+        },
+        {
+          "level": 7,
+          "weight": 20
+        },
+        {
+          "level": 8,
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name_en": "pidgey",
+      "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 30,
+      "max_chance_leafgreen": 30,
+      "spawn_weight": 30,
+      "min_level": 6,
+      "max_level": 7,
+      "level_weights": [
+        {
+          "level": 6,
+          "weight": 40
+        },
+        {
+          "level": 7,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "name_en": "nidoran-f",
+      "name_fr": "Nidoran♀",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 1,
+      "max_chance_leafgreen": 14,
+      "spawn_weight": 14,
+      "min_level": 6,
+      "max_level": 7,
+      "level_weights": [
+        {
+          "level": 6,
+          "weight": 11
+        },
+        {
+          "level": 7,
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "name_en": "nidoran-m",
+      "name_fr": "Nidoran♂",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 14,
+      "max_chance_leafgreen": 1,
+      "spawn_weight": 14,
+      "min_level": 6,
+      "max_level": 7,
+      "level_weights": [
+        {
+          "level": 6,
+          "weight": 11
+        },
+        {
+          "level": 7,
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "name_en": "jigglypuff",
+      "name_fr": "Rondoudou",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 10,
+      "max_chance_leafgreen": 10,
+      "spawn_weight": 10,
+      "min_level": 3,
+      "max_level": 7,
+      "level_weights": [
+        {
+          "level": 3,
+          "weight": 10
+        },
+        {
+          "level": 5,
+          "weight": 8
+        },
+        {
+          "level": 7,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "name_en": "mankey",
+      "name_fr": "Férosinge",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 10,
+      "max_chance_leafgreen": 10,
+      "spawn_weight": 10,
+      "min_level": 7,
+      "max_level": 7,
+      "level_weights": [
+        {
+          "level": 7,
+          "weight": 20
+        }
+      ]
+    }
+  ],
+  "encounter_species_count_source": 7,
+  "generated_from": "pokeapi + bulbagarden",
+  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+}
