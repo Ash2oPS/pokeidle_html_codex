@@ -114,7 +114,6 @@ const CAPTURE_XP_BASE = 16;
 const CAPTURE_XP_LEVEL_MULT = 8;
 const CAPTURE_XP_STAT_FACTOR = 0.045;
 const FOREGROUND_FRAME_STEP_MS = 40;
-const FOREGROUND_SIM_BUDGET_MS = 4200;
 const HIDDEN_SIM_BUDGET_MS = 180000;
 const BULK_IDLE_THRESHOLD_MS = 1200;
 const MAX_OFFLINE_CATCHUP_MS = 1000 * 60 * 60 * 24 * 7;
@@ -131,6 +130,124 @@ const TEAM_LEVEL_UP_EFFECT_DURATION_MS = 780;
 const WEATHER_CHANGE_INTERVAL_MS = 30 * 60 * 1000;
 const WEATHER_TRANSITION_DURATION_MS = 90 * 1000;
 const WEATHER_LIGHTNING_WINDOW_MS = 1700;
+const POKEMON_BACKDROP_ALPHA = 0.5;
+const POKEMON_BACKDROP_RADIUS_RATIO = 0.36;
+const POKEMON_SHADOW_ALPHA = 0.52;
+const BREATH_MIN_PERIOD_MS = 2500;
+const BREATH_MAX_PERIOD_MS = 4100;
+const BREATH_BASE_AMPLITUDE = 0.022;
+const BREATH_AMPLITUDE_VARIATION = 0.014;
+const BREATH_SECONDARY_WEIGHT = 0.24;
+const BREATH_SIDE_COMPENSATION = 0.42;
+const BREATH_OFFSET_RATIO = 0.022;
+const MAX_RENDER_DPR = 1.35;
+const TARGET_FPS = 60;
+const TARGET_FRAME_MS = 1000 / TARGET_FPS;
+const MAX_FOREGROUND_PENDING_MS = 320;
+const HUD_AUTO_REFRESH_INTERVAL_MS = 120;
+const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
+const RENDER_QUALITY_ORDER = Object.freeze(["very_low", "low", "medium", "high", "ultra"]);
+const RENDER_QUALITY_PRESETS = Object.freeze({
+  ultra: Object.freeze({
+    maxDpr: MAX_RENDER_DPR,
+    renderScale: 1,
+    foregroundSimBudgetMs: 12,
+    environmentParticleScale: 1,
+    environmentUpdateIntervalMult: 1,
+    fogLayerCount: 3,
+    projectileTrailStride: 1,
+    projectileTrailMaxPoints: PROJECTILE_TRAIL_MAX_POINTS,
+    projectileTrailGlow: true,
+    projectileStreak: true,
+    projectileAura: true,
+    projectileAuraScale: 1,
+    enemyHitGlow: true,
+    levelUpParticleStride: 1,
+    lightningGlow: true,
+    vignette: true,
+  }),
+  high: Object.freeze({
+    maxDpr: 1.22,
+    renderScale: 0.98,
+    foregroundSimBudgetMs: 10.5,
+    environmentParticleScale: 0.85,
+    environmentUpdateIntervalMult: 1.1,
+    fogLayerCount: 3,
+    projectileTrailStride: 2,
+    projectileTrailMaxPoints: 8,
+    projectileTrailGlow: true,
+    projectileStreak: true,
+    projectileAura: true,
+    projectileAuraScale: 0.92,
+    enemyHitGlow: true,
+    levelUpParticleStride: 2,
+    lightningGlow: true,
+    vignette: true,
+  }),
+  medium: Object.freeze({
+    maxDpr: 1.05,
+    renderScale: 0.92,
+    foregroundSimBudgetMs: 9,
+    environmentParticleScale: 0.65,
+    environmentUpdateIntervalMult: 1.3,
+    fogLayerCount: 2,
+    projectileTrailStride: 2,
+    projectileTrailMaxPoints: 6,
+    projectileTrailGlow: false,
+    projectileStreak: true,
+    projectileAura: true,
+    projectileAuraScale: 0.78,
+    enemyHitGlow: false,
+    levelUpParticleStride: 2,
+    lightningGlow: false,
+    vignette: true,
+  }),
+  low: Object.freeze({
+    maxDpr: 1,
+    renderScale: 0.84,
+    foregroundSimBudgetMs: 7.5,
+    environmentParticleScale: 0.45,
+    environmentUpdateIntervalMult: 1.6,
+    fogLayerCount: 1,
+    projectileTrailStride: 3,
+    projectileTrailMaxPoints: 4,
+    projectileTrailGlow: false,
+    projectileStreak: false,
+    projectileAura: false,
+    projectileAuraScale: 0.62,
+    enemyHitGlow: false,
+    levelUpParticleStride: 3,
+    lightningGlow: false,
+    vignette: true,
+  }),
+  very_low: Object.freeze({
+    maxDpr: 1,
+    renderScale: 0.72,
+    foregroundSimBudgetMs: 6,
+    environmentParticleScale: 0.25,
+    environmentUpdateIntervalMult: 2.1,
+    fogLayerCount: 1,
+    projectileTrailStride: 4,
+    projectileTrailMaxPoints: 3,
+    projectileTrailGlow: false,
+    projectileStreak: false,
+    projectileAura: false,
+    projectileAuraScale: 0.5,
+    enemyHitGlow: false,
+    levelUpParticleStride: 4,
+    lightningGlow: false,
+    vignette: false,
+  }),
+});
+const PERF_SHORT_EMA_SMOOTHING = 0.18;
+const PERF_LONG_EMA_SMOOTHING = 0.045;
+const PERF_CPU_EMA_SMOOTHING = 0.14;
+const PERF_SWITCH_COOLDOWN_MS = 900;
+const PERF_DOWNGRADE_STREAK = 9;
+const PERF_UPGRADE_STREAK = 170;
+const PERF_SLOW_FRAME_MARGIN_MS = 1.4;
+const PERF_VERY_SLOW_FRAME_MARGIN_MS = 4.6;
+const PERF_UPGRADE_HEADROOM_MS = 2.6;
 
 const BALL_TYPE_ORDER = ["hyper_ball", "super_ball", "poke_ball"];
 const BALL_TYPE_FALLBACK_ORDER = ["poke_ball", "super_ball", "hyper_ball"];
@@ -289,7 +406,7 @@ const SHOP_ITEM_CONFIG_BY_ID = {
     id: "water_stone",
     category: SHOP_TAB_EVOLUTIONS,
     nameFr: "Pierre Eau",
-    description: "Fait evoluer une espece compatible (si evo non deja possedee).",
+    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
     price: EVOLUTION_STONE_CONFIG_BY_TYPE.water_stone.price,
     spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.water_stone.spritePath,
     itemType: "stone",
@@ -299,7 +416,7 @@ const SHOP_ITEM_CONFIG_BY_ID = {
     id: "fire_stone",
     category: SHOP_TAB_EVOLUTIONS,
     nameFr: "Pierre Feu",
-    description: "Fait evoluer une espece compatible (si evo non deja possedee).",
+    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
     price: EVOLUTION_STONE_CONFIG_BY_TYPE.fire_stone.price,
     spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.fire_stone.spritePath,
     itemType: "stone",
@@ -309,7 +426,7 @@ const SHOP_ITEM_CONFIG_BY_ID = {
     id: "leaf_stone",
     category: SHOP_TAB_EVOLUTIONS,
     nameFr: "Pierre Plante",
-    description: "Fait evoluer une espece compatible (si evo non deja possedee).",
+    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
     price: EVOLUTION_STONE_CONFIG_BY_TYPE.leaf_stone.price,
     spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.leaf_stone.spritePath,
     itemType: "stone",
@@ -422,7 +539,11 @@ const TYPE_COLORS = {
 };
 
 const canvas = document.getElementById("game-canvas");
-const ctx = canvas.getContext("2d");
+const ctx =
+  canvas.getContext("2d", { alpha: false, desynchronized: true }) ||
+  canvas.getContext("2d");
+const spriteTintBufferCanvas = document.createElement("canvas");
+const spriteTintBufferCtx = spriteTintBufferCanvas.getContext("2d");
 const gameStageEl = document.getElementById("game-stage");
 const starterModalEl = document.getElementById("starter-modal");
 const starterChoicesEl = document.getElementById("starter-choices");
@@ -494,6 +615,18 @@ const state = {
   lastFrameTimestamp: 0,
   realClockLastMs: 0,
   pendingSimMs: 0,
+  lastHudAutoUpdateMs: 0,
+  performance: {
+    initialized: false,
+    targetFrameMs: TARGET_FRAME_MS,
+    shortFrameMsEma: TARGET_FRAME_MS,
+    longFrameMsEma: TARGET_FRAME_MS,
+    cpuFrameMsEma: TARGET_FRAME_MS,
+    quality: "high",
+    switchCooldownMs: 0,
+    slowFrameStreak: 0,
+    fastFrameStreak: 0,
+  },
   simulationIdleMode: false,
   deferredSaveDirty: false,
   backgroundTickHandle: null,
@@ -529,6 +662,7 @@ const state = {
   },
   environment: {
     snapshot: null,
+    nextUpdateAtMs: 0,
   },
   ui: {
     mapOpen: false,
@@ -553,6 +687,143 @@ const state = {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getRenderQualitySettings() {
+  const key = String(state.performance?.quality || "high");
+  return RENDER_QUALITY_PRESETS[key] || RENDER_QUALITY_PRESETS.medium;
+}
+
+function getRenderQualityRank(qualityKey) {
+  const key = String(qualityKey || "");
+  const rank = RENDER_QUALITY_ORDER.indexOf(key);
+  if (rank >= 0) {
+    return rank;
+  }
+  return RENDER_QUALITY_ORDER.indexOf("medium");
+}
+
+function setRenderQualityByRank(rank) {
+  const clampedRank = clamp(toSafeInt(rank, getRenderQualityRank("medium")), 0, RENDER_QUALITY_ORDER.length - 1);
+  const nextQuality = RENDER_QUALITY_ORDER[clampedRank] || "medium";
+  const perf = state.performance;
+  if (!perf || perf.quality === nextQuality) {
+    return false;
+  }
+  perf.quality = nextQuality;
+  resizeCanvas();
+  return true;
+}
+
+function getInitialRenderQualityForDevice() {
+  let rank = getRenderQualityRank("high");
+  const coreCount = Math.max(1, toSafeInt(navigator?.hardwareConcurrency, 0));
+  const memoryRaw = Number(navigator?.deviceMemory || 0);
+  const memoryGb = Number.isFinite(memoryRaw) && memoryRaw > 0 ? memoryRaw : null;
+  const minSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+  const dpr = Math.max(1, Number(window.devicePixelRatio || 1));
+
+  if ((memoryGb !== null && memoryGb <= 2) || coreCount <= 4) {
+    rank = Math.min(rank, getRenderQualityRank("medium"));
+  }
+  if ((memoryGb !== null && memoryGb <= 1) || coreCount <= 2) {
+    rank = Math.min(rank, getRenderQualityRank("low"));
+  }
+  if (minSide > 0 && minSide <= 720) {
+    rank = Math.min(rank, getRenderQualityRank("high"));
+  }
+  if (dpr >= 2.4) {
+    rank = Math.min(rank, getRenderQualityRank("high"));
+  }
+
+  return RENDER_QUALITY_ORDER[rank] || "medium";
+}
+
+function applyInitialPerformanceProfile() {
+  const perf = state.performance;
+  if (!perf || perf.initialized) {
+    return;
+  }
+  perf.initialized = true;
+  perf.quality = getInitialRenderQualityForDevice();
+}
+
+function getForegroundSimulationBudgetMs() {
+  const quality = getRenderQualitySettings();
+  const budget = Number(quality.foregroundSimBudgetMs);
+  return clamp(Number.isFinite(budget) ? budget : 9, 4, 20);
+}
+
+function updateRenderQualityFromFrame(frameDeltaMs, cpuFrameMs = frameDeltaMs) {
+  const perf = state.performance;
+  if (!perf) {
+    return;
+  }
+  const frameDelta = clamp(Number(frameDeltaMs) || TARGET_FRAME_MS, 1, 120);
+  const cpuDelta = clamp(Number(cpuFrameMs) || frameDelta, 0.1, 120);
+  const shortCurrent = Number.isFinite(perf.shortFrameMsEma) ? perf.shortFrameMsEma : frameDelta;
+  const longCurrent = Number.isFinite(perf.longFrameMsEma) ? perf.longFrameMsEma : frameDelta;
+  const cpuCurrent = Number.isFinite(perf.cpuFrameMsEma) ? perf.cpuFrameMsEma : cpuDelta;
+  perf.shortFrameMsEma = shortCurrent + (frameDelta - shortCurrent) * PERF_SHORT_EMA_SMOOTHING;
+  perf.longFrameMsEma = longCurrent + (frameDelta - longCurrent) * PERF_LONG_EMA_SMOOTHING;
+  perf.cpuFrameMsEma = cpuCurrent + (cpuDelta - cpuCurrent) * PERF_CPU_EMA_SMOOTHING;
+  perf.switchCooldownMs = Math.max(0, (Number(perf.switchCooldownMs) || 0) - frameDelta);
+
+  const target = Math.max(8, Number(perf.targetFrameMs) || TARGET_FRAME_MS);
+  const cpuHealthThreshold = target * 0.62;
+  const cpuHealthy = perf.cpuFrameMsEma <= cpuHealthThreshold;
+  const frameComponent = cpuHealthy
+    ? Math.min(perf.shortFrameMsEma, target + 0.8)
+    : perf.shortFrameMsEma;
+  const longComponent = cpuHealthy
+    ? Math.min(perf.longFrameMsEma, target + 1.2)
+    : perf.longFrameMsEma * 0.75;
+  const backlogPressureMs = document.hidden
+    ? 0
+    : Math.max(0, (Math.max(0, Number(state.pendingSimMs) || 0) - target * 4) * 0.12);
+  const stressFrameMs = Math.max(
+    perf.cpuFrameMsEma * 1.12,
+    frameComponent,
+    longComponent,
+  ) + backlogPressureMs;
+  const overBudgetMs = stressFrameMs - target;
+  const underBudgetMs = target - Math.max(perf.cpuFrameMsEma, perf.longFrameMsEma * 0.7);
+
+  if (overBudgetMs > PERF_SLOW_FRAME_MARGIN_MS) {
+    perf.slowFrameStreak += overBudgetMs > PERF_VERY_SLOW_FRAME_MARGIN_MS ? 2 : 1;
+    perf.fastFrameStreak = 0;
+  } else if (underBudgetMs > PERF_UPGRADE_HEADROOM_MS) {
+    perf.fastFrameStreak += 1;
+    perf.slowFrameStreak = Math.max(0, perf.slowFrameStreak - 1);
+  } else {
+    perf.slowFrameStreak = Math.max(0, perf.slowFrameStreak - 1);
+    perf.fastFrameStreak = Math.max(0, perf.fastFrameStreak - 2);
+  }
+
+  if (perf.switchCooldownMs > 0) {
+    return;
+  }
+
+  const currentRank = getRenderQualityRank(perf.quality);
+  if (perf.slowFrameStreak >= PERF_DOWNGRADE_STREAK && currentRank > 0) {
+    const downgradeStep = overBudgetMs > PERF_VERY_SLOW_FRAME_MARGIN_MS ? 2 : 1;
+    const nextRank = Math.max(0, currentRank - downgradeStep);
+    if (setRenderQualityByRank(nextRank)) {
+      perf.switchCooldownMs = PERF_SWITCH_COOLDOWN_MS;
+      perf.slowFrameStreak = 0;
+      perf.fastFrameStreak = 0;
+    }
+    return;
+  }
+
+  if (perf.fastFrameStreak >= PERF_UPGRADE_STREAK && currentRank < RENDER_QUALITY_ORDER.length - 1) {
+    const nextRank = Math.min(RENDER_QUALITY_ORDER.length - 1, currentRank + 1);
+    if (setRenderQualityByRank(nextRank)) {
+      perf.switchCooldownMs = PERF_SWITCH_COOLDOWN_MS * 1.35;
+      perf.slowFrameStreak = 0;
+      perf.fastFrameStreak = 0;
+    }
+  }
 }
 
 function calcLevel(stats, bonus = 0) {
@@ -1044,13 +1315,43 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
   }
 
   const pokemonName = getPokemonDisplayNameById(pokemonId);
-  const shinyLabel = isShiny ? " en shiny" : "";
-  const actionLabel = category === "encountered" ? "vu" : "capture";
-  const message = `${pokemonName} ${actionLabel} pour la premiere fois${shinyLabel}.`;
+  if (category === "encountered") {
+    if (isShiny) {
+      return;
+    }
+    pushTemporaryNotification(`${pokemonName} apparait pour la premiere fois.`, 3000, {
+      title: "Apparition",
+      tone: "first",
+    });
+    return;
+  }
 
-  pushTemporaryNotification(message, isShiny ? 4200 : 3200, {
-    title: isShiny ? "Premiere fois shiny" : "Premiere fois",
-    tone: isShiny ? "shiny" : "first",
+  if (isShiny) {
+    pushTemporaryNotification(`${pokemonName} capture pour la premiere fois en shiny.`, 4400, {
+      title: "Premiere capture shiny",
+      tone: "shiny",
+    });
+    return;
+  }
+
+  pushTemporaryNotification(`${pokemonName} capture pour la premiere fois.`, 3200, {
+    title: "Premiere capture",
+    tone: "first",
+  });
+}
+
+function notifyShinyEncounterUntilCaptured(enemy, speciesRecord = null) {
+  if (!enemy || !enemy.isShiny || state.mode !== "ready" || state.simulationIdleMode) {
+    return;
+  }
+  const record = speciesRecord || ensureSpeciesStats(enemy.id);
+  const shinyCaptures = Math.max(0, toSafeInt(record?.captured_shiny, 0));
+  if (shinyCaptures > 0) {
+    return;
+  }
+  pushTemporaryNotification(`Un ${enemy.nameFr} shiny sauvage apparait !`, 4200, {
+    title: "Shiny sauvage",
+    tone: "shiny",
   });
 }
 
@@ -1259,15 +1560,25 @@ function getEnvironmentSnapshot(nowMs = Date.now()) {
   };
 }
 
-function updateEnvironment() {
-  state.environment.snapshot = getEnvironmentSnapshot(Date.now());
+function updateEnvironment(nowMs = Date.now(), force = false) {
+  const now = Math.max(0, toSafeInt(nowMs, Date.now()));
+  const nextAllowed = Math.max(0, toSafeInt(state.environment?.nextUpdateAtMs, 0));
+  if (!force && state.environment.snapshot && now < nextAllowed) {
+    return;
+  }
+
+  state.environment.snapshot = getEnvironmentSnapshot(now);
+  const quality = getRenderQualitySettings();
+  const intervalMult = clamp(Number(quality.environmentUpdateIntervalMult) || 1, 0.6, 3);
+  const intervalMs = Math.max(50, Math.round(ENVIRONMENT_UPDATE_INTERVAL_MS * intervalMult));
+  state.environment.nextUpdateAtMs = now + intervalMs;
 }
 
 function getEnvironmentSnapshotForRender() {
   if (state.environment?.snapshot) {
     return state.environment.snapshot;
   }
-  updateEnvironment();
+  updateEnvironment(Date.now(), true);
   return state.environment.snapshot || getEnvironmentSnapshot(Date.now());
 }
 
@@ -1520,6 +1831,23 @@ function getSpriteVariantDisplayLabel(variant) {
   return generationLabel ? `${variant.labelFr} (${generationLabel})` : variant.labelFr;
 }
 
+function normalizeEvolutionItemReadyTargets(rawTargets) {
+  if (!Array.isArray(rawTargets)) {
+    return [];
+  }
+  const seen = new Set();
+  const normalized = [];
+  for (const rawTarget of rawTargets) {
+    const targetId = Number(rawTarget);
+    if (!Number.isFinite(targetId) || targetId <= 0 || seen.has(targetId)) {
+      continue;
+    }
+    seen.add(targetId);
+    normalized.push(targetId);
+  }
+  return normalized;
+}
+
 function normalizePokemonEntityRecord(rawEntity, pokemonId) {
   const id = Number(pokemonId);
   const counters = normalizeSpeciesCounters(rawEntity);
@@ -1534,6 +1862,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
   const appearanceOwnedVariants = normalizeSpriteVariantIdList(rawEntity?.appearance_owned_variants);
   const appearanceSelectedVariant = normalizeSpriteVariantId(rawEntity?.appearance_selected_variant);
   const appearanceShinyMode = Boolean(rawEntity?.appearance_shiny_mode);
+  const evolutionItemReadyTargets = normalizeEvolutionItemReadyTargets(rawEntity?.evolution_item_ready_targets);
 
   return {
     id,
@@ -1545,6 +1874,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
     appearance_owned_variants: appearanceOwnedVariants,
     appearance_selected_variant: appearanceSelectedVariant,
     appearance_shiny_mode: appearanceShinyMode,
+    evolution_item_ready_targets: evolutionItemReadyTargets,
     ...counters,
   };
 }
@@ -1563,6 +1893,7 @@ function createPokemonEntityRecord(pokemonId, initialLevel = 1) {
     appearance_owned_variants: [],
     appearance_selected_variant: "",
     appearance_shiny_mode: false,
+    evolution_item_ready_targets: [],
     ...createEmptySpeciesStats(),
   };
 }
@@ -2126,6 +2457,9 @@ function queueRealtimeElapsedMs(nowMs = Date.now()) {
     return 0;
   }
   state.pendingSimMs += elapsed;
+  if (!document.hidden) {
+    state.pendingSimMs = Math.min(state.pendingSimMs, MAX_FOREGROUND_PENDING_MS);
+  }
   return elapsed;
 }
 
@@ -2159,12 +2493,13 @@ function consumePendingSimulation(options = {}) {
 
   const hidden = Boolean(document.hidden);
   const budgetFromOptions = Number(options.budgetMs);
+  const foregroundBudgetMs = getForegroundSimulationBudgetMs();
   const budgetMs =
     Number.isFinite(budgetFromOptions) && budgetFromOptions > 0
       ? budgetFromOptions
       : hidden
         ? HIDDEN_SIM_BUDGET_MS
-        : FOREGROUND_SIM_BUDGET_MS;
+        : foregroundBudgetMs;
 
   let consumedMs = 0;
   let safety = 0;
@@ -2196,7 +2531,10 @@ function consumePendingSimulation(options = {}) {
 
   flushDeferredSaveIfNeeded();
   if (consumedMs > 0) {
-    updateHud();
+    const nowMs = Date.now();
+    if (nowMs - Math.max(0, toSafeInt(state.lastHudAutoUpdateMs, 0)) >= HUD_AUTO_REFRESH_INTERVAL_MS) {
+      updateHud();
+    }
   }
   return consumedMs;
 }
@@ -3108,12 +3446,54 @@ function doesCurrentRouteMatchEvolutionLocation(locationToken) {
   return routeIdToken.includes(token) || routeNameToken.includes(token);
 }
 
-function isEvolutionMethodSatisfied(record, method) {
+function hasEvolutionItemConditionReady(record, targetPokemonId) {
+  const targetId = Number(targetPokemonId || 0);
+  if (!record || targetId <= 0) {
+    return false;
+  }
+  const readyTargets = normalizeEvolutionItemReadyTargets(record.evolution_item_ready_targets);
+  return readyTargets.includes(targetId);
+}
+
+function setEvolutionItemConditionReady(fromPokemonId, toPokemonId) {
+  const fromId = Number(fromPokemonId || 0);
+  const toId = Number(toPokemonId || 0);
+  if (fromId <= 0 || toId <= 0 || fromId === toId) {
+    return false;
+  }
+  const record = getPokemonEntityRecord(fromId);
+  if (!record || !isEntityUnlocked(record) || isPokemonEntityUnlockedById(toId)) {
+    return false;
+  }
+  const readyTargets = normalizeEvolutionItemReadyTargets(record.evolution_item_ready_targets);
+  if (!readyTargets.includes(toId)) {
+    readyTargets.push(toId);
+  }
+  record.evolution_item_ready_targets = readyTargets;
+  return true;
+}
+
+function consumeEvolutionItemConditionReady(record, targetPokemonId) {
+  if (!record) {
+    return;
+  }
+  const targetId = Number(targetPokemonId || 0);
+  if (targetId <= 0) {
+    return;
+  }
+  const readyTargets = normalizeEvolutionItemReadyTargets(record.evolution_item_ready_targets);
+  record.evolution_item_ready_targets = readyTargets.filter((entry) => Number(entry) !== targetId);
+}
+
+function isEvolutionMethodSatisfied(record, method, targetPokemonId = 0) {
   if (!record || !method) {
     return false;
   }
 
   const trigger = String(method.trigger || method.evolutionType || "").toLowerCase();
+  if (trigger === "use-item" || trigger === "item") {
+    return hasEvolutionItemConditionReady(record, targetPokemonId);
+  }
   if (trigger !== "level-up") {
     return false;
   }
@@ -3191,7 +3571,7 @@ function findNextEligibleEvolution(record) {
     if (methods.length === 0) {
       continue;
     }
-    if (!methods.some((method) => isEvolutionMethodSatisfied(record, method))) {
+    if (!methods.some((method) => isEvolutionMethodSatisfied(record, method, toId))) {
       continue;
     }
     const toDef = state.pokemonDefsById.get(toId);
@@ -3219,11 +3599,16 @@ function applyEvolutionUnlockAndTeamPlacement(fromPokemonId, toPokemonId, prefer
   if (fromId <= 0 || toId <= 0 || fromId === toId) {
     return null;
   }
+  const fromRecord = getPokemonEntityRecord(fromId);
+  if (!fromRecord || !isEntityUnlocked(fromRecord)) {
+    return null;
+  }
 
   const unlockResult = ensurePokemonEntityUnlocked(toId, 1);
   if (unlockResult.wasUnlocked) {
     return null;
   }
+  consumeEvolutionItemConditionReady(fromRecord, toId);
 
   const team = state.saveData.team;
   const alreadyInTeam = team.some((id) => Number(id) === toId);
@@ -3299,6 +3684,9 @@ function findEvolutionStoneCandidates(stoneType) {
     for (const target of fromDef.evolvesTo) {
       const toId = Number(target?.id || 0);
       if (toId <= 0 || isPokemonEntityUnlockedById(toId)) {
+        continue;
+      }
+      if (hasEvolutionItemConditionReady(record, toId)) {
         continue;
       }
       const methods = Array.isArray(target.evolutionMethods) ? target.evolutionMethods : [];
@@ -4645,6 +5033,10 @@ class PokemonBattleManager {
   updateProjectiles(deltaMs, layout) {
     const survivors = [];
     const dt = deltaMs / 1000;
+    const trailMaxPoints = Math.max(
+      2,
+      toSafeInt(getRenderQualitySettings().projectileTrailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS),
+    );
 
     for (const projectile of this.projectiles) {
       projectile.prevX = projectile.x;
@@ -4653,19 +5045,25 @@ class PokemonBattleManager {
       projectile.targetY = layout.centerY - layout.enemySize * 0.16;
       projectile.lifetimeMs += deltaMs;
       const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
+      let writeIndex = 0;
       for (const point of existingTrail) {
         point.lifeMs -= deltaMs;
+        if (point.lifeMs > 0) {
+          existingTrail[writeIndex] = point;
+          writeIndex += 1;
+        }
       }
-      projectile.trail = existingTrail.filter((point) => point.lifeMs > 0);
-      projectile.trail.push({
+      existingTrail.length = writeIndex;
+      existingTrail.push({
         x: projectile.x,
         y: projectile.y,
         lifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
         maxLifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
       });
-      if (projectile.trail.length > PROJECTILE_TRAIL_MAX_POINTS) {
-        projectile.trail.splice(0, projectile.trail.length - PROJECTILE_TRAIL_MAX_POINTS);
+      if (existingTrail.length > trailMaxPoints) {
+        existingTrail.splice(0, existingTrail.length - trailMaxPoints);
       }
+      projectile.trail = existingTrail;
 
       const dx = projectile.targetX - projectile.x;
       const dy = projectile.targetY - projectile.y;
@@ -5149,16 +5547,9 @@ function handleEnemySpawn(enemy) {
     return;
   }
   state.enemy = enemy;
-  ensureSpeciesStats(enemy.id);
+  const speciesRecord = ensureSpeciesStats(enemy.id);
   incrementSpeciesStat(enemy.id, "encountered", enemy.isShiny, 1);
-  if (!state.simulationIdleMode) {
-    setTopMessage(
-      enemy.isShiny
-        ? `Un ${enemy.nameFr} shiny sauvage apparait !`
-        : `Un ${enemy.nameFr} sauvage apparait !`,
-      1300,
-    );
-  }
+  notifyShinyEncounterUntilCaptured(enemy, speciesRecord);
   persistSaveDataForSimulationEvent();
   if (!state.simulationIdleMode) {
     updateHud();
@@ -5173,18 +5564,14 @@ function handleEnemyDefeated(enemy) {
   incrementSpeciesStat(enemy.id, "defeated", enemy.isShiny, 1);
   const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
   incrementRouteDefeatCount(activeRouteId, 1);
-  const routeUnlockResult = tryUnlockNextRouteAfterDefeat(activeRouteId);
+  tryUnlockNextRouteAfterDefeat(activeRouteId);
   const moneyReward = computeDefeatMoneyReward(enemy);
   addMoney(moneyReward);
-  let topMessage = `${enemy.nameFr} battu: +${moneyReward} Poke$`;
   let captureAttempted = false;
   let captured = false;
   let captureCritical = false;
   let addedToTeam = false;
   let xpSummary = null;
-  let captureUnlockSummary = null;
-  let leveledNames = [];
-  let evolutionReadyNames = [];
   let usedBallType = null;
 
   if (getBallInventoryTotalCount() > 0) {
@@ -5192,70 +5579,25 @@ function handleEnemyDefeated(enemy) {
     captureAttempted = Boolean(captureConsume.consumed);
     usedBallType = captureConsume.ballType;
     if (captureAttempted && usedBallType) {
-      const usedBallLabel = getBallTypeLabel(usedBallType);
       const ballMultiplier = getBallCaptureMultiplier(usedBallType);
       captureCritical = Math.random() < CAPTURE_CRIT_CHANCE;
       const criticalMultiplier = captureCritical ? CAPTURE_CRIT_MULTIPLIER : 1;
       const catchChance = computeCatchChance(enemy.catchRate, ballMultiplier * criticalMultiplier);
       captured = Math.random() < catchChance;
-      if (!captured) {
-        const remaining = getBallInventoryCount(usedBallType);
-        const criticalLabel = captureCritical ? " capture critique ratee" : " capture ratee";
-        topMessage = `${enemy.nameFr} battu: +${moneyReward} Poke$ |${criticalLabel} (${usedBallLabel}: ${remaining})`;
-      } else {
+      if (captured) {
         const captureRecordBefore = ensureSpeciesStats(enemy.id);
         const firstCaptureOfSpecies = getCapturedTotal(captureRecordBefore) <= 0;
         incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1);
-        captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id, firstCaptureOfSpecies);
+        const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id, firstCaptureOfSpecies);
         addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
         xpSummary = awardCaptureXpToTeam(enemy);
-        leveledNames = xpSummary.levelUps.map((entry) => `${entry.nameFr} (${entry.toLevel})`);
-        evolutionReadyNames = (xpSummary.evolutionReady || []).map((entry) => `${entry.fromNameFr} -> ${entry.toNameFr}`);
         if (!state.simulationIdleMode && Array.isArray(xpSummary.levelUps) && xpSummary.levelUps.length > 0) {
           queueTeamLevelUpEffects(xpSummary.levelUps);
         }
-
-        const shinyLabel = enemy.isShiny ? " shiny" : "";
-        let unlockLabel = "";
-        if (captureUnlockSummary?.suppressedEvolvedEntityUnlock) {
-          const grantedId = Number(captureUnlockSummary.grantedEntityId || 0);
-          if (grantedId > 0 && grantedId !== enemy.id) {
-            const grantedName = getPokemonDisplayNameById(grantedId);
-            const teamLabel = captureUnlockSummary.addedToTeam ? " rejoint l'equipe" : "";
-            unlockLabel = ` | Entite obtenue: ${grantedName}${teamLabel}`;
-          } else {
-            unlockLabel = " | Entite non obtenue pour cette evolution (1re capture)";
-          }
-        } else {
-          const teamLabel = addedToTeam ? " rejoint l'equipe" : "";
-          unlockLabel = teamLabel;
-        }
-        const criticalLabel = captureCritical ? "Capture CRITIQUE reussie" : "Capture reussie";
-        topMessage = `${criticalLabel}: ${enemy.nameFr}${shinyLabel}${unlockLabel} | ${usedBallLabel} | +${moneyReward} Poke$`;
       }
     }
-  } else {
-    topMessage = `${enemy.nameFr} battu: +${moneyReward} Poke$ (plus de Poke Balls)`;
   }
 
-  if (xpSummary?.reward) {
-    topMessage += ` | +${xpSummary.reward} XP`;
-  }
-  if (leveledNames.length > 0) {
-    topMessage += ` | Level up: ${leveledNames.join(", ")}`;
-  }
-  if (evolutionReadyNames.length > 0) {
-    topMessage += ` | Evolutions pretes: ${evolutionReadyNames.join(", ")}`;
-  }
-
-  if (routeUnlockResult?.unlocked) {
-    const routeLabel = routeUnlockResult.route_name_fr || "Route suivante";
-    topMessage += " | Zone debloquee: " + routeLabel;
-  }
-
-  if (!state.simulationIdleMode) {
-    setTopMessage(topMessage, 1900);
-  }
   rebuildTeamAndSyncBattle();
   persistSaveDataForSimulationEvent();
   if (!state.simulationIdleMode) {
@@ -5468,6 +5810,7 @@ function navigateRouteByOffset(offset) {
 }
 
 function updateHud() {
+  const nowMs = Date.now();
   if (!state.saveData) {
     state.moneyHud.initialized = false;
     state.moneyHud.targetValue = 0;
@@ -5481,9 +5824,7 @@ function updateHud() {
     }
     updateSaveBackendIndicator();
     refreshRouteUi();
-    if (state.ui.shopOpen) {
-      renderShopModal();
-    }
+    state.lastHudAutoUpdateMs = nowMs;
     return;
   }
 
@@ -5514,9 +5855,7 @@ function updateHud() {
   }
   updateSaveBackendIndicator();
   refreshRouteUi();
-  if (state.ui.shopOpen) {
-    renderShopModal();
-  }
+  state.lastHudAutoUpdateMs = nowMs;
 }
 
 function getShopItemsByTab(tabId) {
@@ -5627,8 +5966,8 @@ function useEvolutionStoneFromShop(stoneType) {
     return false;
   }
 
-  const result = applyEvolutionUnlockAndTeamPlacement(chosen.fromId, chosen.toId, chosen.teamSlotIndex);
-  if (!result) {
+  const conditionMarked = setEvolutionItemConditionReady(chosen.fromId, chosen.toId);
+  if (!conditionMarked) {
     addShopItemCount(key, 1);
     setTopMessage(`${stoneConfig.nameFr}: impossible de l'utiliser sur ce Pokemon.`, 1600);
     updateHud();
@@ -5636,12 +5975,16 @@ function useEvolutionStoneFromShop(stoneType) {
     return false;
   }
 
-  queueEvolutionAnimationForResult(result);
-  rebuildTeamAndSyncBattle();
-  render();
+  enqueueEvolutionReadyNotification({
+    fromId: chosen.fromId,
+    toId: chosen.toId,
+    fromNameFr: chosen.fromNameFr,
+    toNameFr: chosen.toNameFr,
+  });
   persistSaveData();
   updateHud();
-  setTopMessage(`${stoneConfig.nameFr} utilisee: ${result.fromNameFr} -> ${result.toNameFr}.`, 1800);
+  render();
+  setTopMessage(`${stoneConfig.nameFr} utilisee: ${chosen.fromNameFr} est maintenant pret a evoluer.`, 1800);
   return true;
 }
 
@@ -5730,38 +6073,48 @@ function createShopItemCard(item) {
   const card = document.createElement("article");
   card.className = "shop-item-card";
 
+  const media = document.createElement("div");
+  media.className = "shop-item-media";
   if (item.spritePath) {
     const image = document.createElement("img");
     image.alt = item.nameFr;
     image.src = item.spritePath;
-    card.appendChild(image);
+    media.appendChild(image);
   } else {
     const fallback = document.createElement("div");
     fallback.className = "shop-item-fallback";
     fallback.textContent = item.nameFr.slice(0, 1).toUpperCase();
-    card.appendChild(fallback);
+    media.appendChild(fallback);
   }
+  card.appendChild(media);
+
+  const content = document.createElement("div");
+  content.className = "shop-item-content";
 
   const nameEl = document.createElement("div");
   nameEl.className = "shop-item-name";
   nameEl.textContent = item.nameFr;
-  card.appendChild(nameEl);
+  content.appendChild(nameEl);
 
   const priceEl = document.createElement("div");
   priceEl.className = "shop-item-price";
   priceEl.textContent = `${item.price} Poke$`;
-  card.appendChild(priceEl);
+  content.appendChild(priceEl);
 
   const descEl = document.createElement("div");
   descEl.className = "shop-item-desc";
   descEl.textContent = item.description;
-  card.appendChild(descEl);
+  content.appendChild(descEl);
+  card.appendChild(content);
 
-  const actionRow = document.createElement("div");
-  actionRow.className = "shop-item-action-row";
+  const footer = document.createElement("div");
+  footer.className = "shop-item-footer";
 
   const stockEl = document.createElement("div");
   stockEl.className = "shop-item-stock";
+
+  const actionRow = document.createElement("div");
+  actionRow.className = "shop-item-actions";
 
   const primaryButton = document.createElement("button");
   primaryButton.type = "button";
@@ -5775,15 +6128,19 @@ function createShopItemCard(item) {
   if (item.itemType === "ball") {
     const stockCount = getBallInventoryCount(item.ballType);
     const isActive = getActiveBallType() === item.ballType;
-    stockEl.textContent = isActive
-      ? `Stock: ${stockCount} | Actif capture`
-      : `Stock: ${stockCount}`;
     const quantity = getSelectedShopBallQuantity();
+    const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
+    const canAfford = Math.max(0, toSafeInt(state.saveData?.money, 0)) >= totalCost;
+    stockEl.textContent = `Stock: ${stockCount} • Actif: ${isActive ? "Oui" : "Non"}`;
     primaryButton.textContent = `Acheter x${quantity}`;
+    primaryButton.disabled = !canAfford;
+    if (!canAfford) {
+      primaryButton.title = "Pas assez d'argent.";
+    }
 
     const equipButton = document.createElement("button");
     equipButton.type = "button";
-    equipButton.className = "shop-item-buy-btn";
+    equipButton.className = "shop-item-buy-btn is-secondary";
     equipButton.textContent = isActive ? "Actif" : "Equiper";
     equipButton.disabled = isActive || stockCount <= 0;
     equipButton.addEventListener("click", () => {
@@ -5792,6 +6149,11 @@ function createShopItemCard(item) {
     actionRow.appendChild(equipButton);
   } else if (item.itemType === "boost") {
     const remainingMs = getAttackBoostRemainingMs();
+    const canAfford = Math.max(0, toSafeInt(state.saveData?.money, 0)) >= Math.max(0, toSafeInt(item.price, 0));
+    primaryButton.disabled = !canAfford;
+    if (!canAfford) {
+      primaryButton.title = "Pas assez d'argent.";
+    }
     if (remainingMs > 0) {
       stockEl.textContent = `Actif: ${formatDurationToClock(remainingMs)} restantes`;
       primaryButton.textContent = "Prolonger";
@@ -5801,12 +6163,17 @@ function createShopItemCard(item) {
     }
   } else if (item.itemType === "stone") {
     const stoneStock = getShopItemCount(item.stoneType);
+    const canAfford = Math.max(0, toSafeInt(state.saveData?.money, 0)) >= Math.max(0, toSafeInt(item.price, 0));
     stockEl.textContent = `Stock: ${stoneStock}`;
     primaryButton.textContent = "Acheter";
+    primaryButton.disabled = !canAfford;
+    if (!canAfford) {
+      primaryButton.title = "Pas assez d'argent.";
+    }
 
     const useButton = document.createElement("button");
     useButton.type = "button";
-    useButton.className = "shop-item-buy-btn";
+    useButton.className = "shop-item-buy-btn is-secondary";
     useButton.textContent = "Utiliser";
     useButton.disabled = stoneStock <= 0;
     useButton.addEventListener("click", () => {
@@ -5817,8 +6184,9 @@ function createShopItemCard(item) {
     stockEl.textContent = "";
   }
 
-  actionRow.prepend(stockEl);
-  card.appendChild(actionRow);
+  footer.appendChild(stockEl);
+  footer.appendChild(actionRow);
+  card.appendChild(footer);
   return card;
 }
 
@@ -5836,7 +6204,8 @@ function renderShopModal() {
     } else if (activeTab === SHOP_TAB_COMBAT) {
       shopModalSubtitleEl.textContent = "Objets de combat temporaires pour accelerer les attaques.";
     } else {
-      shopModalSubtitleEl.textContent = "Pierres d'evolution a acheter puis utiliser sur un Pokemon eligibile.";
+      shopModalSubtitleEl.textContent =
+        "Pierres d'evolution: leur usage remplit la condition puis ajoute une notif permanente 'Evoluer'.";
     }
   }
 
@@ -6039,13 +6408,110 @@ function drawShinySparkles(size, seed = 0, alpha = 1) {
   ctx.restore();
 }
 
+function getPokemonBreathTransform(entity, size, slotIndex = 0, options = {}) {
+  if (!entity || !Number.isFinite(size) || size <= 0 || options.active === false) {
+    return { scaleX: 1, scaleY: 1, offsetY: 0 };
+  }
+
+  const seedKey = `${Number(entity?.id || 0)}:${Number(slotIndex) || 0}:${String(entity?.spriteVariantId || "default")}`;
+  const periodMs = lerpNumber(
+    BREATH_MIN_PERIOD_MS,
+    BREATH_MAX_PERIOD_MS,
+    hashStringToUnit(`${seedKey}:period`),
+  );
+  const amplitude = clamp(
+    BREATH_BASE_AMPLITUDE + (hashStringToUnit(`${seedKey}:amplitude`) - 0.5) * BREATH_AMPLITUDE_VARIATION,
+    0.008,
+    0.038,
+  );
+  const intensity = clamp(Number(options.intensity ?? 1), 0, 1.6);
+  const primaryPhase = hashStringToUnit(`${seedKey}:phase_primary`) * Math.PI * 2;
+  const secondaryPhase = hashStringToUnit(`${seedKey}:phase_secondary`) * Math.PI * 2;
+  const timeRatio = state.timeMs / Math.max(1200, periodMs);
+  const primary = Math.sin(timeRatio * Math.PI * 2 + primaryPhase);
+  const secondary = Math.sin(timeRatio * Math.PI + secondaryPhase);
+
+  let breath = primary * (1 - BREATH_SECONDARY_WEIGHT) + secondary * BREATH_SECONDARY_WEIGHT;
+  // Slightly asymmetric inhale/exhale so it feels organic.
+  breath = breath >= 0 ? Math.pow(breath, 1.3) : -Math.pow(-breath, 0.85);
+
+  const breathingAmount = amplitude * intensity * breath;
+  const inhale = clamp(breath, 0, 1);
+  const scaleY = clamp(1 + breathingAmount, 0.9, 1.12);
+  const scaleX = clamp(1 - breathingAmount * BREATH_SIDE_COMPENSATION, 0.92, 1.08);
+  const offsetY = -size * BREATH_OFFSET_RATIO * inhale * intensity;
+  return { scaleX, scaleY, offsetY };
+}
+
+function drawPokemonBackdropCircle(x, y, size, options = {}) {
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size) || size <= 0) {
+    return;
+  }
+  const alpha = clamp(Number(options.alpha ?? POKEMON_BACKDROP_ALPHA), 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+  const radius = size * POKEMON_BACKDROP_RADIUS_RATIO;
+  const centerY = y + size * 0.02;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+  ctx.beginPath();
+  ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend) {
+  const blend = clamp(Number(tintBlend || 0), 0, 1);
+  const width = Math.max(1, Math.ceil(Math.max(0, Number(drawWidth) || 0)));
+  const height = Math.max(1, Math.ceil(Math.max(0, Number(drawHeight) || 0)));
+  const baseColor = Array.isArray(tintColor) ? tintColor : [255, 255, 255];
+  const wasSmoothing = ctx.imageSmoothingEnabled;
+
+  if (blend <= 0.001 || !spriteTintBufferCtx) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    ctx.imageSmoothingEnabled = wasSmoothing;
+    return;
+  }
+
+  if (spriteTintBufferCanvas.width !== width || spriteTintBufferCanvas.height !== height) {
+    spriteTintBufferCanvas.width = width;
+    spriteTintBufferCanvas.height = height;
+  }
+
+  const bufferCtx = spriteTintBufferCtx;
+  const wasBufferSmoothing = bufferCtx.imageSmoothingEnabled;
+  bufferCtx.setTransform(1, 0, 0, 1, 0, 0);
+  bufferCtx.globalCompositeOperation = "source-over";
+  bufferCtx.globalAlpha = 1;
+  bufferCtx.clearRect(0, 0, width, height);
+  bufferCtx.imageSmoothingEnabled = false;
+  bufferCtx.drawImage(image, 0, 0, width, height);
+  bufferCtx.globalCompositeOperation = "source-atop";
+  bufferCtx.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${blend})`;
+  bufferCtx.fillRect(0, 0, width, height);
+  bufferCtx.globalCompositeOperation = "source-over";
+  bufferCtx.imageSmoothingEnabled = wasBufferSmoothing;
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(spriteTintBufferCanvas, 0, 0, width, height, drawX, drawY, drawWidth, drawHeight);
+  ctx.imageSmoothingEnabled = wasSmoothing;
+}
+
 function drawPokemonSprite(entity, x, y, size, options = {}) {
   ctx.save();
-  ctx.translate(x, y);
+  const offsetX = Number.isFinite(options.offsetX) ? options.offsetX : 0;
+  const offsetY = Number.isFinite(options.offsetY) ? options.offsetY : 0;
+  ctx.translate(x + offsetX, y + offsetY);
   const drawAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   ctx.globalAlpha = drawAlpha;
-  const scale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
-  ctx.scale(scale, scale);
+  const baseScale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
+  const scaleX = Number.isFinite(options.scaleX) ? Math.max(0, options.scaleX) : baseScale;
+  const scaleY = Number.isFinite(options.scaleY) ? Math.max(0, options.scaleY) : baseScale;
+  ctx.scale(scaleX, scaleY);
   const shinyVisual = Boolean(options.shinyVisual || entity?.isShinyVisual || entity?.isShiny);
   const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);
   const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
@@ -6053,8 +6519,9 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   let spriteDrawY = -size * 0.5;
   let spriteDrawWidth = size;
   let spriteDrawHeight = size;
+  let spriteUsedImage = false;
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.34)";
+  ctx.fillStyle = `rgba(0, 0, 0, ${POKEMON_SHADOW_ALPHA})`;
   ctx.beginPath();
   ctx.ellipse(0, size * 0.34, size * 0.28, size * 0.1, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -6074,7 +6541,16 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     spriteDrawY = -drawHeight * 0.45;
     spriteDrawWidth = drawWidth;
     spriteDrawHeight = drawHeight;
-    ctx.drawImage(entity.spriteImage, spriteDrawX, spriteDrawY, drawWidth, drawHeight);
+    spriteUsedImage = true;
+    drawSpriteImageWithTint(
+      entity.spriteImage,
+      spriteDrawX,
+      spriteDrawY,
+      drawWidth,
+      drawHeight,
+      tintColor,
+      tintBlend,
+    );
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
     spriteDrawX = -size * 0.3;
@@ -6095,11 +6571,12 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     ctx.fillText(entity.nameFr.slice(0, 1), 0, 0);
   }
 
-  if (tintBlend > 0.001) {
-    ctx.globalCompositeOperation = "source-atop";
-    ctx.fillStyle = `rgba(${tintColor[0]}, ${tintColor[1]}, ${tintColor[2]}, ${tintBlend})`;
-    ctx.fillRect(spriteDrawX - 1, spriteDrawY - 1, spriteDrawWidth + 2, spriteDrawHeight + 2);
-    ctx.globalCompositeOperation = "source-over";
+  if (tintBlend > 0.001 && !spriteUsedImage) {
+    // Fallback shape tinting when sprite image is unavailable.
+    ctx.fillStyle = `rgba(${tintColor[0]}, ${tintColor[1]}, ${tintColor[2]}, ${(tintBlend * 0.62).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   if (shinyVisual) {
@@ -6203,31 +6680,52 @@ function drawTeamXpBar(member, centerX, centerY, size) {
 }
 
 function drawProjectiles(projectiles) {
+  const quality = getRenderQualitySettings();
+  const trailStride = Math.max(1, toSafeInt(quality.projectileTrailStride, 1));
+  const trailGlow = Boolean(quality.projectileTrailGlow);
+  const projectileStreak = Boolean(quality.projectileStreak);
+  const projectileAura = Boolean(quality.projectileAura);
+  const auraScale = clamp(Number(quality.projectileAuraScale) || 1, 0.45, 1.5);
   for (const projectile of projectiles || []) {
     const rgb = getTypeColor(projectile.attackType);
     const radius = projectile.radius || 8;
     const sprite = getProjectileSprite(projectile.attackType);
-    const auraRadius = radius * 3.3;
+    const auraRadius = radius * 3.3 * auraScale;
     const trailPoints = Array.isArray(projectile.trail) ? projectile.trail : [];
 
     if (trailPoints.length > 0) {
       ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      for (const point of trailPoints) {
+      if (trailGlow) {
+        ctx.globalCompositeOperation = "lighter";
+      }
+      for (let pointIndex = 0; pointIndex < trailPoints.length; pointIndex += trailStride) {
+        const point = trailPoints[pointIndex];
+        if (!point) {
+          continue;
+        }
         const lifeRatio = clamp(point.lifeMs / Math.max(1, point.maxLifeMs), 0, 1);
         const pointRadius = radius * (0.8 + lifeRatio * 0.9);
-        const glow = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pointRadius * 2.6);
-        glow.addColorStop(0, rgba(rgb, 0.26 * lifeRatio));
-        glow.addColorStop(1, rgba(rgb, 0));
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, pointRadius * 2.6, 0, Math.PI * 2);
-        ctx.fill();
+        if (trailGlow) {
+          const glow = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pointRadius * 2.6);
+          glow.addColorStop(0, rgba(rgb, 0.26 * lifeRatio));
+          glow.addColorStop(1, rgba(rgb, 0));
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, pointRadius * 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.globalAlpha = 0.16 + lifeRatio * 0.2;
+          ctx.fillStyle = rgba(rgb, 0.72);
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, pointRadius * 1.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
 
     if (
+      projectileStreak &&
       Number.isFinite(projectile.prevX) &&
       Number.isFinite(projectile.prevY) &&
       (Math.abs(projectile.x - projectile.prevX) > 0.01 || Math.abs(projectile.y - projectile.prevY) > 0.01)
@@ -6248,27 +6746,34 @@ function drawProjectiles(projectiles) {
     }
 
     ctx.save();
-    const aura = ctx.createRadialGradient(
-      projectile.x,
-      projectile.y,
-      Math.max(1, radius * 0.2),
-      projectile.x,
-      projectile.y,
-      auraRadius,
-    );
-    aura.addColorStop(0, rgba(rgb, 0.72));
-    aura.addColorStop(0.45, rgba(rgb, 0.38));
-    aura.addColorStop(1, rgba(rgb, 0));
+    if (projectileAura) {
+      const aura = ctx.createRadialGradient(
+        projectile.x,
+        projectile.y,
+        Math.max(1, radius * 0.2),
+        projectile.x,
+        projectile.y,
+        auraRadius,
+      );
+      aura.addColorStop(0, rgba(rgb, 0.72));
+      aura.addColorStop(0.45, rgba(rgb, 0.38));
+      aura.addColorStop(1, rgba(rgb, 0));
 
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, auraRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, radius * 1.6, 0, Math.PI * 2);
-    ctx.fill();
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, auraRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, radius * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = rgba(rgb, 0.26);
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, radius * 1.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
 
     ctx.save();
@@ -6289,6 +6794,8 @@ function drawProjectiles(projectiles) {
 }
 
 function drawEnemyHitEffects(hitEffects) {
+  const quality = getRenderQualitySettings();
+  const useGlow = Boolean(quality.enemyHitGlow);
   for (const effect of hitEffects || []) {
     const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
     const rgb = Array.isArray(effect.color) ? effect.color : [220, 236, 255];
@@ -6302,17 +6809,25 @@ function drawEnemyHitEffects(hitEffects) {
       ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
       ctx.stroke();
     } else {
-      ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = lifeRatio;
       const radius = (effect.size || 2) * (0.55 + lifeRatio * 0.9);
-      const glow = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius * 3);
-      glow.addColorStop(0, rgba(rgb, 0.95));
-      glow.addColorStop(0.5, rgba(rgb, 0.5));
-      glow.addColorStop(1, rgba(rgb, 0));
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(effect.x, effect.y, radius * 3, 0, Math.PI * 2);
-      ctx.fill();
+      if (useGlow) {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = lifeRatio;
+        const glow = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius * 3);
+        glow.addColorStop(0, rgba(rgb, 0.95));
+        glow.addColorStop(0.5, rgba(rgb, 0.5));
+        glow.addColorStop(1, rgba(rgb, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, radius * 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = Math.max(0.12, lifeRatio * 0.7);
+        ctx.fillStyle = rgba(rgb, 0.54);
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, radius * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       ctx.fillStyle = rgba(rgb, 1);
       ctx.beginPath();
@@ -6735,6 +7250,9 @@ function drawTeamLevelUpEffects() {
   if (!Array.isArray(state.teamLevelUpEffects) || state.teamLevelUpEffects.length <= 0) {
     return;
   }
+  const quality = getRenderQualitySettings();
+  const particleStride = Math.max(1, toSafeInt(quality.levelUpParticleStride, 1));
+  const useGlow = Boolean(quality.enemyHitGlow);
 
   for (const effect of state.teamLevelUpEffects) {
     const effectRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
@@ -6750,18 +7268,31 @@ function drawTeamLevelUpEffects() {
     ctx.stroke();
     ctx.restore();
 
-    for (const particle of effect.particles || []) {
+    const particles = Array.isArray(effect.particles) ? effect.particles : [];
+    for (let particleIndex = 0; particleIndex < particles.length; particleIndex += particleStride) {
+      const particle = particles[particleIndex];
+      if (!particle) {
+        continue;
+      }
       const ratio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
       const radius = (particle.size || 2) * (0.5 + ratio * 0.9);
       ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);
-      glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);
-      glow.addColorStop(1, "rgba(166, 224, 255, 0)");
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);
-      ctx.fill();
+      if (useGlow) {
+        ctx.globalCompositeOperation = "lighter";
+        const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);
+        glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);
+        glow.addColorStop(1, "rgba(166, 224, 255, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = Math.max(0.12, ratio * 0.7);
+        ctx.fillStyle = "rgba(166, 224, 255, 0.72)";
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, radius * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       ctx.fillStyle = `rgba(213, 242, 255, ${0.95 * ratio})`;
       ctx.beginPath();
@@ -6837,7 +7368,12 @@ function drawSunDust(width, height, intensity) {
   if (amount <= 0.01) {
     return;
   }
-  const particleCount = Math.max(6, Math.round((width / 88) * amount));
+  const quality = getRenderQualitySettings();
+  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0.05, 1.4);
+  const particleCount = Math.round((width / 88) * amount * particleScale);
+  if (particleCount <= 0) {
+    return;
+  }
   const time = state.timeMs * 0.00004;
   ctx.save();
   ctx.globalCompositeOperation = "screen";
@@ -6862,7 +7398,12 @@ function drawRainStreakLayer(width, height, intensity) {
   if (rainIntensity <= 0.01) {
     return;
   }
-  const streakCount = Math.max(18, Math.round((width / 26) * rainIntensity));
+  const quality = getRenderQualitySettings();
+  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0.05, 1.4);
+  const streakCount = Math.round((width / 26) * rainIntensity * particleScale);
+  if (streakCount <= 0) {
+    return;
+  }
   const wind = -0.32 - rainIntensity * 0.06;
   const time = state.timeMs * 0.001;
 
@@ -6891,12 +7432,14 @@ function drawFogLayer(width, height, intensity, options = {}) {
   if (fogIntensity <= 0.01) {
     return;
   }
+  const quality = getRenderQualitySettings();
+  const layerCount = Math.max(1, toSafeInt(quality.fogLayerCount, 3));
   const depth = clamp(Number(options.depth || 0), 0, 1);
   const time = state.timeMs * (0.00011 + depth * 0.00007);
   ctx.save();
   ctx.globalCompositeOperation = depth > 0.4 ? "screen" : "source-over";
-  for (let i = 0; i < 3; i += 1) {
-    const layerRatio = (i + 1) / 3;
+  for (let i = 0; i < layerCount; i += 1) {
+    const layerRatio = (i + 1) / layerCount;
     const x = width * (0.12 + layerRatio * 0.31) + Math.sin(time * (0.8 + layerRatio * 0.9) + i * 1.7) * width * 0.2;
     const y = height * (0.18 + layerRatio * 0.28) + Math.cos(time * (1.1 + layerRatio * 0.6) + i * 0.6) * height * 0.11;
     const radius = width * (0.26 + layerRatio * 0.2);
@@ -6917,10 +7460,15 @@ function drawStormLightningOverlay(width, height, intensity) {
   if (flashIntensity <= 0.001) {
     return;
   }
+  const quality = getRenderQualitySettings();
   ctx.save();
   ctx.globalCompositeOperation = "screen";
   ctx.fillStyle = `rgba(214, 235, 255, ${(flashIntensity * 0.38).toFixed(3)})`;
   ctx.fillRect(0, 0, width, height);
+  if (!quality.lightningGlow) {
+    ctx.restore();
+    return;
+  }
 
   const flashX = width * (0.18 + pseudoRandomUnit(Math.floor(state.timeMs * 0.01) + 17) * 0.64);
   const flashY = height * 0.05;
@@ -6937,6 +7485,8 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
     return;
   }
+  const quality = getRenderQualitySettings();
+  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0, 1.5);
   drawTimeOfDayColorGrade(width, height, environmentSnapshot);
 
   const weights = environmentSnapshot.weatherWeights || { neutral: 1 };
@@ -6950,8 +7500,8 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
   }
 
   const sunnyWeight = clamp(Number(weights.sunny || 0), 0, 1);
-  if (sunnyWeight > 0.001) {
-    const sunnyIntensity = sunnyWeight * (0.55 + dayLight * 0.75);
+  if (sunnyWeight > 0.001 && particleScale > 0.01) {
+    const sunnyIntensity = sunnyWeight * (0.55 + dayLight * 0.75) * particleScale;
     drawSunDust(width, height, sunnyIntensity);
   }
 
@@ -6959,8 +7509,8 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
     clamp(Number(weights.foggy || 0), 0, 1) * 1 +
     clamp(Number(weights.rainy || 0), 0, 1) * 0.42 +
     clamp(Number(weights.storm || 0), 0, 1) * 0.58;
-  if (fogWeight > 0.001) {
-    drawFogLayer(width, height, fogWeight, { depth: 0.25 });
+  if (fogWeight > 0.001 && particleScale > 0.01) {
+    drawFogLayer(width, height, fogWeight * (0.45 + particleScale * 0.55), { depth: 0.25 });
   }
 }
 
@@ -6968,25 +7518,31 @@ function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
     return;
   }
+  const quality = getRenderQualitySettings();
+  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0, 1.5);
   const weights = environmentSnapshot.weatherWeights || { neutral: 1 };
   const rainWeight =
     clamp(Number(weights.rainy || 0), 0, 1) * 1 +
     clamp(Number(weights.storm || 0), 0, 1) * 1.65;
-  if (rainWeight > 0.001) {
-    drawRainStreakLayer(width, height, rainWeight);
+  if (rainWeight > 0.001 && particleScale > 0.01) {
+    drawRainStreakLayer(width, height, rainWeight * particleScale);
   }
 
   const fogWeight =
     clamp(Number(weights.foggy || 0), 0, 1) * 0.58 +
     clamp(Number(weights.storm || 0), 0, 1) * 0.35;
-  if (fogWeight > 0.001) {
-    drawFogLayer(width, height, fogWeight, { depth: 0.78 });
+  if (fogWeight > 0.001 && particleScale > 0.01) {
+    drawFogLayer(width, height, fogWeight * (0.42 + particleScale * 0.58), { depth: 0.78 });
   }
 
   drawStormLightningOverlay(width, height, environmentSnapshot.lightningIntensity || 0);
 }
 
 function drawViewportVignette(width, height, environmentSnapshot = null) {
+  const quality = getRenderQualitySettings();
+  if (!quality.vignette) {
+    return;
+  }
   const centerX = width * 0.5;
   const centerY = height * 0.53;
   const night = clamp(Number(environmentSnapshot?.night) || 0, 0, 1);
@@ -7047,13 +7603,7 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
     const drawY = -drawHeight * 0.45;
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(entity.spriteImage, drawX, drawY, drawWidth, drawHeight);
-    if (whiteRatio > 0) {
-      ctx.globalCompositeOperation = "source-atop";
-      ctx.fillStyle = "rgba(255, 255, 255, " + whiteRatio.toFixed(3) + ")";
-      ctx.fillRect(drawX - 1, drawY - 1, drawWidth + 2, drawHeight + 2);
-      ctx.globalCompositeOperation = "source-over";
-    }
+    drawSpriteImageWithTint(entity.spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
     ctx.fillStyle = "rgba(195, 215, 245, 0.45)";
@@ -7318,16 +7868,35 @@ function render() {
   drawBackground(width, height);
   drawEnvironmentBackgroundLayer(width, height, environmentSnapshot);
   if (combatView) {
-    drawTurnIndicator(layout, turnIndicator);
-    drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
-    if (!captureSequence) {
-      drawEnemyKoEffect(layout, koTransition);
+    const teamDrawPositions = [];
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const slot = layout.teamSlots[i];
+      if (!slot) {
+        continue;
+      }
+      const member = state.team[i];
+      const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
+      const drawX = slot.x + recoilOffset.x;
+      const drawY = slot.y + recoilOffset.y;
+      const teamBreath = member
+        ? getPokemonBreathTransform(member, slot.size, i, { active: true })
+        : { scaleX: 1, scaleY: 1, offsetY: 0 };
+      teamDrawPositions[i] = { x: drawX, y: drawY, size: slot.size, breath: teamBreath };
     }
 
+    let enemyRenderState = null;
     if (state.enemy) {
       const isKo = koTransition?.active;
       const shrinkProgress = isKo ? koTransition?.shrink_progress || 0 : 0;
       const shrinkActive = Boolean(koTransition?.shrink_active);
+      const enemyBreath = getPokemonBreathTransform(
+        state.enemy,
+        layout.enemySize,
+        -1,
+        {
+          active: !captureSequence && !isKo,
+        },
+      );
       const defaultEnemyScale = isKo
         ? (shrinkActive ? clamp(1 - shrinkProgress * 0.96, 0.04, 1) : 0)
         : 1 + enemyHitPulse * 0.06;
@@ -7337,37 +7906,67 @@ function render() {
       const enemyScale = captureSequence ? captureEnemyVisual.scale : defaultEnemyScale;
       const enemyAlpha = captureSequence ? captureEnemyVisual.alpha : defaultEnemyAlpha;
       const enemyVisible = captureSequence ? captureEnemyVisual.visible : enemyAlpha > 0.01 && enemyScale > 0.01;
+      enemyRenderState = {
+        visible: enemyVisible,
+        alpha: enemyAlpha,
+        scaleX: enemyScale * enemyBreath.scaleX,
+        scaleY: enemyScale * enemyBreath.scaleY,
+        offsetY: enemyBreath.offsetY,
+      };
+    }
 
-      if (enemyVisible) {
+    if (enemyRenderState?.visible) {
+      drawPokemonBackdropCircle(layout.centerX, layout.centerY, layout.enemySize);
+    }
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const member = state.team[i];
+      const slot = layout.teamSlots[i];
+      if (!member || !slot) {
+        continue;
+      }
+      drawPokemonBackdropCircle(slot.x, slot.y, slot.size);
+    }
+
+    drawTurnIndicator(layout, turnIndicator);
+    drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
+    if (!captureSequence) {
+      drawEnemyKoEffect(layout, koTransition);
+    }
+
+    if (state.enemy && enemyRenderState?.visible) {
         drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, layout.enemySize, {
-          alpha: enemyAlpha,
-          scale: enemyScale,
+          alpha: enemyRenderState.alpha,
+          scaleX: enemyRenderState.scaleX,
+          scaleY: enemyRenderState.scaleY,
+          offsetY: enemyRenderState.offsetY,
           shinyVisual: Boolean(state.enemy.isShiny || state.enemy.isShinyVisual),
           tintBlend: enemyDamageTintBlend,
           tintColor: [255, 84, 84],
         });
-      }
     }
 
     drawEnemyHitEffects(state.battle ? state.battle.getHitEffects() : []);
     drawCaptureSequence(layout, captureSequence, capturePhase);
 
-    const teamDrawPositions = [];
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
       const member = state.team[i];
       const slot = layout.teamSlots[i];
+      const drawPosition = teamDrawPositions[i];
       if (!slot) {
         continue;
       }
-      const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
-      const drawX = slot.x + recoilOffset.x;
-      const drawY = slot.y + recoilOffset.y;
-      teamDrawPositions[i] = { x: drawX, y: drawY, size: slot.size };
       if (!member) {
         drawEmptyTeamSlot(slot);
         continue;
       }
-      drawPokemonSprite(member, drawX, drawY, slot.size, {
+      if (!drawPosition) {
+        continue;
+      }
+      const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };
+      drawPokemonSprite(member, drawPosition.x, drawPosition.y, slot.size, {
+        scaleX: teamBreath.scaleX,
+        scaleY: teamBreath.scaleY,
+        offsetY: teamBreath.offsetY,
         shinyVisual: Boolean(member.isShiny || member.isShinyVisual),
         tintBlend: state.battle ? state.battle.getSlotAttackFlashBlend(i) : 0,
         tintColor: [255, 255, 255],
@@ -7412,12 +8011,16 @@ function update(deltaMs, options = {}) {
 }
 
 function gameLoop(timestamp) {
-  if (!state.lastFrameTimestamp) {
-    state.lastFrameTimestamp = timestamp;
-  }
-  state.lastFrameTimestamp = timestamp;
+  const now = Number.isFinite(Number(timestamp)) ? Number(timestamp) : 0;
+  const frameDeltaMs = state.lastFrameTimestamp > 0
+    ? clamp(now - state.lastFrameTimestamp, 1, 120)
+    : BASE_STEP_MS;
+  state.lastFrameTimestamp = now;
+  const frameStart = performance.now();
   tickSimulationFromRealtime();
   render();
+  const frameCpuMs = Math.max(0, performance.now() - frameStart);
+  updateRenderQualityFromFrame(frameDeltaMs, frameCpuMs);
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -7429,15 +8032,25 @@ function resizeCanvas() {
   const stageHeight = Math.floor(stageRect?.height || window.innerHeight - 16);
   const width = clamp(stageWidth - 2, 260, maxWidth);
   const height = clamp(stageHeight - 2, 220, maxHeight);
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const quality = getRenderQualitySettings();
+  const dprLimit = clamp(Number(quality.maxDpr) || MAX_RENDER_DPR, 1, MAX_RENDER_DPR);
+  const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, dprLimit);
+  const renderScale = clamp(Number(quality.renderScale) || 1, 0.62, 1);
+  const effectiveDpr = Math.max(0.62, deviceDpr * renderScale);
+  const nextCanvasWidth = Math.max(1, Math.floor(width * effectiveDpr));
+  const nextCanvasHeight = Math.max(1, Math.floor(height * effectiveDpr));
 
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
-  canvas.width = Math.floor(width * dpr);
-  canvas.height = Math.floor(height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (canvas.width !== nextCanvasWidth) {
+    canvas.width = nextCanvasWidth;
+  }
+  if (canvas.height !== nextCanvasHeight) {
+    canvas.height = nextCanvasHeight;
+  }
+  ctx.setTransform(effectiveDpr, 0, 0, effectiveDpr, 0, 0);
 
-  state.viewport = { width, height, dpr };
+  state.viewport = { width, height, dpr: effectiveDpr, deviceDpr, renderScale };
   state.layout = computeLayout();
   render();
 }
@@ -8128,6 +8741,12 @@ function exportTextState() {
       width: Math.round(state.viewport.width),
       height: Math.round(state.viewport.height),
     },
+    render_quality: String(state.performance?.quality || "medium"),
+    render_scale: Math.round(clamp(Number(state.viewport?.renderScale) || 1, 0.1, 2) * 1000) / 1000,
+    frame_ms_estimate: Math.round((Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS) * 100) / 100,
+    cpu_frame_ms_estimate: Math.round((Number(state.performance?.cpuFrameMsEma) || TARGET_FRAME_MS) * 100) / 100,
+    fps_estimate:
+      Math.round((1000 / Math.max(1, Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS)) * 10) / 10,
     attack_interval_ms: getCurrentAttackIntervalMs(),
     attack_timer_ms: battle ? Math.round(Math.max(0, Number(battle.attackTimerMs) || 0)) : null,
     attack_boost_remaining_ms: getAttackBoostRemainingMs(),
@@ -8722,7 +9341,8 @@ async function initializeScene() {
   state.mode = "loading";
   state.pendingSimMs = 0;
   state.deferredSaveDirty = false;
-  state.environment.snapshot = getEnvironmentSnapshot(Date.now());
+  state.environment.nextUpdateAtMs = 0;
+  updateEnvironment(Date.now(), true);
   resetNotificationSystem();
   state.ui.shopTab = [SHOP_TAB_POKEBALLS, SHOP_TAB_COMBAT, SHOP_TAB_EVOLUTIONS].includes(state.ui.shopTab)
     ? state.ui.shopTab
@@ -8843,7 +9463,8 @@ function resetSaveAndRestart() {
   state.ui.shopQuantityMode = "1";
   state.ui.shopCustomQuantity = 1;
   state.realClockLastMs = Date.now();
-  state.environment.snapshot = getEnvironmentSnapshot(Date.now());
+  state.environment.nextUpdateAtMs = 0;
+  updateEnvironment(Date.now(), true);
   stopBackgroundTicker();
   setMapOpen(false);
   setShopOpen(false);
@@ -9019,26 +9640,13 @@ if (mapModalEl) {
     }
   });
 }
-document.addEventListener("click", (event) => {
-  const target = event.target;
-  if (!(target instanceof Element)) {
-    return;
-  }
-
-  if (state.ui.shopOpen) {
-    const insideShopPanel = Boolean(target.closest(".shop-modal-card"));
-    const onShopButton = shopButtonEl?.contains(target);
-    if (!insideShopPanel && !onShopButton) {
-      setShopOpen(false);
-    }
-  }
-});
 window.addEventListener("resize", resizeCanvas);
 document.addEventListener("fullscreenchange", resizeCanvas);
 document.addEventListener("visibilitychange", handleVisibilityChange);
 window.addEventListener("pagehide", handlePageLifecyclePersist);
 window.addEventListener("beforeunload", handlePageLifecyclePersist);
 
+applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
 initializeScene();
