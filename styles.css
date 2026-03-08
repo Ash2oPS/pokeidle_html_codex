@@ -298,6 +298,8 @@ body {
   border: 1px solid rgba(191, 228, 240, 0.35);
   border-radius: 14px;
   background: #0a1323;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
   touch-action: manipulation;
   user-select: none;
 }

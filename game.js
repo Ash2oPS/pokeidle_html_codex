@@ -6437,10 +6437,10 @@ function getPokemonBreathTransform(entity, size, slotIndex = 0, options = {}) {
 
   const breathingAmount = amplitude * intensity * breath;
   const inhale = clamp(breath, 0, 1);
-  const scaleY = clamp(1 + breathingAmount, 0.9, 1.12);
-  const scaleX = clamp(1 - breathingAmount * BREATH_SIDE_COMPENSATION, 0.92, 1.08);
+  // Keep a uniform pulse on sprites to avoid aspect-ratio distortion on mobile GPUs.
+  const uniformScale = clamp(1 + breathingAmount * (1 - BREATH_SIDE_COMPENSATION * 0.25), 0.94, 1.09);
   const offsetY = -size * BREATH_OFFSET_RATIO * inhale * intensity;
-  return { scaleX, scaleY, offsetY };
+  return { scaleX: uniformScale, scaleY: uniformScale, offsetY };
 }
 
 function drawPokemonBackdropCircle(x, y, size, options = {}) {
@@ -6463,16 +6463,45 @@ function drawPokemonBackdropCircle(x, y, size, options = {}) {
   ctx.restore();
 }
 
+function getSpriteSnapFactor() {
+  const dpr = Number(state.viewport?.dpr || 1);
+  return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+}
+
+function snapSpriteValue(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  return Math.round(numericValue * snapFactor) / snapFactor;
+}
+
+function snapSpriteDimension(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return 1;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  const snapped = Math.round(numericValue * snapFactor) / snapFactor;
+  return Math.max(1 / snapFactor, snapped);
+}
+
 function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend) {
   const blend = clamp(Number(tintBlend || 0), 0, 1);
-  const width = Math.max(1, Math.ceil(Math.max(0, Number(drawWidth) || 0)));
-  const height = Math.max(1, Math.ceil(Math.max(0, Number(drawHeight) || 0)));
+  const snapFactor = getSpriteSnapFactor();
+  const snappedDrawX = snapSpriteValue(drawX);
+  const snappedDrawY = snapSpriteValue(drawY);
+  const snappedDrawWidth = snapSpriteDimension(drawWidth);
+  const snappedDrawHeight = snapSpriteDimension(drawHeight);
+  const width = Math.max(1, Math.round(snappedDrawWidth * snapFactor));
+  const height = Math.max(1, Math.round(snappedDrawHeight * snapFactor));
   const baseColor = Array.isArray(tintColor) ? tintColor : [255, 255, 255];
   const wasSmoothing = ctx.imageSmoothingEnabled;
 
   if (blend <= 0.001 || !spriteTintBufferCtx) {
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    ctx.drawImage(image, snappedDrawX, snappedDrawY, snappedDrawWidth, snappedDrawHeight);
     ctx.imageSmoothingEnabled = wasSmoothing;
     return;
   }
@@ -6497,7 +6526,17 @@ function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tin
   bufferCtx.imageSmoothingEnabled = wasBufferSmoothing;
 
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(spriteTintBufferCanvas, 0, 0, width, height, drawX, drawY, drawWidth, drawHeight);
+  ctx.drawImage(
+    spriteTintBufferCanvas,
+    0,
+    0,
+    width,
+    height,
+    snappedDrawX,
+    snappedDrawY,
+    snappedDrawWidth,
+    snappedDrawHeight,
+  );
   ctx.imageSmoothingEnabled = wasSmoothing;
 }
 
@@ -6505,7 +6544,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   ctx.save();
   const offsetX = Number.isFinite(options.offsetX) ? options.offsetX : 0;
   const offsetY = Number.isFinite(options.offsetY) ? options.offsetY : 0;
-  ctx.translate(x + offsetX, y + offsetY);
+  ctx.translate(snapSpriteValue(x + offsetX), snapSpriteValue(y + offsetY));
   const drawAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   ctx.globalAlpha = drawAlpha;
   const baseScale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
@@ -6528,17 +6567,17 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
 
   if (isDrawableImage(entity.spriteImage)) {
     const ratio = entity.spriteImage.width / Math.max(entity.spriteImage.height, 1);
-    let drawWidth = size;
-    let drawHeight = size;
+    let drawWidth = snapSpriteDimension(size);
+    let drawHeight = snapSpriteDimension(size);
     if (ratio > 1) {
-      drawHeight = size / ratio;
+      drawHeight = snapSpriteDimension(size / ratio);
     } else {
-      drawWidth = size * ratio;
+      drawWidth = snapSpriteDimension(size * ratio);
     }
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
-    spriteDrawX = -drawWidth * 0.5;
-    spriteDrawY = -drawHeight * 0.45;
+    spriteDrawX = snapSpriteValue(-drawWidth * 0.5);
+    spriteDrawY = snapSpriteValue(-drawHeight * 0.45);
     spriteDrawWidth = drawWidth;
     spriteDrawHeight = drawHeight;
     spriteUsedImage = true;
@@ -8036,9 +8075,10 @@ function resizeCanvas() {
   const dprLimit = clamp(Number(quality.maxDpr) || MAX_RENDER_DPR, 1, MAX_RENDER_DPR);
   const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, dprLimit);
   const renderScale = clamp(Number(quality.renderScale) || 1, 0.62, 1);
-  const effectiveDpr = Math.max(0.62, deviceDpr * renderScale);
-  const nextCanvasWidth = Math.max(1, Math.floor(width * effectiveDpr));
-  const nextCanvasHeight = Math.max(1, Math.floor(height * effectiveDpr));
+  const targetDpr = Math.max(1, deviceDpr * renderScale);
+  const nextCanvasWidth = Math.max(1, Math.round(width * targetDpr));
+  const effectiveDpr = nextCanvasWidth / Math.max(1, width);
+  const nextCanvasHeight = Math.max(1, Math.round(height * effectiveDpr));
 
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
