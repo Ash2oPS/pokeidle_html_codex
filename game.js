@@ -151,7 +151,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   ultra: Object.freeze({
     maxDpr: MAX_RENDER_DPR,
     renderScale: 1,
-    foregroundSimBudgetMs: 12,
+    foregroundSimBudgetMs: 84,
     environmentParticleScale: 1,
     environmentUpdateIntervalMult: 1,
     fogLayerCount: 3,
@@ -169,7 +169,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   high: Object.freeze({
     maxDpr: 1.22,
     renderScale: 0.98,
-    foregroundSimBudgetMs: 10.5,
+    foregroundSimBudgetMs: 76,
     environmentParticleScale: 0.85,
     environmentUpdateIntervalMult: 1.1,
     fogLayerCount: 3,
@@ -187,7 +187,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   medium: Object.freeze({
     maxDpr: 1.05,
     renderScale: 0.92,
-    foregroundSimBudgetMs: 9,
+    foregroundSimBudgetMs: 68,
     environmentParticleScale: 0.65,
     environmentUpdateIntervalMult: 1.3,
     fogLayerCount: 2,
@@ -205,7 +205,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   low: Object.freeze({
     maxDpr: 1,
     renderScale: 0.84,
-    foregroundSimBudgetMs: 7.5,
+    foregroundSimBudgetMs: 60,
     environmentParticleScale: 0.45,
     environmentUpdateIntervalMult: 1.6,
     fogLayerCount: 1,
@@ -223,7 +223,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   very_low: Object.freeze({
     maxDpr: 1,
     renderScale: 0.72,
-    foregroundSimBudgetMs: 6,
+    foregroundSimBudgetMs: 52,
     environmentParticleScale: 0.25,
     environmentUpdateIntervalMult: 2.1,
     fogLayerCount: 1,
@@ -722,11 +722,19 @@ function getInitialRenderQualityForDevice() {
   const memoryGb = Number.isFinite(memoryRaw) && memoryRaw > 0 ? memoryRaw : null;
   const minSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
   const dpr = Math.max(1, Number(window.devicePixelRatio || 1));
+  const coarsePointer =
+    typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
 
   if ((memoryGb !== null && memoryGb <= 2) || coreCount <= 4) {
     rank = Math.min(rank, getRenderQualityRank("medium"));
   }
   if ((memoryGb !== null && memoryGb <= 1) || coreCount <= 2) {
+    rank = Math.min(rank, getRenderQualityRank("low"));
+  }
+  if (coarsePointer) {
+    rank = Math.min(rank, getRenderQualityRank("medium"));
+  }
+  if (coarsePointer && minSide > 0 && minSide <= 430) {
     rank = Math.min(rank, getRenderQualityRank("low"));
   }
   if (minSide > 0 && minSide <= 720) {
@@ -751,7 +759,7 @@ function applyInitialPerformanceProfile() {
 function getForegroundSimulationBudgetMs() {
   const quality = getRenderQualitySettings();
   const budget = Number(quality.foregroundSimBudgetMs);
-  return clamp(Number.isFinite(budget) ? budget : 9, 4, 20);
+  return clamp(Number.isFinite(budget) ? budget : 68, 24, 120);
 }
 
 function updateRenderQualityFromFrame(frameDeltaMs, cpuFrameMs = frameDeltaMs) {
