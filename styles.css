@@ -41,7 +41,8 @@ body {
 
 .app-root {
   position: relative;
-  width: min(1420px, 100vw);
+  width: min(1420px, 100%);
+  max-width: 100%;
   height: 100dvh;
   padding-top: max(8px, env(safe-area-inset-top));
   padding-right: max(8px, env(safe-area-inset-right));
@@ -50,9 +51,13 @@ body {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 10px;
+  overflow-x: clip;
 }
 
 .ui-topbar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
   gap: 10px;
@@ -61,6 +66,9 @@ body {
 
 .route-nav-wrap,
 .resource-strip {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 2px solid var(--shell-outline);
   border-radius: 14px;
   background:
@@ -255,11 +263,16 @@ body {
 }
 
 .app-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 0;
 }
 
 .game-stage {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   height: 100%;
   display: grid;
   place-items: center;
@@ -290,6 +303,9 @@ body {
 }
 
 .action-dock {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 2px solid var(--shell-outline);
   border-radius: 14px;
   background:
@@ -1454,7 +1470,8 @@ body {
 
 @media (max-width: 760px) {
   .app-root {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
       max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
     gap: 6px;
@@ -1468,12 +1485,17 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .map-modal {
+  .map-modal,
+  .shop-modal,
+  .boxes-modal,
+  .appearance-modal,
+  .starter-modal {
     padding: 7px;
   }
 
   .map-modal-card {
-    width: calc(100vw - 12px);
+    width: 100%;
+    max-width: 100%;
     max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
@@ -1487,12 +1509,9 @@ body {
     font-size: 12px;
   }
 
-  .shop-modal {
-    padding: 7px;
-  }
-
   .shop-modal-card {
-    width: calc(100vw - 12px);
+    width: 100%;
+    max-width: 100%;
     max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
@@ -1567,12 +1586,9 @@ body {
     flex: 1 1 110px;
   }
 
-  .boxes-modal {
-    padding: 7px;
-  }
-
   .boxes-card {
-    width: calc(100vw - 12px);
+    width: 100%;
+    max-width: 100%;
     max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
@@ -1614,12 +1630,9 @@ body {
     font-size: 22px;
   }
 
-  .appearance-modal {
-    padding: 7px;
-  }
-
   .appearance-card {
-    width: calc(100vw - 12px);
+    width: 100%;
+    max-width: 100%;
     max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
@@ -1659,12 +1672,9 @@ body {
     height: 56px;
   }
 
-  .starter-modal {
-    padding: 8px;
-  }
-
   .starter-modal-card {
-    width: calc(100vw - 12px);
+    width: 100%;
+    max-width: 100%;
     padding: 12px;
   }
 
