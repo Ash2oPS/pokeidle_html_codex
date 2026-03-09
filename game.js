@@ -7,6 +7,8 @@
 const DEFAULT_ROUTE_ID = "kanto_city_pallet_town";
 const ROUTE_DATA_DIR = "map_data";
 const ROUTE_ENCOUNTERS_CSV_PATH = "map_data/kanto_zone_encounters.csv";
+const BALL_CONFIG_CSV_PATH = "item_data/pokeballs.csv";
+const SHOP_ITEMS_CSV_PATH = "item_data/shop_items.csv";
 const ROUTE_ID_ORDER = [
   "kanto_city_pallet_town",
   "kanto_route_1",
@@ -419,124 +421,264 @@ const WEATHER_PROFILE_BY_TYPE = {
     storm: 1,
   },
 };
-const BALL_CONFIG_BY_TYPE = {
-  poke_ball: {
-    type: "poke_ball",
-    nameFr: "PokeBall",
-    price: 200,
-    captureMultiplier: 1,
-    spritePath: "assets/items/poke_ball.png",
-  },
-  super_ball: {
-    type: "super_ball",
-    nameFr: "SuperBall",
-    price: 2500,
-    captureMultiplier: 2,
-    spritePath: "assets/items/super_ball.png",
-  },
-  hyper_ball: {
-    type: "hyper_ball",
-    nameFr: "HyperBall",
-    price: 15000,
-    captureMultiplier: 4,
-    spritePath: "assets/items/hyper_ball.png",
-  },
-};
-const COMING_SOON_BALL_TYPES = new Set(["super_ball", "hyper_ball"]);
-const EVOLUTION_STONE_CONFIG_BY_TYPE = {
-  water_stone: {
-    type: "water_stone",
-    nameFr: "Pierre Eau",
-    price: 100000,
-    spritePath: "assets/items/water_stone.png",
-    methodItem: "water-stone",
-  },
-  fire_stone: {
-    type: "fire_stone",
-    nameFr: "Pierre Feu",
-    price: 100000,
-    spritePath: "assets/items/fire_stone.png",
-    methodItem: "fire-stone",
-  },
-  leaf_stone: {
-    type: "leaf_stone",
-    nameFr: "Pierre Plante",
-    price: 100000,
-    spritePath: "assets/items/leaf_stone.png",
-    methodItem: "leaf-stone",
-  },
-};
-const SHOP_ITEM_CONFIG_BY_ID = {
-  poke_ball: {
-    id: "poke_ball",
-    category: SHOP_TAB_POKEBALLS,
-    nameFr: "PokeBall",
-    description: "Balle standard pour capturer les Pokemon sauvages.",
-    price: BALL_CONFIG_BY_TYPE.poke_ball.price,
-    spritePath: BALL_CONFIG_BY_TYPE.poke_ball.spritePath,
-    itemType: "ball",
-    ballType: "poke_ball",
-  },
-  super_ball: {
-    id: "super_ball",
-    category: SHOP_TAB_POKEBALLS,
-    nameFr: "SuperBall",
-    description: "x2 chances de capture par rapport a une PokeBall.",
-    price: BALL_CONFIG_BY_TYPE.super_ball.price,
-    spritePath: BALL_CONFIG_BY_TYPE.super_ball.spritePath,
-    itemType: "ball",
-    ballType: "super_ball",
-  },
-  hyper_ball: {
-    id: "hyper_ball",
-    category: SHOP_TAB_POKEBALLS,
-    nameFr: "HyperBall",
-    description: "x2 chances de capture par rapport a une SuperBall.",
-    price: BALL_CONFIG_BY_TYPE.hyper_ball.price,
-    spritePath: BALL_CONFIG_BY_TYPE.hyper_ball.spritePath,
-    itemType: "ball",
-    ballType: "hyper_ball",
-  },
-  x_boost: {
-    id: "x_boost",
-    category: SHOP_TAB_COMBAT,
-    nameFr: "Boost X",
-    description: "Multiplie l'intervalle d'attaque par 0.33 pendant 2 minutes.",
-    price: 20000,
-    spritePath: "assets/items/x_boost.png",
-    itemType: "boost",
-  },
-  water_stone: {
-    id: "water_stone",
-    category: SHOP_TAB_EVOLUTIONS,
-    nameFr: "Pierre Eau",
-    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
-    price: EVOLUTION_STONE_CONFIG_BY_TYPE.water_stone.price,
-    spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.water_stone.spritePath,
-    itemType: "stone",
-    stoneType: "water_stone",
-  },
-  fire_stone: {
-    id: "fire_stone",
-    category: SHOP_TAB_EVOLUTIONS,
-    nameFr: "Pierre Feu",
-    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
-    price: EVOLUTION_STONE_CONFIG_BY_TYPE.fire_stone.price,
-    spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.fire_stone.spritePath,
-    itemType: "stone",
-    stoneType: "fire_stone",
-  },
-  leaf_stone: {
-    id: "leaf_stone",
-    category: SHOP_TAB_EVOLUTIONS,
-    nameFr: "Pierre Plante",
-    description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
-    price: EVOLUTION_STONE_CONFIG_BY_TYPE.leaf_stone.price,
-    spritePath: EVOLUTION_STONE_CONFIG_BY_TYPE.leaf_stone.spritePath,
-    itemType: "stone",
-    stoneType: "leaf_stone",
-  },
-};
+function cloneConfigMap(source) {
+  const clone = {};
+  const entries = source && typeof source === "object" ? Object.entries(source) : [];
+  for (const [key, value] of entries) {
+    clone[key] = value && typeof value === "object" ? { ...value } : value;
+  }
+  return clone;
+}
+
+function replaceConfigMap(target, nextSource) {
+  for (const key of Object.keys(target)) {
+    delete target[key];
+  }
+  for (const [key, value] of Object.entries(nextSource || {})) {
+    target[key] = value && typeof value === "object" ? { ...value } : value;
+  }
+}
+
+function replaceArrayContents(target, nextValues) {
+  target.length = 0;
+  const values = Array.isArray(nextValues) ? nextValues : [];
+  for (const value of values) {
+    target.push(value);
+  }
+}
+
+function createDefaultBallConfigByType() {
+  return {
+    poke_ball: {
+      type: "poke_ball",
+      nameFr: "PokeBall",
+      price: 200,
+      captureMultiplier: 1,
+      description: "Balle standard pour capturer les Pokemon sauvages.",
+      spritePath: "assets/items/poke_ball.png",
+      comingSoon: false,
+      sortOrder: 10,
+    },
+    super_ball: {
+      type: "super_ball",
+      nameFr: "SuperBall",
+      price: 2500,
+      captureMultiplier: 2,
+      description: "x2 chances de capture par rapport a une PokeBall.",
+      spritePath: "assets/items/super_ball.png",
+      comingSoon: true,
+      sortOrder: 20,
+    },
+    hyper_ball: {
+      type: "hyper_ball",
+      nameFr: "HyperBall",
+      price: 15000,
+      captureMultiplier: 4,
+      description: "x2 chances de capture par rapport a une SuperBall.",
+      spritePath: "assets/items/hyper_ball.png",
+      comingSoon: true,
+      sortOrder: 30,
+    },
+  };
+}
+
+function createDefaultEvolutionStoneConfigByType() {
+  return {
+    water_stone: {
+      type: "water_stone",
+      nameFr: "Pierre Eau",
+      price: 100000,
+      spritePath: "assets/items/water_stone.png",
+      methodItem: "water-stone",
+    },
+    fire_stone: {
+      type: "fire_stone",
+      nameFr: "Pierre Feu",
+      price: 100000,
+      spritePath: "assets/items/fire_stone.png",
+      methodItem: "fire-stone",
+    },
+    leaf_stone: {
+      type: "leaf_stone",
+      nameFr: "Pierre Plante",
+      price: 100000,
+      spritePath: "assets/items/leaf_stone.png",
+      methodItem: "leaf-stone",
+    },
+  };
+}
+
+function createDefaultExtraShopItemConfigById(stoneConfigByType = createDefaultEvolutionStoneConfigByType()) {
+  return {
+    x_boost: {
+      id: "x_boost",
+      category: SHOP_TAB_COMBAT,
+      nameFr: "Boost X",
+      description: "Multiplie l'intervalle d'attaque par 0.33 pendant 2 minutes.",
+      price: 20000,
+      spritePath: "assets/items/x_boost.png",
+      itemType: "boost",
+      effectKind: "attack_interval_multiplier",
+      effectValue: 0.33,
+      effectDurationMs: BOOST_X_DURATION_MS,
+      stockTracked: false,
+      sortOrder: 10,
+    },
+    water_stone: {
+      id: "water_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.water_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.water_stone.price,
+      spritePath: stoneConfigByType.water_stone.spritePath,
+      itemType: "stone",
+      stoneType: "water_stone",
+      methodItem: stoneConfigByType.water_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 10,
+    },
+    fire_stone: {
+      id: "fire_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.fire_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.fire_stone.price,
+      spritePath: stoneConfigByType.fire_stone.spritePath,
+      itemType: "stone",
+      stoneType: "fire_stone",
+      methodItem: stoneConfigByType.fire_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 20,
+    },
+    leaf_stone: {
+      id: "leaf_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.leaf_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.leaf_stone.price,
+      spritePath: stoneConfigByType.leaf_stone.spritePath,
+      itemType: "stone",
+      stoneType: "leaf_stone",
+      methodItem: stoneConfigByType.leaf_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 30,
+    },
+  };
+}
+
+function createShopItemConfigById(ballConfigByType = createDefaultBallConfigByType(), extraShopItemsById = {}) {
+  const shopItems = {};
+  for (const ballConfig of Object.values(ballConfigByType)) {
+    if (!ballConfig?.type) {
+      continue;
+    }
+    shopItems[ballConfig.type] = {
+      id: ballConfig.type,
+      category: SHOP_TAB_POKEBALLS,
+      nameFr: ballConfig.nameFr,
+      description: ballConfig.description,
+      price: ballConfig.price,
+      spritePath: ballConfig.spritePath,
+      itemType: "ball",
+      ballType: ballConfig.type,
+      sortOrder: Math.max(0, toSafeInt(ballConfig.sortOrder, 0)),
+    };
+  }
+  for (const [id, item] of Object.entries(extraShopItemsById || {})) {
+    if (!id || !item || typeof item !== "object") {
+      continue;
+    }
+    shopItems[id] = { ...item };
+  }
+  return shopItems;
+}
+
+const DEFAULT_BALL_CONFIG_BY_TYPE = createDefaultBallConfigByType();
+const DEFAULT_EVOLUTION_STONE_CONFIG_BY_TYPE = createDefaultEvolutionStoneConfigByType();
+const DEFAULT_EXTRA_SHOP_ITEM_CONFIG_BY_ID = createDefaultExtraShopItemConfigById(DEFAULT_EVOLUTION_STONE_CONFIG_BY_TYPE);
+const BALL_CONFIG_BY_TYPE = cloneConfigMap(DEFAULT_BALL_CONFIG_BY_TYPE);
+const COMING_SOON_BALL_TYPES = new Set();
+const EVOLUTION_STONE_CONFIG_BY_TYPE = cloneConfigMap(DEFAULT_EVOLUTION_STONE_CONFIG_BY_TYPE);
+const EXTRA_SHOP_ITEM_CONFIG_BY_ID = cloneConfigMap(DEFAULT_EXTRA_SHOP_ITEM_CONFIG_BY_ID);
+const SHOP_ITEM_CONFIG_BY_ID = createShopItemConfigById(BALL_CONFIG_BY_TYPE, EXTRA_SHOP_ITEM_CONFIG_BY_ID);
+
+function getSortedBallConfigs() {
+  return Object.values(BALL_CONFIG_BY_TYPE)
+    .filter((entry) => entry && typeof entry === "object" && entry.type)
+    .sort(
+      (a, b) =>
+        Math.max(0, toSafeInt(a?.sortOrder, 0)) - Math.max(0, toSafeInt(b?.sortOrder, 0))
+        || String(a?.nameFr || a?.type || "").localeCompare(String(b?.nameFr || b?.type || "")),
+    );
+}
+
+function getDefaultActiveBallType() {
+  if (Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, "poke_ball")) {
+    return "poke_ball";
+  }
+  const ordered = getSortedBallConfigs();
+  if (ordered.length > 0) {
+    return String(ordered[0].type || "poke_ball");
+  }
+  return "poke_ball";
+}
+
+function getLegacyBallBackfillType() {
+  return getDefaultActiveBallType();
+}
+
+function refreshBallConfigDerivedState() {
+  const sortedBallConfigs = getSortedBallConfigs();
+  const uiOrder = sortedBallConfigs.map((entry) => entry.type).filter(Boolean);
+  replaceArrayContents(BALL_TYPE_FALLBACK_ORDER, uiOrder);
+  replaceArrayContents(
+    BALL_TYPE_ORDER,
+    sortedBallConfigs
+      .slice()
+      .sort(
+        (a, b) =>
+          Math.max(0, Number(b?.captureMultiplier || 0)) - Math.max(0, Number(a?.captureMultiplier || 0))
+          || Math.max(0, toSafeInt(a?.sortOrder, 0)) - Math.max(0, toSafeInt(b?.sortOrder, 0)),
+      )
+      .map((entry) => entry.type)
+      .filter(Boolean),
+  );
+  COMING_SOON_BALL_TYPES.clear();
+  for (const entry of sortedBallConfigs) {
+    if (entry.comingSoon) {
+      COMING_SOON_BALL_TYPES.add(entry.type);
+    }
+  }
+}
+
+function rebuildEvolutionStoneConfigState(extraShopItemsById = EXTRA_SHOP_ITEM_CONFIG_BY_ID) {
+  const nextStoneConfigByType = {};
+  for (const item of Object.values(extraShopItemsById || {})) {
+    if (!item || item.itemType !== "stone") {
+      continue;
+    }
+    const stoneType = String(item.stoneType || item.id || "").toLowerCase().trim();
+    if (!stoneType) {
+      continue;
+    }
+    nextStoneConfigByType[stoneType] = {
+      type: stoneType,
+      nameFr: item.nameFr,
+      price: Math.max(0, toSafeInt(item.price, 0)),
+      spritePath: String(item.spritePath || ""),
+      methodItem: String(item.methodItem || ""),
+    };
+  }
+  replaceConfigMap(EVOLUTION_STONE_CONFIG_BY_TYPE, nextStoneConfigByType);
+}
+
+function rebuildShopItemConfigState() {
+  replaceConfigMap(SHOP_ITEM_CONFIG_BY_ID, createShopItemConfigById(BALL_CONFIG_BY_TYPE, EXTRA_SHOP_ITEM_CONFIG_BY_ID));
+}
+
+refreshBallConfigDerivedState();
+rebuildEvolutionStoneConfigState(EXTRA_SHOP_ITEM_CONFIG_BY_ID);
+rebuildShopItemConfigState();
 
 const SPECIAL_ATTACK_TYPES = new Set([
   "fire",
@@ -717,6 +859,8 @@ const state = {
   zoneEncounterCsvByRouteId: new Map(),
   zoneEncounterCsvRouteIds: new Set(),
   zoneEncounterCsvLoaded: false,
+  ballConfigCsvLoaded: false,
+  shopItemConfigCsvLoaded: false,
   pokemonDefsById: new Map(),
   saveData: null,
   team: [],
@@ -2076,11 +2220,14 @@ function createPokemonEntityRecord(pokemonId, initialLevel = 1) {
 }
 
 function createDefaultBallInventory() {
-  return {
-    poke_ball: 0,
-    super_ball: 0,
-    hyper_ball: 0,
-  };
+  const inventory = {};
+  for (const ballType of Object.keys(BALL_CONFIG_BY_TYPE)) {
+    inventory[ballType] = 0;
+  }
+  if (!Object.prototype.hasOwnProperty.call(inventory, "poke_ball")) {
+    inventory.poke_ball = 0;
+  }
+  return inventory;
 }
 
 function normalizeBallInventory(rawInventory) {
@@ -2113,11 +2260,14 @@ function isBallTypeComingSoon(ballType) {
 }
 
 function createDefaultShopItemsInventory() {
-  return {
-    water_stone: 0,
-    fire_stone: 0,
-    leaf_stone: 0,
-  };
+  const inventory = {};
+  for (const item of Object.values(SHOP_ITEM_CONFIG_BY_ID)) {
+    if (!item || item.itemType === "ball" || !item.stockTracked) {
+      continue;
+    }
+    inventory[item.id] = 0;
+  }
+  return inventory;
 }
 
 function normalizeShopItemsInventory(rawInventory) {
@@ -2190,7 +2340,7 @@ function createEmptySave() {
     pokemon_entities: {},
     money: 0,
     ball_inventory: createDefaultBallInventory(),
-    active_ball_type: "poke_ball",
+    active_ball_type: getDefaultActiveBallType(),
     shop_items: createDefaultShopItemsInventory(),
     attack_boost_until_ms: 0,
     pokeballs: 0,
@@ -2370,13 +2520,13 @@ function normalizeSave(rawSave) {
   const legacyPokeballs = getLegacyPokeballCount(rawSave);
   const currentInventoryTotal = computeBallInventoryTotal(ballInventory);
   if (currentInventoryTotal <= 0 && legacyPokeballs > 0) {
-    ballInventory.poke_ball = legacyPokeballs;
+    ballInventory[getLegacyBallBackfillType()] = legacyPokeballs;
   }
 
   const activeBallTypeRaw = String(rawSave.active_ball_type || "").toLowerCase().trim();
   const activeBallType = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, activeBallTypeRaw)
     ? activeBallTypeRaw
-    : "poke_ball";
+    : getDefaultActiveBallType();
   const shopItems = normalizeShopItemsInventory(rawSave.shop_items);
   const attackBoostUntilMs = Math.max(0, toSafeInt(rawSave.attack_boost_until_ms, 0));
   const totalPokeballs = computeBallInventoryTotal(ballInventory);
@@ -3649,7 +3799,9 @@ function ensureMoneyAndItems() {
   const legacyBalls = Math.max(0, toSafeInt(state.saveData.pokeballs, 0));
   const normalizedInventoryTotal = computeBallInventoryTotal(normalizedBallInventory);
   if (!hasStructuredBallInventory(rawBallInventory) && normalizedInventoryTotal <= 0 && legacyBalls > 0) {
-    normalizedBallInventory.poke_ball += legacyBalls;
+    const fallbackBallType = getLegacyBallBackfillType();
+    normalizedBallInventory[fallbackBallType] =
+      Math.max(0, toSafeInt(normalizedBallInventory[fallbackBallType], 0)) + legacyBalls;
   }
   state.saveData.ball_inventory = normalizedBallInventory;
   state.saveData.shop_items = normalizeShopItemsInventory(state.saveData.shop_items);
@@ -3657,7 +3809,7 @@ function ensureMoneyAndItems() {
   const activeBallType = String(state.saveData.active_ball_type || "").toLowerCase().trim();
   state.saveData.active_ball_type = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, activeBallType)
     ? activeBallType
-    : "poke_ball";
+    : getDefaultActiveBallType();
   state.saveData.pokeballs = computeBallInventoryTotal(normalizedBallInventory);
 }
 
@@ -3695,10 +3847,10 @@ function setActiveBallType(ballType) {
 
 function getActiveBallType() {
   if (!state.saveData) {
-    return "poke_ball";
+    return getDefaultActiveBallType();
   }
   ensureMoneyAndItems();
-  return String(state.saveData.active_ball_type || "poke_ball");
+  return String(state.saveData.active_ball_type || getDefaultActiveBallType());
 }
 
 function addBallItems(ballType, amount) {
@@ -3831,6 +3983,28 @@ function isAttackBoostActive(nowMs = Date.now()) {
   return Math.max(0, toSafeInt(state.saveData.attack_boost_until_ms, 0)) > Math.max(0, toSafeInt(nowMs, Date.now()));
 }
 
+function getAttackBoostConfig() {
+  const config = SHOP_ITEM_CONFIG_BY_ID.x_boost;
+  if (config && config.itemType === "boost") {
+    return config;
+  }
+  return DEFAULT_EXTRA_SHOP_ITEM_CONFIG_BY_ID.x_boost;
+}
+
+function getAttackBoostIntervalMultiplier() {
+  const config = getAttackBoostConfig();
+  const rawMultiplier = Number(config?.effectValue ?? BOOST_X_ATTACK_INTERVAL_MULTIPLIER);
+  if (!Number.isFinite(rawMultiplier)) {
+    return BOOST_X_ATTACK_INTERVAL_MULTIPLIER;
+  }
+  return clamp(rawMultiplier, 0.05, 20);
+}
+
+function getAttackBoostDurationMsFromConfig() {
+  const config = getAttackBoostConfig();
+  return Math.max(1000, toSafeInt(config?.effectDurationMs, BOOST_X_DURATION_MS));
+}
+
 function getAttackBoostRemainingMs(nowMs = Date.now()) {
   if (!state.saveData) {
     return 0;
@@ -3845,10 +4019,10 @@ function getCurrentAttackIntervalMs(nowMs = Date.now()) {
   if (!isAttackBoostActive(nowMs)) {
     return baseInterval;
   }
-  return Math.max(65, Math.round(baseInterval * BOOST_X_ATTACK_INTERVAL_MULTIPLIER));
+  return Math.max(65, Math.round(baseInterval * getAttackBoostIntervalMultiplier()));
 }
 
-function activateAttackBoost(durationMs = BOOST_X_DURATION_MS) {
+function activateAttackBoost(durationMs = getAttackBoostDurationMsFromConfig()) {
   if (!state.saveData) {
     return 0;
   }
@@ -6650,18 +6824,20 @@ function updateHud() {
   state.lastHudAutoUpdateMs = nowMs;
 }
 
+function compareShopItems(a, b) {
+  return (
+    Math.max(0, toSafeInt(a?.sortOrder, 0)) - Math.max(0, toSafeInt(b?.sortOrder, 0))
+    || String(a?.nameFr || a?.id || "").localeCompare(String(b?.nameFr || b?.id || ""))
+  );
+}
+
 function getShopItemsByTab(tabId) {
   const tab = String(tabId || SHOP_TAB_POKEBALLS);
   const items = Object.values(SHOP_ITEM_CONFIG_BY_ID).filter((entry) => entry.category === tab);
   if (tab === SHOP_TAB_POKEBALLS) {
     return BALL_TYPE_FALLBACK_ORDER.map((ballType) => items.find((item) => item.ballType === ballType)).filter(Boolean);
   }
-  if (tab === SHOP_TAB_EVOLUTIONS) {
-    return ["water_stone", "fire_stone", "leaf_stone"]
-      .map((id) => items.find((item) => item.id === id))
-      .filter(Boolean);
-  }
-  return items;
+  return items.slice().sort(compareShopItems);
 }
 
 function normalizeShopQuantityMode(value) {
@@ -6843,7 +7019,7 @@ function buyShopItem(itemId) {
       updateHud();
       return false;
     }
-    const remainingMs = activateAttackBoost(BOOST_X_DURATION_MS);
+    const remainingMs = activateAttackBoost(getAttackBoostDurationMsFromConfig());
     persistSaveData();
     updateHud();
     renderShopModal();
@@ -10009,6 +10185,8 @@ function exportTextState() {
     route_combat_enabled: isCurrentRouteCombatEnabled(),
     route_encounters_source: String(state.routeData?.encounters_source || (state.zoneEncounterCsvLoaded ? "csv" : "json")),
     zone_csv_loaded: Boolean(state.zoneEncounterCsvLoaded),
+    ball_csv_loaded: Boolean(state.ballConfigCsvLoaded),
+    shop_items_csv_loaded: Boolean(state.shopItemConfigCsvLoaded),
     current_route_encounter_count: Array.isArray(state.routeData?.encounters) ? state.routeData.encounters.length : 0,
     current_route_encounter_preview: Array.isArray(state.routeData?.encounters)
       ? state.routeData.encounters.slice(0, 3).map((entry) => ({
@@ -10050,19 +10228,39 @@ function exportTextState() {
     pokeballs: Math.max(0, toSafeInt(state.saveData?.pokeballs, 0)),
     ball_inventory: state.saveData
       ? {
-          poke_ball: getBallInventoryCount("poke_ball"),
-          super_ball: getBallInventoryCount("super_ball"),
-          hyper_ball: getBallInventoryCount("hyper_ball"),
+          ...Object.fromEntries(BALL_TYPE_FALLBACK_ORDER.map((ballType) => [ballType, getBallInventoryCount(ballType)])),
           active_ball_type: getActiveBallType(),
         }
       : null,
     shop_items: state.saveData
-      ? {
-          water_stone: getShopItemCount("water_stone"),
-          fire_stone: getShopItemCount("fire_stone"),
-          leaf_stone: getShopItemCount("leaf_stone"),
-        }
+      ? Object.fromEntries(
+          Object.values(SHOP_ITEM_CONFIG_BY_ID)
+            .filter((item) => item && item.itemType !== "ball" && item.stockTracked)
+            .sort(compareShopItems)
+            .map((item) => [item.id, getShopItemCount(item.id)]),
+        )
       : null,
+    ball_configs: getSortedBallConfigs().map((entry) => ({
+      type: entry.type,
+      name_fr: entry.nameFr,
+      price: Math.max(0, toSafeInt(entry.price, 0)),
+      capture_multiplier: Math.round(Number(entry.captureMultiplier || 1) * 1000) / 1000,
+      coming_soon: Boolean(entry.comingSoon),
+    })),
+    shop_item_configs: Object.values(SHOP_ITEM_CONFIG_BY_ID)
+      .filter((item) => item && item.itemType !== "ball")
+      .sort(compareShopItems)
+      .map((item) => ({
+        id: item.id,
+        name_fr: item.nameFr,
+        item_type: item.itemType,
+        category: item.category,
+        price: Math.max(0, toSafeInt(item.price, 0)),
+        effect_kind: item.effectKind || "",
+        effect_value: item.effectValue ?? "",
+        effect_duration_ms: Math.max(0, toSafeInt(item.effectDurationMs, 0)),
+        stock_tracked: Boolean(item.stockTracked),
+      })),
     save_backend: state.saveBackend.bridgeAvailable
       ? "appdata_roaming"
       : state.saveBackend.fileHandle
@@ -10276,11 +10474,202 @@ function readCsvCell(row, key) {
   return String(row[key] || "").trim();
 }
 
+function readCsvBooleanCell(row, key, fallback = false) {
+  const value = readCsvCell(row, key).toLowerCase();
+  if (!value) {
+    return Boolean(fallback);
+  }
+  if (["1", "true", "yes", "y", "oui", "o", "on"].includes(value)) {
+    return true;
+  }
+  if (["0", "false", "no", "n", "non", "off"].includes(value)) {
+    return false;
+  }
+  return Boolean(fallback);
+}
+
+function readCsvNumberCell(row, key, fallback = 0) {
+  const rawValue = readCsvCell(row, key);
+  if (!rawValue) {
+    return fallback;
+  }
+  const normalized = rawValue.replace(",", ".");
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function readCsvTypedValue(row, key, fallback = "") {
+  const rawValue = readCsvCell(row, key);
+  if (!rawValue) {
+    return fallback;
+  }
+  const normalized = rawValue.replace(",", ".");
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : rawValue;
+}
+
 function parseCsvMethods(valueRaw) {
   return String(valueRaw || "")
     .split("|")
     .map((method) => String(method || "").toLowerCase().trim())
     .filter(Boolean);
+}
+
+function normalizeBallConfigFromCsvRow(row, fallbackConfig = null) {
+  const fallback = fallbackConfig && typeof fallbackConfig === "object" ? fallbackConfig : {};
+  const type = String(readCsvCell(row, "ball_type") || readCsvCell(row, "type") || fallback.type || "")
+    .toLowerCase()
+    .trim();
+  if (!type) {
+    return null;
+  }
+  return {
+    type,
+    nameFr: readCsvCell(row, "name_fr") || fallback.nameFr || type,
+    price: Math.max(0, toSafeInt(readCsvCell(row, "price"), fallback.price ?? 0)),
+    captureMultiplier: Math.max(0.05, readCsvNumberCell(row, "capture_multiplier", Number(fallback.captureMultiplier || 1))),
+    description: readCsvCell(row, "description") || fallback.description || "",
+    spritePath: readCsvCell(row, "sprite_path") || fallback.spritePath || "",
+    comingSoon: readCsvBooleanCell(row, "coming_soon", Boolean(fallback.comingSoon)),
+    sortOrder: Math.max(0, toSafeInt(readCsvCell(row, "sort_order"), fallback.sortOrder ?? 0)),
+  };
+}
+
+async function loadBallConfigCsv(csvPath = BALL_CONFIG_CSV_PATH) {
+  const requestPath = `${String(csvPath || BALL_CONFIG_CSV_PATH)}?ts=${Date.now()}`;
+  const response = await fetch(requestPath, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Impossible de charger " + csvPath);
+  }
+  const rawCsv = await response.text();
+  const rows = parseCsvObjects(rawCsv);
+  const configsByType = {};
+  for (const row of rows) {
+    const type = String(readCsvCell(row, "ball_type") || readCsvCell(row, "type") || "").toLowerCase().trim();
+    if (!type) {
+      continue;
+    }
+    const fallback = configsByType[type] || DEFAULT_BALL_CONFIG_BY_TYPE[type] || null;
+    const config = normalizeBallConfigFromCsvRow(row, fallback);
+    if (!config) {
+      continue;
+    }
+    configsByType[config.type] = config;
+  }
+  return {
+    path: csvPath,
+    configsByType,
+  };
+}
+
+function setBallConfigState(payload) {
+  const nextConfigByType = cloneConfigMap(DEFAULT_BALL_CONFIG_BY_TYPE);
+  const sourceEntries =
+    payload?.configsByType && typeof payload.configsByType === "object" ? Object.entries(payload.configsByType) : [];
+  for (const [type, config] of sourceEntries) {
+    const normalizedType = String(type || "").toLowerCase().trim();
+    if (!normalizedType || !config || typeof config !== "object") {
+      continue;
+    }
+    nextConfigByType[normalizedType] = {
+      ...(nextConfigByType[normalizedType] || {}),
+      ...config,
+      type: normalizedType,
+    };
+  }
+  replaceConfigMap(BALL_CONFIG_BY_TYPE, nextConfigByType);
+  refreshBallConfigDerivedState();
+  rebuildShopItemConfigState();
+  state.ballConfigCsvLoaded = sourceEntries.length > 0;
+}
+
+function normalizeShopItemConfigFromCsvRow(row, fallbackConfig = null) {
+  const fallback = fallbackConfig && typeof fallbackConfig === "object" ? fallbackConfig : {};
+  const id = String(readCsvCell(row, "item_id") || readCsvCell(row, "id") || fallback.id || "")
+    .toLowerCase()
+    .trim();
+  if (!id) {
+    return null;
+  }
+  const itemType = String(readCsvCell(row, "item_type") || fallback.itemType || "")
+    .toLowerCase()
+    .trim();
+  if (!itemType || itemType === "ball") {
+    return null;
+  }
+  const category = String(readCsvCell(row, "category") || fallback.category || SHOP_TAB_COMBAT)
+    .toLowerCase()
+    .trim();
+  const stockTrackedDefault = itemType === "stone";
+  const stoneType = String(readCsvCell(row, "stone_type") || fallback.stoneType || id)
+    .toLowerCase()
+    .trim();
+  return {
+    id,
+    category: category || SHOP_TAB_COMBAT,
+    nameFr: readCsvCell(row, "name_fr") || fallback.nameFr || id,
+    description: readCsvCell(row, "description") || fallback.description || "",
+    price: Math.max(0, toSafeInt(readCsvCell(row, "price"), fallback.price ?? 0)),
+    spritePath: readCsvCell(row, "sprite_path") || fallback.spritePath || "",
+    itemType,
+    effectKind: String(readCsvCell(row, "effect_kind") || fallback.effectKind || "")
+      .toLowerCase()
+      .trim(),
+    effectValue: readCsvTypedValue(row, "effect_value", fallback.effectValue ?? ""),
+    effectDurationMs: Math.max(0, toSafeInt(readCsvCell(row, "effect_duration_ms"), fallback.effectDurationMs ?? 0)),
+    stockTracked: readCsvBooleanCell(row, "stock_tracked", fallback.stockTracked ?? stockTrackedDefault),
+    sortOrder: Math.max(0, toSafeInt(readCsvCell(row, "sort_order"), fallback.sortOrder ?? 0)),
+    stoneType,
+    methodItem: readCsvCell(row, "method_item") || fallback.methodItem || "",
+  };
+}
+
+async function loadShopItemConfigCsv(csvPath = SHOP_ITEMS_CSV_PATH) {
+  const requestPath = `${String(csvPath || SHOP_ITEMS_CSV_PATH)}?ts=${Date.now()}`;
+  const response = await fetch(requestPath, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Impossible de charger " + csvPath);
+  }
+  const rawCsv = await response.text();
+  const rows = parseCsvObjects(rawCsv);
+  const configsById = {};
+  for (const row of rows) {
+    const id = String(readCsvCell(row, "item_id") || readCsvCell(row, "id") || "").toLowerCase().trim();
+    if (!id) {
+      continue;
+    }
+    const fallback = configsById[id] || DEFAULT_EXTRA_SHOP_ITEM_CONFIG_BY_ID[id] || null;
+    const config = normalizeShopItemConfigFromCsvRow(row, fallback);
+    if (!config) {
+      continue;
+    }
+    configsById[config.id] = config;
+  }
+  return {
+    path: csvPath,
+    configsById,
+  };
+}
+
+function setShopItemConfigState(payload) {
+  const nextExtraShopItemsById = cloneConfigMap(DEFAULT_EXTRA_SHOP_ITEM_CONFIG_BY_ID);
+  const sourceEntries =
+    payload?.configsById && typeof payload.configsById === "object" ? Object.entries(payload.configsById) : [];
+  for (const [id, config] of sourceEntries) {
+    const normalizedId = String(id || "").toLowerCase().trim();
+    if (!normalizedId || !config || typeof config !== "object") {
+      continue;
+    }
+    nextExtraShopItemsById[normalizedId] = {
+      ...(nextExtraShopItemsById[normalizedId] || {}),
+      ...config,
+      id: normalizedId,
+    };
+  }
+  replaceConfigMap(EXTRA_SHOP_ITEM_CONFIG_BY_ID, nextExtraShopItemsById);
+  rebuildEvolutionStoneConfigState(EXTRA_SHOP_ITEM_CONFIG_BY_ID);
+  rebuildShopItemConfigState();
+  state.shopItemConfigCsvLoaded = sourceEntries.length > 0;
 }
 
 function normalizeEncounterFromCsvRow(row) {
@@ -10634,6 +11023,8 @@ async function initializeScene() {
   if (tutorialModalEl) {
     tutorialModalEl.classList.add("hidden");
   }
+  setBallConfigState(null);
+  setShopItemConfigState(null);
   setZoneEncounterCsvState(null);
   stopBackgroundTicker();
   refreshLocalFileLinkButtonState();
@@ -10644,14 +11035,36 @@ async function initializeScene() {
   setShopOpen(false);
   try {
     let offlineCatchupMs = 0;
-    state.saveData = await loadSaveData();
-    try {
-      const csvPayload = await loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH);
-      setZoneEncounterCsvState(csvPayload);
-    } catch (error) {
-      setZoneEncounterCsvState(null);
-      console.warn("Zone CSV indisponible, fallback JSON:", error?.message || error);
+    const [ballCsvResult, shopItemCsvResult, zoneCsvResult] = await Promise.allSettled([
+      loadBallConfigCsv(BALL_CONFIG_CSV_PATH),
+      loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),
+      loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),
+    ]);
+
+    if (ballCsvResult.status === "fulfilled") {
+      setBallConfigState(ballCsvResult.value);
+    } else {
+      setBallConfigState(null);
+      console.warn("Ball CSV indisponible, fallback config interne:", ballCsvResult.reason?.message || ballCsvResult.reason);
     }
+
+    if (shopItemCsvResult.status === "fulfilled") {
+      setShopItemConfigState(shopItemCsvResult.value);
+    } else {
+      setShopItemConfigState(null);
+      console.warn(
+        "Item CSV indisponible, fallback config interne:",
+        shopItemCsvResult.reason?.message || shopItemCsvResult.reason,
+      );
+    }
+
+    if (zoneCsvResult.status === "fulfilled") {
+      setZoneEncounterCsvState(zoneCsvResult.value);
+    } else {
+      setZoneEncounterCsvState(null);
+      console.warn("Zone CSV indisponible, fallback JSON:", zoneCsvResult.reason?.message || zoneCsvResult.reason);
+    }
+    state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
     await loadPokemonDefinitions(Array.from(state.routeCatalog.values()));
     const unlockStateReconciled = reconcileEntityUnlockStates();

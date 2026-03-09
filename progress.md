@@ -1041,3 +1041,37 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `run_playwright_check.ps1`: PASS.
   - Targeted Route 1 Playwright check: PASS (`output/xp-text-only-validation/after-first-xp-text.json`).
     - After the first KO, XP is still awarded and `team_xp_gain_effects_active` becomes positive from the restored floating text.
+
+## Additional progress (CSV runtime for Pokeballs + shop items)
+- Added two editable CSV sources:
+  - `item_data/pokeballs.csv`
+  - `item_data/shop_items.csv`
+- Wired runtime loading with fallback-to-code defaults:
+  - Pokeballs now load `price`, `capture_multiplier`, `coming_soon`, text/labels, sprite path, and order from CSV.
+  - Shop items now load `price`, text/labels, sprite path, ordering, stock-tracking, and effect metadata from CSV.
+- Connected CSV values to actual gameplay/shop logic:
+  - capture multiplier uses CSV via `getBallCaptureMultiplier(...)`,
+  - Pokeball shop cards/prices/coming-soon state use CSV-backed config,
+  - `Boost X` duration and attack interval multiplier now use CSV-backed effect values,
+  - evolution stone prices/names/method tokens now use CSV-backed config,
+  - save inventory normalization now derives keys from loaded ball/item configs instead of hardcoded IDs.
+- Added debug export fields in `render_game_to_text`:
+  - `ball_csv_loaded`
+  - `shop_items_csv_loaded`
+  - `ball_configs`
+  - `shop_item_configs`
+
+## Validation (CSV shop turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual review:
+  - reviewed `output/web-game-poke/shot-1.png` after the CSV runtime changes.
+- Runtime proof with temporary CSV edits:
+  - temporarily changed `super_ball` (`price=7777`, `capture_multiplier=3.5`) and `x_boost` (`price=54321`, `effect_value=0.5`, `effect_duration_ms=45000`),
+  - reloaded the game and confirmed `render_game_to_text` reflected those values live,
+  - proof artifact saved to `output/csv_shop_runtime_verify.json`,
+  - CSV files were then restored to their original values.
+- Restored-state verification:
+  - `output/web-game-poke/state-1.json` shows the normal values again (`SuperBall=2500/2`, `Boost X=20000/0.33/120000`).
+- Note:
+  - one smoke run produced a transient `Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact at shutdown in `output/web-game-poke/errors-1.json`; the page state/screenshots were otherwise correct, and the same behavior matches the helper script's server shutdown timing rather than a game runtime crash.

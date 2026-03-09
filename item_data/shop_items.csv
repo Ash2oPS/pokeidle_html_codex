@@ -1,0 +1,5 @@
+item_id,name_fr,category,item_type,price,effect_kind,effect_value,effect_duration_ms,stock_tracked,description,sprite_path,method_item,sort_order
+x_boost,Boost X,combat,boost,20000,attack_interval_multiplier,0.33,120000,false,Multiplie l'intervalle d'attaque par 0.33 pendant 2 minutes.,assets/items/x_boost.png,,10
+water_stone,Pierre Eau,evolutions,stone,100000,evolution_condition,,0,true,Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).,assets/items/water_stone.png,water-stone,10
+fire_stone,Pierre Feu,evolutions,stone,100000,evolution_condition,,0,true,Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).,assets/items/fire_stone.png,fire-stone,20
+leaf_stone,Pierre Plante,evolutions,stone,100000,evolution_condition,,0,true,Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).,assets/items/leaf_stone.png,leaf-stone,30
