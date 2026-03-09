@@ -11,7 +11,7 @@
   --text-main: #f4feff;
   --text-soft: #d0ebf0;
   --text-dark: #0f2f36;
-  --shadow-strong: 0 18px 38px rgba(10, 32, 37, 0.35);
+  --shadow-strong: 0 10px 22px rgba(10, 32, 37, 0.24);
 }
 
 * {
@@ -176,7 +176,6 @@ body {
 #money-value {
   display: inline-block;
   transform-origin: center;
-  will-change: transform, filter, text-shadow;
 }
 
 .money-anim-layer {
@@ -193,11 +192,9 @@ body {
   transform: translate(-50%, 0) scale(0.86);
   font: 700 14px "Trebuchet MS", "Verdana", sans-serif;
   color: #c9ecff;
-  text-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.65),
-    0 0 8px rgba(90, 208, 255, 0.4);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
   opacity: 0;
-  animation: money-gain-fade 860ms ease-out forwards;
+  animation: money-gain-fade 620ms ease-out forwards;
 }
 
 @keyframes money-gain-fade {
@@ -565,13 +562,13 @@ body {
       rgba(0, 0, 0, 0.04) 8px,
       rgba(0, 0, 0, 0.04) 16px
     );
-  box-shadow: 0 12px 26px rgba(4, 14, 22, 0.5);
+  box-shadow: 0 8px 18px rgba(4, 14, 22, 0.34);
   color: #eaf7ff;
   padding: 9px 11px;
   display: grid;
   gap: 6px;
   pointer-events: auto;
-  animation: notif-enter 170ms ease-out both;
+  animation: notif-enter 120ms ease-out both;
 }
 
 .game-notif.notif-first {
@@ -1298,6 +1295,150 @@ body {
   font: 700 13px "Trebuchet MS", "Verdana", sans-serif;
 }
 
+.tutorial-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 97;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top, rgba(114, 192, 244, 0.14), transparent 38%),
+    rgba(4, 10, 20, 0.84);
+}
+
+.tutorial-card {
+  width: min(720px, calc(100vw - 20px));
+  max-height: min(88dvh, 760px);
+  overflow-y: auto;
+  border: 2px solid #2e5c67;
+  border-radius: 16px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(12, 41, 53, 0.98), rgba(7, 24, 30, 0.98)),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 8px,
+      rgba(0, 0, 0, 0.04) 8px,
+      rgba(0, 0, 0, 0.04) 16px
+    );
+  box-shadow: 0 26px 60px rgba(1, 7, 15, 0.68);
+  display: grid;
+  gap: 12px;
+}
+
+.tutorial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tutorial-progress {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(188, 225, 247, 0.28);
+  background: rgba(18, 63, 82, 0.72);
+  color: #d5edff;
+  font: 700 11px "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tutorial-title {
+  margin: 9px 0 0;
+  font: 700 30px/1.05 "Trebuchet MS", "Verdana", sans-serif;
+  color: #eef8ff;
+}
+
+.tutorial-page-title {
+  margin: 6px 0 0;
+  color: #c5def3;
+  font: 700 15px/1.35 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.tutorial-close-btn,
+.tutorial-nav-btn {
+  border-radius: 11px;
+  border: 1px solid rgba(229, 247, 255, 0.3);
+  padding: 10px 14px;
+  min-height: 44px;
+  font: 700 13px "Trebuchet MS", "Verdana", sans-serif;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
+}
+
+.tutorial-close-btn:hover,
+.tutorial-close-btn:focus-visible,
+.tutorial-nav-btn:hover:not(:disabled),
+.tutorial-nav-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.tutorial-close-btn {
+  background: linear-gradient(180deg, #2f5d68, #1d3f47);
+  color: #eef8ff;
+}
+
+.tutorial-body {
+  border: 1px solid rgba(175, 204, 239, 0.26);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(9, 27, 42, 0.82), rgba(6, 18, 30, 0.9)),
+    radial-gradient(circle at top left, rgba(129, 206, 255, 0.08), transparent 42%);
+  padding: 15px 16px;
+  color: #edf6ff;
+  font: 700 14px/1.5 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.tutorial-body p {
+  margin: 0;
+}
+
+.tutorial-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.tutorial-list li::marker {
+  color: #9ed9ff;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tutorial-nav-btn {
+  min-width: 150px;
+}
+
+.tutorial-prev-btn {
+  background: linear-gradient(180deg, #345f71, #214552);
+  color: #e9f8ff;
+}
+
+.tutorial-next-btn {
+  background: linear-gradient(180deg, #f4da78, #d6ac47);
+  border-color: rgba(255, 243, 203, 0.34);
+  color: #173947;
+}
+
+.tutorial-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+  filter: none;
+}
+
 .starter-modal {
   position: fixed;
   inset: 0;
@@ -1491,6 +1632,7 @@ body {
   .shop-modal,
   .boxes-modal,
   .appearance-modal,
+  .tutorial-modal,
   .starter-modal {
     padding: 7px;
   }
@@ -1674,6 +1816,38 @@ body {
     height: 56px;
   }
 
+  .tutorial-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 11px;
+    gap: 10px;
+  }
+
+  .tutorial-header {
+    flex-direction: column;
+  }
+
+  .tutorial-title {
+    font-size: 24px;
+  }
+
+  .tutorial-page-title {
+    font-size: 14px;
+  }
+
+  .tutorial-close-btn {
+    width: 100%;
+  }
+
+  .tutorial-actions {
+    flex-direction: column-reverse;
+  }
+
+  .tutorial-nav-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
   .starter-modal-card {
     width: 100%;
     max-width: 100%;
@@ -1750,5 +1924,14 @@ body {
     min-width: 190px;
     max-width: 240px;
     font-size: 12px;
+  }
+
+  .tutorial-progress {
+    font-size: 10px;
+  }
+
+  .tutorial-body {
+    padding: 12px;
+    font-size: 13px;
   }
 }

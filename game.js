@@ -57,7 +57,9 @@ const ROUTE_ID_ORDER = [
   "kanto_dungeon_cerulean_cave",
 ];
 const ROUTE_UNLOCK_DEFEATS = 20;
+const ROUTE_DEFEAT_TIMER_MS = 20000;
 const ROUTE_1_POWER_MULTIPLIER = 0.2;
+const ROUTE_1_TUTORIAL_ID = "kanto_route_1";
 const SAVE_KEY = "pokeidle_save_v3";
 const SHINY_ODDS = 1024;
 const SAVE_VERSION = 6;
@@ -113,20 +115,96 @@ const ENEMY_MONEY_STAT_FACTOR = 0.05;
 const CAPTURE_XP_BASE = 16;
 const CAPTURE_XP_LEVEL_MULT = 8;
 const CAPTURE_XP_STAT_FACTOR = 0.045;
+const KO_XP_RATIO_OF_CAPTURE = 0.2;
+const APPEARANCE_UNLOCK_LEVEL = 10;
 const FOREGROUND_FRAME_STEP_MS = 40;
 const HIDDEN_SIM_BUDGET_MS = 180000;
 const BULK_IDLE_THRESHOLD_MS = 1200;
 const MAX_OFFLINE_CATCHUP_MS = 1000 * 60 * 60 * 24 * 7;
 const BACKGROUND_TICK_INTERVAL_MS = 1000;
-const EVOLUTION_ANIM_TOTAL_MS = 1680;
-const EVOLUTION_ANIM_WHITE_MS = 820;
-const EVOLUTION_ANIM_FLASH_MS = 220;
-const EVOLUTION_ANIM_REVEAL_MS = 520;
+const EVOLUTION_ANIM_TOTAL_MS = 2480;
+const EVOLUTION_ANIM_WHITE_MS = 1120;
+const EVOLUTION_ANIM_FLASH_MS = 280;
+const EVOLUTION_ANIM_REVEAL_MS = 820;
+const EVOLUTION_ANIM_PARTICLE_COUNT = 14;
 const BACKGROUND_DRIFT_TRAVEL_MIN_MS = 9000;
 const BACKGROUND_DRIFT_TRAVEL_MAX_MS = 21000;
 const BACKGROUND_DRIFT_HOLD_MIN_MS = 1200;
 const BACKGROUND_DRIFT_HOLD_MAX_MS = 4200;
 const TEAM_LEVEL_UP_EFFECT_DURATION_MS = 780;
+const TEAM_XP_GAIN_EFFECT_DURATION_MS = 920;
+const TEAM_XP_PULSE_DURATION_MS = 360;
+const TUTORIAL_FLOW_ROUTE_1 = "route1_intro";
+const TUTORIAL_FLOW_EVOLUTION = "evolution_intro";
+const TUTORIAL_FLOW_APPEARANCE = "appearance_intro";
+const TUTORIAL_FLOW_DEFINITIONS = Object.freeze({
+  [TUTORIAL_FLOW_ROUTE_1]: Object.freeze({
+    saveFlag: "route1_intro_seen",
+    title: "Tuto Route 1",
+    pages: Object.freeze([
+      Object.freeze({
+        title: "Combats automatiques",
+        lines: Object.freeze([
+          "Ton equipe attaque automatiquement les Pokemon sauvages.",
+          "Quand l'ennemi tombe KO, le suivant apparait apres un court delai.",
+          "Tu peux cliquer un Pokemon de ton equipe pour ouvrir les Boites.",
+        ]),
+      }),
+      Object.freeze({
+        title: "Poke Balls et captures",
+        lines: Object.freeze([
+          "Pour capturer, il te faut des Poke Balls dans l'inventaire.",
+          "Les balls se reglent et s'achetent dans le Shop.",
+          "Une capture critique a plus de chances de reussir.",
+        ]),
+      }),
+      Object.freeze({
+        title: "Argent et progression",
+        lines: Object.freeze([
+          "Battre des Pokemon rapporte de l'argent (Poke$).",
+          "L'argent sert a acheter des balls, boosts et objets d'evolution.",
+          "Chaque zone se debloque en battant 20 Pokemon d'affilee, avec 20 secondes max par combat.",
+        ]),
+      }),
+      Object.freeze({
+        title: "XP et niveaux",
+        lines: Object.freeze([
+          "Un KO donne de l'XP a toute l'equipe.",
+          "Une capture donne le bonus d'XP restant.",
+          "Les niveaux montent les stats et debloquent ensuite les evolutions.",
+        ]),
+      }),
+    ]),
+  }),
+  [TUTORIAL_FLOW_EVOLUTION]: Object.freeze({
+    saveFlag: "evolution_intro_seen",
+    title: "Tuto Evolution",
+    pages: Object.freeze([
+      Object.freeze({
+        title: "Comment evoluer",
+        lines: Object.freeze([
+          "Quand un Pokemon remplit ses conditions, une notif permanente apparait avant l'evolution.",
+          "Utilise le bouton Evoluer dans cette notif pour lancer l'animation.",
+          "Tu conserves l'ancienne entite et gagnes l'entite d'evolution niveau 1.",
+        ]),
+      }),
+    ]),
+  }),
+  [TUTORIAL_FLOW_APPEARANCE]: Object.freeze({
+    saveFlag: "appearance_intro_seen",
+    title: "Tuto Apparence",
+    pages: Object.freeze([
+      Object.freeze({
+        title: "Skins et apparence",
+        lines: Object.freeze([
+          "Des qu'un Pokemon de ton equipe atteint le niveau 10, l'editeur d'apparence se debloque.",
+          "Fais clic droit sur un Pokemon de ta team pour ouvrir ses skins.",
+          "Tu peux acheter des sprites non possedes et equiper ceux debloques.",
+        ]),
+      }),
+    ]),
+  }),
+});
 const WEATHER_CHANGE_INTERVAL_MS = 30 * 60 * 1000;
 const WEATHER_TRANSITION_DURATION_MS = 90 * 1000;
 const WEATHER_LIGHTNING_WINDOW_MS = 1700;
@@ -149,92 +227,117 @@ const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
 const RENDER_QUALITY_ORDER = Object.freeze(["very_low", "low", "medium", "high", "ultra"]);
 const RENDER_QUALITY_PRESETS = Object.freeze({
   ultra: Object.freeze({
-    maxDpr: MAX_RENDER_DPR,
-    renderScale: 1,
-    foregroundSimBudgetMs: 84,
-    environmentParticleScale: 1,
-    environmentUpdateIntervalMult: 1,
-    fogLayerCount: 3,
-    projectileTrailStride: 1,
-    projectileTrailMaxPoints: PROJECTILE_TRAIL_MAX_POINTS,
-    projectileTrailGlow: true,
-    projectileStreak: true,
-    projectileAura: true,
-    projectileAuraScale: 1,
-    enemyHitGlow: true,
-    levelUpParticleStride: 1,
-    lightningGlow: true,
-    vignette: true,
-  }),
-  high: Object.freeze({
-    maxDpr: 1.22,
-    renderScale: 0.98,
-    foregroundSimBudgetMs: 76,
-    environmentParticleScale: 0.85,
-    environmentUpdateIntervalMult: 1.1,
-    fogLayerCount: 3,
-    projectileTrailStride: 2,
-    projectileTrailMaxPoints: 8,
-    projectileTrailGlow: true,
-    projectileStreak: true,
-    projectileAura: true,
-    projectileAuraScale: 0.92,
-    enemyHitGlow: true,
-    levelUpParticleStride: 2,
-    lightningGlow: true,
-    vignette: true,
-  }),
-  medium: Object.freeze({
-    maxDpr: 1.05,
-    renderScale: 0.92,
-    foregroundSimBudgetMs: 68,
-    environmentParticleScale: 0.65,
+    maxDpr: 1.25,
+    renderScale: 0.9,
+    renderFrameIntervalMs: 16,
+    foregroundSimBudgetMs: 72,
+    environmentParticleScale: 0.45,
     environmentUpdateIntervalMult: 1.3,
-    fogLayerCount: 2,
-    projectileTrailStride: 2,
+    fogLayerCount: 1,
+    projectileTrailStride: 1,
     projectileTrailMaxPoints: 6,
     projectileTrailGlow: false,
     projectileStreak: true,
-    projectileAura: true,
-    projectileAuraScale: 0.78,
+    projectileAura: false,
+    projectileAuraScale: 0.8,
+    projectileTrailEnabled: true,
+    projectileSpriteDetail: true,
+    ambientOverlayEnabled: true,
+    celebrationParticles: true,
     enemyHitGlow: false,
     levelUpParticleStride: 2,
     lightningGlow: false,
-    vignette: true,
+    vignette: false,
   }),
-  low: Object.freeze({
-    maxDpr: 1,
+  high: Object.freeze({
+    maxDpr: 1.08,
     renderScale: 0.84,
-    foregroundSimBudgetMs: 60,
-    environmentParticleScale: 0.45,
+    renderFrameIntervalMs: 16,
+    foregroundSimBudgetMs: 64,
+    environmentParticleScale: 0.22,
     environmentUpdateIntervalMult: 1.6,
     fogLayerCount: 1,
-    projectileTrailStride: 3,
+    projectileTrailStride: 2,
     projectileTrailMaxPoints: 4,
     projectileTrailGlow: false,
     projectileStreak: false,
     projectileAura: false,
-    projectileAuraScale: 0.62,
+    projectileAuraScale: 0.68,
+    projectileTrailEnabled: true,
+    projectileSpriteDetail: true,
+    ambientOverlayEnabled: true,
+    celebrationParticles: true,
     enemyHitGlow: false,
     levelUpParticleStride: 3,
     lightningGlow: false,
-    vignette: true,
+    vignette: false,
   }),
-  very_low: Object.freeze({
+  medium: Object.freeze({
     maxDpr: 1,
-    renderScale: 0.72,
-    foregroundSimBudgetMs: 52,
-    environmentParticleScale: 0.25,
-    environmentUpdateIntervalMult: 2.1,
-    fogLayerCount: 1,
+    renderScale: 0.78,
+    renderFrameIntervalMs: 22,
+    foregroundSimBudgetMs: 56,
+    environmentParticleScale: 0.06,
+    environmentUpdateIntervalMult: 2,
+    fogLayerCount: 0,
     projectileTrailStride: 4,
-    projectileTrailMaxPoints: 3,
+    projectileTrailMaxPoints: 0,
     projectileTrailGlow: false,
     projectileStreak: false,
     projectileAura: false,
     projectileAuraScale: 0.5,
+    projectileTrailEnabled: false,
+    projectileSpriteDetail: false,
+    ambientOverlayEnabled: false,
+    celebrationParticles: false,
     enemyHitGlow: false,
     levelUpParticleStride: 4,
+    lightningGlow: false,
+    vignette: false,
+  }),
+  low: Object.freeze({
+    maxDpr: 1,
+    renderScale: 0.68,
+    renderFrameIntervalMs: 34,
+    foregroundSimBudgetMs: 48,
+    environmentParticleScale: 0,
+    environmentUpdateIntervalMult: 2.4,
+    fogLayerCount: 0,
+    projectileTrailStride: 4,
+    projectileTrailMaxPoints: 0,
+    projectileTrailGlow: false,
+    projectileStreak: false,
+    projectileAura: false,
+    projectileAuraScale: 0.45,
+    projectileTrailEnabled: false,
+    projectileSpriteDetail: false,
+    ambientOverlayEnabled: false,
+    celebrationParticles: false,
+    enemyHitGlow: false,
+    levelUpParticleStride: 5,
+    lightningGlow: false,
+    vignette: false,
+  }),
+  very_low: Object.freeze({
+    maxDpr: 1,
+    renderScale: 0.58,
+    renderFrameIntervalMs: 42,
+    foregroundSimBudgetMs: 40,
+    environmentParticleScale: 0,
+    environmentUpdateIntervalMult: 2.8,
+    fogLayerCount: 0,
+    projectileTrailStride: 4,
+    projectileTrailMaxPoints: 0,
+    projectileTrailGlow: false,
+    projectileStreak: false,
+    projectileAura: false,
+    projectileAuraScale: 0.4,
+    projectileTrailEnabled: false,
+    projectileSpriteDetail: false,
+    ambientOverlayEnabled: false,
+    celebrationParticles: false,
+    enemyHitGlow: false,
+    levelUpParticleStride: 6,
     lightningGlow: false,
     vignette: false,
   }),
@@ -339,6 +442,7 @@ const BALL_CONFIG_BY_TYPE = {
     spritePath: "assets/items/hyper_ball.png",
   },
 };
+const COMING_SOON_BALL_TYPES = new Set(["super_ball", "hyper_ball"]);
 const EVOLUTION_STONE_CONFIG_BY_TYPE = {
   water_stone: {
     type: "water_stone",
@@ -589,6 +693,14 @@ const appearanceShinyToggleButtonEl = document.getElementById("appearance-shiny-
 const appearanceShinyStatusEl = document.getElementById("appearance-shiny-status");
 const appearanceGridEl = document.getElementById("appearance-grid");
 const notificationStackEl = document.getElementById("notification-stack");
+const tutorialModalEl = document.getElementById("tutorial-modal");
+const tutorialTitleEl = document.getElementById("tutorial-title");
+const tutorialPageTitleEl = document.getElementById("tutorial-page-title");
+const tutorialBodyEl = document.getElementById("tutorial-body");
+const tutorialProgressEl = document.getElementById("tutorial-progress");
+const tutorialPrevButtonEl = document.getElementById("tutorial-prev-btn");
+const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
+const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
 const linkSaveFileButtonLabelEl = linkSaveFileButtonEl?.querySelector(".btn-label") || null;
 const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
@@ -613,6 +725,7 @@ const state = {
   viewport: { width: 960, height: 540, dpr: 1 },
   layout: null,
   lastFrameTimestamp: 0,
+  lastRenderTimestamp: 0,
   realClockLastMs: 0,
   pendingSimMs: 0,
   lastHudAutoUpdateMs: 0,
@@ -622,7 +735,7 @@ const state = {
     shortFrameMsEma: TARGET_FRAME_MS,
     longFrameMsEma: TARGET_FRAME_MS,
     cpuFrameMsEma: TARGET_FRAME_MS,
-    quality: "high",
+    quality: "low",
     switchCooldownMs: 0,
     slowFrameStreak: 0,
     fastFrameStreak: 0,
@@ -637,6 +750,14 @@ const state = {
     nextEvolutionScanMs: 0,
   },
   teamLevelUpEffects: [],
+  teamXpGainEffects: [],
+  teamXpPulseMsBySlot: {},
+  xpHud: {
+    teamXpBySlot: {},
+    enemyHpKey: null,
+    enemyHpFrontRatio: 1,
+    enemyHpLagRatio: 1,
+  },
   moneyHud: {
     initialized: false,
     targetValue: 0,
@@ -647,6 +768,10 @@ const state = {
   evolutionAnimation: {
     current: null,
     queue: [],
+  },
+  tutorial: {
+    queue: [],
+    active: null,
   },
   backgroundDrift: {
     routeId: null,
@@ -676,6 +801,7 @@ const state = {
     appearanceOpen: false,
     appearanceTargetSlotIndex: -1,
     appearancePokemonId: null,
+    tutorialOpen: false,
   },
   saveBackend: {
     fileHandle: null,
@@ -690,8 +816,8 @@ function clamp(value, min, max) {
 }
 
 function getRenderQualitySettings() {
-  const key = String(state.performance?.quality || "high");
-  return RENDER_QUALITY_PRESETS[key] || RENDER_QUALITY_PRESETS.medium;
+  const key = String(state.performance?.quality || "low");
+  return RENDER_QUALITY_PRESETS[key] || RENDER_QUALITY_PRESETS.low;
 }
 
 function getRenderQualityRank(qualityKey) {
@@ -715,8 +841,7 @@ function setRenderQualityByRank(rank) {
   return true;
 }
 
-function getInitialRenderQualityForDevice() {
-  let rank = getRenderQualityRank("high");
+function getMaxAutomaticRenderQualityRank() {
   const coreCount = Math.max(1, toSafeInt(navigator?.hardwareConcurrency, 0));
   const memoryRaw = Number(navigator?.deviceMemory || 0);
   const memoryGb = Number.isFinite(memoryRaw) && memoryRaw > 0 ? memoryRaw : null;
@@ -725,26 +850,49 @@ function getInitialRenderQualityForDevice() {
   const coarsePointer =
     typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
 
+  if (!coarsePointer && coreCount >= 8 && (memoryGb === null || memoryGb >= 8) && minSide >= 900 && dpr <= 1.5) {
+    return getRenderQualityRank("high");
+  }
+  return getRenderQualityRank("medium");
+}
+
+function getInitialRenderQualityForDevice() {
+  const maxAutomaticRank = getMaxAutomaticRenderQualityRank();
+  let rank = Math.min(maxAutomaticRank, getRenderQualityRank("medium"));
+  const coreCount = Math.max(1, toSafeInt(navigator?.hardwareConcurrency, 0));
+  const memoryRaw = Number(navigator?.deviceMemory || 0);
+  const memoryGb = Number.isFinite(memoryRaw) && memoryRaw > 0 ? memoryRaw : null;
+  const minSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+  const dpr = Math.max(1, Number(window.devicePixelRatio || 1));
+  const coarsePointer =
+    typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+
+  if ((memoryGb !== null && memoryGb <= 4) || coreCount <= 6) {
+    rank = Math.min(rank, getRenderQualityRank("low"));
+  }
   if ((memoryGb !== null && memoryGb <= 2) || coreCount <= 4) {
-    rank = Math.min(rank, getRenderQualityRank("medium"));
+    rank = Math.min(rank, getRenderQualityRank("low"));
   }
   if ((memoryGb !== null && memoryGb <= 1) || coreCount <= 2) {
-    rank = Math.min(rank, getRenderQualityRank("low"));
+    rank = Math.min(rank, getRenderQualityRank("very_low"));
   }
   if (coarsePointer) {
-    rank = Math.min(rank, getRenderQualityRank("medium"));
-  }
-  if (coarsePointer && minSide > 0 && minSide <= 430) {
     rank = Math.min(rank, getRenderQualityRank("low"));
   }
+  if (coarsePointer && minSide > 0 && minSide <= 430) {
+    rank = Math.min(rank, getRenderQualityRank("very_low"));
+  }
   if (minSide > 0 && minSide <= 720) {
-    rank = Math.min(rank, getRenderQualityRank("high"));
+    rank = Math.min(rank, getRenderQualityRank("low"));
   }
   if (dpr >= 2.4) {
-    rank = Math.min(rank, getRenderQualityRank("high"));
+    rank = Math.min(rank, getRenderQualityRank("low"));
+  }
+  if (dpr >= 3) {
+    rank = Math.min(rank, getRenderQualityRank("very_low"));
   }
 
-  return RENDER_QUALITY_ORDER[rank] || "medium";
+  return RENDER_QUALITY_ORDER[Math.min(rank, maxAutomaticRank)] || "low";
 }
 
 function applyInitialPerformanceProfile() {
@@ -760,6 +908,27 @@ function getForegroundSimulationBudgetMs() {
   const quality = getRenderQualitySettings();
   const budget = Number(quality.foregroundSimBudgetMs);
   return clamp(Number.isFinite(budget) ? budget : 68, 24, 120);
+}
+
+function shouldRenderAmbientOverlays() {
+  return Boolean(getRenderQualitySettings().ambientOverlayEnabled);
+}
+
+function shouldRenderCelebrationParticles() {
+  return Boolean(getRenderQualitySettings().celebrationParticles);
+}
+
+function getProjectileTrailMaxPointsForQuality() {
+  const quality = getRenderQualitySettings();
+  if (!quality.projectileTrailEnabled) {
+    return 0;
+  }
+  return Math.max(0, toSafeInt(quality.projectileTrailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS));
+}
+
+function getRenderFrameIntervalMs() {
+  const value = Number(getRenderQualitySettings().renderFrameIntervalMs);
+  return clamp(Number.isFinite(value) ? value : TARGET_FRAME_MS, 16, 56);
 }
 
 function updateRenderQualityFromFrame(frameDeltaMs, cpuFrameMs = frameDeltaMs) {
@@ -813,6 +982,7 @@ function updateRenderQualityFromFrame(frameDeltaMs, cpuFrameMs = frameDeltaMs) {
   }
 
   const currentRank = getRenderQualityRank(perf.quality);
+  const maxAutomaticRank = getMaxAutomaticRenderQualityRank();
   if (perf.slowFrameStreak >= PERF_DOWNGRADE_STREAK && currentRank > 0) {
     const downgradeStep = overBudgetMs > PERF_VERY_SLOW_FRAME_MARGIN_MS ? 2 : 1;
     const nextRank = Math.max(0, currentRank - downgradeStep);
@@ -824,8 +994,8 @@ function updateRenderQualityFromFrame(frameDeltaMs, cpuFrameMs = frameDeltaMs) {
     return;
   }
 
-  if (perf.fastFrameStreak >= PERF_UPGRADE_STREAK && currentRank < RENDER_QUALITY_ORDER.length - 1) {
-    const nextRank = Math.min(RENDER_QUALITY_ORDER.length - 1, currentRank + 1);
+  if (perf.fastFrameStreak >= PERF_UPGRADE_STREAK && currentRank < maxAutomaticRank) {
+    const nextRank = Math.min(maxAutomaticRank, currentRank + 1);
     if (setRenderQualityByRank(nextRank)) {
       perf.switchCooldownMs = PERF_SWITCH_COOLDOWN_MS * 1.35;
       perf.slowFrameStreak = 0;
@@ -953,7 +1123,7 @@ function setMoneyCounterTextValue(value) {
 
 function spawnMoneyGainFloater(amount) {
   const gain = Math.max(0, toSafeInt(amount, 0));
-  if (gain <= 0) {
+  if (gain <= 0 || !shouldRenderCelebrationParticles()) {
     return;
   }
   const layer = getMoneyAnimationLayer();
@@ -994,8 +1164,6 @@ function refreshMoneyCounterTransform() {
   const pulse = Math.sin((1 - ratio) * Math.PI);
   const scale = 1 + pulse * 0.18;
   moneyValueEl.style.transform = `scale(${scale.toFixed(3)})`;
-  moneyValueEl.style.filter = `drop-shadow(0 0 ${Math.round(5 + pulse * 8)}px rgba(120, 215, 255, 0.42))`;
-  moneyValueEl.style.textShadow = `0 0 ${Math.round(4 + pulse * 6)}px rgba(120, 220, 255, 0.35)`;
 }
 
 function updateMoneyHudAnimation(deltaMs) {
@@ -1170,6 +1338,7 @@ function enqueueEvolutionReadyNotification(candidate) {
     toId,
     createdAt: state.timeMs,
   });
+  queueEvolutionTutorialIfNeeded();
   state.notifications.dirty = true;
   renderNotificationStackUi();
   return id;
@@ -1923,6 +2092,26 @@ function normalizeBallInventory(rawInventory) {
   return normalized;
 }
 
+function computeBallInventoryTotal(ballInventory) {
+  if (!ballInventory || typeof ballInventory !== "object") {
+    return 0;
+  }
+  return Object.values(ballInventory).reduce((sum, count) => sum + Math.max(0, toSafeInt(count, 0)), 0);
+}
+
+function hasStructuredBallInventory(rawInventory) {
+  if (!rawInventory || typeof rawInventory !== "object") {
+    return false;
+  }
+  const defaultInventory = createDefaultBallInventory();
+  return Object.keys(defaultInventory).some((key) => Object.prototype.hasOwnProperty.call(rawInventory, key));
+}
+
+function isBallTypeComingSoon(ballType) {
+  const type = String(ballType || "").toLowerCase().trim();
+  return COMING_SOON_BALL_TYPES.has(type);
+}
+
 function createDefaultShopItemsInventory() {
   return {
     water_stone: 0,
@@ -1936,6 +2125,51 @@ function normalizeShopItemsInventory(rawInventory) {
   const source = rawInventory && typeof rawInventory === "object" ? rawInventory : {};
   for (const key of Object.keys(normalized)) {
     normalized[key] = Math.max(0, toSafeInt(source[key], 0));
+  }
+  return normalized;
+}
+
+function createDefaultTutorialProgress() {
+  return {
+    route1_intro_seen: false,
+    evolution_intro_seen: false,
+    appearance_intro_seen: false,
+    appearance_editor_unlocked: false,
+  };
+}
+
+function hasUnlockedEntityAtLeastLevelFromRecords(rawEntities, minLevel = APPEARANCE_UNLOCK_LEVEL) {
+  if (!rawEntities || typeof rawEntities !== "object") {
+    return false;
+  }
+  const targetLevel = clamp(toSafeInt(minLevel, APPEARANCE_UNLOCK_LEVEL), 1, MAX_LEVEL);
+  for (const [rawId, rawRecord] of Object.entries(rawEntities)) {
+    const pokemonId = Number(rawRecord?.id || rawId || 0);
+    if (pokemonId <= 0) {
+      continue;
+    }
+    const record = normalizePokemonEntityRecord(rawRecord, pokemonId);
+    if (!isEntityUnlocked(record)) {
+      continue;
+    }
+    const level = clamp(toSafeInt(record.level, 1), 1, MAX_LEVEL);
+    if (level >= targetLevel) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function normalizeTutorialProgress(rawTutorials, rawEntities = null) {
+  const source = rawTutorials && typeof rawTutorials === "object" ? rawTutorials : {};
+  const normalized = createDefaultTutorialProgress();
+  normalized.route1_intro_seen = Boolean(source.route1_intro_seen);
+  normalized.evolution_intro_seen = Boolean(source.evolution_intro_seen);
+  normalized.appearance_intro_seen = Boolean(source.appearance_intro_seen);
+  normalized.appearance_editor_unlocked = Boolean(source.appearance_editor_unlocked);
+
+  if (hasUnlockedEntityAtLeastLevelFromRecords(rawEntities, APPEARANCE_UNLOCK_LEVEL)) {
+    normalized.appearance_editor_unlocked = true;
   }
   return normalized;
 }
@@ -1960,6 +2194,7 @@ function createEmptySave() {
     shop_items: createDefaultShopItemsInventory(),
     attack_boost_until_ms: 0,
     pokeballs: 0,
+    tutorials: createDefaultTutorialProgress(),
   };
 }
 
@@ -2133,7 +2368,7 @@ function normalizeSave(rawSave) {
 
   const ballInventory = normalizeBallInventory(rawSave.ball_inventory);
   const legacyPokeballs = getLegacyPokeballCount(rawSave);
-  const currentInventoryTotal = Object.values(ballInventory).reduce((sum, count) => sum + Math.max(0, toSafeInt(count, 0)), 0);
+  const currentInventoryTotal = computeBallInventoryTotal(ballInventory);
   if (currentInventoryTotal <= 0 && legacyPokeballs > 0) {
     ballInventory.poke_ball = legacyPokeballs;
   }
@@ -2144,7 +2379,8 @@ function normalizeSave(rawSave) {
     : "poke_ball";
   const shopItems = normalizeShopItemsInventory(rawSave.shop_items);
   const attackBoostUntilMs = Math.max(0, toSafeInt(rawSave.attack_boost_until_ms, 0));
-  const totalPokeballs = Object.values(ballInventory).reduce((sum, count) => sum + Math.max(0, toSafeInt(count, 0)), 0);
+  const totalPokeballs = computeBallInventoryTotal(ballInventory);
+  const tutorials = normalizeTutorialProgress(rawSave.tutorials, entities);
 
   return {
     version: SAVE_VERSION,
@@ -2162,7 +2398,256 @@ function normalizeSave(rawSave) {
     shop_items: shopItems,
     attack_boost_until_ms: attackBoostUntilMs,
     pokeballs: Math.max(0, totalPokeballs),
+    tutorials,
   };
+}
+
+function getTutorialFlowDefinition(flowId) {
+  return TUTORIAL_FLOW_DEFINITIONS[String(flowId || "")] || null;
+}
+
+function getTutorialProgress() {
+  if (!state.saveData) {
+    return createDefaultTutorialProgress();
+  }
+  state.saveData.tutorials = normalizeTutorialProgress(state.saveData.tutorials, state.saveData.pokemon_entities);
+  return state.saveData.tutorials;
+}
+
+function isTutorialFlowSeen(flowId) {
+  const flow = getTutorialFlowDefinition(flowId);
+  if (!flow) {
+    return true;
+  }
+  const tutorials = getTutorialProgress();
+  return Boolean(tutorials[flow.saveFlag]);
+}
+
+function markTutorialFlowSeen(flowId) {
+  const flow = getTutorialFlowDefinition(flowId);
+  if (!flow || !state.saveData) {
+    return false;
+  }
+  const tutorials = getTutorialProgress();
+  if (tutorials[flow.saveFlag]) {
+    return false;
+  }
+  tutorials[flow.saveFlag] = true;
+  return true;
+}
+
+function hasUnlockedEntityAtLeastLevel(minLevel = APPEARANCE_UNLOCK_LEVEL) {
+  return hasUnlockedEntityAtLeastLevelFromRecords(state.saveData?.pokemon_entities, minLevel);
+}
+
+function isAppearanceEditorUnlocked() {
+  const tutorials = getTutorialProgress();
+  return Boolean(tutorials.appearance_editor_unlocked);
+}
+
+function isTutorialFlowQueuedOrActive(flowId) {
+  const id = String(flowId || "");
+  if (!id) {
+    return false;
+  }
+  if (String(state.tutorial.active?.flowId || "") === id) {
+    return true;
+  }
+  return Array.isArray(state.tutorial.queue)
+    && state.tutorial.queue.some((entry) => String(entry?.flowId || "") === id);
+}
+
+function enqueueTutorialFlow(flowId) {
+  if (!state.saveData) {
+    return false;
+  }
+  const flow = getTutorialFlowDefinition(flowId);
+  if (!flow) {
+    return false;
+  }
+  if (isTutorialFlowSeen(flowId) || isTutorialFlowQueuedOrActive(flowId)) {
+    return false;
+  }
+  state.tutorial.queue.push({
+    flowId: String(flowId),
+    pageIndex: 0,
+  });
+  return true;
+}
+
+function isStarterModalVisible() {
+  return Boolean(starterModalEl && !starterModalEl.classList.contains("hidden"));
+}
+
+function canOpenTutorialModalNow() {
+  if (!tutorialModalEl || !state.saveData || state.mode !== "ready") {
+    return false;
+  }
+  if (!state.saveData.starter_chosen || isStarterModalVisible()) {
+    return false;
+  }
+  if (state.ui.tutorialOpen) {
+    return false;
+  }
+  if (state.evolutionAnimation.current) {
+    return false;
+  }
+  if (state.ui.mapOpen || state.ui.shopOpen || state.ui.boxesOpen || state.ui.appearanceOpen) {
+    return false;
+  }
+  return true;
+}
+
+function renderTutorialModal() {
+  if (!tutorialModalEl || !state.ui.tutorialOpen) {
+    return;
+  }
+  const active = state.tutorial.active;
+  const flow = getTutorialFlowDefinition(active?.flowId);
+  if (!active || !flow) {
+    return;
+  }
+  const pages = Array.isArray(flow.pages) ? flow.pages : [];
+  const pageCount = Math.max(1, pages.length);
+  const pageIndex = clamp(toSafeInt(active.pageIndex, 0), 0, pageCount - 1);
+  state.tutorial.active.pageIndex = pageIndex;
+  const page = pages[pageIndex] || pages[0] || { title: "Tuto", lines: [] };
+
+  if (tutorialTitleEl) {
+    tutorialTitleEl.textContent = flow.title || "Tuto";
+  }
+  if (tutorialPageTitleEl) {
+    tutorialPageTitleEl.textContent = page.title || "";
+  }
+  if (tutorialProgressEl) {
+    tutorialProgressEl.textContent = `Etape ${pageIndex + 1}/${pageCount}`;
+  }
+  if (tutorialBodyEl) {
+    tutorialBodyEl.innerHTML = "";
+    const lines = Array.isArray(page.lines) ? page.lines : [];
+    if (lines.length <= 0) {
+      const fallback = document.createElement("p");
+      fallback.textContent = "Aucune information supplementaire.";
+      tutorialBodyEl.appendChild(fallback);
+    } else {
+      const list = document.createElement("ul");
+      list.className = "tutorial-list";
+      for (const line of lines) {
+        const item = document.createElement("li");
+        item.textContent = String(line || "");
+        list.appendChild(item);
+      }
+      tutorialBodyEl.appendChild(list);
+    }
+  }
+  if (tutorialPrevButtonEl) {
+    tutorialPrevButtonEl.disabled = pageIndex <= 0;
+  }
+  if (tutorialNextButtonEl) {
+    tutorialNextButtonEl.textContent = pageIndex >= pageCount - 1 ? "Terminer" : "Suivant";
+  }
+}
+
+function closeTutorialModal() {
+  state.ui.tutorialOpen = false;
+  state.tutorial.active = null;
+  if (tutorialModalEl) {
+    tutorialModalEl.classList.add("hidden");
+  }
+  if (tutorialBodyEl) {
+    tutorialBodyEl.innerHTML = "";
+  }
+  tryOpenPendingTutorialFlow();
+}
+
+function openTutorialFlow(flowId, initialPage = 0) {
+  const flow = getTutorialFlowDefinition(flowId);
+  if (!flow || !canOpenTutorialModalNow()) {
+    return false;
+  }
+  if (isTutorialFlowSeen(flowId)) {
+    return false;
+  }
+  markTutorialFlowSeen(flowId);
+  hideHoverPopup();
+  setMapOpen(false);
+  setShopOpen(false);
+  closeBoxesModal();
+  closeAppearanceModal();
+  state.tutorial.active = {
+    flowId: String(flowId),
+    pageIndex: clamp(toSafeInt(initialPage, 0), 0, Math.max(0, (flow.pages?.length || 1) - 1)),
+  };
+  state.ui.tutorialOpen = true;
+  tutorialModalEl.classList.remove("hidden");
+  renderTutorialModal();
+  persistSaveDataForSimulationEvent();
+  return true;
+}
+
+function tryOpenPendingTutorialFlow() {
+  if (!canOpenTutorialModalNow()) {
+    return false;
+  }
+  while (Array.isArray(state.tutorial.queue) && state.tutorial.queue.length > 0) {
+    const next = state.tutorial.queue.shift();
+    const flowId = String(next?.flowId || "");
+    if (!flowId || isTutorialFlowSeen(flowId)) {
+      continue;
+    }
+    return openTutorialFlow(flowId, toSafeInt(next?.pageIndex, 0));
+  }
+  return false;
+}
+
+function queueRoute1TutorialIfNeeded(routeId = state.routeData?.route_id) {
+  if (!state.saveData || String(routeId || "") !== ROUTE_1_TUTORIAL_ID) {
+    return false;
+  }
+  const queued = enqueueTutorialFlow(TUTORIAL_FLOW_ROUTE_1);
+  if (queued) {
+    tryOpenPendingTutorialFlow();
+  }
+  return queued;
+}
+
+function queueEvolutionTutorialIfNeeded() {
+  if (!state.saveData) {
+    return false;
+  }
+  const queued = enqueueTutorialFlow(TUTORIAL_FLOW_EVOLUTION);
+  if (queued) {
+    tryOpenPendingTutorialFlow();
+  }
+  return queued;
+}
+
+function queueAppearanceTutorialIfNeeded() {
+  if (!state.saveData || !isAppearanceEditorUnlocked()) {
+    return false;
+  }
+  const queued = enqueueTutorialFlow(TUTORIAL_FLOW_APPEARANCE);
+  if (queued) {
+    tryOpenPendingTutorialFlow();
+  }
+  return queued;
+}
+
+function ensureAppearanceEditorUnlockedFromProgress() {
+  if (!state.saveData) {
+    return false;
+  }
+  const tutorials = getTutorialProgress();
+  if (tutorials.appearance_editor_unlocked) {
+    queueAppearanceTutorialIfNeeded();
+    return false;
+  }
+  if (!hasUnlockedEntityAtLeastLevel(APPEARANCE_UNLOCK_LEVEL)) {
+    return false;
+  }
+  tutorials.appearance_editor_unlocked = true;
+  queueAppearanceTutorialIfNeeded();
+  return true;
 }
 
 function supportsLocalFileSaveApi() {
@@ -2726,6 +3211,17 @@ function incrementRouteDefeatCount(routeId, amount = 1) {
   return counts[id];
 }
 
+function setRouteDefeatCount(routeId, value = 0) {
+  if (!state.saveData) {
+    return 0;
+  }
+  const counts = ensureRouteDefeatCountsForCurrentCatalog();
+  const id = String(routeId || DEFAULT_ROUTE_ID);
+  counts[id] = Math.max(0, toSafeInt(value, 0));
+  state.saveData.route_defeat_counts = counts;
+  return counts[id];
+}
+
 function getRouteOrderIndex(routeId) {
   const id = String(routeId || DEFAULT_ROUTE_ID);
   return getOrderedCatalogRouteIds().indexOf(id);
@@ -2808,6 +3304,32 @@ function getRouteUnlockMode(routeId) {
 function getRouteUnlockDefeatTarget(routeId) {
   const routeData = getRouteDataById(routeId) || state.routeData;
   return Math.max(1, toSafeInt(routeData?.unlock_defeats_required, ROUTE_UNLOCK_DEFEATS));
+}
+
+function getRouteUnlockProgressState(routeId) {
+  const currentRouteId = String(routeId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
+  const nextRouteId = getNextRouteId(currentRouteId);
+  const unlockMode = getRouteUnlockMode(currentRouteId);
+  const unlockTarget = unlockMode === "visit" ? 0 : getRouteUnlockDefeatTarget(currentRouteId);
+  const rawDefeats = unlockTarget > 0 ? getRouteDefeatCount(currentRouteId) : 0;
+  const currentDefeats = unlockTarget > 0 ? Math.min(rawDefeats, unlockTarget) : 0;
+  const nextUnlocked = nextRouteId ? isRouteUnlocked(nextRouteId) : false;
+  const routeData = getRouteDataById(currentRouteId) || (state.routeData?.route_id === currentRouteId ? state.routeData : null);
+  const timerEnabled = Boolean(state.saveData) && Boolean(nextRouteId) && unlockMode === "defeats" && !nextUnlocked;
+  const timerDurationMs = timerEnabled
+    ? Math.max(1000, toSafeInt(routeData?.unlock_timer_ms, ROUTE_DEFEAT_TIMER_MS))
+    : 0;
+  return {
+    routeId: currentRouteId,
+    nextRouteId,
+    unlockMode,
+    unlockTarget,
+    currentDefeats,
+    rawDefeats,
+    nextUnlocked,
+    timerEnabled,
+    timerDurationMs,
+  };
 }
 
 function getRouteMapMarker(routeId) {
@@ -3122,13 +3644,11 @@ function ensureMoneyAndItems() {
     return;
   }
   state.saveData.money = Math.max(0, toSafeInt(state.saveData.money, 0));
-  const normalizedBallInventory = normalizeBallInventory(state.saveData.ball_inventory);
+  const rawBallInventory = state.saveData.ball_inventory;
+  const normalizedBallInventory = normalizeBallInventory(rawBallInventory);
   const legacyBalls = Math.max(0, toSafeInt(state.saveData.pokeballs, 0));
-  const normalizedInventoryTotal = Object.values(normalizedBallInventory).reduce(
-    (sum, count) => sum + Math.max(0, toSafeInt(count, 0)),
-    0,
-  );
-  if (normalizedInventoryTotal <= 0 && legacyBalls > 0) {
+  const normalizedInventoryTotal = computeBallInventoryTotal(normalizedBallInventory);
+  if (!hasStructuredBallInventory(rawBallInventory) && normalizedInventoryTotal <= 0 && legacyBalls > 0) {
     normalizedBallInventory.poke_ball += legacyBalls;
   }
   state.saveData.ball_inventory = normalizedBallInventory;
@@ -3138,10 +3658,7 @@ function ensureMoneyAndItems() {
   state.saveData.active_ball_type = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, activeBallType)
     ? activeBallType
     : "poke_ball";
-  state.saveData.pokeballs = Object.values(normalizedBallInventory).reduce(
-    (sum, count) => sum + Math.max(0, toSafeInt(count, 0)),
-    0,
-  );
+  state.saveData.pokeballs = computeBallInventoryTotal(normalizedBallInventory);
 }
 
 function getBallInventoryCount(ballType) {
@@ -3161,7 +3678,7 @@ function getBallInventoryTotalCount() {
     return 0;
   }
   ensureMoneyAndItems();
-  return Object.values(state.saveData.ball_inventory || {}).reduce((sum, count) => sum + Math.max(0, toSafeInt(count, 0)), 0);
+  return computeBallInventoryTotal(state.saveData.ball_inventory);
 }
 
 function setActiveBallType(ballType) {
@@ -3195,7 +3712,7 @@ function addBallItems(ballType, amount) {
   ensureMoneyAndItems();
   const delta = Math.max(0, toSafeInt(amount, 0));
   state.saveData.ball_inventory[type] = Math.max(0, toSafeInt(state.saveData.ball_inventory[type], 0)) + delta;
-  state.saveData.pokeballs = getBallInventoryTotalCount();
+  state.saveData.pokeballs = computeBallInventoryTotal(state.saveData.ball_inventory);
 }
 
 function consumeBallItem(ballType, amount = 1) {
@@ -3213,7 +3730,7 @@ function consumeBallItem(ballType, amount = 1) {
     return false;
   }
   state.saveData.ball_inventory[type] = current - qty;
-  state.saveData.pokeballs = getBallInventoryTotalCount();
+  state.saveData.pokeballs = computeBallInventoryTotal(state.saveData.ball_inventory);
   return true;
 }
 
@@ -3762,6 +4279,29 @@ function queueEvolutionAnimationForResult(evolutionResult) {
   if (!evolutionResult || !evolutionResult.fromDef || !evolutionResult.toDef) {
     return;
   }
+  const particles = [];
+  const particleCount = shouldRenderCelebrationParticles()
+    ? EVOLUTION_ANIM_PARTICLE_COUNT
+    : Math.max(8, Math.round(EVOLUTION_ANIM_PARTICLE_COUNT * 0.65));
+  const particleColors = [
+    [145, 212, 255],
+    [255, 243, 172],
+    [214, 185, 255],
+  ];
+  for (let i = 0; i < particleCount; i += 1) {
+    particles.push({
+      startMs: randomRange(0, EVOLUTION_ANIM_TOTAL_MS * 0.68),
+      durationMs: randomRange(760, 1320),
+      baseAngle: randomRange(0, Math.PI * 2),
+      spinTurns: randomRange(0.45, 1.15) * (Math.random() < 0.5 ? -1 : 1),
+      radiusStart: randomRange(0.16, 0.34),
+      radiusGrow: randomRange(0.12, 0.26),
+      lift: randomRange(0.1, 0.24),
+      heightOffset: randomRange(-0.12, 0.18),
+      size: randomRange(1.5, 3.2),
+      color: particleColors[i % particleColors.length],
+    });
+  }
   state.evolutionAnimation.queue.push({
     fromId: evolutionResult.fromId,
     toId: evolutionResult.toId,
@@ -3771,6 +4311,7 @@ function queueEvolutionAnimationForResult(evolutionResult) {
     toNameFr: evolutionResult.toNameFr,
     elapsedMs: 0,
     totalMs: EVOLUTION_ANIM_TOTAL_MS,
+    particles,
   });
 }
 
@@ -3882,6 +4423,7 @@ function queueTeamLevelUpEffects(levelUps) {
   }
   const layout = state.layout || computeLayout();
   const slots = Array.isArray(layout?.teamSlots) ? layout.teamSlots : [];
+  const celebrationParticles = shouldRenderCelebrationParticles();
 
   for (const entry of levelUps) {
     const slotIndex = toSafeInt(entry?.slotIndex, -1);
@@ -3895,7 +4437,7 @@ function queueTeamLevelUpEffects(levelUps) {
     const centerX = slot.x;
     const centerY = slot.y - slot.size * 0.04;
     const particles = [];
-    const particleCount = 22;
+    const particleCount = celebrationParticles ? 12 : 0;
     for (let i = 0; i < particleCount; i += 1) {
       const angle = randomRange(-Math.PI * 0.92, -Math.PI * 0.08);
       const speed = randomRange(36, 128);
@@ -3919,6 +4461,43 @@ function queueTeamLevelUpEffects(levelUps) {
       ringRadius: slot.size * 0.14,
       ringGrow: slot.size * 0.62,
       particles,
+    });
+  }
+}
+
+function queueTeamXpGainEffects(xpGains, options = {}) {
+  if (!Array.isArray(xpGains) || xpGains.length <= 0) {
+    return;
+  }
+  const layout = state.layout || computeLayout();
+  const slots = Array.isArray(layout?.teamSlots) ? layout.teamSlots : [];
+  const tone = String(options.tone || "defeat");
+
+  for (const gain of xpGains) {
+    const slotIndex = toSafeInt(gain?.slotIndex, -1);
+    if (slotIndex < 0 || slotIndex >= slots.length) {
+      continue;
+    }
+    const slot = slots[slotIndex];
+    if (!slot) {
+      continue;
+    }
+    const amount = Math.max(0, toSafeInt(gain?.amount, 0));
+    if (amount <= 0) {
+      continue;
+    }
+    const gainedLevels = Math.max(0, toSafeInt(gain?.gainedLevels, 0));
+    const text = gainedLevels > 0 ? `+${amount} XP | Niv +${gainedLevels}` : `+${amount} XP`;
+    state.teamXpGainEffects.push({
+      x: slot.x,
+      y: slot.y - slot.size * 0.24,
+      baseY: slot.y - slot.size * 0.24,
+      text,
+      tone,
+      lifeMs: TEAM_XP_GAIN_EFFECT_DURATION_MS,
+      maxLifeMs: TEAM_XP_GAIN_EFFECT_DURATION_MS,
+      floatY: randomRange(-34, -50),
+      particles: [],
     });
   }
 }
@@ -3953,6 +4532,23 @@ function updateTeamLevelUpEffects(deltaMs) {
   }
 
   state.teamLevelUpEffects = survivors;
+}
+
+function updateTeamXpGainEffects(deltaMs) {
+  if (!Array.isArray(state.teamXpGainEffects) || state.teamXpGainEffects.length <= 0) {
+    return;
+  }
+  const survivors = [];
+  for (const effect of state.teamXpGainEffects) {
+    effect.lifeMs -= deltaMs;
+    if (effect.lifeMs <= 0) {
+      continue;
+    }
+    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    effect.y = effect.baseY + (1 - lifeRatio) * effect.floatY;
+    survivors.push(effect);
+  }
+  state.teamXpGainEffects = survivors;
 }
 
 function computeCaptureXpReward(enemy) {
@@ -3997,13 +4593,18 @@ function applyExperienceToEntity(record, amount) {
   return { gainedLevels, newLevel: record.level };
 }
 
-function awardCaptureXpToTeam(enemy) {
+function awardCaptureXpToTeam(enemy, options = {}) {
   if (!state.saveData || !Array.isArray(state.saveData.team) || state.saveData.team.length === 0) {
-    return { reward: 0, levelUps: [], evolutionReady: [] };
+    return { reward: 0, levelUps: [], evolutionReady: [], xpGains: [] };
   }
-  const reward = computeCaptureXpReward(enemy);
+  const overrideReward = Number(options.reward);
+  const reward = Number.isFinite(overrideReward)
+    ? Math.max(0, toSafeInt(overrideReward, 0))
+    : computeCaptureXpReward(enemy);
   const levelUps = [];
   const evolutionReady = [];
+  const xpGains = [];
+  let reachedAppearanceUnlockLevelNow = false;
   const teamSnapshot = state.saveData.team.slice(0, MAX_TEAM_SIZE).map((id) => Number(id));
 
   for (let slotIndex = 0; slotIndex < teamSnapshot.length; slotIndex += 1) {
@@ -4012,10 +4613,22 @@ function awardCaptureXpToTeam(enemy) {
       continue;
     }
     const record = ensureSpeciesStats(pokemonId);
+    const def = state.pokemonDefsById.get(Number(pokemonId));
     const beforeLevel = record.level;
     const result = applyExperienceToEntity(record, reward);
+    if (beforeLevel < APPEARANCE_UNLOCK_LEVEL && record.level >= APPEARANCE_UNLOCK_LEVEL) {
+      reachedAppearanceUnlockLevelNow = true;
+    }
+    if (reward > 0) {
+      xpGains.push({
+        id: Number(pokemonId),
+        slotIndex,
+        nameFr: def?.nameFr || `Pokemon ${pokemonId}`,
+        amount: reward,
+        gainedLevels: Math.max(0, toSafeInt(result.gainedLevels, 0)),
+      });
+    }
     if (result.gainedLevels > 0 && record.level > beforeLevel) {
-      const def = state.pokemonDefsById.get(Number(pokemonId));
       levelUps.push({
         id: Number(pokemonId),
         nameFr: def?.nameFr || `Pokemon ${pokemonId}`,
@@ -4048,8 +4661,10 @@ function awardCaptureXpToTeam(enemy) {
     }
   }
 
-  rebuildTeamAndSyncBattle();
-  return { reward, levelUps, evolutionReady };
+  const appearanceUnlockedNow = reachedAppearanceUnlockLevelNow
+    ? ensureAppearanceEditorUnlockedFromProgress()
+    : false;
+  return { reward, levelUps, evolutionReady, xpGains, appearanceUnlockedNow };
 }
 
 function computeCatchChance(catchRate, ballMultiplier = 1) {
@@ -4496,6 +5111,8 @@ class PokemonBattleManager {
     createEnemy,
     onEnemySpawn,
     onEnemyDefeated,
+    getEnemyTimerConfig,
+    onEnemyTimerExpired,
   }) {
     this.team = Array.isArray(team) ? team : [];
     this.attackIntervalMs = attackIntervalMs;
@@ -4504,6 +5121,8 @@ class PokemonBattleManager {
     this.createEnemy = typeof createEnemy === "function" ? createEnemy : () => null;
     this.onEnemySpawn = typeof onEnemySpawn === "function" ? onEnemySpawn : () => {};
     this.onEnemyDefeated = typeof onEnemyDefeated === "function" ? onEnemyDefeated : () => {};
+    this.getEnemyTimerConfig = typeof getEnemyTimerConfig === "function" ? getEnemyTimerConfig : () => ({ enabled: false });
+    this.onEnemyTimerExpired = typeof onEnemyTimerExpired === "function" ? onEnemyTimerExpired : () => {};
     this.turnIndex = 0;
     this.projectiles = [];
     this.floatingTexts = [];
@@ -4519,6 +5138,9 @@ class PokemonBattleManager {
     this.captureSequence = null;
     this.slotRecoil = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotAttackFlash = Array.from({ length: MAX_TEAM_SIZE }, () => null);
+    this.enemyTimerEnabled = false;
+    this.enemyTimerDurationMs = 0;
+    this.enemyTimerMs = 0;
     this.enemy = null;
     this.spawnEnemy();
   }
@@ -4558,6 +5180,67 @@ class PokemonBattleManager {
 
   isEnemyRespawning() {
     return this.pendingRespawnMs > 0;
+  }
+
+  getEnemyTimerConfigSnapshot() {
+    const raw = this.getEnemyTimerConfig ? this.getEnemyTimerConfig() : null;
+    const enabled = Boolean(raw?.enabled);
+    const durationMs = enabled ? Math.max(1000, toSafeInt(raw?.durationMs, ROUTE_DEFEAT_TIMER_MS)) : 0;
+    return { enabled, durationMs };
+  }
+
+  resetEnemyTimer() {
+    const config = this.getEnemyTimerConfigSnapshot();
+    this.enemyTimerEnabled = config.enabled;
+    this.enemyTimerDurationMs = config.durationMs;
+    this.enemyTimerMs = config.enabled ? config.durationMs : 0;
+  }
+
+  isEnemyTimerRunning() {
+    return this.enemyTimerEnabled && Boolean(this.enemy) && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning();
+  }
+
+  getEnemyTimerState() {
+    const durationMs = Math.max(0, toSafeInt(this.enemyTimerDurationMs, 0));
+    const remainingMs = Math.max(0, Number(this.enemyTimerMs) || 0);
+    const remainingRatio = durationMs > 0 ? clamp(remainingMs / durationMs, 0, 1) : 0;
+    return {
+      enabled: this.enemyTimerEnabled,
+      running: this.isEnemyTimerRunning(),
+      duration_ms: Math.round(durationMs),
+      remaining_ms: Math.round(remainingMs),
+      remaining_ratio: Math.round(remainingRatio * 1000) / 1000,
+    };
+  }
+
+  advanceEnemyTimer(deltaMs) {
+    if (!this.isEnemyTimerRunning()) {
+      return;
+    }
+    this.enemyTimerMs = Math.max(0, this.enemyTimerMs - Math.max(0, Number(deltaMs) || 0));
+  }
+
+  expireEnemyFromTimer() {
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return;
+    }
+    const expiredEnemy = this.enemy;
+    this.projectiles = [];
+    this.floatingTexts = [];
+    this.hitEffects = [];
+    this.enemyHitPulseMs = 0;
+    this.enemyDamageFlashMs = 0;
+    this.pendingRespawnMs = 0;
+    this.koAnimMs = 0;
+    this.defeatedEnemyName = null;
+    this.captureSequence = null;
+    this.lastImpact = null;
+    try {
+      this.onEnemyTimerExpired(expiredEnemy);
+    } catch {
+      // Ignore callback failures and continue the combat loop.
+    }
+    this.spawnEnemy();
   }
 
   buildCaptureTotalMs(captured) {
@@ -4776,6 +5459,58 @@ class PokemonBattleManager {
     );
   }
 
+  updateIdleCombat(deltaMs, layout) {
+    let remainingMs = Math.max(0, Number(deltaMs) || 0);
+    let safety = 0;
+    const safetyMax = Math.max(24, Math.ceil(remainingMs / Math.max(1, Math.min(this.attackIntervalMs, 250))) + 24);
+
+    while (remainingMs > 0.01 && safety < safetyMax) {
+      this.flushRespawnForIdleMode();
+      if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+        break;
+      }
+
+      const timeToAttack = Math.max(0, Number(this.attackTimerMs) || 0);
+      const timerRunning = this.isEnemyTimerRunning();
+      const timeToTimeout = timerRunning ? Math.max(0, Number(this.enemyTimerMs) || 0) : Number.POSITIVE_INFINITY;
+      let advanceMs = remainingMs;
+      if (timeToAttack <= 0) {
+        advanceMs = 0;
+      } else {
+        advanceMs = Math.min(advanceMs, timeToAttack);
+      }
+      if (timerRunning) {
+        if (timeToTimeout <= 0) {
+          advanceMs = 0;
+        } else {
+          advanceMs = Math.min(advanceMs, timeToTimeout);
+        }
+      }
+
+      if (advanceMs > 0) {
+        this.attackTimerMs -= advanceMs;
+        this.advanceEnemyTimer(advanceMs);
+        remainingMs -= advanceMs;
+      }
+
+      let eventHandled = false;
+      if (this.attackTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
+        this.simulateAttackTickInstant(layout);
+        this.attackTimerMs += this.attackIntervalMs;
+        eventHandled = true;
+      }
+      if (this.isEnemyTimerRunning() && this.enemyTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
+        this.expireEnemyFromTimer();
+        eventHandled = true;
+      }
+
+      safety += 1;
+      if (!eventHandled && advanceMs <= 0) {
+        break;
+      }
+    }
+  }
+
   update(deltaMs, layout, options = {}) {
     const idleMode = Boolean(options.idleMode);
     this.attackIntervalMs = Math.max(65, toSafeInt(this.getEffectiveAttackIntervalMs(), ATTACK_INTERVAL_MS));
@@ -4789,15 +5524,7 @@ class PokemonBattleManager {
     }
 
     if (idleMode) {
-      this.flushRespawnForIdleMode();
-      this.attackTimerMs -= deltaMs;
-      let safety = 0;
-      const safetyMax = Math.max(10, Math.floor(deltaMs / Math.max(1, this.attackIntervalMs)) + 10);
-      while (this.attackTimerMs <= 0 && safety < safetyMax) {
-        this.simulateAttackTickInstant(layout);
-        this.attackTimerMs += this.attackIntervalMs;
-        safety += 1;
-      }
+      this.updateIdleCombat(deltaMs, layout);
       this.projectiles = [];
       this.floatingTexts = [];
       this.hitEffects = [];
@@ -4810,6 +5537,7 @@ class PokemonBattleManager {
       return;
     }
 
+    this.advanceEnemyTimer(deltaMs);
     this.attackTimerMs -= deltaMs;
     while (this.attackTimerMs <= 0) {
       this.spawnNextProjectile(layout);
@@ -4817,6 +5545,9 @@ class PokemonBattleManager {
     }
 
     this.updateProjectiles(deltaMs, layout);
+    if (this.isEnemyTimerRunning() && this.enemyTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0) {
+      this.expireEnemyFromTimer();
+    }
   }
 
   updateKoTransition(deltaMs) {
@@ -4842,13 +5573,14 @@ class PokemonBattleManager {
       return;
     }
     const isCritical = Boolean(sequence.isCritical);
+    const celebrationParticles = shouldRenderCelebrationParticles();
 
     sequence.elapsedMs = Math.min(sequence.totalMs, sequence.elapsedMs + deltaMs);
     const shakeEnd = CAPTURE_THROW_MS + CAPTURE_SHAKE_MS;
 
     if (sequence.captured && !sequence.burstSpawned && sequence.elapsedMs >= shakeEnd) {
       sequence.burstSpawned = true;
-      const count = isCritical ? 52 : 32;
+      const count = celebrationParticles ? (isCritical ? 24 : 14) : 0;
       for (let i = 0; i < count; i += 1) {
         const angle = (Math.PI * 2 * i) / count + Math.random() * 0.35;
         const speed = (isCritical ? 120 : 90) + Math.random() * (isCritical ? 190 : 150);
@@ -4879,7 +5611,7 @@ class PokemonBattleManager {
 
     if (!sequence.captured && !sequence.breakSpawned && sequence.elapsedMs >= shakeEnd) {
       sequence.breakSpawned = true;
-      const pieces = 16;
+      const pieces = celebrationParticles ? 10 : 0;
       for (let i = 0; i < pieces; i += 1) {
         const angle = (Math.PI * 2 * i) / pieces + Math.random() * 0.42;
         const speed = 60 + Math.random() * 170;
@@ -5019,7 +5751,7 @@ class PokemonBattleManager {
       color,
     });
 
-    const launchCount = 8;
+    const launchCount = shouldRenderCelebrationParticles() ? 4 : 0;
     for (let i = 0; i < launchCount; i += 1) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 58 + Math.random() * 120;
@@ -5041,10 +5773,7 @@ class PokemonBattleManager {
   updateProjectiles(deltaMs, layout) {
     const survivors = [];
     const dt = deltaMs / 1000;
-    const trailMaxPoints = Math.max(
-      2,
-      toSafeInt(getRenderQualitySettings().projectileTrailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS),
-    );
+    const trailMaxPoints = getProjectileTrailMaxPointsForQuality();
 
     for (const projectile of this.projectiles) {
       projectile.prevX = projectile.x;
@@ -5052,26 +5781,30 @@ class PokemonBattleManager {
       projectile.targetX = layout.centerX;
       projectile.targetY = layout.centerY - layout.enemySize * 0.16;
       projectile.lifetimeMs += deltaMs;
-      const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
-      let writeIndex = 0;
-      for (const point of existingTrail) {
-        point.lifeMs -= deltaMs;
-        if (point.lifeMs > 0) {
-          existingTrail[writeIndex] = point;
-          writeIndex += 1;
+      if (trailMaxPoints > 0) {
+        const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
+        let writeIndex = 0;
+        for (const point of existingTrail) {
+          point.lifeMs -= deltaMs;
+          if (point.lifeMs > 0) {
+            existingTrail[writeIndex] = point;
+            writeIndex += 1;
+          }
         }
+        existingTrail.length = writeIndex;
+        existingTrail.push({
+          x: projectile.x,
+          y: projectile.y,
+          lifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
+          maxLifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
+        });
+        if (existingTrail.length > trailMaxPoints) {
+          existingTrail.splice(0, existingTrail.length - trailMaxPoints);
+        }
+        projectile.trail = existingTrail;
+      } else if (Array.isArray(projectile.trail) && projectile.trail.length > 0) {
+        projectile.trail.length = 0;
       }
-      existingTrail.length = writeIndex;
-      existingTrail.push({
-        x: projectile.x,
-        y: projectile.y,
-        lifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
-        maxLifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
-      });
-      if (existingTrail.length > trailMaxPoints) {
-        existingTrail.splice(0, existingTrail.length - trailMaxPoints);
-      }
-      projectile.trail = existingTrail;
 
       const dx = projectile.targetX - projectile.x;
       const dy = projectile.targetY - projectile.y;
@@ -5145,7 +5878,9 @@ class PokemonBattleManager {
       color,
     });
 
-    const particleCount = clamp(Math.round(6 + damage / 22), 6, 14);
+    const particleCount = shouldRenderCelebrationParticles()
+      ? clamp(Math.round(4 + damage / 28), 4, 8)
+      : 0;
     for (let i = 0; i < particleCount; i += 1) {
       const angle = Math.random() * Math.PI * 2;
       const speed = (85 + Math.random() * 190) * impactFactor;
@@ -5272,6 +6007,9 @@ class PokemonBattleManager {
     const source = this.createEnemy();
     if (!source) {
       this.enemy = null;
+      this.enemyTimerEnabled = false;
+      this.enemyTimerDurationMs = 0;
+      this.enemyTimerMs = 0;
       return;
     }
 
@@ -5287,6 +6025,7 @@ class PokemonBattleManager {
     this.koAnimMs = 0;
     this.defeatedEnemyName = null;
     this.captureSequence = null;
+    this.resetEnemyTimer();
     this.onEnemySpawn(this.enemy);
   }
 }
@@ -5564,6 +6303,21 @@ function handleEnemySpawn(enemy) {
   }
 }
 
+function handleEnemyTimerExpired(enemy) {
+  const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const progressState = getRouteUnlockProgressState(activeRouteId);
+  if (!progressState.timerEnabled) {
+    return;
+  }
+  const previousStreak = Math.max(0, toSafeInt(progressState.rawDefeats, 0));
+  if (previousStreak > 0) {
+    setRouteDefeatCount(activeRouteId, 0);
+    if (!state.simulationIdleMode) {
+      setTopMessage(`Temps ecoule contre ${enemy?.nameFr || "le Pokemon"}. Serie de KO remise a zero.`, 1800);
+    }
+  }
+}
+
 function handleEnemyDefeated(enemy) {
   if (!enemy) {
     return { captured: false, capture_attempted: false };
@@ -5575,11 +6329,23 @@ function handleEnemyDefeated(enemy) {
   tryUnlockNextRouteAfterDefeat(activeRouteId);
   const moneyReward = computeDefeatMoneyReward(enemy);
   addMoney(moneyReward);
+  const captureEquivalentXpReward = computeCaptureXpReward(enemy);
+  const koXpReward = Math.max(1, Math.floor(captureEquivalentXpReward * KO_XP_RATIO_OF_CAPTURE));
+  const captureBonusXpReward = Math.max(0, captureEquivalentXpReward - koXpReward);
+  const koXpSummary = awardCaptureXpToTeam(enemy, { reward: koXpReward });
+  if (!state.simulationIdleMode) {
+    if (Array.isArray(koXpSummary.levelUps) && koXpSummary.levelUps.length > 0) {
+      queueTeamLevelUpEffects(koXpSummary.levelUps);
+    }
+    if (Array.isArray(koXpSummary.xpGains) && koXpSummary.xpGains.length > 0) {
+      queueTeamXpGainEffects(koXpSummary.xpGains, { tone: "defeat" });
+    }
+  }
   let captureAttempted = false;
   let captured = false;
   let captureCritical = false;
   let addedToTeam = false;
-  let xpSummary = null;
+  let captureXpSummary = null;
   let usedBallType = null;
 
   if (getBallInventoryTotalCount() > 0) {
@@ -5598,9 +6364,12 @@ function handleEnemyDefeated(enemy) {
         incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1);
         const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id, firstCaptureOfSpecies);
         addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
-        xpSummary = awardCaptureXpToTeam(enemy);
-        if (!state.simulationIdleMode && Array.isArray(xpSummary.levelUps) && xpSummary.levelUps.length > 0) {
-          queueTeamLevelUpEffects(xpSummary.levelUps);
+        captureXpSummary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
+        if (!state.simulationIdleMode && Array.isArray(captureXpSummary.levelUps) && captureXpSummary.levelUps.length > 0) {
+          queueTeamLevelUpEffects(captureXpSummary.levelUps);
+        }
+        if (!state.simulationIdleMode && Array.isArray(captureXpSummary.xpGains) && captureXpSummary.xpGains.length > 0) {
+          queueTeamXpGainEffects(captureXpSummary.xpGains, { tone: "capture" });
         }
       }
     }
@@ -5641,6 +6410,7 @@ function chooseStarter(starterId) {
   startBattle();
   state.mode = "ready";
   setTopMessage(`${def.nameFr} rejoint ton equipe. Direction Route 1 !`, 1700);
+  tryOpenPendingTutorialFlow();
 }
 
 function startBattle() {
@@ -5658,6 +6428,14 @@ function startBattle() {
     createEnemy: createRouteEnemyInstance,
     onEnemySpawn: handleEnemySpawn,
     onEnemyDefeated: handleEnemyDefeated,
+    getEnemyTimerConfig: () => {
+      const progressState = getRouteUnlockProgressState();
+      return {
+        enabled: progressState.timerEnabled,
+        durationMs: progressState.timerDurationMs,
+      };
+    },
+    onEnemyTimerExpired: handleEnemyTimerExpired,
   });
   state.enemy = state.battle.getEnemy();
 }
@@ -5698,10 +6476,11 @@ function refreshRouteUi() {
   const orderedRoutes = getOrderedCatalogRouteIds();
   const { unlockedRouteIds, currentRouteId, currentUnlockedIndex } = getRouteNavigationState();
   const currentRouteName = getRouteDisplayName(currentRouteId);
-  const nextRouteId = getNextRouteId(currentRouteId);
-  const unlockMode = getRouteUnlockMode(currentRouteId);
-  const unlockTarget = getRouteUnlockDefeatTarget(currentRouteId);
-  const currentDefeats = Math.min(getRouteDefeatCount(currentRouteId), unlockTarget);
+  const progressState = getRouteUnlockProgressState(currentRouteId);
+  const nextRouteId = progressState.nextRouteId;
+  const unlockMode = progressState.unlockMode;
+  const unlockTarget = progressState.unlockTarget;
+  const currentDefeats = progressState.currentDefeats;
   const unlockedCount = unlockedRouteIds.length;
   const totalCount = Math.max(1, orderedRoutes.length);
   const orderIndex = getRouteOrderIndex(currentRouteId);
@@ -5716,7 +6495,12 @@ function refreshRouteUi() {
     } else if (unlockMode === "visit") {
       progressLabel = `${unlockedCount}/${totalCount} zones debloquees | Cette ville debloque automatiquement ${nextRouteName}`;
     } else {
-      progressLabel = `${unlockedCount}/${totalCount} zones debloquees | ${currentDefeats}/${unlockTarget} KO pour ${nextRouteName}`;
+      const timerLabel = progressState.timerEnabled
+        ? ` | ${Math.round(progressState.timerDurationMs / 1000)}s max/combat`
+        : "";
+      progressLabel =
+        `${unlockedCount}/${totalCount} zones debloquees | ${currentDefeats}/${unlockTarget} KO d'affilee pour ${nextRouteName}` +
+        timerLabel;
     }
   } else {
     progressLabel = `${unlockedCount}/${totalCount} zones debloquees | Toutes les zones FR/LG sont debloquees`;
@@ -6008,6 +6792,10 @@ function setBallTypeAsActive(ballType) {
     setTopMessage(`Aucune ${BALL_CONFIG_BY_TYPE[type].nameFr} en stock.`, 1400);
     return false;
   }
+  if (isBallTypeComingSoon(type)) {
+    setTopMessage(`${BALL_CONFIG_BY_TYPE[type].nameFr}: bientot disponible.`, 1400);
+    return false;
+  }
   setActiveBallType(type);
   persistSaveData();
   updateHud();
@@ -6026,6 +6814,10 @@ function buyShopItem(itemId) {
   }
 
   if (item.itemType === "ball") {
+    if (isBallTypeComingSoon(item.ballType)) {
+      setTopMessage(`${item.nameFr}: bientot disponible.`, 1400);
+      return false;
+    }
     const quantity = getSelectedShopBallQuantity();
     const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
     if (!spendMoney(totalCost)) {
@@ -6136,25 +6928,33 @@ function createShopItemCard(item) {
   if (item.itemType === "ball") {
     const stockCount = getBallInventoryCount(item.ballType);
     const isActive = getActiveBallType() === item.ballType;
+    const isComingSoon = isBallTypeComingSoon(item.ballType);
     const quantity = getSelectedShopBallQuantity();
     const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
     const canAfford = Math.max(0, toSafeInt(state.saveData?.money, 0)) >= totalCost;
-    stockEl.textContent = `Stock: ${stockCount} • Actif: ${isActive ? "Oui" : "Non"}`;
-    primaryButton.textContent = `Acheter x${quantity}`;
-    primaryButton.disabled = !canAfford;
-    if (!canAfford) {
-      primaryButton.title = "Pas assez d'argent.";
-    }
+    if (isComingSoon) {
+      stockEl.textContent = "Bientot disponible";
+      primaryButton.textContent = "Bientot disponible";
+      primaryButton.disabled = true;
+      primaryButton.title = "Cette ball sera ajoutee plus tard.";
+    } else {
+      stockEl.textContent = `Stock: ${stockCount} • Actif: ${isActive ? "Oui" : "Non"}`;
+      primaryButton.textContent = `Acheter x${quantity}`;
+      primaryButton.disabled = !canAfford;
+      if (!canAfford) {
+        primaryButton.title = "Pas assez d'argent.";
+      }
 
-    const equipButton = document.createElement("button");
-    equipButton.type = "button";
-    equipButton.className = "shop-item-buy-btn is-secondary";
-    equipButton.textContent = isActive ? "Actif" : "Equiper";
-    equipButton.disabled = isActive || stockCount <= 0;
-    equipButton.addEventListener("click", () => {
-      setBallTypeAsActive(item.ballType);
-    });
-    actionRow.appendChild(equipButton);
+      const equipButton = document.createElement("button");
+      equipButton.type = "button";
+      equipButton.className = "shop-item-buy-btn is-secondary";
+      equipButton.textContent = isActive ? "Actif" : "Equiper";
+      equipButton.disabled = isActive || stockCount <= 0;
+      equipButton.addEventListener("click", () => {
+        setBallTypeAsActive(item.ballType);
+      });
+      actionRow.appendChild(equipButton);
+    }
   } else if (item.itemType === "boost") {
     const remainingMs = getAttackBoostRemainingMs();
     const canAfford = Math.max(0, toSafeInt(state.saveData?.money, 0)) >= Math.max(0, toSafeInt(item.price, 0));
@@ -6241,6 +7041,9 @@ function renderShopModal() {
 }
 
 function setShopOpen(open) {
+  if (open && state.ui.tutorialOpen) {
+    return;
+  }
   state.ui.shopOpen = Boolean(open);
   if (!shopModalEl) {
     return;
@@ -6330,6 +7133,9 @@ function renderMapModal() {
 }
 
 function setMapOpen(open) {
+  if (open && state.ui.tutorialOpen) {
+    return;
+  }
   state.ui.mapOpen = Boolean(open);
   if (!mapModalEl) {
     return;
@@ -6654,91 +7460,324 @@ function drawNameAndLevel(entity, x, y, enemy = false) {
   ctx.restore();
 }
 
+function getEnemyHpDisplayRatios(enemy, targetRatio) {
+  const key = `${Number(enemy?.id || 0)}:${Math.max(1, toSafeInt(enemy?.hpMax, 1))}`;
+  const hud = state.xpHud;
+  if (!hud || hud.enemyHpKey !== key || !Number.isFinite(hud.enemyHpFrontRatio)) {
+    hud.enemyHpKey = key;
+    hud.enemyHpFrontRatio = targetRatio;
+    hud.enemyHpLagRatio = targetRatio;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  if (targetRatio >= 0.995 && hud.enemyHpFrontRatio <= 0.35) {
+    hud.enemyHpFrontRatio = targetRatio;
+    hud.enemyHpLagRatio = targetRatio;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  hud.enemyHpFrontRatio += (targetRatio - hud.enemyHpFrontRatio) * 0.34;
+  if (targetRatio >= hud.enemyHpLagRatio) {
+    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.26;
+  } else {
+    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.08;
+  }
+
+  if (Math.abs(hud.enemyHpFrontRatio - targetRatio) <= 0.002) {
+    hud.enemyHpFrontRatio = targetRatio;
+  }
+  if (Math.abs(hud.enemyHpLagRatio - targetRatio) <= 0.002) {
+    hud.enemyHpLagRatio = targetRatio;
+  }
+
+  hud.enemyHpFrontRatio = clamp(hud.enemyHpFrontRatio, 0, 1);
+  hud.enemyHpLagRatio = clamp(hud.enemyHpLagRatio, 0, 1);
+  return { front: hud.enemyHpFrontRatio, lag: hud.enemyHpLagRatio };
+}
+
+function getEnemyHpPalette(ratio) {
+  if (ratio >= 0.55) {
+    return {
+      start: "rgba(76, 228, 133, 0.98)",
+      end: "rgba(157, 247, 196, 0.98)",
+      glow: "rgba(93, 233, 146, 0.36)",
+    };
+  }
+  if (ratio >= 0.25) {
+    return {
+      start: "rgba(245, 197, 94, 0.97)",
+      end: "rgba(255, 223, 136, 0.97)",
+      glow: "rgba(255, 204, 118, 0.34)",
+    };
+  }
+  return {
+    start: "rgba(238, 88, 88, 0.98)",
+    end: "rgba(255, 130, 130, 0.98)",
+    glow: "rgba(244, 95, 95, 0.36)",
+  };
+}
+
 function drawEnemyHpBar(enemy, centerX, centerY, width, height, options = {}) {
-  const ratio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
+  const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
+  const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);
   const x = centerX - width * 0.5;
   const y = centerY;
-  const radius = height * 0.4;
+  const radius = height * 0.5;
+  const outerPadX = 6;
+  const outerPadY = 5;
+  const panelRadius = radius + 6;
+  const panelHeight = height + outerPadY * 2;
+  const panelY = y - outerPadY;
+  const panelX = x - outerPadX;
+  const panelWidth = width + outerPadX * 2;
 
   ctx.save();
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
-  ctx.fillStyle = "rgba(6, 16, 31, 0.82)";
-  ctx.fillRect(x - 5, y - 4, width + 10, height + 8);
 
-  ctx.fillStyle = "#3a1215";
+  const panelGradient = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelHeight);
+  panelGradient.addColorStop(0, "rgba(8, 19, 37, 0.9)");
+  panelGradient.addColorStop(1, "rgba(5, 12, 24, 0.94)");
+  ctx.fillStyle = panelGradient;
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, panelRadius);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(201, 229, 255, 0.3)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, panelRadius);
+  ctx.stroke();
+
+  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
+  trackGradient.addColorStop(0, "rgba(51, 21, 28, 0.95)");
+  trackGradient.addColorStop(1, "rgba(34, 11, 15, 0.96)");
+  ctx.fillStyle = trackGradient;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.fill();
 
-  ctx.fillStyle = "#39cf72";
-  ctx.beginPath();
-  ctx.roundRect(x, y, width * ratio, height, radius);
-  ctx.fill();
+  if (lagRatio > 0.001) {
+    ctx.fillStyle = "rgba(255, 196, 135, 0.55)";
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * lagRatio, height, radius);
+    ctx.fill();
+  }
 
-  ctx.strokeStyle = "rgba(248, 253, 255, 0.34)";
-  ctx.lineWidth = 1.4;
+  if (frontRatio > 0.001) {
+    const palette = getEnemyHpPalette(frontRatio);
+    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    fillGradient.addColorStop(0, palette.start);
+    fillGradient.addColorStop(1, palette.end);
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * frontRatio, height, radius);
+    ctx.fill();
+
+    const shineWidth = Math.max(10, width * 0.18);
+    const shineTravel = Math.max(0, width * frontRatio - shineWidth);
+    if (shineTravel > 1) {
+      const travelRatio = (Math.sin(state.timeMs * 0.0042) + 1) * 0.5;
+      const shineX = x + shineTravel * travelRatio;
+      const shine = ctx.createLinearGradient(shineX, y, shineX + shineWidth, y);
+      shine.addColorStop(0, "rgba(255, 255, 255, 0)");
+      shine.addColorStop(0.45, "rgba(255, 255, 255, 0.34)");
+      shine.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = shine;
+      ctx.fillRect(shineX, y, shineWidth, height);
+    }
+
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = palette.glow;
+    ctx.fillRect(x, y - 1, width * frontRatio, height + 2);
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  ctx.strokeStyle = "rgba(244, 251, 255, 0.42)";
+  ctx.lineWidth = 1.15;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.stroke();
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "#f7fbff";
+  ctx.fillStyle = "#f4fbff";
   ctx.font = "700 10px Trebuchet MS";
-  ctx.fillText(`${enemy.hpCurrent} / ${enemy.hpMax}`, x + width * 0.5, y + height * 0.52);
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.lineWidth = 3;
+  const hpLabel = `${Math.max(0, Math.round(enemy.hpCurrent))} / ${Math.max(0, Math.round(enemy.hpMax))}`;
+  ctx.strokeText(hpLabel, x + width * 0.5, y + height * 0.52);
+  ctx.fillText(hpLabel, x + width * 0.5, y + height * 0.52);
   ctx.restore();
 }
 
-function drawTeamXpBar(member, centerX, centerY, size) {
+function getTeamXpDisplayRatios(member, slotIndex, targetRatio) {
+  const slotKey = String(Math.max(0, toSafeInt(slotIndex, 0)));
+  const bySlot = state.xpHud?.teamXpBySlot || {};
+  const memberId = Number(member?.id || 0);
+  const memberLevel = Math.max(1, toSafeInt(member?.level, 1));
+  let entry = bySlot[slotKey];
+
+  if (
+    !entry
+    || Number(entry.memberId || 0) !== memberId
+    || Math.max(1, toSafeInt(entry.level, 1)) !== memberLevel
+    || !Number.isFinite(entry.front)
+    || !Number.isFinite(entry.lag)
+  ) {
+    entry = {
+      memberId,
+      level: memberLevel,
+      front: targetRatio,
+      lag: targetRatio,
+    };
+    bySlot[slotKey] = entry;
+    state.xpHud.teamXpBySlot = bySlot;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  entry.level = memberLevel;
+  entry.front += (targetRatio - entry.front) * 0.26;
+  if (targetRatio >= entry.lag) {
+    entry.lag += (targetRatio - entry.lag) * 0.18;
+  } else {
+    entry.lag += (targetRatio - entry.lag) * 0.1;
+  }
+  if (Math.abs(entry.front - targetRatio) <= 0.0018) {
+    entry.front = targetRatio;
+  }
+  if (Math.abs(entry.lag - targetRatio) <= 0.0018) {
+    entry.lag = targetRatio;
+  }
+  entry.front = clamp(entry.front, 0, 1);
+  entry.lag = clamp(entry.lag, 0, 1);
+  return { front: entry.front, lag: entry.lag };
+}
+
+function drawTeamXpBar(member, slotIndex, centerX, centerY, size) {
   if (!member || member.level >= MAX_LEVEL) {
     return;
   }
   const currentXp = Math.max(0, toSafeInt(member.xp, 0));
   const requiredXp = Math.max(1, toSafeInt(member.xpToNext, 1));
   const ratio = clamp(currentXp / requiredXp, 0, 1);
+  const display = getTeamXpDisplayRatios(member, slotIndex, ratio);
   const width = clamp(size * 0.66, 46, 90);
-  const height = 3;
+  const height = 4;
   const x = centerX - width * 0.5;
   const y = centerY + size * 0.39;
+  const radius = 3.8;
 
   ctx.save();
-  ctx.fillStyle = "rgba(8, 23, 44, 0.85)";
-  ctx.fillRect(x - 1, y - 1, width + 2, height + 2);
+  ctx.fillStyle = "rgba(8, 23, 44, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(x - 1, y - 1, width + 2, height + 2, radius + 1);
+  ctx.fill();
 
-  ctx.fillStyle = "rgba(22, 58, 108, 0.92)";
-  ctx.fillRect(x, y, width, height);
+  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
+  trackGradient.addColorStop(0, "rgba(16, 48, 96, 0.95)");
+  trackGradient.addColorStop(1, "rgba(10, 30, 65, 0.95)");
+  ctx.fillStyle = trackGradient;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.fill();
 
-  const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
-  fillGradient.addColorStop(0, "rgba(94, 174, 255, 0.95)");
-  fillGradient.addColorStop(1, "rgba(159, 223, 255, 0.98)");
-  ctx.fillStyle = fillGradient;
-  ctx.fillRect(x, y, width * ratio, height);
-  if (ratio > 0) {
+  if (display.lag > 0.001) {
+    ctx.fillStyle = "rgba(142, 205, 255, 0.3)";
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * display.lag, height, radius);
+    ctx.fill();
+  }
+
+  if (display.front > 0.001) {
+    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    fillGradient.addColorStop(0, "rgba(100, 184, 255, 0.98)");
+    fillGradient.addColorStop(1, "rgba(177, 232, 255, 0.98)");
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * display.front, height, radius);
+    ctx.fill();
+
     ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = "rgba(141, 217, 255, 0.35)";
-    ctx.fillRect(x, y - 1, width * ratio, height + 2);
+    ctx.fillStyle = "rgba(185, 236, 255, 0.32)";
+    ctx.fillRect(x, y - 1, width * display.front, height + 2);
     ctx.globalCompositeOperation = "source-over";
   }
 
   ctx.strokeStyle = "rgba(201, 232, 255, 0.52)";
   ctx.lineWidth = 1;
-  ctx.strokeRect(x - 0.5, y - 0.5, width + 1, height + 1);
+  ctx.beginPath();
+  ctx.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, radius + 0.5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawRouteDefeatTimerBar(timerState) {
+  if (!timerState?.running || timerState.duration_ms <= 0) {
+    return;
+  }
+  const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);
+  const danger = 1 - ratio;
+  const width = clamp(state.viewport.width * 0.58, 220, 540);
+  const height = clamp(state.viewport.height * 0.014, 8, 12);
+  const x = (state.viewport.width - width) * 0.5;
+  const y = clamp(state.viewport.height * 0.025, 10, 20);
+  const radius = height * 0.5;
+  const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;
+
+  ctx.save();
+  ctx.globalAlpha = 0.94;
+  ctx.fillStyle = "rgba(10, 6, 8, 0.28)";
+  ctx.beginPath();
+  ctx.roundRect(x - 1, y - 1, width + 2, height + 2, radius + 1);
+  ctx.fill();
+
+  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
+  trackGradient.addColorStop(0, "rgba(53, 19, 24, 0.7)");
+  trackGradient.addColorStop(1, "rgba(20, 8, 11, 0.78)");
+  ctx.fillStyle = trackGradient;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.fill();
+
+  if (ratio > 0.001) {
+    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    fillGradient.addColorStop(0, "rgba(255, 188, 148, 0.86)");
+    fillGradient.addColorStop(0.42, "rgba(214, 74, 84, 0.9)");
+    fillGradient.addColorStop(1, "rgba(125, 12, 28, 0.94)");
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * ratio, height, radius);
+    ctx.fill();
+
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `rgba(255, 104, 104, ${(0.08 + pulse).toFixed(3)})`;
+    ctx.fillRect(x, y - 1, width * ratio, height + 2);
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  ctx.strokeStyle = `rgba(255, 214, 214, ${(0.16 + pulse * 0.8).toFixed(3)})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.stroke();
   ctx.restore();
 }
 
 function drawProjectiles(projectiles) {
   const quality = getRenderQualitySettings();
   const trailStride = Math.max(1, toSafeInt(quality.projectileTrailStride, 1));
+  const trailEnabled = Boolean(quality.projectileTrailEnabled);
   const trailGlow = Boolean(quality.projectileTrailGlow);
   const projectileStreak = Boolean(quality.projectileStreak);
   const projectileAura = Boolean(quality.projectileAura);
+  const spriteDetail = Boolean(quality.projectileSpriteDetail);
   const auraScale = clamp(Number(quality.projectileAuraScale) || 1, 0.45, 1.5);
   for (const projectile of projectiles || []) {
     const rgb = getTypeColor(projectile.attackType);
     const radius = projectile.radius || 8;
-    const sprite = getProjectileSprite(projectile.attackType);
+    const sprite = spriteDetail ? getProjectileSprite(projectile.attackType) : null;
     const auraRadius = radius * 3.3 * auraScale;
-    const trailPoints = Array.isArray(projectile.trail) ? projectile.trail : [];
+    const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];
 
     if (trailPoints.length > 0) {
       ctx.save();
@@ -6792,7 +7831,9 @@ function drawProjectiles(projectiles) {
       ctx.restore();
     }
 
-    ctx.save();
+    if (projectileAura || spriteDetail) {
+      ctx.save();
+    }
     if (projectileAura) {
       const aura = ctx.createRadialGradient(
         projectile.x,
@@ -6815,13 +7856,15 @@ function drawProjectiles(projectiles) {
       ctx.beginPath();
       ctx.arc(projectile.x, projectile.y, radius * 1.6, 0, Math.PI * 2);
       ctx.fill();
-    } else {
+    } else if (spriteDetail) {
       ctx.fillStyle = rgba(rgb, 0.26);
       ctx.beginPath();
       ctx.arc(projectile.x, projectile.y, radius * 1.45, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.restore();
+    if (projectileAura || spriteDetail) {
+      ctx.restore();
+    }
 
     ctx.save();
     ctx.translate(projectile.x, projectile.y);
@@ -6833,8 +7876,13 @@ function drawProjectiles(projectiles) {
     } else {
       ctx.fillStyle = rgba(rgb, 0.95);
       ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.34)";
+      ctx.lineWidth = Math.max(1, radius * 0.2);
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(2, radius * 0.42), 0, Math.PI * 2);
+      ctx.stroke();
     }
     ctx.restore();
   }
@@ -7116,6 +8164,7 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
 
   const sequence = captureSequence;
   const criticalCapture = Boolean(sequence.isCritical);
+  const celebrationParticles = shouldRenderCelebrationParticles();
   const throwRatio = CAPTURE_THROW_MS > 0 ? clamp(sequence.elapsedMs / CAPTURE_THROW_MS, 0, 1) : 1;
   const easedThrow = easeOutCubic(throwRatio);
   let ballX = sequence.targetX;
@@ -7164,30 +8213,39 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     ballY = sequence.targetY;
   }
 
-  for (const particle of sequence.particles || []) {
-    const lifeRatio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
-    ctx.save();
-    ctx.globalAlpha = lifeRatio;
-    if (particle.kind === "break") {
-      ctx.translate(particle.x, particle.y);
-      ctx.rotate(particle.rotation || 0);
-      ctx.fillStyle = rgba(particle.color, 0.95);
-      const size = particle.size || 2;
-      ctx.fillRect(-size, -size * 0.56, size * 2, size * 1.12);
-    } else {
-      const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, (particle.size || 2) * 3.2);
-      glow.addColorStop(0, rgba(particle.color, 1));
-      glow.addColorStop(1, rgba(particle.color, 0));
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, (particle.size || 2) * 3.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = rgba(particle.color, 0.98);
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);
-      ctx.fill();
+  if (celebrationParticles) {
+    for (const particle of sequence.particles || []) {
+      const lifeRatio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
+      ctx.save();
+      ctx.globalAlpha = lifeRatio;
+      if (particle.kind === "break") {
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.fillStyle = rgba(particle.color, 0.95);
+        const size = particle.size || 2;
+        ctx.fillRect(-size, -size * 0.56, size * 2, size * 1.12);
+      } else {
+        const glow = ctx.createRadialGradient(
+          particle.x,
+          particle.y,
+          0,
+          particle.x,
+          particle.y,
+          (particle.size || 2) * 3.2,
+        );
+        glow.addColorStop(0, rgba(particle.color, 1));
+        glow.addColorStop(1, rgba(particle.color, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, (particle.size || 2) * 3.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(particle.color, 0.98);
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
     }
-    ctx.restore();
   }
 
   drawPokeball(ballX, ballY, 14, {
@@ -7198,7 +8256,7 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     critical: criticalCapture,
   });
 
-  if (criticalCapture) {
+  if (criticalCapture && celebrationParticles) {
     const pulse = 0.5 + Math.sin(state.timeMs * 0.018) * 0.5;
     const auraRadius = 26 + pulse * 8;
     ctx.save();
@@ -7214,7 +8272,7 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     ctx.restore();
   }
 
-  if (capturePhase === "success") {
+  if (capturePhase === "success" && celebrationParticles) {
     const pulse = 0.25 + Math.sin(state.timeMs * 0.02) * 0.15;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -7288,6 +8346,7 @@ function activateNextEvolutionAnimationIfNeeded() {
       ...next,
       elapsedMs: 0,
       totalMs: Math.max(260, toSafeInt(next.totalMs, EVOLUTION_ANIM_TOTAL_MS)),
+      particles: Array.isArray(next.particles) ? next.particles : [],
     };
     return;
   }
@@ -7300,6 +8359,7 @@ function drawTeamLevelUpEffects() {
   const quality = getRenderQualitySettings();
   const particleStride = Math.max(1, toSafeInt(quality.levelUpParticleStride, 1));
   const useGlow = Boolean(quality.enemyHitGlow);
+  const celebrationParticles = shouldRenderCelebrationParticles();
 
   for (const effect of state.teamLevelUpEffects) {
     const effectRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
@@ -7315,38 +8375,71 @@ function drawTeamLevelUpEffects() {
     ctx.stroke();
     ctx.restore();
 
-    const particles = Array.isArray(effect.particles) ? effect.particles : [];
-    for (let particleIndex = 0; particleIndex < particles.length; particleIndex += particleStride) {
-      const particle = particles[particleIndex];
-      if (!particle) {
-        continue;
-      }
-      const ratio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
-      const radius = (particle.size || 2) * (0.5 + ratio * 0.9);
-      ctx.save();
-      if (useGlow) {
-        ctx.globalCompositeOperation = "lighter";
-        const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);
-        glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);
-        glow.addColorStop(1, "rgba(166, 224, 255, 0)");
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.globalAlpha = Math.max(0.12, ratio * 0.7);
-        ctx.fillStyle = "rgba(166, 224, 255, 0.72)";
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, radius * 1.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    if (celebrationParticles) {
+      const particles = Array.isArray(effect.particles) ? effect.particles : [];
+      for (let particleIndex = 0; particleIndex < particles.length; particleIndex += particleStride) {
+        const particle = particles[particleIndex];
+        if (!particle) {
+          continue;
+        }
+        const ratio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
+        const radius = (particle.size || 2) * (0.5 + ratio * 0.9);
+        ctx.save();
+        if (useGlow) {
+          ctx.globalCompositeOperation = "lighter";
+          const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);
+          glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);
+          glow.addColorStop(1, "rgba(166, 224, 255, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.globalAlpha = Math.max(0.12, ratio * 0.7);
+          ctx.fillStyle = "rgba(166, 224, 255, 0.72)";
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, radius * 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-      ctx.fillStyle = `rgba(213, 242, 255, ${0.95 * ratio})`;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+        ctx.fillStyle = `rgba(213, 242, 255, ${0.95 * ratio})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
     }
+  }
+}
+
+function getTeamXpPulseScale(slotIndex) {
+  void slotIndex;
+  return 1;
+}
+
+function drawTeamXpGainEffects() {
+  if (!Array.isArray(state.teamXpGainEffects) || state.teamXpGainEffects.length <= 0) {
+    return;
+  }
+  for (const effect of state.teamXpGainEffects) {
+    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    const textAlpha = clamp(lifeRatio * 1.25, 0, 1);
+    const tone = String(effect.tone || "defeat");
+    const textColor = tone === "capture" ? "rgba(171, 255, 211, 1)" : "rgba(160, 224, 255, 1)";
+    const shadowColor = tone === "capture" ? "rgba(34, 98, 71, 0.82)" : "rgba(29, 62, 108, 0.84)";
+
+    ctx.save();
+    ctx.globalAlpha = textAlpha;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 3.4;
+    ctx.strokeStyle = shadowColor;
+    ctx.fillStyle = textColor;
+    ctx.font = "700 13px Trebuchet MS";
+    ctx.strokeText(effect.text, effect.x, effect.y);
+    ctx.fillText(effect.text, effect.x, effect.y);
+    ctx.restore();
   }
 }
 
@@ -7480,7 +8573,10 @@ function drawFogLayer(width, height, intensity, options = {}) {
     return;
   }
   const quality = getRenderQualitySettings();
-  const layerCount = Math.max(1, toSafeInt(quality.fogLayerCount, 3));
+  const layerCount = Math.max(0, toSafeInt(quality.fogLayerCount, 3));
+  if (layerCount <= 0) {
+    return;
+  }
   const depth = clamp(Number(options.depth || 0), 0, 1);
   const time = state.timeMs * (0.00011 + depth * 0.00007);
   ctx.save();
@@ -7532,6 +8628,9 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
     return;
   }
+  if (!shouldRenderAmbientOverlays()) {
+    return;
+  }
   const quality = getRenderQualitySettings();
   const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0, 1.5);
   drawTimeOfDayColorGrade(width, height, environmentSnapshot);
@@ -7563,6 +8662,9 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
 
 function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
+    return;
+  }
+  if (!shouldRenderAmbientOverlays()) {
     return;
   }
   const quality = getRenderQualitySettings();
@@ -7668,6 +8770,54 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
   ctx.restore();
 }
 
+function drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsedMs) {
+  const particles = Array.isArray(current?.particles) ? current.particles : [];
+  if (particles.length <= 0) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const particle of particles) {
+    const ageMs = elapsedMs - Math.max(0, Number(particle.startMs) || 0);
+    const durationMs = Math.max(1, Number(particle.durationMs) || 1);
+    if (ageMs < 0 || ageMs > durationMs) {
+      continue;
+    }
+
+    const ratio = clamp(ageMs / durationMs, 0, 1);
+    const alpha = Math.sin(ratio * Math.PI) * 0.72;
+    if (alpha <= 0.01) {
+      continue;
+    }
+    const baseAngle = Number(particle.baseAngle) || 0;
+    const angle = baseAngle + ratio * (Number(particle.spinTurns) || 0) * Math.PI * 2;
+    const orbitRadius = spriteSize * ((Number(particle.radiusStart) || 0.2) + ratio * (Number(particle.radiusGrow) || 0.12));
+    const x = centerX + Math.cos(angle) * orbitRadius;
+    const y =
+      centerY
+      + (Number(particle.heightOffset) || 0) * spriteSize
+      + Math.sin(angle * 0.7 + baseAngle) * spriteSize * 0.08
+      - ratio * spriteSize * (Number(particle.lift) || 0.14);
+    const size = Math.max(0.8, (Number(particle.size) || 2) * (0.82 + (1 - ratio) * 0.35));
+    const color = Array.isArray(particle.color) ? particle.color : [190, 225, 255];
+
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 3.2);
+    glow.addColorStop(0, rgba(color, alpha));
+    glow.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = rgba(color, Math.min(1, alpha + 0.16));
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawEvolutionAnimationOverlay(layout) {
   const current = state.evolutionAnimation.current;
   if (!current || !layout) {
@@ -7683,7 +8833,7 @@ function drawEvolutionAnimationOverlay(layout) {
   const spriteSize = clamp(layout.enemySize * 1.5, 170, 300);
 
   ctx.save();
-  ctx.fillStyle = "rgba(4, 8, 16, 0.62)";
+  ctx.fillStyle = "rgba(4, 8, 16, 0.42)";
   ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
 
   const focusRadius = spriteSize * 1.3;
@@ -7694,6 +8844,7 @@ function drawEvolutionAnimationOverlay(layout) {
   ctx.beginPath();
   ctx.arc(centerX, centerY, focusRadius, 0, Math.PI * 2);
   ctx.fill();
+  drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsed);
 
   let title = `${current.fromNameFr} evolue !`;
   let subtitle = "";
@@ -7845,7 +8996,7 @@ function drawBattleUiOverlay(layout, options = {}) {
     if (!member || !drawPosition) {
       continue;
     }
-    drawTeamXpBar(member, drawPosition.x, drawPosition.y, drawPosition.size);
+    drawTeamXpBar(member, i, drawPosition.x, drawPosition.y, drawPosition.size);
     drawNameAndLevel(member, drawPosition.x, drawPosition.y + drawPosition.size * 0.62, false);
   }
 }
@@ -7910,6 +9061,7 @@ function render() {
   const captureEnemyVisual = getCaptureEnemyVisual(captureSequence, capturePhase);
   const turnIndicator = state.battle ? state.battle.getTurnIndicator(layout) : null;
   const enemyDamageTintBlend = state.battle ? state.battle.getEnemyDamageFlashBlend() : 0;
+  const routeDefeatTimer = state.battle ? state.battle.getEnemyTimerState() : null;
   const environmentSnapshot = getEnvironmentSnapshotForRender();
 
   drawBackground(width, height);
@@ -8020,6 +9172,7 @@ function render() {
       });
     }
 
+    drawTeamXpGainEffects();
     drawTeamLevelUpEffects();
     drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);
     drawBattleUiOverlay(layout, {
@@ -8031,6 +9184,7 @@ function render() {
   }
   drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
   drawViewportVignette(width, height, environmentSnapshot);
+  drawRouteDefeatTimerBar(routeDefeatTimer);
   drawEvolutionAnimationOverlay(layout);
 }
 
@@ -8039,16 +9193,18 @@ function update(deltaMs, options = {}) {
   state.timeMs += deltaMs;
   updateEnvironment();
   updateNotificationSystem();
+  tryOpenPendingTutorialFlow();
   updateBackgroundDrift(deltaMs);
   updateMoneyHudAnimation(deltaMs);
   updateTeamLevelUpEffects(deltaMs);
+  updateTeamXpGainEffects(deltaMs);
   const layout = computeLayout();
   state.layout = layout;
-  const evolutionAnimActive = updateEvolutionAnimation(deltaMs);
+  updateEvolutionAnimation(deltaMs);
 
   state.simulationIdleMode = idleMode;
   try {
-    if (state.battle && !evolutionAnimActive) {
+    if (state.battle) {
       state.battle.update(deltaMs, layout, { idleMode });
       state.enemy = state.battle.getEnemy();
     }
@@ -8059,14 +9215,25 @@ function update(deltaMs, options = {}) {
 
 function gameLoop(timestamp) {
   const now = Number.isFinite(Number(timestamp)) ? Number(timestamp) : 0;
+  if (document.hidden) {
+    state.lastFrameTimestamp = 0;
+    state.lastRenderTimestamp = 0;
+    window.requestAnimationFrame(gameLoop);
+    return;
+  }
   const frameDeltaMs = state.lastFrameTimestamp > 0
     ? clamp(now - state.lastFrameTimestamp, 1, 120)
     : BASE_STEP_MS;
   state.lastFrameTimestamp = now;
-  const frameStart = performance.now();
   tickSimulationFromRealtime();
-  render();
-  const frameCpuMs = Math.max(0, performance.now() - frameStart);
+  let frameCpuMs = TARGET_FRAME_MS;
+  const renderIntervalMs = getRenderFrameIntervalMs();
+  if (state.lastRenderTimestamp <= 0 || now - state.lastRenderTimestamp >= renderIntervalMs - 0.5) {
+    const frameStart = performance.now();
+    render();
+    frameCpuMs = Math.max(0, performance.now() - frameStart);
+    state.lastRenderTimestamp = now;
+  }
   updateRenderQualityFromFrame(frameDeltaMs, frameCpuMs);
   window.requestAnimationFrame(gameLoop);
 }
@@ -8082,7 +9249,7 @@ function resizeCanvas() {
   const quality = getRenderQualitySettings();
   const dprLimit = clamp(Number(quality.maxDpr) || MAX_RENDER_DPR, 1, MAX_RENDER_DPR);
   const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, dprLimit);
-  const renderScale = clamp(Number(quality.renderScale) || 1, 0.62, 1);
+  const renderScale = clamp(Number(quality.renderScale) || 1, 0.5, 1);
   const targetDpr = Math.max(1, deviceDpr * renderScale);
   const nextCanvasWidth = Math.max(1, Math.round(width * targetDpr));
   const effectiveDpr = nextCanvasWidth / Math.max(1, width);
@@ -8630,6 +9797,13 @@ function openAppearanceForTeamSlot(slotIndex) {
   if (!appearanceModalEl || !state.saveData || !Array.isArray(state.saveData.team)) {
     return;
   }
+  if (!isAppearanceEditorUnlocked()) {
+    setTopMessage(
+      `Atteins le niveau ${APPEARANCE_UNLOCK_LEVEL} avec un Pokemon pour debloquer l'apparence.`,
+      1900,
+    );
+    return;
+  }
   const index = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
   if (index < 0) {
     return;
@@ -8683,7 +9857,13 @@ function toggleAppearanceShinyMode() {
 }
 
 function handleCanvasMouseMove(event) {
-  if (state.mode !== "ready" || state.ui.boxesOpen || state.ui.appearanceOpen || state.evolutionAnimation.current) {
+  if (
+    state.mode !== "ready"
+    || state.ui.boxesOpen
+    || state.ui.appearanceOpen
+    || state.ui.tutorialOpen
+    || state.evolutionAnimation.current
+  ) {
     hideHoverPopup();
     return;
   }
@@ -8701,7 +9881,13 @@ function handleCanvasClick(event) {
   if (event.button !== 0) {
     return;
   }
-  if (state.mode !== "ready" || state.ui.boxesOpen || state.ui.appearanceOpen || state.evolutionAnimation.current) {
+  if (
+    state.mode !== "ready"
+    || state.ui.boxesOpen
+    || state.ui.appearanceOpen
+    || state.ui.tutorialOpen
+    || state.evolutionAnimation.current
+  ) {
     return;
   }
   if (!isCurrentRouteCombatEnabled()) {
@@ -8718,10 +9904,23 @@ function handleCanvasClick(event) {
 
 function handleCanvasContextMenu(event) {
   event.preventDefault();
-  if (state.mode !== "ready" || state.ui.boxesOpen || state.ui.appearanceOpen || state.evolutionAnimation.current) {
+  if (
+    state.mode !== "ready"
+    || state.ui.boxesOpen
+    || state.ui.appearanceOpen
+    || state.ui.tutorialOpen
+    || state.evolutionAnimation.current
+  ) {
     return;
   }
   if (!isCurrentRouteCombatEnabled()) {
+    return;
+  }
+  if (!isAppearanceEditorUnlocked()) {
+    setTopMessage(
+      `Clic droit apparence verrouille: niveau ${APPEARANCE_UNLOCK_LEVEL} requis.`,
+      1700,
+    );
     return;
   }
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
@@ -8755,9 +9954,11 @@ function exportTextState() {
     : null;
 
   const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
-  const nextRouteId = getNextRouteId(currentRouteId);
-  const unlockMode = getRouteUnlockMode(currentRouteId);
-  const unlockTarget = unlockMode === "visit" ? 0 : getRouteUnlockDefeatTarget(currentRouteId);
+  const routeProgressState = getRouteUnlockProgressState(currentRouteId);
+  const nextRouteId = routeProgressState.nextRouteId;
+  const unlockMode = routeProgressState.unlockMode;
+  const unlockTarget = routeProgressState.unlockTarget;
+  const routeDefeatTimer = battle ? battle.getEnemyTimerState() : null;
   const appearancePokemonId = Number(state.ui.appearancePokemonId || 0);
   const appearanceRecord = appearancePokemonId > 0 ? getPokemonEntityRecord(appearancePokemonId) : null;
 
@@ -8833,8 +10034,13 @@ function exportTextState() {
       Math.round(clamp(Number(environmentSnapshot?.lightningIntensity) || 0, 0, 1) * 1000) / 1000,
     unlocked_route_ids: state.saveData ? getOrderedUnlockedRouteIds() : [DEFAULT_ROUTE_ID],
     route_unlock_mode: unlockMode,
-    route_unlock_progress_current: unlockTarget > 0 ? Math.min(getRouteDefeatCount(currentRouteId), unlockTarget) : 0,
+    route_unlock_progress_current: routeProgressState.currentDefeats,
     route_unlock_target: unlockTarget,
+    route_defeat_timer_active: Boolean(routeDefeatTimer?.enabled),
+    route_defeat_timer_running: Boolean(routeDefeatTimer?.running),
+    route_defeat_timer_duration_ms: routeDefeatTimer?.duration_ms ?? 0,
+    route_defeat_timer_remaining_ms: routeDefeatTimer?.remaining_ms ?? 0,
+    route_defeat_timer_ratio: routeDefeatTimer?.remaining_ratio ?? 0,
     next_route_id: nextRouteId,
     next_route_name_fr: nextRouteId ? getRouteDisplayName(nextRouteId) : null,
     starter_modal_visible: !starterModalEl.classList.contains("hidden"),
@@ -8869,11 +10075,18 @@ function exportTextState() {
     boxes_open: Boolean(state.ui.boxesOpen),
     boxes_target_slot_index: toSafeInt(state.ui.boxesTargetSlotIndex, -1),
     boxes_entity_count: state.saveData ? getCapturedEntityCount() : 0,
+    appearance_editor_unlocked: isAppearanceEditorUnlocked(),
     appearance_open: Boolean(state.ui.appearanceOpen),
     appearance_target_slot_index: toSafeInt(state.ui.appearanceTargetSlotIndex, -1),
     appearance_pokemon_id: Number(state.ui.appearancePokemonId || 0) || null,
     appearance_selected_variant_id: appearanceRecord?.appearance_selected_variant || null,
     appearance_shiny_mode: Boolean(appearanceRecord?.appearance_shiny_mode),
+    tutorial_open: Boolean(state.ui.tutorialOpen),
+    tutorial_flow_id: state.ui.tutorialOpen ? String(state.tutorial.active?.flowId || "") : null,
+    tutorial_page: state.ui.tutorialOpen ? Math.max(1, toSafeInt(state.tutorial.active?.pageIndex, 0) + 1) : 0,
+    tutorial_page_count: state.ui.tutorialOpen
+      ? Math.max(1, getTutorialFlowDefinition(state.tutorial.active?.flowId)?.pages?.length || 1)
+      : 0,
     top_message: null,
     notifications_active: Array.isArray(state.notifications.items) ? state.notifications.items.length : 0,
     notifications_temporary: Array.isArray(state.notifications.items)
@@ -8884,6 +10097,7 @@ function exportTextState() {
       : 0,
     money_display_value: Math.max(0, Math.round(Number(state.moneyHud.displayValue) || 0)),
     team_level_up_effects_active: Array.isArray(state.teamLevelUpEffects) ? state.teamLevelUpEffects.length : 0,
+    team_xp_gain_effects_active: Array.isArray(state.teamXpGainEffects) ? state.teamXpGainEffects.length : 0,
     active_projectiles: (battle ? battle.getProjectiles() : []).map((projectile) => ({
       type: projectile.attackType,
       x: Math.round(projectile.x),
@@ -9289,7 +10503,9 @@ function setActiveRoute(routeId, options = {}) {
       }
     }
   }
+  queueRoute1TutorialIfNeeded(routeData.route_id);
   refreshRouteUi();
+  tryOpenPendingTutorialFlow();
   return true;
 }
 
@@ -9398,6 +10614,12 @@ async function initializeScene() {
   state.ui.shopQuantityMode = normalizeShopQuantityMode(state.ui.shopQuantityMode || "1");
   state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
   state.teamLevelUpEffects = [];
+  state.teamXpGainEffects = [];
+  state.teamXpPulseMsBySlot = {};
+  state.xpHud.teamXpBySlot = {};
+  state.xpHud.enemyHpKey = null;
+  state.xpHud.enemyHpFrontRatio = 1;
+  state.xpHud.enemyHpLagRatio = 1;
   state.moneyHud.initialized = false;
   state.moneyHud.targetValue = 0;
   state.moneyHud.displayValue = 0;
@@ -9406,6 +10628,12 @@ async function initializeScene() {
   clearMoneyGainFloaters();
   state.evolutionAnimation.current = null;
   state.evolutionAnimation.queue = [];
+  state.tutorial.queue = [];
+  state.tutorial.active = null;
+  state.ui.tutorialOpen = false;
+  if (tutorialModalEl) {
+    tutorialModalEl.classList.add("hidden");
+  }
   setZoneEncounterCsvState(null);
   stopBackgroundTicker();
   refreshLocalFileLinkButtonState();
@@ -9428,6 +10656,11 @@ async function initializeScene() {
     await loadPokemonDefinitions(Array.from(state.routeCatalog.values()));
     const unlockStateReconciled = reconcileEntityUnlockStates();
     const appearanceStateReconciled = reconcileEntityAppearanceStates();
+    const tutorialProgressBefore = JSON.stringify(state.saveData.tutorials || {});
+    getTutorialProgress();
+    const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();
+    const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});
+    const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;
     state.routeBackgroundsById = await preloadRouteBackgrounds(state.routeCatalog);
 
     ensureUnlockedRoutesForCurrentCatalog();
@@ -9437,7 +10670,7 @@ async function initializeScene() {
     setActiveRoute(initialRouteId, { announceUnlock: false });
 
     ensureMoneyAndItems();
-    if (unlockStateReconciled || appearanceStateReconciled) {
+    if (unlockStateReconciled || appearanceStateReconciled || tutorialProgressChanged) {
       persistSaveData();
     }
     offlineCatchupMs = queueOfflineCatchupFromSave(Date.now());
@@ -9469,6 +10702,8 @@ async function initializeScene() {
     }
 
     state.mode = "ready";
+    queueAppearanceTutorialIfNeeded();
+    tryOpenPendingTutorialFlow();
     if (offlineCatchupMs > 0 && state.battle) {
       consumePendingSimulation({
         forceIdleMode: true,
@@ -9499,6 +10734,12 @@ function resetSaveAndRestart() {
   state.pendingSimMs = 0;
   state.deferredSaveDirty = false;
   state.teamLevelUpEffects = [];
+  state.teamXpGainEffects = [];
+  state.teamXpPulseMsBySlot = {};
+  state.xpHud.teamXpBySlot = {};
+  state.xpHud.enemyHpKey = null;
+  state.xpHud.enemyHpFrontRatio = 1;
+  state.xpHud.enemyHpLagRatio = 1;
   state.moneyHud.initialized = false;
   state.moneyHud.targetValue = 0;
   state.moneyHud.displayValue = 0;
@@ -9507,6 +10748,12 @@ function resetSaveAndRestart() {
   clearMoneyGainFloaters();
   state.evolutionAnimation.current = null;
   state.evolutionAnimation.queue = [];
+  state.tutorial.queue = [];
+  state.tutorial.active = null;
+  state.ui.tutorialOpen = false;
+  if (tutorialModalEl) {
+    tutorialModalEl.classList.add("hidden");
+  }
   state.ui.shopTab = SHOP_TAB_POKEBALLS;
   state.ui.shopQuantityMode = "1";
   state.ui.shopCustomQuantity = 1;
@@ -9535,6 +10782,11 @@ async function toggleFullscreen() {
 
 document.addEventListener("keydown", (event) => {
   const key = String(event.key || "").toLowerCase();
+  if (key === "escape" && state.ui.tutorialOpen) {
+    event.preventDefault();
+    closeTutorialModal();
+    return;
+  }
   if (key === "escape" && state.ui.mapOpen) {
     event.preventDefault();
     setMapOpen(false);
@@ -9660,6 +10912,36 @@ if (appearanceShinyToggleButtonEl) {
     toggleAppearanceShinyMode();
   });
 }
+if (tutorialPrevButtonEl) {
+  tutorialPrevButtonEl.addEventListener("click", () => {
+    if (!state.ui.tutorialOpen || !state.tutorial.active) {
+      return;
+    }
+    state.tutorial.active.pageIndex = Math.max(0, toSafeInt(state.tutorial.active.pageIndex, 0) - 1);
+    renderTutorialModal();
+  });
+}
+if (tutorialNextButtonEl) {
+  tutorialNextButtonEl.addEventListener("click", () => {
+    if (!state.ui.tutorialOpen || !state.tutorial.active) {
+      return;
+    }
+    const flow = getTutorialFlowDefinition(state.tutorial.active.flowId);
+    const pageCount = Math.max(1, Array.isArray(flow?.pages) ? flow.pages.length : 0);
+    const pageIndex = clamp(toSafeInt(state.tutorial.active.pageIndex, 0), 0, pageCount - 1);
+    if (pageIndex >= pageCount - 1) {
+      closeTutorialModal();
+      return;
+    }
+    state.tutorial.active.pageIndex = pageIndex + 1;
+    renderTutorialModal();
+  });
+}
+if (tutorialCloseButtonEl) {
+  tutorialCloseButtonEl.addEventListener("click", () => {
+    closeTutorialModal();
+  });
+}
 if (boxesModalEl) {
   boxesModalEl.addEventListener("click", (event) => {
     if (event.target === boxesModalEl) {
@@ -9671,6 +10953,13 @@ if (appearanceModalEl) {
   appearanceModalEl.addEventListener("click", (event) => {
     if (event.target === appearanceModalEl) {
       closeAppearanceModal();
+    }
+  });
+}
+if (tutorialModalEl) {
+  tutorialModalEl.addEventListener("click", (event) => {
+    if (event.target === tutorialModalEl) {
+      closeTutorialModal();
     }
   });
 }

@@ -916,3 +916,128 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Shop fix: suppression du rerender continu du shop dans updateHud (le clic etait casse car le DOM de la modale etait reconstruit en boucle), refonte UI shop (cartes avec layout media/content/footer, boutons regroupes, wraps/ellipsis anti-overflow, grille plus large, responsive mobile). Validation auto: clic achat Pokeball => money -200 et stock +1 (script output/tmp_shop_verify.js), screenshots output/shop-ui-open.png + output/shop-ui-open-mobile.png.
 - Shop interaction stability: suppression de la fermeture implicite via listener document global (la fermeture se fait uniquement via backdrop/fermer/ESC), ce qui evite la fermeture apres achat lorsque la carte est rerendue.
 - Perf controller v2: ajout d'un systeme multi-profils (very_low..ultra) cible 60fps, adaptation basee sur EMA frame+CPU (downgrade rapide, upgrade lent), backlog foreground limite, budget simulation foreground dynamique selon qualite, update HUD auto-throttle, environnement throttle, resolution interne dynamique (renderScale) dans resizeCanvas. Ajout telemetrie perf dans render_game_to_text (render_quality/frame_ms/fps_estimate).
+
+## Additional progress (Android sprite distortion fix)
+- Fixed a Chrome Android visual distortion path for Pokemon sprites by tightening canvas/sprite rendering:
+  - Prevented sub-1x canvas upscale in `resizeCanvas()` by clamping effective render DPR to at least `1` and using rounded internal dimensions.
+  - Kept sprite pulse animation uniform (same `scaleX/scaleY`) to avoid aspect-ratio warping artifacts.
+  - Added sprite pixel snapping helpers (`snapSpriteValue`, `snapSpriteDimension`) and applied them to sprite image draw coordinates/sizes.
+  - Added `image-rendering: pixelated` fallback styling on `#game-canvas`.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (no script failure).
+  - Pixel 7 Playwright mobile capture before/after generated in `output/mobile-android-before.png` and `output/mobile-android-after.png`.
+  - Post-fix metrics: `canvasInternal` == `canvasClient` (`398x564`), overflow `0`.
+
+## Additional progress (tutorial popups + appearance unlock gate)
+- Added the tutorial modal markup in `index.html` and responsive popup styling in `styles.css`.
+- Wired tutorial modal controls in `game.js` (`Precedent`, `Suivant`, `Fermer`, backdrop close).
+- Fresh save polish:
+  - Route 1 tutorial now opens on the first visit to Route 1 after the starter is chosen.
+  - `render_game_to_text` now exposes `tutorial_open`, tutorial flow/page info, and `appearance_editor_unlocked` for automation/debug.
+- The existing level-10 appearance gate in `game.js` remains enforced before opening the skin editor via right click.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (no `errors-*.json` in `output/web-game-poke`).
+  - Custom Playwright validation: PASS for all three scenarios.
+    - Route 1 first-visit tutorial + right-click blocked before level 10.
+    - Level-10 appearance tutorial + right-click opens appearance editor after unlock.
+    - First evolution tutorial after clicking `Evoluer`.
+  - Screenshots written to `output/tutorial-validation/route1-tutorial.png`, `output/tutorial-validation/appearance-tutorial.png`, `output/tutorial-validation/appearance-modal-open.png`, and `output/tutorial-validation/evolution-tutorial.png`.
+
+## Additional progress (combat timer / streak unlocks)
+- Added a per-enemy route timer in `game.js` for defeat-based zone unlocks:
+  - default duration `20s` via `ROUTE_DEFEAT_TIMER_MS`,
+  - active only while the next zone is still locked,
+  - stopped during KO/capture respawn windows,
+  - reset on each new enemy spawn.
+- Route unlock progress now behaves like a streak while the timer is active:
+  - the route progress label shows `KO d'affilee`,
+  - if the timer expires, the current route's defeat counter is reset to `0`,
+  - once the next route is unlocked, the timer is disabled for subsequent enemies in that zone.
+- Added a thin threatening timer bar at the top of the canvas and exported its state in `render_game_to_text`:
+  - `route_defeat_timer_active`
+  - `route_defeat_timer_running`
+  - `route_defeat_timer_duration_ms`
+  - `route_defeat_timer_remaining_ms`
+  - `route_defeat_timer_ratio`
+- Updated Route 1 tutorial copy so zone progression now mentions the `20 secondes max par combat` rule.
+
+## Validation (combat timer turn)
+- `node --check game.js`: PASS.
+- `develop-web-game` client smoke: PASS for startup + starter choice (`output/web-game-timer-smoke`).
+  - This run also confirmed the game stayed in Bourg Palette until explicit route navigation, so a targeted route probe was needed.
+- Targeted Playwright route probe: partial PASS.
+  - Confirmed Route 1 enters combat with `route_defeat_timer_active: true`, `route_defeat_timer_duration_ms: 20000`, and a live enemy (`output/playwright/timer-check/timer-start.json`).
+  - Visually confirmed the new top timer bar is present in `output/playwright/timer-check/timer-start.png`.
+- Additional timed probe confirmed the timer decreases over time and resets on enemy replacement in Route 1.
+- Remaining gap:
+  - I did not get a clean deterministic end-to-end artifact for the exact `timer reaches 0 -> streak reset -> next enemy spawns` branch because the automated save/reload setup for a forced timeout scenario was flaky during this turn. The branch is implemented in `PokemonBattleManager.expireEnemyFromTimer()` + `handleEnemyTimerExpired(...)`, but a future pass could still add a dedicated deterministic automation for that exact case.
+
+## Additional progress (evolution tutorial timing + non-blocking evolution animation)
+- Evolution tutorial timing:
+  - moved the first `Tuto Evolution` trigger to the moment the first `evolution_ready` notification appears,
+  - removed the old trigger that fired only after clicking `Evoluer`.
+- Evolution flow:
+  - evolution animations no longer pause combat simulation,
+  - combat continues updating in the background while the evolution overlay is active.
+- Evolution visuals:
+  - increased evolution animation duration to `2480ms`,
+  - extended the white/flash/reveal phases,
+  - added lightweight orbiting particles around the evolution overlay,
+  - slightly reduced overlay darkness so ongoing combat remains readable behind it.
+
+## Validation (evolution flow turn)
+- `node --check game.js`: PASS.
+- Global smoke: `run_playwright_check.ps1` PASS after the evolution changes.
+- Targeted pre-seeded Playwright probe: PASS (`output/evolution-flow-check`).
+  - tutorial opens before evolution with `tutorial_flow_id: evolution_intro` while `notifications_evolution_ready: 1`,
+  - clicking `Evoluer` starts an animation with `total_ms: 2480`,
+  - combat keeps running during the animation:
+    - probe snapshot `s0`: enemy `Rattata`, `attack_timer_ms: 241`, `evo_elapsed: 47`,
+    - probe snapshot `s1`: enemy already changed to `Roucool`, `attack_timer_ms: 15`, `evo_elapsed: 690`,
+    - probe snapshot `s2`: same fight progressed further (`enemy_hp` changed again), `evo_elapsed: 1317`.
+  - artifacts:
+    - `output/evolution-flow-check/result.json`
+    - `output/evolution-flow-check/combat-during-evolution.json`
+    - `output/evolution-flow-check/tutorial-before-evolve.png`
+    - `output/evolution-flow-check/evolution-start.png`
+    - `output/evolution-flow-check/evolution-mid.png`
+
+## Additional progress (Pokeball consumption fix + shop gating)
+- Fixed the infinite Pokeball reuse bug in `game.js`:
+  - Root cause: `ensureMoneyAndItems()` was repeatedly re-importing the legacy `pokeballs` counter back into `ball_inventory` whenever the normalized inventory hit `0`.
+  - Fix: legacy backfill now only happens for truly old/malformed saves that do not already have a structured `ball_inventory`.
+  - Added `computeBallInventoryTotal(...)` and used it for direct counter sync after add/consume operations so the total no longer loops back through the legacy migration path.
+- Temporarily locked advanced balls in the shop:
+  - `SuperBall` and `HyperBall` now display `Bientot disponible`.
+  - Their primary shop buttons are disabled.
+  - The classic `PokeBall` stays purchasable as usual.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Real-flow Playwright validation: PASS.
+    - Fresh game with Salamèche -> first visit Route 1 -> earn money naturally in combat.
+    - Shop shows `SuperBall` / `HyperBall` as `Bientot disponible` and disabled.
+    - Bought 1 classic `PokeBall`, then confirmed it was consumed down to `0` and stayed at `0`.
+  - Artifacts written to:
+    - `output/pokeball-fix-validation/real-flow-route1-start.json`
+    - `output/pokeball-fix-validation/real-flow-money-ready.json`
+    - `output/pokeball-fix-validation/real-flow-after-buy.json`
+    - `output/pokeball-fix-validation/real-flow-after-consume.json`
+    - `output/pokeball-fix-validation/real-flow-stable-zero.json`
+
+## Additional progress (XP on KO kept + text-only XP feedback)
+- Kept XP rewards on enemy KO without capture:
+  - the KO branch in `handleEnemyDefeated(...)` still grants team XP via `awardCaptureXpToTeam(...)`,
+  - this preserves progression even when no capture happens.
+- Restored only the dynamic XP amount text in `game.js`:
+  - floating `+XP` text is visible again on regular XP gains,
+  - no sprite scale pulse on XP gain,
+  - no XP particles,
+  - level-up effects remain untouched.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Targeted Route 1 Playwright check: PASS (`output/xp-text-only-validation/after-first-xp-text.json`).
+    - After the first KO, XP is still awarded and `team_xp_gain_effects_active` becomes positive from the restored floating text.
