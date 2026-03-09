@@ -40,10 +40,18 @@
     "speed": 20
   },
   "sprites": {
-    "front": "sprites/265_wurmple_emerald_front.png",
-    "front_shiny": "sprites/265_wurmple_emerald_front_shiny.png"
+    "front": "sprites/265_wurmple_transparent_front.png",
+    "front_shiny": "sprites/265_wurmple_transparent_front_shiny.png"
   },
   "sprite_variants": [
+    {
+      "id": "transparent",
+      "label_fr": "Transparent HOME",
+      "generation": 0,
+      "game_key": "home",
+      "front": "sprites/265_wurmple_transparent_front.png",
+      "front_shiny": "sprites/265_wurmple_transparent_front_shiny.png"
+    },
     {
       "id": "emerald",
       "label_fr": "Emeraude",
@@ -85,5 +93,5 @@
       "front_shiny": "sprites/265_wurmple_diamond_pearl_front_shiny.png"
     }
   ],
-  "default_sprite_variant_id": "emerald"
+  "default_sprite_variant_id": "transparent"
 }

@@ -78,6 +78,25 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - `node --check game.js`: PASS.
 - `run_playwright_check.ps1`: PASS (starter modal visible in text state; no console/page error).
 - Playwright run with starter click (`output/web-game-starter`): PASS.
+
+## Additional progress (semver alpha + UI badge)
+- Added a dedicated `version.js` bootstrap with the current app version set to `0.1.0-alpha.0`.
+- Added a discreet in-game version badge rendered directly inside the canvas at bottom-left.
+- Exposed the current app version in `window.POKEIDLE_APP_VERSION` and `render_game_to_text`.
+- Added `scripts/bump-version.mjs` to increment semver automatically:
+  - increments prerelease counters when a prerelease exists (`alpha.0` -> `alpha.1`);
+  - increments patch when the version is stable.
+- Added `.github/workflows/bump-version-on-main.yml`:
+  - triggers on every push to `main`;
+  - bumps `version.js`;
+  - commits the new version back with the GitHub Actions bot;
+  - avoids infinite loops by skipping bot-triggered reruns.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `node --check scripts/bump-version.mjs`: PASS.
+  - temp bump simulation on `version.js`: PASS (`0.1.0-alpha.0` -> `0.1.0-alpha.1`).
+  - Playwright screenshot check: PASS for version visibility in `output/web-game-poke/shot-2.png`.
+  - `render_game_to_text`: PASS (`app_version: "0.1.0-alpha.0"` present).
   - Confirmed starter pick -> combat starts on Route 1 species.
 - Hover interaction run (`output/web-game-hover`): PASS.
   - `hover_popup_visible: true` observed in text state when mouse is over enemy.
@@ -1075,3 +1094,191 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `output/web-game-poke/state-1.json` shows the normal values again (`SuperBall=2500/2`, `Boost X=20000/0.33/120000`).
 - Note:
   - one smoke run produced a transient `Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact at shutdown in `output/web-game-poke/errors-1.json`; the page state/screenshots were otherwise correct, and the same behavior matches the helper script's server shutdown timing rather than a game runtime crash.
+
+## Additional progress (long-session perf investigation + hot-loop cleanup)
+- Investigated the reported “the longer the game stays open, the more it lags” issue with targeted probes:
+  - deterministic `advanceTime(...)` batches,
+  - real-time long-open sampling,
+  - Chromium CPU profile after warm-up.
+- Main finding:
+  - the worst hot-loop cost was not a classic memory leak but repeated UI/save housekeeping work in the foreground loop:
+    - repeated `ensureMoneyAndItems()` normalization from hot getters,
+    - repeated `normalizeBallInventory` / `normalizeShopItemsInventory`,
+    - repeated device-capability checks (`matchMedia` etc.) for auto render-quality cap,
+    - avoidable DOM text rewrites in HUD fields.
+- Applied fixes in `game.js`:
+  - added cached economy normalization keyed by current save ref + config revisions, so repeated `ensureMoneyAndItems()` calls fast-return when nothing changed,
+  - cached ordered route ids instead of rebuilding them repeatedly from the catalog,
+  - cached automatic render-quality cap and refreshed it on resize instead of recomputing capability/media-query checks in the frame loop,
+  - reduced passive HUD refresh cadence from `120ms` to `200ms`,
+  - skipped redundant DOM writes for money/save/pokeball HUD values when text/title is unchanged.
+
+## Validation (perf hot-loop fix)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Warmed-up Chromium CPU profile before/after:
+  - before: `ensureMoneyAndItems`, `normalizeBallInventory`, `normalizeShopItemsInventory`, `getMaxAutomaticRenderQualityRank`, `updateHud` were all visible in the hot path,
+  - after: those save/config normalization costs dropped out of the top offenders; profile is now dominated by normal render work (`drawBackground`, sprite/UI draw calls).
+  - artifacts:
+    - before: `output/cpu-profile/summary.json`
+    - after: `output/cpu-profile-after/summary.json`
+- Targeted gameplay validation after fix:
+  - fresh save -> starter pick -> Route 1 -> combat runs,
+  - `enemies_defeated: 1`,
+  - `fps_estimate: 60`,
+  - no console/page errors.
+  - artifacts:
+    - `output/perf-fix-validation/result.json`
+    - `output/perf-fix-validation/final.png`
+- Real-time combat long-open probe after the fix:
+  - fresh save -> starter -> Route 1 -> 60s sampled combat session,
+  - `fps_estimate` stayed at `60` across all samples,
+  - `cpu_frame_ms_estimate` stayed in a stable single-digit / low-teens range,
+  - artifact: `output/perf-combat-realtime-after/probe.json`
+
+## Follow-up note
+- I did not prove a true ever-growing heap leak in the current code path; the strongest confirmed issue was repeated hot-loop housekeeping/DOM churn that makes long sessions more expensive than necessary. If users still report degradation after this fix, the next profiling pass should focus on render-path costs under richer saves/teams/effects on real mobile hardware.
+
+## Additional progress (save architecture simplification + backups)
+- Removed the browser-linked local JSON save flow from the UI and runtime:
+  - dropped the `Lier save locale` button,
+  - removed File System Access API + IndexedDB handle persistence code from `game.js`,
+  - save backend is now intentionally simple: `AppData\\Roaming\\PokeIdle` bridge first, `localStorage` as browser fallback.
+- Simplified save loading and persistence:
+  - `loadSaveData()` now arbitrates only between bridge save and `localStorage`, still choosing the freshest payload via `last_tick_epoch_ms`,
+  - startup no longer rewrites the bridge when the bridge copy is already the freshest save,
+  - `persistSaveData()` still mirrors immediately to `localStorage`, but bridge writes are now coalesced so repeated save requests collapse to the latest payload instead of chaining a long backlog,
+  - `render_game_to_text()` now reports only `appdata_roaming` or `local_storage`.
+- Hardened `save_bridge_server.mjs`:
+  - added `save_backup_1.json` .. `save_backup_3.json` rotation in `AppData\\Roaming\\PokeIdle`,
+  - `GET /save` now falls back to the newest readable backup when `save_main.json` is missing or corrupted, and reports which file was used,
+  - `DELETE /save` now clears both the main save and rotated backups.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `node --check save_bridge_server.mjs`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - visual review:
+    - reviewed `output/web-game-poke/shot-2.png` after removing the browser-local save button.
+    - reviewed `output/web-game-poke-bridge/shot-2.png` with the bridge enabled.
+  - bridge backup smoke test on temporary `APPDATA`: PASS.
+    - after corrupting `save_main.json`, `GET /save` restored from `save_backup_1.json`.
+    - artifact: `output/save-bridge-smoke.json`.
+  - browser + bridge integration smoke test on temporary `APPDATA`: PASS.
+    - `render_game_to_text` reported `save_backend: "appdata_roaming"`.
+    - artifact: `output/save-backend-with-bridge.json`.
+
+## Additional progress (transparent sprite preference)
+- Updated the sprite download pipeline to prefer a dedicated `transparent` variant before classic front sprites:
+  - `scripts_download_gen1_4_sprites.py` now checks `sprites.other.home` first, then `sprites.other.official-artwork`.
+  - When a transparent source exists, it downloads `*_transparent_front.png` / `*_transparent_front_shiny.png`, inserts a `transparent` entry in `sprite_variants`, and sets `default_sprite_variant_id` to `transparent`.
+- Kept fallback behavior intact:
+  - if no transparent source exists, classic version sprites remain available and the existing FRLG fallback still works.
+- Updated runtime parsing in `game.js`:
+  - sprite variants can now use `generation: 0` for non-generation-specific artwork,
+  - default variant resolution now prefers `transparent` when present,
+  - fallback-only variants no longer fake a generation label when they are generic/default assets.
+- Updated `download_pokemon_data.py` for future full rebuilds so the base sprite download also prefers transparent artwork when available.
+- Regenerated local Pokemon sprite metadata/assets:
+  - `python scripts_download_gen1_4_sprites.py`: PASS.
+  - 493 Pokemon JSON files updated.
+  - 986 new transparent sprite files downloaded.
+  - transparent variant available for all 493 local species in the current 1..493 dataset.
+
+## Validation (transparent sprite turn)
+- `python -m py_compile scripts_download_gen1_4_sprites.py download_pokemon_data.py`: PASS.
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS for startup/smoke.
+  - One transient `output/web-game-poke/errors-2.json` contained `net::ERR_CONNECTION_REFUSED`; a targeted rerun below completed without errors, so this did not reproduce as a gameplay/runtime regression from the sprite change.
+- Targeted Playwright route validation: PASS (`output/web-game-transparent-validate`).
+  - Flow: starter selection -> Route 1 -> tutorial closed -> combat advanced.
+  - `render_game_to_text` confirmed both Bulbizarre and Roucool were using `sprite_variant_id: "transparent"`.
+  - Visual review of `output/web-game-transparent-validate/route1-battle.png` confirmed the new Pokemon renders do not show opaque white rectangular backgrounds.
+
+## Additional progress (transparent-only sprite cleanup)
+- Tightened `scripts_download_gen1_4_sprites.py` so it no longer keeps the old opaque variant files when a transparent source exists.
+  - If `sprites.other.home` or `sprites.other.official-artwork` is available, only the `transparent` variant is kept in `sprite_variants`.
+  - The sprite folder is now cleaned after each Pokemon update, removing any file not referenced by the retained variant(s).
+- Regenerated the local sprite dataset with the cleanup rules:
+  - `python scripts_download_gen1_4_sprites.py`: PASS.
+  - `Obsolete sprite files removed: 7100`.
+  - Dataset check confirms `remaining_non_transparent_sprite_files=0` under `pokemon_data/*/sprites`.
+  - Example: `pokemon_data/1_bulbasaur/sprites` now contains only:
+    - `1_bulbasaur_transparent_front.png`
+    - `1_bulbasaur_transparent_front_shiny.png`
+
+## Validation (transparent-only cleanup turn)
+- `python -m py_compile scripts_download_gen1_4_sprites.py`: PASS.
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS after cleanup.
+- Targeted Playwright route validation: PASS (`output/web-game-transparent-only-validate`).
+  - Flow: starter selection -> Route 1 -> tutorial closed -> combat advanced.
+  - `render_game_to_text` confirmed both team and enemy still use `sprite_variant_id: "transparent"`.
+  - Visual review of `output/web-game-transparent-only-validate/route1-battle.png` confirmed combat renders correctly after deleting the old opaque sprite files.
+- Note:
+  - a recurring `console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact still appears in some Playwright runs; this was already seen before and does not match a missing Pokemon sprite regression, since the game state and screenshots load correctly with the cleaned transparent-only asset set.
+
+## Additional progress (restore all sprite variants on request)
+- User clarified they want the full sprite collection back in each Pokemon folder, like before, not a transparent-only folder cleanup.
+- Reverted the aggressive cleanup behavior in `scripts_download_gen1_4_sprites.py`:
+  - transparent variants are still downloaded and kept first when available,
+  - all historical variants (FRLG / Emerald / RS / HGSS / Platinum / etc.) are downloaded again alongside them,
+  - no sprite file deletion is performed during refresh.
+- Re-ran the full sprite refresh until the dataset was fully restored after the previous cleanup removed legacy variant files.
+
+## Validation (restore all variants turn)
+- `python -m py_compile scripts_download_gen1_4_sprites.py`: PASS.
+- `node --check game.js`: PASS.
+- Full sprite refresh rerun: PASS on second full pass after an initial timeout during restoration.
+  - final run result:
+    - `Pokemon JSON updated: 493`
+    - `New sprite files downloaded: 1396`
+    - `Species with transparent variant available: 493`
+- Dataset checks after restoration:
+  - `sprite_dir_count=493`
+  - `incomplete_sprite_dirs=0`
+  - `total_sprite_files=7100`
+  - `non_transparent_sprite_files=6114`
+- Example sanity check:
+  - `pokemon_data/1_bulbasaur/sprites` again contains the historical sprite variants plus the transparent pair.
+- `run_playwright_check.ps1`: PASS after restoring all variants.
+
+## Additional progress (retro variants switched to transparent equivalents)
+- User clarified the real issue was the retro variant files themselves:
+  - `crystal`
+  - `gold_silver`
+  - `red_blue`
+  - `yellow`
+  - and missing `green`
+- Updated `scripts_download_gen1_4_sprites.py` so those retro variants no longer use the opaque PokeAPI `front_default` files:
+  - `crystal`, `gold_silver`, `red_blue`, and `yellow` now download transparent equivalents,
+  - added a new `green` sprite variant for Gen 1,
+  - retro variants are now sourced from Bulbagarden Archives redirect URLs (`Spr_1b_*`, `Spr_1g_*`, `Spr_1y_*`, `Spr_2c_*`, `Spr_2g_*`) because:
+    - PokeAPI exposes transparent URLs for some retro variants but not all shiny/gen1 cases,
+    - PokeAPI does not expose `green` at all in the Generation I sprite payload.
+- Kept the rest of the sprite catalog intact:
+  - modern/default `transparent` HOME variant remains the default sprite,
+  - FRLG / Emerald / RS / HGSS / Platinum / DP variants are still preserved.
+- Enabled overwrite for those retro target files so previously downloaded opaque PNGs are replaced in place by their transparent equivalents.
+
+## Validation (retro transparent fix turn)
+- `python -m py_compile scripts_download_gen1_4_sprites.py`: PASS.
+- `node --check game.js`: PASS.
+- Full sprite regeneration: PASS.
+  - `Pokemon JSON updated: 493`
+  - `New sprite files downloaded: 151`
+- Spot checks on Bulbizarre confirm all targeted retro files now contain alpha:
+  - `1_bulbasaur_crystal_front.png`
+  - `1_bulbasaur_gold_silver_front.png`
+  - `1_bulbasaur_gold_silver_front_shiny.png`
+  - `1_bulbasaur_red_blue_front.png`
+  - `1_bulbasaur_yellow_front.png`
+  - `1_bulbasaur_green_front.png`
+- Global transparency audit:
+  - `retro_target_files=1457`
+  - `retro_target_opaque_files=0`
+- Variant coverage audit:
+  - `json_with_green_variant=151`
+  - `json_with_crystal_variant=251`
+- `run_playwright_check.ps1`: PASS after the retro variant replacement.
+- Note:
+  - the recurring `console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact still appears intermittently in Playwright smoke runs; it does not match a missing sprite regression, and the regenerated retro files load correctly on disk with non-zero transparency.

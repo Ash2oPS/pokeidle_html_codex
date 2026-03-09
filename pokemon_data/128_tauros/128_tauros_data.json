@@ -17,10 +17,18 @@
     "speed": 110
   },
   "sprites": {
-    "front": "sprites/128_tauros_firered_leafgreen_front.png",
-    "front_shiny": "sprites/128_tauros_firered_leafgreen_front_shiny.png"
+    "front": "sprites/128_tauros_transparent_front.png",
+    "front_shiny": "sprites/128_tauros_transparent_front_shiny.png"
   },
   "sprite_variants": [
+    {
+      "id": "transparent",
+      "label_fr": "Transparent HOME",
+      "generation": 0,
+      "game_key": "home",
+      "front": "sprites/128_tauros_transparent_front.png",
+      "front_shiny": "sprites/128_tauros_transparent_front_shiny.png"
+    },
     {
       "id": "firered_leafgreen",
       "label_fr": "Rouge Feu / Vert Feuille",
@@ -94,6 +102,14 @@
       "front_shiny": null
     },
     {
+      "id": "green",
+      "label_fr": "Vert",
+      "generation": 1,
+      "game_key": "green",
+      "front": "sprites/128_tauros_green_front.png",
+      "front_shiny": null
+    },
+    {
       "id": "red_blue",
       "label_fr": "Rouge / Bleu",
       "generation": 1,
@@ -102,5 +118,5 @@
       "front_shiny": null
     }
   ],
-  "default_sprite_variant_id": "firered_leafgreen"
+  "default_sprite_variant_id": "transparent"
 }

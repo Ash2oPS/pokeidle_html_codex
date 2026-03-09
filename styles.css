@@ -267,6 +267,7 @@ body {
 }
 
 .game-stage {
+  position: relative;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -286,6 +287,7 @@ body {
       rgba(0, 0, 0, 0.04) 12px
     );
   box-shadow: var(--shadow-strong);
+  overflow: hidden;
 }
 
 #game-canvas {
@@ -319,7 +321,7 @@ body {
   box-shadow: var(--shadow-strong);
   padding: 8px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -335,7 +337,6 @@ body {
   touch-action: manipulation;
 }
 
-.save-file-btn,
 .map-btn,
 .shop-btn,
 .reset-save-btn,
@@ -374,10 +375,6 @@ body {
   text-overflow: ellipsis;
 }
 
-.save-file-btn {
-  background: linear-gradient(180deg, #2c8a6b, #1b614a);
-}
-
 .map-btn {
   background: linear-gradient(180deg, #2f8fa1, #1c5a67);
 }
@@ -390,7 +387,6 @@ body {
   background: linear-gradient(180deg, #9a3c44, #6a262c);
 }
 
-.save-file-btn:hover,
 .map-btn:hover,
 .shop-btn:hover,
 .reset-save-btn:hover,
@@ -1597,7 +1593,6 @@ body {
     gap: 7px;
   }
 
-  .save-file-btn,
   .map-btn,
   .shop-btn,
   .reset-save-btn {
@@ -1914,7 +1909,6 @@ body {
     font-size: 11px;
   }
 
-  .save-file-btn,
   .shop-btn,
   .reset-save-btn {
     min-height: 44px;

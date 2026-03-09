@@ -2,6 +2,7 @@ import json
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -12,6 +13,7 @@ MAX_POKEDEX_ID = 493
 RETRY_ATTEMPTS = 5
 REQUEST_TIMEOUT_SECONDS = 30
 POKEMON_DATA_ROOT = Path("pokemon_data")
+BULBAGARDEN_REDIRECT_BASE = "https://archives.bulbagarden.net/wiki/Special:Redirect/file"
 
 SPRITE_VARIANTS = [
     {
@@ -58,31 +60,63 @@ SPRITE_VARIANTS = [
     },
     {
         "id": "crystal",
-        "generation_key": "generation-ii",
-        "game_key": "crystal",
+        "source": "bulbagarden",
+        "bulbagarden_code": "2c",
         "label_fr": "Cristal",
         "generation": 2,
+        "max_pokedex_id": 251,
+        "supports_shiny": True,
     },
     {
         "id": "gold_silver",
-        "generation_key": "generation-ii",
+        "source": "bulbagarden",
+        "bulbagarden_code": "2g",
         "game_key": "gold",
         "label_fr": "Or / Argent",
         "generation": 2,
+        "max_pokedex_id": 251,
+        "supports_shiny": True,
     },
     {
         "id": "yellow",
-        "generation_key": "generation-i",
-        "game_key": "yellow",
+        "source": "bulbagarden",
+        "bulbagarden_code": "1y",
         "label_fr": "Jaune",
         "generation": 1,
+        "max_pokedex_id": 151,
+        "supports_shiny": False,
+    },
+    {
+        "id": "green",
+        "source": "bulbagarden",
+        "bulbagarden_code": "1g",
+        "label_fr": "Vert",
+        "generation": 1,
+        "max_pokedex_id": 151,
+        "supports_shiny": False,
     },
     {
         "id": "red_blue",
-        "generation_key": "generation-i",
+        "source": "bulbagarden",
+        "bulbagarden_code": "1b",
         "game_key": "red-blue",
         "label_fr": "Rouge / Bleu",
         "generation": 1,
+        "max_pokedex_id": 151,
+        "supports_shiny": False,
+    },
+]
+
+TRANSPARENT_SPRITE_CANDIDATES = [
+    {
+        "other_key": "home",
+        "game_key": "home",
+        "label_fr": "Transparent HOME",
+    },
+    {
+        "other_key": "official-artwork",
+        "game_key": "official-artwork",
+        "label_fr": "Artwork officiel transparent",
     },
 ]
 
@@ -127,67 +161,155 @@ def find_pokemon_directory(pokedex_id: int) -> Path | None:
     return None
 
 
-def write_sprite_file(sprite_url: str | None, destination_without_ext: Path) -> str | None:
+def write_sprite_file(sprite_url: str | None, destination_without_ext: Path, overwrite: bool = False) -> str | None:
     if not sprite_url:
         return None
     parsed_ext = Path(urlparse(sprite_url).path).suffix.lower()
     ext = parsed_ext if parsed_ext in {".png", ".jpg", ".jpeg", ".webp"} else ".png"
     target_path = destination_without_ext.with_suffix(ext)
-    if target_path.exists() and target_path.stat().st_size > 0:
+    if not overwrite and target_path.exists() and target_path.stat().st_size > 0:
         return target_path.name
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_bytes(fetch_bytes(sprite_url))
     return target_path.name
 
 
-def get_variant_sprite_urls(pokemon_payload: dict[str, Any], variant: dict[str, Any]) -> tuple[str | None, str | None]:
-    versions = pokemon_payload.get("sprites", {}).get("versions", {})
-    generation_payload = versions.get(variant["generation_key"], {})
-    game_payload = generation_payload.get(variant["game_key"], {})
-    front_default = game_payload.get("front_default")
-    front_shiny = game_payload.get("front_shiny")
+def format_bulbagarden_sprite_file_name(code: str, pokedex_id: int, shiny: bool = False) -> str:
+    suffix = "_s" if shiny else ""
+    return f"Spr_{code}_{pokedex_id:03d}{suffix}.png"
+
+
+def build_bulbagarden_sprite_url(code: str, pokedex_id: int, shiny: bool = False) -> str:
+    file_name = format_bulbagarden_sprite_file_name(code, pokedex_id, shiny)
+    return f"{BULBAGARDEN_REDIRECT_BASE}/{quote(file_name)}"
+
+
+def get_bulbagarden_variant_sprite_urls(pokedex_id: int, variant: dict[str, Any]) -> tuple[str | None, str | None]:
+    max_pokedex_id = int(variant.get("max_pokedex_id", 0) or 0)
+    if max_pokedex_id > 0 and pokedex_id > max_pokedex_id:
+        return None, None
+    code = str(variant.get("bulbagarden_code") or "").strip().lower()
+    if not code:
+        return None, None
+    front_default = build_bulbagarden_sprite_url(code, pokedex_id, shiny=False)
+    front_shiny = (
+        build_bulbagarden_sprite_url(code, pokedex_id, shiny=True)
+        if bool(variant.get("supports_shiny"))
+        else None
+    )
     return front_default, front_shiny
 
 
-def build_sprite_variants_for_pokemon(pokemon_payload: dict[str, Any], sprite_dir: Path, filename_prefix: str) -> list[dict[str, Any]]:
+def get_variant_sprite_urls(pokemon_payload: dict[str, Any], variant: dict[str, Any], pokedex_id: int) -> tuple[str | None, str | None]:
+    if variant.get("source") == "bulbagarden":
+        return get_bulbagarden_variant_sprite_urls(pokedex_id, variant)
+    versions = pokemon_payload.get("sprites", {}).get("versions", {})
+    generation_payload = versions.get(variant["generation_key"], {})
+    game_payload = generation_payload.get(variant["game_key"], {})
+    front_default = game_payload.get("front_transparent") or game_payload.get("front_default")
+    front_shiny = game_payload.get("front_shiny_transparent") or game_payload.get("front_shiny")
+    return front_default, front_shiny
+
+
+def get_transparent_sprite_candidate(
+    pokemon_payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None, str | None]:
+    other_payload = pokemon_payload.get("sprites", {}).get("other", {})
+    for candidate in TRANSPARENT_SPRITE_CANDIDATES:
+        source_payload = other_payload.get(candidate["other_key"], {})
+        front_default = source_payload.get("front_default")
+        front_shiny = source_payload.get("front_shiny")
+        if front_default or front_shiny:
+            return (
+                {
+                    "id": "transparent",
+                    "label_fr": candidate["label_fr"],
+                    "generation": 0,
+                    "game_key": candidate["game_key"],
+                },
+                front_default,
+                front_shiny,
+            )
+    return None, None, None
+
+
+def build_variant_output(
+    sprite_dir: Path,
+    filename_prefix: str,
+    variant: dict[str, Any],
+    front_default_url: str | None,
+    front_shiny_url: str | None,
+    overwrite_existing: bool = False,
+) -> dict[str, Any] | None:
+    if not front_default_url and not front_shiny_url:
+        return None
+
+    variant_token = sanitize_filename_token(variant["id"])
+    front_filename = write_sprite_file(
+        front_default_url,
+        sprite_dir / f"{filename_prefix}_{variant_token}_front",
+        overwrite=overwrite_existing,
+    )
+    shiny_filename = write_sprite_file(
+        front_shiny_url,
+        sprite_dir / f"{filename_prefix}_{variant_token}_front_shiny",
+        overwrite=overwrite_existing,
+    )
+
+    if not front_filename and not shiny_filename:
+        return None
+
+    return {
+        "id": variant["id"],
+        "label_fr": variant["label_fr"],
+        "generation": variant["generation"],
+        "game_key": variant.get("game_key", variant["id"]),
+        "front": f"sprites/{front_filename}" if front_filename else None,
+        "front_shiny": f"sprites/{shiny_filename}" if shiny_filename else None,
+    }
+
+
+def build_sprite_variants_for_pokemon(
+    pokemon_payload: dict[str, Any],
+    pokedex_id: int,
+    sprite_dir: Path,
+    filename_prefix: str,
+) -> list[dict[str, Any]]:
     variants_output: list[dict[str, Any]] = []
+    transparent_variant, transparent_front_url, transparent_shiny_url = get_transparent_sprite_candidate(pokemon_payload)
+    if transparent_variant:
+        transparent_output = build_variant_output(
+            sprite_dir,
+            filename_prefix,
+            transparent_variant,
+            transparent_front_url,
+            transparent_shiny_url,
+        )
+        if transparent_output:
+            variants_output.append(transparent_output)
+
     for variant in SPRITE_VARIANTS:
-        front_default_url, front_shiny_url = get_variant_sprite_urls(pokemon_payload, variant)
-        if not front_default_url and not front_shiny_url:
-            continue
-
-        variant_token = sanitize_filename_token(variant["id"])
-        front_filename = write_sprite_file(
+        front_default_url, front_shiny_url = get_variant_sprite_urls(pokemon_payload, variant, pokedex_id)
+        variant_output = build_variant_output(
+            sprite_dir,
+            filename_prefix,
+            variant,
             front_default_url,
-            sprite_dir / f"{filename_prefix}_{variant_token}_front",
-        )
-        shiny_filename = write_sprite_file(
             front_shiny_url,
-            sprite_dir / f"{filename_prefix}_{variant_token}_front_shiny",
+            overwrite_existing=variant.get("source") == "bulbagarden",
         )
-
-        if not front_filename and not shiny_filename:
-            continue
-
-        variants_output.append(
-            {
-                "id": variant["id"],
-                "label_fr": variant["label_fr"],
-                "generation": variant["generation"],
-                "game_key": variant["game_key"],
-                "front": f"sprites/{front_filename}" if front_filename else None,
-                "front_shiny": f"sprites/{shiny_filename}" if shiny_filename else None,
-            }
-        )
+        if variant_output:
+            variants_output.append(variant_output)
     return variants_output
 
 
 def get_default_variant_id(variants: list[dict[str, Any]]) -> str | None:
     if not variants:
         return None
-    for variant in variants:
-        if variant.get("id") == "firered_leafgreen":
-            return "firered_leafgreen"
+    for preferred_id in ("transparent", "firered_leafgreen"):
+        for variant in variants:
+            if variant.get("id") == preferred_id:
+                return preferred_id
     return variants[0].get("id")
 
 
@@ -208,6 +330,7 @@ def main() -> None:
     total_updated_json = 0
     total_missing_dirs = 0
     total_with_frlg = 0
+    total_with_transparent = 0
 
     print(f"Updating sprite variants for Pokemon 1..{MAX_POKEDEX_ID} (gen 1 to 4 versions)")
     for pokedex_id in range(1, MAX_POKEDEX_ID + 1):
@@ -230,11 +353,13 @@ def main() -> None:
         sprite_dir = pokemon_dir / "sprites"
         filename_prefix = pokemon_dir.name
         before_files = {path.name for path in sprite_dir.glob("*")} if sprite_dir.exists() else set()
-        variants = build_sprite_variants_for_pokemon(pokemon_payload, sprite_dir, filename_prefix)
+        variants = build_sprite_variants_for_pokemon(pokemon_payload, pokedex_id, sprite_dir, filename_prefix)
         after_files = {path.name for path in sprite_dir.glob("*")} if sprite_dir.exists() else set()
         total_downloaded += max(0, len(after_files - before_files))
 
         default_variant_id = get_default_variant_id(variants)
+        if default_variant_id == "transparent":
+            total_with_transparent += 1
         if default_variant_id == "firered_leafgreen":
             total_with_frlg += 1
         default_variant = get_variant_by_id(variants, default_variant_id)
@@ -268,6 +393,7 @@ def main() -> None:
     print("Done.")
     print(f"Pokemon JSON updated: {total_updated_json}")
     print(f"New sprite files downloaded: {total_downloaded}")
+    print(f"Species with transparent variant available: {total_with_transparent}")
     print(f"Species with FRLG variant available: {total_with_frlg}")
     print(f"Missing pokemon directories in local dataset: {total_missing_dirs}")
 

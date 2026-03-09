@@ -29,10 +29,18 @@
     "speed": 15
   },
   "sprites": {
-    "front": "sprites/204_pineco_emerald_front.png",
-    "front_shiny": "sprites/204_pineco_emerald_front_shiny.png"
+    "front": "sprites/204_pineco_transparent_front.png",
+    "front_shiny": "sprites/204_pineco_transparent_front_shiny.png"
   },
   "sprite_variants": [
+    {
+      "id": "transparent",
+      "label_fr": "Transparent HOME",
+      "generation": 0,
+      "game_key": "home",
+      "front": "sprites/204_pineco_transparent_front.png",
+      "front_shiny": "sprites/204_pineco_transparent_front_shiny.png"
+    },
     {
       "id": "emerald",
       "label_fr": "Emeraude",
@@ -90,5 +98,5 @@
       "front_shiny": "sprites/204_pineco_gold_silver_front_shiny.png"
     }
   ],
-  "default_sprite_variant_id": "emerald"
+  "default_sprite_variant_id": "transparent"
 }

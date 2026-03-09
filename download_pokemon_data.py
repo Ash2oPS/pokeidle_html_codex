@@ -22,6 +22,11 @@ ITEM_DATA_ROOT = Path("item_data")
 RETRY_ATTEMPTS = 5
 REQUEST_TIMEOUT_SECONDS = 30
 
+TRANSPARENT_SPRITE_CANDIDATES = [
+    "home",
+    "official-artwork",
+]
+
 
 def fetch_bytes(url: str) -> bytes:
     for attempt in range(1, RETRY_ATTEMPTS + 1):
@@ -75,6 +80,18 @@ def extract_stats(pokemon_payload: dict[str, Any]) -> dict[str, int]:
         stat_entry.get("stat", {}).get("name", "unknown"): int(stat_entry.get("base_stat", 0))
         for stat_entry in pokemon_payload.get("stats", [])
     }
+
+
+def get_preferred_front_sprite_urls(pokemon_payload: dict[str, Any]) -> tuple[str | None, str | None]:
+    other_payload = pokemon_payload.get("sprites", {}).get("other", {})
+    for candidate_key in TRANSPARENT_SPRITE_CANDIDATES:
+        candidate_payload = other_payload.get(candidate_key, {})
+        front_default = candidate_payload.get("front_default")
+        front_shiny = candidate_payload.get("front_shiny")
+        if front_default or front_shiny:
+            return front_default, front_shiny
+    sprites_payload = pokemon_payload.get("sprites", {})
+    return sprites_payload.get("front_default"), sprites_payload.get("front_shiny")
 
 
 def get_named_resource_name(resource: dict[str, Any] | None) -> str | None:
@@ -217,6 +234,7 @@ def main() -> None:
         defensive_types = extract_ordered_types(pokemon_payload)
         offensive_type = select_offensive_type(defensive_types)
         stats = extract_stats(pokemon_payload)
+        preferred_front_url, preferred_shiny_url = get_preferred_front_sprite_urls(pokemon_payload)
         evolution_chain_url = species_payload.get("evolution_chain", {}).get("url")
         evolves_from_name = None
         if species_payload.get("evolves_from_species"):
@@ -237,8 +255,8 @@ def main() -> None:
                 "evolves_from_name": evolves_from_name,
                 "species_name": species_payload.get("name", english_name),
                 "evolution_chain_url": evolution_chain_url,
-                "front_default_url": pokemon_payload.get("sprites", {}).get("front_default"),
-                "front_shiny_url": pokemon_payload.get("sprites", {}).get("front_shiny"),
+                "front_default_url": preferred_front_url,
+                "front_shiny_url": preferred_shiny_url,
             }
         )
 

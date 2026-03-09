@@ -65,10 +65,10 @@ const ROUTE_1_TUTORIAL_ID = "kanto_route_1";
 const SAVE_KEY = "pokeidle_save_v3";
 const SHINY_ODDS = 1024;
 const SAVE_VERSION = 6;
-const SAVE_FILE_DB_NAME = "pokeidle_save_file_db";
-const SAVE_FILE_DB_STORE = "save_handles";
-const SAVE_FILE_HANDLE_KEY = "main_handle";
-const SAVE_FILE_SUGGESTED_NAME = "pokeidle_save.json";
+const APP_VERSION =
+  typeof window !== "undefined" && typeof window.POKEIDLE_APP_VERSION === "string"
+    ? window.POKEIDLE_APP_VERSION
+    : "0.0.0-alpha.0";
 const SAVE_BRIDGE_URL = "http://127.0.0.1:38475";
 const SAVE_BRIDGE_TIMEOUT_MS = 260;
 const SPRITE_VARIANT_BASE_PRICE = 900;
@@ -224,7 +224,7 @@ const MAX_RENDER_DPR = 1.35;
 const TARGET_FPS = 60;
 const TARGET_FRAME_MS = 1000 / TARGET_FPS;
 const MAX_FOREGROUND_PENDING_MS = 320;
-const HUD_AUTO_REFRESH_INTERVAL_MS = 120;
+const HUD_AUTO_REFRESH_INTERVAL_MS = 200;
 const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
 const RENDER_QUALITY_ORDER = Object.freeze(["very_low", "low", "medium", "high", "ultra"]);
 const RENDER_QUALITY_PRESETS = Object.freeze({
@@ -811,7 +811,6 @@ const shopTabCombatButtonEl = document.getElementById("shop-tab-combat");
 const shopTabEvolutionsButtonEl = document.getElementById("shop-tab-evolutions");
 const shopTabButtonEls = Array.from(document.querySelectorAll("[data-shop-tab]"));
 const shopQtyPresetButtonEls = Array.from(document.querySelectorAll("[data-shop-qty]"));
-const linkSaveFileButtonEl = document.getElementById("link-save-file-btn");
 const closeShopButtonEl = document.getElementById("close-shop-btn");
 const moneyPillEl = document.getElementById("money-pill");
 const moneyValueEl = document.getElementById("money-value");
@@ -843,10 +842,11 @@ const tutorialProgressEl = document.getElementById("tutorial-progress");
 const tutorialPrevButtonEl = document.getElementById("tutorial-prev-btn");
 const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
 const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
-const linkSaveFileButtonLabelEl = linkSaveFileButtonEl?.querySelector(".btn-label") || null;
 const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
 const mapMarkerButtonsByRouteId = new Map();
+
+window.POKEIDLE_APP_VERSION = APP_VERSION;
 
 const state = {
   mode: "loading",
@@ -855,12 +855,22 @@ const state = {
   routeData: null,
   backgroundImage: null,
   routeCatalog: new Map(),
+  routeCatalogOrderedIds: ROUTE_ID_ORDER.slice(),
   routeBackgroundsById: new Map(),
   zoneEncounterCsvByRouteId: new Map(),
   zoneEncounterCsvRouteIds: new Set(),
   zoneEncounterCsvLoaded: false,
   ballConfigCsvLoaded: false,
   shopItemConfigCsvLoaded: false,
+  configRevisions: {
+    ball: 0,
+    shopItem: 0,
+  },
+  economyNormalization: {
+    saveDataRef: null,
+    ballRevision: -1,
+    shopItemRevision: -1,
+  },
   pokemonDefsById: new Map(),
   saveData: null,
   team: [],
@@ -880,6 +890,7 @@ const state = {
     longFrameMsEma: TARGET_FRAME_MS,
     cpuFrameMsEma: TARGET_FRAME_MS,
     quality: "low",
+    maxAutomaticQualityRank: null,
     switchCooldownMs: 0,
     slowFrameStreak: 0,
     fastFrameStreak: 0,
@@ -948,10 +959,9 @@ const state = {
     tutorialOpen: false,
   },
   saveBackend: {
-    fileHandle: null,
-    writesInFlight: Promise.resolve(),
-    linkedFromDb: false,
     bridgeAvailable: false,
+    bridgeWriteInFlight: false,
+    pendingSerializedSave: null,
   },
 };
 
@@ -985,7 +995,8 @@ function setRenderQualityByRank(rank) {
   return true;
 }
 
-function getMaxAutomaticRenderQualityRank() {
+function refreshAutomaticRenderQualityRankCache() {
+  const perf = state.performance;
   const coreCount = Math.max(1, toSafeInt(navigator?.hardwareConcurrency, 0));
   const memoryRaw = Number(navigator?.deviceMemory || 0);
   const memoryGb = Number.isFinite(memoryRaw) && memoryRaw > 0 ? memoryRaw : null;
@@ -994,10 +1005,23 @@ function getMaxAutomaticRenderQualityRank() {
   const coarsePointer =
     typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
 
-  if (!coarsePointer && coreCount >= 8 && (memoryGb === null || memoryGb >= 8) && minSide >= 900 && dpr <= 1.5) {
-    return getRenderQualityRank("high");
+  const rank =
+    !coarsePointer && coreCount >= 8 && (memoryGb === null || memoryGb >= 8) && minSide >= 900 && dpr <= 1.5
+      ? getRenderQualityRank("high")
+      : getRenderQualityRank("medium");
+
+  if (perf) {
+    perf.maxAutomaticQualityRank = rank;
   }
-  return getRenderQualityRank("medium");
+  return rank;
+}
+
+function getMaxAutomaticRenderQualityRank() {
+  const cachedRank = Number(state.performance?.maxAutomaticQualityRank);
+  if (Number.isFinite(cachedRank)) {
+    return cachedRank;
+  }
+  return refreshAutomaticRenderQualityRankCache();
 }
 
 function getInitialRenderQualityForDevice() {
@@ -1045,6 +1069,7 @@ function applyInitialPerformanceProfile() {
     return;
   }
   perf.initialized = true;
+  refreshAutomaticRenderQualityRankCache();
   perf.quality = getInitialRenderQualityForDevice();
 }
 
@@ -1262,7 +1287,10 @@ function setMoneyCounterTextValue(value) {
   if (!moneyValueEl) {
     return;
   }
-  moneyValueEl.textContent = String(Math.max(0, toSafeInt(value, 0)));
+  const nextText = String(Math.max(0, toSafeInt(value, 0)));
+  if (moneyValueEl.textContent !== nextText) {
+    moneyValueEl.textContent = nextText;
+  }
 }
 
 function spawnMoneyGainFloater(amount) {
@@ -2100,7 +2128,7 @@ function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
   return {
     id,
     labelFr: String(rawVariant.label_fr || rawVariant.label || id),
-    generation: clamp(toSafeInt(rawVariant.generation, 1), 1, 9),
+    generation: clamp(toSafeInt(rawVariant.generation, 0), 0, 9),
     gameKey: String(rawVariant.game_key || "").toLowerCase(),
     frontPath,
     frontShinyPath: resolveSpritePath(jsonPath, rawVariant.front_shiny),
@@ -2127,6 +2155,10 @@ function getDefaultSpriteVariantId(def) {
   const explicit = normalizeSpriteVariantId(def?.defaultSpriteVariantId);
   if (explicit && variants.some((entry) => entry.id === explicit)) {
     return explicit;
+  }
+  const transparent = variants.find((entry) => entry.id === "transparent");
+  if (transparent) {
+    return transparent.id;
   }
   const frlg = variants.find((entry) => entry.id === "firered_leafgreen" || entry.gameKey === "firered-leafgreen");
   if (frlg) {
@@ -2326,6 +2358,10 @@ function normalizeTutorialProgress(rawTutorials, rawEntities = null) {
 
 function getLegacyPokeballCount(rawSave) {
   return Math.max(0, toSafeInt(rawSave?.pokeballs, 0));
+}
+
+function markEconomyNormalizationDirty() {
+  state.economyNormalization.saveDataRef = null;
 }
 
 function createEmptySave() {
@@ -2800,130 +2836,6 @@ function ensureAppearanceEditorUnlockedFromProgress() {
   return true;
 }
 
-function supportsLocalFileSaveApi() {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.showSaveFilePicker === "function" &&
-    typeof window.indexedDB !== "undefined"
-  );
-}
-
-function refreshLocalFileLinkButtonState() {
-  if (!linkSaveFileButtonEl) {
-    return;
-  }
-  const supported = supportsLocalFileSaveApi();
-  linkSaveFileButtonEl.disabled = !supported;
-
-  if (supported) {
-    if (linkSaveFileButtonLabelEl) {
-      linkSaveFileButtonLabelEl.textContent = "Lier save locale";
-    }
-    linkSaveFileButtonEl.title = "Lier un fichier JSON de sauvegarde local (feature navigateur).";
-    return;
-  }
-
-  if (linkSaveFileButtonLabelEl) {
-    linkSaveFileButtonLabelEl.textContent = "Save locale indisponible";
-  }
-  linkSaveFileButtonEl.title =
-    "Fonction non supportee sur ce navigateur (Firefox). Utilise la save AppData\\\\Roaming\\\\PokeIdle via le save bridge.";
-}
-
-function openSaveFileDb() {
-  return new Promise((resolve, reject) => {
-    if (!supportsLocalFileSaveApi()) {
-      resolve(null);
-      return;
-    }
-    const request = window.indexedDB.open(SAVE_FILE_DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(SAVE_FILE_DB_STORE)) {
-        db.createObjectStore(SAVE_FILE_DB_STORE);
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error("IDB open failed"));
-  });
-}
-
-async function readSaveFileHandleFromDb() {
-  const db = await openSaveFileDb();
-  if (!db) {
-    return null;
-  }
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SAVE_FILE_DB_STORE, "readonly");
-    const store = tx.objectStore(SAVE_FILE_DB_STORE);
-    const request = store.get(SAVE_FILE_HANDLE_KEY);
-    request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => reject(request.error || new Error("IDB get handle failed"));
-  }).finally(() => {
-    db.close();
-  });
-}
-
-async function writeSaveFileHandleToDb(handle) {
-  const db = await openSaveFileDb();
-  if (!db) {
-    return;
-  }
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SAVE_FILE_DB_STORE, "readwrite");
-    const store = tx.objectStore(SAVE_FILE_DB_STORE);
-    const request = store.put(handle, SAVE_FILE_HANDLE_KEY);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error || new Error("IDB put handle failed"));
-  }).finally(() => {
-    db.close();
-  });
-}
-
-async function restoreSaveFileHandleFromDb() {
-  if (state.saveBackend.linkedFromDb) {
-    return state.saveBackend.fileHandle;
-  }
-  state.saveBackend.linkedFromDb = true;
-  try {
-    const handle = await readSaveFileHandleFromDb();
-    state.saveBackend.fileHandle = handle || null;
-  } catch {
-    state.saveBackend.fileHandle = null;
-  }
-  return state.saveBackend.fileHandle;
-}
-
-async function readSaveDataFromFileHandle(handle) {
-  if (!handle) {
-    return null;
-  }
-  try {
-    const file = await handle.getFile();
-    const text = await file.text();
-    if (!text || !text.trim()) {
-      return null;
-    }
-    return normalizeSave(JSON.parse(text));
-  } catch {
-    return null;
-  }
-}
-
-async function writeSerializedSaveToFileHandle(handle, serializedSave) {
-  if (!handle) {
-    return false;
-  }
-  try {
-    const writable = await handle.createWritable();
-    await writable.write(serializedSave);
-    await writable.close();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function getSaveBridgeEndpoint(pathname = "") {
   const pathValue = String(pathname || "");
   if (!pathValue) {
@@ -2991,15 +2903,63 @@ async function writeSerializedSaveToBridge(serializedSave) {
   }
 }
 
+function readSaveDataFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      return null;
+    }
+    return normalizeSave(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+function writeSerializedSaveToLocalStorage(serializedSave) {
+  try {
+    localStorage.setItem(SAVE_KEY, serializedSave);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function drainPendingBridgeSaveWrites() {
+  if (state.saveBackend.bridgeWriteInFlight) {
+    return;
+  }
+
+  state.saveBackend.bridgeWriteInFlight = true;
+  try {
+    while (state.saveBackend.pendingSerializedSave) {
+      const serializedSave = state.saveBackend.pendingSerializedSave;
+      state.saveBackend.pendingSerializedSave = null;
+      await writeSerializedSaveToBridge(serializedSave);
+    }
+  } finally {
+    state.saveBackend.bridgeWriteInFlight = false;
+    updateSaveBackendIndicator();
+    if (state.saveBackend.pendingSerializedSave) {
+      void drainPendingBridgeSaveWrites();
+    }
+  }
+}
+
+function queueBridgeSaveWrite(serializedSave) {
+  state.saveBackend.pendingSerializedSave = serializedSave;
+  if (!state.saveBackend.bridgeWriteInFlight) {
+    void drainPendingBridgeSaveWrites();
+  }
+}
+
 function updateSaveBackendIndicator() {
   if (!saveBackendValueEl) {
     return;
   }
-  if (state.saveBackend.bridgeAvailable) {
-    saveBackendValueEl.textContent = "AppData\\Roaming\\PokeIdle";
-    return;
+  const nextLabel = state.saveBackend.bridgeAvailable ? "AppData\\Roaming\\PokeIdle" : "localStorage (bridge off)";
+  if (saveBackendValueEl.textContent !== nextLabel) {
+    saveBackendValueEl.textContent = nextLabel;
   }
-  saveBackendValueEl.textContent = state.saveBackend.fileHandle ? "fichier local" : "localStorage (bridge off)";
 }
 
 function getSaveTickEpochMs(savePayload) {
@@ -3007,26 +2967,10 @@ function getSaveTickEpochMs(savePayload) {
 }
 
 async function loadSaveData() {
-  await restoreSaveFileHandleFromDb();
   const bridgeResult = await readSaveDataFromBridge();
   const bridgeSave = bridgeResult.saveData;
-
-  let fileSave = null;
-  if (state.saveBackend.fileHandle) {
-    fileSave = await readSaveDataFromFileHandle(state.saveBackend.fileHandle);
-  }
-
-  let localSave = null;
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (raw) {
-      localSave = normalizeSave(JSON.parse(raw));
-    }
-  } catch {
-    localSave = null;
-  }
-
-  const candidates = [bridgeSave, fileSave, localSave].filter(Boolean);
+  const localSave = readSaveDataFromLocalStorage();
+  const candidates = [bridgeSave, localSave].filter(Boolean);
   let selected = null;
   if (candidates.length > 0) {
     selected = candidates.reduce((best, candidate) =>
@@ -3037,8 +2981,10 @@ async function loadSaveData() {
   }
 
   const serializedSelected = JSON.stringify(selected);
-  localStorage.setItem(SAVE_KEY, serializedSelected);
-  if (bridgeResult.available) {
+  writeSerializedSaveToLocalStorage(serializedSelected);
+  const shouldMirrorToBridge =
+    bridgeResult.available && (!bridgeSave || getSaveTickEpochMs(selected) > getSaveTickEpochMs(bridgeSave));
+  if (shouldMirrorToBridge) {
     await writeSerializedSaveToBridge(serializedSelected);
   }
   updateSaveBackendIndicator();
@@ -3051,25 +2997,9 @@ function persistSaveData() {
   }
   state.saveData.last_tick_epoch_ms = Date.now();
   const serialized = JSON.stringify(state.saveData);
-  localStorage.setItem(SAVE_KEY, serialized);
-
-  const handle = state.saveBackend.fileHandle;
-
-  state.saveBackend.writesInFlight = state.saveBackend.writesInFlight
-    .then(async () => {
-      await writeSerializedSaveToBridge(serialized);
-
-      if (handle) {
-        const written = await writeSerializedSaveToFileHandle(handle, serialized);
-        if (!written) {
-          throw new Error("save write failed");
-        }
-      }
-    })
-    .catch(() => {})
-    .finally(() => {
-      updateSaveBackendIndicator();
-    });
+  writeSerializedSaveToLocalStorage(serialized);
+  queueBridgeSaveWrite(serialized);
+  updateSaveBackendIndicator();
 }
 
 function persistSaveDataForSimulationEvent() {
@@ -3242,59 +3172,6 @@ function handlePageLifecyclePersist() {
   persistSaveData();
 }
 
-async function linkSaveFileFromUserAction() {
-  if (!supportsLocalFileSaveApi()) {
-    setTopMessage(
-      "Firefox ne supporte pas ce bouton. La save principale passe par AppData\\Roaming\\PokeIdle via le save bridge.",
-      3600,
-    );
-    return;
-  }
-
-  try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: SAVE_FILE_SUGGESTED_NAME,
-      types: [
-        {
-          description: "Poke Idle Save",
-          accept: {
-            "application/json": [".json"],
-          },
-        },
-      ],
-    });
-    if (!handle) {
-      return;
-    }
-
-    state.saveBackend.fileHandle = handle;
-    state.saveBackend.linkedFromDb = true;
-    await writeSaveFileHandleToDb(handle);
-
-    const loaded = await readSaveDataFromFileHandle(handle);
-    let message = "Fichier de save local lie.";
-    if (loaded) {
-      state.saveData = loaded;
-      message = "Save locale chargee depuis le fichier.";
-    } else {
-      if (!state.saveData) {
-        state.saveData = createEmptySave();
-      }
-      await writeSerializedSaveToFileHandle(handle, JSON.stringify(state.saveData, null, 2));
-    }
-
-    persistSaveData();
-    updateSaveBackendIndicator();
-    await initializeScene();
-    setTopMessage(message, 1900);
-  } catch (error) {
-    if (error && typeof error === "object" && error.name === "AbortError") {
-      return;
-    }
-    setTopMessage("Impossible de lier le fichier de save local.", 2200);
-  }
-}
-
 function ensureSpeciesStats(pokemonId) {
   if (!state.saveData) {
     return createPokemonEntityRecord(pokemonId, 1);
@@ -3318,8 +3195,8 @@ function incrementSpeciesStat(pokemonId, kind, isShiny, amount = 1) {
     notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue, nextValue);
   }
 }
-function getOrderedCatalogRouteIds() {
-  const availableRouteIds = state.routeCatalog?.size > 0 ? Array.from(state.routeCatalog.keys()) : ROUTE_ID_ORDER;
+function buildOrderedCatalogRouteIds(routeCatalog = state.routeCatalog) {
+  const availableRouteIds = routeCatalog?.size > 0 ? Array.from(routeCatalog.keys()) : ROUTE_ID_ORDER;
   const ordered = ROUTE_ID_ORDER.filter((routeId) => availableRouteIds.includes(routeId));
   for (const routeId of availableRouteIds) {
     if (!ordered.includes(routeId)) {
@@ -3330,6 +3207,18 @@ function getOrderedCatalogRouteIds() {
     ordered.unshift(DEFAULT_ROUTE_ID);
   }
   return ordered;
+}
+
+function refreshOrderedCatalogRouteIds() {
+  state.routeCatalogOrderedIds = buildOrderedCatalogRouteIds(state.routeCatalog);
+  return state.routeCatalogOrderedIds;
+}
+
+function getOrderedCatalogRouteIds() {
+  if (Array.isArray(state.routeCatalogOrderedIds) && state.routeCatalogOrderedIds.length > 0) {
+    return state.routeCatalogOrderedIds;
+  }
+  return refreshOrderedCatalogRouteIds();
 }
 
 function ensureRouteDefeatCountsForCurrentCatalog() {
@@ -3791,6 +3680,17 @@ function setEntityLevel(record, level) {
 
 function ensureMoneyAndItems() {
   if (!state.saveData) {
+    markEconomyNormalizationDirty();
+    return;
+  }
+  const normalizationState = state.economyNormalization;
+  const ballRevision = Math.max(0, toSafeInt(state.configRevisions?.ball, 0));
+  const shopItemRevision = Math.max(0, toSafeInt(state.configRevisions?.shopItem, 0));
+  if (
+    normalizationState.saveDataRef === state.saveData
+    && normalizationState.ballRevision === ballRevision
+    && normalizationState.shopItemRevision === shopItemRevision
+  ) {
     return;
   }
   state.saveData.money = Math.max(0, toSafeInt(state.saveData.money, 0));
@@ -3811,6 +3711,9 @@ function ensureMoneyAndItems() {
     ? activeBallType
     : getDefaultActiveBallType();
   state.saveData.pokeballs = computeBallInventoryTotal(normalizedBallInventory);
+  normalizationState.saveDataRef = state.saveData;
+  normalizationState.ballRevision = ballRevision;
+  normalizationState.shopItemRevision = shopItemRevision;
 }
 
 function getBallInventoryCount(ballType) {
@@ -6227,7 +6130,7 @@ async function loadPokemonEntity(jsonPath) {
       variants.push({
         id: "default",
         labelFr: "Sprite par defaut",
-        generation: 3,
+        generation: 0,
         gameKey: "default",
         frontPath: fallbackFront,
         frontShinyPath: resolveSpritePath(jsonPath, payload?.sprites?.front_shiny),
@@ -6241,6 +6144,7 @@ async function loadPokemonEntity(jsonPath) {
   });
   const defaultVariant =
     variants.find((entry) => entry.id === defaultSpriteVariantId) ||
+    variants.find((entry) => entry.id === "transparent") ||
     variants.find((entry) => entry.id === "firered_leafgreen") ||
     variants[0] ||
     null;
@@ -6813,11 +6717,17 @@ function updateHud() {
     state.moneyHud.lastRawValue = rawMoney;
   }
   if (pokeballValueEl) {
-    pokeballValueEl.textContent = String(state.saveData.pokeballs);
+    const totalText = String(state.saveData.pokeballs);
+    if (pokeballValueEl.textContent !== totalText) {
+      pokeballValueEl.textContent = totalText;
+    }
     const activeType = getActiveBallType();
     const activeLabel = getBallTypeLabel(activeType);
     const activeStock = getBallInventoryCount(activeType);
-    pokeballValueEl.title = `Actif: ${activeLabel} (${activeStock})`;
+    const nextTitle = `Actif: ${activeLabel} (${activeStock})`;
+    if (pokeballValueEl.title !== nextTitle) {
+      pokeballValueEl.title = nextTitle;
+    }
   }
   updateSaveBackendIndicator();
   refreshRouteUi();
@@ -9213,16 +9123,46 @@ function drawNonCombatZoneOverlay(layout) {
   ctx.restore();
 }
 
+function drawVersionOverlay() {
+  const label = `v${APP_VERSION}`;
+  const fontSize = state.viewport.width <= 760 ? 10 : 11;
+  const paddingX = 8;
+  const paddingY = 5;
+  const x = 16;
+  const bottom = state.viewport.height - 16;
+
+  ctx.save();
+  ctx.font = `600 ${fontSize}px Trebuchet MS`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  const textWidth = Math.ceil(ctx.measureText(label).width);
+  const pillWidth = textWidth + paddingX * 2;
+  const pillHeight = fontSize + paddingY * 2;
+  const y = bottom - pillHeight;
+  ctx.fillStyle = "rgba(5, 15, 27, 0.34)";
+  ctx.strokeStyle = "rgba(214, 240, 255, 0.14)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x, y, pillWidth, pillHeight, 999);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(226, 243, 255, 0.72)";
+  ctx.fillText(label, x + paddingX, bottom - paddingY);
+  ctx.restore();
+}
+
 function render() {
   const { width, height } = state.viewport;
   ctx.clearRect(0, 0, width, height);
 
   if (state.mode === "loading") {
     drawLoadingOrError("Chargement de l'arene...");
+    drawVersionOverlay();
     return;
   }
   if (state.mode === "error") {
     drawLoadingOrError(state.error || "Erreur de chargement");
+    drawVersionOverlay();
     return;
   }
 
@@ -9362,6 +9302,7 @@ function render() {
   drawViewportVignette(width, height, environmentSnapshot);
   drawRouteDefeatTimerBar(routeDefeatTimer);
   drawEvolutionAnimationOverlay(layout);
+  drawVersionOverlay();
 }
 
 function update(deltaMs, options = {}) {
@@ -9415,6 +9356,7 @@ function gameLoop(timestamp) {
 }
 
 function resizeCanvas() {
+  refreshAutomaticRenderQualityRankCache();
   const maxWidth = 1200;
   const maxHeight = 760;
   const stageRect = gameStageEl?.getBoundingClientRect();
@@ -10156,6 +10098,7 @@ function exportTextState() {
   });
 
   const payload = {
+    app_version: APP_VERSION,
     mode: state.mode,
     coordinate_system: {
       origin: "top-left",
@@ -10263,9 +10206,7 @@ function exportTextState() {
       })),
     save_backend: state.saveBackend.bridgeAvailable
       ? "appdata_roaming"
-      : state.saveBackend.fileHandle
-        ? "local_file"
-        : "local_storage",
+      : "local_storage",
     shop_open: Boolean(state.ui.shopOpen),
     map_open: Boolean(state.ui.mapOpen),
     shop_tab: String(state.ui.shopTab || SHOP_TAB_POKEBALLS),
@@ -10581,6 +10522,7 @@ function setBallConfigState(payload) {
   refreshBallConfigDerivedState();
   rebuildShopItemConfigState();
   state.ballConfigCsvLoaded = sourceEntries.length > 0;
+  state.configRevisions.ball += 1;
 }
 
 function normalizeShopItemConfigFromCsvRow(row, fallbackConfig = null) {
@@ -10670,6 +10612,7 @@ function setShopItemConfigState(payload) {
   rebuildEvolutionStoneConfigState(EXTRA_SHOP_ITEM_CONFIG_BY_ID);
   rebuildShopItemConfigState();
   state.shopItemConfigCsvLoaded = sourceEntries.length > 0;
+  state.configRevisions.shopItem += 1;
 }
 
 function normalizeEncounterFromCsvRow(row) {
@@ -11027,7 +10970,6 @@ async function initializeScene() {
   setShopItemConfigState(null);
   setZoneEncounterCsvState(null);
   stopBackgroundTicker();
-  refreshLocalFileLinkButtonState();
   hideHoverPopup();
   closeBoxesModal();
   closeAppearanceModal();
@@ -11066,6 +11008,7 @@ async function initializeScene() {
     }
     state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
+    refreshOrderedCatalogRouteIds();
     await loadPokemonDefinitions(Array.from(state.routeCatalog.values()));
     const unlockStateReconciled = reconcileEntityUnlockStates();
     const appearanceStateReconciled = reconcileEntityAppearanceStates();
@@ -11261,11 +11204,6 @@ if (routeNextButtonEl) {
     navigateRouteByOffset(1);
   });
 }
-if (linkSaveFileButtonEl) {
-  linkSaveFileButtonEl.addEventListener("click", () => {
-    linkSaveFileFromUserAction().catch(() => {});
-  });
-}
 if (closeShopButtonEl) {
   closeShopButtonEl.addEventListener("click", () => {
     setShopOpen(false);
@@ -11401,6 +11339,3 @@ resizeCanvas();
 state.realClockLastMs = Date.now();
 initializeScene();
 window.requestAnimationFrame(gameLoop);
-
-
-
