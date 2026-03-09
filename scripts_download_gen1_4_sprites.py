@@ -120,6 +120,21 @@ TRANSPARENT_SPRITE_CANDIDATES = [
     },
 ]
 
+DEFAULT_VARIANT_PREFERENCE = (
+    "firered_leafgreen",
+    "emerald",
+    "ruby_sapphire",
+    "heartgold_soulsilver",
+    "platinum",
+    "diamond_pearl",
+    "crystal",
+    "gold_silver",
+    "yellow",
+    "green",
+    "red_blue",
+    "transparent",
+)
+
 
 def fetch_bytes(url: str) -> bytes:
     for attempt in range(1, RETRY_ATTEMPTS + 1):
@@ -306,7 +321,7 @@ def build_sprite_variants_for_pokemon(
 def get_default_variant_id(variants: list[dict[str, Any]]) -> str | None:
     if not variants:
         return None
-    for preferred_id in ("transparent", "firered_leafgreen"):
+    for preferred_id in DEFAULT_VARIANT_PREFERENCE:
         for variant in variants:
             if variant.get("id") == preferred_id:
                 return preferred_id

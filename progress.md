@@ -1282,3 +1282,57 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - `run_playwright_check.ps1`: PASS after the retro variant replacement.
 - Note:
   - the recurring `console.error: Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact still appears intermittently in Playwright smoke runs; it does not match a missing sprite regression, and the regenerated retro files load correctly on disk with non-zero transparency.
+
+## Additional progress (enemy sprite mirrors team species appearance)
+- Updated species appearance resolution so the selected sprite variant is shared by wild enemies of the same species.
+- Added a dedicated enemy sync pass after team appearance changes:
+  - the current enemy now refreshes immediately if its species matches a team species whose appearance was edited,
+  - future encounters of that species reuse the selected variant too.
+- Preserved shiny behavior requested by the user:
+  - if the team appearance is set to shiny mode, normal wild enemies now use the matching non-shiny sprite for that variant,
+  - shiny wild enemies still use the shiny equivalent when available.
+
+## Validation (enemy sprite mirror turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright verification with seeded save + UI interaction: PASS.
+  - Case 1: normal wild Roucool mirrored the selected `firered_leafgreen` variant immediately after changing the team member appearance in the UI.
+  - Case 1: despite shiny mode being enabled on the team member, the normal wild Roucool stayed `shiny_visual: false`.
+  - Case 2: shiny wild Roucool reused the same `firered_leafgreen` variant and stayed `shiny_visual: true`.
+- Artifacts written to `output/verify-enemy-sprite-mirror/`:
+  - `normal-after-ui-change.png`
+  - `normal-after-ui-change.state.json`
+  - `shiny-encounter.png`
+  - `shiny-encounter.state.json`
+
+## Additional progress (default sprite preference FRLG)
+- Changed default Pokemon sprite selection to prefer `firered_leafgreen` first.
+- Added an explicit fallback chain for species without FRLG assets:
+  - `emerald`
+  - `ruby_sapphire`
+  - `heartgold_soulsilver`
+  - `platinum`
+  - `diamond_pearl`
+  - `crystal`
+  - `gold_silver`
+  - `yellow`
+  - `green`
+  - `red_blue`
+  - `transparent`
+- Kept the generation script aligned with the runtime by updating `scripts_download_gen1_4_sprites.py` to use the same preference order for future sprite refreshes.
+- Added a runtime safety net so a legacy `transparent` selection does not win over the new FRLG-first default when resolving an owned sprite for display.
+
+## Validation (FRLG default turn)
+- `node --check game.js`: PASS.
+- Preference spot-check via JSON data: PASS.
+  - `100_voltorb` resolves to `firered_leafgreen`.
+  - `152_chikorita` resolves to `emerald`.
+  - `387_turtwig` resolves to `heartgold_soulsilver`.
+  - `transparent defaults after preference: 0`.
+- `run_playwright_check.ps1`: PASS.
+- Targeted starter Playwright run: PASS.
+  - Artifact folder: `output/web-game-sprite-default/`
+  - `state-2.json` reports Bulbizarre with `sprite_variant_id: "firered_leafgreen"`.
+
+## TODO / Notes
+- If we want to force-persist old local saves that still store `appearance_selected_variant: "transparent"`, add a dedicated one-shot migration/writeback path; the display preference is now FRLG-first, but the raw saved selection can still remain untouched in some seeded localStorage test setups.

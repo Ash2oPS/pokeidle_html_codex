@@ -74,6 +74,21 @@ const SAVE_BRIDGE_TIMEOUT_MS = 260;
 const SPRITE_VARIANT_BASE_PRICE = 900;
 const SPRITE_VARIANT_GEN_PRICE_STEP = 230;
 const SPRITE_VARIANT_INDEX_PRICE_STEP = 120;
+const DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE = Object.freeze([
+  "firered_leafgreen",
+  "emerald",
+  "ruby_sapphire",
+  "heartgold_soulsilver",
+  "platinum",
+  "diamond_pearl",
+  "crystal",
+  "gold_silver",
+  "yellow",
+  "green",
+  "red_blue",
+  "transparent",
+  "default",
+]);
 
 const MAX_TEAM_SIZE = 6;
 const BASE_STEP_MS = 1000 / 60;
@@ -2147,24 +2162,39 @@ function getSpriteVariantById(def, variantId) {
   return getSpriteVariantsForDef(def).find((entry) => entry.id === targetId) || null;
 }
 
-function getDefaultSpriteVariantId(def) {
+function getPreferredDefaultSpriteVariant(def) {
   const variants = getSpriteVariantsForDef(def);
   if (variants.length <= 0) {
-    return "";
+    return null;
+  }
+  const variantsById = new Map(variants.map((entry) => [entry.id, entry]));
+  for (const preferredId of DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE) {
+    if (variantsById.has(preferredId)) {
+      return variantsById.get(preferredId) || null;
+    }
   }
   const explicit = normalizeSpriteVariantId(def?.defaultSpriteVariantId);
-  if (explicit && variants.some((entry) => entry.id === explicit)) {
-    return explicit;
+  if (explicit && variantsById.has(explicit)) {
+    return variantsById.get(explicit) || null;
   }
-  const transparent = variants.find((entry) => entry.id === "transparent");
-  if (transparent) {
-    return transparent.id;
+  return variants[0];
+}
+
+function getDefaultSpriteVariantId(def) {
+  return getPreferredDefaultSpriteVariant(def)?.id || "";
+}
+
+function shouldPromoteLegacyTransparentSelection(selectedVariantId, ownedVariantIds, defaultVariantId) {
+  const preferredId = normalizeSpriteVariantId(defaultVariantId);
+  if (!preferredId || preferredId === "transparent") {
+    return false;
   }
-  const frlg = variants.find((entry) => entry.id === "firered_leafgreen" || entry.gameKey === "firered-leafgreen");
-  if (frlg) {
-    return frlg.id;
+  const selectedId = normalizeSpriteVariantId(selectedVariantId);
+  if (selectedId !== "transparent") {
+    return false;
   }
-  return variants[0].id;
+  const ownedIds = normalizeSpriteVariantIdList(ownedVariantIds);
+  return ownedIds.length > 0 && ownedIds.every((variantId) => variantId === "transparent");
 }
 
 function getSpriteVariantOrderIndex(def, variantId) {
@@ -3516,8 +3546,15 @@ function reconcileAppearanceForEntityRecord(record, pokemonId) {
 
   const validIds = new Set(variants.map((entry) => entry.id));
   const defaultVariantId = getDefaultSpriteVariantId(def);
-  const ownedSet = new Set(
-    normalizeSpriteVariantIdList(record.appearance_owned_variants).filter((variantId) => validIds.has(variantId)),
+  const normalizedOwned = normalizeSpriteVariantIdList(record.appearance_owned_variants).filter((variantId) =>
+    validIds.has(variantId),
+  );
+  const ownedSet = new Set(normalizedOwned);
+  const selectedIdBeforeMigration = normalizeSpriteVariantId(record.appearance_selected_variant);
+  const shouldPromoteLegacyTransparent = shouldPromoteLegacyTransparentSelection(
+    selectedIdBeforeMigration,
+    normalizedOwned,
+    defaultVariantId,
   );
   if (defaultVariantId) {
     ownedSet.add(defaultVariantId);
@@ -3532,7 +3569,10 @@ function reconcileAppearanceForEntityRecord(record, pokemonId) {
     changed = true;
   }
 
-  let selectedId = normalizeSpriteVariantId(record.appearance_selected_variant);
+  let selectedId = selectedIdBeforeMigration;
+  if (shouldPromoteLegacyTransparent) {
+    selectedId = defaultVariantId;
+  }
   if (!selectedId || !ownedSet.has(selectedId)) {
     selectedId = orderedOwned[0] || defaultVariantId || variants[0].id;
   }
@@ -3597,13 +3637,17 @@ function getSelectedOwnedSpriteVariantForRecord(record, def) {
   }
   const owned = getOwnedSpriteVariantsForRecord(record, def);
   const selectedId = normalizeSpriteVariantId(record?.appearance_selected_variant);
+  const defaultVariantId = getDefaultSpriteVariantId(def);
+  if (shouldPromoteLegacyTransparentSelection(selectedId, record?.appearance_owned_variants, defaultVariantId)) {
+    return getSpriteVariantById(def, defaultVariantId) || owned[0] || variants[0] || null;
+  }
   if (selectedId) {
     const selectedVariant = owned.find((variant) => variant.id === selectedId);
     if (selectedVariant) {
       return selectedVariant;
     }
   }
-  return owned[0] || variants[0] || null;
+  return owned[0] || getSpriteVariantById(def, defaultVariantId) || variants[0] || null;
 }
 
 function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
@@ -3627,7 +3671,11 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
   const variant = getSelectedOwnedSpriteVariantForRecord(record, def);
   const normalPath = variant?.frontPath || def.spritePath || "";
   const shinyUnlocked = isShinyAppearanceUnlockedForRecord(record);
-  const shinyModeRequested = Boolean(options.forceShiny || (record?.appearance_shiny_mode && shinyUnlocked));
+  const respectAppearanceShinyMode = options.respectAppearanceShinyMode !== false;
+  const hasExplicitShinyVisual = Object.prototype.hasOwnProperty.call(options, "shinyVisual");
+  const shinyModeRequested = hasExplicitShinyVisual
+    ? Boolean(options.shinyVisual)
+    : Boolean(options.forceShiny || (respectAppearanceShinyMode && record?.appearance_shiny_mode && shinyUnlocked));
   const shinyPath = variant?.frontShinyPath || def.shinySpritePath || "";
   const canRenderShiny = shinyModeRequested && Boolean(shinyPath);
   const resolvedPath = canRenderShiny ? shinyPath : normalPath;
@@ -3644,6 +3692,30 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
     shinyUnlocked,
     shinyModeRequested,
   };
+}
+
+function syncActiveEnemyAppearance() {
+  const enemy = state.battle?.getEnemy?.();
+  if (!enemy) {
+    if (state.battle) {
+      state.enemy = null;
+    }
+    return;
+  }
+
+  const def = state.pokemonDefsById.get(Number(enemy.id || 0));
+  const appearance = resolveSpriteAppearanceForEntity(enemy.id, {
+    shinyVisual: Boolean(enemy.isShiny),
+    respectAppearanceShinyMode: false,
+  });
+  const fallbackPath = enemy.isShiny ? def?.shinySpritePath || def?.spritePath || "" : def?.spritePath || "";
+  const fallbackImage = enemy.isShiny ? def?.spriteShinyImage || def?.spriteImage || null : def?.spriteImage || null;
+
+  enemy.spritePath = appearance.spritePath || fallbackPath || enemy.spritePath || "";
+  enemy.spriteImage = appearance.spriteImage || fallbackImage || enemy.spriteImage || null;
+  enemy.spriteVariantId = appearance.variant?.id || getDefaultSpriteVariantId(def) || enemy.spriteVariantId || null;
+  enemy.isShinyVisual = Boolean(enemy.isShiny || appearance.shinyVisual);
+  state.enemy = enemy;
 }
 
 function getSpriteVariantPurchasePrice(def, variantId) {
@@ -4491,6 +4563,7 @@ function rebuildTeamAndSyncBattle() {
   state.team = hydrateTeamFromSave();
   if (state.battle) {
     state.battle.syncTeam(state.team);
+    syncActiveEnemyAppearance();
   }
 }
 
@@ -6142,12 +6215,10 @@ async function loadPokemonEntity(jsonPath) {
     spriteVariants: variants,
     defaultSpriteVariantId: normalizeSpriteVariantId(payload?.default_sprite_variant_id),
   });
-  const defaultVariant =
-    variants.find((entry) => entry.id === defaultSpriteVariantId) ||
-    variants.find((entry) => entry.id === "transparent") ||
-    variants.find((entry) => entry.id === "firered_leafgreen") ||
-    variants[0] ||
-    null;
+  const defaultVariant = getPreferredDefaultSpriteVariant({
+    spriteVariants: variants,
+    defaultSpriteVariantId: normalizeSpriteVariantId(payload?.default_sprite_variant_id),
+  });
   const spritePath = defaultVariant?.frontPath || resolveSpritePath(jsonPath, payload?.sprites?.front);
   const shinySpritePath = defaultVariant?.frontShinyPath || resolveSpritePath(jsonPath, payload?.sprites?.front_shiny);
   const [spriteImage, spriteShinyImage] = await Promise.all([loadImage(spritePath), loadImage(shinySpritePath)]);
@@ -6340,16 +6411,18 @@ function createRouteEnemyInstance() {
   const stats = computeStatsAtLevel(def.stats, level);
   const hpMax = computeBattleHpMax(stats, level, true);
   const routePowerMultiplier = getRoutePowerMultiplier(state.routeData?.route_id || DEFAULT_ROUTE_ID);
+  const appearance = resolveSpriteAppearanceForEntity(def.id, {
+    shinyVisual: isShiny,
+    respectAppearanceShinyMode: false,
+  });
   const defaultVariant = getSpriteVariantById(def, getDefaultSpriteVariantId(def));
-  const normalPath = defaultVariant?.frontPath || def.spritePath;
-  const shinyPath = defaultVariant?.frontShinyPath || def.shinySpritePath || normalPath;
-  const spritePath = isShiny ? shinyPath : normalPath;
-  const cachedSpriteImage = getCachedSpriteImage(spritePath);
+  const defaultNormalPath = defaultVariant?.frontPath || def.spritePath || "";
+  const defaultShinyPath = defaultVariant?.frontShinyPath || def.shinySpritePath || defaultNormalPath;
+  const spritePath = appearance.spritePath || (isShiny ? defaultShinyPath : defaultNormalPath);
+  const cachedSpriteImage = spritePath ? getCachedSpriteImage(spritePath) : null;
   const spriteImage = isDrawableImage(cachedSpriteImage)
     ? cachedSpriteImage
-    : isShiny
-      ? def.spriteShinyImage || def.spriteImage
-      : def.spriteImage;
+    : appearance.spriteImage || (isShiny ? def.spriteShinyImage || def.spriteImage : def.spriteImage);
   return {
     ...def,
     level,
@@ -6360,10 +6433,10 @@ function createRouteEnemyInstance() {
     battlePowerMultiplier: routePowerMultiplier,
     catchRate: Number(def.catchRate || picked.catch_rate || 45),
     isShiny,
-    isShinyVisual: isShiny,
+    isShinyVisual: Boolean(isShiny || appearance.shinyVisual),
     spritePath,
     spriteImage: spriteImage || def.spriteImage,
-    spriteVariantId: defaultVariant?.id || getDefaultSpriteVariantId(def),
+    spriteVariantId: appearance.variant?.id || defaultVariant?.id || getDefaultSpriteVariantId(def),
   };
 }
 
