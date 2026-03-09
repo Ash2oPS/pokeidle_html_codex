@@ -1,1 +1,1 @@
-window.POKEIDLE_APP_VERSION = "0.1.0-alpha.0";
+window.POKEIDLE_APP_VERSION = "0.1.0-alpha.1";
