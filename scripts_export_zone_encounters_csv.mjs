@@ -5,6 +5,7 @@ const ROOT_DIR = process.cwd();
 const MAP_DIR = path.join(ROOT_DIR, "map_data");
 const CATALOG_PATH = path.join(MAP_DIR, "kanto_frlg_zones.json");
 const OUTPUT_PATH = path.join(MAP_DIR, "kanto_zone_encounters.csv");
+const UTF8_BOM = "\uFEFF";
 
 function csvEscape(value) {
   const raw = String(value ?? "");
@@ -126,9 +127,8 @@ function buildCsvRows() {
 
 function main() {
   const lines = buildCsvRows();
-  fs.writeFileSync(OUTPUT_PATH, `${lines.join("\n")}\n`, "utf8");
+  fs.writeFileSync(OUTPUT_PATH, `${UTF8_BOM}${lines.join("\n")}\n`, "utf8");
   console.log(`[ok] CSV exporte: ${path.relative(ROOT_DIR, OUTPUT_PATH)} (${Math.max(0, lines.length - 1)} lignes de data)`);
 }
 
 main();
-
