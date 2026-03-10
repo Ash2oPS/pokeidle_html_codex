@@ -107,6 +107,53 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Add explicit Pokeball projectile animation (current auto-catch is state/message-driven).
 - Add a visible save-reset button for easier test/debug loops.
 
+## Additional progress (team sprite flip + type badges)
+- Added official Pokemon type icons from Bulbagarden Archives Scarlet/Violet set in `assets/type-icons/`.
+  - Source manifest added in `assets/type-icons/SOURCES.md`.
+- Updated battle rendering in `game.js`:
+  - Team slots 3, 4, and 5 now flip sprites on the X axis (bottom + two left slots).
+  - Added offensive type icon badges above each allied Pokemon.
+  - Added matchup pill on the opposite top side showing the offensive multiplier and the enemy defensive type icons.
+  - Exported debug text-state fields for slot index, sprite flip, and computed type multiplier vs enemy.
+- Validation:
+  - `node --check game.js`: PASS.
+  - Develop-web-game client smoke run: `output/type-overlay-check` and `output/type-overlay-route1-check`.
+  - Manual Playwright combat captures: `output/type-overlay-manual-clear/combat.png` and `output/type-overlay-fullteam/combat.png`.
+  - Full-team validation confirmed icon placement and sprite flips on top/right/bottom/left slots.
+  - No console/page errors in the targeted Playwright combat runs.
+
+## Additional progress (hover reaction + contextual team menu)
+- Detached allied Pokemon UI from sprite motion in `game.js`:
+  - names, XP bars, offensive type icons, and matchup pills are now anchored to the static team slots;
+  - sprite breath/recoil/hover animation only affects the sprite itself.
+- Kept type symbols unflipped while leaving slots 3/4/5 sprite mirroring active.
+- Removed enemy defensive type icons from allied matchup pills; allied Pokemon now show only the multiplier text plus their own offensive icon.
+- Fixed immediate skin application in the appearance editor:
+  - selected/purchased skin assets are now loaded into the sprite cache before the team refresh;
+  - the active team member updates as soon as the skin is selected, without waiting for the modal to close.
+- Added hover affordance for clickable team members:
+  - brighter ring/glow under the hovered ally;
+  - slight lift/scale on the sprite only;
+  - canvas cursor now switches to pointer on hover.
+- Added a right-click context menu:
+  - new DOM node in `index.html` for the menu;
+  - new styling in `styles.css`;
+  - menu actions in `game.js`: `Echanger avec la boite` and `Changer l'apparence`;
+  - left click still directly opens the boxes modal as before.
+- Expanded `render_game_to_text` with:
+  - `hovered_team_slot_index`
+  - `team_context_menu_open`
+  - `team_context_menu_slot_index`
+- Validation:
+  - `node --check game.js`: PASS.
+  - Develop-web-game client smoke run: `output/type-hover-context-smoke`.
+  - Manual Playwright hover/context verification: `output/type-hover-context-check/hover.png` and `output/type-hover-context-check/context.png`.
+  - Manual Playwright appearance verification: `output/appearance-apply-immediate/after-select.state.json` and `output/appearance-apply-immediate/after-select.png`.
+  - Confirmed `appearance_selected_variant_id: "emerald"` and `team[0].sprite_variant_id: "emerald"` while the appearance modal remained open.
+  - Verified `hover_popup_visible: true` with `hovered_team_slot_index: 4`.
+  - Verified `team_context_menu_open: true` with `team_context_menu_slot_index: 4`.
+  - No console/page errors in the targeted hover/context runs.
+
 ## Additional progress (reset + slot timing + capture animation)
 - Added a top-right save reset button in UI:
   - `index.html`: `#reset-save-btn`.
@@ -1336,3 +1383,737 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 
 ## TODO / Notes
 - If we want to force-persist old local saves that still store `appearance_selected_variant: "transparent"`, add a dedicated one-shot migration/writeback path; the display preference is now FRLG-first, but the raw saved selection can still remain untouched in some seeded localStorage test setups.
+
+## Additional progress (fullscreen gameplay + HUD refactor turn)
+- Reworked the shell so the gameplay now fills the full viewport instead of sitting inside a centered framed panel.
+- Moved the route header, resources, and action dock into a floating HUD overlay anchored directly on top of the game stage.
+- Refreshed the HUD styling with darker translucent cards, stronger spacing, and clearer visual hierarchy for route info, currencies, and actions.
+- Kept the existing interaction wiring intact by preserving the same control ids while changing placement and presentation.
+- Updated the canvas resize path so the render surface uses the full available stage size.
+- Updated the fullscreen toggle so `F` now requests fullscreen on the whole game stage, which keeps the HUD visible in fullscreen mode too.
+- Tuned arena layout calculations with safe top/bottom/side bounds so the enemy ring has more breathing room under the floating HUD.
+
+## Validation (fullscreen HUD turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+  - Canvas screenshots in `output/web-game-poke/` confirm the render surface now fills the resized stage.
+- Full-page Playwright verification with starter modal: PASS.
+  - Artifact: `output/full-ui-check.png`
+- Full-page Playwright verification in Route 1 gameplay after starter selection and tutorial close: PASS.
+  - Artifacts:
+    - `output/full-ui-gameplay.png`
+    - `output/full-ui-gameplay-clear.png`
+- Visual check result:
+  - gameplay covers the full page,
+  - the top HUD and bottom dock stay readable as overlays,
+  - fullscreen-ready layout keeps controls on-screen without reverting to the old boxed shell.
+
+## Additional progress (fight progress bar visibility fix)
+- Repositioned the route fight timer/progress bar so it uses the scene safe-top bound instead of the old fixed top-of-canvas offset.
+- This keeps the bar visible below the floating top HUD in fullscreen gameplay layouts.
+
+## Validation (fight progress bar visibility fix)
+- `node --check game.js`: PASS.
+- Vite + Playwright gameplay verification: PASS.
+  - Artifact: `output/full-ui-gameplay-clear.png`
+  - Result: the fight progress bar is visible again under the top HUD during Route 1 combat.
+
+## Additional progress (tooling + data runtime hardening)
+- Added a lightweight npm/Vite toolchain for the project root so browser-side dependencies can be imported cleanly in the current vanilla HTML/JS setup:
+  - new files: `package.json`, `package-lock.json`, `vite.config.mjs`.
+  - local run and Playwright helper scripts now start a Vite dev server instead of `python -m http.server`.
+- Added dedicated runtime modules:
+  - `lib/runtime-data.js` for CSV parsing with Papa Parse plus Zod validation of route JSON, Pokemon JSON, save bridge payloads, and normalized CSV-derived config objects.
+  - `lib/audio-manager.js` for a centralized Howler-based audio layer (master/category volume, mute, register/play/stop/unload), ready for future music/SFX work.
+- Integrated the new runtime helpers into `game.js`:
+  - save bridge and localStorage loads now validate payload shape before normalizing.
+  - route and Pokemon JSON loads now validate required runtime fields.
+  - editable CSV loads (`pokeballs`, `shop_items`, `zone encounters`) now use Papa Parse and validate normalized rows before applying them.
+- Migrated `version.js` to an ES module export so the app version now bundles correctly through Vite while still exposing `window.POKEIDLE_APP_VERSION`.
+- Added focused Vitest coverage:
+  - `tests/runtime-data.test.js`
+  - `tests/audio-manager.test.js`
+
+## Validation (tooling + runtime hardening)
+- `npm run test:run`: PASS.
+  - 8 tests passed (`runtime-data` + `audio-manager`).
+- `npm run build`: PASS.
+- `run_playwright_check.ps1`: PASS with Vite dev server.
+  - New artifacts refreshed in `output/web-game-poke/`.
+  - `state-0.json` / `state-2.json` confirm:
+    - `app_version: "0.1.0-alpha.0"`
+    - `zone_csv_loaded: true`
+    - `ball_csv_loaded: true`
+    - `shop_items_csv_loaded: true`
+    - `starter_modal_visible: true`
+- Visual note:
+  - the develop-web-game client still captures the canvas-first view, so DOM overlays like the starter modal are primarily validated through text state rather than those particular screenshots.
+
+## Additional progress (static server compatibility fix)
+- Fixed a runtime regression when the game is served from a plain static server (`localhost:3000`) instead of Vite.
+- Root cause:
+  - `lib/audio-manager.js` and `lib/runtime-data.js` were importing bare npm specifiers (`howler`, `papaparse`, `zod`) directly in browser code.
+  - This works through Vite, but crashes under a simple static server because the browser cannot resolve bare module specifiers by itself.
+- Implemented local browser vendor bundles:
+  - added `scripts/build-browser-vendors.mjs`
+  - added wrapper entries in `vendor-src/`
+  - generated committed browser-safe ESM bundles in `vendor/`
+- Runtime modules now import only relative local paths:
+  - `../vendor/howler.js`
+  - `../vendor/papaparse.js`
+  - `../vendor/zod.js`
+- Result:
+  - the game now starts correctly both with Vite and with a plain static server.
+
+## Validation (static server compatibility fix)
+- `npm run build:vendors`: PASS.
+- `npm run test:run`: PASS.
+- `npm run build`: PASS.
+- Static server smoke on `http://127.0.0.1:3000`: PASS.
+  - Playwright artifact folder: `output/web-game-static-3000/`
+  - No fresh `errors-*.json` produced.
+  - `state-1.json` confirms app reaches `mode: "ready"` and CSV/config data is loaded.
+
+## Additional progress (HUD compact pass)
+- Reduced the visual footprint of the top and bottom HUD overlays in `styles.css`:
+  - smaller overlay padding/gaps,
+  - slimmer route header block,
+  - smaller resource pills,
+  - more compact action dock buttons.
+- Kept the same layout structure and ids so existing interactions remain unchanged.
+
+## Validation (HUD compact pass)
+- Static smoke on `http://127.0.0.1:3000`: PASS.
+- Full-page UI screenshot captured:
+  - `output/ui-hud-compact-fullpage.png`
+
+## Additional progress (HUD compact pass v2)
+- Reduced the top and bottom HUD further on desktop:
+  - smaller top overlay padding and header buttons,
+  - smaller resource pill heights and typography,
+  - narrower and shorter action dock buttons.
+
+## Validation (HUD compact pass v2)
+- Updated full-page UI screenshot:
+  - `output/ui-hud-compact-fullpage-v2.png`
+
+## Additional progress (Pokemon-inspired HUD/style pass)
+- Reworked the main HUD styling around the visual direction from the provided Pokemon UI reference:
+  - much thinner top route header,
+  - more compact resource cards,
+  - slimmer bottom action dock,
+  - darker matte teal/navy surfaces with subtle cyan border lines,
+  - restrained gold accents instead of large bright chips.
+- Applied the same visual language to shared UI surfaces/buttons so modals and notifications sit closer to the same style family.
+
+## Validation (Pokemon-inspired HUD/style pass)
+- Full-page reference check:
+  - `output/ui-hud-pokemon-inspired-v1.png`
+- `npm run build`: PASS.
+
+## Additional progress (enemy defensive type HUD relocation)
+- Moved enemy defensive type display off allied Pokemon and onto the enemy UI itself in `game.js`:
+  - allied HUD keeps the offensive type badge,
+  - allied matchup pill now shows only the multiplier label,
+  - enemy defensive type icons are rendered in a dedicated pill attached to the enemy, below the HP bar.
+
+## Validation (enemy defensive type HUD relocation)
+- `node --check game.js`: PASS.
+- Develop-web-game client run:
+  - `output/type-overlay-enemy-hud/`
+- Manual Playwright combat validation:
+  - `output/type-overlay-enemy-hud-manual/combat.png`
+  - `output/type-overlay-enemy-hud-manual/state.json`
+  - `output/type-overlay-enemy-hud-manual/errors.json`
+- Result:
+  - enemy defensive types are now displayed on the enemy HUD,
+  - no fresh console/page errors were captured in the combat validation run.
+
+## Additional progress (background post-process cleanup)
+- Lightened the stage background treatment to keep only environment-driven effects:
+  - removed the decorative CSS stage vignette/glow layer over the game stage,
+  - removed the canvas viewport vignette pass so only day/night + weather overlays remain active.
+- Kept the existing environment stack intact:
+  - time-of-day color grading,
+  - weather color grading/particles/lightning.
+
+## Validation (background post-process cleanup)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual spot-check:
+  - `output/web-game-poke/shot-2.png`
+  - Result: background reads noticeably cleaner, without the extra dark decorative vignette layer.
+
+## Additional progress (combat layout + responsive HUD cleanup)
+- Reworked combat positioning in `game.js` around real safe zones instead of fixed top/bottom percentages:
+  - `computeLayout()` now accounts for actual overlay heights (`.ui-topbar`, `.action-dock`) and adapts for compact / phone viewports.
+  - team sprites are slightly smaller and their info is pushed outward into compact cards rather than floating directly around the center fight.
+  - enemy HUD was moved above the enemy sprite with a cleaner vertical stack:
+    - defensive types,
+    - HP bar,
+    - name/level card.
+- Reworked ally combat HUD rendering:
+  - one compact type pill (offensive icon + multiplier),
+  - one name/level card,
+  - XP bar attached below the card.
+- Updated mobile overlay CSS in `styles.css`:
+  - resource strip stays on one compact row of 3 pills on phone,
+  - action dock stays on one compact row of 3 buttons on phone,
+  - fullscreen hint is hidden on narrow screens,
+  - mobile notification stack is raised and compacted.
+- Added compact notification-stack rendering on narrow/coarse devices:
+  - mobile now collapses multiple evolution notifications into a reduced set instead of covering most of the battle view.
+
+## Validation (combat layout + responsive HUD cleanup)
+- `node --check game.js`: PASS.
+- `npm run build`: PASS.
+- Develop-web-game client smoke:
+  - `run_playwright_check.ps1`: PASS.
+- Desktop validation with injected 6-Pokemon save:
+  - `output/layout-responsive-clean/desktop-clean.png`
+- Mobile validation with injected 6-Pokemon save:
+  - `output/layout-responsive-clean/mobile-clean.png`
+  - `output/layout-responsive-clean/mobile-clean-v2.png`
+- Additional full layout stress run (with higher-level team / notification pressure):
+  - `output/layout-responsive-pass/desktop.png`
+  - `output/layout-responsive-pass/mobile.png`
+- Result:
+  - desktop combat read is much cleaner,
+  - mobile keeps top/bottom controls usable,
+  - notification stack no longer consumes the full battle screen on phone.
+
+## Additional progress (remove Vite tooling)
+- Removed Vite tooling from the repo:
+  - deleted `vite.config.mjs`,
+  - removed Vite scripts/dependency from `package.json`,
+  - Playwright helper scripts now use `python -m http.server` again.
+- Note:
+  - `vitest` was removed as well to fully eliminate the Vite dependency chain.
+
+## Additional progress (box appearance editing + sprite sync)
+- Extended the appearance editor flow so boxed Pokemon can also open it directly:
+  - right click on a box Pokemon now opens the appearance modal for that specific Pokemon;
+  - left click behavior in boxes remains unchanged.
+- Refactored appearance opening around a shared helper so both team slots and box entries reuse the same modal setup path.
+- Updated box entry rendering to use the selected appearance sprite path when available instead of always falling back to the default species sprite.
+- Refreshed the boxes grid immediately after appearance changes and shiny toggles while the boxes modal is open, so the box sprite updates as soon as a new look is selected.
+
+## Validation (box appearance editing + sprite sync)
+- `node --check game.js`: PASS.
+- Develop-web-game validation artifacts:
+  - `output/boxes-appearance-rightclick/appearance-open.state.json`
+  - `output/boxes-appearance-rightclick/boxes-after.state.json`
+  - `output/boxes-appearance-rightclick/boxes-after.png`
+  - `output/boxes-appearance-rightclick/box-sprite-src.txt`
+  - `output/boxes-appearance-rightclick/console-errors.json`
+- Result:
+  - right click on a boxed Bulbizarre opened the appearance modal with `appearance_pokemon_id: 1`;
+  - after selecting Emerald, the box sprite source switched to `pokemon_data/1_bulbasaur/sprites/1_bulbasaur_emerald_front.png`;
+  - no fresh console/page errors were captured.
+
+## Additional progress (full UI style pass inspired by Pokemon battle HUD)
+- Refreshed `styles.css` with a coherent retro battle-HUD direction inspired by Pokemon GBA:
+  - introduced a brighter parchment/steel palette with angular cut-corner panels;
+  - replaced rounded glass/sci-fi cards with crisp framed plates for topbar, resources, action dock, modals, notifications, and context menu;
+  - unified button treatments (Map, Shop, reset, tabs, quantity, modal actions) with the same retro geometry and contrast language;
+  - tuned typography toward compact GBA-like readability using `Tahoma`/`Verdana`.
+- Extended the visual update into canvas-drawn HUD in `game.js` (not only DOM CSS):
+  - added retro helper shapes (`traceRetroHudPath`, `drawRetroHudPanel`) and reused them across HUD primitives;
+  - rewired enemy name plate + HP bar to match battle-style framing (HP chip, neutral track, classic green/yellow/red fill logic);
+  - updated ally name/level cards, XP bars, type badges, matchup pills, route timer bar, non-combat banner, and version badge to the same visual family.
+- Preserved layout behavior and interaction contracts (modals, context menu, route nav, shop actions) while re-skinning.
+
+## Validation (full UI style pass)
+- `node --check game.js`: PASS.
+- `npm run build`: PASS.
+- `run_playwright_check.ps1`: PASS (after granting elevated run for Chromium launch in this environment).
+- Visual artifacts:
+  - `output/web-game-poke/shot-1.png` (updated non-combat panel rendering);
+  - `output/dom-ui-check.png` (topbar/resource/dock + starter modal with new style);
+  - `output/dom-battle-check.png` (in-game overlays in ready state with notifications/context).
+
+## Additional progress (startup skin preload fix)
+- Fixed startup appearance loading so the selected skin is available immediately on next game launch.
+- Added `preloadSelectedAppearanceAssetsForTeam()` in `game.js`:
+  - reads current team ids from save,
+  - resolves each selected/owned variant,
+  - preloads the required sprite image(s) (including shiny when shiny appearance mode is active).
+- Wired this preload into `initializeScene()` before `rebuildTeamAndSyncBattle()` and before battle start.
+- Result:
+  - after restarting, team Pokemon use their saved selected skin right away,
+  - no delayed fallback period where default skin stays visible waiting for late asset load.
+
+## Validation (startup skin preload fix)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright restart scenario with instrumented canvas draw log: PASS.
+  - Artifacts: `output/appearance-restart-preload/`.
+  - Assertion summary (`assert.json`):
+    - `previous_variant: "firered_leafgreen"`
+    - `candidate_variant: "emerald"`
+    - `immediate_variant: "emerald"`
+    - `delayed_variant: "emerald"`
+    - `immediate_draw_uses_candidate: true`
+    - `delayed_draw_uses_candidate: true`
+
+## Additional progress (dark theme pass)
+- Switched the retro UI refresh from a light parchment look to a dark battle-HUD variant across both DOM and canvas layers.
+- Updated `styles.css` dark override palette:
+  - darkened global surfaces (topbar/resource/action dock/modals/notifications/context menu),
+  - kept action colors readable (teal/blue/red/gold accents),
+  - preserved cut-corner geometry while improving contrast for text and controls.
+- Updated `game.js` canvas HUD palette:
+  - darkened retro panels (`drawRetroHudPanel` defaults + callers),
+  - darkened enemy name/HP HUD cards, ally name cards, type pills/badges, XP bars, route timer, non-combat banner, and version badge,
+  - adjusted text + borders for readability on dark backgrounds.
+
+## Validation (dark theme pass)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Note: `npm run build` is currently unavailable in this workspace because `package.json` only exposes `build:vendors`.
+- Visual artifacts:
+  - `output/dark-ui-check-start.png`
+  - `output/dark-ui-check-battle.png`
+
+## Additional progress (zone encounters editor UX)
+- Added an Excel-friendly editing workflow for zone encounters while keeping runtime CSV compatibility.
+- Installed `exceljs` (dev dependency) and added npm scripts:
+  - `npm run zone:csv:export`
+  - `npm run zone:editor:build`
+  - `npm run zone:editor:export`
+- Added `scripts/generate_zone_encounters_workbook.mjs`:
+  - Generates `map_data/kanto_zone_encounters_editor.xlsx` from the runtime CSV.
+  - Adds auto name lookup from `pokemon_id` (`pokemon_name_fr` and `pokemon_name_en`) via hidden `PokemonRef` sheet.
+  - Adds dropdown validations for `zone_type`, `combat_enabled`, and `method_1..3`.
+  - Rebuilds `methods` from method slots for standard rows.
+- Added `scripts/export_zone_encounters_from_workbook.mjs`:
+  - Exports workbook edits back to `map_data/kanto_zone_encounters.csv` (runtime format).
+  - Resolves names from hidden Pokemon references by id to avoid stale manual names.
+  - Normalizes methods and writes UTF-8 BOM for better Excel encoding behavior.
+- Updated `scripts_export_zone_encounters_csv.mjs` to write UTF-8 BOM.
+- Added user docs: `map_data/ZONE_ENCOUNTERS_EDITOR.md`.
+
+## Validation runs (this turn)
+- `node --check scripts/generate_zone_encounters_workbook.mjs`: PASS.
+- `node --check scripts/export_zone_encounters_from_workbook.mjs`: PASS.
+- `node --check scripts_export_zone_encounters_csv.mjs`: PASS.
+- `npm run zone:editor:build`: PASS (`map_data/kanto_zone_encounters_editor.xlsx` generated).
+- `npm run zone:editor:export`: PASS (`map_data/kanto_zone_encounters.csv` regenerated, 336 rows).
+- `run_playwright_check.ps1`: PASS.
+  - Screenshot reviewed (`output/web-game-poke/shot-2.png`) and state confirms `zone_csv_loaded: true`.
+
+## Additional progress (full combat layout + compact HUD readability rework)
+- Reworked `computeLayout` to enforce clearer slot geometry by viewport ratio:
+  - phone/portrait compact: 2 groups of 3 (`top` + `bottom`) with a slight horizontal arc for each group;
+  - desktop/landscape: 3 on left + 3 on right with a slight vertical arc on each side.
+- Added stronger anti-overlap spacing rules in combat layout:
+  - smaller enemy and ally footprints on compact screens,
+  - explicit central safety gap around the enemy,
+  - HUD cards pushed outward and clamped to safe bounds,
+  - tighter type-chip sizing for ally matchup pills.
+- Applied a final CSS readability pass at the end of `styles.css`:
+  - compacted top and bottom bars significantly,
+  - normalized to a single light retro style (readable ink on parchment-like surfaces),
+  - reduced paddings/icon sizes/button heights to avoid crowded UI,
+  - tightened responsive breakpoints so mobile remains usable and legible.
+
+## Validation (this pass)
+- `node --check game.js`: PASS.
+- `run_playwright_long.ps1`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted 6-Pokemon full-page verification with injected save:
+  - `output/layout-rework-verify/desktop.png`
+  - `output/layout-rework-verify/mobile.png`
+  - `output/layout-rework-verify/desktop.json`
+  - `output/layout-rework-verify/mobile.json`
+  - `output/layout-rework-verify/errors.json` => `[]` (no console/page errors)
+- Result summary:
+  - desktop now shows a clean left/right 3+3 arc layout with reduced HUD clutter,
+  - mobile now shows a clear top/bottom 3+3 arc layout with usable top/bottom controls and no heavy overlap.
+
+## Additional progress (talents passifs)
+- Ajout d'un schema `talent` (passif) avec normalisation centralisee dans `game.js`.
+  - Valeur par defaut partout: `NONE` / `NONE` / `Aucun effet passif pour le moment.`
+- Intégration du talent dans les structures Pokemon:
+  - Definitions chargees (`loadPokemonEntity`).
+  - Records sauvegarde (`normalizePokemonEntityRecord`, `createPokemonEntityRecord`).
+  - Membres d'equipe hydrates (`buildTeamMemberFromSaveEntry`).
+- Support UI ajoute:
+  - Hover popup: ligne `Talent: ...`.
+  - Panneau details Boites: `Talent` + `Effet talent`.
+- Export texte Playwright enrichi (`render_game_to_text`):
+  - Enemy: `talent_id`, `talent_name_fr`, `talent_name_en`, `talent_description_fr`.
+  - Team: memes champs talent sur chaque membre.
+- Ajout d'un script de generation CSV: `scripts/generate_pokemon_talents_csv.mjs`.
+- CSV genere: `pokemon_data/pokemon_talents.csv` avec 493 Pokemon.
+  - Colonnes: `pokemon_id,pokemon_name_fr,pokemon_name_en,talent_name_fr,talent_name_en,talent_description_fr`.
+  - Toutes les lignes sont initialisees a `NONE` + description FR par defaut.
+
+## Validation (talents)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Artefacts verifies: `output/web-game-poke/state-2.json` + `output/web-game-poke/shot-2.png` (inspection visuelle effectuee).
+
+## TODO / Next
+- Brancher ensuite le moteur d'effets passifs (application runtime par talent) une fois les talents definis.
+- Optionnel: afficher le talent directement sur les cartes canvas (pas seulement hover/boites) si on veut le rendre permanentement visible.
+- Validation complementaire: run Playwright interactif (`output/web-game-talent-interact`) avec choix starter, puis verification de `state-2.json`.
+  - Champs talent presents sur team (`talent_id/name_fr/name_en/description_fr`) et valeurs `NONE` appliquees.
+
+## Additional progress (pokemon scale + turn indicator + attack timing)
+- Updated combat sizing and spacing in `computeLayout`:
+  - increased enemy and ally sprite size caps/scales on both split-row and side-column layouts,
+  - brought ally groups slightly closer to center (phone top/bottom rows and desktop left/right columns) to keep combat focus tighter.
+- Fixed turn indicator behavior for the current layout system:
+  - removed legacy circular-orbit math,
+  - indicator now anchors directly to the active slot from `teamSlots` (works with arc rows/columns),
+  - moved indicator draw pass after sprites for clearer visibility.
+- Hardened attack interval consistency:
+  - added `setAttackInterval()` in `PokemonBattleManager` to keep timer ratio stable when interval changes (ex: boost start/end),
+  - `update()` now syncs interval via this helper before combat ticks.
+
+## Validation (this pass)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted combat Playwright run with starter pick + route switch:
+  - `output/web-game-combat-check/shot-0.png`
+  - `output/web-game-combat-check/shot-1.png`
+  - `output/web-game-combat-check/shot-2.png`
+  - `output/web-game-combat-check/state-0.json`
+  - `output/web-game-combat-check/state-1.json`
+  - `output/web-game-combat-check/state-2.json`
+  - No `errors-*.json` emitted in this run.
+- Mobile viewport verification (390x844):
+  - `output/mobile-combat-check.png`
+  - `output/mobile-combat-check.state.json`
+  - Verified combat scene renders, top/bottom HUD still functional, and no runtime errors observed.
+- Follow-up tweak: turn indicator now resolves to the next occupied slot (instead of empty slot turns), so it always highlights an actual attacking Pokemon while fixed tick spacing remains unchanged.
+- Re-validated on mobile combat capture: `output/mobile-combat-check.png` + `output/mobile-combat-check.state.json` (`next_attacker: "Bulbizarre"`, `next_attacker_slot_index: 0`).
+- Desktop viewport verification (1365x768): `output/desktop-combat-check.png` + `output/desktop-combat-check.state.json` (`next_attacker_slot_index: 0`, indicator anchored on active ally slot).
+## Additional progress (enemy UI placement + impact recenter)
+- Repositioned enemy UI stack below the enemy sprite in `computeLayout`:
+  - enemy HP panel now anchors under the sprite,
+  - enemy name/level card is placed below HP,
+  - enemy defensive type pill is also kept in the below-enemy stack.
+- Added a unified enemy impact anchor in layout (`enemyImpactX`, `enemyImpactY`).
+- Rewired combat targeting to this anchor:
+  - projectile spawn target,
+  - projectile homing target update,
+  - instant/idle hit target,
+  - capture sequence Pokeball target.
+- Removed previous vertical offset on Pokeball capture target so impact/capture anchor are identical.
+
+## Validation (enemy UI + targeting)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Desktop combat screenshot/state:
+  - `output/enemy-ui-fix-desktop.png`
+  - `output/enemy-ui-fix-desktop.state.json`
+- Mobile combat screenshot/state:
+  - `output/enemy-ui-fix-mobile.png`
+  - `output/enemy-ui-fix-mobile.state.json`
+- Visual check confirms enemy UI is rendered under enemy on both viewports.
+## Additional progress (FPS overlay)
+- Added a discreet FPS counter overlay in `game.js`:
+  - New `drawFpsOverlay()` renders a small semi-transparent pill in the top-right corner.
+  - Uses existing performance EMA (`state.performance.shortFrameMsEma`) to display real-time FPS.
+  - Hooked via `drawVersionOverlay()` so it appears in loading/error/ready screens.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Visual check on `output/web-game-poke/shot-2.png`: FPS label visible and unobtrusive in the top-right corner.
+
+## Additional progress (pokemon size increase)
+- Increased combat sprite scales in `computeLayout` for both enemy and team Pokemon.
+- Updated size multipliers/clamps to render noticeably larger Pokemon on desktop and mobile while keeping current spacing logic.
+
+## Validation (pokemon size increase)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual captures:
+  - `output/pokemon-size-up-desktop.png`
+  - `output/pokemon-size-up-desktop.state.json`
+  - `output/pokemon-size-up-mobile.png`
+  - `output/pokemon-size-up-mobile.state.json`- FPS overlay visibility fix:
+  - Moved FPS badge from top-right (hidden by top UI strip) to bottom-right corner of the canvas.
+  - Slightly increased contrast/text size while keeping compact look.
+- Re-validated with Playwright (`run_playwright_check.ps1`) and screenshot shows FPS visible in bottom-right.
+
+## Additional progress (team sprite-only size bump)
+- Increased only allied team sprite rendering scale (without changing enemy size) using `TEAM_SPRITE_SCALE`.
+- Kept layout and HUD geometry stable; only visual sprite/backdrop size for team members was enlarged.
+
+## Validation (team sprite-only size bump)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual checks:
+  - `output/team-pokemon-bigger-desktop.png`
+  - `output/team-pokemon-bigger-mobile.png`
+## Additional progress (evolution overlay darken + smoother transition)
+- Updated `drawEvolutionAnimationOverlay` in `game.js` to make the evolution/fight separation darker and smoother:
+  - added eased backdrop fade-in/fade-out (`EVOLUTION_ANIM_BACKDROP_FADE_MS`) instead of a fixed-opacity dark layer,
+  - added a darker radial vignette around the evolving Pokemon to push the active fight background further back,
+  - tuned focus glow intensity so the evolving sprite remains readable against the darker backdrop,
+  - smoothed phase transitions (white -> flash -> reveal) with `easeInOutSine` and a short from->to crossfade during reveal.
+
+## Validation (evolution overlay darken + smoother transition)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted seeded evolution probe: PASS (`output/evolution-overlay-darken-check`).
+  - Captures generated: `before-evolve.png`, `evolution-start.png`, `evolution-mid.png`, `evolution-end.png`.
+  - Text states generated: `state-start.json`, `state-mid.json`, `state-end.json`.
+  - Mid animation state confirms evolution overlay active (`evolution_animation.elapsed_ms: 1969 / 2480`) while combat keeps running in background.
+
+## Additional progress (evolution transition: shrinking Poke1 + white orb grow/shrink)
+- Reworked `drawEvolutionAnimationOverlay` in `game.js` to match the requested evolution beat:
+  - stage 1: Poke 1 now shrinks smoothly while a large white orb grows around it,
+  - stage 2: after peak flash, the white orb shrinks to reveal Poke 2,
+  - added an orb edge stroke so the shrinking circle remains visible,
+  - kept eased timing (`easeInOutSine`) across all phases to reduce abrupt transitions.
+
+## Validation (evolution grow/shrink orb transition)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted seeded evolution captures: PASS.
+  - `output/evolution-orb-transition-check-2/phase-grow-start.png`
+  - `output/evolution-orb-transition-check-2/phase-grow-large-orb.png`
+  - `output/evolution-orb-transition-check-2/phase-shrink-orb-reveal.png`
+  - `output/evolution-orb-transition-check-2/phase-shrink-near-end.png`
+
+## Additional progress (evolution bonheur via temps en boite)
+- Implémenté une progression dédiée pour les évolutions `minHappiness`:
+  - nouveau champ persistant par espèce: `happiness_box_streak_ms` (normalisé + créé à 0 sur nouveaux records),
+  - ajout d'une règle globale: condition bonheur validée à `3h` (`HAPPINESS_EVOLUTION_BOX_REQUIRED_MS`) passées en boîte,
+  - mise à jour continue du streak pendant la simulation (`updateHappinessEvolutionBoxProgress(deltaMs)`) uniquement pour les espèces ayant au moins une évolution bonheur,
+  - reset immédiat du streak si le Pokémon est présent dans la team,
+  - intégration de la condition dans `isEvolutionMethodSatisfied` (suppression du blocage précédent qui rejetait `minHappiness`).
+
+## Validation (evolution bonheur via temps en boite)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Test ciblé (boîte noire, save seedée Meowth hors team, streak à `3h - 10s`):
+  - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
+  - après `advanceTime(10000)`: `notifications_evolution_ready = 1`.
+  - artefacts: `output/happiness-evolution-threshold-test.json`, `output/happiness-evolution-threshold-test.png`.
+- Test ciblé “dans la team” (Meowth en team, même streak seedé):
+  - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
+  - après `advanceTime(10000)`: `notifications_evolution_ready = 0`.
+- Artefact test team: `output/happiness-evolution-in-team-test.json`.
+
+## Additional progress (enemy type HUD visibility fix)
+- Fixed enemy defensive type badges being hidden behind the enemy name/level card in combat/exploration view.
+- Root cause: `drawEnemyDefensiveTypeHud` was rendered before name/level, while `enemyTypeHudY` could overlap the name card area.
+- Update in `game.js` (`drawBattleUiOverlay`):
+  - render enemy HP and name first,
+  - then render defensive type badges,
+  - force badge Y to be at least `enemyNameCard.bottom + 14` so badges stay below the name card.
+
+## Validation (enemy type HUD visibility fix)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Route 3 visual validation with seeded save:
+  - `output/enemy-type-fix-check/canvas.png`
+  - `output/enemy-type-fix-check/page.png`
+  - `output/enemy-type-fix-check/state.json`
+  - `output/enemy-type-fix-check/errors.json` (`[]`)
+- Result:
+  - enemy defensive type badges are now visible under the enemy name/level card (example: Rondoudou shows `normal` + `fairy`).
+
+## Additional progress (orb size/opacity tuning per feedback)
+- Adjusted the evolution white orb so it stays around Pokemon size (slightly larger) and fully opaque:
+  - orb radius now scales from ~`0.52x spriteSize` to ~`0.64x spriteSize` at peak,
+  - reveal phase shrinks orb down to ~`0.08x spriteSize`,
+  - orb body is now a solid opaque white fill (with strong border), not a wide soft wash.
+
+## Validation (orb size/opacity tuning)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted seeded evolution captures: `output/evolution-orb-transition-check-3/`.
+  - `phase-900ms.png` (orb near Pokemon size, opaque)
+  - `phase-1500ms.png` (orb still opaque before shrink completes)
+  - `phase-2100ms.png` (orb shrunk small while Pokemon 2 is visible)
+
+## Additional progress (mobile perf audit - Pixel 8 Chrome emulation)
+- Ran targeted mobile perf probes with Playwright emulating Pixel 8 (`412x915`, `dpr=3`, coarse pointer):
+  - `output/perf-mobile-pixel8/perf-report.json`
+  - `output/perf-mobile-pixel8-combat-route/perf-report.json`
+- Reproduced automatic quality tier transitions on mobile path:
+  - starts at `very_low` (`render_scale: 0.58`), then may climb to `low`/`medium` depending on CPU headroom.
+- Important perf finding in code path:
+  - mobile coarse-pointer devices are capped by quality policy and frame interval presets (`very_low/low/medium`), which can effectively limit render cadence to ~24/29/45 FPS.
+- Important diagnostics finding:
+  - exported `fps_estimate` and FPS overlay are based on RAF delta, not actual render cadence (render can be throttled while estimate still shows ~60).
+- Additional likely hotspot identified:
+  - `computeLayout()` is executed from `update()` and performs per-tick DOM reads (`getComputedStyle` + `getBoundingClientRect`), which can add avoidable main-thread cost on mobile.
+- No console/page errors observed in these targeted runs.
+
+## Additional progress (attack miss chance 5%)
+- Added a new combat constant in `game.js`: `ATTACK_MISS_CHANCE = 0.05`.
+- Updated `PokemonBattleManager.applyHit`:
+  - each attack now rolls a 5% miss chance before damage computation;
+  - when missed, no HP is removed and no hit flash/effects are applied;
+  - `lastImpact` now includes `missed: true|false`.
+- Updated floating combat text behavior:
+  - missed hits display `RATE` instead of damage;
+  - exported text-state now includes `floating_damage_texts[].missed`.
+
+## Validation (attack miss chance)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted develop-web-game Playwright run with starter + route switch + combat (`output/miss-check-combat`):
+  - visual combat screenshot reviewed: `output/miss-check-combat/shot-0.png`.
+  - text state confirms miss behavior:
+    - `last_impact.damage: 0`
+    - `last_impact.missed: true`
+  - state artifact: `output/miss-check-combat/state-0.json`.
+- Note: one existing non-blocking browser console error observed in the targeted run (`Failed to load resource: net::ERR_CONNECTION_REFUSED`), likely related to optional local save bridge connectivity.
+
+## Additional progress (combat passive architecture refactor)
+- Refactored combat turn decision flow to prepare passive abilities cleanly, without coupling passive rules to projectile/damage internals.
+- Added a dedicated passive module: `lib/combat-passives.js`.
+  - Introduces a behavior registry mapped from talent ids/aliases.
+  - Current supported passive behavior:
+    - `NONE` -> normal attack turn
+    - `NO_ATTACK` -> skip attack turn (`passive_no_attack` reason)
+- Integrated passive turn resolution in `PokemonBattleManager` (`game.js`):
+  - new turn helpers: `consumeTurnSlot`, `resolveTurnDecisionForSlot`, `getNextTurnPreview`, `recordTurnEvent`, `getLastTurnEvent`;
+  - both idle and projectile combat paths now resolve decision through the passive module before attacking;
+  - turn indicator now carries `can_attack` and reason metadata.
+- Added combat decision telemetry in `render_game_to_text`:
+  - top-level: `next_turn_action`, `next_turn_reason`, `next_turn_passive_behavior_id`, `turn_indicator_can_attack`, `last_turn_event`;
+  - enemy/team entries now include `passive_behavior_id`.
+- Updated turn-indicator rendering to visually mark non-attacking turns with a dashed/softer style.
+
+## Validation (combat passive architecture refactor)
+- `node --check lib/combat-passives.js`: PASS.
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted develop-web-game run with starter selection (`output/passive-refactor-check`): PASS.
+- Manual Playwright flow with starter + Route 1 + combat + tutorial close (`output/passive-refactor-manual-clear`): PASS.
+  - `state.json` confirms new passive/turn fields are populated during combat:
+    - `next_turn_action: "attack"`
+    - `next_turn_reason: "attack_ready"`
+    - `turn_indicator_can_attack: true`
+    - `last_turn_event` populated (including skipped empty-slot turns)
+    - team/enemy include `passive_behavior_id: "NONE"`.
+- Console/page errors in the final manual run: `[]`.
+
+## TODO / Next
+- Add concrete passive talent ids in data (example `NO_ATTACK`) and assign them per species in `pokemon_talents.csv`.
+- Add additional passive behaviors in `lib/combat-passives.js` (e.g. attack interval modifier, bonus crit chance) via the same registry contract.
+- Add one deterministic regression scenario where an attacker with `NO_ATTACK` is in team and verify:
+  - no projectile spawn for its turns,
+  - turn event reason is `passive_no_attack`,
+  - other team members keep attacking normally.
+
+## Additional progress (Boites: compteur shiny global)
+- Added a new global shiny capture counter in the Boxes modal header.
+  - `index.html`: new line `#boxes-shiny-counter` under the existing boxes subtitle.
+  - `styles.css`: dedicated style for `.boxes-shiny-counter` (gold accent, compact text).
+- Wired runtime value in `game.js`:
+  - new helper `getTotalShinyCapturesGlobal()` that sums `captured_shiny` across all unlocked Pokemon entities;
+  - `renderBoxesGrid()` now updates `#boxes-shiny-counter` with live total;
+  - `closeBoxesModal()` resets the counter text;
+  - text-state export now includes `boxes_shiny_capture_total` for validation/debug.
+
+## Validation (Boites shiny counter)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted develop-web-game run (starter -> Route 1 -> team click):
+  - artifact: `output/boxes-shiny-counter-check/state-0.json`
+  - confirms field present: `boxes_shiny_capture_total: 0`.
+- Targeted UI verification with Playwright script:
+  - screenshot: `output/boxes-shiny-counter-ui.png`
+  - state dump: `output/boxes-shiny-counter-ui.json`
+  - confirms `boxes_modal_open: true` and `shiny_counter_text: "Captures shiny (global): 0"`.
+  - console errors file: `output/boxes-shiny-counter-ui-errors.json` (`[]`).
+
+## Additional progress (talents CSV + passive behavior alignment)
+- Added a shared talent module `lib/talents.js`:
+  - Centralized talent ID normalization (`normalizeTalentId`) and talent object normalization (`normalizeTalentDefinition`).
+  - Translated default FR talent label to `Aucun` while keeping stable ID `NONE`.
+- Refactored combat passive mapping in `lib/combat-passives.js`:
+  - Reused shared talent normalization to avoid ID drift between modules.
+  - Added `LOSER` / `PERDANT` aliases to the `NO_ATTACK` passive behavior.
+  - Verified decision flow: talent `LOSER` now returns action `skip` with `passiveBehaviorId: NO_ATTACK`.
+- Integrated talent CSV loading in `game.js`:
+  - Added `POKEMON_TALENTS_CSV_PATH` loader (`loadPokemonTalentCsv`) with normalization + unresolved-talent diagnostics.
+  - Added state wiring (`pokemonTalentCsvByPokemonId`, `pokemonTalentCsvLoaded`) and text export flag `talents_csv_loaded`.
+  - Applied CSV talents into Pokemon definitions (`applyPokemonTalentCsvToDefinitions`) and default talent resolution path.
+- Updated talent data assets:
+  - `pokemon_data/pokemon_talents.csv` now includes explicit `talent_id` column.
+  - FR label `NONE` translated to `Aucun`.
+  - Magicarpe talent normalized to `talent_id=LOSER`, `talent_name_fr=Perdant`.
+  - Updated generator script `scripts/generate_pokemon_talents_csv.mjs` to emit new schema (`talent_id`) and FR translation defaults.
+
+## Validation runs (talents work)
+- `node --check game.js`: PASS.
+- `node --check lib/combat-passives.js`: PASS.
+- `node --check lib/talents.js`: PASS.
+- `node --check scripts/generate_pokemon_talents_csv.mjs`: PASS.
+- Scripted talent audit:
+  - rows: 493
+  - talents: `NONE:492`, `LOSER:1`
+  - unresolved talent passives: none.
+- `run_playwright_check.ps1`: PASS.
+  - latest state confirms `talents_csv_loaded: true`.
+  - screenshot visually OK (starter/town screen rendered as expected).
+
+## Additional progress (Windows system notifications for shiny events)
+- Added a Windows OS notification system (browser Notification API) dedicated to shiny events:
+  - shiny encounter -> native Windows notification toast;
+  - shiny capture success -> native Windows notification toast.
+- Added a persistent user toggle for OS notifications:
+  - new action button in the dock (`#windows-notification-btn`);
+  - permission-aware states (unsupported / blocked / enabled / disabled);
+  - preference persisted in localStorage via `pokeidle_windows_notifications_enabled_v1`.
+- Integrated event hooks in battle flow:
+  - on enemy spawn: emits OS notification for every shiny encounter;
+  - on capture success: emits OS notification for every shiny captured.
+- Guardrails:
+  - no OS notification spam during simulation idle mode;
+  - auto-closing encounter notifications and persistent capture notifications.
+
+## Validation runs (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (no run-time script failure).
+- `run_playwright_long.ps1`: PASS (no run-time script failure).
+- Visual inspection of latest Playwright screenshots from:
+  - `output/web-game-poke/shot-2.png`
+  - `output/web-game-long/shot-0.png`
+- Playwright click smoke (`output/windows-notif-btn-check`): PASS.
+  - Confirmed no runtime crash when clicking `#windows-notification-btn`.
+
+## Additional progress (skill creation for talent process)
+- Created reusable Codex skill at `C:/Users/esibe/.codex/skills/pokemon-talents-maintainer`.
+- Wrote focused workflow in SKILL.md for:
+  - CSV talent audit
+  - FR translation normalization
+  - passive-behavior alignment
+  - runtime wiring and gameplay validation
+- Added reusable audit script:
+  - `scripts/audit_talents_csv.mjs`
+  - emits structured JSON: talent counts, non-default talents, unresolved passive mappings, translation candidates.
+- Added reference checklist:
+  - `references/checklist.md`.
+- Generated and validated skill metadata:
+  - `agents/openai.yaml` created.
+  - `quick_validate.py` => `Skill is valid!`.
+- Smoke-tested skill script on this repo:
+  - rows: 493
+  - talent IDs: `NONE`, `LOSER`
+  - unresolved: none
+  - translation candidates: none
+- Note maintenance:
+  - `scripts/generate_pokemon_talents_csv.mjs` genere une base uniforme (`NONE`/`Aucun`) et ne preserve pas les talents custom existants.
+  - Apres regeneration, re-appliquer les exceptions talent (ex: Magicarpe `LOSER`) via un pass de post-traitement ou edition ciblee.
+
+## Additional progress (ultra shiny tuning: outline + hue speed)
+- Ultra shiny visual tuning in `game.js`:
+  - reinforced white outline around ultra shiny sprites (double silhouette pass + soft halo) so the contour is clearly visible;
+  - slowed the ultra shiny hue cycle significantly (`ULTRA_SHINY_HUE_CYCLE_MS`: `2400` -> `7600`) for a calmer shader animation;
+  - increased outline base thickness (`ULTRA_SHINY_OUTLINE_PX`: `2.1` -> `3.4`).
+
+## Validation (ultra shiny tuning)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.

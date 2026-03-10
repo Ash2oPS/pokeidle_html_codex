@@ -1,4 +1,34 @@
-﻿const STARTER_CHOICES = [
+import { POKEIDLE_APP_VERSION } from "./version.js";
+import { createAudioManager } from "./lib/audio-manager.js";
+import {
+  assertValidBallConfig,
+  assertValidEncounter,
+  assertValidShopItemConfig,
+  parseCsvMethods,
+  parseCsvObjects,
+  parseSaveBridgePayload,
+  parseSerializedSave,
+  readCsvBooleanCell,
+  readCsvCell,
+  readCsvNumberCell,
+  readCsvTypedValue,
+  validatePokemonPayload,
+  validateRouteDataPayload,
+} from "./lib/runtime-data.js";
+import {
+  getPassiveBehaviorIdForTalentId,
+  resolveCombatTurnDecision,
+  TURN_ACTION_ATTACK,
+} from "./lib/combat-passives.js";
+import {
+  TALENT_NONE_DESCRIPTION_FR,
+  TALENT_NONE_ID,
+  TALENT_NONE_NAME_FR,
+  normalizeTalentDefinition,
+  normalizeTalentId,
+} from "./lib/talents.js";
+
+const STARTER_CHOICES = [
   { id: 1, nameEn: "bulbasaur" },
   { id: 4, nameEn: "charmander" },
   { id: 7, nameEn: "squirtle" },
@@ -9,6 +39,7 @@ const ROUTE_DATA_DIR = "map_data";
 const ROUTE_ENCOUNTERS_CSV_PATH = "map_data/kanto_zone_encounters.csv";
 const BALL_CONFIG_CSV_PATH = "item_data/pokeballs.csv";
 const SHOP_ITEMS_CSV_PATH = "item_data/shop_items.csv";
+const POKEMON_TALENTS_CSV_PATH = "pokemon_data/pokemon_talents.csv";
 const ROUTE_ID_ORDER = [
   "kanto_city_pallet_town",
   "kanto_route_1",
@@ -63,12 +94,11 @@ const ROUTE_DEFEAT_TIMER_MS = 20000;
 const ROUTE_1_POWER_MULTIPLIER = 0.2;
 const ROUTE_1_TUTORIAL_ID = "kanto_route_1";
 const SAVE_KEY = "pokeidle_save_v3";
+const WINDOWS_NOTIFICATION_PREF_KEY = "pokeidle_windows_notifications_enabled_v1";
 const SHINY_ODDS = 1024;
+const ULTRA_SHINY_FROM_SHINY_ODDS = 16;
 const SAVE_VERSION = 6;
-const APP_VERSION =
-  typeof window !== "undefined" && typeof window.POKEIDLE_APP_VERSION === "string"
-    ? window.POKEIDLE_APP_VERSION
-    : "0.0.0-alpha.0";
+const APP_VERSION = POKEIDLE_APP_VERSION;
 const SAVE_BRIDGE_URL = "http://127.0.0.1:38475";
 const SAVE_BRIDGE_TIMEOUT_MS = 260;
 const SPRITE_VARIANT_BASE_PRICE = 900;
@@ -89,11 +119,33 @@ const DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE = Object.freeze([
   "transparent",
   "default",
 ]);
-
+const TYPE_ICON_ASSET_DIR = "assets/type-icons";
+const TYPE_ICON_TYPES = Object.freeze([
+  "normal",
+  "fire",
+  "water",
+  "electric",
+  "grass",
+  "ice",
+  "fighting",
+  "poison",
+  "ground",
+  "flying",
+  "psychic",
+  "bug",
+  "rock",
+  "ghost",
+  "dragon",
+  "dark",
+  "steel",
+  "fairy",
+]);
+const TEAM_LEFT_SIDE_SLOT_INDEXES = new Set([3, 4, 5]);
 const MAX_TEAM_SIZE = 6;
 const BASE_STEP_MS = 1000 / 60;
 const ATTACK_INTERVAL_MS = 500;
 const ATTACK_CRIT_CHANCE = 0.05;
+const ATTACK_MISS_CHANCE = 0.05;
 const ATTACK_CRIT_MULTIPLIER = 1.5;
 const STARTER_LEVEL = 1;
 const PROJECTILE_SPEED_PX_PER_SECOND = 520;
@@ -118,6 +170,7 @@ const CAPTURE_FAIL_REAPPEAR_MS = 460;
 const CAPTURE_POST_MS = 230;
 const CAPTURE_CRIT_CHANCE = 0.1;
 const CAPTURE_CRIT_MULTIPLIER = 2;
+const TEAM_SPRITE_SCALE = 1.18;
 const MAX_LEVEL = 100;
 const SHOP_TAB_POKEBALLS = "pokeballs";
 const SHOP_TAB_COMBAT = "combat";
@@ -143,7 +196,9 @@ const EVOLUTION_ANIM_TOTAL_MS = 2480;
 const EVOLUTION_ANIM_WHITE_MS = 1120;
 const EVOLUTION_ANIM_FLASH_MS = 280;
 const EVOLUTION_ANIM_REVEAL_MS = 820;
+const EVOLUTION_ANIM_BACKDROP_FADE_MS = 320;
 const EVOLUTION_ANIM_PARTICLE_COUNT = 14;
+const HAPPINESS_EVOLUTION_BOX_REQUIRED_MS = 3 * 60 * 60 * 1000;
 const BACKGROUND_DRIFT_TRAVEL_MIN_MS = 9000;
 const BACKGROUND_DRIFT_TRAVEL_MAX_MS = 21000;
 const BACKGROUND_DRIFT_HOLD_MIN_MS = 1200;
@@ -228,6 +283,11 @@ const WEATHER_LIGHTNING_WINDOW_MS = 1700;
 const POKEMON_BACKDROP_ALPHA = 0.5;
 const POKEMON_BACKDROP_RADIUS_RATIO = 0.36;
 const POKEMON_SHADOW_ALPHA = 0.52;
+const ULTRA_SHINY_HUE_CYCLE_MS = 7600;
+const ULTRA_SHINY_SCINTILLATION_PERIOD_MS = 1150;
+const ULTRA_SHINY_SCINTILLATION_FLASH_MS = 220;
+const ULTRA_SHINY_OUTLINE_PX = 3.4;
+const DEBUG_FORCE_ULTRA_SHINY_ALL_POKEMON = true;
 const BREATH_MIN_PERIOD_MS = 2500;
 const BREATH_MAX_PERIOD_MS = 4100;
 const BREATH_BASE_AMPLITUDE = 0.022;
@@ -806,9 +866,16 @@ const ctx =
 const spriteTintBufferCanvas = document.createElement("canvas");
 const spriteTintBufferCtx = spriteTintBufferCanvas.getContext("2d");
 const gameStageEl = document.getElementById("game-stage");
+const gameOverlayEl = document.querySelector(".game-overlay");
+const uiTopbarEl = document.querySelector(".ui-topbar");
+const actionDockEl = document.querySelector(".action-dock");
 const starterModalEl = document.getElementById("starter-modal");
 const starterChoicesEl = document.getElementById("starter-choices");
 const hoverPopupEl = document.getElementById("hover-popup");
+const teamContextMenuEl = document.getElementById("team-context-menu");
+const teamContextMenuTitleEl = document.getElementById("team-context-menu-title");
+const teamContextMenuBoxesButtonEl = document.getElementById("team-context-menu-boxes");
+const teamContextMenuAppearanceButtonEl = document.getElementById("team-context-menu-appearance");
 const resetSaveButtonEl = document.getElementById("reset-save-btn");
 const mapButtonEl = document.getElementById("map-btn");
 const mapModalEl = document.getElementById("map-modal");
@@ -816,6 +883,8 @@ const mapCloseButtonEl = document.getElementById("map-close-btn");
 const mapImageEl = document.getElementById("map-image");
 const mapMarkersEl = document.getElementById("map-markers");
 const shopButtonEl = document.getElementById("shop-btn");
+const windowsNotificationButtonEl = document.getElementById("windows-notification-btn");
+const windowsNotificationButtonLabelEl = document.getElementById("windows-notification-btn-label");
 const shopModalEl = document.getElementById("shop-modal");
 const shopModalSubtitleEl = document.getElementById("shop-modal-subtitle");
 const shopGridEl = document.getElementById("shop-grid");
@@ -841,6 +910,7 @@ const boxesGridEl = document.getElementById("boxes-grid");
 const boxesInfoPanelEl = document.getElementById("boxes-info-panel");
 const boxesCloseButtonEl = document.getElementById("boxes-close-btn");
 const boxesSubtitleEl = document.getElementById("boxes-subtitle");
+const boxesShinyCounterEl = document.getElementById("boxes-shiny-counter");
 const appearanceModalEl = document.getElementById("appearance-modal");
 const appearanceTitleEl = document.getElementById("appearance-title");
 const appearanceSubtitleEl = document.getElementById("appearance-subtitle");
@@ -862,6 +932,8 @@ const pokemonSpriteImageCache = new Map();
 const mapMarkerButtonsByRouteId = new Map();
 
 window.POKEIDLE_APP_VERSION = APP_VERSION;
+const audioManager = createAudioManager();
+window.POKEIDLE_AUDIO = audioManager;
 
 const state = {
   mode: "loading",
@@ -875,6 +947,8 @@ const state = {
   zoneEncounterCsvByRouteId: new Map(),
   zoneEncounterCsvRouteIds: new Set(),
   zoneEncounterCsvLoaded: false,
+  pokemonTalentCsvByPokemonId: new Map(),
+  pokemonTalentCsvLoaded: false,
   ballConfigCsvLoaded: false,
   shopItemConfigCsvLoaded: false,
   configRevisions: {
@@ -887,6 +961,7 @@ const state = {
     shopItemRevision: -1,
   },
   pokemonDefsById: new Map(),
+  typeIconImages: new Map(),
   saveData: null,
   team: [],
   enemy: null,
@@ -918,6 +993,11 @@ const state = {
     nextId: 1,
     dirty: true,
     nextEvolutionScanMs: 0,
+  },
+  windowsNotifications: {
+    supported: false,
+    enabled: false,
+    permission: "default",
   },
   teamLevelUpEffects: [],
   teamXpGainEffects: [],
@@ -971,6 +1051,10 @@ const state = {
     appearanceOpen: false,
     appearanceTargetSlotIndex: -1,
     appearancePokemonId: null,
+    hoveredTeamSlotIndex: -1,
+    teamContextMenuOpen: false,
+    teamContextMenuSlotIndex: -1,
+    teamContextMenuPokemonId: null,
     tutorialOpen: false,
   },
   saveBackend: {
@@ -982,6 +1066,10 @@ const state = {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function shouldForceUltraShinyAllPokemon() {
+  return DEBUG_FORCE_ULTRA_SHINY_ALL_POKEMON;
 }
 
 function getRenderQualitySettings() {
@@ -1393,6 +1481,236 @@ function updateMoneyHudAnimation(deltaMs) {
   refreshMoneyCounterTransform();
 }
 
+function supportsWindowsSystemNotifications() {
+  return typeof window !== "undefined" && typeof Notification !== "undefined";
+}
+
+function normalizeNotificationPermission(permissionRaw) {
+  const permission = String(permissionRaw || "default").toLowerCase().trim();
+  if (permission === "granted" || permission === "denied" || permission === "default") {
+    return permission;
+  }
+  return "default";
+}
+
+function getCurrentNotificationPermission() {
+  if (!supportsWindowsSystemNotifications()) {
+    return "unsupported";
+  }
+  return normalizeNotificationPermission(Notification.permission);
+}
+
+function readWindowsNotificationPreference() {
+  try {
+    const raw = localStorage.getItem(WINDOWS_NOTIFICATION_PREF_KEY);
+    if (raw === "1") {
+      return true;
+    }
+    if (raw === "0") {
+      return false;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writeWindowsNotificationPreference(enabled) {
+  try {
+    localStorage.setItem(WINDOWS_NOTIFICATION_PREF_KEY, enabled ? "1" : "0");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function refreshWindowsNotificationButtonUi() {
+  if (!windowsNotificationButtonEl) {
+    return;
+  }
+  const supported = Boolean(state.windowsNotifications?.supported);
+  const permission = String(state.windowsNotifications?.permission || "default");
+  const enabled = Boolean(state.windowsNotifications?.enabled);
+
+  let label = "Notifs Windows";
+  let title = "Notifs systeme Windows pour les shiny.";
+  if (!supported) {
+    label = "Notifs non supportees";
+    title = "Ce navigateur ne supporte pas l'API Notification.";
+  } else if (permission === "denied") {
+    label = "Notifs bloquees";
+    title = "Autorise les notifications dans les reglages du navigateur.";
+  } else if (enabled) {
+    label = "Notifs Windows ON";
+    title = "Notifications systeme actives pour les shiny.";
+  } else {
+    label = "Activer notifs";
+    title = "Clique pour activer les notifications systeme shiny.";
+  }
+
+  windowsNotificationButtonEl.setAttribute("aria-pressed", enabled ? "true" : "false");
+  windowsNotificationButtonEl.title = title;
+  if (windowsNotificationButtonLabelEl) {
+    windowsNotificationButtonLabelEl.textContent = label;
+  }
+}
+
+function syncWindowsNotificationStateFromEnvironment() {
+  const supported = supportsWindowsSystemNotifications();
+  const permission = supported ? getCurrentNotificationPermission() : "unsupported";
+  const storedPreference = supported ? readWindowsNotificationPreference() : null;
+
+  state.windowsNotifications.supported = supported;
+  state.windowsNotifications.permission = permission;
+  if (!supported || permission !== "granted") {
+    state.windowsNotifications.enabled = false;
+  } else {
+    state.windowsNotifications.enabled = storedPreference == null ? true : Boolean(storedPreference);
+  }
+
+  refreshWindowsNotificationButtonUi();
+}
+
+function initializeWindowsNotificationSystem() {
+  syncWindowsNotificationStateFromEnvironment();
+}
+
+async function requestWindowsNotificationPermission() {
+  if (!supportsWindowsSystemNotifications()) {
+    return "unsupported";
+  }
+  const permissionBefore = getCurrentNotificationPermission();
+  if (permissionBefore !== "default") {
+    return permissionBefore;
+  }
+  try {
+    const requested = await Notification.requestPermission();
+    return normalizeNotificationPermission(requested);
+  } catch {
+    return getCurrentNotificationPermission();
+  }
+}
+
+function disableWindowsNotificationSystem() {
+  state.windowsNotifications.enabled = false;
+  writeWindowsNotificationPreference(false);
+  refreshWindowsNotificationButtonUi();
+}
+
+async function enableWindowsNotificationSystem() {
+  if (!supportsWindowsSystemNotifications()) {
+    syncWindowsNotificationStateFromEnvironment();
+    return { enabled: false, permission: "unsupported" };
+  }
+  let permission = getCurrentNotificationPermission();
+  if (permission === "default") {
+    permission = await requestWindowsNotificationPermission();
+  }
+
+  state.windowsNotifications.supported = true;
+  state.windowsNotifications.permission = permission;
+  if (permission === "granted") {
+    state.windowsNotifications.enabled = true;
+    writeWindowsNotificationPreference(true);
+  } else {
+    state.windowsNotifications.enabled = false;
+  }
+  refreshWindowsNotificationButtonUi();
+  return { enabled: state.windowsNotifications.enabled, permission };
+}
+
+async function toggleWindowsNotificationSystemFromButton() {
+  syncWindowsNotificationStateFromEnvironment();
+  if (!state.windowsNotifications.supported) {
+    setTopMessage("Notifications Windows indisponibles sur ce navigateur.", 2000);
+    return;
+  }
+  if (state.windowsNotifications.enabled) {
+    disableWindowsNotificationSystem();
+    setTopMessage("Notifications Windows shiny desactivees.", 1700);
+    return;
+  }
+
+  const result = await enableWindowsNotificationSystem();
+  if (result.enabled) {
+    setTopMessage("Notifications Windows shiny activees.", 1800);
+    return;
+  }
+  if (result.permission === "denied") {
+    setTopMessage("Notifications bloquees. Autorise-les dans le navigateur.", 2600);
+    return;
+  }
+  setTopMessage("Permission de notification non accordee.", 1800);
+}
+
+function sendWindowsSystemNotification(title, body, options = {}) {
+  if (!supportsWindowsSystemNotifications()) {
+    return false;
+  }
+  const currentPermission = getCurrentNotificationPermission();
+  if (currentPermission !== state.windowsNotifications.permission) {
+    syncWindowsNotificationStateFromEnvironment();
+  }
+  if (!state.windowsNotifications.enabled || state.windowsNotifications.permission !== "granted") {
+    return false;
+  }
+  const safeTitle = String(title || "").trim();
+  if (!safeTitle) {
+    return false;
+  }
+  const safeBody = String(body || "").trim();
+  const autoCloseMs = Math.max(0, toSafeInt(options.autoCloseMs, 9000));
+  try {
+    const notification = new Notification(safeTitle, {
+      body: safeBody,
+      tag: options.tag ? String(options.tag) : undefined,
+      renotify: Boolean(options.renotify),
+      requireInteraction: Boolean(options.requireInteraction),
+    });
+    if (autoCloseMs > 0) {
+      window.setTimeout(() => {
+        try {
+          notification.close();
+        } catch {}
+      }, autoCloseMs);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function notifyWindowsShinyEncounter(enemy) {
+  if (!enemy || !enemy.isShiny || state.simulationIdleMode) {
+    return;
+  }
+  const routeId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const routeName = getRouteDisplayName(routeId);
+  const level = Math.max(1, toSafeInt(enemy.level, 1));
+  const enemyName = enemy.nameFr || getPokemonDisplayNameById(enemy.id);
+  sendWindowsSystemNotification(
+    "Shiny rencontre",
+    `${enemyName} shiny sauvage apercu (${routeName}, niv ${level}).`,
+    {
+      tag: `shiny-encounter-${enemy.id}-${Date.now()}`,
+      autoCloseMs: 12000,
+    },
+  );
+}
+
+function notifyWindowsShinyCapture(enemy, options = {}) {
+  if (!enemy || !enemy.isShiny || state.simulationIdleMode) {
+    return;
+  }
+  const enemyName = enemy.nameFr || getPokemonDisplayNameById(enemy.id);
+  const criticalSuffix = options.isCritical ? " (capture critique)" : "";
+  sendWindowsSystemNotification("Shiny capture", `${enemyName} shiny capture${criticalSuffix} !`, {
+    tag: `shiny-capture-${enemy.id}-${Date.now()}`,
+    requireInteraction: true,
+    autoCloseMs: 0,
+  });
+}
+
 function resetNotificationSystem() {
   state.notifications.items = [];
   state.notifications.nextId = 1;
@@ -1407,6 +1725,52 @@ function nextNotificationId() {
   return nextId;
 }
 
+function shouldUseCompactNotificationStack() {
+  const viewportWidth = Math.max(0, Number(window.innerWidth || state.viewport?.width || 0));
+  return isCoarsePointerDevice() || viewportWidth <= 760;
+}
+
+function getVisibleNotificationItems(items) {
+  const sorted = Array.isArray(items)
+    ? items.slice().sort((a, b) => {
+      const aTime = Number(a?.createdAt || 0);
+      const bTime = Number(b?.createdAt || 0);
+      return aTime - bTime;
+    })
+    : [];
+  if (!shouldUseCompactNotificationStack()) {
+    return sorted;
+  }
+
+  const temporaryItems = sorted.filter((item) => item?.type === "temporary");
+  const evolutionItems = sorted.filter((item) => item?.type === "evolution_ready");
+  const visible = [];
+
+  if (temporaryItems.length > 0) {
+    visible.push(temporaryItems[temporaryItems.length - 1]);
+  }
+  if (evolutionItems.length > 0) {
+    visible.push(evolutionItems[evolutionItems.length - 1]);
+  }
+  if (evolutionItems.length > 1) {
+    const extraCount = evolutionItems.length - 1;
+    visible.push({
+      id: "evolution-summary",
+      type: "evolution_summary",
+      tone: "evolution",
+      title: "Autres evolutions",
+      message: `${extraCount} autre${extraCount > 1 ? "s" : ""} evolution${extraCount > 1 ? "s" : ""} disponible${extraCount > 1 ? "s" : ""}.`,
+      createdAt: Number(evolutionItems[evolutionItems.length - 1]?.createdAt || 0) + 0.01,
+    });
+  }
+
+  return visible.sort((a, b) => {
+    const aTime = Number(a?.createdAt || 0);
+    const bTime = Number(b?.createdAt || 0);
+    return aTime - bTime;
+  });
+}
+
 function renderNotificationStackUi() {
   if (!notificationStackEl) {
     return;
@@ -1414,11 +1778,7 @@ function renderNotificationStackUi() {
   const items = Array.isArray(state.notifications.items) ? state.notifications.items : [];
   notificationStackEl.innerHTML = "";
 
-  const sorted = items.slice().sort((a, b) => {
-    const aTime = Number(a.createdAt || 0);
-    const bTime = Number(b.createdAt || 0);
-    return aTime - bTime;
-  });
+  const sorted = getVisibleNotificationItems(items);
 
   for (const item of sorted) {
     const card = document.createElement("article");
@@ -1427,7 +1787,7 @@ function renderNotificationStackUi() {
       card.classList.add("notif-first");
     } else if (item.tone === "shiny") {
       card.classList.add("notif-shiny");
-    } else if (item.type === "evolution_ready") {
+    } else if (item.type === "evolution_ready" || item.type === "evolution_summary") {
       card.classList.add("notif-evolution");
     }
 
@@ -2115,6 +2475,31 @@ function getCachedSpriteImage(imagePath) {
   return image;
 }
 
+async function ensureSpriteImageLoaded(imagePath) {
+  if (!imagePath) {
+    return null;
+  }
+  const cachedImage = pokemonSpriteImageCache.get(imagePath);
+  if (isDrawableImage(cachedImage)) {
+    return cachedImage;
+  }
+  const loadedImage = await loadImage(imagePath);
+  if (loadedImage) {
+    registerSpriteImageInCache(imagePath, loadedImage);
+  }
+  return loadedImage;
+}
+
+async function ensureVariantAppearanceAssetsLoaded(def, variant, options = {}) {
+  const includeShiny = options.includeShiny === true;
+  const paths = [variant?.frontPath || def?.spritePath || ""];
+  if (includeShiny) {
+    paths.push(variant?.frontShinyPath || def?.shinySpritePath || "");
+  }
+  const uniquePaths = Array.from(new Set(paths.filter(Boolean)));
+  await Promise.all(uniquePaths.map((imagePath) => ensureSpriteImageLoaded(imagePath)));
+}
+
 function isDrawableImage(image) {
   return Boolean(
     image &&
@@ -2231,6 +2616,27 @@ function normalizeEvolutionItemReadyTargets(rawTargets) {
   return normalized;
 }
 
+function getTalentDefinitionForPokemonId(pokemonId) {
+  const csvTalent = getPokemonTalentCsvForPokemonId(pokemonId);
+  if (csvTalent) {
+    return normalizeTalentDefinition(csvTalent);
+  }
+  const def = state.pokemonDefsById.get(Number(pokemonId || 0));
+  return normalizeTalentDefinition(def?.talent);
+}
+
+function resolveTalentDefinition(rawTalent, pokemonId = 0) {
+  const normalized = normalizeTalentDefinition(rawTalent);
+  if (normalized.id !== TALENT_NONE_ID) {
+    return normalized;
+  }
+  return getTalentDefinitionForPokemonId(pokemonId);
+}
+
+function formatTalentLabelFr(rawTalent, pokemonId = 0) {
+  return resolveTalentDefinition(rawTalent, pokemonId).nameFr || TALENT_NONE_NAME_FR;
+}
+
 function normalizePokemonEntityRecord(rawEntity, pokemonId) {
   const id = Number(pokemonId);
   const counters = normalizeSpeciesCounters(rawEntity);
@@ -2246,6 +2652,19 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
   const appearanceSelectedVariant = normalizeSpriteVariantId(rawEntity?.appearance_selected_variant);
   const appearanceShinyMode = Boolean(rawEntity?.appearance_shiny_mode);
   const evolutionItemReadyTargets = normalizeEvolutionItemReadyTargets(rawEntity?.evolution_item_ready_targets);
+  const happinessBoxStreakMs = Math.max(
+    0,
+    toSafeInt(rawEntity?.happiness_box_streak_ms ?? rawEntity?.happinessBoxStreakMs, 0),
+  );
+  const talent = resolveTalentDefinition(
+    rawEntity?.talent ?? {
+      id: rawEntity?.talent_id ?? rawEntity?.talentId,
+      name_fr: rawEntity?.talent_name_fr,
+      name_en: rawEntity?.talent_name_en,
+      description_fr: rawEntity?.talent_description_fr,
+    },
+    id,
+  );
 
   return {
     id,
@@ -2258,6 +2677,8 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
     appearance_selected_variant: appearanceSelectedVariant,
     appearance_shiny_mode: appearanceShinyMode,
     evolution_item_ready_targets: evolutionItemReadyTargets,
+    happiness_box_streak_ms: happinessBoxStreakMs,
+    talent,
     ...counters,
   };
 }
@@ -2277,6 +2698,8 @@ function createPokemonEntityRecord(pokemonId, initialLevel = 1) {
     appearance_selected_variant: "",
     appearance_shiny_mode: false,
     evolution_item_ready_targets: [],
+    happiness_box_streak_ms: 0,
+    talent: getTalentDefinitionForPokemonId(pokemonId),
     ...createEmptySpeciesStats(),
   };
 }
@@ -2905,8 +3328,8 @@ async function readSaveDataFromBridge() {
     }
 
     const payload = await response.json();
-    const saveRaw = payload && typeof payload === "object" ? payload.save : null;
-    const saveData = saveRaw && typeof saveRaw === "object" ? normalizeSave(saveRaw) : null;
+    const saveRaw = parseSaveBridgePayload(payload, "Save bridge");
+    const saveData = saveRaw ? normalizeSave(saveRaw) : null;
     state.saveBackend.bridgeAvailable = true;
     return { available: true, saveData };
   } catch {
@@ -2939,7 +3362,7 @@ function readSaveDataFromLocalStorage() {
     if (!raw) {
       return null;
     }
-    return normalizeSave(JSON.parse(raw));
+    return normalizeSave(parseSerializedSave(raw, "localStorage save"));
   } catch {
     return null;
   }
@@ -3430,6 +3853,7 @@ function getSpeciesStatsSummary(pokemonId) {
   return {
     level: clamp(toSafeInt(record.level, 1), 1, MAX_LEVEL),
     stats: normalizeStatsPayload(record.stats),
+    talent: resolveTalentDefinition(record?.talent, pokemonId),
     entity_unlocked: isEntityUnlocked(record),
     encountered_normal: encounteredNormal,
     encountered_shiny: encounteredShiny,
@@ -3672,10 +4096,13 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
   const normalPath = variant?.frontPath || def.spritePath || "";
   const shinyUnlocked = isShinyAppearanceUnlockedForRecord(record);
   const respectAppearanceShinyMode = options.respectAppearanceShinyMode !== false;
+  const forceUltraShiny = Boolean(options.forceUltraShiny || shouldForceUltraShinyAllPokemon());
   const hasExplicitShinyVisual = Object.prototype.hasOwnProperty.call(options, "shinyVisual");
+  const forcedShinyVisual = forceUltraShiny || Boolean(options.forceShiny);
+  const explicitShinyVisual = hasExplicitShinyVisual ? Boolean(options.shinyVisual) : false;
   const shinyModeRequested = hasExplicitShinyVisual
-    ? Boolean(options.shinyVisual)
-    : Boolean(options.forceShiny || (respectAppearanceShinyMode && record?.appearance_shiny_mode && shinyUnlocked));
+    ? Boolean(explicitShinyVisual || forcedShinyVisual)
+    : Boolean(forcedShinyVisual || (respectAppearanceShinyMode && record?.appearance_shiny_mode && shinyUnlocked));
   const shinyPath = variant?.frontShinyPath || def.shinySpritePath || "";
   const canRenderShiny = shinyModeRequested && Boolean(shinyPath);
   const resolvedPath = canRenderShiny ? shinyPath : normalPath;
@@ -3694,6 +4121,54 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
   };
 }
 
+async function preloadSelectedAppearanceAssetsForTeam() {
+  if (!state.saveData || !Array.isArray(state.saveData.team) || state.saveData.team.length <= 0) {
+    return;
+  }
+
+  const uniqueTeamIds = [];
+  for (const rawId of state.saveData.team) {
+    const pokemonId = Number(rawId || 0);
+    if (pokemonId <= 0 || uniqueTeamIds.includes(pokemonId)) {
+      continue;
+    }
+    uniqueTeamIds.push(pokemonId);
+    if (uniqueTeamIds.length >= MAX_TEAM_SIZE) {
+      break;
+    }
+  }
+
+  if (uniqueTeamIds.length <= 0) {
+    return;
+  }
+
+  const preloadTasks = [];
+  for (const pokemonId of uniqueTeamIds) {
+    const def = state.pokemonDefsById.get(pokemonId);
+    if (!def) {
+      continue;
+    }
+    const record = getPokemonEntityRecord(pokemonId);
+    if (record) {
+      reconcileAppearanceForEntityRecord(record, pokemonId);
+    }
+    const selectedVariant = getSelectedOwnedSpriteVariantForRecord(record, def);
+    const includeShiny = Boolean(
+      shouldForceUltraShinyAllPokemon() || (record?.appearance_shiny_mode && isShinyAppearanceUnlockedForRecord(record)),
+    );
+    preloadTasks.push(
+      ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
+        includeShiny,
+      }),
+    );
+  }
+
+  if (preloadTasks.length <= 0) {
+    return;
+  }
+  await Promise.all(preloadTasks);
+}
+
 function syncActiveEnemyAppearance() {
   const enemy = state.battle?.getEnemy?.();
   if (!enemy) {
@@ -3704,17 +4179,21 @@ function syncActiveEnemyAppearance() {
   }
 
   const def = state.pokemonDefsById.get(Number(enemy.id || 0));
+  const ultraShinyVisual = Boolean(enemy.isUltraShiny || enemy.isUltraShinyVisual || shouldForceUltraShinyAllPokemon());
+  const shinyVisual = Boolean(enemy.isShiny || ultraShinyVisual);
   const appearance = resolveSpriteAppearanceForEntity(enemy.id, {
-    shinyVisual: Boolean(enemy.isShiny),
+    shinyVisual,
+    forceUltraShiny: ultraShinyVisual,
     respectAppearanceShinyMode: false,
   });
-  const fallbackPath = enemy.isShiny ? def?.shinySpritePath || def?.spritePath || "" : def?.spritePath || "";
-  const fallbackImage = enemy.isShiny ? def?.spriteShinyImage || def?.spriteImage || null : def?.spriteImage || null;
+  const fallbackPath = shinyVisual ? def?.shinySpritePath || def?.spritePath || "" : def?.spritePath || "";
+  const fallbackImage = shinyVisual ? def?.spriteShinyImage || def?.spriteImage || null : def?.spriteImage || null;
 
   enemy.spritePath = appearance.spritePath || fallbackPath || enemy.spritePath || "";
   enemy.spriteImage = appearance.spriteImage || fallbackImage || enemy.spriteImage || null;
   enemy.spriteVariantId = appearance.variant?.id || getDefaultSpriteVariantId(def) || enemy.spriteVariantId || null;
-  enemy.isShinyVisual = Boolean(enemy.isShiny || appearance.shinyVisual);
+  enemy.isShinyVisual = Boolean(shinyVisual || appearance.shinyVisual);
+  enemy.isUltraShinyVisual = ultraShinyVisual;
   state.enemy = enemy;
 }
 
@@ -4159,6 +4638,67 @@ function consumeEvolutionItemConditionReady(record, targetPokemonId) {
   record.evolution_item_ready_targets = readyTargets.filter((entry) => Number(entry) !== targetId);
 }
 
+function getHappinessEvolutionBoxStreakMs(record) {
+  return Math.max(0, toSafeInt(record?.happiness_box_streak_ms, 0));
+}
+
+function hasHappinessEvolutionMethodForPokemon(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return false;
+  }
+  const def = state.pokemonDefsById.get(id);
+  if (!def || !Array.isArray(def.evolvesTo) || def.evolvesTo.length <= 0) {
+    return false;
+  }
+  return def.evolvesTo.some((target) => {
+    const methods = Array.isArray(target?.evolutionMethods) ? target.evolutionMethods : [];
+    return methods.some((method) => method?.minHappiness != null);
+  });
+}
+
+function isHappinessEvolutionConditionSatisfied(record) {
+  return getHappinessEvolutionBoxStreakMs(record) >= HAPPINESS_EVOLUTION_BOX_REQUIRED_MS;
+}
+
+function updateHappinessEvolutionBoxProgress(deltaMs) {
+  if (!state.saveData?.pokemon_entities || typeof state.saveData.pokemon_entities !== "object") {
+    return;
+  }
+  const stepMs = Math.max(0, Number(deltaMs) || 0);
+  const teamIds = new Set(
+    Array.isArray(state.saveData.team)
+      ? state.saveData.team
+          .map((id) => Number(id))
+          .filter((id) => id > 0)
+      : [],
+  );
+
+  for (const [rawKey, rawRecord] of Object.entries(state.saveData.pokemon_entities)) {
+    const pokemonId = Number(rawRecord?.id || rawKey || 0);
+    if (pokemonId <= 0 || !rawRecord || typeof rawRecord !== "object" || !isEntityUnlocked(rawRecord)) {
+      continue;
+    }
+    if (!hasHappinessEvolutionMethodForPokemon(pokemonId)) {
+      continue;
+    }
+    if (teamIds.has(pokemonId)) {
+      if (getHappinessEvolutionBoxStreakMs(rawRecord) > 0) {
+        rawRecord.happiness_box_streak_ms = 0;
+      }
+      continue;
+    }
+    if (stepMs <= 0) {
+      continue;
+    }
+    const nextValue = Math.min(
+      HAPPINESS_EVOLUTION_BOX_REQUIRED_MS,
+      getHappinessEvolutionBoxStreakMs(rawRecord) + stepMs,
+    );
+    rawRecord.happiness_box_streak_ms = Math.round(nextValue);
+  }
+}
+
 function isEvolutionMethodSatisfied(record, method, targetPokemonId = 0) {
   if (!record || !method) {
     return false;
@@ -4173,6 +4713,10 @@ function isEvolutionMethodSatisfied(record, method, targetPokemonId = 0) {
   }
 
   if (method.minLevel != null && record.level < method.minLevel) {
+    return false;
+  }
+
+  if (method.minHappiness != null && !isHappinessEvolutionConditionSatisfied(record)) {
     return false;
   }
 
@@ -4210,7 +4754,6 @@ function isEvolutionMethodSatisfied(record, method, targetPokemonId = 0) {
   }
 
   if (
-    method.minHappiness != null ||
     method.minBeauty != null ||
     method.gender ||
     method.item ||
@@ -4849,6 +5392,17 @@ function loadImage(imagePath) {
   });
 }
 
+function buildTypeIconAssetPath(typeName) {
+  return `${TYPE_ICON_ASSET_DIR}/${normalizeType(typeName)}.png`;
+}
+
+async function preloadTypeIcons() {
+  const entries = await Promise.all(
+    TYPE_ICON_TYPES.map(async (typeName) => [typeName, await loadImage(buildTypeIconAssetPath(typeName))]),
+  );
+  return new Map(entries);
+}
+
 function getDefensiveTypes(payload) {
   if (!Array.isArray(payload?.defensive_types) || payload.defensive_types.length === 0) {
     return ["normal"];
@@ -4984,6 +5538,314 @@ function getTypeColor(typeName) {
 
 function normalizeType(typeName) {
   return String(typeName || "normal").toLowerCase();
+}
+
+function isTeamLeftSideSlot(slotIndex, layout = state.layout) {
+  const safeIndex = clamp(toSafeInt(slotIndex, 0), 0, MAX_TEAM_SIZE - 1);
+  const slot = layout?.teamSlots?.[safeIndex];
+  if (slot && Number.isFinite(slot.x) && Number.isFinite(layout?.centerX)) {
+    return slot.x < layout.centerX;
+  }
+  return TEAM_LEFT_SIDE_SLOT_INDEXES.has(safeIndex);
+}
+
+function shouldFlipTeamSprite(slotIndex, layout = state.layout) {
+  return isTeamLeftSideSlot(slotIndex, layout);
+}
+
+function getTypeIconImage(typeName) {
+  return state.typeIconImages.get(normalizeType(typeName)) || null;
+}
+
+function formatTypeMultiplierLabel(multiplier) {
+  const numericMultiplier = Number(multiplier);
+  if (!Number.isFinite(numericMultiplier)) {
+    return "x1";
+  }
+  const rounded = Math.round(numericMultiplier * 100) / 100;
+  if (Math.abs(rounded) <= 0.001) {
+    return "x0";
+  }
+  return `x${String(rounded).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1")}`;
+}
+
+function getTypeMatchupPalette(multiplier) {
+  if (multiplier <= 0.001) {
+    return {
+      text: "#ffc7d2",
+      border: "rgba(211, 106, 131, 0.86)",
+      glow: "rgba(255, 151, 183, 0.28)",
+      surfaceTop: "rgba(76, 37, 51, 0.98)",
+      surfaceBottom: "rgba(43, 22, 31, 0.98)",
+    };
+  }
+  if (multiplier > 1.001) {
+    return {
+      text: "#ffd989",
+      border: "rgba(204, 151, 58, 0.86)",
+      glow: "rgba(255, 221, 133, 0.28)",
+      surfaceTop: "rgba(84, 63, 33, 0.98)",
+      surfaceBottom: "rgba(49, 37, 19, 0.98)",
+    };
+  }
+  if (multiplier < 0.999) {
+    return {
+      text: "#9bd6ff",
+      border: "rgba(89, 145, 196, 0.82)",
+      glow: "rgba(132, 200, 255, 0.24)",
+      surfaceTop: "rgba(39, 58, 82, 0.98)",
+      surfaceBottom: "rgba(24, 38, 56, 0.98)",
+    };
+  }
+  return {
+    text: "#dbe8f8",
+    border: "rgba(95, 121, 151, 0.8)",
+    glow: "rgba(166, 197, 230, 0.2)",
+    surfaceTop: "rgba(40, 54, 74, 0.98)",
+    surfaceBottom: "rgba(25, 35, 51, 0.98)",
+  };
+}
+
+function traceRetroHudPath(x, y, width, height, cut = 10) {
+  const safeWidth = Math.max(12, Number(width) || 0);
+  const safeHeight = Math.max(12, Number(height) || 0);
+  const safeCut = clamp(Number(cut) || 0, 4, Math.min(safeWidth, safeHeight) * 0.46);
+
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + safeWidth - safeCut, y);
+  ctx.lineTo(x + safeWidth, y + safeCut);
+  ctx.lineTo(x + safeWidth, y + safeHeight - safeCut * 0.18);
+  ctx.lineTo(x + safeWidth - safeCut * 0.56, y + safeHeight);
+  ctx.lineTo(x, y + safeHeight);
+  ctx.closePath();
+}
+
+function drawRetroHudPanel(x, y, width, height, options = {}) {
+  const safeWidth = Math.max(12, Number(width) || 0);
+  const safeHeight = Math.max(12, Number(height) || 0);
+  const cut = clamp(Number(options.cut) || Math.min(12, safeHeight * 0.58), 4, Math.min(safeWidth, safeHeight) * 0.46);
+  const shadowOffsetY = Number.isFinite(options.shadowOffsetY) ? options.shadowOffsetY : 2;
+  const shadowOffsetX = Number.isFinite(options.shadowOffsetX) ? options.shadowOffsetX : 0;
+  const fillTop = options.fillTop || "rgba(43, 57, 79, 0.98)";
+  const fillBottom = options.fillBottom || "rgba(25, 35, 52, 0.98)";
+  const border = options.border || "rgba(102, 126, 155, 0.96)";
+  const highlight = options.highlight || "rgba(188, 212, 237, 0.28)";
+  const shadow = options.shadow || "rgba(0, 0, 0, 0.36)";
+  const borderWidth = Math.max(0.75, Number(options.borderWidth) || 2);
+
+  ctx.save();
+  ctx.lineJoin = "miter";
+
+  if (shadowOffsetX !== 0 || shadowOffsetY !== 0) {
+    ctx.fillStyle = shadow;
+    traceRetroHudPath(x + shadowOffsetX, y + shadowOffsetY, safeWidth, safeHeight, cut);
+    ctx.fill();
+  }
+
+  const fill = ctx.createLinearGradient(x, y, x, y + safeHeight);
+  fill.addColorStop(0, fillTop);
+  fill.addColorStop(1, fillBottom);
+  ctx.fillStyle = fill;
+  traceRetroHudPath(x, y, safeWidth, safeHeight, cut);
+  ctx.fill();
+
+  ctx.strokeStyle = border;
+  ctx.lineWidth = borderWidth;
+  traceRetroHudPath(x, y, safeWidth, safeHeight, cut);
+  ctx.stroke();
+
+  if (highlight) {
+    const inset = Math.max(1, borderWidth * 0.65);
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = Math.max(0.6, borderWidth * 0.5);
+    traceRetroHudPath(
+      x + inset,
+      y + inset,
+      Math.max(8, safeWidth - inset * 2),
+      Math.max(8, safeHeight - inset * 2),
+      Math.max(3, cut - inset * 1.6),
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTypeIconGraphic(typeName, centerX, centerY, size, options = {}) {
+  const safeSize = clamp(Number(size) || 0, 8, 56);
+  const image = getTypeIconImage(typeName);
+  const drawAlpha = clamp(Number(options.alpha ?? 1), 0, 1);
+
+  ctx.save();
+  ctx.globalAlpha = drawAlpha;
+
+  if (isDrawableImage(image)) {
+    const drawX = snapSpriteValue(centerX - safeSize * 0.5);
+    const drawY = snapSpriteValue(centerY - safeSize * 0.5);
+    const drawSize = snapSpriteDimension(safeSize);
+    const wasSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(image, drawX, drawY, drawSize, drawSize);
+    ctx.imageSmoothingEnabled = wasSmoothing;
+  } else {
+    ctx.translate(snapSpriteValue(centerX - safeSize * 0.5), snapSpriteValue(centerY - safeSize * 0.5));
+    drawProjectileGlyph(ctx, normalizeType(typeName), safeSize);
+  }
+
+  ctx.restore();
+}
+
+function drawTypeIconBadge(typeName, centerX, centerY, size, options = {}) {
+  const safeSize = clamp(Number(size) || 0, 14, 34);
+  const outlineColor = Array.isArray(options.outlineColor) ? options.outlineColor : getTypeColor(typeName);
+  const x = centerX - safeSize * 0.5;
+  const y = centerY - safeSize * 0.5;
+  drawRetroHudPanel(x, y, safeSize, safeSize, {
+    cut: Math.max(4, safeSize * 0.28),
+    fillTop: "rgba(50, 66, 89, 0.99)",
+    fillBottom: "rgba(30, 42, 60, 0.99)",
+    border: rgba(outlineColor, 0.78),
+    highlight: "rgba(196, 218, 241, 0.3)",
+    shadow: "rgba(0, 0, 0, 0.32)",
+    borderWidth: Math.max(1, safeSize * 0.07),
+  });
+
+  drawTypeIconGraphic(typeName, centerX, centerY, safeSize * 0.76);
+}
+
+function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, options = {}) {
+  const safeDefenderTypes = Array.isArray(defenderTypes)
+    ? defenderTypes.map((typeName) => normalizeType(typeName)).filter(Boolean).slice(0, 2)
+    : [];
+  const leadingType = normalizeType(options.typeIcon || "");
+  const fontSize = clamp(Number(options.fontSize) || 0, 9, 14);
+  const iconSize = clamp(Number(options.iconSize) || 0, 10, 16);
+  const textPaddingX = clamp(Number(options.paddingX) || iconSize * 0.48, 4, 8);
+  const textPaddingY = clamp(Number(options.paddingY) || fontSize * 0.42, 3, 7);
+  const iconGap = clamp(iconSize * 0.2, 3, 5);
+  const leadingGap = leadingType ? clamp(iconSize * 0.28, 3, 5) : 0;
+  const contentGap = safeDefenderTypes.length > 0 ? clamp(iconSize * 0.38, 4, 8) : 0;
+  const multiplierLabel = formatTypeMultiplierLabel(multiplier);
+  const palette = getTypeMatchupPalette(multiplier);
+
+  ctx.save();
+  ctx.font = `700 ${fontSize}px Trebuchet MS`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const textWidth = Math.ceil(ctx.measureText(multiplierLabel).width);
+  const leadingWidth = leadingType ? iconSize + leadingGap : 0;
+  const iconsWidth = safeDefenderTypes.length > 0
+    ? safeDefenderTypes.length * iconSize + Math.max(0, safeDefenderTypes.length - 1) * iconGap
+    : 0;
+  const width = textPaddingX * 2 + leadingWidth + textWidth + contentGap + iconsWidth;
+  const height = Math.max(fontSize + textPaddingY * 2, iconSize + 6);
+  let x =
+    options.align === "center"
+      ? anchorX - width * 0.5
+      : options.align === "right"
+        ? anchorX - width
+        : anchorX;
+  x = clamp(x, 8, state.viewport.width - width - 8);
+  const y = clamp(centerY - height * 0.5, 8, state.viewport.height - height - 8);
+
+  drawRetroHudPanel(x, y, width, height, {
+    cut: Math.max(6, height * 0.35),
+    fillTop: palette.surfaceTop,
+    fillBottom: palette.surfaceBottom,
+    border: palette.border,
+    highlight: palette.glow,
+    shadow: "rgba(78, 85, 100, 0.18)",
+    borderWidth: 1.5,
+  });
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = palette.text;
+  ctx.strokeStyle = "rgba(5, 10, 18, 0.72)";
+  ctx.lineWidth = 2;
+  let textX = x + textPaddingX;
+  if (leadingType) {
+    drawTypeIconBadge(leadingType, x + textPaddingX + iconSize * 0.5, y + height * 0.5, iconSize, {
+      outlineColor: getTypeColor(leadingType),
+    });
+    textX += leadingWidth;
+  }
+  const textY = y + height * 0.53;
+  ctx.strokeText(multiplierLabel, textX, textY);
+  ctx.fillText(multiplierLabel, textX, textY);
+
+  let iconX = textX + textWidth + contentGap;
+  for (const defenderType of safeDefenderTypes) {
+    drawTypeIconGraphic(defenderType, iconX + iconSize * 0.5, y + height * 0.5, iconSize);
+    iconX += iconSize + iconGap;
+  }
+  ctx.restore();
+}
+
+function drawTeamTypeHud(member, slotIndex, slotAnchor, enemy) {
+  if (!member || !slotAnchor || !enemy) {
+    return;
+  }
+  const offensiveType = normalizeType(member.offensiveType || member.defensiveTypes?.[0] || "normal");
+  const defenderTypes = Array.isArray(enemy.defensiveTypes) ? enemy.defensiveTypes : [];
+  const multiplier = getTypeMultiplier(offensiveType, defenderTypes);
+  const chipCenterX = Number(slotAnchor.hudCenterX || slotAnchor.x);
+  const chipHeight = clamp(Number(slotAnchor.hudTypeChipHeight) || slotAnchor.size * 0.17, 11, 16);
+  const chipCenterY = clamp(
+    Number(slotAnchor.hudTopY || slotAnchor.y) - chipHeight * 0.74,
+    chipHeight * 0.5 + 6,
+    state.viewport.height - chipHeight * 0.5 - 6,
+  );
+  drawTypeMatchupPill(chipCenterX, chipCenterY, multiplier, [], {
+    align: "center",
+    typeIcon: offensiveType,
+    fontSize: clamp(slotAnchor.size * 0.09, 8, 10),
+    iconSize: clamp(chipHeight * 0.84, 10, 14),
+    paddingX: clamp(slotAnchor.size * 0.064, 3, 5),
+    paddingY: clamp(slotAnchor.size * 0.035, 2, 4),
+  });
+}
+
+function drawEnemyDefensiveTypeHud(enemy, layout) {
+  if (!enemy || !layout) {
+    return;
+  }
+
+  const defensiveTypes = Array.isArray(enemy.defensiveTypes)
+    ? enemy.defensiveTypes.map((typeName) => normalizeType(typeName)).filter(Boolean).slice(0, 2)
+    : [];
+  if (defensiveTypes.length <= 0) {
+    return;
+  }
+
+  const iconSize = clamp(layout.enemySize * 0.12, 14, 20);
+  const gap = clamp(iconSize * 0.25, 4, 6);
+  const pillPaddingX = clamp(iconSize * 0.38, 5, 8);
+  const pillPaddingY = clamp(iconSize * 0.18, 3, 5);
+  const contentWidth = defensiveTypes.length * iconSize + Math.max(0, defensiveTypes.length - 1) * gap;
+  const pillWidth = contentWidth + pillPaddingX * 2;
+  const pillHeight = iconSize + pillPaddingY * 2;
+  const centerY = clamp(
+    Number(layout.enemyTypeHudY) || layout.hpBarY - pillHeight,
+    pillHeight * 0.5 + 8,
+    state.viewport.height - pillHeight * 0.5 - 8,
+  );
+  const x = clamp(layout.centerX - pillWidth * 0.5, 8, state.viewport.width - pillWidth - 8);
+  const y = centerY - pillHeight * 0.5;
+  drawRetroHudPanel(x, y, pillWidth, pillHeight, {
+    cut: Math.max(6, pillHeight * 0.32),
+    fillTop: "rgba(44, 62, 87, 0.98)",
+    fillBottom: "rgba(27, 41, 59, 0.98)",
+    border: "rgba(101, 134, 166, 0.92)",
+    highlight: "rgba(181, 208, 236, 0.26)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.5,
+  });
+
+  let iconCenterX = x + pillPaddingX + iconSize * 0.5;
+  for (const defensiveType of defensiveTypes) {
+    drawTypeIconBadge(defensiveType, iconCenterX, centerY, iconSize);
+    iconCenterX += iconSize + gap;
+  }
 }
 
 function drawProjectileGlyph(spriteCtx, typeName, size) {
@@ -5280,6 +6142,7 @@ class PokemonBattleManager {
     this.enemyHitPulseMs = 0;
     this.enemyDamageFlashMs = 0;
     this.lastImpact = null;
+    this.lastTurnEvent = null;
     this.enemiesDefeated = 0;
     this.attackTimerMs = attackIntervalMs;
     this.pendingRespawnMs = 0;
@@ -5301,6 +6164,22 @@ class PokemonBattleManager {
       return dynamicValue;
     }
     return this.attackIntervalMs;
+  }
+
+  setAttackInterval(nextIntervalMs) {
+    const nextInterval = Math.max(65, toSafeInt(nextIntervalMs, ATTACK_INTERVAL_MS));
+    const prevInterval = Math.max(65, toSafeInt(this.attackIntervalMs, ATTACK_INTERVAL_MS));
+    const timer = Number(this.attackTimerMs);
+    if (!Number.isFinite(timer)) {
+      this.attackIntervalMs = nextInterval;
+      this.attackTimerMs = nextInterval;
+      return;
+    }
+    if (Math.abs(nextInterval - prevInterval) > 0.01) {
+      const remainingRatio = clamp(timer / prevInterval, 0, 1);
+      this.attackTimerMs = nextInterval * remainingRatio;
+    }
+    this.attackIntervalMs = nextInterval;
   }
 
   syncTeam(team) {
@@ -5385,6 +6264,7 @@ class PokemonBattleManager {
     this.defeatedEnemyName = null;
     this.captureSequence = null;
     this.lastImpact = null;
+    this.lastTurnEvent = null;
     try {
       this.onEnemyTimerExpired(expiredEnemy);
     } catch {
@@ -5444,34 +6324,121 @@ class PokemonBattleManager {
     return this.captureSequence;
   }
 
+  getEnemyImpactPoint(layout) {
+    const fallbackX = Number(layout?.centerX) || 0;
+    const fallbackY = Number(layout?.centerY) || 0;
+    const x = Number(layout?.enemyImpactX);
+    const y = Number(layout?.enemyImpactY);
+    return {
+      x: Number.isFinite(x) ? x : fallbackX,
+      y: Number.isFinite(y) ? y : fallbackY,
+    };
+  }
+
+  consumeTurnSlot() {
+    const slotIndex = ((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
+    const attacker = this.team[slotIndex] || null;
+    this.turnIndex = (slotIndex + 1) % MAX_TEAM_SIZE;
+    return { slotIndex, attacker };
+  }
+
+  resolveTurnDecisionForSlot(slotIndex, attacker = this.team[slotIndex] || null) {
+    const decision = resolveCombatTurnDecision({
+      attacker,
+      enemy: this.enemy,
+    });
+    const talentId = normalizeTalentId(decision.talentId || attacker?.talent?.id || TALENT_NONE_ID);
+    return {
+      action: decision.action,
+      reason: decision.reason,
+      talentId,
+      passiveBehaviorId: String(decision.passiveBehaviorId || getPassiveBehaviorIdForTalentId(talentId)),
+    };
+  }
+
+  recordTurnEvent(slotIndex, attacker, decision, overrides = {}) {
+    const talentId = normalizeTalentId(decision?.talentId || attacker?.talent?.id || TALENT_NONE_ID);
+    this.lastTurnEvent = {
+      slot_index: slotIndex,
+      attacker_name_fr: attacker?.nameFr || null,
+      action: String(decision?.action || "skip"),
+      reason: String(decision?.reason || "unknown"),
+      talent_id: talentId,
+      passive_behavior_id: String(decision?.passiveBehaviorId || getPassiveBehaviorIdForTalentId(talentId)),
+      ...overrides,
+    };
+  }
+
+  getLastTurnEvent() {
+    return this.lastTurnEvent ? { ...this.lastTurnEvent } : null;
+  }
+
+  getNextTurnPreview() {
+    const nextOccupied = this.getNextOccupiedSlotInfo();
+    if (!nextOccupied) {
+      return null;
+    }
+    const attacker = this.team[nextOccupied.slotIndex] || null;
+    const decision = this.resolveTurnDecisionForSlot(nextOccupied.slotIndex, attacker);
+    return {
+      slot_index: nextOccupied.slotIndex,
+      skipped_empty_slots: nextOccupied.skippedEmptySlots,
+      attacker_name_fr: attacker?.nameFr || null,
+      action: decision.action,
+      reason: decision.reason,
+      talent_id: decision.talentId,
+      passive_behavior_id: decision.passiveBehaviorId,
+    };
+  }
+
+  getNextOccupiedSlotInfo() {
+    const baseSlotIndex = ((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
+    for (let offset = 0; offset < MAX_TEAM_SIZE; offset += 1) {
+      const slotIndex = (baseSlotIndex + offset) % MAX_TEAM_SIZE;
+      if (this.team[slotIndex]) {
+        return {
+          slotIndex,
+          skippedEmptySlots: offset,
+        };
+      }
+    }
+    return null;
+  }
+
   getTurnIndicator(layout) {
     const slots = layout?.teamSlots;
     if (!Array.isArray(slots) || slots.length < MAX_TEAM_SIZE) {
       return null;
     }
 
+    const preview = this.getNextTurnPreview();
+    if (!preview) {
+      return null;
+    }
+
     const interval = Math.max(1, this.attackIntervalMs);
     const normalizedTimer = ((this.attackTimerMs % interval) + interval) % interval;
     const progressToNextAttack = 1 - normalizedTimer / interval;
-    const nextAttackSlotIndex = ((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
-    const pathPosition = (nextAttackSlotIndex - 1 + progressToNextAttack + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
-    const angle = -Math.PI / 2 + (Math.PI * 2 * pathPosition) / MAX_TEAM_SIZE;
-    const nearestSlotIndex = ((Math.round(pathPosition) % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
-
-    const slot = slots[0];
+    const nextAttackSlotIndex = preview.slot_index;
+    const slot = slots[nextAttackSlotIndex];
     if (!slot) {
       return null;
     }
 
-    const radius = layout.teamRadius || Math.hypot(slot.x - layout.centerX, slot.y - layout.centerY);
-    const indicatorX = layout.centerX + Math.cos(angle) * radius;
-    const indicatorY = layout.centerY + Math.sin(angle) * radius + slot.size * 0.34;
+    const canAttack = preview.action === TURN_ACTION_ATTACK;
+    const timeUntilAttackMs = normalizedTimer + preview.skipped_empty_slots * interval;
     return {
       slot_index: nextAttackSlotIndex,
-      x: indicatorX,
-      y: indicatorY,
-      radius: clamp(slot.size * 0.24, 18, 30),
-      has_pokemon: Boolean(this.team[nearestSlotIndex]),
+      x: slot.x,
+      y: slot.y + slot.size * 0.34,
+      radius: clamp(slot.size * 0.3, 19, 34),
+      has_pokemon: true,
+      can_attack: canAttack,
+      next_turn_action: preview.action,
+      next_turn_reason: preview.reason,
+      passive_behavior_id: preview.passive_behavior_id,
+      progress_to_next_attack: Math.round(clamp(progressToNextAttack, 0, 1) * 1000) / 1000,
+      time_until_attack_ms: Math.round(Math.max(0, timeUntilAttackMs)),
     };
   }
 
@@ -5565,8 +6532,7 @@ class PokemonBattleManager {
   }
 
   getNextAttackerName() {
-    const slotIndex = this.turnIndex % MAX_TEAM_SIZE;
-    return this.team[slotIndex]?.nameFr || null;
+    return this.getNextTurnPreview()?.attacker_name_fr || null;
   }
 
   flushRespawnForIdleMode() {
@@ -5579,6 +6545,7 @@ class PokemonBattleManager {
       this.hitEffects = [];
       this.enemyHitPulseMs = 0;
       this.enemyDamageFlashMs = 0;
+      this.lastTurnEvent = null;
       if (!this.enemy || this.enemy.hpCurrent <= 0) {
         this.spawnEnemy();
       }
@@ -5586,17 +6553,19 @@ class PokemonBattleManager {
   }
 
   simulateAttackTickInstant(layout) {
-    const attackerIndex = this.turnIndex % MAX_TEAM_SIZE;
-    const attacker = this.team[attackerIndex];
-    this.turnIndex = (attackerIndex + 1) % MAX_TEAM_SIZE;
-
-    if (!attacker || !this.enemy || this.enemy.hpCurrent <= 0) {
+    const turn = this.consumeTurnSlot();
+    const attackerIndex = turn.slotIndex;
+    const attacker = turn.attacker;
+    const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
+    this.recordTurnEvent(attackerIndex, attacker, decision);
+    if (decision.action !== TURN_ACTION_ATTACK) {
       return;
     }
 
     const attackType = attacker.offensiveType || attacker.defensiveTypes[0] || "normal";
-    const targetX = layout.centerX;
-    const targetY = layout.centerY - layout.enemySize * 0.16;
+    const impactPoint = this.getEnemyImpactPoint(layout);
+    const targetX = impactPoint.x;
+    const targetY = impactPoint.y;
     this.applyHit(
       {
         attackType,
@@ -5663,7 +6632,7 @@ class PokemonBattleManager {
 
   update(deltaMs, layout, options = {}) {
     const idleMode = Boolean(options.idleMode);
-    this.attackIntervalMs = Math.max(65, toSafeInt(this.getEffectiveAttackIntervalMs(), ATTACK_INTERVAL_MS));
+    this.setAttackInterval(this.getEffectiveAttackIntervalMs());
     this.updateFloatingTexts(deltaMs);
     this.updateHitEffects(deltaMs);
     this.updateKoTransition(deltaMs);
@@ -5847,21 +6816,29 @@ class PokemonBattleManager {
   }
 
   spawnNextProjectile(layout) {
-    const attackerIndex = this.turnIndex % MAX_TEAM_SIZE;
-    const attacker = this.team[attackerIndex];
+    const turn = this.consumeTurnSlot();
+    const attackerIndex = turn.slotIndex;
+    const attacker = turn.attacker;
     const slot = layout.teamSlots[attackerIndex];
-    const nextTurnIndex = (attackerIndex + 1) % MAX_TEAM_SIZE;
-    this.turnIndex = nextTurnIndex;
-
-    if (!attacker || !slot || !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+    const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
+    this.recordTurnEvent(attackerIndex, attacker, decision);
+    if (
+      decision.action !== TURN_ACTION_ATTACK ||
+      !attacker ||
+      !slot ||
+      !this.enemy ||
+      this.enemy.hpCurrent <= 0 ||
+      this.isEnemyRespawning()
+    ) {
       return;
     }
 
     const attackType = attacker.offensiveType || attacker.defensiveTypes[0] || "normal";
     const startX = slot.x;
     const startY = slot.y - slot.size * 0.12;
-    const targetX = layout.centerX;
-    const targetY = layout.centerY - layout.enemySize * 0.16;
+    const impactPoint = this.getEnemyImpactPoint(layout);
+    const targetX = impactPoint.x;
+    const targetY = impactPoint.y;
     this.triggerSlotRecoil(attackerIndex);
     this.triggerSlotAttackFlash(attackerIndex);
     this.addAttackLaunchEffects({ attackType, startX, startY });
@@ -5928,8 +6905,9 @@ class PokemonBattleManager {
     for (const projectile of this.projectiles) {
       projectile.prevX = projectile.x;
       projectile.prevY = projectile.y;
-      projectile.targetX = layout.centerX;
-      projectile.targetY = layout.centerY - layout.enemySize * 0.16;
+      const impactPoint = this.getEnemyImpactPoint(layout);
+      projectile.targetX = impactPoint.x;
+      projectile.targetY = impactPoint.y;
       projectile.lifetimeMs += deltaMs;
       if (trailMaxPoints > 0) {
         const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
@@ -5982,16 +6960,24 @@ class PokemonBattleManager {
     this.projectiles = survivors;
   }
 
-  addFloatingDamageText({ damage, attackType, typeMultiplier, isCritical = false, targetX, targetY }) {
+  addFloatingDamageText({
+    damage,
+    attackType,
+    typeMultiplier,
+    isCritical = false,
+    targetX,
+    targetY,
+    isMiss = false,
+  }) {
     const labelParts = [];
-    if (isCritical) {
+    if (isCritical && !isMiss) {
       labelParts.push("CRIT");
     }
-    if (typeMultiplier >= 2) {
+    if (!isMiss && typeMultiplier >= 2) {
       labelParts.push("SUPER");
-    } else if (typeMultiplier > 0 && typeMultiplier < 1) {
+    } else if (!isMiss && typeMultiplier > 0 && typeMultiplier < 1) {
       labelParts.push("RESIST");
-    } else if (typeMultiplier === 0) {
+    } else if (!isMiss && typeMultiplier === 0) {
       labelParts.push("IMMUNE");
     }
     const label = labelParts.join(" ");
@@ -6003,7 +6989,8 @@ class PokemonBattleManager {
       vy: -92 - Math.random() * 24,
       lifeMs: FLOATING_TEXT_LIFETIME_MS,
       maxLifeMs: FLOATING_TEXT_LIFETIME_MS,
-      damage,
+      damage: isMiss ? 0 : damage,
+      isMiss,
       label,
       attackType,
       color: getTypeColor(attackType),
@@ -6060,6 +7047,43 @@ class PokemonBattleManager {
       return;
     }
 
+    const missed = Math.random() < ATTACK_MISS_CHANCE;
+    if (missed) {
+      const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
+      this.lastImpact = {
+        attackerNameFr: attacker.nameFr,
+        attackType: projectile.attackType,
+        damage: 0,
+        typeMultiplier: 1,
+        enemyNameFr: this.enemy.nameFr,
+        isCritical: false,
+        missed: true,
+      };
+      this.recordTurnEvent(projectile.attackerIndex, attacker, {
+        action: TURN_ACTION_ATTACK,
+        reason: "hit_missed",
+        talentId: decision.talentId,
+        passiveBehaviorId: decision.passiveBehaviorId,
+      }, {
+        damage: 0,
+        type_multiplier: 1,
+        is_critical: false,
+        missed: true,
+      });
+      if (!idleMode) {
+        this.addFloatingDamageText({
+          damage: 0,
+          attackType: projectile.attackType,
+          typeMultiplier: 1,
+          isCritical: false,
+          targetX: projectile.targetX,
+          targetY: projectile.targetY,
+          isMiss: true,
+        });
+      }
+      return;
+    }
+
     const typeMultiplier = getTypeMultiplier(projectile.attackType, this.enemy.defensiveTypes);
     const damageOutcome = computeDamage(attacker, this.enemy, projectile.attackType, typeMultiplier);
     const baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
@@ -6078,7 +7102,20 @@ class PokemonBattleManager {
       typeMultiplier,
       enemyNameFr: this.enemy.nameFr,
       isCritical: isCriticalHit,
+      missed: false,
     };
+    const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
+    this.recordTurnEvent(projectile.attackerIndex, attacker, {
+      action: TURN_ACTION_ATTACK,
+      reason: "hit_resolved",
+      talentId: decision.talentId,
+      passiveBehaviorId: decision.passiveBehaviorId,
+    }, {
+      damage,
+      type_multiplier: Math.round(typeMultiplier * 1000) / 1000,
+      is_critical: isCriticalHit,
+      missed: false,
+    });
     if (!idleMode) {
       this.addFloatingDamageText({
         damage,
@@ -6132,7 +7169,7 @@ class PokemonBattleManager {
           elapsedMs: 0,
           totalMs: this.buildCaptureTotalMs(captured),
           targetX: projectile.targetX,
-          targetY: projectile.targetY + 6,
+          targetY: projectile.targetY,
           startX: projectile.targetX + 220,
           startY: projectile.targetY + 120,
           burstSpawned: false,
@@ -6175,6 +7212,7 @@ class PokemonBattleManager {
     this.koAnimMs = 0;
     this.defeatedEnemyName = null;
     this.captureSequence = null;
+    this.lastTurnEvent = null;
     this.resetEnemyTimer();
     this.onEnemySpawn(this.enemy);
   }
@@ -6186,7 +7224,7 @@ async function loadPokemonEntity(jsonPath) {
     throw new Error(`Impossible de charger ${jsonPath}`);
   }
 
-  const payload = await response.json();
+  const payload = validatePokemonPayload(await response.json(), `Pokemon data ${jsonPath}`);
   const variants = [];
   const rawVariants = Array.isArray(payload?.sprite_variants) ? payload.sprite_variants : [];
   for (let i = 0; i < rawVariants.length; i += 1) {
@@ -6231,6 +7269,14 @@ async function loadPokemonEntity(jsonPath) {
   const evolvesTo = Array.isArray(payload?.evolves_to)
     ? payload.evolves_to.map((entry) => normalizeEvolutionLink(entry)).filter(Boolean)
     : [];
+  const talent = normalizeTalentDefinition(
+    payload?.talent ?? {
+      id: payload?.talent_id ?? payload?.talent_name_en ?? payload?.talent_name_fr,
+      name_fr: payload?.talent_name_fr,
+      name_en: payload?.talent_name_en,
+      description_fr: payload?.talent_description_fr,
+    },
+  );
 
   return {
     jsonPath,
@@ -6252,6 +7298,7 @@ async function loadPokemonEntity(jsonPath) {
     defaultSpriteVariantId: defaultVariant?.id || "",
     evolvesFrom,
     evolvesTo,
+    talent,
   };
 }
 
@@ -6306,12 +7353,16 @@ function buildTeamMemberFromSaveEntry(entry) {
   }
   const record = getPokemonEntityRecord(pokemonId);
   reconcileAppearanceForEntityRecord(record, pokemonId);
-  const appearance = resolveSpriteAppearanceForEntity(pokemonId);
+  const forceUltraShiny = shouldForceUltraShinyAllPokemon();
+  const appearance = resolveSpriteAppearanceForEntity(pokemonId, {
+    forceUltraShiny,
+  });
   const level = clamp(toSafeInt(record?.level, 1), 1, MAX_LEVEL);
   const stats = computeStatsAtLevel(record?.base_stats || def.stats, level);
   const xp = Math.max(0, toSafeInt(record?.xp, 0));
   const xpToNext = getXpToNextLevelForSpecies(pokemonId, level, record?.base_stats || def.stats);
   const hpMax = computeBattleHpMax(stats, level, false);
+  const talent = resolveTalentDefinition(record?.talent, pokemonId);
   return {
     ...def,
     level,
@@ -6321,8 +7372,11 @@ function buildTeamMemberFromSaveEntry(entry) {
     baseStats: normalizeStatsPayload(def.stats),
     hpMax,
     hpCurrent: hpMax,
+    talent,
     isShiny: false,
+    isUltraShiny: false,
     isShinyVisual: appearance.shinyVisual,
+    isUltraShinyVisual: forceUltraShiny,
     spritePath: appearance.spritePath || def.spritePath,
     spriteImage: appearance.spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || getDefaultSpriteVariantId(def),
@@ -6407,22 +7461,27 @@ function createRouteEnemyInstance() {
   }
 
   const isShiny = Math.floor(Math.random() * SHINY_ODDS) === 0;
+  const isUltraShiny = isShiny && Math.floor(Math.random() * ULTRA_SHINY_FROM_SHINY_ODDS) === 0;
+  const forceUltraShiny = shouldForceUltraShinyAllPokemon();
+  const ultraShinyVisual = Boolean(isUltraShiny || forceUltraShiny);
+  const shinyVisual = Boolean(isShiny || ultraShinyVisual);
   const level = pickEncounterLevel(picked);
   const stats = computeStatsAtLevel(def.stats, level);
   const hpMax = computeBattleHpMax(stats, level, true);
   const routePowerMultiplier = getRoutePowerMultiplier(state.routeData?.route_id || DEFAULT_ROUTE_ID);
   const appearance = resolveSpriteAppearanceForEntity(def.id, {
-    shinyVisual: isShiny,
+    shinyVisual,
+    forceUltraShiny: ultraShinyVisual,
     respectAppearanceShinyMode: false,
   });
   const defaultVariant = getSpriteVariantById(def, getDefaultSpriteVariantId(def));
   const defaultNormalPath = defaultVariant?.frontPath || def.spritePath || "";
   const defaultShinyPath = defaultVariant?.frontShinyPath || def.shinySpritePath || defaultNormalPath;
-  const spritePath = appearance.spritePath || (isShiny ? defaultShinyPath : defaultNormalPath);
+  const spritePath = appearance.spritePath || (shinyVisual ? defaultShinyPath : defaultNormalPath);
   const cachedSpriteImage = spritePath ? getCachedSpriteImage(spritePath) : null;
   const spriteImage = isDrawableImage(cachedSpriteImage)
     ? cachedSpriteImage
-    : appearance.spriteImage || (isShiny ? def.spriteShinyImage || def.spriteImage : def.spriteImage);
+    : appearance.spriteImage || (shinyVisual ? def.spriteShinyImage || def.spriteImage : def.spriteImage);
   return {
     ...def,
     level,
@@ -6433,7 +7492,9 @@ function createRouteEnemyInstance() {
     battlePowerMultiplier: routePowerMultiplier,
     catchRate: Number(def.catchRate || picked.catch_rate || 45),
     isShiny,
-    isShinyVisual: Boolean(isShiny || appearance.shinyVisual),
+    isUltraShiny,
+    isShinyVisual: Boolean(shinyVisual || appearance.shinyVisual),
+    isUltraShinyVisual: ultraShinyVisual,
     spritePath,
     spriteImage: spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || defaultVariant?.id || getDefaultSpriteVariantId(def),
@@ -6445,6 +7506,9 @@ function handleEnemySpawn(enemy) {
     return;
   }
   state.enemy = enemy;
+  if (enemy.isShiny) {
+    notifyWindowsShinyEncounter(enemy);
+  }
   const speciesRecord = ensureSpeciesStats(enemy.id);
   incrementSpeciesStat(enemy.id, "encountered", enemy.isShiny, 1);
   notifyShinyEncounterUntilCaptured(enemy, speciesRecord);
@@ -6513,6 +7577,9 @@ function handleEnemyDefeated(enemy) {
         const captureRecordBefore = ensureSpeciesStats(enemy.id);
         const firstCaptureOfSpecies = getCapturedTotal(captureRecordBefore) <= 0;
         incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1);
+        if (enemy.isShiny) {
+          notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
+        }
         const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id, firstCaptureOfSpecies);
         addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
         captureXpSummary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
@@ -6715,6 +7782,8 @@ function applyRouteChange(routeId, options = {}) {
     state.enemy = null;
     hideHoverPopup();
   }
+  closeTeamContextMenu();
+  clearCanvasHoverState();
 
   persistSaveData();
   updateHud();
@@ -7209,7 +8278,8 @@ function setShopOpen(open) {
   }
   if (state.ui.shopOpen) {
     setMapOpen(false);
-    hideHoverPopup();
+    closeTeamContextMenu();
+    clearCanvasHoverState();
     closeBoxesModal();
     closeAppearanceModal();
     shopModalEl.classList.remove("hidden");
@@ -7300,7 +8370,8 @@ function setMapOpen(open) {
     return;
   }
   if (state.ui.mapOpen) {
-    hideHoverPopup();
+    closeTeamContextMenu();
+    clearCanvasHoverState();
     closeBoxesModal();
     closeAppearanceModal();
     setShopOpen(false);
@@ -7311,34 +8382,315 @@ function setMapOpen(open) {
   }
 }
 
-function computeLayout() {
-  const width = state.viewport.width;
-  const height = state.viewport.height;
-  const centerX = width * 0.5;
-  const centerY = height * 0.5 + 18;
-  const enemySize = clamp(Math.min(width, height) * 0.25, 130, 210);
+function isCoarsePointerDevice() {
+  return typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+}
 
-  const teamRadius = clamp(Math.min(width, height) * 0.34, 120, 320);
+function getBattleViewportProfile(width, height) {
+  const safeWidth = Math.max(1, Number(width) || 0);
+  const safeHeight = Math.max(1, Number(height) || 0);
+  const portrait = safeHeight > safeWidth * 1.05;
+  const coarsePointer = isCoarsePointerDevice();
+  const compact = coarsePointer || safeWidth <= 900 || safeHeight <= 640;
+  const phone = compact && Math.min(safeWidth, safeHeight) <= 500;
+  return {
+    coarsePointer,
+    compact,
+    phone,
+    portrait,
+  };
+}
+
+function getOverlayPaddingSnapshot() {
+  if (!gameOverlayEl || typeof window.getComputedStyle !== "function") {
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  }
+  const styles = window.getComputedStyle(gameOverlayEl);
+  return {
+    top: Math.max(0, parseFloat(styles.paddingTop || "0") || 0),
+    right: Math.max(0, parseFloat(styles.paddingRight || "0") || 0),
+    bottom: Math.max(0, parseFloat(styles.paddingBottom || "0") || 0),
+    left: Math.max(0, parseFloat(styles.paddingLeft || "0") || 0),
+  };
+}
+
+function getElementClientHeight(element) {
+  if (!(element instanceof Element)) {
+    return 0;
+  }
+  const rect = element.getBoundingClientRect();
+  return Math.max(0, Number(rect?.height) || 0);
+}
+
+function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY }) {
+  const positions = [];
+  if (count <= 0) {
+    return positions;
+  }
+  const steps = count === 1 ? [0] : [-1, 0, 1].slice(0, count);
+  for (let i = 0; i < count; i += 1) {
+    const t = steps[i] ?? 0;
+    if (axis === "x") {
+      positions.push({
+        x: baseX + (Number(spreadMain) || 0) * t,
+        y: baseY + (Number(arcDepth) || 0) * (1 - Math.abs(t)),
+      });
+    } else {
+      positions.push({
+        x: baseX + (Number(arcDepth) || 0) * (1 - Math.abs(t)),
+        y: baseY + (Number(spreadMain) || 0) * t,
+      });
+    }
+  }
+  return positions;
+}
+
+function computeLayout() {
+  const width = Math.max(260, Number(state.viewport.width) || 0);
+  const height = Math.max(220, Number(state.viewport.height) || 0);
+  const profile = getBattleViewportProfile(width, height);
+  const overlayPadding = getOverlayPaddingSnapshot();
+  const topHudHeight =
+    getElementClientHeight(uiTopbarEl)
+    || clamp(height * (profile.phone ? 0.17 : profile.compact ? 0.13 : 0.1), 54, profile.phone ? 122 : 92);
+  const bottomHudHeight =
+    getElementClientHeight(actionDockEl)
+    || clamp(height * (profile.phone ? 0.1 : profile.compact ? 0.085 : 0.072), 44, profile.phone ? 74 : 64);
+
+  let safeTop = overlayPadding.top + topHudHeight + (profile.phone ? 8 : profile.compact ? 12 : 14);
+  let safeBottom = overlayPadding.bottom + bottomHudHeight + (profile.phone ? 8 : profile.compact ? 10 : 12);
+  const maxReservedVertical = height * (profile.phone ? 0.4 : profile.compact ? 0.34 : 0.29);
+  const reservedVertical = safeTop + safeBottom;
+  if (reservedVertical > maxReservedVertical && reservedVertical > 0) {
+    const ratio = maxReservedVertical / reservedVertical;
+    safeTop *= ratio;
+    safeBottom *= ratio;
+  }
+
+  safeTop = clamp(safeTop, 40, height * (profile.phone ? 0.25 : 0.2));
+  safeBottom = clamp(safeBottom, 40, height * (profile.phone ? 0.27 : 0.2));
+
+  const sideInset = profile.phone ? 8 : profile.compact ? 12 : 18;
+  const leftInset = clamp(overlayPadding.left + sideInset, 8, width * 0.14);
+  const rightInset = clamp(overlayPadding.right + sideInset, 8, width * 0.14);
+  const playLeft = leftInset;
+  const playRight = Math.max(playLeft + 180, width - rightInset);
+  const playTop = safeTop;
+  const playBottom = Math.max(playTop + 180, height - safeBottom);
+  const playWidth = Math.max(180, playRight - playLeft);
+  const playHeight = Math.max(180, playBottom - playTop);
+  const centerX = playLeft + playWidth * 0.5;
+  let centerY = playTop + playHeight * 0.5;
+  const useSplitRows = profile.phone || (profile.compact && profile.portrait);
+  const enemySize = clamp(
+    Math.min(playWidth, playHeight) * (useSplitRows ? 0.236 : profile.compact ? 0.278 : 0.305),
+    useSplitRows ? 84 : 118,
+    useSplitRows ? 168 : 236,
+  );
+  const teamSize = clamp(
+    enemySize * (useSplitRows ? 0.58 : profile.compact ? 0.6 : 0.62),
+    useSplitRows ? 56 : 72,
+    useSplitRows ? 106 : 130,
+  );
+  const teamHudWidth = clamp(
+    teamSize * (useSplitRows ? 1.14 : profile.compact ? 1.18 : 1.22),
+    64,
+    useSplitRows ? 98 : 128,
+  );
+  const teamHudHeight = clamp(teamSize * (useSplitRows ? 0.5 : 0.52), 28, useSplitRows ? 38 : 46);
+  const teamTypeChipHeight = clamp(teamSize * 0.16, 11, 16);
+  const cardMargin = 6;
   const teamSlots = [];
 
-  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-    const angle = -Math.PI / 2 + (Math.PI * 2 * i) / MAX_TEAM_SIZE;
-    const x = centerX + Math.cos(angle) * teamRadius;
-    const y = centerY + Math.sin(angle) * teamRadius;
-    const size = clamp(enemySize * 0.62, 76, 128);
-    teamSlots.push({ x, y, size });
+  if (useSplitRows) {
+    const rowInsetY = clamp(playHeight * 0.24, teamSize * 1.55, playHeight * 0.33);
+    const topGroupY = clamp(
+      playTop + rowInsetY,
+      playTop + teamSize * 0.9,
+      playTop + playHeight * 0.42,
+    );
+    const bottomGroupY = clamp(
+      playBottom - rowInsetY,
+      playTop + playHeight * 0.58,
+      playBottom - teamSize * 0.9,
+    );
+    centerY = clamp(
+      (topGroupY + bottomGroupY) * 0.5,
+      playTop + enemySize * 0.88,
+      playBottom - enemySize * 0.88,
+    );
+    const spreadX = clamp(playWidth * 0.255, teamSize * 1.45, teamSize * 2.2);
+    const arcDepth = clamp(playHeight * 0.055, teamSize * 0.22, teamSize * 0.58);
+
+    const topSlots = buildArcSlotPositions({
+      count: 3,
+      axis: "x",
+      spreadMain: spreadX,
+      arcDepth: -arcDepth,
+      baseX: centerX,
+      baseY: topGroupY,
+    });
+    const bottomSlots = buildArcSlotPositions({
+      count: 3,
+      axis: "x",
+      spreadMain: spreadX,
+      arcDepth,
+      baseX: centerX,
+      baseY: bottomGroupY,
+    });
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const source = i < 3 ? topSlots[i] : bottomSlots[i - 3];
+      const x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
+      let y = clamp(source?.y ?? centerY, playTop + teamSize * 0.65, playBottom - teamSize * 0.65);
+      if (i < 3) {
+        y = Math.min(y, centerY - enemySize * 0.44);
+      } else {
+        y = Math.max(y, centerY + enemySize * 0.44);
+      }
+      const dirX = Math.sign(x - centerX);
+      const dirY = i < 3 ? -1 : 1;
+      let hudCenterX = x + dirX * (teamSize * 0.38 + teamHudWidth * 0.28);
+      let hudCenterY = y + dirY * (teamSize * 0.68 + teamHudHeight * 0.62);
+      hudCenterX = clamp(
+        hudCenterX,
+        playLeft + teamHudWidth * 0.5 + cardMargin,
+        playRight - teamHudWidth * 0.5 - cardMargin,
+      );
+      hudCenterY = clamp(
+        hudCenterY,
+        playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+        playBottom - teamHudHeight * 0.5 - cardMargin,
+      );
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
+  } else {
+    centerY = playTop + playHeight * 0.5;
+    const spreadY = clamp(playHeight * 0.22, teamSize * 1.38, teamSize * 1.96);
+    const arcDepth = clamp(playWidth * 0.055, teamSize * 0.24, teamSize * 0.66);
+    const sideOffset = clamp(enemySize * 1.18 + teamSize * 0.44, teamSize * 1.72, playWidth * 0.3);
+    const leftX = centerX - sideOffset;
+    const rightX = centerX + sideOffset;
+    const leftSlots = buildArcSlotPositions({
+      count: 3,
+      axis: "y",
+      spreadMain: spreadY,
+      arcDepth: -arcDepth,
+      baseX: leftX,
+      baseY: centerY,
+    });
+    const rightSlots = buildArcSlotPositions({
+      count: 3,
+      axis: "y",
+      spreadMain: spreadY,
+      arcDepth,
+      baseX: rightX,
+      baseY: centerY,
+    });
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const source = i < 3 ? leftSlots[i] : rightSlots[i - 3];
+      let x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
+      const y = clamp(source?.y ?? centerY, playTop + teamSize * 0.6, playBottom - teamSize * 0.6);
+      if (i < 3) {
+        x = Math.min(x, centerX - enemySize * 0.62);
+      } else {
+        x = Math.max(x, centerX + enemySize * 0.62);
+      }
+      const dirX = i < 3 ? -1 : 1;
+      const dirY = Math.sign(y - centerY);
+      let hudCenterX = x + dirX * (teamSize * 0.85 + teamHudWidth * 0.54);
+      let hudCenterY = y + dirY * (teamSize * 0.18);
+      hudCenterX = clamp(
+        hudCenterX,
+        playLeft + teamHudWidth * 0.5 + cardMargin,
+        playRight - teamHudWidth * 0.5 - cardMargin,
+      );
+      hudCenterY = clamp(
+        hudCenterY,
+        playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+        playBottom - teamHudHeight * 0.5 - cardMargin,
+      );
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
   }
+
+  const hpBarWidth = clamp(
+    enemySize * (useSplitRows ? 1.04 : 1.14),
+    useSplitRows ? 124 : 154,
+    useSplitRows ? 196 : 272,
+  );
+  const hpBarHeight = clamp(enemySize * 0.06, 9, 14);
+  const enemyImpactX = centerX;
+  const enemyImpactY = clamp(
+    centerY + enemySize * (useSplitRows ? 0.04 : 0.03),
+    playTop + enemySize * 0.22,
+    playBottom - enemySize * 0.22,
+  );
+  const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62);
+  const hpBarMinY = centerY + enemySize * 0.42;
+  const hpBarMaxY = playBottom - (useSplitRows ? 98 : 114);
+  const hpBarY = clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));
+  const enemyNameMinY = hpBarY + hpBarHeight + 6;
+  const enemyNameMaxY = playBottom - (useSplitRows ? 70 : 78);
+  const enemyNameTopY = clamp(
+    hpBarY + hpBarHeight + (useSplitRows ? 8 : 10),
+    Math.min(enemyNameMinY, enemyNameMaxY),
+    Math.max(enemyNameMinY, enemyNameMaxY),
+  );
+  const enemyTypeMinY = enemyNameTopY + 14;
+  const enemyTypeMaxY = playBottom - 14;
+  const enemyTypeHudY = clamp(
+    enemyNameTopY + (useSplitRows ? 22 : 24),
+    Math.min(enemyTypeMinY, enemyTypeMaxY),
+    Math.max(enemyTypeMinY, enemyTypeMaxY),
+  );
 
   return {
     centerX,
     centerY,
+    enemyImpactX,
+    enemyImpactY,
     enemySize,
-    teamRadius,
-    enemyNameY: centerY + enemySize * 0.58,
-    enemyLevelOffsetY: 20,
-    hpBarWidth: clamp(enemySize * 1.25, 150, 240),
-    hpBarHeight: clamp(enemySize * 0.07, 10, 14),
-    hpBarY: centerY + enemySize * 0.58 - 34,
+    hpBarWidth,
+    hpBarHeight,
+    hpBarY,
+    enemyNameTopY,
+    enemyNamePlateWidth: clamp(hpBarWidth * 0.74, 108, useSplitRows ? 164 : 224),
+    enemyTypeHudY,
+    viewportProfile: profile,
+    safeBounds: {
+      top: playTop,
+      bottom: playBottom,
+      left: playLeft,
+      right: playRight,
+      width: playWidth,
+      height: playHeight,
+    },
     teamSlots,
   };
 }
@@ -7378,6 +8730,146 @@ function drawShinySparkles(size, seed = 0, alpha = 1) {
     ctx.arc(px, py, radius, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+}
+
+function getUltraShinyShaderConfig(seed = 0) {
+  const cycleMs = Math.max(400, ULTRA_SHINY_HUE_CYCLE_MS);
+  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 193.137) % cycleMs;
+  const ratio = ((state.timeMs + seededOffsetMs) % cycleMs) / cycleMs;
+  const wave = Math.sin(ratio * Math.PI * 2);
+  const pulse = Math.sin(ratio * Math.PI * 4 + 0.8);
+  return {
+    hueRotateDeg: ratio * 360,
+    saturate: clamp(1.38 + wave * 0.2, 1.05, 1.75),
+    brightness: clamp(1.06 + pulse * 0.08, 0.95, 1.22),
+    contrast: clamp(1.08 + wave * 0.06, 0.96, 1.24),
+  };
+}
+
+function drawUltraShinyOutline(image, drawX, drawY, drawWidth, drawHeight, outlinePx = ULTRA_SHINY_OUTLINE_PX, alpha = 1) {
+  if (!isDrawableImage(image)) {
+    return;
+  }
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.01) {
+    return;
+  }
+  const safeOutline = Math.max(1.5, Number(outlinePx) || ULTRA_SHINY_OUTLINE_PX);
+  const nearOffsets = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1],
+  ];
+  const farOffsets = [
+    [-2, 0],
+    [2, 0],
+    [0, -2],
+    [0, 2],
+    [-2, -1],
+    [-2, 1],
+    [2, -1],
+    [2, 1],
+    [-1, -2],
+    [1, -2],
+    [-1, 2],
+    [1, 2],
+  ];
+
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-over";
+
+  ctx.globalAlpha = Math.min(1, 0.98 * safeAlpha);
+  for (const [dx, dy] of nearOffsets) {
+    drawSpriteImageWithTint(
+      image,
+      drawX + dx * safeOutline,
+      drawY + dy * safeOutline,
+      drawWidth,
+      drawHeight,
+      [255, 255, 255],
+      1,
+    );
+  }
+
+  ctx.globalAlpha = Math.min(1, 0.72 * safeAlpha);
+  for (const [dx, dy] of farOffsets) {
+    drawSpriteImageWithTint(
+      image,
+      drawX + dx * safeOutline,
+      drawY + dy * safeOutline,
+      drawWidth,
+      drawHeight,
+      [255, 255, 255],
+      1,
+    );
+  }
+
+  const centerX = drawX + drawWidth * 0.5;
+  const centerY = drawY + drawHeight * 0.5;
+  const haloRadius = Math.max(drawWidth, drawHeight) * 0.58;
+  const halo = ctx.createRadialGradient(centerX, centerY, haloRadius * 0.35, centerX, centerY, haloRadius);
+  halo.addColorStop(0, "rgba(255, 255, 255, 0)");
+  halo.addColorStop(1, "rgba(255, 255, 255, " + (0.16 * safeAlpha).toFixed(3) + ")");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, haloRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawUltraShinyScintillation(size, seed = 0, alpha = 1) {
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.02) {
+    return;
+  }
+  const periodMs = Math.max(300, ULTRA_SHINY_SCINTILLATION_PERIOD_MS);
+  const flashWindowMs = clamp(ULTRA_SHINY_SCINTILLATION_FLASH_MS, 40, periodMs);
+  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 151.73) % periodMs;
+  const phaseMs = (state.timeMs + seededOffsetMs) % periodMs;
+  if (phaseMs > flashWindowMs) {
+    return;
+  }
+
+  const ratio = phaseMs / flashWindowMs;
+  const pulse = Math.sin(ratio * Math.PI);
+  const travelAngle = seed * 0.61 + state.timeMs * 0.0023;
+  const px = Math.cos(travelAngle) * size * 0.24;
+  const py = Math.sin(travelAngle * 1.29) * size * 0.17 - size * 0.19;
+  const glowRadius = size * (0.08 + pulse * 0.11);
+  const lineLength = size * (0.09 + pulse * 0.14);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.translate(px, py);
+  ctx.rotate(seed * 0.17 + state.timeMs * 0.0017);
+
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
+  glow.addColorStop(0, `rgba(255, 255, 255, ${(0.75 + pulse * 0.2) * safeAlpha})`);
+  glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.46 + pulse * 0.52) * safeAlpha})`;
+  ctx.lineWidth = Math.max(1.1, size * 0.015 * (0.9 + pulse));
+  for (let i = 0; i < 4; i += 1) {
+    const angle = (Math.PI / 4) * i;
+    const dx = Math.cos(angle) * lineLength;
+    const dy = Math.sin(angle) * lineLength;
+    ctx.beginPath();
+    ctx.moveTo(-dx, -dy);
+    ctx.lineTo(dx, dy);
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 
@@ -7436,6 +8928,36 @@ function drawPokemonBackdropCircle(x, y, size, options = {}) {
   ctx.restore();
 }
 
+function getHoveredTeamSlotPulse(slotIndex) {
+  if (state.ui.hoveredTeamSlotIndex !== clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1)) {
+    return 0;
+  }
+  return 0.76 + (Math.sin(state.timeMs * 0.015 + slotIndex) + 1) * 0.12;
+}
+
+function drawTeamHoverIndicator(slot, intensity = 1) {
+  if (!slot || intensity <= 0.001) {
+    return;
+  }
+  const centerY = slot.y + slot.size * 0.03;
+  const radiusX = slot.size * (0.37 + intensity * 0.02);
+  const radiusY = slot.size * (0.29 + intensity * 0.02);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.strokeStyle = `rgba(255, 245, 173, ${(0.18 + intensity * 0.16).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.6, slot.size * 0.038);
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = `rgba(255, 236, 146, ${(0.09 + intensity * 0.08).toFixed(3)})`;
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX * 0.78, radiusY * 0.72, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function getSpriteSnapFactor() {
   const dpr = Number(state.viewport?.dpr || 1);
   return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
@@ -7460,7 +8982,33 @@ function snapSpriteDimension(value) {
   return Math.max(1 / snapFactor, snapped);
 }
 
-function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend) {
+function buildSpriteShaderFilter(shader = null) {
+  if (!shader || typeof shader !== "object") {
+    return "none";
+  }
+
+  const parts = [];
+  const hueRotateDeg = Number(shader.hueRotateDeg);
+  if (Number.isFinite(hueRotateDeg)) {
+    parts.push(`hue-rotate(${hueRotateDeg.toFixed(2)}deg)`);
+  }
+  const saturate = Number(shader.saturate);
+  if (Number.isFinite(saturate) && Math.abs(saturate - 1) > 0.001) {
+    parts.push(`saturate(${saturate.toFixed(3)})`);
+  }
+  const brightness = Number(shader.brightness);
+  if (Number.isFinite(brightness) && Math.abs(brightness - 1) > 0.001) {
+    parts.push(`brightness(${brightness.toFixed(3)})`);
+  }
+  const contrast = Number(shader.contrast);
+  if (Number.isFinite(contrast) && Math.abs(contrast - 1) > 0.001) {
+    parts.push(`contrast(${contrast.toFixed(3)})`);
+  }
+
+  return parts.length > 0 ? parts.join(" ") : "none";
+}
+
+function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend, shader = null) {
   const blend = clamp(Number(tintBlend || 0), 0, 1);
   const snapFactor = getSpriteSnapFactor();
   const snappedDrawX = snapSpriteValue(drawX);
@@ -7471,10 +9019,18 @@ function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tin
   const height = Math.max(1, Math.round(snappedDrawHeight * snapFactor));
   const baseColor = Array.isArray(tintColor) ? tintColor : [255, 255, 255];
   const wasSmoothing = ctx.imageSmoothingEnabled;
+  const shaderFilter = buildSpriteShaderFilter(shader);
 
   if (blend <= 0.001 || !spriteTintBufferCtx) {
     ctx.imageSmoothingEnabled = false;
+    const previousFilter = ctx.filter;
+    if (shaderFilter !== "none") {
+      ctx.filter = shaderFilter;
+    }
     ctx.drawImage(image, snappedDrawX, snappedDrawY, snappedDrawWidth, snappedDrawHeight);
+    if (shaderFilter !== "none") {
+      ctx.filter = previousFilter;
+    }
     ctx.imageSmoothingEnabled = wasSmoothing;
     return;
   }
@@ -7499,6 +9055,10 @@ function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tin
   bufferCtx.imageSmoothingEnabled = wasBufferSmoothing;
 
   ctx.imageSmoothingEnabled = false;
+  const previousFilter = ctx.filter;
+  if (shaderFilter !== "none") {
+    ctx.filter = shaderFilter;
+  }
   ctx.drawImage(
     spriteTintBufferCanvas,
     0,
@@ -7510,6 +9070,9 @@ function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tin
     snappedDrawWidth,
     snappedDrawHeight,
   );
+  if (shaderFilter !== "none") {
+    ctx.filter = previousFilter;
+  }
   ctx.imageSmoothingEnabled = wasSmoothing;
 }
 
@@ -7523,10 +9086,15 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const baseScale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
   const scaleX = Number.isFinite(options.scaleX) ? Math.max(0, options.scaleX) : baseScale;
   const scaleY = Number.isFinite(options.scaleY) ? Math.max(0, options.scaleY) : baseScale;
-  ctx.scale(scaleX, scaleY);
+  const flipX = options.flipX ? -1 : 1;
+  ctx.scale(scaleX * flipX, scaleY);
   const shinyVisual = Boolean(options.shinyVisual || entity?.isShinyVisual || entity?.isShiny);
+  const ultraShinyVisual = Boolean(options.ultraShinyVisual || entity?.isUltraShinyVisual || entity?.isUltraShiny);
   const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);
   const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
+  const ultraSeed =
+    Number(entity?.id || 0) * 0.73 + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 19.7;
+  const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;
   let spriteDrawX = -size * 0.5;
   let spriteDrawY = -size * 0.5;
   let spriteDrawWidth = size;
@@ -7562,6 +9130,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
       drawHeight,
       tintColor,
       tintBlend,
+      ultraShaderConfig,
     );
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
@@ -7591,32 +9160,164 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     ctx.fill();
   }
 
-  if (shinyVisual) {
+  if (ultraShinyVisual && spriteUsedImage) {
+    drawUltraShinyOutline(
+      entity.spriteImage,
+      spriteDrawX,
+      spriteDrawY,
+      spriteDrawWidth,
+      spriteDrawHeight,
+      ULTRA_SHINY_OUTLINE_PX,
+      drawAlpha,
+    );
+  }
+
+  if (shinyVisual || ultraShinyVisual) {
     drawShinySparkles(size, Number(entity?.id || 0), drawAlpha);
+  }
+  if (ultraShinyVisual) {
+    drawUltraShinyScintillation(size, ultraSeed, drawAlpha);
   }
 
   ctx.restore();
 }
 
-function drawNameAndLevel(entity, x, y, enemy = false) {
-  ctx.save();
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.shadowBlur = 0;
-  ctx.lineJoin = "round";
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
-  ctx.fillStyle = "#f7fbff";
-  ctx.font = enemy ? "700 22px Trebuchet MS" : "700 18px Trebuchet MS";
-  ctx.lineWidth = enemy ? 5 : 4;
-  ctx.strokeText(entity.nameFr, x, y);
-  ctx.fillText(entity.nameFr, x, y);
+function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
+  const safeText = String(text || "");
+  const safeMaxWidth = Math.max(16, Number(maxWidth) || 0);
+  let size = clamp(Number(baseSize) || minSize, minSize, 28);
+  let measuredWidth = 0;
 
-  ctx.fillStyle = "#bdd0ee";
-  ctx.font = enemy ? "700 15px Trebuchet MS" : "700 15px Trebuchet MS";
-  ctx.lineWidth = enemy ? 4 : 3;
-  ctx.strokeText(`Niv. ${entity.level}`, x, y + (enemy ? 18 : 20));
-  ctx.fillText(`Niv. ${entity.level}`, x, y + (enemy ? 18 : 20));
+  ctx.save();
+  while (size > minSize) {
+    ctx.font = `700 ${size}px Tahoma`;
+    measuredWidth = Math.ceil(ctx.measureText(safeText).width);
+    if (measuredWidth <= safeMaxWidth) {
+      break;
+    }
+    size -= 1;
+  }
+  if (measuredWidth <= 0) {
+    ctx.font = `700 ${size}px Tahoma`;
+    measuredWidth = Math.ceil(ctx.measureText(safeText).width);
+  }
   ctx.restore();
+  return { size, width: measuredWidth };
+}
+
+function drawNameAndLevel(entity, centerX, topY, options = {}) {
+  if (!entity) {
+    return null;
+  }
+  const enemy = Boolean(options.enemy);
+  const maxWidth = clamp(Number(options.maxWidth) || (enemy ? 220 : 122), 56, state.viewport.width - 16);
+  const nameBaseSize = clamp(Number(options.nameFontSize) || (enemy ? 20 : 16), 10, 24);
+  const levelBaseSize = clamp(Number(options.levelFontSize) || (enemy ? 13 : 11), 8, 16);
+  const levelText = `Lv${entity.level}`;
+
+  let cardWidth = 0;
+  let cardHeight = 0;
+  let x = 0;
+  let y = 0;
+
+  ctx.save();
+  ctx.lineJoin = "round";
+  ctx.shadowBlur = 0;
+
+  if (enemy) {
+    const horizontalPadding = 12;
+    const verticalPadding = 6;
+    const gap = 10;
+    const levelMetrics = getFittedFontMetrics(levelText, Math.max(34, maxWidth * 0.32), levelBaseSize, 9);
+    const nameMetrics = getFittedFontMetrics(
+      entity.nameFr,
+      Math.max(48, maxWidth - horizontalPadding * 2 - levelMetrics.width - gap - 8),
+      nameBaseSize,
+      12,
+    );
+    cardWidth = clamp(
+      nameMetrics.width + levelMetrics.width + gap + horizontalPadding * 2 + 6,
+      124,
+      maxWidth,
+    );
+    cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size) + verticalPadding * 2 + 2);
+    x = clamp(centerX - cardWidth * 0.5, 8, state.viewport.width - cardWidth - 8);
+    y = clamp(Number(topY) || 0, 8, state.viewport.height - cardHeight - 8);
+
+    if (options.card !== false) {
+      drawRetroHudPanel(x, y, cardWidth, cardHeight, {
+        cut: 14,
+        fillTop: "rgba(28, 39, 58, 0.995)",
+        fillBottom: "rgba(13, 21, 35, 0.995)",
+        border: "rgba(82, 109, 143, 0.94)",
+        highlight: "rgba(157, 186, 219, 0.2)",
+        shadow: "rgba(0, 0, 0, 0.44)",
+        borderWidth: 2,
+      });
+    }
+
+    const midY = y + cardHeight * 0.57;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#eef6ff";
+    ctx.fillText(entity.nameFr, x + horizontalPadding, midY);
+
+    ctx.textAlign = "right";
+    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#b8cee5";
+    ctx.fillText(levelText, x + cardWidth - horizontalPadding + 1, midY);
+  } else {
+    const horizontalPadding = 8;
+    const verticalPadding = 5;
+    const lineGap = 3;
+    const nameMetrics = getFittedFontMetrics(entity.nameFr, maxWidth - horizontalPadding * 2, nameBaseSize, 10);
+    const levelMetrics = getFittedFontMetrics(levelText, maxWidth - horizontalPadding * 2, levelBaseSize, 8);
+    cardWidth = clamp(
+      Math.max(nameMetrics.width, levelMetrics.width) + horizontalPadding * 2,
+      72,
+      maxWidth,
+    );
+    cardHeight = Math.round(verticalPadding * 2 + nameMetrics.size + lineGap + levelMetrics.size);
+    x = clamp(centerX - cardWidth * 0.5, 8, state.viewport.width - cardWidth - 8);
+    y = clamp(Number(topY) || 0, 8, state.viewport.height - cardHeight - 8);
+    const cardCenterX = x + cardWidth * 0.5;
+
+    if (options.card !== false) {
+      drawRetroHudPanel(x, y, cardWidth, cardHeight, {
+        cut: 10,
+        fillTop: "rgba(26, 37, 56, 0.995)",
+        fillBottom: "rgba(12, 20, 33, 0.995)",
+        border: "rgba(78, 106, 140, 0.9)",
+        highlight: "rgba(154, 184, 218, 0.18)",
+        shadow: "rgba(0, 0, 0, 0.44)",
+        borderWidth: 1.4,
+      });
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    const nameBaseline = y + verticalPadding + nameMetrics.size;
+    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#e8f2ff";
+    ctx.fillText(entity.nameFr, cardCenterX, nameBaseline);
+
+    const levelBaseline = nameBaseline + lineGap + levelMetrics.size;
+    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#b2cae3";
+    ctx.fillText(levelText, cardCenterX, levelBaseline);
+  }
+  ctx.restore();
+
+  return {
+    x,
+    y,
+    width: cardWidth,
+    height: cardHeight,
+    centerX: x + cardWidth * 0.5,
+    bottom: y + cardHeight,
+  };
 }
 
 function getEnemyHpDisplayRatios(enemy, targetRatio) {
@@ -7657,115 +9358,116 @@ function getEnemyHpDisplayRatios(enemy, targetRatio) {
 function getEnemyHpPalette(ratio) {
   if (ratio >= 0.55) {
     return {
-      start: "rgba(76, 228, 133, 0.98)",
-      end: "rgba(157, 247, 196, 0.98)",
-      glow: "rgba(93, 233, 146, 0.36)",
+      start: "rgba(112, 188, 82, 0.99)",
+      end: "rgba(149, 208, 95, 0.99)",
+      glow: "rgba(172, 224, 123, 0.34)",
     };
   }
   if (ratio >= 0.25) {
     return {
-      start: "rgba(245, 197, 94, 0.97)",
-      end: "rgba(255, 223, 136, 0.97)",
-      glow: "rgba(255, 204, 118, 0.34)",
+      start: "rgba(219, 165, 51, 0.99)",
+      end: "rgba(240, 193, 77, 0.99)",
+      glow: "rgba(255, 222, 140, 0.34)",
     };
   }
   return {
-    start: "rgba(238, 88, 88, 0.98)",
-    end: "rgba(255, 130, 130, 0.98)",
-    glow: "rgba(244, 95, 95, 0.36)",
+    start: "rgba(197, 98, 77, 0.99)",
+    end: "rgba(225, 129, 95, 0.99)",
+    glow: "rgba(239, 162, 122, 0.32)",
   };
 }
 
-function drawEnemyHpBar(enemy, centerX, centerY, width, height, options = {}) {
+function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
   const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);
-  const x = centerX - width * 0.5;
-  const y = centerY;
-  const radius = height * 0.5;
-  const outerPadX = 6;
-  const outerPadY = 5;
-  const panelRadius = radius + 6;
-  const panelHeight = height + outerPadY * 2;
-  const panelY = y - outerPadY;
-  const panelX = x - outerPadX;
-  const panelWidth = width + outerPadX * 2;
+  const panelHeight = Math.max(24, height + 10);
+  const panelWidth = clamp(width + 96, 180, state.viewport.width - 18);
+  const panelX = clamp(centerX - panelWidth * 0.5, 8, state.viewport.width - panelWidth - 8);
+  const panelY = clamp(Number(topY) || 0, 8, state.viewport.height - panelHeight - 8) - 5;
+  const chipX = panelX + 5;
+  const chipY = panelY + 4;
+  const chipWidth = 26;
+  const chipHeight = panelHeight - 8;
+  const trackY = panelY + Math.round((panelHeight - height) * 0.5);
+  const hpLabel = `${Math.max(0, Math.round(enemy.hpCurrent))}/${Math.max(0, Math.round(enemy.hpMax))}`;
 
   ctx.save();
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
+  const valueWidth = Math.ceil(ctx.measureText(hpLabel).width);
+  const trackX = chipX + chipWidth + 8;
+  const trackWidth = Math.max(50, panelWidth - (trackX - panelX) - valueWidth - 16);
+  const trackRadius = Math.max(2, height * 0.32);
 
-  const panelGradient = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelHeight);
-  panelGradient.addColorStop(0, "rgba(8, 19, 37, 0.9)");
-  panelGradient.addColorStop(1, "rgba(5, 12, 24, 0.94)");
-  ctx.fillStyle = panelGradient;
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, panelRadius);
-  ctx.fill();
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: 14,
+    fillTop: "rgba(44, 60, 84, 0.99)",
+    fillBottom: "rgba(25, 36, 54, 0.99)",
+    border: "rgba(102, 129, 161, 0.98)",
+    highlight: "rgba(188, 212, 237, 0.3)",
+    shadow: "rgba(0, 0, 0, 0.36)",
+    borderWidth: 2,
+  });
 
-  ctx.strokeStyle = "rgba(201, 229, 255, 0.3)";
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, panelRadius);
-  ctx.stroke();
+  drawRetroHudPanel(chipX, chipY, chipWidth, chipHeight, {
+    cut: 6,
+    fillTop: "rgba(243, 182, 84, 0.99)",
+    fillBottom: "rgba(192, 117, 47, 0.99)",
+    border: "rgba(151, 96, 40, 0.96)",
+    highlight: "rgba(255, 232, 167, 0.56)",
+    shadow: "rgba(0, 0, 0, 0)",
+    shadowOffsetY: 0,
+    borderWidth: 1.2,
+  });
 
-  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
-  trackGradient.addColorStop(0, "rgba(51, 21, 28, 0.95)");
-  trackGradient.addColorStop(1, "rgba(34, 11, 15, 0.96)");
-  ctx.fillStyle = trackGradient;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 ${Math.max(9, Math.round(chipHeight * 0.45))}px Tahoma`;
+  ctx.fillStyle = "#fff9ef";
+  ctx.fillText("HP", chipX + chipWidth * 0.5 - 0.5, chipY + chipHeight * 0.56);
+
+  ctx.fillStyle = "rgba(82, 95, 116, 0.98)";
   ctx.beginPath();
-  ctx.roundRect(x, y, width, height, radius);
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
   ctx.fill();
 
   if (lagRatio > 0.001) {
-    ctx.fillStyle = "rgba(255, 196, 135, 0.55)";
+    ctx.fillStyle = "rgba(134, 121, 98, 0.68)";
     ctx.beginPath();
-    ctx.roundRect(x, y, width * lagRatio, height, radius);
+    ctx.roundRect(trackX, trackY, trackWidth * lagRatio, height, trackRadius);
     ctx.fill();
   }
 
   if (frontRatio > 0.001) {
     const palette = getEnemyHpPalette(frontRatio);
-    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    const fillGradient = ctx.createLinearGradient(trackX, trackY, trackX + trackWidth, trackY);
     fillGradient.addColorStop(0, palette.start);
     fillGradient.addColorStop(1, palette.end);
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
-    ctx.roundRect(x, y, width * frontRatio, height, radius);
+    ctx.roundRect(trackX, trackY, trackWidth * frontRatio, height, trackRadius);
     ctx.fill();
 
-    const shineWidth = Math.max(10, width * 0.18);
-    const shineTravel = Math.max(0, width * frontRatio - shineWidth);
-    if (shineTravel > 1) {
-      const travelRatio = (Math.sin(state.timeMs * 0.0042) + 1) * 0.5;
-      const shineX = x + shineTravel * travelRatio;
-      const shine = ctx.createLinearGradient(shineX, y, shineX + shineWidth, y);
-      shine.addColorStop(0, "rgba(255, 255, 255, 0)");
-      shine.addColorStop(0.45, "rgba(255, 255, 255, 0.34)");
-      shine.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = shine;
-      ctx.fillRect(shineX, y, shineWidth, height);
-    }
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.fillRect(trackX + 1, trackY + 1, Math.max(0, trackWidth * frontRatio - 2), Math.max(1, height * 0.32));
 
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = palette.glow;
-    ctx.fillRect(x, y - 1, width * frontRatio, height + 2);
+    ctx.fillRect(trackX, trackY - 1, trackWidth * frontRatio, height + 2);
     ctx.globalCompositeOperation = "source-over";
   }
 
-  ctx.strokeStyle = "rgba(244, 251, 255, 0.42)";
-  ctx.lineWidth = 1.15;
+  ctx.strokeStyle = "rgba(81, 89, 105, 0.96)";
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.roundRect(x, y, width, height, radius);
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
   ctx.stroke();
 
-  ctx.textAlign = "center";
+  ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "#f4fbff";
-  ctx.font = "700 10px Trebuchet MS";
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
-  ctx.lineWidth = 3;
-  const hpLabel = `${Math.max(0, Math.round(enemy.hpCurrent))} / ${Math.max(0, Math.round(enemy.hpMax))}`;
-  ctx.strokeText(hpLabel, x + width * 0.5, y + height * 0.52);
-  ctx.fillText(hpLabel, x + width * 0.5, y + height * 0.52);
+  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
+  ctx.fillStyle = "#c6dbf2";
+  ctx.fillText(hpLabel, panelX + panelWidth - 8, panelY + panelHeight * 0.56);
   ctx.restore();
 }
 
@@ -7812,7 +9514,7 @@ function getTeamXpDisplayRatios(member, slotIndex, targetRatio) {
   return { front: entry.front, lag: entry.lag };
 }
 
-function drawTeamXpBar(member, slotIndex, centerX, centerY, size) {
+function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
   if (!member || member.level >= MAX_LEVEL) {
     return;
   }
@@ -7820,28 +9522,28 @@ function drawTeamXpBar(member, slotIndex, centerX, centerY, size) {
   const requiredXp = Math.max(1, toSafeInt(member.xpToNext, 1));
   const ratio = clamp(currentXp / requiredXp, 0, 1);
   const display = getTeamXpDisplayRatios(member, slotIndex, ratio);
-  const width = clamp(size * 0.66, 46, 90);
-  const height = 4;
+  const width = clamp(Number(options.width) || 72, 40, 96);
+  const height = clamp(Number(options.height) || 4, 3, 5);
   const x = centerX - width * 0.5;
-  const y = centerY + size * 0.39;
-  const radius = 3.8;
+  const y = clamp(Number(topY) || 0, 8, state.viewport.height - height - 8);
+  const radius = Math.max(2, height * 0.45);
 
   ctx.save();
-  ctx.fillStyle = "rgba(8, 23, 44, 0.88)";
+  ctx.fillStyle = "rgba(19, 29, 44, 0.72)";
   ctx.beginPath();
-  ctx.roundRect(x - 1, y - 1, width + 2, height + 2, radius + 1);
+  ctx.roundRect(x - 1.5, y - 1.5, width + 3, height + 3, radius + 1);
   ctx.fill();
 
   const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
-  trackGradient.addColorStop(0, "rgba(16, 48, 96, 0.95)");
-  trackGradient.addColorStop(1, "rgba(10, 30, 65, 0.95)");
+  trackGradient.addColorStop(0, "rgba(55, 75, 103, 0.98)");
+  trackGradient.addColorStop(1, "rgba(36, 52, 73, 0.98)");
   ctx.fillStyle = trackGradient;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.fill();
 
   if (display.lag > 0.001) {
-    ctx.fillStyle = "rgba(142, 205, 255, 0.3)";
+    ctx.fillStyle = "rgba(95, 129, 167, 0.5)";
     ctx.beginPath();
     ctx.roundRect(x, y, width * display.lag, height, radius);
     ctx.fill();
@@ -7849,28 +9551,26 @@ function drawTeamXpBar(member, slotIndex, centerX, centerY, size) {
 
   if (display.front > 0.001) {
     const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
-    fillGradient.addColorStop(0, "rgba(100, 184, 255, 0.98)");
-    fillGradient.addColorStop(1, "rgba(177, 232, 255, 0.98)");
+    fillGradient.addColorStop(0, "rgba(98, 156, 210, 0.99)");
+    fillGradient.addColorStop(1, "rgba(137, 191, 235, 0.99)");
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
     ctx.roundRect(x, y, width * display.front, height, radius);
     ctx.fill();
 
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = "rgba(185, 236, 255, 0.32)";
-    ctx.fillRect(x, y - 1, width * display.front, height + 2);
-    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.fillRect(x + 1, y + 1, Math.max(0, width * display.front - 2), Math.max(1, height * 0.3));
   }
 
-  ctx.strokeStyle = "rgba(201, 232, 255, 0.52)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(129, 163, 201, 0.78)";
+  ctx.lineWidth = 1.1;
   ctx.beginPath();
   ctx.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, radius + 0.5);
   ctx.stroke();
   ctx.restore();
 }
 
-function drawRouteDefeatTimerBar(timerState) {
+function drawRouteDefeatTimerBar(timerState, layout = null) {
   if (!timerState?.running || timerState.duration_ms <= 0) {
     return;
   }
@@ -7879,20 +9579,32 @@ function drawRouteDefeatTimerBar(timerState) {
   const width = clamp(state.viewport.width * 0.58, 220, 540);
   const height = clamp(state.viewport.height * 0.014, 8, 12);
   const x = (state.viewport.width - width) * 0.5;
-  const y = clamp(state.viewport.height * 0.025, 10, 20);
-  const radius = height * 0.5;
+  const safeTop = Number(layout?.safeBounds?.top);
+  const y = Number.isFinite(safeTop)
+    ? clamp(safeTop + clamp(state.viewport.height * 0.012, 10, 18), 24, state.viewport.height - height - 24)
+    : clamp(state.viewport.height * 0.025, 10, 20);
+  const radius = Math.max(2, height * 0.36);
   const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;
+  const panelX = x - 6;
+  const panelY = y - 4;
+  const panelWidth = width + 12;
+  const panelHeight = height + 8;
 
   ctx.save();
   ctx.globalAlpha = 0.94;
-  ctx.fillStyle = "rgba(10, 6, 8, 0.28)";
-  ctx.beginPath();
-  ctx.roundRect(x - 1, y - 1, width + 2, height + 2, radius + 1);
-  ctx.fill();
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: 10,
+    fillTop: "rgba(44, 60, 83, 0.99)",
+    fillBottom: "rgba(26, 37, 54, 0.99)",
+    border: "rgba(101, 128, 160, 0.98)",
+    highlight: "rgba(183, 208, 235, 0.24)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.7,
+  });
 
   const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
-  trackGradient.addColorStop(0, "rgba(53, 19, 24, 0.7)");
-  trackGradient.addColorStop(1, "rgba(20, 8, 11, 0.78)");
+  trackGradient.addColorStop(0, "rgba(81, 95, 115, 0.98)");
+  trackGradient.addColorStop(1, "rgba(57, 69, 86, 0.98)");
   ctx.fillStyle = trackGradient;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
@@ -7900,22 +9612,20 @@ function drawRouteDefeatTimerBar(timerState) {
 
   if (ratio > 0.001) {
     const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
-    fillGradient.addColorStop(0, "rgba(255, 188, 148, 0.86)");
-    fillGradient.addColorStop(0.42, "rgba(214, 74, 84, 0.9)");
-    fillGradient.addColorStop(1, "rgba(125, 12, 28, 0.94)");
+    fillGradient.addColorStop(0, "rgba(242, 181, 79, 0.98)");
+    fillGradient.addColorStop(0.48, "rgba(219, 121, 59, 0.98)");
+    fillGradient.addColorStop(1, "rgba(188, 77, 63, 0.98)");
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
     ctx.roundRect(x, y, width * ratio, height, radius);
     ctx.fill();
 
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = `rgba(255, 104, 104, ${(0.08 + pulse).toFixed(3)})`;
-    ctx.fillRect(x, y - 1, width * ratio, height + 2);
-    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;
+    ctx.fillRect(x + 1, y + 1, Math.max(0, width * ratio - 2), Math.max(1, height * 0.32));
   }
 
-  ctx.strokeStyle = `rgba(255, 214, 214, ${(0.16 + pulse * 0.8).toFixed(3)})`;
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;
+  ctx.lineWidth = 1.15;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.stroke();
@@ -8107,9 +9817,10 @@ function drawFloatingDamageTexts(floatingTexts) {
     ctx.font = "700 24px Trebuchet MS";
     ctx.lineWidth = 4;
     ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
-    ctx.strokeText(`-${text.damage}`, text.x, text.y);
+    const mainText = text.isMiss ? "RATE" : `-${text.damage}`;
+    ctx.strokeText(mainText, text.x, text.y);
     ctx.fillStyle = rgba(rgb, 0.98);
-    ctx.fillText(`-${text.damage}`, text.x, text.y);
+    ctx.fillText(mainText, text.x, text.y);
 
     if (text.label) {
       ctx.font = "700 12px Trebuchet MS";
@@ -8152,9 +9863,10 @@ function drawTurnIndicator(layout, indicator) {
   if (!layout || !indicator) {
     return;
   }
+  const canAttack = indicator.can_attack !== false;
   const pulse = 0.72 + Math.sin(state.timeMs * 0.01) * 0.18;
   const radius = indicator.radius * (0.94 + pulse * 0.1);
-  const alpha = indicator.has_pokemon ? 0.22 : 0.13;
+  const alpha = indicator.has_pokemon ? (canAttack ? 0.22 : 0.16) : 0.13;
 
   ctx.save();
   const glow = ctx.createRadialGradient(
@@ -8174,8 +9886,8 @@ function drawTurnIndicator(layout, indicator) {
   ctx.fill();
 
   ctx.strokeStyle = `rgba(255, 255, 255, ${alpha + 0.2})`;
-  ctx.lineWidth = indicator.has_pokemon ? 2.2 : 1.6;
-  if (!indicator.has_pokemon) {
+  ctx.lineWidth = indicator.has_pokemon && canAttack ? 2.2 : 1.6;
+  if (!indicator.has_pokemon || !canAttack) {
     ctx.setLineDash([5, 5]);
   }
   ctx.beginPath();
@@ -8846,29 +10558,6 @@ function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
   drawStormLightningOverlay(width, height, environmentSnapshot.lightningIntensity || 0);
 }
 
-function drawViewportVignette(width, height, environmentSnapshot = null) {
-  const quality = getRenderQualitySettings();
-  if (!quality.vignette) {
-    return;
-  }
-  const centerX = width * 0.5;
-  const centerY = height * 0.53;
-  const night = clamp(Number(environmentSnapshot?.night) || 0, 0, 1);
-  const stormWeight = clamp(Number(environmentSnapshot?.weatherWeights?.storm || 0), 0, 1);
-  const intensityBoost = night * 0.14 + stormWeight * 0.11;
-  const innerRadius = Math.max(width, height) * (0.34 - intensityBoost * 0.08);
-  const outerRadius = Math.max(width, height) * 0.88;
-  const vignette = ctx.createRadialGradient(centerX, centerY, innerRadius, centerX, centerY, outerRadius);
-  vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
-  vignette.addColorStop(0.72, `rgba(0, 0, 0, ${(0.07 + intensityBoost * 0.55).toFixed(3)})`);
-  vignette.addColorStop(1, `rgba(0, 0, 0, ${(0.22 + intensityBoost * 0.92).toFixed(3)})`);
-
-  ctx.save();
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, width, height);
-  ctx.restore();
-}
-
 function updateEvolutionAnimation(deltaMs) {
   activateNextEvolutionAnimationIfNeeded();
   const current = state.evolutionAnimation.current;
@@ -8990,14 +10679,48 @@ function drawEvolutionAnimationOverlay(layout) {
   const centerX = layout.centerX;
   const centerY = layout.centerY - layout.enemySize * 0.03;
   const spriteSize = clamp(layout.enemySize * 1.5, 170, 300);
+  const growthRatio = clamp(elapsed / whiteEnd, 0, 1);
+  const growthEase = easeInOutSine(growthRatio);
+  const flashRatio =
+    elapsed <= whiteEnd ? 0 : clamp((elapsed - whiteEnd) / Math.max(1, EVOLUTION_ANIM_FLASH_MS), 0, 1);
+  const flashEase = easeInOutSine(flashRatio);
+  const revealRatio =
+    elapsed <= flashEnd ? 0 : clamp((elapsed - flashEnd) / Math.max(1, EVOLUTION_ANIM_REVEAL_MS), 0, 1);
+  const revealEase = easeInOutSine(revealRatio);
+  const backdropFadeMs = clamp(
+    Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, current.totalMs * 0.26),
+    120,
+    Math.max(120, current.totalMs * 0.5),
+  );
+  const fadeIn = easeInOutSine(clamp(elapsed / backdropFadeMs, 0, 1));
+  const fadeOutStart = Math.max(0, current.totalMs - backdropFadeMs);
+  const fadeOut = 1 - easeInOutSine(clamp((elapsed - fadeOutStart) / backdropFadeMs, 0, 1));
+  const backdropPresence = clamp(Math.min(fadeIn, fadeOut), 0, 1);
 
   ctx.save();
-  ctx.fillStyle = "rgba(4, 8, 16, 0.42)";
+  const baseBackdropAlpha = clamp((0.54 + (1 - revealEase) * 0.16) * backdropPresence, 0, 0.86);
+  ctx.fillStyle = `rgba(2, 6, 12, ${baseBackdropAlpha.toFixed(3)})`;
+  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+
+  const vignetteRadius = Math.hypot(state.viewport.width, state.viewport.height) * 0.72;
+  const vignette = ctx.createRadialGradient(
+    centerX,
+    centerY,
+    spriteSize * 0.34,
+    centerX,
+    centerY,
+    vignetteRadius,
+  );
+  const vignetteAlpha = clamp((0.36 + (1 - revealEase) * 0.34) * backdropPresence, 0, 0.9);
+  vignette.addColorStop(0, `rgba(4, 9, 17, ${(vignetteAlpha * 0.06).toFixed(3)})`);
+  vignette.addColorStop(0.52, `rgba(4, 9, 17, ${(vignetteAlpha * 0.4).toFixed(3)})`);
+  vignette.addColorStop(1, `rgba(4, 9, 17, ${vignetteAlpha.toFixed(3)})`);
+  ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
 
   const focusRadius = spriteSize * 1.3;
   const focus = ctx.createRadialGradient(centerX, centerY, spriteSize * 0.12, centerX, centerY, focusRadius);
-  focus.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+  focus.addColorStop(0, `rgba(255, 255, 255, ${(0.18 + (1 - revealEase) * 0.1).toFixed(3)})`);
   focus.addColorStop(1, "rgba(255, 255, 255, 0)");
   ctx.fillStyle = focus;
   ctx.beginPath();
@@ -9007,36 +10730,59 @@ function drawEvolutionAnimationOverlay(layout) {
 
   let title = `${current.fromNameFr} evolue !`;
   let subtitle = "";
+  const baseOrbRadius = spriteSize * 0.52;
+  const maxOrbRadius = spriteSize * 0.64;
+  const minOrbRadius = spriteSize * 0.08;
+  let orbRadius = baseOrbRadius;
+  let orbAlpha = 0;
 
   if (elapsed < whiteEnd) {
-    const ratio = clamp(elapsed / whiteEnd, 0, 1);
-    const whiteRatio = clamp(0.2 + ratio * 0.9, 0, 1);
-    const scale = 0.96 + Math.sin(ratio * Math.PI) * 0.08;
+    const whiteRatio = clamp(0.16 + growthEase * 0.84, 0, 1);
+    const scale = lerpNumber(1.03, 0.52, growthEase);
     drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
-      alpha: 1,
+      alpha: clamp(1 - growthEase * 0.94, 0.05, 1),
       scale,
       whiteRatio,
     });
+    orbRadius = lerpNumber(baseOrbRadius, maxOrbRadius, growthEase);
+    orbAlpha = clamp(0.82 + growthEase * 0.18, 0, 1);
   } else if (elapsed < flashEnd) {
-    const ratio = clamp((elapsed - whiteEnd) / Math.max(1, EVOLUTION_ANIM_FLASH_MS), 0, 1);
+    const pulse = Math.sin(flashEase * Math.PI);
     drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
-      alpha: 1,
-      scale: 1.03,
+      alpha: 0.03,
+      scale: 0.5,
       whiteRatio: 1,
     });
-    const flashAlpha = 0.42 + Math.sin(ratio * Math.PI) * 0.58;
+    orbRadius = maxOrbRadius * (0.98 + pulse * 0.03);
+    orbAlpha = 1;
+    const flashAlpha = 0.05 + pulse * 0.12;
     ctx.fillStyle = "rgba(255, 255, 255, " + flashAlpha.toFixed(3) + ")";
     ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
   } else {
-    const revealRatio = clamp((elapsed - flashEnd) / Math.max(1, EVOLUTION_ANIM_REVEAL_MS), 0, 1);
-    const whiteRatio = clamp(1 - revealRatio * 1.06, 0, 1);
-    const scale = 0.92 + revealRatio * 0.12;
+    orbRadius = lerpNumber(maxOrbRadius, minOrbRadius, revealEase);
+    orbAlpha = clamp(1 - revealEase * 1.08, 0, 1);
+    const whiteRatio = clamp(1 - revealEase * 1.08, 0, 1);
+    const scale = lerpNumber(0.82, 1.04, revealEase);
     drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {
-      alpha: clamp(0.76 + revealRatio * 0.28, 0, 1),
+      alpha: clamp(0.18 + revealEase * 0.82, 0, 1),
       scale,
       whiteRatio,
     });
-    subtitle = `${current.toNameFr} !`;
+    if (revealRatio > 0.18) {
+      subtitle = `${current.toNameFr} !`;
+    }
+  }
+
+  if (orbAlpha > 0.001 && orbRadius > 1) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, orbAlpha).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, 0.88 + orbAlpha * 0.12).toFixed(3)})`;
+    ctx.lineWidth = clamp(orbRadius * 0.018, 2.6, 5.6);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   if (elapsed >= revealEnd) {
@@ -9137,7 +10883,6 @@ function drawLoadingOrError(text) {
 }
 
 function drawBattleUiOverlay(layout, options = {}) {
-  const teamDrawPositions = Array.isArray(options.teamDrawPositions) ? options.teamDrawPositions : [];
   if (options.showEnemyUi && state.enemy) {
     drawEnemyHpBar(
       state.enemy,
@@ -9146,17 +10891,40 @@ function drawBattleUiOverlay(layout, options = {}) {
       layout.hpBarWidth,
       layout.hpBarHeight,
     );
-    drawNameAndLevel(state.enemy, layout.centerX, layout.enemyNameY, true);
+    const enemyNameCard = drawNameAndLevel(state.enemy, layout.centerX, layout.enemyNameTopY, {
+      enemy: true,
+      maxWidth: layout.enemyNamePlateWidth,
+    });
+    const enemyTypeHudY = Math.max(
+      Number(layout.enemyTypeHudY) || 0,
+      Number(enemyNameCard?.bottom || layout.enemyNameTopY) + 14,
+    );
+    drawEnemyDefensiveTypeHud(state.enemy, {
+      ...layout,
+      enemyTypeHudY,
+    });
   }
 
   for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
     const member = state.team[i];
-    const drawPosition = teamDrawPositions[i];
-    if (!member || !drawPosition) {
+    const slot = layout.teamSlots[i];
+    if (!member || !slot) {
       continue;
     }
-    drawTeamXpBar(member, i, drawPosition.x, drawPosition.y, drawPosition.size);
-    drawNameAndLevel(member, drawPosition.x, drawPosition.y + drawPosition.size * 0.62, false);
+    const nameCard = drawNameAndLevel(member, slot.hudCenterX, slot.hudTopY, {
+      maxWidth: slot.hudWidth,
+      nameFontSize: layout.viewportProfile?.phone ? 12 : 14,
+      levelFontSize: layout.viewportProfile?.phone ? 9 : 10,
+    });
+    drawTeamTypeHud(member, i, {
+      ...slot,
+      hudCenterX: nameCard?.centerX ?? slot.hudCenterX,
+      hudTopY: nameCard?.y ?? slot.hudTopY,
+    }, state.enemy);
+    drawTeamXpBar(member, i, nameCard?.centerX ?? slot.hudCenterX, (nameCard?.bottom ?? slot.hudTopY) + 4, {
+      width: Math.max(40, (nameCard?.width ?? slot.hudWidth) - 16),
+      height: layout.viewportProfile?.phone ? 3.5 : 4,
+    });
   }
 }
 
@@ -9173,25 +10941,29 @@ function drawNonCombatZoneOverlay(layout) {
     : "Derniere zone debloquee.";
 
   ctx.save();
-  ctx.fillStyle = "rgba(6, 19, 27, 0.54)";
   const width = clamp(state.viewport.width * 0.52, 300, 640);
   const height = 102;
   const x = layout.centerX - width * 0.5;
   const y = layout.centerY - height * 0.5;
-  ctx.fillRect(x, y, width, height);
-  ctx.strokeStyle = "rgba(182, 223, 241, 0.42)";
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(x, y, width, height);
+  drawRetroHudPanel(x, y, width, height, {
+    cut: 18,
+    fillTop: "rgba(46, 62, 86, 0.98)",
+    fillBottom: "rgba(27, 39, 56, 0.98)",
+    border: "rgba(103, 132, 164, 0.98)",
+    highlight: "rgba(186, 210, 237, 0.25)",
+    shadow: "rgba(0, 0, 0, 0.36)",
+    borderWidth: 2,
+  });
 
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.font = "700 26px Trebuchet MS";
-  ctx.fillStyle = "#eff9ff";
+  ctx.font = "700 24px Tahoma";
+  ctx.fillStyle = "#e6f0fe";
   ctx.fillText(title, layout.centerX, y + 36);
-  ctx.font = "700 14px Trebuchet MS";
-  ctx.fillStyle = "#cae6ef";
+  ctx.font = "700 13px Tahoma";
+  ctx.fillStyle = "#aec2d9";
   ctx.fillText(subtitle, layout.centerX, y + 62);
-  ctx.fillStyle = "#8fd2f0";
+  ctx.fillStyle = "#e6b55d";
   ctx.fillText(nextLabel, layout.centerX, y + 84);
   ctx.restore();
 }
@@ -9205,22 +10977,60 @@ function drawVersionOverlay() {
   const bottom = state.viewport.height - 16;
 
   ctx.save();
-  ctx.font = `600 ${fontSize}px Trebuchet MS`;
+  ctx.font = `700 ${fontSize}px Tahoma`;
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
   const textWidth = Math.ceil(ctx.measureText(label).width);
   const pillWidth = textWidth + paddingX * 2;
   const pillHeight = fontSize + paddingY * 2;
   const y = bottom - pillHeight;
-  ctx.fillStyle = "rgba(5, 15, 27, 0.34)";
-  ctx.strokeStyle = "rgba(214, 240, 255, 0.14)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x, y, pillWidth, pillHeight, 999);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "rgba(226, 243, 255, 0.72)";
+  drawRetroHudPanel(x, y, pillWidth, pillHeight, {
+    cut: 8,
+    fillTop: "rgba(45, 61, 84, 0.95)",
+    fillBottom: "rgba(26, 37, 54, 0.95)",
+    border: "rgba(103, 130, 161, 0.88)",
+    highlight: "rgba(184, 208, 236, 0.22)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.3,
+  });
+  ctx.fillStyle = "rgba(212, 228, 247, 0.88)";
   ctx.fillText(label, x + paddingX, bottom - paddingY);
+  ctx.restore();
+
+  drawFpsOverlay();
+}
+
+function drawFpsOverlay() {
+  const frameMs = Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS;
+  const fps = Math.round(1000 / Math.max(1, frameMs));
+  const label = `${fps} FPS`;
+  const fontSize = state.viewport.width <= 760 ? 10 : 11;
+  const paddingX = 7;
+  const paddingY = 5;
+  const margin = 14;
+
+  ctx.save();
+  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  const textWidth = Math.ceil(ctx.measureText(label).width);
+  const pillWidth = textWidth + paddingX * 2;
+  const pillHeight = fontSize + paddingY * 2;
+  const right = Math.max(8, state.viewport.width - margin);
+  const bottom = Math.max(8, state.viewport.height - margin);
+  const x = right - pillWidth;
+  const y = bottom - pillHeight;
+  drawRetroHudPanel(x, y, pillWidth, pillHeight, {
+    cut: 7,
+    fillTop: "rgba(45, 61, 84, 0.84)",
+    fillBottom: "rgba(26, 37, 54, 0.84)",
+    border: "rgba(103, 130, 161, 0.78)",
+    highlight: "rgba(184, 208, 236, 0.2)",
+    shadow: "rgba(0, 0, 0, 0.3)",
+    borderWidth: 1.2,
+  });
+  ctx.fillStyle = "rgba(224, 238, 252, 0.92)";
+  ctx.fillText(label, right - paddingX, bottom - paddingY);
   ctx.restore();
 }
 
@@ -9241,6 +11051,7 @@ function render() {
 
   const layout = state.layout || computeLayout();
   state.layout = layout;
+  const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();
   const combatView = isCurrentRouteCombatEnabled() && state.team.length > 0;
   const koTransition = state.battle ? state.battle.getKoTransition() : null;
   const enemyHitPulse = state.battle ? state.battle.getEnemyHitPulseRatio() : 0;
@@ -9264,12 +11075,22 @@ function render() {
       }
       const member = state.team[i];
       const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
+      const hoverPulse = getHoveredTeamSlotPulse(i);
+      const spriteSize = slot.size * TEAM_SPRITE_SCALE;
+      const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
       const drawX = slot.x + recoilOffset.x;
-      const drawY = slot.y + recoilOffset.y;
+      const drawY = slot.y + recoilOffset.y - hoverLift;
       const teamBreath = member
-        ? getPokemonBreathTransform(member, slot.size, i, { active: true })
+        ? getPokemonBreathTransform(member, spriteSize, i, { active: true })
         : { scaleX: 1, scaleY: 1, offsetY: 0 };
-      teamDrawPositions[i] = { x: drawX, y: drawY, size: slot.size, breath: teamBreath };
+      teamDrawPositions[i] = {
+        x: drawX,
+        y: drawY,
+        size: spriteSize,
+        breath: teamBreath,
+        hoverPulse,
+        hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,
+      };
     }
 
     let enemyRenderState = null;
@@ -9312,10 +11133,16 @@ function render() {
       if (!member || !slot) {
         continue;
       }
-      drawPokemonBackdropCircle(slot.x, slot.y, slot.size);
+      const hoverPulse = getHoveredTeamSlotPulse(i);
+      const spriteSize = slot.size * TEAM_SPRITE_SCALE;
+      drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {
+        alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11,
+      });
+      if (hoverPulse > 0) {
+        drawTeamHoverIndicator(slot, hoverPulse);
+      }
     }
 
-    drawTurnIndicator(layout, turnIndicator);
     drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
     if (!captureSequence) {
       drawEnemyKoEffect(layout, koTransition);
@@ -9327,7 +11154,8 @@ function render() {
           scaleX: enemyRenderState.scaleX,
           scaleY: enemyRenderState.scaleY,
           offsetY: enemyRenderState.offsetY,
-          shinyVisual: Boolean(state.enemy.isShiny || state.enemy.isShinyVisual),
+          shinyVisual: Boolean(forceUltraShinyAll || state.enemy.isShiny || state.enemy.isShinyVisual),
+          ultraShinyVisual: Boolean(forceUltraShinyAll || state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual),
           tintBlend: enemyDamageTintBlend,
           tintColor: [255, 84, 84],
         });
@@ -9351,16 +11179,19 @@ function render() {
         continue;
       }
       const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };
-      drawPokemonSprite(member, drawPosition.x, drawPosition.y, slot.size, {
-        scaleX: teamBreath.scaleX,
-        scaleY: teamBreath.scaleY,
+      drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
+        scaleX: teamBreath.scaleX * (drawPosition.hoverScale || 1),
+        scaleY: teamBreath.scaleY * (drawPosition.hoverScale || 1),
         offsetY: teamBreath.offsetY,
-        shinyVisual: Boolean(member.isShiny || member.isShinyVisual),
+        flipX: shouldFlipTeamSprite(i),
+        shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
+        ultraShinyVisual: Boolean(forceUltraShinyAll || member.isUltraShiny || member.isUltraShinyVisual),
         tintBlend: state.battle ? state.battle.getSlotAttackFlashBlend(i) : 0,
         tintColor: [255, 255, 255],
       });
     }
 
+    drawTurnIndicator(layout, turnIndicator);
     drawTeamXpGainEffects();
     drawTeamLevelUpEffects();
     drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);
@@ -9372,8 +11203,7 @@ function render() {
     drawNonCombatZoneOverlay(layout);
   }
   drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
-  drawViewportVignette(width, height, environmentSnapshot);
-  drawRouteDefeatTimerBar(routeDefeatTimer);
+  drawRouteDefeatTimerBar(routeDefeatTimer, layout);
   drawEvolutionAnimationOverlay(layout);
   drawVersionOverlay();
 }
@@ -9382,6 +11212,7 @@ function update(deltaMs, options = {}) {
   const idleMode = Boolean(options.idleMode);
   state.timeMs += deltaMs;
   updateEnvironment();
+  updateHappinessEvolutionBoxProgress(deltaMs);
   updateNotificationSystem();
   tryOpenPendingTutorialFlow();
   updateBackgroundDrift(deltaMs);
@@ -9430,13 +11261,9 @@ function gameLoop(timestamp) {
 
 function resizeCanvas() {
   refreshAutomaticRenderQualityRankCache();
-  const maxWidth = 1200;
-  const maxHeight = 760;
   const stageRect = gameStageEl?.getBoundingClientRect();
-  const stageWidth = Math.floor(stageRect?.width || window.innerWidth - 16);
-  const stageHeight = Math.floor(stageRect?.height || window.innerHeight - 16);
-  const width = clamp(stageWidth - 2, 260, maxWidth);
-  const height = clamp(stageHeight - 2, 220, maxHeight);
+  const width = Math.max(260, Math.floor(stageRect?.width || window.innerWidth || 0));
+  const height = Math.max(220, Math.floor(stageRect?.height || window.innerHeight || 0));
   const quality = getRenderQualitySettings();
   const dprLimit = clamp(Number(quality.maxDpr) || MAX_RENDER_DPR, 1, MAX_RENDER_DPR);
   const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, dprLimit);
@@ -9471,6 +11298,52 @@ function getWorldCoordinatesFromPointerEvent(event) {
   };
 }
 
+function isCanvasBattleInteractionBlocked() {
+  return Boolean(
+    state.mode !== "ready"
+    || state.ui.boxesOpen
+    || state.ui.appearanceOpen
+    || state.ui.tutorialOpen
+    || state.ui.mapOpen
+    || state.ui.shopOpen
+    || state.evolutionAnimation.current,
+  );
+}
+
+function syncCanvasInteractionCursor() {
+  if (!canvas) {
+    return;
+  }
+  canvas.style.cursor =
+    state.ui.hoveredTeamSlotIndex >= 0 && !state.ui.teamContextMenuOpen && !isCanvasBattleInteractionBlocked()
+      ? "pointer"
+      : "default";
+}
+
+function setHoveredTeamSlotIndex(slotIndex) {
+  const nextIndex = slotIndex >= 0 ? clamp(toSafeInt(slotIndex, -1), 0, MAX_TEAM_SIZE - 1) : -1;
+  if (state.ui.hoveredTeamSlotIndex === nextIndex) {
+    syncCanvasInteractionCursor();
+    return;
+  }
+  state.ui.hoveredTeamSlotIndex = nextIndex;
+  syncCanvasInteractionCursor();
+}
+
+function closeTeamContextMenu() {
+  state.ui.teamContextMenuOpen = false;
+  state.ui.teamContextMenuSlotIndex = -1;
+  state.ui.teamContextMenuPokemonId = null;
+  if (teamContextMenuEl) {
+    teamContextMenuEl.classList.add("hidden");
+  }
+}
+
+function clearCanvasHoverState() {
+  setHoveredTeamSlotIndex(-1);
+  hideHoverPopup();
+}
+
 function hideHoverPopup() {
   hoverPopupEl.classList.add("hidden");
 }
@@ -9487,7 +11360,7 @@ function findHoveredTeamSlot(worldX, worldY, layout) {
     }
     const radius = slot.size * 0.34;
     if (Math.hypot(worldX - slot.x, worldY - slot.y) <= radius) {
-      return { slotIndex: i, member };
+      return { slotIndex: i, member, slot };
     }
   }
   return null;
@@ -9515,10 +11388,13 @@ function showHoverPopup(entity, clientX, clientY) {
   }
 
   const stats = getSpeciesStatsSummary(entity.id);
-  const shinyTag = entity.isShiny || entity.isShinyVisual ? " shiny" : "";
+  const ultraTag = entity.isUltraShiny || entity.isUltraShinyVisual ? " ultra shiny" : "";
+  const shinyTag = ultraTag || (entity.isShiny || entity.isShinyVisual ? " shiny" : "");
+  const talent = resolveTalentDefinition(entity?.talent, entity?.id);
   hoverPopupEl.innerHTML = [
     `<strong>${entity.nameFr}${shinyTag}</strong>`,
     `Niv. ${entity.level}`,
+    `Talent: ${formatTalentLabelFr(talent, entity?.id)}`,
     `Rencontres: ${stats.encountered_total} (N ${stats.encountered_normal} / S ${stats.encountered_shiny})`,
     `Battus: ${stats.defeated_total} (N ${stats.defeated_normal} / S ${stats.defeated_shiny})`,
     `Captures: ${stats.captured_total} (N ${stats.captured_normal} / S ${stats.captured_shiny})`,
@@ -9529,6 +11405,55 @@ function showHoverPopup(entity, clientX, clientY) {
   hoverPopupEl.style.left = `${popupX}px`;
   hoverPopupEl.style.top = `${popupY}px`;
   hoverPopupEl.classList.remove("hidden");
+}
+
+function refreshTeamContextMenu() {
+  if (!teamContextMenuEl) {
+    return;
+  }
+  const slotIndex = clamp(toSafeInt(state.ui.teamContextMenuSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  const pokemonId = Number(state.ui.teamContextMenuPokemonId || 0);
+  const member = pokemonId > 0 ? state.team[slotIndex] || state.pokemonDefsById.get(pokemonId) : null;
+  const name = member?.nameFr || getPokemonDisplayNameById(pokemonId);
+  const appearanceUnlocked = isAppearanceEditorUnlocked();
+
+  if (teamContextMenuTitleEl) {
+    teamContextMenuTitleEl.textContent = `${name} | ${getTeamSlotLabel(slotIndex)}`;
+  }
+  if (teamContextMenuBoxesButtonEl) {
+    teamContextMenuBoxesButtonEl.disabled = slotIndex < 0 || pokemonId <= 0;
+  }
+  if (teamContextMenuAppearanceButtonEl) {
+    teamContextMenuAppearanceButtonEl.disabled = slotIndex < 0 || pokemonId <= 0 || !appearanceUnlocked;
+    teamContextMenuAppearanceButtonEl.textContent = appearanceUnlocked
+      ? "Changer l'apparence"
+      : `Changer l'apparence (niv ${APPEARANCE_UNLOCK_LEVEL})`;
+  }
+}
+
+function openTeamContextMenu(slotIndex, member, clientX, clientY) {
+  if (!teamContextMenuEl || !member) {
+    return;
+  }
+  state.ui.teamContextMenuOpen = true;
+  state.ui.teamContextMenuSlotIndex = clamp(toSafeInt(slotIndex, -1), 0, MAX_TEAM_SIZE - 1);
+  state.ui.teamContextMenuPokemonId = Number(member.id || 0);
+  setHoveredTeamSlotIndex(slotIndex);
+  hideHoverPopup();
+  refreshTeamContextMenu();
+
+  teamContextMenuEl.classList.remove("hidden");
+  const menuRect = teamContextMenuEl.getBoundingClientRect();
+  let left = clientX + 12;
+  let top = clientY + 12;
+  if (left + menuRect.width > window.innerWidth - 8) {
+    left = clientX - menuRect.width - 12;
+  }
+  if (top + menuRect.height > window.innerHeight - 8) {
+    top = clientY - menuRect.height - 12;
+  }
+  teamContextMenuEl.style.left = `${Math.round(clamp(left, 8, window.innerWidth - menuRect.width - 8))}px`;
+  teamContextMenuEl.style.top = `${Math.round(clamp(top, 8, window.innerHeight - menuRect.height - 8))}px`;
 }
 
 function getTeamSlotLabel(slotIndex) {
@@ -9568,6 +11493,7 @@ function getCapturedEntityBoxesEntries() {
     const capturedNormal = Math.max(0, toSafeInt(record.captured_normal, 0));
     const capturedShiny = Math.max(0, toSafeInt(record.captured_shiny, 0));
     const appearance = resolveSpriteAppearanceForEntity(pokemonId);
+    const talent = resolveTalentDefinition(record?.talent, pokemonId);
 
     entries.push({
       id: pokemonId,
@@ -9578,7 +11504,7 @@ function getCapturedEntityBoxesEntries() {
       xpToNext: getXpToNextLevelForSpecies(pokemonId, level, baseStats),
       defensiveTypes: Array.isArray(def?.defensiveTypes) ? def.defensiveTypes : ["normal"],
       offensiveType: def?.offensiveType || "normal",
-      spritePath: def?.spritePath || "",
+      spritePath: appearance.spritePath || def?.spritePath || "",
       stats,
       baseStats,
       encounteredNormal,
@@ -9587,6 +11513,7 @@ function getCapturedEntityBoxesEntries() {
       defeatedShiny,
       capturedNormal,
       capturedShiny,
+      talent,
       spriteVariantId: appearance.variant?.id || null,
       shinyVisual: appearance.shinyVisual,
       encounteredTotal: encounteredNormal + encounteredShiny,
@@ -9603,6 +11530,25 @@ function getCapturedEntityCount() {
   return getCapturedEntityBoxesEntries().length;
 }
 
+function getTotalShinyCapturesGlobal() {
+  if (!state.saveData?.pokemon_entities || typeof state.saveData.pokemon_entities !== "object") {
+    return 0;
+  }
+  let total = 0;
+  for (const [rawKey, rawRecord] of Object.entries(state.saveData.pokemon_entities)) {
+    const pokemonId = Number(rawRecord?.id || rawKey || 0);
+    if (pokemonId <= 0) {
+      continue;
+    }
+    const record = normalizePokemonEntityRecord(rawRecord, pokemonId);
+    if (!isEntityUnlocked(record)) {
+      continue;
+    }
+    total += Math.max(0, toSafeInt(record.captured_shiny, 0));
+  }
+  return total;
+}
+
 function setBoxesInfoFromEntry(entry) {
   if (!boxesInfoPanelEl) {
     return;
@@ -9615,6 +11561,7 @@ function setBoxesInfoFromEntry(entry) {
   const statLine = STAT_KEYS.map((statKey) => `${STAT_LABELS_FR[statKey]} ${entry.stats[statKey]}`).join(" | ");
   const baseTotal = getBaseStatTotal(entry.baseStats);
   const typesLabel = entry.defensiveTypes.join(" / ");
+  const talent = resolveTalentDefinition(entry?.talent, entry?.id);
   const xpLabel =
     entry.level >= MAX_LEVEL
       ? "Niveau max"
@@ -9623,6 +11570,8 @@ function setBoxesInfoFromEntry(entry) {
   boxesInfoPanelEl.innerHTML = [
     `<strong>${entry.nameFr} (#${entry.id})</strong>`,
     `Niv. ${entry.level}`,
+    `Talent: ${formatTalentLabelFr(talent, entry?.id)}`,
+    `Effet talent: ${talent.descriptionFr || TALENT_NONE_DESCRIPTION_FR}`,
     `Types: ${typesLabel}`,
     `Type offensif: ${entry.offensiveType}`,
     `XP: ${xpLabel}`,
@@ -9643,6 +11592,9 @@ function closeBoxesModal() {
   }
   if (boxesSubtitleEl) {
     boxesSubtitleEl.textContent = "Choisis un Pokemon pour remplacer ton slot d'equipe.";
+  }
+  if (boxesShinyCounterEl) {
+    boxesShinyCounterEl.textContent = "Captures shiny (global): 0";
   }
   if (boxesGridEl) {
     boxesGridEl.innerHTML = "";
@@ -9673,6 +11625,10 @@ function renderBoxesGrid() {
     } else {
       boxesSubtitleEl.textContent = "Boite complete | " + String(entries.length) + " entites capturees";
     }
+  }
+  if (boxesShinyCounterEl) {
+    const shinyCapturesTotal = getTotalShinyCapturesGlobal();
+    boxesShinyCounterEl.textContent = "Captures shiny (global): " + String(shinyCapturesTotal);
   }
 
   boxesGridEl.innerHTML = "";
@@ -9795,6 +11751,17 @@ function renderBoxesGrid() {
         1700,
       );
     });
+    button.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (unavailable) {
+        setTopMessage("Pokemon indisponible dans les routes chargees.", 1600);
+        return;
+      }
+      state.ui.boxesHoverEntityId = entry.id;
+      setBoxesInfoFromEntry(entry);
+      openAppearanceForBoxPokemon(entry.id);
+    });
 
     boxesGridEl.appendChild(button);
   }
@@ -9812,7 +11779,8 @@ function openBoxesForTeamSlot(slotIndex) {
     return;
   }
 
-  hideHoverPopup();
+  closeTeamContextMenu();
+  clearCanvasHoverState();
   setShopOpen(false);
   state.ui.boxesOpen = true;
   state.ui.boxesTargetSlotIndex = index;
@@ -9831,6 +11799,40 @@ function closeAppearanceModal() {
   if (appearanceGridEl) {
     appearanceGridEl.innerHTML = "";
   }
+}
+
+function openAppearanceForPokemon(pokemonId, options = {}) {
+  if (!appearanceModalEl || !state.saveData) {
+    return false;
+  }
+  if (!isAppearanceEditorUnlocked()) {
+    setTopMessage(
+      `Atteins le niveau ${APPEARANCE_UNLOCK_LEVEL} avec un Pokemon pour debloquer l'apparence.`,
+      1900,
+    );
+    return false;
+  }
+
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return false;
+  }
+  const record = getPokemonEntityRecord(id);
+  const def = state.pokemonDefsById.get(id);
+  if (!record || !def) {
+    return false;
+  }
+
+  const preferredSlotIndex = clamp(toSafeInt(options.preferredSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  closeTeamContextMenu();
+  clearCanvasHoverState();
+  setShopOpen(false);
+  state.ui.appearanceOpen = true;
+  state.ui.appearanceTargetSlotIndex = preferredSlotIndex;
+  state.ui.appearancePokemonId = id;
+  appearanceModalEl.classList.remove("hidden");
+  renderAppearanceModal();
+  return true;
 }
 
 function renderAppearanceModal() {
@@ -9940,10 +11942,11 @@ function renderAppearanceModal() {
     }
     card.appendChild(action);
 
-    card.addEventListener("click", () => {
+    card.addEventListener("click", async () => {
       if (!state.saveData) {
         return;
       }
+      const shouldLoadShinyAppearance = Boolean(record.appearance_shiny_mode && isShinyAppearanceUnlockedForRecord(record));
 
       if (!owned) {
         if (price <= 0) {
@@ -9959,9 +11962,14 @@ function renderAppearanceModal() {
         record.appearance_owned_variants = ownedIds;
         record.appearance_selected_variant = variant.id;
         reconcileAppearanceForEntityRecord(record, pokemonId);
+        renderAppearanceModal();
+        await ensureVariantAppearanceAssetsLoaded(def, variant, { includeShiny: shouldLoadShinyAppearance });
         rebuildTeamAndSyncBattle();
         persistSaveData();
         updateHud();
+        if (state.ui.boxesOpen) {
+          renderBoxesGrid();
+        }
         renderAppearanceModal();
         render();
         setTopMessage(`${def.nameFr}: sprite ${variant.labelFr} debloque.`, 1600);
@@ -9973,8 +11981,13 @@ function renderAppearanceModal() {
       }
       record.appearance_selected_variant = variant.id;
       reconcileAppearanceForEntityRecord(record, pokemonId);
+      renderAppearanceModal();
+      await ensureVariantAppearanceAssetsLoaded(def, variant, { includeShiny: shouldLoadShinyAppearance });
       rebuildTeamAndSyncBattle();
       persistSaveData();
+      if (state.ui.boxesOpen) {
+        renderBoxesGrid();
+      }
       renderAppearanceModal();
       render();
       setTopMessage(`${def.nameFr}: sprite ${variant.labelFr} equipe.`, 1400);
@@ -9985,14 +11998,7 @@ function renderAppearanceModal() {
 }
 
 function openAppearanceForTeamSlot(slotIndex) {
-  if (!appearanceModalEl || !state.saveData || !Array.isArray(state.saveData.team)) {
-    return;
-  }
-  if (!isAppearanceEditorUnlocked()) {
-    setTopMessage(
-      `Atteins le niveau ${APPEARANCE_UNLOCK_LEVEL} avec un Pokemon pour debloquer l'apparence.`,
-      1900,
-    );
+  if (!state.saveData || !Array.isArray(state.saveData.team)) {
     return;
   }
   const index = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
@@ -10003,22 +12009,19 @@ function openAppearanceForTeamSlot(slotIndex) {
   if (pokemonId <= 0) {
     return;
   }
-  const record = getPokemonEntityRecord(pokemonId);
-  const def = state.pokemonDefsById.get(pokemonId);
-  if (!record || !def) {
-    return;
-  }
-
-  hideHoverPopup();
-  setShopOpen(false);
-  state.ui.appearanceOpen = true;
-  state.ui.appearanceTargetSlotIndex = index;
-  state.ui.appearancePokemonId = pokemonId;
-  appearanceModalEl.classList.remove("hidden");
-  renderAppearanceModal();
+  openAppearanceForPokemon(pokemonId, { preferredSlotIndex: index });
 }
 
-function toggleAppearanceShinyMode() {
+function openAppearanceForBoxPokemon(pokemonId) {
+  const entries = getCapturedEntityBoxesEntries();
+  const entry = entries.find((item) => Number(item.id) === Number(pokemonId || 0)) || null;
+  if (!entry) {
+    return false;
+  }
+  return openAppearanceForPokemon(entry.id, { preferredSlotIndex: entry.inTeamIndex });
+}
+
+async function toggleAppearanceShinyMode() {
   if (!state.saveData) {
     return;
   }
@@ -10035,8 +12038,15 @@ function toggleAppearanceShinyMode() {
   }
   record.appearance_shiny_mode = !record.appearance_shiny_mode;
   reconcileAppearanceForEntityRecord(record, pokemonId);
+  const selectedVariant = getSelectedOwnedSpriteVariantForRecord(record, def);
+  await ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
+    includeShiny: Boolean(record.appearance_shiny_mode),
+  });
   rebuildTeamAndSyncBattle();
   persistSaveData();
+  if (state.ui.boxesOpen) {
+    renderBoxesGrid();
+  }
   renderAppearanceModal();
   render();
   setTopMessage(
@@ -10048,22 +12058,23 @@ function toggleAppearanceShinyMode() {
 }
 
 function handleCanvasMouseMove(event) {
-  if (
-    state.mode !== "ready"
-    || state.ui.boxesOpen
-    || state.ui.appearanceOpen
-    || state.ui.tutorialOpen
-    || state.evolutionAnimation.current
-  ) {
+  if (isCanvasBattleInteractionBlocked()) {
+    clearCanvasHoverState();
+    return;
+  }
+  if (state.ui.teamContextMenuOpen) {
     hideHoverPopup();
+    syncCanvasInteractionCursor();
     return;
   }
   if (!isCurrentRouteCombatEnabled()) {
-    hideHoverPopup();
+    clearCanvasHoverState();
     return;
   }
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
   const layout = state.layout || computeLayout();
+  const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
+  setHoveredTeamSlotIndex(hoveredTeamSlot?.slotIndex ?? -1);
   const hovered = findHoveredPokemon(worldX, worldY, layout);
   showHoverPopup(hovered, event.clientX, event.clientY);
 }
@@ -10072,13 +12083,8 @@ function handleCanvasClick(event) {
   if (event.button !== 0) {
     return;
   }
-  if (
-    state.mode !== "ready"
-    || state.ui.boxesOpen
-    || state.ui.appearanceOpen
-    || state.ui.tutorialOpen
-    || state.evolutionAnimation.current
-  ) {
+  closeTeamContextMenu();
+  if (isCanvasBattleInteractionBlocked()) {
     return;
   }
   if (!isCurrentRouteCombatEnabled()) {
@@ -10095,53 +12101,57 @@ function handleCanvasClick(event) {
 
 function handleCanvasContextMenu(event) {
   event.preventDefault();
-  if (
-    state.mode !== "ready"
-    || state.ui.boxesOpen
-    || state.ui.appearanceOpen
-    || state.ui.tutorialOpen
-    || state.evolutionAnimation.current
-  ) {
+  if (isCanvasBattleInteractionBlocked()) {
+    closeTeamContextMenu();
     return;
   }
   if (!isCurrentRouteCombatEnabled()) {
-    return;
-  }
-  if (!isAppearanceEditorUnlocked()) {
-    setTopMessage(
-      `Clic droit apparence verrouille: niveau ${APPEARANCE_UNLOCK_LEVEL} requis.`,
-      1700,
-    );
+    closeTeamContextMenu();
     return;
   }
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
   const layout = state.layout || computeLayout();
   const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
   if (!hoveredTeamSlot) {
+    closeTeamContextMenu();
     return;
   }
-  openAppearanceForTeamSlot(hoveredTeamSlot.slotIndex);
+  openTeamContextMenu(hoveredTeamSlot.slotIndex, hoveredTeamSlot.member, event.clientX, event.clientY);
 }
 
 function exportTextState() {
   const layout = state.layout || computeLayout();
   const battle = state.battle;
+  const turnIndicator = battle ? battle.getTurnIndicator(layout) : null;
+  const nextTurnPreview = battle ? battle.getNextTurnPreview() : null;
   const environmentSnapshot = getEnvironmentSnapshotForRender();
 
   const enemy = state.enemy
-    ? {
-        id: state.enemy.id,
-        name_fr: state.enemy.nameFr,
-        level: state.enemy.level,
-        hp_current: state.enemy.hpCurrent,
-        hp_max: state.enemy.hpMax,
-        is_shiny: Boolean(state.enemy.isShiny),
-        shiny_visual: Boolean(state.enemy.isShiny || state.enemy.isShinyVisual),
-        sprite_variant_id: state.enemy.spriteVariantId || null,
-        defensive_types: state.enemy.defensiveTypes,
-        x: Math.round(layout.centerX),
-        y: Math.round(layout.centerY),
-      }
+    ? (() => {
+        const enemyTalent = resolveTalentDefinition(state.enemy.talent, state.enemy.id);
+        return {
+          id: state.enemy.id,
+          name_fr: state.enemy.nameFr,
+          level: state.enemy.level,
+          hp_current: state.enemy.hpCurrent,
+          hp_max: state.enemy.hpMax,
+          is_shiny: Boolean(state.enemy.isShiny),
+          is_ultra_shiny: Boolean(state.enemy.isUltraShiny),
+          shiny_visual: Boolean(state.enemy.isShiny || state.enemy.isShinyVisual || shouldForceUltraShinyAllPokemon()),
+          ultra_shiny_visual: Boolean(
+            state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual || shouldForceUltraShinyAllPokemon(),
+          ),
+          sprite_variant_id: state.enemy.spriteVariantId || null,
+          defensive_types: state.enemy.defensiveTypes,
+          talent_id: enemyTalent.id,
+          talent_name_fr: enemyTalent.nameFr,
+          talent_name_en: enemyTalent.nameEn,
+          talent_description_fr: enemyTalent.descriptionFr,
+          passive_behavior_id: getPassiveBehaviorIdForTalentId(enemyTalent.id),
+          x: Math.round(layout.centerX),
+          y: Math.round(layout.centerY),
+        };
+      })()
     : null;
 
   const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
@@ -10155,6 +12165,10 @@ function exportTextState() {
 
   const team = state.team.map((member, index) => {
     const slot = layout.teamSlots[index];
+    const offensiveType = normalizeType(member.offensiveType || member.defensiveTypes?.[0] || "normal");
+    const enemyDefensiveTypes = Array.isArray(state.enemy?.defensiveTypes) ? state.enemy.defensiveTypes : [];
+    const talent = resolveTalentDefinition(member?.talent, member?.id);
+    const passiveBehaviorId = getPassiveBehaviorIdForTalentId(talent.id);
     return {
       id: member.id,
       name_fr: member.nameFr,
@@ -10162,9 +12176,20 @@ function exportTextState() {
       xp: Math.max(0, toSafeInt(member.xp, 0)),
       xp_to_next: Math.max(0, toSafeInt(member.xpToNext, 0)),
       is_shiny: Boolean(member.isShiny),
-      shiny_visual: Boolean(member.isShiny || member.isShinyVisual),
+      is_ultra_shiny: Boolean(member.isUltraShiny),
+      shiny_visual: Boolean(member.isShiny || member.isShinyVisual || shouldForceUltraShinyAllPokemon()),
+      ultra_shiny_visual: Boolean(member.isUltraShiny || member.isUltraShinyVisual || shouldForceUltraShinyAllPokemon()),
       sprite_variant_id: member.spriteVariantId || null,
-      offensive_type: member.offensiveType,
+      slot_index: index,
+      sprite_flip_x: shouldFlipTeamSprite(index),
+      offensive_type: offensiveType,
+      talent_id: talent.id,
+      talent_name_fr: talent.nameFr,
+      talent_name_en: talent.nameEn,
+      talent_description_fr: talent.descriptionFr,
+      passive_behavior_id: passiveBehaviorId,
+      type_multiplier_vs_enemy:
+        enemyDefensiveTypes.length > 0 ? Math.round(getTypeMultiplier(offensiveType, enemyDefensiveTypes) * 100) / 100 : null,
       x: slot ? Math.round(slot.x) : null,
       y: slot ? Math.round(slot.y) : null,
     };
@@ -10173,6 +12198,7 @@ function exportTextState() {
   const payload = {
     app_version: APP_VERSION,
     mode: state.mode,
+    debug_force_ultra_shiny_all_pokemon: shouldForceUltraShinyAllPokemon(),
     coordinate_system: {
       origin: "top-left",
       x_axis: "right-positive",
@@ -10192,8 +12218,13 @@ function exportTextState() {
     attack_timer_ms: battle ? Math.round(Math.max(0, Number(battle.attackTimerMs) || 0)) : null,
     attack_boost_remaining_ms: getAttackBoostRemainingMs(),
     attack_slots_total: MAX_TEAM_SIZE,
-    next_attacker: battle ? battle.getNextAttackerName() : null,
-    next_attacker_slot_index: battle?.getTurnIndicator(layout)?.slot_index ?? null,
+    next_attacker: nextTurnPreview?.attacker_name_fr ?? null,
+    next_attacker_slot_index: turnIndicator?.slot_index ?? null,
+    next_turn_action: nextTurnPreview?.action ?? null,
+    next_turn_reason: nextTurnPreview?.reason ?? null,
+    next_turn_passive_behavior_id: nextTurnPreview?.passive_behavior_id ?? null,
+    turn_indicator_can_attack: turnIndicator ? Boolean(turnIndicator.can_attack) : null,
+    last_turn_event: battle ? battle.getLastTurnEvent() : null,
     enemies_defeated: battle ? battle.enemiesDefeated : 0,
     route_id: currentRouteId || null,
     route_name_fr: state.routeData?.route_name_fr || getRouteDisplayName(currentRouteId),
@@ -10201,6 +12232,7 @@ function exportTextState() {
     route_combat_enabled: isCurrentRouteCombatEnabled(),
     route_encounters_source: String(state.routeData?.encounters_source || (state.zoneEncounterCsvLoaded ? "csv" : "json")),
     zone_csv_loaded: Boolean(state.zoneEncounterCsvLoaded),
+    talents_csv_loaded: Boolean(state.pokemonTalentCsvLoaded),
     ball_csv_loaded: Boolean(state.ballConfigCsvLoaded),
     shop_items_csv_loaded: Boolean(state.shopItemConfigCsvLoaded),
     current_route_encounter_count: Array.isArray(state.routeData?.encounters) ? state.routeData.encounters.length : 0,
@@ -10239,6 +12271,7 @@ function exportTextState() {
     next_route_name_fr: nextRouteId ? getRouteDisplayName(nextRouteId) : null,
     starter_modal_visible: !starterModalEl.classList.contains("hidden"),
     hover_popup_visible: !hoverPopupEl.classList.contains("hidden"),
+    hovered_team_slot_index: toSafeInt(state.ui.hoveredTeamSlotIndex, -1),
     save_team_size: state.saveData?.team?.length || 0,
     money: Math.max(0, toSafeInt(state.saveData?.money, 0)),
     pokeballs: Math.max(0, toSafeInt(state.saveData?.pokeballs, 0)),
@@ -10287,10 +12320,13 @@ function exportTextState() {
     boxes_open: Boolean(state.ui.boxesOpen),
     boxes_target_slot_index: toSafeInt(state.ui.boxesTargetSlotIndex, -1),
     boxes_entity_count: state.saveData ? getCapturedEntityCount() : 0,
+    boxes_shiny_capture_total: state.saveData ? getTotalShinyCapturesGlobal() : 0,
     appearance_editor_unlocked: isAppearanceEditorUnlocked(),
     appearance_open: Boolean(state.ui.appearanceOpen),
     appearance_target_slot_index: toSafeInt(state.ui.appearanceTargetSlotIndex, -1),
     appearance_pokemon_id: Number(state.ui.appearancePokemonId || 0) || null,
+    team_context_menu_open: Boolean(state.ui.teamContextMenuOpen),
+    team_context_menu_slot_index: toSafeInt(state.ui.teamContextMenuSlotIndex, -1),
     appearance_selected_variant_id: appearanceRecord?.appearance_selected_variant || null,
     appearance_shiny_mode: Boolean(appearanceRecord?.appearance_shiny_mode),
     tutorial_open: Boolean(state.ui.tutorialOpen),
@@ -10318,6 +12354,7 @@ function exportTextState() {
     })),
     floating_damage_texts: (battle ? battle.getFloatingTexts() : []).map((text) => ({
       damage: text.damage,
+      missed: Boolean(text.isMiss),
       label: text.label || "",
       x: Math.round(text.x),
       y: Math.round(text.y),
@@ -10389,144 +12426,107 @@ function getPokemonLoadTargets(routeDataInput) {
   return Array.from(targetsById.entries()).map(([id, nameEn]) => ({ id, nameEn }));
 }
 
-function parseCsvRows(rawCsv) {
-  const text = String(rawCsv || "");
-  const rows = [];
-  let row = [];
-  let field = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i += 1) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === "\"") {
-        if (text[i + 1] === "\"") {
-          field += "\"";
-          i += 1;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += char;
-      }
-      continue;
-    }
-
-    if (char === "\"") {
-      inQuotes = true;
-      continue;
-    }
-    if (char === ",") {
-      row.push(field);
-      field = "";
-      continue;
-    }
-    if (char === "\n") {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-      continue;
-    }
-    if (char === "\r") {
-      continue;
-    }
-    field += char;
-  }
-
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows;
+function warnRuntimeDataValidation(message, error) {
+  const detail = error instanceof Error ? error.message : String(error || "");
+  console.warn(`[pokeidle:data] ${message}${detail ? `: ${detail}` : ""}`);
 }
 
-function parseCsvObjects(rawCsv) {
-  const rows = parseCsvRows(rawCsv);
-  if (rows.length <= 0) {
-    return [];
+function normalizePokemonTalentFromCsvRow(row, fallbackTalent = null) {
+  const pokemonId = Math.max(0, toSafeInt(readCsvCell(row, "pokemon_id"), 0));
+  if (pokemonId <= 0) {
+    return null;
   }
-  const header = rows[0].map((cell) =>
-    String(cell || "")
-      .replace(/^\uFEFF/, "")
-      .trim()
-      .toLowerCase(),
+
+  const fallback = normalizeTalentDefinition(fallbackTalent);
+  const talentId = normalizeTalentId(
+    readCsvCell(row, "talent_id") ||
+      readCsvCell(row, "talent_name_en") ||
+      readCsvCell(row, "talent_name_fr") ||
+      fallback.id,
   );
-  const objects = [];
-  for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+  const talent = normalizeTalentDefinition({
+    id: talentId,
+    name_fr: readCsvCell(row, "talent_name_fr") || fallback.nameFr,
+    name_en: readCsvCell(row, "talent_name_en") || fallback.nameEn,
+    description_fr: readCsvCell(row, "talent_description_fr") || fallback.descriptionFr,
+  });
+  return {
+    pokemonId,
+    talent,
+  };
+}
+
+async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
+  const requestPath = `${String(csvPath || POKEMON_TALENTS_CSV_PATH)}?ts=${Date.now()}`;
+  const response = await fetch(requestPath, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Impossible de charger " + csvPath);
+  }
+  const rawCsv = await response.text();
+  const rows = parseCsvObjects(rawCsv, csvPath);
+  const talentsByPokemonId = new Map();
+  const unresolvedTalentIds = new Set();
+
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex];
-    if (!Array.isArray(row) || row.length <= 0) {
+    const pokemonId = Math.max(0, toSafeInt(readCsvCell(row, "pokemon_id"), 0));
+    if (pokemonId <= 0) {
       continue;
     }
-    const obj = {};
-    let hasValue = false;
-    for (let col = 0; col < header.length; col += 1) {
-      const key = header[col];
-      if (!key) {
-        continue;
-      }
-      const value = String(row[col] || "");
-      if (value.trim() !== "") {
-        hasValue = true;
-      }
-      obj[key] = value;
+    const fallbackTalent = talentsByPokemonId.get(pokemonId) || null;
+    const normalized = normalizePokemonTalentFromCsvRow(row, fallbackTalent);
+    if (!normalized) {
+      continue;
     }
-    if (hasValue) {
-      objects.push(obj);
+    talentsByPokemonId.set(normalized.pokemonId, normalized.talent);
+
+    if (
+      normalized.talent.id !== TALENT_NONE_ID &&
+      getPassiveBehaviorIdForTalentId(normalized.talent.id) === TALENT_NONE_ID
+    ) {
+      unresolvedTalentIds.add(normalized.talent.id);
     }
   }
-  return objects;
+
+  return {
+    path: csvPath,
+    rowCount: rows.length,
+    talentsByPokemonId,
+    unresolvedTalentIds: Array.from(unresolvedTalentIds.values()),
+  };
 }
 
-function readCsvCell(row, key) {
-  if (!row || typeof row !== "object") {
-    return "";
-  }
-  if (!Object.prototype.hasOwnProperty.call(row, key)) {
-    return "";
-  }
-  return String(row[key] || "").trim();
+function setPokemonTalentCsvState(payload) {
+  state.pokemonTalentCsvByPokemonId =
+    payload?.talentsByPokemonId instanceof Map ? payload.talentsByPokemonId : new Map();
+  state.pokemonTalentCsvLoaded = state.pokemonTalentCsvByPokemonId.size > 0;
 }
 
-function readCsvBooleanCell(row, key, fallback = false) {
-  const value = readCsvCell(row, key).toLowerCase();
-  if (!value) {
-    return Boolean(fallback);
+function getPokemonTalentCsvForPokemonId(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return null;
   }
-  if (["1", "true", "yes", "y", "oui", "o", "on"].includes(value)) {
-    return true;
+  if (!state.pokemonTalentCsvByPokemonId.has(id)) {
+    return null;
   }
-  if (["0", "false", "no", "n", "non", "off"].includes(value)) {
-    return false;
-  }
-  return Boolean(fallback);
+  return normalizeTalentDefinition(state.pokemonTalentCsvByPokemonId.get(id));
 }
 
-function readCsvNumberCell(row, key, fallback = 0) {
-  const rawValue = readCsvCell(row, key);
-  if (!rawValue) {
-    return fallback;
+function applyPokemonTalentCsvToDefinitions(defsById = state.pokemonDefsById) {
+  if (!(defsById instanceof Map) || defsById.size <= 0) {
+    return;
   }
-  const normalized = rawValue.replace(",", ".");
-  const numeric = Number(normalized);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function readCsvTypedValue(row, key, fallback = "") {
-  const rawValue = readCsvCell(row, key);
-  if (!rawValue) {
-    return fallback;
+  for (const [pokemonId, def] of defsById.entries()) {
+    if (!def || typeof def !== "object") {
+      continue;
+    }
+    const csvTalent = getPokemonTalentCsvForPokemonId(pokemonId);
+    if (!csvTalent) {
+      continue;
+    }
+    def.talent = normalizeTalentDefinition(csvTalent);
   }
-  const normalized = rawValue.replace(",", ".");
-  const numeric = Number(normalized);
-  return Number.isFinite(numeric) ? numeric : rawValue;
-}
-
-function parseCsvMethods(valueRaw) {
-  return String(valueRaw || "")
-    .split("|")
-    .map((method) => String(method || "").toLowerCase().trim())
-    .filter(Boolean);
 }
 
 function normalizeBallConfigFromCsvRow(row, fallbackConfig = null) {
@@ -10556,9 +12556,10 @@ async function loadBallConfigCsv(csvPath = BALL_CONFIG_CSV_PATH) {
     throw new Error("Impossible de charger " + csvPath);
   }
   const rawCsv = await response.text();
-  const rows = parseCsvObjects(rawCsv);
+  const rows = parseCsvObjects(rawCsv, csvPath);
   const configsByType = {};
-  for (const row of rows) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
     const type = String(readCsvCell(row, "ball_type") || readCsvCell(row, "type") || "").toLowerCase().trim();
     if (!type) {
       continue;
@@ -10568,7 +12569,12 @@ async function loadBallConfigCsv(csvPath = BALL_CONFIG_CSV_PATH) {
     if (!config) {
       continue;
     }
-    configsByType[config.type] = config;
+    try {
+      const validatedConfig = assertValidBallConfig(config, `${csvPath} ligne ${rowIndex + 2}`);
+      configsByType[validatedConfig.type] = validatedConfig;
+    } catch (error) {
+      warnRuntimeDataValidation(`Ball config ignoree (${type})`, error);
+    }
   }
   return {
     path: csvPath,
@@ -10646,9 +12652,10 @@ async function loadShopItemConfigCsv(csvPath = SHOP_ITEMS_CSV_PATH) {
     throw new Error("Impossible de charger " + csvPath);
   }
   const rawCsv = await response.text();
-  const rows = parseCsvObjects(rawCsv);
+  const rows = parseCsvObjects(rawCsv, csvPath);
   const configsById = {};
-  for (const row of rows) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
     const id = String(readCsvCell(row, "item_id") || readCsvCell(row, "id") || "").toLowerCase().trim();
     if (!id) {
       continue;
@@ -10658,7 +12665,12 @@ async function loadShopItemConfigCsv(csvPath = SHOP_ITEMS_CSV_PATH) {
     if (!config) {
       continue;
     }
-    configsById[config.id] = config;
+    try {
+      const validatedConfig = assertValidShopItemConfig(config, `${csvPath} ligne ${rowIndex + 2}`);
+      configsById[validatedConfig.id] = validatedConfig;
+    } catch (error) {
+      warnRuntimeDataValidation(`Shop item ignore (${id})`, error);
+    }
   }
   return {
     path: csvPath,
@@ -10717,11 +12729,12 @@ async function loadZoneEncounterCsv(csvPath = ROUTE_ENCOUNTERS_CSV_PATH) {
     throw new Error("Impossible de charger " + csvPath);
   }
   const rawCsv = await response.text();
-  const rows = parseCsvObjects(rawCsv);
+  const rows = parseCsvObjects(rawCsv, csvPath);
   const routeIds = new Set();
   const encountersByRouteId = new Map();
 
-  for (const row of rows) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
     const routeId = readCsvCell(row, "route_id");
     if (!routeId) {
       continue;
@@ -10734,7 +12747,12 @@ async function loadZoneEncounterCsv(csvPath = ROUTE_ENCOUNTERS_CSV_PATH) {
     if (!encounter) {
       continue;
     }
-    encountersByRouteId.get(routeId).push(encounter);
+    try {
+      const validatedEncounter = assertValidEncounter(encounter, `${csvPath} ligne ${rowIndex + 2}`);
+      encountersByRouteId.get(routeId).push(validatedEncounter);
+    } catch (error) {
+      warnRuntimeDataValidation(`Encounter ignore (${routeId})`, error);
+    }
   }
 
   for (const list of encountersByRouteId.values()) {
@@ -10821,7 +12839,7 @@ async function loadRouteData(routeId = DEFAULT_ROUTE_ID) {
   if (!response.ok) {
     throw new Error("Impossible de charger " + routePath);
   }
-  const routeData = await response.json();
+  const routeData = validateRouteDataPayload(await response.json(), `Route data ${routePath}`);
   if (!Array.isArray(routeData?.encounters)) {
     throw new Error("Aucune liste d'encounters configuree pour " + routeId);
   }
@@ -11003,6 +13021,7 @@ async function loadPokemonDefinitions(routeDataInput) {
     }
   }
 
+  applyPokemonTalentCsvToDefinitions(defsById);
   state.pokemonDefsById = defsById;
 }
 
@@ -11012,6 +13031,7 @@ async function initializeScene() {
   state.deferredSaveDirty = false;
   state.environment.nextUpdateAtMs = 0;
   updateEnvironment(Date.now(), true);
+  initializeWindowsNotificationSystem();
   resetNotificationSystem();
   state.ui.shopTab = [SHOP_TAB_POKEBALLS, SHOP_TAB_COMBAT, SHOP_TAB_EVOLUTIONS].includes(state.ui.shopTab)
     ? state.ui.shopTab
@@ -11042,18 +13062,21 @@ async function initializeScene() {
   setBallConfigState(null);
   setShopItemConfigState(null);
   setZoneEncounterCsvState(null);
+  setPokemonTalentCsvState(null);
   stopBackgroundTicker();
-  hideHoverPopup();
+  closeTeamContextMenu();
+  clearCanvasHoverState();
   closeBoxesModal();
   closeAppearanceModal();
   setMapOpen(false);
   setShopOpen(false);
   try {
     let offlineCatchupMs = 0;
-    const [ballCsvResult, shopItemCsvResult, zoneCsvResult] = await Promise.allSettled([
+    const [ballCsvResult, shopItemCsvResult, zoneCsvResult, talentCsvResult] = await Promise.allSettled([
       loadBallConfigCsv(BALL_CONFIG_CSV_PATH),
       loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),
       loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),
+      loadPokemonTalentCsv(POKEMON_TALENTS_CSV_PATH),
     ]);
 
     if (ballCsvResult.status === "fulfilled") {
@@ -11079,6 +13102,19 @@ async function initializeScene() {
       setZoneEncounterCsvState(null);
       console.warn("Zone CSV indisponible, fallback JSON:", zoneCsvResult.reason?.message || zoneCsvResult.reason);
     }
+
+    if (talentCsvResult.status === "fulfilled") {
+      setPokemonTalentCsvState(talentCsvResult.value);
+      if (Array.isArray(talentCsvResult.value?.unresolvedTalentIds) && talentCsvResult.value.unresolvedTalentIds.length > 0) {
+        console.warn(
+          "Talents sans comportement passif code:",
+          talentCsvResult.value.unresolvedTalentIds.join(", "),
+        );
+      }
+    } else {
+      setPokemonTalentCsvState(null);
+      console.warn("Talent CSV indisponible, fallback JSON:", talentCsvResult.reason?.message || talentCsvResult.reason);
+    }
     state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
     refreshOrderedCatalogRouteIds();
@@ -11090,7 +13126,13 @@ async function initializeScene() {
     const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();
     const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});
     const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;
-    state.routeBackgroundsById = await preloadRouteBackgrounds(state.routeCatalog);
+    const [routeBackgroundsById, typeIconImages] = await Promise.all([
+      preloadRouteBackgrounds(state.routeCatalog),
+      preloadTypeIcons(),
+      preloadSelectedAppearanceAssetsForTeam(),
+    ]);
+    state.routeBackgroundsById = routeBackgroundsById;
+    state.typeIconImages = typeIconImages;
 
     ensureUnlockedRoutesForCurrentCatalog();
     const preferredRouteId = typeof state.saveData.current_route_id === "string" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;
@@ -11194,16 +13236,18 @@ function resetSaveAndRestart() {
   setShopOpen(false);
   closeBoxesModal();
   closeAppearanceModal();
+  closeTeamContextMenu();
   persistSaveData();
   updateHud();
-  hideHoverPopup();
+  clearCanvasHoverState();
   hideStarterModal();
   initializeScene().catch(() => {});
 }
 
 async function toggleFullscreen() {
+  const fullscreenTarget = gameStageEl || canvas;
   if (!document.fullscreenElement) {
-    await canvas.requestFullscreen();
+    await fullscreenTarget.requestFullscreen();
     return;
   }
   await document.exitFullscreen();
@@ -11211,6 +13255,11 @@ async function toggleFullscreen() {
 
 document.addEventListener("keydown", (event) => {
   const key = String(event.key || "").toLowerCase();
+  if (key === "escape" && state.ui.teamContextMenuOpen) {
+    event.preventDefault();
+    closeTeamContextMenu();
+    return;
+  }
   if (key === "escape" && state.ui.tutorialOpen) {
     event.preventDefault();
     closeTutorialModal();
@@ -11253,7 +13302,34 @@ document.addEventListener(
 canvas.addEventListener("mousemove", handleCanvasMouseMove);
 canvas.addEventListener("click", handleCanvasClick);
 canvas.addEventListener("contextmenu", handleCanvasContextMenu);
-canvas.addEventListener("mouseleave", hideHoverPopup);
+canvas.addEventListener("mouseleave", clearCanvasHoverState);
+if (teamContextMenuBoxesButtonEl) {
+  teamContextMenuBoxesButtonEl.addEventListener("click", () => {
+    const slotIndex = clamp(toSafeInt(state.ui.teamContextMenuSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    closeTeamContextMenu();
+    if (slotIndex >= 0) {
+      openBoxesForTeamSlot(slotIndex);
+    }
+  });
+}
+if (teamContextMenuAppearanceButtonEl) {
+  teamContextMenuAppearanceButtonEl.addEventListener("click", () => {
+    const slotIndex = clamp(toSafeInt(state.ui.teamContextMenuSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    closeTeamContextMenu();
+    if (slotIndex >= 0) {
+      openAppearanceForTeamSlot(slotIndex);
+    }
+  });
+}
+document.addEventListener("pointerdown", (event) => {
+  if (!state.ui.teamContextMenuOpen) {
+    return;
+  }
+  if (teamContextMenuEl && teamContextMenuEl.contains(event.target)) {
+    return;
+  }
+  closeTeamContextMenu();
+});
 if (resetSaveButtonEl) {
   resetSaveButtonEl.addEventListener("click", resetSaveAndRestart);
 }
@@ -11265,6 +13341,11 @@ if (mapButtonEl) {
 if (shopButtonEl) {
   shopButtonEl.addEventListener("click", () => {
     toggleShopPanel();
+  });
+}
+if (windowsNotificationButtonEl) {
+  windowsNotificationButtonEl.addEventListener("click", () => {
+    void toggleWindowsNotificationSystemFromButton();
   });
 }
 if (routePrevButtonEl) {
