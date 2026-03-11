@@ -17,13 +17,13 @@
     "speed": 115
   },
   "sprites": {
-    "front": "sprites/243_raikou_transparent_front.png",
-    "front_shiny": "sprites/243_raikou_transparent_front_shiny.png"
+    "front": "sprites/243_raikou_emerald_front.png",
+    "front_shiny": "sprites/243_raikou_emerald_front_shiny.png"
   },
   "sprite_variants": [
     {
       "id": "transparent",
-      "label_fr": "Transparent HOME",
+      "label_fr": "Home",
       "generation": 0,
       "game_key": "home",
       "front": "sprites/243_raikou_transparent_front.png",
@@ -75,7 +75,8 @@
       "generation": 2,
       "game_key": "crystal",
       "front": "sprites/243_raikou_crystal_front.png",
-      "front_shiny": "sprites/243_raikou_crystal_front_shiny.png"
+      "front_shiny": "sprites/243_raikou_crystal_front_shiny.png",
+      "animated": true
     },
     {
       "id": "gold_silver",
@@ -84,7 +85,16 @@
       "game_key": "gold",
       "front": "sprites/243_raikou_gold_silver_front.png",
       "front_shiny": "sprites/243_raikou_gold_silver_front_shiny.png"
+    },
+    {
+      "id": "black_white",
+      "label_fr": "Noir / Blanc (animé)",
+      "generation": 5,
+      "game_key": "black-white",
+      "front": "sprites/243_raikou_black_white_front.gif",
+      "front_shiny": "sprites/243_raikou_black_white_front_shiny.gif",
+      "animated": true
     }
   ],
-  "default_sprite_variant_id": "transparent"
+  "default_sprite_variant_id": "emerald"
 }
