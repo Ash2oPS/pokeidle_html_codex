@@ -4,68 +4,80 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Poke Idle Fan Game</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23111827'/%3E%3Cpath d='M32 4a28 28 0 0 1 28 28H4A28 28 0 0 1 32 4Z' fill='%23d14b4b'/%3E%3Cpath d='M4 32h56' stroke='%23f4f4f5' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23f4f4f5'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23111827'/%3E%3C/svg%3E"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-root">
-      <header class="ui-topbar">
-        <div class="route-nav-wrap">
-          <section class="route-nav" aria-label="Navigation des zones">
-            <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route precedente">
-              <span class="btn-icon" aria-hidden="true">&#8592;</span>
-            </button>
-            <div class="route-nav-center">
-              <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
-              <div id="route-nav-progress" class="route-nav-progress">1/47 zones debloquees</div>
-            </div>
-            <button id="route-next-btn" class="route-nav-btn" type="button" aria-label="Route suivante">
-              <span class="btn-icon" aria-hidden="true">&#8594;</span>
-            </button>
-          </section>
-        </div>
-
-        <aside class="resource-strip">
-          <div id="money-pill" class="resource-pill money-pill">
-            <span class="pill-icon" aria-hidden="true">$</span>
-            <span class="pill-label">Argent</span>
-            <span id="money-value">0</span>
-            <span class="pill-unit">Poke$</span>
-            <span id="money-anim-layer" class="money-anim-layer" aria-hidden="true"></span>
-          </div>
-          <div class="resource-pill">
-            <span class="pill-icon" aria-hidden="true">O</span>
-            <span class="pill-label">Poke Balls</span>
-            <span id="pokeball-value">0</span>
-          </div>
-          <div class="resource-pill save-pill">
-            <span class="pill-icon" aria-hidden="true">S</span>
-            <span class="pill-label">Save</span>
-            <span id="save-backend-value">localStorage</span>
-          </div>
-        </aside>
-      </header>
-
       <main class="app-shell">
         <div id="game-stage" class="game-stage">
           <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
+          <div class="game-overlay">
+            <header class="ui-topbar">
+              <div class="route-nav-wrap">
+                <section class="route-nav" aria-label="Navigation des zones">
+                  <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route precedente">
+                    <span class="btn-icon" aria-hidden="true">&#8592;</span>
+                  </button>
+                  <div class="route-nav-center">
+                    <div class="route-nav-meta">
+                      <span class="route-nav-kicker">Exploration active</span>
+                      <span class="route-nav-hint">F plein ecran</span>
+                    </div>
+                    <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
+                    <div id="route-nav-progress" class="route-nav-progress">1/47 zones debloquees</div>
+                  </div>
+                  <button id="route-next-btn" class="route-nav-btn" type="button" aria-label="Route suivante">
+                    <span class="btn-icon" aria-hidden="true">&#8594;</span>
+                  </button>
+                </section>
+              </div>
+
+              <aside class="resource-strip">
+                <div id="money-pill" class="resource-pill money-pill">
+                  <span class="pill-icon" aria-hidden="true">$</span>
+                  <span class="pill-label">Argent</span>
+                  <span id="money-value">0</span>
+                  <span class="pill-unit">Poke$</span>
+                  <span id="money-anim-layer" class="money-anim-layer" aria-hidden="true"></span>
+                </div>
+                <div class="resource-pill">
+                  <span class="pill-icon" aria-hidden="true">O</span>
+                  <span class="pill-label">Poke Balls</span>
+                  <span id="pokeball-value">0</span>
+                </div>
+                <div class="resource-pill save-pill">
+                  <span class="pill-icon" aria-hidden="true">S</span>
+                  <span class="pill-label">Save</span>
+                  <span id="save-backend-value">localStorage</span>
+                </div>
+              </aside>
+            </header>
+
+            <footer class="action-dock">
+              <button id="map-btn" class="map-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">M</span>
+                <span class="btn-label">Map</span>
+              </button>
+              <button id="shop-btn" class="shop-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">B</span>
+                <span class="btn-label">Shop</span>
+              </button>
+              <button id="windows-notification-btn" class="shop-btn action-btn" type="button" aria-live="polite">
+                <span class="btn-icon" aria-hidden="true">N</span>
+                <span id="windows-notification-btn-label" class="btn-label">Notifs Windows</span>
+              </button>
+              <button id="reset-save-btn" class="reset-save-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">X</span>
+                <span class="btn-label">Supprimer la save</span>
+              </button>
+            </footer>
+          </div>
         </div>
       </main>
-
-      <footer class="action-dock">
-        <button id="map-btn" class="map-btn action-btn" type="button">
-          <span class="btn-icon" aria-hidden="true">M</span>
-          <span class="btn-label">Map</span>
-        </button>
-        <button id="shop-btn" class="shop-btn action-btn" type="button">
-          <span class="btn-icon" aria-hidden="true">B</span>
-          <span class="btn-label">Shop</span>
-        </button>
-        <button id="reset-save-btn" class="reset-save-btn action-btn" type="button">
-          <span class="btn-icon" aria-hidden="true">X</span>
-          <span class="btn-label">Supprimer la save</span>
-        </button>
-      </footer>
-
     </div>
 
     <section id="map-modal" class="map-modal hidden" role="dialog" aria-modal="true" aria-label="Carte de Kanto">
@@ -138,6 +150,7 @@
           <div>
             <h2 class="boxes-title">Boites</h2>
             <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pokemon pour remplacer ton slot d'equipe.</p>
+            <p id="boxes-shiny-counter" class="boxes-shiny-counter">Captures shiny (global): 0</p>
           </div>
           <button id="boxes-close-btn" class="boxes-close-btn" type="button">Fermer</button>
         </div>
@@ -216,8 +229,16 @@
       </div>
     </div>
     <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
+    <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pokemon">
+      <div id="team-context-menu-title" class="team-context-menu-title">Pokemon</div>
+      <button id="team-context-menu-boxes" class="team-context-menu-btn" type="button" role="menuitem">
+        Echanger avec la boite
+      </button>
+      <button id="team-context-menu-appearance" class="team-context-menu-btn" type="button" role="menuitem">
+        Changer l'apparence
+      </button>
+    </div>
     <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
-    <script src="version.js"></script>
     <script type="module" src="game.js"></script>
   </body>
 </html>

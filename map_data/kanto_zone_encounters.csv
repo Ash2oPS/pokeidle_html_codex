@@ -1,4 +1,4 @@
-route_id,route_name_fr,zone_type,combat_enabled,pokemon_id,pokemon_name_en,pokemon_name_fr,spawn_weight,min_level,max_level,methods
+﻿route_id,route_name_fr,zone_type,combat_enabled,pokemon_id,pokemon_name_en,pokemon_name_fr,spawn_weight,min_level,max_level,methods
 kanto_city_pallet_town,Bourg Palette (Kanto),town,false,,,,,,,
 kanto_route_1,Route 1 (Kanto),route,true,16,pidgey,Roucool,50,2,5,walk
 kanto_route_1,Route 1 (Kanto),route,true,19,rattata,Rattata,50,2,4,walk
