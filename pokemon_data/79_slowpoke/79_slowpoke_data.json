@@ -17,11 +17,6 @@
           "evolution_type": "level-up",
           "trigger": "level-up",
           "min_level": 37
-        },
-        {
-          "evolution_type": "item",
-          "trigger": "use-item",
-          "item": "galarica-cuff"
         }
       ]
     },

@@ -2117,3 +2117,390 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 ## Validation (ultra shiny tuning)
 - `node --check game.js`: PASS.
 - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (start crash fix)
+- Crash root cause fixed in this turn (see git changes in lib/vendor/version/index).
+- Missing folders restored from commit 3b2913b7: lib/*, vendor/*, assets/type-icons/*.
+- Fixed version bootstrap mismatch: version.js now exports POKEIDLE_APP_VERSION and mirrors to window.
+- Removed legacy non-module version.js script include from index.html; game.js now consumes version via ESM import only.
+- Added icon link in index.html to reduce implicit favicon 404 noise in startup checks.
+- Validation: node --check (version.js, game.js, lib modules) PASS; run_playwright_check.ps1 PASS (mode=ready); run_local_game_with_save.ps1 PASS.
+
+## Additional progress (ultra shiny outline opacity fix)
+- Updated ultra shiny sprite outline to render as a true white dilation ring at full opacity (alpha 1).
+- Outline pass now renders before sprite draw, with stronger pixel offsets for higher visibility.
+- Validation: node --check game.js PASS; Playwright route/combat capture PASS.
+- Artifacts: output/ultra-outline-route1-visible.png, output/ultra-outline-route1-visible.state.json, output/ultra-outline-route1-visible.errors.json ([]).
+
+## Additional progress (ultra outline min clamp fix)
+- Removed forced minimum outline width in drawUltraShinyOutline (0 now disables outline).
+- Switched to a thin 8-direction offset outline so small values remain visually small.
+- Set default ULTRA_SHINY_OUTLINE_PX to 1.2.
+- Mobile validation artifact: output/ultra-outline-mobile-thin.png.
+
+## Additional progress (ultra shiny shader lightweight optimization)
+- Reworked ultra shiny outline render path to use cached precomputed textures (one draw call per frame instead of multi-pass per-frame tint redraws).
+- Added bounded cache: ultraShinyOutlineCache (max 220 entries, FIFO trim).
+- Removed heavy per-frame outline composition loops from drawUltraShinyOutline.
+- Kept outline width fully controllable (0 disables).
+- Validation: node --check game.js PASS; run_playwright_check.ps1 PASS; mobile combat capture PASS (errors=[]).
+## Additional progress (mobile lag vs displayed FPS)
+- Identified mismatch: overlay FPS was tied to RAF cadence instead of actual render cadence, so mobile could feel laggy while showing high FPS.
+- Added `renderFrameMsEma` tracking and switched FPS overlay to render-based value.
+- Added telemetry in `render_game_to_text`: `render_frame_ms_estimate`, `render_fps_estimate`.
+- Disabled global debug ultra shiny force by default (`DEBUG_FORCE_ULTRA_SHINY_ALL_POKEMON = false`) to avoid shader cost on every sprite.
+- Reduced shiny sparkle cost on low quality profiles (fewer particles + no radial gradient on low tiers).
+- Added high-end mobile detection so strong phones (e.g. Pixel-class) are not always clamped to low/very_low on startup.
+- Validation: `node --check game.js` PASS; `run_playwright_check.ps1` PASS; `run_playwright_long.ps1` PASS.
+## Additional progress (shiny/ultra family unlocks + box badges)
+- Disabled temporary debug force for ultra shiny (`DEBUG_FORCE_ULTRA_SHINY_ALL_POKEMON=false`).
+- Spawn rates updated:
+  - shiny wild encounter: 1/1024;
+  - ultra shiny wild encounter: 1/4096 (independent direct roll).
+- Added ultra shiny capture counter to species data: `captured_ultra_shiny` (+ encountered/defeated ultra counters for consistency).
+- Capture flow now increments ultra counters when applicable while keeping shiny counters for shiny+ultra totals.
+- Appearance unlock logic now works on full evolution family:
+  - shiny mode unlock if any family member has a shiny capture;
+  - ultra shiny mode unlock if any family member has an ultra shiny capture.
+- Added `appearance_ultra_shiny_mode` state and UI toggle in appearance modal.
+  - Enabling ultra shiny forces shiny mode ON.
+  - Disabling shiny mode forces ultra shiny OFF.
+- Added tiny corner badges in boxes cards:
+  - white sparkle when shiny mode is unlocked for that family;
+  - rainbow sparkle when ultra shiny mode is unlocked for that family.
+- Added debug payload fields for appearance family unlocks (`appearance_shiny_unlocked_family`, `appearance_ultra_shiny_unlocked_family`).
+- Validation: `node --check game.js` PASS, `run_playwright_check.ps1` PASS.
+
+## Additional progress (team swap lock + city team display + 60s timer)
+- Updated route defeat timer default to 60 seconds (`ROUTE_DEFEAT_TIMER_MS = 60000`).
+- Updated Route 1 tutorial copy:
+  - team swap guidance now explains boxes are available in towns or after unlocking the next zone;
+  - progression copy now states `1 minute max par combat`.
+- Added team-swap access gate based on current route unlock state:
+  - new helpers: `getTeamBoxesAccessState` and `getTeamBoxesLockedMessage`;
+  - boxes are blocked whenever a timed KO streak is active (`timerEnabled === true`), i.e. during the active route unlock challenge;
+  - boxes remain available in peaceful cities/towns and in combat zones whose next zone is already unlocked.
+- Applied the gate in all relevant paths:
+  - direct left-click team -> boxes;
+  - team context menu boxes button (disabled + label update when locked).
+- Updated render/input behavior for peaceful towns:
+  - team is now rendered even when combat is disabled (no attacks/projectiles because no active battle);
+  - team hover/click/context-menu interactions remain available in peaceful zones.
+
+## Validation (team swap lock turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- City visual + state check (`output/web-game-city-team`):
+  - screenshot confirms team visible in town;
+  - state confirms `route_combat_enabled: false`, `enemy: null`, `attack_timer_ms: null`.
+- City boxes check (`output/web-game-city-boxes`):
+  - state confirms `boxes_open: true` after team click in town.
+- Route 1 lock check (`output/route1-lock-check-summary2.json`, `output/route1-lock-check-fullpage2.png`):
+  - state confirms `route_defeat_timer_active: true` and `route_defeat_timer_duration_ms: 60000`;
+  - team click during timed streak does not open boxes (`boxes_open: false`);
+  - notification stack shows: `Serie chrono active (0/20 KO). Debloque Jadielle (Kanto) pour echanger la team.`
+
+## Additional progress (shop evolutions + cable link)
+- Added new evolution shop items at 100000 Poke$ in `item_data/shop_items.csv`:
+  - Couronne Galanoa (`galarica_wreath` / `galarica-wreath`)
+  - Pierre Glace (`ice_stone` / `ice-stone`)
+  - Pierre Lune (`moon_stone` / `moon-stone`)
+  - Pierre Soleil (`sun_stone` / `sun-stone`)
+  - Pierre Foudre (`thunder_stone` / `thunder-stone`)
+  - Cable Link (`cable_link` / `cable-link`)
+- Fixed requested species evolution rules:
+  - Ramoloss -> Flagadoss: level 37 only (removed galarica-cuff item method).
+  - Sabelette -> Sablaireau: level 22 only (removed ice-stone method).
+  - Goupix -> Feunard: fire-stone only (removed ice-stone method).
+- Extended evolution-item compatibility logic in `game.js`:
+  - `trade` methods can now be unlocked via evolution shop items;
+  - `Cable Link` unlocks pure trade evolutions (no held item), e.g. Spectrum -> Ectoplasma.
+- Updated evolution shop subtitle from "Pierres d'evolution" to "Objets d'evolution".
+
+## Validation (shop evolutions + cable link turn)
+- `node --check game.js`: PASS.
+- CSV parsing validation (`parseCsvObjects` on `item_data/shop_items.csv`): PASS (10 rows, 0 parse errors).
+- `run_playwright_check.ps1`: PASS.
+- `output/web-game-poke/state-2.json` confirms:
+  - `shop_items_csv_loaded: true`;
+  - new shop stock keys present (`galarica_wreath`, `ice_stone`, `moon_stone`, `sun_stone`, `thunder_stone`, `cable_link`);
+  - new `shop_item_configs` entries loaded.
+- Data spot-check script confirms:
+  - `ice-stone` now maps to Évoli -> Givrali only;
+  - `thunder-stone` / `moon-stone` / `sun-stone` / `galarica-wreath` mappings present;
+  - trade-without-item pairs detected for Cable Link candidates: Gravalanch, Kadabra, Machopeur, Spectrum lines.
+
+## Additional progress (evolution capture unlock fix)
+- Fixed evolution capture unlock rules in `game.js`:
+  - Capturing an evolution species no longer unlocks that evolution entity, even on repeated captures.
+  - Capturing an evolution species now only unlocks the root/base stage of that family if it is still locked.
+  - Evolution-species captures still increment capture stats as before.
+- Added ownership capture invariant helper:
+  - New `ensureOwnedRecordHasAtLeastOneCapture(record)` enforces: if an entity is unlocked/owned, total captures must be >= 1.
+  - Applied during `ensurePokemonEntityUnlocked(...)` so unlock paths (including evolution unlock) cannot leave owned species at 0 captures.
+  - Applied in unlock-state reconciliation to repair legacy unlocked entities with invalid capture totals.
+- Tightened legacy reconcile behavior:
+  - `reconcileEntityUnlockStates()` no longer auto-unlocks evolution species from repeated captures.
+  - It still auto-unlocks non-evolution species if they have capture data.
+
+## Validation (post-fix)
+- `node --check game.js`: PASS
+- `./run_playwright_check.ps1`: PASS
+- Reviewed latest screenshots:
+  - `output/web-game-poke/shot-0.png`
+  - `output/web-game-poke/shot-1.png`
+  - `output/web-game-poke/shot-2.png`
+- Reviewed latest text states:
+  - `output/web-game-poke/state-0.json`
+  - `output/web-game-poke/state-1.json`
+  - `output/web-game-poke/state-2.json`
+- No new Playwright console/page error files generated in this run.
+
+## TODO / Suggestions
+- Add an automated regression scenario (save fixture + scripted flow) that validates:
+  1) capture of evolution species does not unlock that species,
+  2) base/root species is unlocked if missing,
+  3) unlocking by evolution guarantees capture total >= 1 for the unlocked target.
+
+## Additional progress (true Kanto map integration in map menu)
+- Integrated the user-provided reference map asset at `assets/maps/kanto_map_reference_user.png`.
+- Updated map modal image source to use the new reference map.
+- Added centralized `MAP_MARKER_OVERRIDES_BY_ROUTE_ID` in `game.js` so all route/city/dungeon markers align with the new map layout.
+- Updated `getRouteMapMarker` to prioritize override coordinates, then fallback to JSON markers.
+- Added robust marker collision resolution (`resolveMapMarkerLayout`) to keep overlapping zones individually clickable.
+- Added per-zone marker typing in map render (`is-route`, `is-town`, `is-dungeon`) and improved marker accessibility labels.
+- Forced map image consistency via `applyMapReferenceImage()` when opening/rendering the map modal.
+- Refined map marker CSS at end-of-file to preserve center alignment on hover/focus and improve click target clarity.
+- Updated metadata/source references:
+  - `map_data/kanto_frlg_zones.json` now points to `assets/maps/kanto_map_reference_user.png`.
+  - `scripts_generate_kanto_zones_frlg.mjs` now references the new map path and avoids downloading/replacing a manual map when no title is configured.
+
+## Validation (map integration)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- `develop-web-game` client run with map open click: PASS (`map_open: true` in `output/map-modal-open/state-0.json`).
+- Full-page Playwright functional validation:
+  - map modal opens on `#map-btn` and renders the new reference map (`output/map-modal-functional/map-open-fullpage.png`),
+  - clicking marker `kanto_route_1` closes modal and changes route.
+  - result snapshot: `route_id: kanto_route_1`, `map_open: false` (`output/map-modal-functional/state-after-route-click.json`).
+
+## TODO / Next
+- Optional: tune a few dungeon marker offsets (Diglett/Cerulean Cave/Safari) if the user wants stricter icon-to-icon visual matching.
+
+## Additional progress (map placement rework v2: POI alignment + marker size)
+- Reworked map marker placement logic to align to actual displayed image bounds (not the full `.map-stage` container):
+  - added `mapStageEl` reference,
+  - added `syncMapMarkerLayerBounds()` to set marker layer left/top/width/height from `getBoundingClientRect()` deltas,
+  - invoked this sync when opening/rendering map, on map image load, and on window/fullscreen resize.
+- Removed global marker anti-overlap spreading that pushed many markers away from POIs.
+- Kept explicit per-zone Kanto coordinates and render markers directly at those POI positions.
+- Refined map marker visual size strategy for clarity:
+  - large click hitbox (`18x18`) retained for usability,
+  - tiny inner visual dot via `::before` per type (`route`, `town`, `dungeon`) to reduce clutter,
+  - current/unlocked/locked styles preserved with lighter glow.
+- Updated `.map-markers` base CSS to avoid `inset: 0` stretching conflict and allow JS-driven bounds.
+
+## Validation (placement rework v2)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Full-page checks (desktop + mobile):
+  - `output/map-placement-rework-v2/map-open-desktop.png`
+  - `output/map-placement-rework-v2/map-open-mobile.png`
+  - visual inspection: markers now sit on map POIs with much smaller footprint.
+- Functional click checks (desktop + mobile):
+  - `output/map-placement-rework-v2/state-after-click-desktop.json`: `route_id = kanto_route_1`, `map_open = false`.
+  - `output/map-placement-rework-v2/state-after-click-mobile.json`: `route_id = kanto_route_1`, `map_open = false`.
+
+## Additional progress (background simulation budget clamp to prevent pokeball over-consumption)
+- Root cause identified: hidden/background realtime ticks could process more simulated time than real elapsed time when browser timer callbacks were throttled or bursty.
+- Fix in `tickSimulationFromRealtime(...)`: for hidden/idle realtime ticks, simulation budget is now capped to elapsed wall-clock time (`min(configuredBudgetMs, elapsedMs)`), with a safe fallback of one background interval when elapsed is unavailable.
+- Result: hidden/background progression no longer runs faster than realtime because of scheduling jitter, which prevents unexpected mass Pokeball drain.
+
+## Validation (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual review of latest screenshot: `output/web-game-poke/shot-2.png`.
+
+## Additional progress (level scaling overhaul + Route 1 rebalance + compact numbers)
+- Reworked stat growth curve in `game.js` while preserving species base stats from data:
+  - added `getLevelProgressionMultiplier(level)` with a much steeper progression,
+  - rewrote `computeStatsAtLevel(...)` to scale all core stats aggressively by level.
+- Reworked combat HP scaling:
+  - updated `computeBattleHpMax(...)` to remove the old low cap behavior and follow the new growth,
+  - calibrated so level ~40 can reach ~1M HP depending on species base HP (e.g. base HP 45 team-side ~1.01M).
+- Reworked damage progression to match new HP values:
+  - updated `computeDamage(...)` with a progression multiplier (`Math.pow(levelMultiplier, 0.8)`) so fights remain paced despite huge HP pools.
+- Removed Route 1 x5 damage behavior:
+  - removed Route 1 power multiplier path (`battlePowerMultiplier` flow).
+- Added Route 1 forced level:
+  - `pickEncounterLevel(...)` now returns level 1 when active route is `kanto_route_1`.
+- Added dynamic compact number formatting (`K/M/B/T/Qa`):
+  - new `formatCompactNumber(...)` helper,
+  - used for enemy HP label, floating damage text, money HUD/floater, XP gain floaters, hover counters, and box info stats/counters.
+  - fixed edge case so values around 1M display as `1M` instead of `1000K`.
+
+## Validation (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (no new console/page error file generated).
+- Targeted Playwright scenario (starter -> Route 1 -> combat) with skill client:
+  - artifacts: `output/web-game-route1-scale/shot-0.png..shot-2.png` + `state-0.json..state-2.json`.
+  - verified in text state: `route_id = kanto_route_1`, `enemy.level = 1`.
+  - verified visual combat capture: Route 1 battle shows HP and floating damage rendering correctly (`output/web-game-route1-scale/shot-0.png`, `shot-2.png`).
+- Quick formula sanity checks (scripted):
+  - level 40 HP examples now in expected range (team-side):
+    - base HP 45 -> ~1,011,278
+    - base HP 60 -> ~1,347,654
+
+## Additional progress (shop UX pass: wallet visibility + affordability feedback)
+- Improved Shop modal structure in `index.html`:
+  - Added a dedicated wallet strip in the shop modal header area with live values:
+    - `Pokedollars` (`#shop-wallet-money-value`)
+    - `Poke Balls` (`#shop-wallet-pokeballs-value`)
+    - `Achat rapide` quantity (`#shop-wallet-qty-value`)
+- Improved Shop runtime wiring in `game.js`:
+  - Added new DOM bindings for the wallet strip fields.
+  - Added `formatPokeDollarValue(...)` and `refreshShopWalletPanel(...)`.
+  - Shop wallet now updates live from HUD updates and when rendering/changing shop tabs.
+  - Quantity pill auto-hides outside `Poke Balls` tab.
+- Improved per-item purchase UX in `game.js` (`createShopItemCard`):
+  - Added item affordability state classes (`is-affordable`, `is-expensive`, `is-coming-soon`).
+  - Added explicit missing-money feedback when purchase is not affordable ("Manque: ... Poke$").
+- Improved Shop visual readability in `styles.css`:
+  - Added new `shop-wallet-*` styles for the modal wallet strip.
+  - Added card affordance visuals (affordable/expensive/coming-soon states).
+  - Added stronger price chip styling for quicker price scanning.
+  - Added responsive wallet layout behavior for mobile.
+
+## Validation (shop UX pass)
+- `node --check game.js`: PASS.
+- develop-web-game Playwright client run with shop click:
+  - command used with `--click-selector "#shop-btn"`
+  - artifacts: `output/shop-ux-pass/shot-0.png`, `output/shop-ux-pass/shot-1.png`, `output/shop-ux-pass/state-0.json`, `output/shop-ux-pass/state-1.json`
+  - state confirms `shop_open: true` in `state-1.json`.
+- Additional full-page Playwright verification (manual script, same repo):
+  - screenshot: `output/shop-ux-pass/shop-fullpage.png`
+  - DOM state dump: `output/shop-ux-pass/shop-fullpage-state.json`
+  - confirms:
+    - `shopModalVisible: true`
+    - `walletMoneyText: "0 Poke$"`
+    - `walletPokeballsText: "0"`
+    - `walletQtyText: "x1"`
+    - `cardCount: 3`
+- Regression smoke:
+  - `./run_playwright_check.ps1`: PASS.
+
+## Additional progress (mobile responsiveness overhaul for Shop)
+- Reworked Shop mobile responsiveness with a dedicated final CSS override layer in `styles.css`.
+- Main mobile UX changes:
+  - modal now uses a stable full-height layout with explicit rows (`header`, `wallet`, `tabs`, `qty`, scrollable grid);
+  - stronger touch targets for tabs, qty presets, and buy buttons;
+  - improved typography scaling (`clamp`) for title/subtitle/prices/items;
+  - card layout rebalanced for small screens (sprite + content + footer actions) with cleaner spacing;
+  - quantity panel and custom input now scale correctly and stay usable on narrow widths;
+  - safe-area bottom padding added in shop scroll zone for phone browser UI overlap.
+- Layering/usability fix:
+  - raised `.shop-modal` z-index to `120` so the shop is no longer obstructed by notification stack overlays on mobile.
+
+## Validation (mobile responsiveness overhaul)
+- develop-web-game client run (shop open flow):
+  - artifacts: `output/shop-mobile-responsive/shot-0.png`, `shot-1.png`, `state-0.json`, `state-1.json`
+  - confirms shop still opens and state export remains valid.
+- Full-page mobile Playwright verification (412x915 viewport):
+  - screenshots:
+    - `output/shop-mobile-responsive/shop-mobile-fullpage-v2.png`
+    - `output/shop-mobile-responsive/shop-mobile-scrolled-v2.png`
+  - DOM state dump: `output/shop-mobile-responsive/shop-mobile-dom-state-v2.json`
+  - confirms:
+    - `shopOpen: true`
+    - `walletMoneyText: "0 Poke$"`
+    - `shopModalZIndex: 120` (above notification stack `96`).
+- Regression smoke:
+  - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (shop mobile compact scale pass)
+- Applied a second mobile pass to reduce global Shop scale and free more vertical space for the Pokeball list/selection area.
+- Updated mobile breakpoints in `styles.css` (`@media max-width: 900/760/430`) to compact:
+  - modal paddings/gaps and header height,
+  - subtitle/close button sizing,
+  - wallet strip footprint,
+  - tabs and quantity controls,
+  - custom quantity row,
+  - product cards, media blocks, stock text, and action buttons.
+- Important UX tweak:
+  - on mobile, wallet stays on a single row (3 columns) to avoid losing vertical space.
+- Kept modal overlay priority fix:
+  - `.shop-modal` remains above notifications (`z-index: 120`).
+
+## Validation (compact scale pass)
+- `run_playwright_check.ps1`: PASS.
+- develop-web-game client run with shop click:
+  - artifacts: `output/shop-mobile-responsive/state-1.json` (`shop_open: true`), no error file.
+- Full-page mobile check (412x915):
+  - screenshots:
+    - `output/shop-mobile-responsive/shop-mobile-fullpage-v3.png`
+    - `output/shop-mobile-responsive/shop-mobile-scrolled-v3.png`
+  - layout state dump: `output/shop-mobile-responsive/shop-mobile-dom-state-v3.json`
+  - key metrics:
+    - `shop-grid` height: 431px
+    - first item card height: 160px
+  - confirms denser top controls and significantly larger visible selection/list area.
+
+## Additional progress (team rename feature + mobile rename UI)
+- Added a new `Renommer` action in the team context menu (`index.html`, `game.js`).
+- Added a dedicated rename modal (`#rename-modal`) with mobile-friendly input UX:
+  - cancel button, reset-to-original button, validate button,
+  - character count (`0/24`) and hint text,
+  - responsive layout/touch sizing for phone viewports.
+- Implemented nickname persistence in save entities (`pokemon_entities`):
+  - `normalizePokemonEntityRecord(...)` now reads/writes `nickname`,
+  - `createPokemonEntityRecord(...)` initializes `nickname: ""`.
+- Added nickname helpers in `game.js`:
+  - `sanitizePokemonNickname(...)`, `getPokemonNicknameById(...)`, `getPokemonDisplayNameForOwnedEntity(...)`.
+- Team display behavior:
+  - ally team members now prefer nickname over species name,
+  - enemies keep their species name (no nickname substitution on enemy side).
+- Boxes display behavior:
+  - box cards now show custom name as main line,
+  - when custom name exists, original species name is shown in a smaller line below,
+  - info panel header mirrors this (custom name + small original name).
+- UI integration:
+  - rename modal closes correctly with `Esc`, backdrop click, and modal transitions,
+  - rename flow integrated with existing modal locking (`isCanvasBattleInteractionBlocked`).
+
+## Validation (rename feature)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- develop-web-game client run with starter click:
+  - artifacts: `output/rename-check/shot-0.png..shot-2.png`, `state-0.json..state-2.json`.
+- Targeted Playwright validation (custom script, phone viewport):
+  - rename modal open screenshot: `output/rename-check/rename-modal-open.png`
+  - post-rename screenshot: `output/rename-check/rename-after-save.png`
+  - reload persistence screenshot: `output/rename-check/rename-after-reload.png`
+  - flow log confirms save+reload persistence (`team[0].name_fr = "Testchu"`): `output/rename-check/rename-debug.log`
+- Targeted boxes rendering validation (custom script):
+  - screenshot: `output/rename-check/rename-boxes.png`
+  - log confirms box lines:
+    - custom main name: `Testchu`
+    - small original name: `Bulbizarre`
+    - file: `output/rename-check/rename-boxes.log`
+
+## Additional progress (combat team UI scale pass)
+- Increased ally team HUD card scale in `computeLayout()` specifically for desktop/large viewports:
+  - higher `teamHudScale` on non-phone profiles,
+  - larger desktop clamp caps for `teamHudWidth`/`teamHudHeight`,
+  - slightly taller team type chip lane.
+- Increased ally card readability in `drawBattleUiOverlay()`:
+  - desktop `nameFontSize` and `levelFontSize` increased,
+  - desktop XP bar thickness increased.
+- Kept phone sizing unchanged to avoid oversized mobile overlays.
+
+## Validation (combat team UI scale pass)
+- `node --check game.js`: PASS.
+- develop-web-game client run (starter click path):
+  - artifacts: `output/team-ui-scale-check-client/shot-0.png..shot-1.png`, `state-0.json..state-1.json`
+  - no Playwright error file generated.
+- Targeted Playwright flow (starter -> route next -> close tutorial -> fight) for desktop + mobile:
+  - artifacts: `output/team-ui-scale-debug/desktop_03_after_wait_loop.png`, `mobile_03_after_wait_loop.png`
+  - state confirms combat active with ally + enemy present on both profiles.
+- Regression smoke:
+  - `run_playwright_check.ps1`: PASS.

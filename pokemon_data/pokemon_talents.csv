@@ -1,4 +1,4 @@
-pokemon_id,pokemon_name_fr,pokemon_name_en,talent_id,talent_name_fr,talent_name_en,talent_description_fr
+﻿pokemon_id,pokemon_name_fr,pokemon_name_en,talent_id,talent_name_fr,talent_name_en,talent_description_fr
 1,Bulbizarre,bulbasaur,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 2,Herbizarre,ivysaur,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 3,Florizarre,venusaur,NONE,Aucun,NONE,Aucun effet passif pour le moment.
@@ -127,7 +127,7 @@ pokemon_id,pokemon_name_fr,pokemon_name_en,talent_id,talent_name_fr,talent_name_
 126,Magmar,magmar,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 127,Scarabrute,pinsir,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 128,Tauros,tauros,NONE,Aucun,NONE,Aucun effet passif pour le moment.
-129,Magicarpe,magikarp,LOSER,Perdant,Loser,N'attaque jamais.
+129,Magicarpe,magikarp,LOSER,Loser,Loser,N'attaque jamais.
 130,Léviator,gyarados,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 131,Lokhlass,lapras,NONE,Aucun,NONE,Aucun effet passif pour le moment.
 132,Métamorph,ditto,NONE,Aucun,NONE,Aucun effet passif pour le moment.

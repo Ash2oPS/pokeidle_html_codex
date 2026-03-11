@@ -5,7 +5,7 @@
     "leafgreen"
   ],
   "unlock_target_default": 20,
-  "map_image": "assets/maps/kanto_map_manual.png",
+  "map_image": "assets/maps/kanto_map_reference_user.png",
   "generated_at_utc": "2026-03-07T17:06:59.473Z",
   "zone_order": [
     "kanto_city_pallet_town",

@@ -93,7 +93,7 @@
           <img
             id="map-image"
             class="map-image"
-            src="assets/maps/kanto_map_manual.png"
+            src="assets/maps/kanto_map_reference_user.png"
             alt="Carte de Kanto"
             draggable="false"
           />
@@ -110,6 +110,21 @@
             <p id="shop-modal-subtitle" class="shop-modal-subtitle">Achete des objets utiles pour progresser.</p>
           </div>
           <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
+        </div>
+
+        <div id="shop-wallet-panel" class="shop-wallet-panel" aria-live="polite">
+          <div class="shop-wallet-item">
+            <span class="shop-wallet-label">Pokedollars</span>
+            <span id="shop-wallet-money-value" class="shop-wallet-value">0 Poke$</span>
+          </div>
+          <div class="shop-wallet-item">
+            <span class="shop-wallet-label">Poke Balls</span>
+            <span id="shop-wallet-pokeballs-value" class="shop-wallet-value">0</span>
+          </div>
+          <div id="shop-wallet-qty-item" class="shop-wallet-item">
+            <span class="shop-wallet-label">Achat rapide</span>
+            <span id="shop-wallet-qty-value" class="shop-wallet-value">x1</span>
+          </div>
         </div>
 
         <div class="shop-tabs" role="tablist" aria-label="Onglets du shop">
@@ -141,6 +156,27 @@
         </div>
 
         <div id="shop-grid" class="shop-grid"></div>
+      </div>
+    </section>
+
+    <section
+      id="evolution-item-modal"
+      class="evolution-item-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choix de l'evolution"
+    >
+      <div class="evolution-item-card">
+        <div class="evolution-item-header">
+          <div>
+            <h2 id="evolution-item-title" class="evolution-item-title">Objet d'evolution</h2>
+            <p id="evolution-item-subtitle" class="evolution-item-subtitle">
+              Choisis un Pokemon compatible.
+            </p>
+          </div>
+          <button id="evolution-item-close-btn" class="evolution-item-close-btn" type="button">Annuler</button>
+        </div>
+        <div id="evolution-item-list" class="evolution-item-list"></div>
       </div>
     </section>
 
@@ -179,11 +215,20 @@
           <button id="appearance-close-btn" class="appearance-close-btn" type="button">Fermer</button>
         </div>
         <div class="appearance-controls">
-          <button id="appearance-shiny-toggle-btn" class="appearance-shiny-toggle-btn" type="button">
-            Mode shiny: OFF
-          </button>
+          <div class="appearance-toggle-group">
+            <button id="appearance-shiny-toggle-btn" class="appearance-shiny-toggle-btn" type="button">
+              Mode shiny: OFF
+            </button>
+            <button
+              id="appearance-ultra-shiny-toggle-btn"
+              class="appearance-shiny-toggle-btn appearance-ultra-shiny-toggle-btn"
+              type="button"
+            >
+              Mode ultra shiny: OFF
+            </button>
+          </div>
           <span id="appearance-shiny-status" class="appearance-shiny-status">
-            Capture un shiny de cette espece pour debloquer ce mode.
+            Capture un shiny de la famille evolutive pour debloquer ce mode.
           </span>
         </div>
         <div id="appearance-grid" class="appearance-grid"></div>
@@ -231,6 +276,9 @@
     <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
     <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pokemon">
       <div id="team-context-menu-title" class="team-context-menu-title">Pokemon</div>
+      <button id="team-context-menu-rename" class="team-context-menu-btn" type="button" role="menuitem">
+        Renommer
+      </button>
       <button id="team-context-menu-boxes" class="team-context-menu-btn" type="button" role="menuitem">
         Echanger avec la boite
       </button>
@@ -238,6 +286,46 @@
         Changer l'apparence
       </button>
     </div>
+    <section
+      id="rename-modal"
+      class="rename-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rename-title"
+      aria-describedby="rename-subtitle"
+    >
+      <div class="rename-card">
+        <div class="rename-header">
+          <div>
+            <h2 id="rename-title" class="rename-title">Renommer</h2>
+            <p id="rename-subtitle" class="rename-subtitle">Choisis un surnom pour ton Pokemon.</p>
+          </div>
+          <button id="rename-close-btn" class="rename-close-btn" type="button">Annuler</button>
+        </div>
+        <form id="rename-form" class="rename-form">
+          <label for="rename-input" class="rename-label">Surnom</label>
+          <input
+            id="rename-input"
+            class="rename-input"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            maxlength="24"
+            placeholder="Nom du Pokemon"
+          />
+          <div class="rename-meta">
+            <span id="rename-char-count" class="rename-char-count">0/24</span>
+            <span class="rename-hint">Laisse vide pour revenir au nom d'origine.</span>
+          </div>
+          <div class="rename-actions">
+            <button id="rename-reset-btn" class="rename-action-btn is-secondary" type="button">
+              Nom d'origine
+            </button>
+            <button id="rename-save-btn" class="rename-action-btn" type="submit">Valider</button>
+          </div>
+        </form>
+      </div>
+    </section>
     <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
     <script type="module" src="game.js"></script>
   </body>

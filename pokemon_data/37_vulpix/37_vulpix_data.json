@@ -16,11 +16,6 @@
           "evolution_type": "item",
           "trigger": "use-item",
           "item": "fire-stone"
-        },
-        {
-          "evolution_type": "item",
-          "trigger": "use-item",
-          "item": "ice-stone"
         }
       ]
     }

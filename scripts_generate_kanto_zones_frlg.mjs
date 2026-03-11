@@ -11,8 +11,8 @@ const DEFAULT_UNLOCK_DEFEATS = 20;
 const NOW_ISO = new Date().toISOString();
 
 const MAP_IMAGE = {
-  title: "Kanto_-_Gen_I_manual.png",
-  outPath: "assets/maps/kanto_map_manual.png",
+  title: null,
+  outPath: "assets/maps/kanto_map_reference_user.png",
 };
 
 function routeLocationSlug(routeNumber) {
@@ -467,10 +467,14 @@ async function generateZones() {
   }
 
   const mapOutPath = path.join(ROOT, MAP_IMAGE.outPath);
-  try {
-    await downloadBulbagardenImage(MAP_IMAGE.title, mapOutPath);
-  } catch (error) {
-    console.warn(`[warn] map image ${MAP_IMAGE.title}: ${error?.message || error}`);
+  if (MAP_IMAGE.title) {
+    try {
+      await downloadBulbagardenImage(MAP_IMAGE.title, mapOutPath);
+    } catch (error) {
+      console.warn(`[warn] map image ${MAP_IMAGE.title}: ${error?.message || error}`);
+    }
+  } else if (!fs.existsSync(mapOutPath)) {
+    console.warn(`[warn] map image missing at ${MAP_IMAGE.outPath}; place the reference map manually before publishing.`);
   }
 
   const catalog = {
