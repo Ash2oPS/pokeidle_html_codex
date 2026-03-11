@@ -239,6 +239,10 @@ const MAX_LEVEL = 100;
 const SHOP_TAB_POKEBALLS = "pokeballs";
 const SHOP_TAB_COMBAT = "combat";
 const SHOP_TAB_EVOLUTIONS = "evolutions";
+const SHOP_QUANTITY_MODE_CUSTOM = "custom";
+const SHOP_QUANTITY_MODE_MAX = "max";
+const SHOP_QUANTITY_PRESET_VALUES = Object.freeze(["1", "5", "10", "50", "100"]);
+const SHOP_QUANTITY_PRESET_SET = new Set(SHOP_QUANTITY_PRESET_VALUES);
 const BOOST_X_DURATION_MS = 2 * 60 * 1000;
 const BOOST_X_ATTACK_INTERVAL_MULTIPLIER = 0.33;
 const DEFAULT_WILD_LEVEL_MIN = 2;
@@ -1091,6 +1095,7 @@ const state = {
     supported: false,
     enabled: false,
     permission: "default",
+    lastKnownPokeballTotal: null,
   },
   teamLevelUpEffects: [],
   teamXpGainEffects: [],
@@ -1602,7 +1607,7 @@ function refreshShopWalletPanel(activeTab = SHOP_TAB_POKEBALLS) {
     shopWalletPokeballsValueEl.textContent = String(pokeballs);
   }
   if (shopWalletQtyValueEl) {
-    shopWalletQtyValueEl.textContent = `x${getSelectedShopBallQuantity()}`;
+    shopWalletQtyValueEl.textContent = getSelectedShopBallQuantitySummaryLabel();
   }
   if (shopWalletQtyItemEl) {
     shopWalletQtyItemEl.classList.toggle("hidden", String(activeTab || "") !== SHOP_TAB_POKEBALLS);
@@ -1750,7 +1755,7 @@ function refreshWindowsNotificationButtonUi() {
   const enabled = Boolean(state.windowsNotifications?.enabled);
 
   let label = "Notifs Windows";
-  let title = "Notifs systeme Windows pour les shiny.";
+  let title = "Notifs systeme Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   if (!supported) {
     label = "Notifs non supportees";
     title = "Ce navigateur ne supporte pas l'API Notification.";
@@ -1759,10 +1764,10 @@ function refreshWindowsNotificationButtonUi() {
     title = "Autorise les notifications dans les reglages du navigateur.";
   } else if (enabled) {
     label = "Notifs Windows ON";
-    title = "Notifications systeme actives pour les shiny.";
+    title = "Notifications systeme actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   } else {
     label = "Activer notifs";
-    title = "Clique pour activer les notifications systeme shiny.";
+    title = "Clique pour activer les notifications systeme hors premier plan.";
   }
 
   windowsNotificationButtonEl.setAttribute("aria-pressed", enabled ? "true" : "false");
@@ -1844,13 +1849,13 @@ async function toggleWindowsNotificationSystemFromButton() {
   }
   if (state.windowsNotifications.enabled) {
     disableWindowsNotificationSystem();
-    setTopMessage("Notifications Windows shiny desactivees.", 1700);
+    setTopMessage("Notifications Windows desactivees.", 1700);
     return;
   }
 
   const result = await enableWindowsNotificationSystem();
   if (result.enabled) {
-    setTopMessage("Notifications Windows shiny activees.", 1800);
+    setTopMessage("Notifications Windows activees.", 1800);
     return;
   }
   if (result.permission === "denied") {
@@ -1869,6 +1874,9 @@ function sendWindowsSystemNotification(title, body, options = {}) {
     syncWindowsNotificationStateFromEnvironment();
   }
   if (!state.windowsNotifications.enabled || state.windowsNotifications.permission !== "granted") {
+    return false;
+  }
+  if (isGamePageVisibleAndFocused()) {
     return false;
   }
   const safeTitle = String(title || "").trim();
@@ -1895,6 +1903,50 @@ function sendWindowsSystemNotification(title, body, options = {}) {
   } catch {
     return false;
   }
+}
+
+function isGamePageVisibleAndFocused() {
+  if (typeof document === "undefined") {
+    return false;
+  }
+  const visibilityStateRaw = typeof document.visibilityState === "string" ? document.visibilityState : "";
+  const visibilityState = visibilityStateRaw.toLowerCase().trim();
+  const isVisible = visibilityState ? visibilityState === "visible" : !document.hidden;
+  const hasWindowFocus = typeof document.hasFocus === "function" ? Boolean(document.hasFocus()) : true;
+  return isVisible && hasWindowFocus;
+}
+
+function syncWindowsPokeballInventoryTracking(total, options = {}) {
+  const nextTotal = Math.max(0, toSafeInt(total, 0));
+  const previousRaw = state.windowsNotifications?.lastKnownPokeballTotal;
+  const previousTotal = previousRaw == null ? null : Math.max(0, toSafeInt(previousRaw, 0));
+  state.windowsNotifications.lastKnownPokeballTotal = nextTotal;
+  if (options.silent || previousTotal == null) {
+    return;
+  }
+  if (previousTotal > 0 && nextTotal <= 0) {
+    notifyWindowsOutOfPokeballs(options);
+  }
+}
+
+function notifyWindowsOutOfPokeballs(options = {}) {
+  if (state.simulationIdleMode) {
+    return;
+  }
+  const routeId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const routeName = getRouteDisplayName(routeId);
+  const lastBallLabel = options.ballType ? getBallTypeLabel(options.ballType) : "Poke Ball";
+  const bodyParts = [`Ta derniere ${lastBallLabel} vient d'etre utilisee.`];
+  if (routeName) {
+    bodyParts.push(`Zone: ${routeName}.`);
+  }
+  bodyParts.push("Passe au Shop pour refaire le stock.");
+  sendWindowsSystemNotification("Plus de Poke Balls", bodyParts.join(" "), {
+    tag: "pokeballs-empty",
+    renotify: true,
+    requireInteraction: true,
+    autoCloseMs: 0,
+  });
 }
 
 function notifyWindowsShinyEncounter(enemy) {
@@ -2723,64 +2775,320 @@ function getCachedSpriteImage(imagePath) {
   return image;
 }
 
+const spriteSourceStableIdOverrides = typeof WeakMap === "function" ? new WeakMap() : null;
+
 function getImageCacheStableId(image) {
   if (!image || typeof image !== "object") {
     return "";
+  }
+  const overrideId = spriteSourceStableIdOverrides?.get?.(image);
+  if (overrideId) {
+    return overrideId;
   }
   const src = String(image.currentSrc || image.src || "");
   if (src) {
     return src;
   }
-  return `img:${String(image.naturalWidth || 0)}x${String(image.naturalHeight || 0)}`;
+  const dims = getDrawableImageDimensions(image);
+  return `img:${String(dims.width || 0)}x${String(dims.height || 0)}`;
 }
 
-let animatedSpriteDepotEl = null;
-const animatedSpriteDepotImages = typeof WeakSet === "function" ? new WeakSet() : null;
+const ANIMATED_SPRITE_CACHE_MAX_ENTRIES = 40;
+const animatedSpriteFramesCache = new Map();
 
-function ensureAnimatedSpriteDepot() {
-  if (animatedSpriteDepotEl) {
-    return animatedSpriteDepotEl;
+function destroyAnimatedSpriteFramesCacheEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return;
   }
-  if (!document?.body) {
+  const frames = Array.isArray(entry.frames) ? entry.frames : [];
+  for (const frame of frames) {
+    const source = frame?.source;
+    if (source && typeof source.close === "function") {
+      try {
+        source.close();
+      } catch {
+        // ignore
+      }
+    }
+  }
+  entry.frames = [];
+  entry.frameStartsMs = [];
+  entry.totalDurationMs = 0;
+}
+
+function trimAnimatedSpriteFramesCacheIfNeeded() {
+  const extraCount = animatedSpriteFramesCache.size - ANIMATED_SPRITE_CACHE_MAX_ENTRIES;
+  if (extraCount <= 0) {
+    return;
+  }
+  const entries = Array.from(animatedSpriteFramesCache.values());
+  entries.sort((a, b) => (Number(a?.lastAccessMs) || 0) - (Number(b?.lastAccessMs) || 0));
+  for (let i = 0; i < extraCount; i += 1) {
+    const entry = entries[i];
+    const key = String(entry?.key || "");
+    if (!key || !animatedSpriteFramesCache.has(key)) {
+      continue;
+    }
+    animatedSpriteFramesCache.delete(key);
+    destroyAnimatedSpriteFramesCacheEntry(entry);
+  }
+}
+
+function buildAnimatedSpriteTimeline(frames) {
+  const starts = [];
+  let total = 0;
+  const list = Array.isArray(frames) ? frames : [];
+  for (const frame of list) {
+    starts.push(total);
+    total += Math.max(20, toSafeInt(frame?.durationMs, 100));
+  }
+  if (total <= 0 && list.length > 0) {
+    total = Math.max(20, toSafeInt(list[0]?.durationMs, 100));
+  }
+  return { starts, totalDurationMs: total };
+}
+
+function resolveAnimatedSpriteFrame(entry, timeMs) {
+  if (!entry || entry.status !== "ready") {
     return null;
   }
-  const depot = document.createElement("div");
-  depot.id = "animated-sprite-depot";
-  depot.style.position = "fixed";
-  depot.style.left = "0";
-  depot.style.top = "0";
-  depot.style.width = "1px";
-  depot.style.height = "1px";
-  depot.style.overflow = "hidden";
-  depot.style.opacity = "0.001";
-  depot.style.pointerEvents = "none";
-  depot.style.zIndex = "-1";
-  document.body.appendChild(depot);
-  animatedSpriteDepotEl = depot;
-  return depot;
+  const frames = Array.isArray(entry.frames) ? entry.frames : [];
+  if (frames.length <= 0) {
+    return null;
+  }
+  const total = Math.max(0, Number(entry.totalDurationMs) || 0);
+  if (frames.length === 1 || total <= 0.1) {
+    return { source: frames[0].source || null, frameIndex: 0 };
+  }
+  const t = Math.max(0, Number(timeMs) || 0);
+  const targetMs = t % total;
+  const starts = Array.isArray(entry.frameStartsMs) ? entry.frameStartsMs : [];
+  for (let i = 0; i < frames.length; i += 1) {
+    const start = Number(starts[i]) || 0;
+    const duration = Math.max(20, toSafeInt(frames[i]?.durationMs, 100));
+    if (targetMs < start + duration) {
+      return { source: frames[i].source || null, frameIndex: i };
+    }
+  }
+  const lastIndex = Math.max(0, frames.length - 1);
+  return { source: frames[lastIndex]?.source || null, frameIndex: lastIndex };
 }
 
-function ensureSpriteImageKeepsAnimating(image) {
-  if (!image || typeof image !== "object") {
+async function createAnimatedFrameSourceFromRgba(rgba, width, height) {
+  const w = Math.max(1, toSafeInt(width, 1));
+  const h = Math.max(1, toSafeInt(height, 1));
+  const data = rgba instanceof Uint8ClampedArray ? rgba : new Uint8ClampedArray(rgba);
+  try {
+    if (typeof createImageBitmap === "function") {
+      const bitmap = await createImageBitmap(new ImageData(data, w, h));
+      return bitmap;
+    }
+  } catch {
+    // ignore
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const frameCtx = canvas.getContext("2d");
+  if (!frameCtx) {
+    return null;
+  }
+  frameCtx.putImageData(new ImageData(data, w, h), 0, 0);
+  return canvas;
+}
+
+function clearRgbaRect(buffer, canvasWidth, canvasHeight, rect) {
+  if (!buffer || !Number.isFinite(canvasWidth) || !Number.isFinite(canvasHeight) || !rect) {
     return;
   }
-  if (!(image instanceof HTMLImageElement)) {
+  const x = clamp(toSafeInt(rect.x, 0), 0, Math.max(0, canvasWidth - 1));
+  const y = clamp(toSafeInt(rect.y, 0), 0, Math.max(0, canvasHeight - 1));
+  const w = clamp(toSafeInt(rect.width, 0), 0, Math.max(0, canvasWidth - x));
+  const h = clamp(toSafeInt(rect.height, 0), 0, Math.max(0, canvasHeight - y));
+  if (w <= 0 || h <= 0) {
     return;
   }
-  if (animatedSpriteDepotImages?.has?.(image)) {
-    return;
+  for (let row = 0; row < h; row += 1) {
+    const start = ((y + row) * canvasWidth + x) * 4;
+    buffer.fill(0, start, start + w * 4);
   }
-  const depot = ensureAnimatedSpriteDepot();
-  if (!depot) {
-    return;
+}
+
+function normalizeGifFrameDelayMs(delayHundredths) {
+  const raw = Math.max(0, toSafeInt(delayHundredths, 0));
+  const ms = raw > 0 ? raw * 10 : 100;
+  return clamp(Math.round(ms), 20, 2000);
+}
+
+async function decodeGifToAnimatedFrames(arrayBuffer, stableKey) {
+  const GifReader = globalThis.GifReader;
+  if (typeof GifReader !== "function") {
+    throw new Error("GifReader indisponible (vendor/omggif.js).");
   }
-  if (image.parentNode && image.parentNode !== depot) {
-    return;
+  const reader = new GifReader(new Uint8Array(arrayBuffer));
+  const width = Math.max(1, toSafeInt(reader.width, 1));
+  const height = Math.max(1, toSafeInt(reader.height, 1));
+  const frameCount = Math.max(1, toSafeInt(reader.numFrames(), 1));
+
+  const working = new Uint8ClampedArray(width * height * 4);
+  const frames = [];
+  let previousFrameInfo = null;
+  let previousRestore = null;
+
+  for (let i = 0; i < frameCount; i += 1) {
+    if (previousFrameInfo) {
+      const previousDisposal = toSafeInt(previousFrameInfo.disposal, 0);
+      if (previousDisposal === 2) {
+        clearRgbaRect(working, width, height, previousFrameInfo);
+      } else if (previousDisposal === 3 && previousRestore) {
+        working.set(previousRestore);
+      }
+    }
+
+    const frameInfo = reader.frameInfo(i);
+    const restore = toSafeInt(frameInfo?.disposal, 0) === 3 ? working.slice() : null;
+    reader.decodeAndBlitFrameRGBA(i, working);
+
+    const delayMs = normalizeGifFrameDelayMs(frameInfo?.delay);
+    const rgbaCopy = working.slice();
+    const source = await createAnimatedFrameSourceFromRgba(rgbaCopy, width, height);
+    if (!source) {
+      previousFrameInfo = frameInfo;
+      previousRestore = restore;
+      continue;
+    }
+    spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame${i}`);
+    frames.push({ source, durationMs: delayMs });
+
+    previousFrameInfo = frameInfo;
+    previousRestore = restore;
   }
-  if (image.parentNode !== depot) {
-    depot.appendChild(image);
+
+  return { width, height, frames };
+}
+
+async function decodeApngToAnimatedFrames(arrayBuffer, stableKey) {
+  const UPNG = globalThis.UPNG;
+  if (!UPNG || typeof UPNG.decode !== "function" || typeof UPNG.toRGBA8 !== "function") {
+    throw new Error("UPNG indisponible (vendor/upng.js).");
   }
-  animatedSpriteDepotImages?.add?.(image);
+  const decoded = UPNG.decode(new Uint8Array(arrayBuffer));
+  const width = Math.max(1, toSafeInt(decoded?.width, 1));
+  const height = Math.max(1, toSafeInt(decoded?.height, 1));
+  const rgbaBuffers = Array.isArray(UPNG.toRGBA8(decoded)) ? UPNG.toRGBA8(decoded) : [];
+
+  const frames = [];
+  for (let i = 0; i < rgbaBuffers.length; i += 1) {
+    const rgba = new Uint8ClampedArray(rgbaBuffers[i]);
+    const delayMs = clamp(toSafeInt(decoded?.frames?.[i]?.delay, 100), 20, 2000);
+    const source = await createAnimatedFrameSourceFromRgba(rgba, width, height);
+    if (!source) {
+      continue;
+    }
+    spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame${i}`);
+    frames.push({ source, durationMs: delayMs });
+  }
+
+  if (frames.length <= 0) {
+    const single = rgbaBuffers.length > 0 ? new Uint8ClampedArray(rgbaBuffers[0]) : new Uint8ClampedArray(width * height * 4);
+    const source = await createAnimatedFrameSourceFromRgba(single, width, height);
+    if (source) {
+      spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame0`);
+      frames.push({ source, durationMs: 100 });
+    }
+  }
+
+  return { width, height, frames };
+}
+
+async function loadAnimatedSpriteFrames(spritePath) {
+  const response = await fetch(spritePath);
+  if (!response.ok) {
+    throw new Error(`Impossible de telecharger ${spritePath} (${response.status}).`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const cleanPath = String(spritePath).split("#")[0].split("?")[0].toLowerCase();
+  if (cleanPath.endsWith(".gif")) {
+    return decodeGifToAnimatedFrames(arrayBuffer, spritePath);
+  }
+  if (cleanPath.endsWith(".png")) {
+    return decodeApngToAnimatedFrames(arrayBuffer, spritePath);
+  }
+  throw new Error(`Format de sprite anime non supporte: ${spritePath}`);
+}
+
+function ensureAnimatedSpriteFramesEntry(spritePath) {
+  const key = String(spritePath || "");
+  if (!key) {
+    return null;
+  }
+  if (animatedSpriteFramesCache.has(key)) {
+    const entry = animatedSpriteFramesCache.get(key);
+    if (entry) {
+      entry.lastAccessMs = performance.now();
+    }
+    return entry || null;
+  }
+  const entry = {
+    key,
+    status: "loading",
+    frames: [],
+    frameStartsMs: [],
+    totalDurationMs: 0,
+    width: 0,
+    height: 0,
+    lastAccessMs: performance.now(),
+    error: "",
+    loadPromise: null,
+  };
+  entry.loadPromise = loadAnimatedSpriteFrames(key)
+    .then((result) => {
+      entry.width = Math.max(1, toSafeInt(result?.width, 1));
+      entry.height = Math.max(1, toSafeInt(result?.height, 1));
+      entry.frames = Array.isArray(result?.frames) ? result.frames : [];
+      const timeline = buildAnimatedSpriteTimeline(entry.frames);
+      entry.frameStartsMs = timeline.starts;
+      entry.totalDurationMs = timeline.totalDurationMs;
+      entry.status = entry.frames.length > 0 ? "ready" : "error";
+      if (entry.status !== "ready") {
+        entry.error = "Aucune frame decodee";
+      }
+    })
+    .catch((error) => {
+      entry.status = "error";
+      entry.error = error instanceof Error ? error.message : String(error || "");
+    });
+  animatedSpriteFramesCache.set(key, entry);
+  trimAnimatedSpriteFramesCacheIfNeeded();
+  return entry;
+}
+
+function resolveAnimatedSpriteFrameSource(spritePath, timeMs) {
+  const entry = ensureAnimatedSpriteFramesEntry(spritePath);
+  if (!entry) {
+    return null;
+  }
+  if (entry.status !== "ready") {
+    return null;
+  }
+  entry.lastAccessMs = performance.now();
+  return resolveAnimatedSpriteFrame(entry, timeMs);
+}
+
+function resolveEntitySpriteDrawSource(entity, timeMs = state.timeMs) {
+  const base = entity?.spriteImage || null;
+  if (!entity?.spriteAnimated) {
+    return { source: base, frameIndex: -1 };
+  }
+  const spritePath = String(entity?.spritePath || base?.currentSrc || base?.src || "");
+  if (!spritePath) {
+    return { source: base, frameIndex: -1 };
+  }
+  const resolved = resolveAnimatedSpriteFrameSource(spritePath, timeMs);
+  if (resolved?.source) {
+    return { source: resolved.source, frameIndex: toSafeInt(resolved.frameIndex, -1) };
+  }
+  return { source: base, frameIndex: -1 };
 }
 
 function trimUltraShinyOutlineCacheIfNeeded() {
@@ -2897,14 +3205,30 @@ async function ensureVariantAppearanceAssetsLoaded(def, variant, options = {}) {
 }
 
 function isDrawableImage(image) {
-  return Boolean(
-    image &&
-      typeof image === "object" &&
-      Number.isFinite(image.naturalWidth) &&
-      Number.isFinite(image.naturalHeight) &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0,
-  );
+  const dims = getDrawableImageDimensions(image);
+  return dims.width > 0 && dims.height > 0;
+}
+
+function getDrawableImageDimensions(image) {
+  if (!image || typeof image !== "object") {
+    return { width: 0, height: 0 };
+  }
+  const naturalWidth = Number(image.naturalWidth);
+  const naturalHeight = Number(image.naturalHeight);
+  if (
+    Number.isFinite(naturalWidth) &&
+    naturalWidth > 0 &&
+    Number.isFinite(naturalHeight) &&
+    naturalHeight > 0
+  ) {
+    return { width: naturalWidth, height: naturalHeight };
+  }
+  const width = Number(image.width);
+  const height = Number(image.height);
+  if (Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0) {
+    return { width, height };
+  }
+  return { width: 0, height: 0 };
 }
 
 function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
@@ -4994,6 +5318,7 @@ function addBallItems(ballType, amount) {
   const delta = Math.max(0, toSafeInt(amount, 0));
   state.saveData.ball_inventory[type] = Math.max(0, toSafeInt(state.saveData.ball_inventory[type], 0)) + delta;
   state.saveData.pokeballs = computeBallInventoryTotal(state.saveData.ball_inventory);
+  syncWindowsPokeballInventoryTracking(state.saveData.pokeballs);
 }
 
 function consumeBallItem(ballType, amount = 1) {
@@ -5012,6 +5337,7 @@ function consumeBallItem(ballType, amount = 1) {
   }
   state.saveData.ball_inventory[type] = current - qty;
   state.saveData.pokeballs = computeBallInventoryTotal(state.saveData.ball_inventory);
+  syncWindowsPokeballInventoryTracking(state.saveData.pokeballs, { ballType: type });
   return true;
 }
 
@@ -8840,28 +9166,66 @@ function getShopItemsByTab(tabId) {
 
 function normalizeShopQuantityMode(value) {
   const raw = String(value || "").toLowerCase().trim();
-  if (raw === "custom") {
-    return "custom";
+  if (raw === SHOP_QUANTITY_MODE_CUSTOM) {
+    return SHOP_QUANTITY_MODE_CUSTOM;
+  }
+  if (raw === SHOP_QUANTITY_MODE_MAX) {
+    return SHOP_QUANTITY_MODE_MAX;
   }
   const numeric = Math.max(1, toSafeInt(raw, 1));
-  const allowed = new Set([1, 5, 10, 50, 100]);
-  return allowed.has(numeric) ? String(numeric) : "1";
+  return SHOP_QUANTITY_PRESET_SET.has(String(numeric)) ? String(numeric) : "1";
 }
 
-function getSelectedShopBallQuantity() {
-  const mode = normalizeShopQuantityMode(state.ui.shopQuantityMode);
-  if (mode === "custom") {
+function getShopBallUnitPrice(itemOrPrice) {
+  if (itemOrPrice && typeof itemOrPrice === "object") {
+    return Math.max(0, toSafeInt(itemOrPrice.price, 0));
+  }
+  return Math.max(0, toSafeInt(itemOrPrice, 0));
+}
+
+function getMaxAffordableShopBallQuantity(itemOrPrice) {
+  const unitPrice = getShopBallUnitPrice(itemOrPrice);
+  const currentMoney = Math.max(0, toSafeInt(state.saveData?.money, 0));
+  if (unitPrice <= 0 || currentMoney < unitPrice) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(currentMoney / unitPrice));
+}
+
+function getSelectedShopBallQuantity(options = {}) {
+  const mode = normalizeShopQuantityMode(options.mode ?? state.ui.shopQuantityMode);
+  if (mode === SHOP_QUANTITY_MODE_CUSTOM) {
     return Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+  }
+  if (mode === SHOP_QUANTITY_MODE_MAX) {
+    return getMaxAffordableShopBallQuantity(options.item ?? options.unitPrice ?? options.price ?? null);
   }
   return Math.max(1, toSafeInt(mode, 1));
 }
 
+function getSelectedShopBallQuantitySummaryLabel() {
+  const mode = normalizeShopQuantityMode(state.ui.shopQuantityMode);
+  if (mode === SHOP_QUANTITY_MODE_MAX) {
+    return "MAX";
+  }
+  return `x${getSelectedShopBallQuantity({ mode })}`;
+}
+
+function getShopBuyQuantityButtonLabel(item) {
+  const mode = normalizeShopQuantityMode(state.ui.shopQuantityMode);
+  const quantity = getSelectedShopBallQuantity({ item, mode });
+  if (mode === SHOP_QUANTITY_MODE_MAX) {
+    return quantity > 0 ? `Acheter MAX (${quantity})` : "Acheter MAX";
+  }
+  return `Acheter x${quantity}`;
+}
+
 function setShopQuantityMode(mode) {
   state.ui.shopQuantityMode = normalizeShopQuantityMode(mode);
-  if (state.ui.shopQuantityMode !== "custom") {
-    state.ui.shopCustomQuantity = getSelectedShopBallQuantity();
-  } else {
+  if (state.ui.shopQuantityMode === SHOP_QUANTITY_MODE_CUSTOM) {
     state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+  } else if (state.ui.shopQuantityMode !== SHOP_QUANTITY_MODE_MAX) {
+    state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopQuantityMode, 1));
   }
   syncShopQuantityControls();
   renderShopModal();
@@ -8874,7 +9238,7 @@ function syncShopQuantityControls() {
     button.classList.toggle("is-active", buttonMode === mode);
   }
   if (shopCustomQtyInputEl) {
-    shopCustomQtyInputEl.disabled = mode !== "custom";
+    shopCustomQtyInputEl.disabled = mode !== SHOP_QUANTITY_MODE_CUSTOM;
     const value = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
     if (toSafeInt(shopCustomQtyInputEl.value, value) !== value) {
       shopCustomQtyInputEl.value = String(value);
@@ -8992,7 +9356,13 @@ function buyShopItem(itemId) {
       setTopMessage(`${item.nameFr}: bientot disponible.`, 1400);
       return false;
     }
-    const quantity = getSelectedShopBallQuantity();
+    const quantity = getSelectedShopBallQuantity({ item });
+    if (quantity <= 0) {
+      setTopMessage(`Pas assez d'argent pour acheter ${item.nameFr}.`, 1500);
+      updateHud();
+      renderShopModal();
+      return false;
+    }
     const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
     if (!spendMoney(totalCost)) {
       setTopMessage(`Pas assez d'argent pour ${quantity} ${item.nameFr} (${totalCost} Poke$).`, 1500);
@@ -9106,9 +9476,9 @@ function createShopItemCard(item) {
     const stockCount = getBallInventoryCount(item.ballType);
     const isActive = getActiveBallType() === item.ballType;
     const isComingSoon = isBallTypeComingSoon(item.ballType);
-    const quantity = getSelectedShopBallQuantity();
+    const quantity = getSelectedShopBallQuantity({ item });
     const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
-    const canAfford = currentMoney >= totalCost;
+    const canAfford = quantity > 0 && currentMoney >= totalCost;
     canAffordItem = canAfford;
     if (isComingSoon) {
       stockEl.textContent = "Bientot disponible";
@@ -9119,11 +9489,13 @@ function createShopItemCard(item) {
       isComingSoonItem = true;
     } else {
       stockEl.textContent = `Stock: ${stockCount} • Actif: ${isActive ? "Oui" : "Non"}`;
-      primaryButton.textContent = `Acheter x${quantity}`;
+      primaryButton.textContent = getShopBuyQuantityButtonLabel(item);
       primaryButton.disabled = !canAfford;
       if (!canAfford) {
         primaryButton.title = "Pas assez d'argent.";
-        const missingMoney = Math.max(0, totalCost - currentMoney);
+        const missingMoney = quantity > 0
+          ? Math.max(0, totalCost - currentMoney)
+          : Math.max(0, toSafeInt(item.price, 0) - currentMoney);
         stockEl.textContent += ` | Manque: ${formatPokeDollarValue(missingMoney)} Poke$`;
       }
 
@@ -10067,6 +10439,8 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const ultraSeed =
     Number(entity?.id || 0) * 0.73 + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 19.7;
   const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;
+  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
+  const spriteImage = resolvedSpriteSource.source;
   let spriteDrawX = -size * 0.5;
   let spriteDrawY = -size * 0.5;
   let spriteDrawWidth = size;
@@ -10078,13 +10452,10 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   ctx.ellipse(0, size * 0.34, size * 0.28, size * 0.1, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  if (entity?.spriteAnimated) {
-    ensureSpriteImageKeepsAnimating(entity.spriteImage);
-  }
-
-  if (isDrawableImage(entity.spriteImage)) {
-    const sourceWidth = Number(entity.spriteImage.naturalWidth || entity.spriteImage.width || 0);
-    const sourceHeight = Number(entity.spriteImage.naturalHeight || entity.spriteImage.height || 0);
+  if (isDrawableImage(spriteImage)) {
+    const dims = getDrawableImageDimensions(spriteImage);
+    const sourceWidth = dims.width;
+    const sourceHeight = dims.height;
     const ratio = sourceWidth / Math.max(sourceHeight, 1);
     let drawWidth = snapSpriteDimension(size);
     let drawHeight = snapSpriteDimension(size);
@@ -10102,7 +10473,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     spriteUsedImage = true;
     if (ultraShinyVisual) {
       drawUltraShinyOutline(
-        entity.spriteImage,
+        spriteImage,
         spriteDrawX,
         spriteDrawY,
         spriteDrawWidth,
@@ -10112,7 +10483,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
       );
     }
     drawSpriteImageWithTint(
-      entity.spriteImage,
+      spriteImage,
       spriteDrawX,
       spriteDrawY,
       drawWidth,
@@ -13553,7 +13924,11 @@ function exportTextState() {
     shop_open: Boolean(state.ui.shopOpen),
     map_open: Boolean(state.ui.mapOpen),
     shop_tab: String(state.ui.shopTab || SHOP_TAB_POKEBALLS),
-    shop_ball_purchase_qty: getSelectedShopBallQuantity(),
+    shop_ball_purchase_mode: normalizeShopQuantityMode(state.ui.shopQuantityMode),
+    shop_ball_purchase_qty:
+      normalizeShopQuantityMode(state.ui.shopQuantityMode) === SHOP_QUANTITY_MODE_MAX
+        ? null
+        : getSelectedShopBallQuantity(),
     boxes_open: Boolean(state.ui.boxesOpen),
     boxes_target_slot_index: toSafeInt(state.ui.boxesTargetSlotIndex, -1),
     boxes_entity_count: state.saveData ? getCapturedEntityCount() : 0,
@@ -13638,6 +14013,29 @@ window.advanceTime = (ms) => {
     update(stepMs || BASE_STEP_MS);
   }
   render();
+};
+
+window.__pokeidle_debug_getSpriteFrameIndex = (target = "enemy", slotIndex = 0) => {
+  const which = String(target || "").toLowerCase().trim();
+  const slot = clamp(toSafeInt(slotIndex, 0), 0, MAX_TEAM_SIZE - 1);
+  const entity = which === "enemy" ? state.enemy : state.team[slot];
+  if (!entity) {
+    return null;
+  }
+  const resolved = resolveEntitySpriteDrawSource(entity);
+  const base = entity.spriteImage || null;
+  const spritePath = String(entity.spritePath || base?.currentSrc || base?.src || "");
+  const cacheEntry = spritePath ? animatedSpriteFramesCache.get(spritePath) : null;
+  return {
+    id: Number(entity.id || 0),
+    sprite_variant_id: entity.spriteVariantId || null,
+    sprite_path: spritePath || null,
+    sprite_animated: Boolean(entity.spriteAnimated),
+    frame_index: toSafeInt(resolved.frameIndex, -1),
+    cache_status: cacheEntry?.status || null,
+    cache_frames: Array.isArray(cacheEntry?.frames) ? cacheEntry.frames.length : 0,
+    cache_error: cacheEntry?.error || null,
+  };
 };
 
 function getPokemonLoadTargets(routeDataInput) {
@@ -14382,6 +14780,7 @@ async function initializeScene() {
     setActiveRoute(initialRouteId, { announceUnlock: false });
 
     ensureMoneyAndItems();
+    syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
     if (unlockStateReconciled || appearanceStateReconciled || tutorialProgressChanged) {
       persistSaveData();
     }
@@ -14440,6 +14839,7 @@ function resetSaveAndRestart() {
   }
   localStorage.removeItem(SAVE_KEY);
   state.saveData = createEmptySave();
+  syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
   state.team = [];
   state.enemy = null;
   state.battle = null;
@@ -14667,13 +15067,13 @@ for (const button of shopQtyPresetButtonEls) {
 if (shopCustomQtyInputEl) {
   shopCustomQtyInputEl.addEventListener("input", () => {
     state.ui.shopCustomQuantity = Math.max(1, toSafeInt(shopCustomQtyInputEl.value, 1));
-    if (state.ui.shopQuantityMode === "custom") {
+    if (state.ui.shopQuantityMode === SHOP_QUANTITY_MODE_CUSTOM) {
       renderShopModal();
     }
   });
   shopCustomQtyInputEl.addEventListener("focus", () => {
-    if (state.ui.shopQuantityMode !== "custom") {
-      setShopQuantityMode("custom");
+    if (state.ui.shopQuantityMode !== SHOP_QUANTITY_MODE_CUSTOM) {
+      setShopQuantityMode(SHOP_QUANTITY_MODE_CUSTOM);
     }
   });
 }

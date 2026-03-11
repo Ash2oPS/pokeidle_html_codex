@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 
 const versionFilePath = path.resolve(process.cwd(), process.argv[2] || "version.js");
+const versionFileName = path.basename(versionFilePath);
+const versionFileDir = path.dirname(versionFilePath);
 const versionPattern = /POKEIDLE_APP_VERSION\s*=\s*"([^"]+)"/;
 const semverPattern =
   /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
@@ -36,6 +38,13 @@ function bumpSemver(version) {
   return `${major}.${minor}.${patch}-${prereleaseParts.join(".")}${build ? `+${build}` : ""}`;
 }
 
+async function updateJsonVersion(jsonFilePath, nextVersion, transformJson) {
+  const source = await readFile(jsonFilePath, "utf8");
+  const data = JSON.parse(source);
+  const nextData = transformJson(data, nextVersion);
+  await writeFile(jsonFilePath, `${JSON.stringify(nextData, null, 2)}\n`, "utf8");
+}
+
 const source = await readFile(versionFilePath, "utf8");
 const versionMatch = source.match(versionPattern);
 
@@ -52,4 +61,31 @@ if (nextSource === source) {
 }
 
 await writeFile(versionFilePath, nextSource, "utf8");
+
+if (versionFileName === "version.js" && versionFileDir === process.cwd()) {
+  const packageJsonPath = path.resolve(process.cwd(), "package.json");
+  const packageLockPath = path.resolve(process.cwd(), "package-lock.json");
+
+  await updateJsonVersion(packageJsonPath, nextVersion, (data, version) => ({
+    ...data,
+    version,
+  }));
+
+  await updateJsonVersion(packageLockPath, nextVersion, (data, version) => ({
+    ...data,
+    version,
+    packages: data.packages
+      ? {
+          ...data.packages,
+          "": data.packages[""]
+            ? {
+                ...data.packages[""],
+                version,
+              }
+            : data.packages[""],
+        }
+      : data.packages,
+  }));
+}
+
 process.stdout.write(nextVersion);

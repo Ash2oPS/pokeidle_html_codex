@@ -2552,3 +2552,90 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Targeted Playwright run (starter click + long wait) reaches Route 1 combat:
   - screenshot: `output/web-game-battle/shot-0.png`
   - state: `output/web-game-battle/state-0.json`
+
+## Additional progress (Windows notif stock vide de Poke Balls)
+- Extended the existing Windows notification system in `game.js` so it now covers:
+  - shiny encounter/capture alerts
+  - stock-empty alerts when total Poke Balls drops from `> 0` to `0`
+- Added silent tracking of the loaded/reset ball total to avoid missing the alert on saves that start with only 1 Poke Ball.
+- Hooked tracking into ball inventory updates:
+  - buying/replenishing resets the tracked total
+  - consuming the last ball sends a Windows notification with the current zone and last ball type used
+- Updated the notification button tooltip/messages so the UI no longer says the feature is shiny-only.
+
+## Validation (Windows notif stock vide)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright notification test with seeded save (`1` Poke Ball, Route 1, Notification API stubbed/granted): PASS.
+  - result: emitted `Plus de Poke Balls`
+  - body: `Ta derniere PokeBall vient d'etre utilisee. Zone: Route 1 (Kanto). Passe au Shop pour refaire le stock.`
+  - screenshot: `output/web-game-pokeball-empty-notif.png`
+
+## Additional progress (Windows notif seulement hors premier plan)
+- Tightened `sendWindowsSystemNotification(...)` so Windows notifications are now suppressed while:
+  - the game tab is visible
+  - and the browser window still has focus on the game
+- Result: shiny + stock-empty notifications only reach Windows when the game is no longer effectively in the foreground.
+- Updated the notification button tooltip so it now explains the "hors premier plan" behavior.
+
+## Validation (Windows notif focus/onglet)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright focus/visibility test with Notification API stubbed/granted: PASS.
+  - scenario `focused_visible`: stock reached `0`, no Windows notification emitted
+  - scenario `hidden_blurred`: stock reached `0`, emitted `Plus de Poke Balls`
+  - screenshot checked: `output/web-game-notif-hidden.png`
+
+## Additional progress (animated combat sprites fix)
+- Corrected the earlier animated-sprite combat approach in `game.js`:
+  - keeping animated images alive in the DOM was not enough once they were drawn to canvas;
+  - replaced that attempt with explicit animated frame decoding + timeline playback for battle rendering.
+- Added canvas-compatible animated sprite playback for the two animated families now present in data:
+  - Gen 5 `black_white` GIF sprites
+  - Gen 2 `crystal` APNG sprites
+- Integrated lightweight decoder dependencies in `vendor/` and loaded them in `index.html`:
+  - `vendor/omggif.js` for GIF decoding
+  - `vendor/upng.js` + `vendor/pako.min.js` for APNG decoding
+- Added animated frame caching, disposal handling, and per-entity frame resolution in `game.js` so combat sprites advance over time while still rendering inside the existing canvas pipeline.
+- Added debug helper `window.__pokeidle_debug_getSpriteFrameIndex(...)` to validate that combat sprites really change frames in fight conditions.
+
+## Validation (animated combat sprites fix)
+- `run_playwright_check.ps1`: PASS.
+- Targeted battle animation probe: PASS.
+  - `black_white`: cache `ready`, `51` frames, observed frame change `3 -> 9`
+  - `crystal`: cache `ready`, `14` frames, observed frame change `3 -> 5`
+- Remaining note:
+  - `output/web-game-poke/errors-0.json` still shows a generic browser `404` resource message without a resolved URL; animation playback itself is validated and working in battle.
+
+## Additional progress (alpha.7 version sync)
+- Bumped the app version to `0.1.0-alpha.7` across all version sources:
+  - `version.js`
+  - `package.json`
+  - `package-lock.json`
+- Fixed `scripts/bump-version.mjs` so future bumps keep the package metadata aligned with the in-game version instead of only editing `version.js`.
+- Updated `.github/workflows/bump-version-on-main.yml` so the auto-bump commit now stages `package.json` and `package-lock.json` too.
+
+## Validation (alpha.7 version sync)
+- `node --check game.js`: PASS.
+- `node --check scripts/bump-version.mjs`: PASS.
+- `run_playwright_check.ps1`: PASS.
+
+## Additional progress (shop Pokeball preset MAX)
+- Added a new `MAX` Pokeball quantity preset in `index.html` + `game.js`.
+- `MAX` is now computed per ball item price instead of behaving like a fake global quantity:
+  - `PokeBall` with `950` Poke$ proposes `Acheter MAX (4)`
+  - after the purchase, the same preset correctly falls back to disabled `Acheter MAX` when only `150` Poke$ remain
+- Kept `Custom` intact and preserved the previous custom numeric value when switching to/from `MAX`.
+- Updated the shop wallet summary so it shows `MAX` as the active quick-buy mode.
+- Updated text-state export for automation/debug:
+  - added `shop_ball_purchase_mode`
+  - `shop_ball_purchase_qty` is now `null` when the selected mode is `MAX`, because the affordable quantity depends on the current ball card price
+
+## Validation (shop Pokeball preset MAX)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright shop verification with seeded save: PASS.
+  - before buy: `money=950`, wallet quick-buy label `MAX`, `PokeBall` button `Acheter MAX (4)`
+  - after buy: `money=150`, `ball_inventory.poke_ball=4`, total `pokeballs=4`, `PokeBall` button disabled with `Acheter MAX`
+  - screenshots checked: `output/shop-max-verify/shop-max-before-buy.png`, `output/shop-max-verify/shop-max-after-buy.png`
+  - summary artifact: `output/shop-max-verify/shop-max-summary.json`
