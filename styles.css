@@ -3870,7 +3870,7 @@ body {
 .evolution-item-modal {
   position: fixed;
   inset: 0;
-  z-index: 76;
+  z-index: 130;
   padding: 14px;
   display: grid;
   place-items: center;
