@@ -28,13 +28,13 @@
     "speed": 70
   },
   "sprites": {
-    "front": "sprites/71_victreebel_transparent_front.png",
-    "front_shiny": "sprites/71_victreebel_transparent_front_shiny.png"
+    "front": "sprites/71_victreebel_firered_leafgreen_front.png",
+    "front_shiny": "sprites/71_victreebel_firered_leafgreen_front_shiny.png"
   },
   "sprite_variants": [
     {
       "id": "transparent",
-      "label_fr": "Transparent HOME",
+      "label_fr": "Home",
       "generation": 0,
       "game_key": "home",
       "front": "sprites/71_victreebel_transparent_front.png",
@@ -94,7 +94,8 @@
       "generation": 2,
       "game_key": "crystal",
       "front": "sprites/71_victreebel_crystal_front.png",
-      "front_shiny": "sprites/71_victreebel_crystal_front_shiny.png"
+      "front_shiny": "sprites/71_victreebel_crystal_front_shiny.png",
+      "animated": true
     },
     {
       "id": "gold_silver",
@@ -127,7 +128,16 @@
       "game_key": "red-blue",
       "front": "sprites/71_victreebel_red_blue_front.png",
       "front_shiny": null
+    },
+    {
+      "id": "black_white",
+      "label_fr": "Noir / Blanc (animé)",
+      "generation": 5,
+      "game_key": "black-white",
+      "front": "sprites/71_victreebel_black_white_front.gif",
+      "front_shiny": "sprites/71_victreebel_black_white_front_shiny.gif",
+      "animated": true
     }
   ],
-  "default_sprite_variant_id": "transparent"
+  "default_sprite_variant_id": "firered_leafgreen"
 }

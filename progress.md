@@ -53,7 +53,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - Build Pokemon definitions from starter set + route encounters.
 - Added no-save onboarding:
   - If no valid save/team exists, game starts with zero team members.
-  - Starter modal appears with Bulbizarre / SalamÃ¨che / Carapuce, all level 5.
+  - Starter modal appears with Bulbizarre / SalamÃƒÂ¨che / Carapuce, all level 5.
   - Choosing one starter captures it and initializes team with only that Pokemon.
 - Refactored `PokemonBattleManager`:
   - Removed fixed enemy roster.
@@ -711,7 +711,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - notification disappears,
   - no automatic evolution occurs before user click.
 
-## Additional progress (zones FRLG + carte Kanto cliquable + stabilitÃ© des marqueurs)
+## Additional progress (zones FRLG + carte Kanto cliquable + stabilitÃƒÂ© des marqueurs)
 - Added full Kanto story-zone flow beyond routes:
   - integrated towns (`zone_type: town`, `combat_enabled: false`) and dungeons/caves/forest/safari/mansion/tower (`zone_type: dungeon`) into main progression order.
   - progression now starts at `kanto_city_pallet_town` and follows a 47-zone FR/LG order in `ROUTE_ID_ORDER`.
@@ -977,7 +977,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Playwright sanity run: `output/web-game-no-art-blur`.
   - no `errors-*.json` generated.
   - visual render normal and stable (`shot-2.png`).
-- Ajustement backdrop Pokemon: cercle blanc fixe avec alpha 0.5, sans pulse, sans follow du breath/recoil d'attaque. VÃ©rifiÃ© via run Playwright (output/web-game-static-circle-check, shots 1..5), aucun errors-*.json.
+- Ajustement backdrop Pokemon: cercle blanc fixe avec alpha 0.5, sans pulse, sans follow du breath/recoil d'attaque. VÃƒÂ©rifiÃƒÂ© via run Playwright (output/web-game-static-circle-check, shots 1..5), aucun errors-*.json.
 - Perf pass: ajoute qualite de rendu adaptative (high/medium/low) selon frame-time, cap DPR dynamique (max 1.35/1.2/1.0), allege les effets couteux (trail/aura projectiles, glow impacts, particules meteo/niveau), et reduit les allocations de trail projectile (compaction in-place). Verification: node --check OK, run Playwright dedie output/web-game-perf-opt OK sans errors-*.json.
 - Shop fix: suppression du rerender continu du shop dans updateHud (le clic etait casse car le DOM de la modale etait reconstruit en boucle), refonte UI shop (cartes avec layout media/content/footer, boutons regroupes, wraps/ellipsis anti-overflow, grille plus large, responsive mobile). Validation auto: clic achat Pokeball => money -200 et stock +1 (script output/tmp_shop_verify.js), screenshots output/shop-ui-open.png + output/shop-ui-open-mobile.png.
 - Shop interaction stability: suppression de la fermeture implicite via listener document global (la fermeture se fait uniquement via backdrop/fermer/ESC), ce qui evite la fermeture apres achat lorsque la carte est rerendue.
@@ -1083,7 +1083,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `node --check game.js`: PASS.
   - `run_playwright_check.ps1`: PASS.
   - Real-flow Playwright validation: PASS.
-    - Fresh game with SalamÃ¨che -> first visit Route 1 -> earn money naturally in combat.
+    - Fresh game with SalamÃƒÂ¨che -> first visit Route 1 -> earn money naturally in combat.
     - Shop shows `SuperBall` / `HyperBall` as `Bientot disponible` and disabled.
     - Bought 1 classic `PokeBall`, then confirmed it was consumed down to `0` and stayed at `0`.
   - Artifacts written to:
@@ -1143,7 +1143,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - one smoke run produced a transient `Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact at shutdown in `output/web-game-poke/errors-1.json`; the page state/screenshots were otherwise correct, and the same behavior matches the helper script's server shutdown timing rather than a game runtime crash.
 
 ## Additional progress (long-session perf investigation + hot-loop cleanup)
-- Investigated the reported â€œthe longer the game stays open, the more it lagsâ€ issue with targeted probes:
+- Investigated the reported Ã¢â‚¬Å“the longer the game stays open, the more it lagsÃ¢â‚¬Â issue with targeted probes:
   - deterministic `advanceTime(...)` batches,
   - real-time long-open sampling,
   - Chromium CPU profile after warm-up.
@@ -1734,7 +1734,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 ## Additional progress (talents passifs)
 - Ajout d'un schema `talent` (passif) avec normalisation centralisee dans `game.js`.
   - Valeur par defaut partout: `NONE` / `NONE` / `Aucun effet passif pour le moment.`
-- Intégration du talent dans les structures Pokemon:
+- IntÃ©gration du talent dans les structures Pokemon:
   - Definitions chargees (`loadPokemonEntity`).
   - Records sauvegarde (`normalizePokemonEntityRecord`, `createPokemonEntityRecord`).
   - Membres d'equipe hydrates (`buildTeamMemberFromSaveEntry`).
@@ -1881,23 +1881,23 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `output/evolution-orb-transition-check-2/phase-shrink-near-end.png`
 
 ## Additional progress (evolution bonheur via temps en boite)
-- Implémenté une progression dédiée pour les évolutions `minHappiness`:
-  - nouveau champ persistant par espèce: `happiness_box_streak_ms` (normalisé + créé à 0 sur nouveaux records),
-  - ajout d'une règle globale: condition bonheur validée à `3h` (`HAPPINESS_EVOLUTION_BOX_REQUIRED_MS`) passées en boîte,
-  - mise à jour continue du streak pendant la simulation (`updateHappinessEvolutionBoxProgress(deltaMs)`) uniquement pour les espèces ayant au moins une évolution bonheur,
-  - reset immédiat du streak si le Pokémon est présent dans la team,
-  - intégration de la condition dans `isEvolutionMethodSatisfied` (suppression du blocage précédent qui rejetait `minHappiness`).
+- ImplÃ©mentÃ© une progression dÃ©diÃ©e pour les Ã©volutions `minHappiness`:
+  - nouveau champ persistant par espÃ¨ce: `happiness_box_streak_ms` (normalisÃ© + crÃ©Ã© Ã  0 sur nouveaux records),
+  - ajout d'une rÃ¨gle globale: condition bonheur validÃ©e Ã  `3h` (`HAPPINESS_EVOLUTION_BOX_REQUIRED_MS`) passÃ©es en boÃ®te,
+  - mise Ã  jour continue du streak pendant la simulation (`updateHappinessEvolutionBoxProgress(deltaMs)`) uniquement pour les espÃ¨ces ayant au moins une Ã©volution bonheur,
+  - reset immÃ©diat du streak si le PokÃ©mon est prÃ©sent dans la team,
+  - intÃ©gration de la condition dans `isEvolutionMethodSatisfied` (suppression du blocage prÃ©cÃ©dent qui rejetait `minHappiness`).
 
 ## Validation (evolution bonheur via temps en boite)
 - `node --check game.js`: PASS.
 - `run_playwright_check.ps1`: PASS.
-- Test ciblé (boîte noire, save seedée Meowth hors team, streak à `3h - 10s`):
+- Test ciblÃ© (boÃ®te noire, save seedÃ©e Meowth hors team, streak Ã  `3h - 10s`):
   - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
-  - après `advanceTime(10000)`: `notifications_evolution_ready = 1`.
+  - aprÃ¨s `advanceTime(10000)`: `notifications_evolution_ready = 1`.
   - artefacts: `output/happiness-evolution-threshold-test.json`, `output/happiness-evolution-threshold-test.png`.
-- Test ciblé “dans la team” (Meowth en team, même streak seedé):
+- Test ciblÃ© â€œdans la teamâ€ (Meowth en team, mÃªme streak seedÃ©):
   - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
-  - après `advanceTime(10000)`: `notifications_evolution_ready = 0`.
+  - aprÃ¨s `advanceTime(10000)`: `notifications_evolution_ready = 0`.
 - Artefact test team: `output/happiness-evolution-in-team-test.json`.
 
 ## Additional progress (enemy type HUD visibility fix)
@@ -2226,7 +2226,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - new shop stock keys present (`galarica_wreath`, `ice_stone`, `moon_stone`, `sun_stone`, `thunder_stone`, `cable_link`);
   - new `shop_item_configs` entries loaded.
 - Data spot-check script confirms:
-  - `ice-stone` now maps to Ã‰voli -> Givrali only;
+  - `ice-stone` now maps to Ãƒâ€°voli -> Givrali only;
   - `thunder-stone` / `moon-stone` / `sun-stone` / `galarica-wreath` mappings present;
   - trade-without-item pairs detected for Cable Link candidates: Gravalanch, Kadabra, Machopeur, Spectrum lines.
 
@@ -2504,3 +2504,51 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - state confirms combat active with ally + enemy present on both profiles.
 - Regression smoke:
   - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (low-level HP nerf tiers)
+- Updated `computeBattleHpMax(...)` in `game.js` to apply low-level HP divisors:
+  - level 1: HP / 5
+  - level 2: HP / 4
+  - level 3: HP / 2
+  - level 4: HP / 1.5
+  - level 5+: unchanged
+- Applied after base HP max computation so the rest of the progression curve remains intact.
+
+## Validation (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (no new console/page error files generated).
+- Quick numeric sanity check script confirms effective ratios near requested targets (rounding-only drift):
+  - lvl1 ~5x less, lvl2 4x less, lvl3 ~2x less, lvl4 1.5x less.
+
+## Additional progress (capture chance + suspense)
+- Added capture UI overlay during the capture animation that shows the base capture chance (percentage).
+- Deferred capture rewards until the capture animation completes so the newly captured Pokemon only appears in the team after the suspense.
+- Added hidden shiny capture bonus (not shown in the displayed %):
+  - shiny: x1.5 effective catch chance
+  - ultra shiny: x2 effective catch chance
+- Extended the text-state snapshot with `capture_sequence.chance_display`.
+
+## Validation (capture chance + suspense)
+- `run_playwright_check.ps1`: PASS.
+- Targeted capture run with save bridge: `run_playwright_capturechance.ps1`: PASS.
+  - artifacts: `output/web-game-capturechance/shot-16.png`, `output/web-game-capturechance/shot-22.png`
+  - state: `output/web-game-capturechance/state-16.json`, `output/web-game-capturechance/state-22.json`
+
+## Additional progress (Gen 5 sprites + animated combat sprites)
+- Extended `scripts_download_gen1_4_sprites.py` to add a Gen 5 sprite variant:
+  - new variant id: `black_white` (PokeAPI `generation-v` / `black-white` / `animated`).
+  - writes `.gif` files and records `animated: true` in `sprite_variants` for animated variants.
+- Marked Gen 2 Crystal sprites as animated in data (`animated: true`) since Bulbagarden Crystal sprites are APNG.
+- Renamed the transparent HOME variant label to `Home` (menu-facing).
+- Updated `game.js` sprite variant parsing to carry the `animated` flag and:
+  - keep animated sprite `Image` elements in a hidden DOM depot so their animations advance even when drawn on the canvas,
+  - display `Home` for the HOME variant in the appearance menu (extra safeguard for older data).
+- Starter flow tweak: choosing a starter now auto-switches to Route 1 when available (matches the UI message "Direction Route 1 !").
+- Save bridge tweak: skip bridge write attempts when the bridge is offline to avoid noisy console errors during local runs/tests.
+
+## Validation (Gen 5 sprites + animated combat sprites)
+- `py -3 scripts_download_gen1_4_sprites.py`: PASS (dataset updated with Gen 5 sprites).
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright run (starter click + long wait) reaches Route 1 combat:
+  - screenshot: `output/web-game-battle/shot-0.png`
+  - state: `output/web-game-battle/state-0.json`

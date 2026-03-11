@@ -66,6 +66,7 @@ SPRITE_VARIANTS = [
         "generation": 2,
         "max_pokedex_id": 251,
         "supports_shiny": True,
+        "animated": True,
     },
     {
         "id": "gold_silver",
@@ -105,13 +106,21 @@ SPRITE_VARIANTS = [
         "max_pokedex_id": 151,
         "supports_shiny": False,
     },
+    {
+        "id": "black_white",
+        "generation_key": "generation-v",
+        "game_key": "black-white",
+        "label_fr": "Noir / Blanc (animé)",
+        "generation": 5,
+        "animated": True,
+    },
 ]
 
 TRANSPARENT_SPRITE_CANDIDATES = [
     {
         "other_key": "home",
         "game_key": "home",
-        "label_fr": "Transparent HOME",
+        "label_fr": "Home",
     },
     {
         "other_key": "official-artwork",
@@ -143,7 +152,7 @@ def fetch_bytes(url: str) -> bytes:
                 url,
                 headers={
                     "User-Agent": "pokeidle-sprite-downloader/1.0 (+https://pokeapi.co)",
-                    "Accept": "application/json,image/png,image/webp,*/*",
+                    "Accept": "application/json,image/png,image/webp,image/gif,*/*",
                 },
             )
             with urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
@@ -180,7 +189,7 @@ def write_sprite_file(sprite_url: str | None, destination_without_ext: Path, ove
     if not sprite_url:
         return None
     parsed_ext = Path(urlparse(sprite_url).path).suffix.lower()
-    ext = parsed_ext if parsed_ext in {".png", ".jpg", ".jpeg", ".webp"} else ".png"
+    ext = parsed_ext if parsed_ext in {".png", ".jpg", ".jpeg", ".webp", ".gif"} else ".png"
     target_path = destination_without_ext.with_suffix(ext)
     if not overwrite and target_path.exists() and target_path.stat().st_size > 0:
         return target_path.name
@@ -221,6 +230,8 @@ def get_variant_sprite_urls(pokemon_payload: dict[str, Any], variant: dict[str, 
     versions = pokemon_payload.get("sprites", {}).get("versions", {})
     generation_payload = versions.get(variant["generation_key"], {})
     game_payload = generation_payload.get(variant["game_key"], {})
+    if bool(variant.get("animated")) and isinstance(game_payload.get("animated"), dict):
+        game_payload = game_payload.get("animated", {})
     front_default = game_payload.get("front_transparent") or game_payload.get("front_default")
     front_shiny = game_payload.get("front_shiny_transparent") or game_payload.get("front_shiny")
     return front_default, front_shiny
@@ -274,7 +285,7 @@ def build_variant_output(
     if not front_filename and not shiny_filename:
         return None
 
-    return {
+    output = {
         "id": variant["id"],
         "label_fr": variant["label_fr"],
         "generation": variant["generation"],
@@ -282,6 +293,9 @@ def build_variant_output(
         "front": f"sprites/{front_filename}" if front_filename else None,
         "front_shiny": f"sprites/{shiny_filename}" if shiny_filename else None,
     }
+    if bool(variant.get("animated")):
+        output["animated"] = True
+    return output
 
 
 def build_sprite_variants_for_pokemon(
@@ -311,7 +325,7 @@ def build_sprite_variants_for_pokemon(
             variant,
             front_default_url,
             front_shiny_url,
-            overwrite_existing=variant.get("source") == "bulbagarden",
+            overwrite_existing=bool(variant.get("overwrite_existing")),
         )
         if variant_output:
             variants_output.append(variant_output)
@@ -347,7 +361,7 @@ def main() -> None:
     total_with_frlg = 0
     total_with_transparent = 0
 
-    print(f"Updating sprite variants for Pokemon 1..{MAX_POKEDEX_ID} (gen 1 to 4 versions)")
+    print(f"Updating sprite variants for Pokemon 1..{MAX_POKEDEX_ID} (gen 1 to 5 versions)")
     for pokedex_id in range(1, MAX_POKEDEX_ID + 1):
         pokemon_dir = find_pokemon_directory(pokedex_id)
         if not pokemon_dir:
@@ -379,7 +393,17 @@ def main() -> None:
             total_with_frlg += 1
         default_variant = get_variant_by_id(variants, default_variant_id)
 
-        data_payload = json.loads(json_path.read_text(encoding="utf-8"))
+        json_text = json_path.read_text(encoding="utf-8")
+        for retry in range(3):
+            if json_text.strip():
+                break
+            time.sleep(0.05 * (retry + 1))
+            json_text = json_path.read_text(encoding="utf-8")
+        try:
+            data_payload = json.loads(json_text)
+        except json.JSONDecodeError as exc:
+            print(f"[error] #{pokedex_id} invalid json payload: {json_path} -> {exc}")
+            continue
         if "sprites" not in data_payload or not isinstance(data_payload["sprites"], dict):
             data_payload["sprites"] = {}
 

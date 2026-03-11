@@ -30,13 +30,13 @@
     "speed": 70
   },
   "sprites": {
-    "front": "sprites/425_drifloon_transparent_front.png",
-    "front_shiny": "sprites/425_drifloon_transparent_front_shiny.png"
+    "front": "sprites/425_drifloon_heartgold_soulsilver_front.png",
+    "front_shiny": "sprites/425_drifloon_heartgold_soulsilver_front_shiny.png"
   },
   "sprite_variants": [
     {
       "id": "transparent",
-      "label_fr": "Transparent HOME",
+      "label_fr": "Home",
       "generation": 0,
       "game_key": "home",
       "front": "sprites/425_drifloon_transparent_front.png",
@@ -65,7 +65,16 @@
       "game_key": "diamond-pearl",
       "front": "sprites/425_drifloon_diamond_pearl_front.png",
       "front_shiny": "sprites/425_drifloon_diamond_pearl_front_shiny.png"
+    },
+    {
+      "id": "black_white",
+      "label_fr": "Noir / Blanc (animé)",
+      "generation": 5,
+      "game_key": "black-white",
+      "front": "sprites/425_drifloon_black_white_front.gif",
+      "front_shiny": "sprites/425_drifloon_black_white_front_shiny.gif",
+      "animated": true
     }
   ],
-  "default_sprite_variant_id": "transparent"
+  "default_sprite_variant_id": "heartgold_soulsilver"
 }

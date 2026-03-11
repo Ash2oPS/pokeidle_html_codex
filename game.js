@@ -89,6 +89,21 @@ const ROUTE_ID_ORDER = [
   "kanto_city_indigo_plateau",
   "kanto_dungeon_cerulean_cave",
 ];
+const ENCOUNTER_METHOD_UNLOCK_ROUTE_BY_ID = Object.freeze({
+  "rock-smash": "kanto_dungeon_mt_moon",
+  surf: "kanto_route_19",
+  "old-rod": "kanto_city_lavender_town",
+  "good-rod": "kanto_route_19",
+  "super-rod": "kanto_route_19",
+  pokeflute: "kanto_city_celadon_city",
+});
+const ENCOUNTER_METHOD_ALWAYS_UNLOCKED = Object.freeze({
+  walk: true,
+  gift: true,
+});
+const ENCOUNTER_METHOD_DISABLED = Object.freeze({
+  "only-one": true,
+});
 const MAP_REFERENCE_IMAGE_PATH = "assets/maps/kanto_map_reference_user.png";
 const MAP_MARKER_OVERRIDES_BY_ROUTE_ID = Object.freeze({
   kanto_route_1: Object.freeze({ x: 24.561, y: 55.11 }),
@@ -2594,7 +2609,20 @@ function computeBattleHpMax(stats, level, wild = false) {
   const hp = Math.max(1, Number(stats?.hp || 1));
   const ratio = wild ? 3.25 : 3.55;
   const normalizedLevel = clamp(toSafeInt(level, 1), 1, MAX_LEVEL);
-  return Math.max(40, Math.round(hp * ratio + normalizedLevel * 11));
+  const rawHp = Math.max(1, Math.round(hp * ratio + normalizedLevel * 11));
+
+  let lowLevelDivider = 1;
+  if (normalizedLevel <= 1) {
+    lowLevelDivider = 5;
+  } else if (normalizedLevel === 2) {
+    lowLevelDivider = 4;
+  } else if (normalizedLevel === 3) {
+    lowLevelDivider = 2;
+  } else if (normalizedLevel === 4) {
+    lowLevelDivider = 1.5;
+  }
+
+  return Math.max(1, Math.round(rawHp / lowLevelDivider));
 }
 
 function getPokemonBaseStats(pokemonId, fallbackStats = null) {
@@ -2704,6 +2732,55 @@ function getImageCacheStableId(image) {
     return src;
   }
   return `img:${String(image.naturalWidth || 0)}x${String(image.naturalHeight || 0)}`;
+}
+
+let animatedSpriteDepotEl = null;
+const animatedSpriteDepotImages = typeof WeakSet === "function" ? new WeakSet() : null;
+
+function ensureAnimatedSpriteDepot() {
+  if (animatedSpriteDepotEl) {
+    return animatedSpriteDepotEl;
+  }
+  if (!document?.body) {
+    return null;
+  }
+  const depot = document.createElement("div");
+  depot.id = "animated-sprite-depot";
+  depot.style.position = "fixed";
+  depot.style.left = "0";
+  depot.style.top = "0";
+  depot.style.width = "1px";
+  depot.style.height = "1px";
+  depot.style.overflow = "hidden";
+  depot.style.opacity = "0.001";
+  depot.style.pointerEvents = "none";
+  depot.style.zIndex = "-1";
+  document.body.appendChild(depot);
+  animatedSpriteDepotEl = depot;
+  return depot;
+}
+
+function ensureSpriteImageKeepsAnimating(image) {
+  if (!image || typeof image !== "object") {
+    return;
+  }
+  if (!(image instanceof HTMLImageElement)) {
+    return;
+  }
+  if (animatedSpriteDepotImages?.has?.(image)) {
+    return;
+  }
+  const depot = ensureAnimatedSpriteDepot();
+  if (!depot) {
+    return;
+  }
+  if (image.parentNode && image.parentNode !== depot) {
+    return;
+  }
+  if (image.parentNode !== depot) {
+    depot.appendChild(image);
+  }
+  animatedSpriteDepotImages?.add?.(image);
 }
 
 function trimUltraShinyOutlineCacheIfNeeded() {
@@ -2851,6 +2928,7 @@ function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
     gameKey: String(rawVariant.game_key || "").toLowerCase(),
     frontPath,
     frontShinyPath: resolveSpritePath(jsonPath, rawVariant.front_shiny),
+    animated: Boolean(rawVariant.animated),
   };
 }
 
@@ -2914,8 +2992,12 @@ function getSpriteVariantDisplayLabel(variant) {
   if (!variant) {
     return "Sprite";
   }
+  let label = variant.labelFr;
+  if (variant.id === "transparent" && variant.gameKey === "home") {
+    label = "Home";
+  }
   const generationLabel = Number(variant.generation) > 0 ? "Gen " + String(variant.generation) : "";
-  return generationLabel ? `${variant.labelFr} (${generationLabel})` : variant.labelFr;
+  return generationLabel ? `${label} (${generationLabel})` : label;
 }
 
 function normalizeEvolutionItemReadyTargets(rawTargets) {
@@ -3810,7 +3892,9 @@ function persistSaveData() {
   state.saveData.last_tick_epoch_ms = Date.now();
   const serialized = JSON.stringify(state.saveData);
   writeSerializedSaveToLocalStorage(serialized);
-  queueBridgeSaveWrite(serialized);
+  if (state.saveBackend.bridgeAvailable) {
+    queueBridgeSaveWrite(serialized);
+  }
   updateSaveBackendIndicator();
 }
 
@@ -4646,6 +4730,7 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
       variant: null,
       spritePath: "",
       spriteImage: null,
+      animated: false,
       shinyVisual: false,
       shinyUnlocked: false,
       ultraShinyVisual: false,
@@ -4694,6 +4779,7 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
     variant,
     spritePath: resolvedPath || normalPath || def.spritePath || "",
     spriteImage: resolvedImage || null,
+    animated: Boolean(variant?.animated),
     shinyVisual: Boolean(canRenderShiny || ultraShinyVisual),
     shinyUnlocked,
     ultraShinyVisual,
@@ -4780,6 +4866,7 @@ function syncActiveEnemyAppearance() {
   enemy.spritePath = appearance.spritePath || fallbackPath || enemy.spritePath || "";
   enemy.spriteImage = appearance.spriteImage || fallbackImage || enemy.spriteImage || null;
   enemy.spriteVariantId = appearance.variant?.id || getDefaultSpriteVariantId(def) || enemy.spriteVariantId || null;
+  enemy.spriteAnimated = Boolean(appearance.animated);
   enemy.isShinyVisual = Boolean(shinyVisual || appearance.shinyVisual || appearance.ultraShinyVisual);
   enemy.isUltraShinyVisual = Boolean(ultraShinyVisual || appearance.ultraShinyVisual);
   state.enemy = enemy;
@@ -7053,10 +7140,12 @@ class PokemonBattleManager {
     if (!this.captureSequence) {
       return null;
     }
+    const chanceDisplay = Number(this.captureSequence.chanceDisplay);
     return {
       phase: this.getCaptureSequencePhase(),
       captured: this.captureSequence.captured,
       critical: Boolean(this.captureSequence.isCritical),
+      chance_display: Number.isFinite(chanceDisplay) ? Math.round(clamp(chanceDisplay, 0, 1) * 10000) / 10000 : null,
       elapsed_ms: Math.round(this.captureSequence.elapsedMs),
       total_ms: Math.round(this.captureSequence.totalMs),
       remaining_ms: Math.max(0, Math.round(this.captureSequence.totalMs - this.captureSequence.elapsedMs)),
@@ -7280,6 +7369,15 @@ class PokemonBattleManager {
 
   flushRespawnForIdleMode() {
     if (this.pendingRespawnMs > 0 || this.captureSequence || (this.enemy && this.enemy.hpCurrent <= 0)) {
+      const completedCapture = this.captureSequence;
+      if (completedCapture && typeof completedCapture.onComplete === "function" && !completedCapture.onCompleteExecuted) {
+        completedCapture.onCompleteExecuted = true;
+        try {
+          completedCapture.onComplete();
+        } catch {
+          // Ignore reward callback failures and continue the combat loop.
+        }
+      }
       this.pendingRespawnMs = 0;
       this.captureSequence = null;
       this.koAnimMs = 0;
@@ -7424,6 +7522,15 @@ class PokemonBattleManager {
 
     this.pendingRespawnMs = Math.max(0, this.pendingRespawnMs - deltaMs);
     if (this.pendingRespawnMs === 0) {
+      const completedCapture = this.captureSequence;
+      if (completedCapture && typeof completedCapture.onComplete === "function" && !completedCapture.onCompleteExecuted) {
+        completedCapture.onCompleteExecuted = true;
+        try {
+          completedCapture.onComplete();
+        } catch {
+          // Ignore reward callback failures and continue the combat loop.
+        }
+      }
       this.captureSequence = null;
       this.spawnEnemy();
     }
@@ -7904,15 +8011,19 @@ class PokemonBattleManager {
         return;
       }
 
-      if (captureAttempted) {
-        this.captureSequence = {
-          captured,
-          isCritical: captureCritical,
-          elapsedMs: 0,
-          totalMs: this.buildCaptureTotalMs(captured),
-          targetX: projectile.targetX,
-          targetY: projectile.targetY,
-          startX: projectile.targetX + 220,
+       if (captureAttempted) {
+         const captureChanceDisplay = Number(captureResult?.capture_chance_display);
+         const captureOnComplete = captureResult?.capture_on_complete;
+         this.captureSequence = {
+           captured,
+           isCritical: captureCritical,
+           chanceDisplay: Number.isFinite(captureChanceDisplay) ? clamp(captureChanceDisplay, 0, 1) : null,
+           onComplete: typeof captureOnComplete === "function" ? captureOnComplete : null,
+           elapsedMs: 0,
+           totalMs: this.buildCaptureTotalMs(captured),
+           targetX: projectile.targetX,
+           targetY: projectile.targetY,
+           startX: projectile.targetX + 220,
           startY: projectile.targetY + 120,
           burstSpawned: false,
           breakSpawned: false,
@@ -8129,6 +8240,7 @@ function buildTeamMemberFromSaveEntry(entry) {
     spritePath: appearance.spritePath || def.spritePath,
     spriteImage: appearance.spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || getDefaultSpriteVariantId(def),
+    spriteAnimated: Boolean(appearance.animated),
   };
 }
 
@@ -8201,11 +8313,51 @@ function pickEncounterLevel(encounter) {
   return randomInt(minLevel, maxLevel);
 }
 
+function isEncounterMethodUnlocked(methodId) {
+  const id = String(methodId || "").toLowerCase().trim();
+  if (!id) {
+    return true;
+  }
+  if (ENCOUNTER_METHOD_DISABLED[id]) {
+    return false;
+  }
+  if (ENCOUNTER_METHOD_ALWAYS_UNLOCKED[id]) {
+    return true;
+  }
+  const requiredRouteId = ENCOUNTER_METHOD_UNLOCK_ROUTE_BY_ID[id];
+  if (!requiredRouteId) {
+    return true;
+  }
+  return isRouteUnlocked(requiredRouteId);
+}
+
+function isEncounterEntryUnlocked(encounter) {
+  const methods = Array.isArray(encounter?.methods) ? encounter.methods : [];
+  if (methods.length === 0) {
+    return true;
+  }
+  for (const method of methods) {
+    if (isEncounterMethodUnlocked(method)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getUnlockedEncountersForRoute(routeData) {
+  const encounters = Array.isArray(routeData?.encounters) ? routeData.encounters : [];
+  if (encounters.length === 0) {
+    return [];
+  }
+  return encounters.filter((encounter) => isEncounterEntryUnlocked(encounter));
+}
+
 function createRouteEnemyInstance() {
   if (!state.routeData || !isCurrentRouteCombatEnabled() || !Array.isArray(state.routeData.encounters)) {
     return null;
   }
-  const picked = weightedPick(state.routeData.encounters);
+  const encounters = getUnlockedEncountersForRoute(state.routeData);
+  const picked = weightedPick(encounters);
   if (!picked) {
     return null;
   }
@@ -8252,6 +8404,7 @@ function createRouteEnemyInstance() {
     spritePath,
     spriteImage: spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || defaultVariant?.id || getDefaultSpriteVariantId(def),
+    spriteAnimated: Boolean(appearance.animated),
   };
 }
 
@@ -8313,6 +8466,8 @@ function handleEnemyDefeated(enemy) {
   let captureAttempted = false;
   let captured = false;
   let captureCritical = false;
+  let captureChanceDisplay = null;
+  let captureOnComplete = null;
   let addedToTeam = false;
   let captureXpSummary = null;
   let usedBallType = null;
@@ -8325,21 +8480,53 @@ function handleEnemyDefeated(enemy) {
       const ballMultiplier = getBallCaptureMultiplier(usedBallType);
       captureCritical = Math.random() < CAPTURE_CRIT_CHANCE;
       const criticalMultiplier = captureCritical ? CAPTURE_CRIT_MULTIPLIER : 1;
-      const catchChance = computeCatchChance(enemy.catchRate, ballMultiplier * criticalMultiplier);
+      captureChanceDisplay = computeCatchChance(enemy.catchRate, ballMultiplier * criticalMultiplier);
+      const shinyCaptureMultiplier = enemy.isUltraShiny ? 2 : enemy.isShiny ? 1.5 : 1;
+      const catchChance = computeCatchChance(
+        enemy.catchRate,
+        ballMultiplier * criticalMultiplier * shinyCaptureMultiplier,
+      );
       captured = Math.random() < catchChance;
       if (captured) {
-        incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
-        if (enemy.isShiny) {
-          notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
-        }
-        const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id);
-        addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
-        captureXpSummary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
-        if (!state.simulationIdleMode && Array.isArray(captureXpSummary.levelUps) && captureXpSummary.levelUps.length > 0) {
-          queueTeamLevelUpEffects(captureXpSummary.levelUps);
-        }
-        if (!state.simulationIdleMode && Array.isArray(captureXpSummary.xpGains) && captureXpSummary.xpGains.length > 0) {
-          queueTeamXpGainEffects(captureXpSummary.xpGains, { tone: "capture" });
+        if (state.simulationIdleMode) {
+          incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
+          if (enemy.isShiny) {
+            notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
+          }
+          const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id);
+          addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
+          captureXpSummary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
+          if (!state.simulationIdleMode && Array.isArray(captureXpSummary.levelUps) && captureXpSummary.levelUps.length > 0) {
+            queueTeamLevelUpEffects(captureXpSummary.levelUps);
+          }
+          if (!state.simulationIdleMode && Array.isArray(captureXpSummary.xpGains) && captureXpSummary.xpGains.length > 0) {
+            queueTeamXpGainEffects(captureXpSummary.xpGains, { tone: "capture" });
+          }
+        } else {
+          captureOnComplete = () => {
+            incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
+            if (enemy.isShiny) {
+              notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
+            }
+            const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id);
+            const captureAddedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
+            const summary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
+            if (!state.simulationIdleMode) {
+              if (Array.isArray(summary.levelUps) && summary.levelUps.length > 0) {
+                queueTeamLevelUpEffects(summary.levelUps);
+              }
+              if (Array.isArray(summary.xpGains) && summary.xpGains.length > 0) {
+                queueTeamXpGainEffects(summary.xpGains, { tone: "capture" });
+              }
+            }
+
+            rebuildTeamAndSyncBattle();
+            persistSaveDataForSimulationEvent();
+            if (!state.simulationIdleMode) {
+              updateHud();
+            }
+            return captureAddedToTeam;
+          };
         }
       }
     }
@@ -8355,6 +8542,8 @@ function handleEnemyDefeated(enemy) {
     capture_attempted: captureAttempted,
     capture_critical: captureCritical,
     added_to_team: addedToTeam,
+    capture_chance_display: captureChanceDisplay,
+    capture_on_complete: captureOnComplete,
   };
 }
 
@@ -8377,7 +8566,10 @@ function chooseStarter(starterId) {
   updateHud();
 
   hideStarterModal();
-  startBattle();
+  const movedToRoute1 = applyRouteChange(ROUTE_1_TUTORIAL_ID, { announce: false });
+  if (!movedToRoute1) {
+    startBattle();
+  }
   state.mode = "ready";
   setTopMessage(`${def.nameFr} rejoint ton equipe. Direction Route 1 !`, 1700);
   tryOpenPendingTutorialFlow();
@@ -9886,8 +10078,14 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   ctx.ellipse(0, size * 0.34, size * 0.28, size * 0.1, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  if (entity?.spriteAnimated) {
+    ensureSpriteImageKeepsAnimating(entity.spriteImage);
+  }
+
   if (isDrawableImage(entity.spriteImage)) {
-    const ratio = entity.spriteImage.width / Math.max(entity.spriteImage.height, 1);
+    const sourceWidth = Number(entity.spriteImage.naturalWidth || entity.spriteImage.width || 0);
+    const sourceHeight = Number(entity.spriteImage.naturalHeight || entity.spriteImage.height || 0);
+    const ratio = sourceWidth / Math.max(sourceHeight, 1);
     let drawWidth = snapSpriteDimension(size);
     let drawHeight = snapSpriteDimension(size);
     if (ratio > 1) {
@@ -10953,6 +11151,23 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
       ctx.arc(sequence.targetX, sequence.targetY, ringRadius * 0.74, 0, Math.PI * 2);
       ctx.stroke();
     }
+    ctx.restore();
+  }
+
+  const chanceDisplay = Number(sequence.chanceDisplay);
+  if (Number.isFinite(chanceDisplay) && chanceDisplay > 0) {
+    const percent = Math.round(clamp(chanceDisplay, 0, 1) * 100);
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.62)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    ctx.font = "700 12px Trebuchet MS";
+    ctx.strokeText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);
+    ctx.fillText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);
     ctx.restore();
   }
 }
