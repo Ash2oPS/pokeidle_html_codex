@@ -233,6 +233,26 @@ const TYPE_ICON_TYPES = Object.freeze([
   "steel",
   "fairy",
 ]);
+const TYPE_LABELS_FR = Object.freeze({
+  normal: "Normal",
+  fire: "Feu",
+  water: "Eau",
+  electric: "Electrik",
+  grass: "Plante",
+  ice: "Glace",
+  fighting: "Combat",
+  poison: "Poison",
+  ground: "Sol",
+  flying: "Vol",
+  psychic: "Psy",
+  bug: "Insecte",
+  rock: "Roche",
+  ghost: "Spectre",
+  dragon: "Dragon",
+  dark: "Tenebres",
+  steel: "Acier",
+  fairy: "Fee",
+});
 const TEAM_LEFT_SIDE_SLOT_INDEXES = new Set([0, 4, 5]);
 const MAX_TEAM_SIZE = 6;
 const TALENT_KEEN_EYE_ID = "KEEN_EYE";
@@ -301,6 +321,10 @@ const CAPTURE_FAIL_REAPPEAR_MS = 460;
 const CAPTURE_POST_MS = 230;
 const CAPTURE_CRIT_CHANCE = 0.1;
 const CAPTURE_CRIT_MULTIPLIER = 2;
+const CAPTURE_BALL_MULTIPLIER_NERF = 0.5;
+const COIN_REWARD_PER_CAPTURE = 1;
+const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
+const COIN_REWARD_PER_EVOLUTION = 3;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
@@ -1099,6 +1123,7 @@ const evolutionItemCloseButtonEl = document.getElementById("evolution-item-close
 const moneyPillEl = document.getElementById("money-pill");
 const moneyValueEl = document.getElementById("money-value");
 const moneyAnimLayerEl = document.getElementById("money-anim-layer");
+const coinsValueEl = document.getElementById("coins-value");
 const saveBackendValueEl = document.getElementById("save-backend-value");
 const routeNavCurrentEl = document.getElementById("route-nav-current");
 const routeNavProgressEl = document.getElementById("route-nav-progress");
@@ -1692,6 +1717,20 @@ function setMoneyCounterTextValue(value) {
   });
   if (moneyValueEl.textContent !== nextText) {
     moneyValueEl.textContent = nextText;
+  }
+}
+
+function setCoinsCounterTextValue(value) {
+  if (!coinsValueEl) {
+    return;
+  }
+  const nextText = formatCompactNumber(Math.max(0, toSafeInt(value, 0)), {
+    decimalsSmall: 2,
+    decimalsMedium: 1,
+    decimalsLarge: 0,
+  });
+  if (coinsValueEl.textContent !== nextText) {
+    coinsValueEl.textContent = nextText;
   }
 }
 
@@ -2438,6 +2477,7 @@ function triggerEvolutionFromNotification(notificationId) {
   }
 
   queueEvolutionAnimationForResult(evolutionResult);
+  addCoins(COIN_REWARD_PER_EVOLUTION);
   removeNotificationById(id);
   rebuildTeamAndSyncBattle();
   persistSaveData();
@@ -3965,6 +4005,7 @@ function createEmptySave() {
     team: [],
     pokemon_entities: {},
     money: 0,
+    coins: 0,
     first_free_pokeball_claimed: false,
     first_free_pokeball_guaranteed_capture_pending: false,
     ball_inventory: createDefaultBallInventory(),
@@ -4334,6 +4375,7 @@ function normalizeSave(rawSave) {
     team: normalizedTeam,
     pokemon_entities: entities,
     money: Math.max(0, toSafeInt(rawSave.money, 0)),
+    coins: Math.max(0, toSafeInt(rawSave.coins, 0)),
     first_free_pokeball_claimed: firstFreePokeballClaimed,
     first_free_pokeball_guaranteed_capture_pending: firstFreePokeballGuaranteedCapturePending,
     ball_inventory: ballInventory,
@@ -5607,6 +5649,18 @@ function isPokemonEntityUnlockedById(pokemonId) {
   return isEntityUnlocked(getPokemonEntityRecord(pokemonId));
 }
 
+function isEvolutionFamilyOwned(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return false;
+  }
+  const familyIds = getEvolutionFamilySpeciesIds(id);
+  if (familyIds.length <= 0) {
+    return isPokemonEntityUnlockedById(id);
+  }
+  return familyIds.some((familyId) => isPokemonEntityUnlockedById(familyId));
+}
+
 function markEntityUnlocked(record, unlocked = true) {
   if (!record) {
     return;
@@ -6037,6 +6091,7 @@ function ensureMoneyAndItems() {
     return;
   }
   state.saveData.money = Math.max(0, toSafeInt(state.saveData.money, 0));
+  state.saveData.coins = Math.max(0, toSafeInt(state.saveData.coins, 0));
   const rawBallInventory = state.saveData.ball_inventory;
   const normalizedBallInventory = normalizeBallInventory(rawBallInventory);
   const legacyBalls = Math.max(0, toSafeInt(state.saveData.pokeballs, 0));
@@ -6168,8 +6223,8 @@ function shouldCaptureEnemyWithBallType(ballType, enemy) {
   }
 
   const enemyId = Number(enemy.id || 0);
-  const owned = enemyId > 0 ? isPokemonEntityUnlockedById(enemyId) : false;
-  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !owned) {
+  const familyOwned = enemyId > 0 ? isEvolutionFamilyOwned(enemyId) : false;
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !familyOwned) {
     return true;
   }
   if (Boolean(enemy.isUltraShiny)) {
@@ -6288,9 +6343,10 @@ function getBallTypeLabel(ballType) {
 function getBallCaptureMultiplier(ballType) {
   const type = String(ballType || "").toLowerCase().trim();
   if (Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
-    return Math.max(1, Number(BALL_CONFIG_BY_TYPE[type].captureMultiplier || 1));
+    const configuredMultiplier = Math.max(0.05, Number(BALL_CONFIG_BY_TYPE[type].captureMultiplier || 1));
+    return Math.max(0.05, configuredMultiplier * CAPTURE_BALL_MULTIPLIER_NERF);
   }
-  return 1;
+  return CAPTURE_BALL_MULTIPLIER_NERF;
 }
 
 function getBallInventoryOverlayRows() {
@@ -6426,6 +6482,14 @@ function addMoney(amount) {
   }
   ensureMoneyAndItems();
   state.saveData.money += Math.max(0, toSafeInt(amount, 0));
+}
+
+function addCoins(amount) {
+  if (!state.saveData) {
+    return;
+  }
+  ensureMoneyAndItems();
+  state.saveData.coins += Math.max(0, toSafeInt(amount, 0));
 }
 
 function spendMoney(amount) {
@@ -7486,7 +7550,7 @@ function awardCaptureXpToTeam(enemy, options = {}) {
 function computeCatchChance(catchRate, ballMultiplier = 1) {
   const normalizedRate = clamp(Number(catchRate || 45), 1, 255) / 255;
   const baseChance = clamp(0.07 + normalizedRate * 0.75, 0.06, 0.94);
-  const multiplier = Math.max(1, Number(ballMultiplier || 1));
+  const multiplier = Math.max(0.05, Number(ballMultiplier || 1));
   return clamp(baseChance * multiplier, 0.06, 0.99);
 }
 
@@ -7666,6 +7730,24 @@ function getTypeColor(typeName) {
 
 function normalizeType(typeName) {
   return String(typeName || "normal").toLowerCase();
+}
+
+function formatTypeLabelFr(typeName) {
+  const normalized = normalizeType(typeName);
+  if (Object.prototype.hasOwnProperty.call(TYPE_LABELS_FR, normalized)) {
+    return TYPE_LABELS_FR[normalized];
+  }
+  if (!normalized) {
+    return TYPE_LABELS_FR.normal;
+  }
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function formatTypeListFr(types) {
+  if (!Array.isArray(types) || types.length <= 0) {
+    return TYPE_LABELS_FR.normal;
+  }
+  return types.map((typeName) => formatTypeLabelFr(typeName)).join(" / ");
 }
 
 function isTeamLeftSideSlot(slotIndex, layout = state.layout) {
@@ -8287,6 +8369,9 @@ class PokemonBattleManager {
     this.enemyTimerMs = 0;
     this.enemyTimerStyle = ENEMY_TIMER_STYLE_ROUTE;
     this.enemy = null;
+    this.pendingEnemyDamage = 0;
+    this.enemyDefeatReserved = false;
+    this.enemyDefeatReservedBySlot = -1;
     this.spawnEnemy();
   }
 
@@ -8398,6 +8483,7 @@ class PokemonBattleManager {
     this.koAnimMs = 0;
     this.defeatedEnemyName = null;
     this.captureSequence = null;
+    this.resetQueuedAttackState();
     this.lastImpact = null;
     this.lastTurnEvent = null;
     try {
@@ -8471,6 +8557,73 @@ class PokemonBattleManager {
     return {
       x: Number.isFinite(x) ? x : fallbackX,
       y: Number.isFinite(y) ? y : fallbackY,
+    };
+  }
+
+  resetQueuedAttackState() {
+    this.pendingEnemyDamage = 0;
+    this.enemyDefeatReserved = false;
+    this.enemyDefeatReservedBySlot = -1;
+  }
+
+  isEnemyDefeatReserved() {
+    return Boolean(this.enemyDefeatReserved) && Boolean(this.enemy) && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning();
+  }
+
+  consumeQueuedProjectileDamage(projectile) {
+    const plannedDamage = Math.max(0, Number(projectile?.plannedDamage) || 0);
+    if (plannedDamage > 0) {
+      this.pendingEnemyDamage = Math.max(0, this.pendingEnemyDamage - plannedDamage);
+    }
+    if (projectile?.reservesDefeat) {
+      this.enemyDefeatReserved = false;
+      this.enemyDefeatReservedBySlot = -1;
+    }
+  }
+
+  buildPrecomputedHitOutcome(attackerIndex, attacker, attackType) {
+    const resolvedType = String(attackType || attacker?.offensiveType || attacker?.defensiveTypes?.[0] || "normal");
+    if (!attacker || !this.enemy || this.enemy.hpCurrent <= 0) {
+      return {
+        attackType: resolvedType,
+        missed: false,
+        typeMultiplier: 1,
+        isCritical: false,
+        damage: 0,
+        teamAuraAttackBonus: 0,
+      };
+    }
+
+    const cannotMiss = hasAlwaysHitTalent(attacker?.talent, attacker?.id);
+    const missed = !cannotMiss && Math.random() < ATTACK_MISS_CHANCE;
+    if (missed) {
+      return {
+        attackType: resolvedType,
+        missed: true,
+        typeMultiplier: 1,
+        isCritical: false,
+        damage: 0,
+        teamAuraAttackBonus: 0,
+      };
+    }
+
+    const typeMultiplier = getTypeMultiplier(resolvedType, this.enemy.defensiveTypes);
+    const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
+    const teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(attackerIndex, attacker);
+    const damageOutcome = computeDamage(attacker, this.enemy, resolvedType, typeMultiplier, {
+      critChanceBonus,
+      damageMultiplier: 1 + teamAuraAttackBonus,
+    });
+    const baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
+    const damage = baseDamage <= 0 ? 0 : Math.max(1, Math.round(baseDamage));
+
+    return {
+      attackType: resolvedType,
+      missed: false,
+      typeMultiplier,
+      isCritical: Boolean(damageOutcome?.isCritical),
+      damage,
+      teamAuraAttackBonus,
     };
   }
 
@@ -8784,6 +8937,7 @@ class PokemonBattleManager {
       this.pendingRespawnMs = 0;
       this.captureSequence = null;
       this.koAnimMs = 0;
+      this.resetQueuedAttackState();
       this.projectiles = [];
       this.floatingTexts = [];
       this.hitEffects = [];
@@ -8914,6 +9068,7 @@ class PokemonBattleManager {
     }
 
     if (idleMode) {
+      this.resetQueuedAttackState();
       this.updateIdleCombat(deltaMs, layout);
       this.projectiles = [];
       this.floatingTexts = [];
@@ -8930,6 +9085,10 @@ class PokemonBattleManager {
     this.advanceEnemyTimer(deltaMs);
     this.attackTimerMs -= deltaMs;
     while (this.attackTimerMs <= 0) {
+      if (this.isEnemyDefeatReserved()) {
+        this.attackTimerMs = 0;
+        break;
+      }
       this.spawnNextProjectile(layout);
       this.attackTimerMs += this.attackIntervalMs;
     }
@@ -9102,6 +9261,20 @@ class PokemonBattleManager {
     const impactPoint = this.getEnemyImpactPoint(layout);
     const targetX = impactPoint.x + targetOffsetX;
     const targetY = impactPoint.y + targetOffsetY;
+    const precomputedHit = this.buildPrecomputedHitOutcome(attackerIndex, attacker, attackType);
+    const plannedDamage = Math.max(0, Number(precomputedHit.damage) || 0);
+    const projectedHpAfter = Math.max(
+      0,
+      (Number(this.enemy.hpCurrent) || 0) - Math.max(0, Number(this.pendingEnemyDamage) || 0) - plannedDamage,
+    );
+    const reservesDefeat = plannedDamage > 0 && projectedHpAfter <= 0;
+    if (plannedDamage > 0) {
+      this.pendingEnemyDamage += plannedDamage;
+    }
+    if (reservesDefeat) {
+      this.enemyDefeatReserved = true;
+      this.enemyDefeatReservedBySlot = attackerIndex;
+    }
     this.triggerSlotRecoil(attackerIndex);
     this.triggerSlotAttackFlash(attackerIndex);
     this.addAttackLaunchEffects({ attackType, startX, startY });
@@ -9124,12 +9297,18 @@ class PokemonBattleManager {
       rotation: 0,
       lifetimeMs: 0,
       trail: [],
+      precomputedHit,
+      plannedDamage,
+      reservesDefeat,
     };
     this.projectiles.push(projectile);
     return projectile;
   }
 
   spawnNextProjectile(layout) {
+    if (this.isEnemyDefeatReserved()) {
+      return;
+    }
     const turn = this.consumeTurnSlot();
     const attackerIndex = turn.slotIndex;
     const attacker = turn.attacker;
@@ -9144,7 +9323,7 @@ class PokemonBattleManager {
       return;
     }
 
-    if (decision.talentId === TALENT_MIND_CONTROL_ID && this.enemy && this.enemy.hpCurrent > 0) {
+    if (decision.talentId === TALENT_MIND_CONTROL_ID && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyDefeatReserved()) {
       const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
       const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
       if (supportAttacker) {
@@ -9332,18 +9511,31 @@ class PokemonBattleManager {
     const idleMode = Boolean(options.idleMode);
     const suppressTurnEvent = Boolean(options.suppressTurnEvent);
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      this.consumeQueuedProjectileDamage(projectile);
       return;
     }
 
     const attacker = this.team[projectile.attackerIndex];
     if (!attacker) {
+      this.consumeQueuedProjectileDamage(projectile);
       return;
     }
 
-    const attackType = String(projectile?.attackType || attacker.offensiveType || attacker.defensiveTypes?.[0] || "normal");
-    const cannotMiss = hasAlwaysHitTalent(attacker?.talent, attacker?.id);
-    const missed = !cannotMiss && Math.random() < ATTACK_MISS_CHANCE;
+    const precomputedHit = projectile?.precomputedHit && typeof projectile.precomputedHit === "object"
+      ? projectile.precomputedHit
+      : null;
+    const attackType = String(
+      precomputedHit?.attackType
+      || projectile?.attackType
+      || attacker.offensiveType
+      || attacker.defensiveTypes?.[0]
+      || "normal",
+    );
+    const missed = precomputedHit
+      ? Boolean(precomputedHit.missed)
+      : (!hasAlwaysHitTalent(attacker?.talent, attacker?.id) && Math.random() < ATTACK_MISS_CHANCE);
     if (missed) {
+      this.consumeQueuedProjectileDamage(projectile);
       const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
       this.lastImpact = {
         attackerNameFr: attacker.nameFr,
@@ -9381,17 +9573,29 @@ class PokemonBattleManager {
       return;
     }
 
-    const typeMultiplier = getTypeMultiplier(attackType, this.enemy.defensiveTypes);
-    const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
-    const teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(projectile.attackerIndex, attacker);
-    const damageOutcome = computeDamage(attacker, this.enemy, attackType, typeMultiplier, {
-      critChanceBonus,
-      damageMultiplier: 1 + teamAuraAttackBonus,
-    });
-    const baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
-    const isCriticalHit = Boolean(damageOutcome?.isCritical);
+    let typeMultiplier;
+    let teamAuraAttackBonus;
+    let isCriticalHit;
+    let baseDamage;
+    if (precomputedHit) {
+      typeMultiplier = Number(precomputedHit.typeMultiplier || 1);
+      teamAuraAttackBonus = Math.max(0, Number(precomputedHit.teamAuraAttackBonus) || 0);
+      isCriticalHit = Boolean(precomputedHit.isCritical);
+      baseDamage = Math.max(0, Number(precomputedHit.damage || 0));
+    } else {
+      typeMultiplier = getTypeMultiplier(attackType, this.enemy.defensiveTypes);
+      const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
+      teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(projectile.attackerIndex, attacker);
+      const damageOutcome = computeDamage(attacker, this.enemy, attackType, typeMultiplier, {
+        critChanceBonus,
+        damageMultiplier: 1 + teamAuraAttackBonus,
+      });
+      baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
+      isCriticalHit = Boolean(damageOutcome?.isCritical);
+    }
     const damage = baseDamage <= 0 ? 0 : Math.max(1, Math.round(baseDamage));
 
+    this.consumeQueuedProjectileDamage(projectile);
     this.enemy.hpCurrent = clamp(this.enemy.hpCurrent - damage, 0, this.enemy.hpMax);
     if (damage > 0) {
       this.enemyDamageFlashMs = Math.max(this.enemyDamageFlashMs, ENEMY_DAMAGE_FLASH_DURATION_MS);
@@ -9441,6 +9645,7 @@ class PokemonBattleManager {
 
     if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
       const defeatedEnemy = this.enemy;
+      this.resetQueuedAttackState();
       this.enemiesDefeated += 1;
       this.defeatedEnemyName = this.enemy.nameFr;
       let captureResult = { captured: false, capture_attempted: false };
@@ -9504,6 +9709,7 @@ class PokemonBattleManager {
     const source = this.createEnemy();
     if (!source) {
       this.enemy = null;
+      this.resetQueuedAttackState();
       this.enemyTimerEnabled = false;
       this.enemyTimerDurationMs = 0;
       this.enemyTimerMs = 0;
@@ -9521,6 +9727,7 @@ class PokemonBattleManager {
     this.enemyDamageFlashMs = 0;
     this.pendingRespawnMs = 0;
     this.koAnimMs = 0;
+    this.resetQueuedAttackState();
     this.defeatedEnemyName = null;
     this.captureSequence = null;
     this.lastTurnEvent = null;
@@ -9770,8 +9977,11 @@ function applyAutoGrantedProgress(pokemonId, level = 1) {
   }
 
   const { record, wasUnlocked } = ensurePokemonEntityUnlocked(pokemonId, level);
+  const capturedBefore = getCapturedTotal(record);
   incrementSpeciesStat(pokemonId, "encountered", false, 1);
   incrementSpeciesStat(pokemonId, "captured", false, 1);
+  const firstCaptureBonus = capturedBefore <= 0 ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0;
+  addCoins(COIN_REWARD_PER_CAPTURE + firstCaptureBonus);
   record.encountered_normal = Math.max(1, record.encountered_normal);
   record.captured_normal = Math.max(1, record.captured_normal);
 
@@ -10153,6 +10363,11 @@ function handleEnemyDefeated(enemy) {
   let addedToTeam = false;
   let captureXpSummary = null;
   let usedBallType = null;
+  const awardCaptureCoinReward = () => {
+    const speciesRecord = ensureSpeciesStats(enemy.id);
+    const isFirstCapture = getCapturedTotal(speciesRecord) <= 0;
+    addCoins(COIN_REWARD_PER_CAPTURE + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
+  };
 
   if (getBallInventoryTotalCount() > 0) {
     const captureConsume = consumeBallForCapture(enemy);
@@ -10177,6 +10392,7 @@ function handleEnemyDefeated(enemy) {
       }
       if (captured) {
         if (state.simulationIdleMode) {
+          awardCaptureCoinReward();
           incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
           if (enemy.isShiny) {
             notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
@@ -10186,6 +10402,7 @@ function handleEnemyDefeated(enemy) {
           captureXpSummary = awardCaptureBonusXpReward();
         } else {
           captureOnComplete = () => {
+            awardCaptureCoinReward();
             incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
             if (enemy.isShiny) {
               notifyWindowsShinyCapture(enemy, { isCritical: captureCritical });
@@ -10343,12 +10560,10 @@ function refreshRouteUi() {
   }
 
   if (routeNavCurrentEl) {
-    routeNavCurrentEl.textContent = orderIndex >= 0
-      ? `${currentZoneType}: ${currentRouteName} (${orderIndex + 1}/${totalCount})`
-      : `${currentZoneType}: ${currentRouteName}`;
+    routeNavCurrentEl.textContent = currentRouteName;
   }
   if (routeNavProgressEl) {
-    routeNavProgressEl.textContent = progressLabel;
+    routeNavProgressEl.textContent = "";
   }
 
   if (state.ui.mapOpen) {
@@ -10448,6 +10663,7 @@ function updateHud() {
     state.moneyHud.lastRawValue = 0;
     state.moneyHud.pulseMs = 0;
     setMoneyCounterTextValue(0);
+    setCoinsCounterTextValue(0);
     refreshMoneyCounterTransform();
     refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
     updateSaveBackendIndicator();
@@ -10474,6 +10690,7 @@ function updateHud() {
     }
     state.moneyHud.lastRawValue = rawMoney;
   }
+  setCoinsCounterTextValue(Math.max(0, toSafeInt(state.saveData.coins, 0)));
   refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
   updateSaveBackendIndicator();
   refreshRouteUi();
@@ -12514,11 +12731,21 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   if (!timerState?.running || timerState.duration_ms <= 0) {
     return;
   }
+  const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const unlockProgressState = getRouteUnlockProgressState(currentRouteId);
+  const showDefeatCounter = unlockProgressState.unlockMode === "defeats" && unlockProgressState.unlockTarget > 0;
+  const defeatCounterText = showDefeatCounter
+    ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pokemon battus`
+    : "";
   const isOnlyOneTimer = String(timerState?.style || "").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;
+  const remainingMs = Math.max(0, Number(timerState.remaining_ms) || 0);
+  const remainingSeconds = Math.max(0, remainingMs / 1000);
+  const remainingDisplaySeconds = Math.max(0, Math.ceil(remainingSeconds * 10) / 10);
+  const timerText = `${remainingDisplaySeconds.toFixed(1)}s`;
   const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);
   const danger = 1 - ratio;
   const width = clamp(state.viewport.width * 0.58, 220, 540);
-  const height = clamp(state.viewport.height * 0.014, 8, 12);
+  const height = clamp(state.viewport.height * 0.028, 14, 20);
   const x = (state.viewport.width - width) * 0.5;
   const safeTop = Number(layout?.safeBounds?.top);
   const y = Number.isFinite(safeTop)
@@ -12580,6 +12807,29 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.stroke();
+
+  const timerTextSize = Math.max(10, Math.min(15, Math.round(height * 0.7)));
+  ctx.font = `700 ${timerTextSize}px Tahoma`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = isOnlyOneTimer ? "rgba(52, 20, 84, 0.82)" : "rgba(45, 22, 18, 0.82)";
+  ctx.fillStyle = "rgba(255, 250, 242, 0.96)";
+  ctx.strokeText(timerText, x + width * 0.5, y + height * 0.5);
+  ctx.fillText(timerText, x + width * 0.5, y + height * 0.5);
+
+  if (defeatCounterText) {
+    const counterTextSize = Math.max(10, Math.min(14, Math.round(height * 0.64)));
+    const counterY = y + height + 6;
+    ctx.font = `700 ${counterTextSize}px Tahoma`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.lineWidth = 2.8;
+    ctx.strokeStyle = "rgba(14, 20, 30, 0.74)";
+    ctx.fillStyle = "rgba(236, 244, 252, 0.98)";
+    ctx.strokeText(defeatCounterText, x + width * 0.5, counterY);
+    ctx.fillText(defeatCounterText, x + width * 0.5, counterY);
+  }
   ctx.restore();
 }
 
@@ -15443,7 +15693,7 @@ function setBoxesInfoFromEntry(entry) {
     })}`)
     .join(" | ");
   const baseTotal = getBaseStatTotal(entry.baseStats);
-  const typesLabel = entry.defensiveTypes.join(" / ");
+  const typesLabel = formatTypeListFr(entry.defensiveTypes);
   const talent = resolveTalentDefinition(entry?.talent, entry?.id);
   const displayName = escapeHtml(String(entry?.nameFr || ""));
   const baseName = escapeHtml(String(entry?.baseNameFr || displayName));
@@ -15461,7 +15711,7 @@ function setBoxesInfoFromEntry(entry) {
     `Talent: ${formatTalentLabelFr(talent, entry?.id)}`,
     `Effet talent: ${talent.descriptionFr || TALENT_NONE_DESCRIPTION_FR}`,
     `Types: ${typesLabel}`,
-    `Type offensif: ${entry.offensiveType}`,
+    `Type offensif: ${formatTypeLabelFr(entry.offensiveType)}`,
     `XP: ${xpLabel}`,
     `Stats: ${statLine}`,
     `BST: ${formatCompactNumber(Math.round(baseTotal))}`,
@@ -16283,6 +16533,7 @@ function exportTextState() {
     hovered_team_slot_index: toSafeInt(state.ui.hoveredTeamSlotIndex, -1),
     save_team_size: state.saveData?.team?.length || 0,
     money: Math.max(0, toSafeInt(state.saveData?.money, 0)),
+    coins: Math.max(0, toSafeInt(state.saveData?.coins, 0)),
     pokeballs: Math.max(0, toSafeInt(state.saveData?.pokeballs, 0)),
     ball_inventory: state.saveData
       ? {
@@ -16365,6 +16616,7 @@ function exportTextState() {
       ? state.notifications.items.filter((item) => item?.type === "evolution_ready").length
       : 0,
     money_display_value: Math.max(0, Math.round(Number(state.moneyHud.displayValue) || 0)),
+    coins_display_value: Math.max(0, toSafeInt(state.saveData?.coins, 0)),
     team_level_up_effects_active: Array.isArray(state.teamLevelUpEffects) ? state.teamLevelUpEffects.length : 0,
     team_xp_gain_effects_active: Array.isArray(state.teamXpGainEffects) ? state.teamXpGainEffects.length : 0,
     active_projectiles: (battle ? battle.getProjectiles() : []).map((projectile) => ({
