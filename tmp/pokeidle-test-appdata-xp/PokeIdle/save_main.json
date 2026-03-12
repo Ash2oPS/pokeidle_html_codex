@@ -1,5 +1,6 @@
 {
     "version":  6,
+    "app_build_version":  "0.1.1",
     "starter_chosen":  true,
     "current_route_id":  "kanto_route_1",
     "unlocked_route_ids":  [
@@ -9,7 +10,7 @@
     "route_defeat_counts":  {
 
                             },
-    "last_tick_epoch_ms":  1773330037768,
+    "last_tick_epoch_ms":  1773330130128,
     "team":  [
                  4
              ],
@@ -33,7 +34,13 @@
     "shop_items":  {
                        "water_stone":  0,
                        "fire_stone":  0,
-                       "leaf_stone":  0
+                       "leaf_stone":  0,
+                       "galarica_wreath":  0,
+                       "ice_stone":  0,
+                       "moon_stone":  0,
+                       "sun_stone":  0,
+                       "thunder_stone":  0,
+                       "cable_link":  0
                    },
     "attack_boost_until_ms":  0,
     "pokeballs":  60,

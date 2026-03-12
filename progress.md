@@ -3141,3 +3141,24 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Legacy save compatibility run (`output/web-game-legacy-seed-check`): PASS
   - Seeded pre-0.1.1 save is rejected at startup.
   - Game starts in fresh state (starter modal visible, empty team), then persists 0.1.1 save data.
+
+## Additional progress (2026-03-12 XP progression slowdown for farming)
+- Rebalanced XP progression in `game.js` to make leveling meaningfully slower and more farm-oriented:
+  - `CAPTURE_XP_BASE`: `20 -> 10`
+  - `CAPTURE_XP_LEVEL_MULT`: `10 -> 5`
+  - `CAPTURE_XP_STAT_FACTOR`: `0.055 -> 0.024`
+  - `KO_XP_RATIO_OF_CAPTURE`: `0.45 -> 0.3`
+- Increased XP required per level in `getXpToNextLevelForSpecies(...)`:
+  - requirement formula changed from `(36 + level^2 * 3.6 + level * 12) * growth`
+  - to `(58 + level^2 * 5.8 + level * 18) * growth`
+  - minimum requirement changed from `36` to `58`.
+
+## Validation (XP slowdown pass)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (no Playwright failure).
+- Targeted seeded combat run with valid `0.1.1` save (`output/web-game-xp-balance-check`): PASS.
+  - Confirmed combat state on Route 1 with active enemy.
+  - Confirmed significantly higher XP requirements in text state:
+    - level 20 member `xp_to_next: 3927` (previous balancing baseline was around `2461`)
+    - level 1 member `xp_to_next: 109` (previous balancing baseline was around `68`)
+  - Visual screenshot reviewed: `output/web-game-xp-balance-check/shot-11.png`.

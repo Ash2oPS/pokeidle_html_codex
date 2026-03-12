@@ -191,7 +191,7 @@ const SHINY_ODDS = 2048;
 const ULTRA_SHINY_ODDS = 8192;
 const SAVE_VERSION = 6;
 const MIN_SUPPORTED_SAVE_VERSION = 0;
-const MIN_SUPPORTED_SAVE_APP_VERSION = "0.1.1";
+const MIN_SUPPORTED_SAVE_APP_VERSION = "0.1.3";
 const APP_VERSION = POKEIDLE_APP_VERSION;
 const DISPLAY_APP_VERSION = getDisplayedAppVersion(window.location, APP_VERSION);
 const SPRITE_VARIANT_BASE_PRICE = 900;
@@ -319,10 +319,10 @@ const DEFAULT_WILD_LEVEL_MAX = 6;
 const ENEMY_MONEY_BASE = 16;
 const ENEMY_MONEY_LEVEL_MULT = 9;
 const ENEMY_MONEY_STAT_FACTOR = 0.06;
-const CAPTURE_XP_BASE = 20;
-const CAPTURE_XP_LEVEL_MULT = 10;
-const CAPTURE_XP_STAT_FACTOR = 0.055;
-const KO_XP_RATIO_OF_CAPTURE = 0.45;
+const CAPTURE_XP_BASE = 10;
+const CAPTURE_XP_LEVEL_MULT = 5;
+const CAPTURE_XP_STAT_FACTOR = 0.024;
+const KO_XP_RATIO_OF_CAPTURE = 0.3;
 const LEVEL_PROGRESSION_LINEAR_PER_STEP = 0.055;
 const LEVEL_PROGRESSION_CURVE_EXPONENT = 1.52;
 const LEVEL_PROGRESSION_CURVE_PER_STEP = 0.038;
@@ -2899,8 +2899,8 @@ function getXpToNextLevelForSpecies(pokemonId, level, fallbackStats = null) {
   }
   const baseStats = getPokemonBaseStats(pokemonId, fallbackStats);
   const growth = getSpeciesGrowthFactor(baseStats);
-  const requirement = (36 + level * level * 3.6 + level * 12) * growth;
-  return Math.max(36, Math.round(requirement));
+  const requirement = (58 + level * level * 5.8 + level * 18) * growth;
+  return Math.max(58, Math.round(requirement));
 }
 
 function createEmptySpeciesStats() {
@@ -15159,23 +15159,22 @@ function positionFloatingMenuElement(menuEl, clientX, clientY) {
   menuEl.style.top = `${Math.round(clamp(top, 8, window.innerHeight - menuRect.height - 8))}px`;
 }
 
-function setBallCaptureToggleButtonState(buttonEl, label, enabled, locked = false) {
+function setBallCaptureToggleButtonState(buttonEl, label, enabled) {
   if (!buttonEl) {
     return;
   }
   const isEnabled = Boolean(enabled);
-  const isLocked = Boolean(locked);
-  buttonEl.disabled = isLocked;
+  buttonEl.disabled = false;
   buttonEl.setAttribute("aria-checked", isEnabled ? "true" : "false");
-  buttonEl.setAttribute("aria-disabled", isLocked ? "true" : "false");
+  buttonEl.setAttribute("aria-disabled", "false");
   buttonEl.classList.toggle("is-on", isEnabled);
-  buttonEl.classList.toggle("is-locked", isLocked);
+  buttonEl.classList.remove("is-locked");
   buttonEl.textContent = "";
 
   const checkEl = document.createElement("span");
   checkEl.className = "ball-capture-toggle-check";
   checkEl.setAttribute("aria-hidden", "true");
-  checkEl.textContent = isEnabled ? "X" : "";
+  checkEl.textContent = isEnabled ? "\u2713" : "";
 
   const labelEl = document.createElement("span");
   labelEl.className = "ball-capture-toggle-label";
@@ -15184,12 +15183,6 @@ function setBallCaptureToggleButtonState(buttonEl, label, enabled, locked = fals
   buttonEl.appendChild(checkEl);
   buttonEl.appendChild(labelEl);
 
-  if (isLocked) {
-    const lockEl = document.createElement("span");
-    lockEl.className = "ball-capture-toggle-lock";
-    lockEl.textContent = "verrouill\u00e9";
-    buttonEl.appendChild(lockEl);
-  }
 }
 
 function refreshBallCaptureMenu() {
@@ -15203,7 +15196,6 @@ function refreshBallCaptureMenu() {
   }
   const config = BALL_CONFIG_BY_TYPE[ballType];
   const rules = getBallCaptureRulesForType(ballType);
-  const captureAllEnabled = Boolean(rules[BALL_CAPTURE_RULE_CAPTURE_ALL]);
 
   if (ballCaptureMenuTitleEl) {
     ballCaptureMenuTitleEl.textContent = `${config.nameFr} | R\u00e9glages capture`;
@@ -15212,8 +15204,7 @@ function refreshBallCaptureMenu() {
   for (const definition of BALL_CAPTURE_TOGGLE_DEFINITIONS) {
     const key = definition.key;
     const enabled = Boolean(rules[key]);
-    const locked = captureAllEnabled && key !== BALL_CAPTURE_RULE_CAPTURE_ALL;
-    setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled, locked);
+    setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled);
   }
 }
 
@@ -15256,12 +15247,15 @@ function toggleBallCaptureRule(ruleKey) {
       nextRules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
     }
   } else {
-    if (currentRules[BALL_CAPTURE_RULE_CAPTURE_ALL]) {
-      refreshBallCaptureMenu();
-      return;
-    }
     nextRules[BALL_CAPTURE_RULE_CAPTURE_ALL] = false;
     nextRules[key] = !Boolean(currentRules[key]);
+    const allSubRulesEnabled =
+      Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED])
+      && Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_SHINY])
+      && Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]);
+    if (allSubRulesEnabled) {
+      nextRules[BALL_CAPTURE_RULE_CAPTURE_ALL] = true;
+    }
   }
 
   const changed = setBallCaptureRulesForType(ballType, nextRules);
