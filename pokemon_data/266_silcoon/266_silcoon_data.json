@@ -103,5 +103,35 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 6,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 120,
+  "base_experience": 72,
+  "weight": 100,
+  "abilities": [
+    {
+      "name_en": "shed-skin",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 15,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "ball",
+  "habitat": "forest"
 }

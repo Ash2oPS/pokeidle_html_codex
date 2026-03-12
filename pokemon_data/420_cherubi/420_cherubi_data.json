@@ -77,5 +77,41 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 190,
+  "base_experience": 55,
+  "weight": 33,
+  "abilities": [
+    {
+      "name_en": "chlorophyll",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 1
+  },
+  "held_items": [
+    {
+      "name_en": "miracle-seed",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "fairy",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "heads",
+  "habitat": null
 }

@@ -98,5 +98,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 45,
+  "base_experience": 88,
+  "weight": 580,
+  "abilities": [
+    {
+      "name_en": "own-tempo",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "technician",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "moody",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "upright",
+  "habitat": "urban"
 }

@@ -142,5 +142,45 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 225,
+  "base_experience": 65,
+  "weight": 65,
+  "abilities": [
+    {
+      "name_en": "hyper-cutter",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "shell-armor",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "sheer-force",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "water3"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "red",
+  "shape": "armor",
+  "habitat": "waters-edge"
 }

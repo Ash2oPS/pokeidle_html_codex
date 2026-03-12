@@ -75,5 +75,40 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "catch_rate": 60,
+  "base_experience": 184,
+  "weight": 3000,
+  "abilities": [
+    {
+      "name_en": "sand-stream",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "sand-force",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 30,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "quadruped",
+  "habitat": null
 }

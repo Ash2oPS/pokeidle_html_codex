@@ -77,5 +77,41 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 62,
+  "weight": 62,
+  "abilities": [
+    {
+      "name_en": "blaze",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "iron-fist",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "ground",
+    "humanshape"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "upright",
+  "habitat": null
 }

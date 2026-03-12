@@ -92,5 +92,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 90,
+  "base_experience": 175,
+  "weight": 1080,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "light-clay",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "mineral"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "black",
+  "shape": "arms",
+  "habitat": "rough-terrain"
 }

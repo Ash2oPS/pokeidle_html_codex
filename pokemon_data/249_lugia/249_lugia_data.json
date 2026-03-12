@@ -99,5 +99,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 52,
-  "size": 0.4667
+  "size": 0.4667,
+  "catch_rate": 3,
+  "base_experience": 306,
+  "weight": 2160,
+  "abilities": [
+    {
+      "name_en": "pressure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "multiscale",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 3
+  },
+  "held_items": [],
+  "base_happiness": 0,
+  "growth_rate": "slow",
+  "hatch_counter": 120,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "wings",
+  "habitat": "rare"
 }

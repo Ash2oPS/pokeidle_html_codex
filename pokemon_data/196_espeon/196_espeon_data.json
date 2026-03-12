@@ -109,5 +109,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 9,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 184,
+  "weight": 265,
+  "abilities": [
+    {
+      "name_en": "synchronize",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "magic-bounce",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 35,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "quadruped",
+  "habitat": "urban"
 }

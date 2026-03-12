@@ -82,5 +82,46 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "catch_rate": 200,
+  "base_experience": 161,
+  "weight": 1000,
+  "abilities": [
+    {
+      "name_en": "chlorophyll",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "solar-power",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "harvest",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 25,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "monster",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "green",
+  "shape": "quadruped",
+  "habitat": "forest"
 }

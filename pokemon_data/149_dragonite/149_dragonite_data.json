@@ -142,5 +142,49 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 22,
-  "size": 0.1333
+  "size": 0.1333,
+  "base_experience": 270,
+  "weight": 2100,
+  "abilities": [
+    {
+      "name_en": "inner-focus",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "multiscale",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 3
+  },
+  "held_items": [
+    {
+      "name_en": "dragon-scale",
+      "rarity": 5
+    },
+    {
+      "name_en": "dragon-fang",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 40,
+  "generation": "generation-i",
+  "egg_groups": [
+    "water1",
+    "dragon"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "upright",
+  "habitat": "waters-edge"
 }

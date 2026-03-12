@@ -81,5 +81,41 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 19,
-  "size": 0.1
+  "size": 0.1,
+  "catch_rate": 3,
+  "base_experience": 261,
+  "weight": 2050,
+  "abilities": [
+    {
+      "name_en": "clear-body",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "light-metal",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2,
+    "special-defense": 1
+  },
+  "held_items": [],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 80,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "gray",
+  "shape": "humanoid",
+  "habitat": "cave"
 }

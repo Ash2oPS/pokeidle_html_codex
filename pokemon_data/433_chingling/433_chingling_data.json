@@ -78,5 +78,44 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 2,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 120,
+  "base_experience": 57,
+  "weight": 6,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 1
+  },
+  "held_items": [
+    {
+      "name_en": "colbur-berry",
+      "rarity": 5
+    },
+    {
+      "name_en": "cleanse-tag",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 25,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": 4,
+  "is_baby": true,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "yellow",
+  "shape": "humanoid",
+  "habitat": null
 }

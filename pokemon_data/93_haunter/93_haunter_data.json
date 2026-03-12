@@ -152,5 +152,40 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 16,
-  "size": 0.0667
+  "size": 0.0667,
+  "catch_rate": 90,
+  "base_experience": 142,
+  "weight": 1,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "spell-tag",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "indeterminate"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "arms",
+  "habitat": "cave"
 }

@@ -111,5 +111,46 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 255,
+  "base_experience": 50,
+  "weight": 5,
+  "abilities": [
+    {
+      "name_en": "chlorophyll",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "leaf-guard",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "infiltrator",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "fairy",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "upright",
+  "habitat": "grassland"
 }

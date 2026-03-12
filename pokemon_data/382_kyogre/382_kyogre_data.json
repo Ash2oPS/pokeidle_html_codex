@@ -81,5 +81,35 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 45,
-  "size": 0.3889
+  "size": 0.3889,
+  "catch_rate": 3,
+  "base_experience": 302,
+  "weight": 3520,
+  "abilities": [
+    {
+      "name_en": "drizzle",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 0,
+  "growth_rate": "slow",
+  "hatch_counter": 120,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "blue",
+  "shape": "fish",
+  "habitat": "sea"
 }

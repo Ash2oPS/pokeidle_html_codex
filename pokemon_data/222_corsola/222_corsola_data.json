@@ -99,5 +99,60 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 6,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 60,
+  "base_experience": 144,
+  "weight": 50,
+  "abilities": [
+    {
+      "name_en": "hustle",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "natural-cure",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "regenerator",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 1,
+    "special-defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "red-shard",
+      "rarity": 5
+    },
+    {
+      "name_en": "hard-stone",
+      "rarity": 5
+    },
+    {
+      "name_en": "luminous-moss",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "water1",
+    "water3"
+  ],
+  "gender_rate": 6,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "armor",
+  "habitat": "sea"
 }

@@ -66,5 +66,40 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 17,
-  "size": 0.0778
+  "size": 0.0778,
+  "catch_rate": 3,
+  "base_experience": 270,
+  "weight": 4300,
+  "abilities": [
+    {
+      "name_en": "flash-fire",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "flame-body",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 100,
+  "growth_rate": "slow",
+  "hatch_counter": 10,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "quadruped",
+  "habitat": null
 }

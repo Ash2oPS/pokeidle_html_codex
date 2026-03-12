@@ -91,5 +91,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 45,
+  "base_experience": 166,
+  "weight": 402,
+  "abilities": [
+    {
+      "name_en": "static",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "lightning-rod",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "minus",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "yellow",
+  "shape": "quadruped",
+  "habitat": "grassland"
 }

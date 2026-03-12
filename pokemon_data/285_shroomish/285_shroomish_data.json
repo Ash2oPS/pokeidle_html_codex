@@ -93,5 +93,59 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 255,
+  "base_experience": 59,
+  "weight": 45,
+  "abilities": [
+    {
+      "name_en": "effect-spore",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "poison-heal",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "quick-feet",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1
+  },
+  "held_items": [
+    {
+      "name_en": "tiny-mushroom",
+      "rarity": 50
+    },
+    {
+      "name_en": "big-mushroom",
+      "rarity": 5
+    },
+    {
+      "name_en": "kebia-berry",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast-then-very-slow",
+  "hatch_counter": 15,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "fairy",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "legs",
+  "habitat": "forest"
 }

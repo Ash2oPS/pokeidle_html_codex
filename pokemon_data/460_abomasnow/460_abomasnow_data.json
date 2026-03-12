@@ -76,5 +76,47 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 22,
-  "size": 0.1333
+  "size": 0.1333,
+  "catch_rate": 60,
+  "base_experience": 173,
+  "weight": 1355,
+  "abilities": [
+    {
+      "name_en": "snow-warning",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "soundproof",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1,
+    "special-attack": 1
+  },
+  "held_items": [
+    {
+      "name_en": "never-melt-ice",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "monster",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": true,
+  "color": "white",
+  "shape": "upright",
+  "habitat": null
 }

@@ -109,5 +109,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "catch_rate": 45,
+  "base_experience": 270,
+  "weight": 2020,
+  "abilities": [
+    {
+      "name_en": "sand-stream",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "unnerve",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 40,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "monster"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "green",
+  "shape": "upright",
+  "habitat": "mountain"
 }

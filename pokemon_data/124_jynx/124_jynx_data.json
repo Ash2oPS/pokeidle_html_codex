@@ -141,5 +141,50 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 45,
+  "base_experience": 159,
+  "weight": 406,
+  "abilities": [
+    {
+      "name_en": "oblivious",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "forewarn",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "dry-skin",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "aspear-berry",
+      "rarity": 100
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 25,
+  "generation": "generation-i",
+  "egg_groups": [
+    "humanshape"
+  ],
+  "gender_rate": 8,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "red",
+  "shape": "humanoid",
+  "habitat": "urban"
 }

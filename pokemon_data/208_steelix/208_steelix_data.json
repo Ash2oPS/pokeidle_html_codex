@@ -109,5 +109,50 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 92,
-  "size": 0.9111
+  "size": 0.9111,
+  "catch_rate": 25,
+  "base_experience": 179,
+  "weight": 4000,
+  "abilities": [
+    {
+      "name_en": "rock-head",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "sturdy",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "sheer-force",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "metal-coat",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 25,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "mineral"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": true,
+  "color": "gray",
+  "shape": "squiggle",
+  "habitat": "cave"
 }

@@ -130,5 +130,40 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "catch_rate": 3,
+  "base_experience": 306,
+  "weight": 1220,
+  "abilities": [
+    {
+      "name_en": "pressure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "unnerve",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 0,
+  "growth_rate": "slow",
+  "hatch_counter": 120,
+  "generation": "generation-i",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "purple",
+  "shape": "upright",
+  "habitat": "rare"
 }

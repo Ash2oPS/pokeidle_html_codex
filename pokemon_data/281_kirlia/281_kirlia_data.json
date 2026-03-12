@@ -116,5 +116,46 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 8,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 120,
+  "base_experience": 97,
+  "weight": 202,
+  "abilities": [
+    {
+      "name_en": "synchronize",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "trace",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "telepathy",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "humanshape",
+    "indeterminate"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "humanoid",
+  "habitat": "urban"
 }

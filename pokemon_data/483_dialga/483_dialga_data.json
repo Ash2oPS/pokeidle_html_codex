@@ -66,5 +66,40 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 54,
-  "size": 0.4889
+  "size": 0.4889,
+  "catch_rate": 3,
+  "base_experience": 306,
+  "weight": 6830,
+  "abilities": [
+    {
+      "name_en": "pressure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "telepathy",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 0,
+  "growth_rate": "slow",
+  "hatch_counter": 120,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "quadruped",
+  "habitat": null
 }

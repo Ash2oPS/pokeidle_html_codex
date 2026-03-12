@@ -76,5 +76,51 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 13,
-  "size": 0.0333
+  "size": 0.0333,
+  "catch_rate": 45,
+  "base_experience": 175,
+  "weight": 615,
+  "abilities": [
+    {
+      "name_en": "battle-armor",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "sniper",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "keen-eye",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "poison-barb",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "bug",
+    "water3"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "armor",
+  "habitat": null
 }

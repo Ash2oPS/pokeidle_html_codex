@@ -142,5 +142,46 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 235,
+  "base_experience": 55,
+  "weight": 70,
+  "abilities": [
+    {
+      "name_en": "poison-point",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "rivalry",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "hustle",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "monster",
+    "ground"
+  ],
+  "gender_rate": 8,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "quadruped",
+  "habitat": "grassland"
 }

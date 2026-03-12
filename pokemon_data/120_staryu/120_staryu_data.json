@@ -142,5 +142,54 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 8,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 225,
+  "base_experience": 68,
+  "weight": 345,
+  "abilities": [
+    {
+      "name_en": "illuminate",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "natural-cure",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "analytic",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "stardust",
+      "rarity": 50
+    },
+    {
+      "name_en": "star-piece",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "water3"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "blob",
+  "habitat": "sea"
 }

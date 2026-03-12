@@ -153,5 +153,58 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 11,
-  "size": 0.0111
+  "size": 0.0111,
+  "catch_rate": 30,
+  "base_experience": 395,
+  "weight": 346,
+  "abilities": [
+    {
+      "name_en": "natural-cure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "serene-grace",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "healer",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 2
+  },
+  "held_items": [
+    {
+      "name_en": "oval-stone",
+      "rarity": 50
+    },
+    {
+      "name_en": "lucky-egg",
+      "rarity": 5
+    },
+    {
+      "name_en": "lucky-punch",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 140,
+  "growth_rate": "fast",
+  "hatch_counter": 40,
+  "generation": "generation-i",
+  "egg_groups": [
+    "fairy"
+  ],
+  "gender_rate": 8,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "upright",
+  "habitat": "urban"
 }

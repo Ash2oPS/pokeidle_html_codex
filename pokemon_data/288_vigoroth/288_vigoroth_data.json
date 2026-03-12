@@ -103,5 +103,35 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 120,
+  "base_experience": 154,
+  "weight": 465,
+  "abilities": [
+    {
+      "name_en": "vital-spirit",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "speed": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 15,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "white",
+  "shape": "upright",
+  "habitat": "forest"
 }

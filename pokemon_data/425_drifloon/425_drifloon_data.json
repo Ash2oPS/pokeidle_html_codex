@@ -78,5 +78,45 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 125,
+  "base_experience": 70,
+  "weight": 12,
+  "abilities": [
+    {
+      "name_en": "aftermath",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "unburden",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "flare-boost",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "fast-then-very-slow",
+  "hatch_counter": 30,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "indeterminate"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "arms",
+  "habitat": null
 }

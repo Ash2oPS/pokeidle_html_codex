@@ -82,5 +82,56 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 6,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 133,
+  "weight": 115,
+  "abilities": [
+    {
+      "name_en": "hyper-cutter",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "intimidate",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "sheer-force",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1,
+    "defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "occa-berry",
+      "rarity": 5
+    },
+    {
+      "name_en": "iron-ball",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "ground",
+    "fairy"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "black",
+  "shape": "humanoid",
+  "habitat": "cave"
 }

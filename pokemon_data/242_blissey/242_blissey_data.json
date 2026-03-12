@@ -108,5 +108,54 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 30,
+  "base_experience": 608,
+  "weight": 468,
+  "abilities": [
+    {
+      "name_en": "natural-cure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "serene-grace",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "healer",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 3
+  },
+  "held_items": [
+    {
+      "name_en": "oval-stone",
+      "rarity": 50
+    },
+    {
+      "name_en": "lucky-egg",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 140,
+  "growth_rate": "fast",
+  "hatch_counter": 40,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "fairy"
+  ],
+  "gender_rate": 8,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "humanoid",
+  "habitat": "urban"
 }

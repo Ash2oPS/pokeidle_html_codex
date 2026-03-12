@@ -151,5 +151,50 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 90,
+  "base_experience": 142,
+  "weight": 705,
+  "abilities": [
+    {
+      "name_en": "guts",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "no-guard",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "steadfast",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "focus-band",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "humanshape"
+  ],
+  "gender_rate": 2,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "gray",
+  "shape": "humanoid",
+  "habitat": "mountain"
 }

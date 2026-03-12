@@ -109,5 +109,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 45,
+  "base_experience": 159,
+  "weight": 480,
+  "abilities": [
+    {
+      "name_en": "intimidate",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "technician",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "steadfast",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 25,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "humanshape"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "upright",
+  "habitat": "urban"
 }

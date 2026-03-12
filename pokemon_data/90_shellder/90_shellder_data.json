@@ -142,5 +142,54 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 190,
+  "base_experience": 61,
+  "weight": 40,
+  "abilities": [
+    {
+      "name_en": "shell-armor",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "skill-link",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "overcoat",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "pearl",
+      "rarity": 50
+    },
+    {
+      "name_en": "big-pearl",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "water3"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "ball",
+  "habitat": "sea"
 }

@@ -140,5 +140,54 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 21,
-  "size": 0.1222
+  "size": 0.1222,
+  "catch_rate": 25,
+  "base_experience": 189,
+  "weight": 4600,
+  "abilities": [
+    {
+      "name_en": "immunity",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "thick-fat",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "gluttony",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 2
+  },
+  "held_items": [
+    {
+      "name_en": "chesto-berry",
+      "rarity": 100
+    },
+    {
+      "name_en": "leftovers",
+      "rarity": 100
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 40,
+  "generation": "generation-i",
+  "egg_groups": [
+    "monster"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "black",
+  "shape": "humanoid",
+  "habitat": "mountain"
 }

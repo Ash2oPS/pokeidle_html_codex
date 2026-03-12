@@ -82,5 +82,51 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 133,
+  "weight": 110,
+  "abilities": [
+    {
+      "name_en": "keen-eye",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "stall",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "prankster",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1,
+    "defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "wide-lens",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 35,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 25,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "humanshape"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "purple",
+  "shape": "humanoid",
+  "habitat": "cave"
 }

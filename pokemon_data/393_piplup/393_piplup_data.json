@@ -77,5 +77,41 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 63,
+  "weight": 52,
+  "abilities": [
+    {
+      "name_en": "torrent",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "competitive",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "water1",
+    "ground"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "humanoid",
+  "habitat": null
 }

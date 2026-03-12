@@ -77,5 +77,47 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 45,
+  "base_experience": 184,
+  "weight": 540,
+  "abilities": [
+    {
+      "name_en": "steadfast",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "inner-focus",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "justified",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1,
+    "special-attack": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 25,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "ground",
+    "humanshape"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "blue",
+  "shape": "upright",
+  "habitat": null
 }

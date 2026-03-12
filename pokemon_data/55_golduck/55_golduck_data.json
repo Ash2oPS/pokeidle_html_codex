@@ -140,5 +140,46 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 17,
-  "size": 0.0778
+  "size": 0.0778,
+  "catch_rate": 75,
+  "base_experience": 175,
+  "weight": 766,
+  "abilities": [
+    {
+      "name_en": "damp",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "cloud-nine",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "swift-swim",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "water1",
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "upright",
+  "habitat": "waters-edge"
 }

@@ -92,5 +92,55 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 45,
+  "base_experience": 154,
+  "weight": 280,
+  "abilities": [
+    {
+      "name_en": "keen-eye",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "drizzle",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "rain-dish",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "lucky-egg",
+      "rarity": 5
+    },
+    {
+      "name_en": "pretty-wing",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "water1",
+    "flying"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "yellow",
+  "shape": "wings",
+  "habitat": "sea"
 }

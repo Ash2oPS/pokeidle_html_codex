@@ -81,5 +81,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 6,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 225,
+  "base_experience": 116,
+  "weight": 87,
+  "abilities": [
+    {
+      "name_en": "swift-swim",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "hydration",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "heart-scale",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "water2"
+  ],
+  "gender_rate": 6,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "fish",
+  "habitat": "sea"
 }

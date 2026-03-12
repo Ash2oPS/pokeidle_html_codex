@@ -105,5 +105,55 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 150,
+  "base_experience": 140,
+  "weight": 20,
+  "abilities": [
+    {
+      "name_en": "natural-cure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "poison-point",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "leaf-guard",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "poison-barb",
+      "rarity": 5
+    },
+    {
+      "name_en": "absorb-bulb",
+      "rarity": 1
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "fairy",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "green",
+  "shape": "humanoid",
+  "habitat": "grassland"
 }

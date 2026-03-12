@@ -120,5 +120,42 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 45,
+  "base_experience": 142,
+  "weight": 158,
+  "abilities": [
+    {
+      "name_en": "overgrow",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "leaf-guard",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 1,
+    "special-defense": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "monster",
+    "plant"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "green",
+  "shape": "quadruped",
+  "habitat": "grassland"
 }

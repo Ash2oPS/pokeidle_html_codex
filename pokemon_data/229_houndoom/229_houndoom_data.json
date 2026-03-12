@@ -109,5 +109,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 45,
+  "base_experience": 175,
+  "weight": 350,
+  "abilities": [
+    {
+      "name_en": "early-bird",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "flash-fire",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "unnerve",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": true,
+  "color": "black",
+  "shape": "quadruped",
+  "habitat": "rough-terrain"
 }

@@ -109,5 +109,46 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 90,
+  "base_experience": 151,
+  "weight": 750,
+  "abilities": [
+    {
+      "name_en": "damp",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "water-absorb",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "unaware",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "water1",
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "upright",
+  "habitat": "waters-edge"
 }

@@ -132,5 +132,39 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "base_experience": 261,
+  "weight": 600,
+  "abilities": [
+    {
+      "name_en": "pressure",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "flame-body",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 80,
+  "generation": "generation-i",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "yellow",
+  "shape": "wings",
+  "habitat": "rare"
 }

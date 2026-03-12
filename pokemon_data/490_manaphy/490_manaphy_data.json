@@ -65,5 +65,36 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 3,
+  "base_experience": 270,
+  "weight": 14,
+  "abilities": [
+    {
+      "name_en": "hydration",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "hp": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 10,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "water1",
+    "fairy"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": true,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "humanoid",
+  "habitat": null
 }

@@ -92,5 +92,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 19,
-  "size": 0.1
+  "size": 0.1,
+  "catch_rate": 45,
+  "base_experience": 239,
+  "weight": 520,
+  "abilities": [
+    {
+      "name_en": "blaze",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "speed-boost",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": true,
+  "color": "red",
+  "shape": "upright",
+  "habitat": "grassland"
 }

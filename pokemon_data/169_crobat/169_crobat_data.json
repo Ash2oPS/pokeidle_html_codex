@@ -109,5 +109,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 18,
-  "size": 0.0889
+  "size": 0.0889,
+  "catch_rate": 90,
+  "base_experience": 241,
+  "weight": 750,
+  "abilities": [
+    {
+      "name_en": "inner-focus",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "infiltrator",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 15,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "flying"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "bug-wings",
+  "habitat": "cave"
 }

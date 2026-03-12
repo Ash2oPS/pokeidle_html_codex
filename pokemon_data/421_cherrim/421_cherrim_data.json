@@ -75,5 +75,41 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 75,
+  "base_experience": 158,
+  "weight": 93,
+  "abilities": [
+    {
+      "name_en": "flower-gift",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "miracle-seed",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "fairy",
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "purple",
+  "shape": "legs",
+  "habitat": null
 }

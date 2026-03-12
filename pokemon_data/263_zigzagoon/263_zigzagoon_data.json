@@ -93,5 +93,58 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 255,
+  "base_experience": 56,
+  "weight": 175,
+  "abilities": [
+    {
+      "name_en": "pickup",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "gluttony",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "quick-feet",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "potion",
+      "rarity": 50
+    },
+    {
+      "name_en": "revive",
+      "rarity": 5
+    },
+    {
+      "name_en": "oran-berry",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 15,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "quadruped",
+  "habitat": "grassland"
 }

@@ -140,5 +140,50 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 10,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 75,
+  "base_experience": 159,
+  "weight": 320,
+  "abilities": [
+    {
+      "name_en": "vital-spirit",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "anger-point",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "defiant",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "payapa-berry",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "upright",
+  "habitat": "mountain"
 }

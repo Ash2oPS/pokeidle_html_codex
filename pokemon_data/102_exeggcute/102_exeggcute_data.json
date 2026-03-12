@@ -143,5 +143,45 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 90,
+  "base_experience": 65,
+  "weight": 25,
+  "abilities": [
+    {
+      "name_en": "chlorophyll",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "harvest",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "psychic-seed",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "plant"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "heads",
+  "habitat": "forest"
 }

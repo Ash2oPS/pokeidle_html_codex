@@ -92,5 +92,50 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 21,
-  "size": 0.1222
+  "size": 0.1222,
+  "catch_rate": 45,
+  "base_experience": 239,
+  "weight": 3600,
+  "abilities": [
+    {
+      "name_en": "sturdy",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "rock-head",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "heavy-metal",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 3
+  },
+  "held_items": [
+    {
+      "name_en": "hard-stone",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 35,
+  "growth_rate": "slow",
+  "hatch_counter": 35,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "monster"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "gray",
+  "shape": "upright",
+  "habitat": "mountain"
 }

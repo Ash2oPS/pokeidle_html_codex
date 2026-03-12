@@ -109,5 +109,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 14,
-  "size": 0.0444
+  "size": 0.0444,
+  "catch_rate": 90,
+  "base_experience": 137,
+  "weight": 356,
+  "abilities": [
+    {
+      "name_en": "swarm",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "early-bird",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "iron-fist",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 15,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "red",
+  "shape": "wings",
+  "habitat": "forest"
 }

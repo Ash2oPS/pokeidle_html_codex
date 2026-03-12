@@ -77,5 +77,50 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 190,
+  "base_experience": 66,
+  "weight": 70,
+  "abilities": [
+    {
+      "name_en": "swift-swim",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "storm-drain",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "water-veil",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "rindo-berry",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow-then-very-fast",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "water2"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "fish",
+  "habitat": null
 }

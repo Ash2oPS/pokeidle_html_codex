@@ -78,5 +78,50 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 225,
+  "base_experience": 66,
+  "weight": 192,
+  "abilities": [
+    {
+      "name_en": "stench",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "aftermath",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "keen-eye",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "pecha-berry",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "quadruped",
+  "habitat": null
 }

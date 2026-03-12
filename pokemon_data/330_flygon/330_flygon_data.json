@@ -92,5 +92,37 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 20,
-  "size": 0.1111
+  "size": 0.1111,
+  "catch_rate": 45,
+  "base_experience": 234,
+  "weight": 820,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "attack": 1,
+    "speed": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "bug",
+    "dragon"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "green",
+  "shape": "wings",
+  "habitat": "rough-terrain"
 }

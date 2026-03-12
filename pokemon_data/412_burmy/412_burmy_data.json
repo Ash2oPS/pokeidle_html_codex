@@ -78,5 +78,40 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 2,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 120,
+  "base_experience": 45,
+  "weight": 34,
+  "abilities": [
+    {
+      "name_en": "shed-skin",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "overcoat",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 15,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "green",
+  "shape": "blob",
+  "habitat": null
 }

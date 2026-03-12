@@ -99,5 +99,54 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 17,
-  "size": 0.0778
+  "size": 0.0778,
+  "catch_rate": 25,
+  "base_experience": 163,
+  "weight": 505,
+  "abilities": [
+    {
+      "name_en": "keen-eye",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "sturdy",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "weak-armor",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "metal-coat",
+      "rarity": 5
+    },
+    {
+      "name_en": "sharp-beak",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 25,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "flying"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "gray",
+  "shape": "wings",
+  "habitat": "rough-terrain"
 }

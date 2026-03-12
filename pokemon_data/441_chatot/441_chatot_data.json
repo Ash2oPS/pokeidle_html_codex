@@ -66,5 +66,50 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 30,
+  "base_experience": 144,
+  "weight": 19,
+  "abilities": [
+    {
+      "name_en": "keen-eye",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "tangled-feet",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "big-pecks",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 1
+  },
+  "held_items": [
+    {
+      "name_en": "metronome",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 35,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "flying"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "black",
+  "shape": "wings",
+  "habitat": null
 }

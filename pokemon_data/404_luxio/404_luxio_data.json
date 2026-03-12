@@ -87,5 +87,45 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 9,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 120,
+  "base_experience": 127,
+  "weight": 305,
+  "abilities": [
+    {
+      "name_en": "rivalry",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "intimidate",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "guts",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 100,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "quadruped",
+  "habitat": null
 }

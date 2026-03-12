@@ -153,5 +153,54 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 170,
+  "base_experience": 95,
+  "weight": 55,
+  "abilities": [
+    {
+      "name_en": "cute-charm",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "competitive",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "friend-guard",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 2
+  },
+  "held_items": [
+    {
+      "name_en": "moon-stone",
+      "rarity": 5
+    },
+    {
+      "name_en": "oran-berry",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 10,
+  "generation": "generation-i",
+  "egg_groups": [
+    "fairy"
+  ],
+  "gender_rate": 6,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "humanoid",
+  "habitat": "grassland"
 }

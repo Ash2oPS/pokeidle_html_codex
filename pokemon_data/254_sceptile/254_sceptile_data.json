@@ -91,5 +91,41 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 17,
-  "size": 0.0778
+  "size": 0.0778,
+  "catch_rate": 45,
+  "base_experience": 239,
+  "weight": 522,
+  "abilities": [
+    {
+      "name_en": "overgrow",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "unburden",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "monster",
+    "dragon"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "green",
+  "shape": "upright",
+  "habitat": "forest"
 }

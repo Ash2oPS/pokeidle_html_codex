@@ -141,5 +141,45 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 13,
-  "size": 0.0333
+  "size": 0.0333,
+  "catch_rate": 45,
+  "base_experience": 227,
+  "weight": 600,
+  "abilities": [
+    {
+      "name_en": "poison-point",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "rivalry",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "sheer-force",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": 8,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "upright",
+  "habitat": "grassland"
 }

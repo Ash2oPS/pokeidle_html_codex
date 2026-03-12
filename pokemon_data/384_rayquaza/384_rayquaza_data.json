@@ -82,5 +82,36 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 70,
-  "size": 0.6667
+  "size": 0.6667,
+  "catch_rate": 45,
+  "base_experience": 306,
+  "weight": 2065,
+  "abilities": [
+    {
+      "name_en": "air-lock",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "attack": 2,
+    "special-attack": 1
+  },
+  "held_items": [],
+  "base_happiness": 0,
+  "growth_rate": "slow",
+  "hatch_counter": 120,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": true,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "green",
+  "shape": "squiggle",
+  "habitat": "rare"
 }

@@ -140,5 +140,40 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 45,
+  "base_experience": 225,
+  "weight": 405,
+  "abilities": [
+    {
+      "name_en": "cursed-body",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [
+    {
+      "name_en": "spell-tag",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "indeterminate"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "purple",
+  "shape": "upright",
+  "habitat": "cave"
 }

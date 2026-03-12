@@ -110,5 +110,58 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 150,
+  "base_experience": 44,
+  "weight": 30,
+  "abilities": [
+    {
+      "name_en": "cute-charm",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "magic-guard",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "friend-guard",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "moon-stone",
+      "rarity": 5
+    },
+    {
+      "name_en": "leppa-berry",
+      "rarity": 50
+    },
+    {
+      "name_en": "comet-shard",
+      "rarity": 1
+    }
+  ],
+  "base_happiness": 140,
+  "growth_rate": "fast",
+  "hatch_counter": 10,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": 6,
+  "is_baby": true,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "pink",
+  "shape": "upright",
+  "habitat": "mountain"
 }

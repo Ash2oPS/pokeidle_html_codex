@@ -148,5 +148,50 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 4,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 190,
+  "base_experience": 64,
+  "weight": 65,
+  "abilities": [
+    {
+      "name_en": "rock-head",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "lightning-rod",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "battle-armor",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 1
+  },
+  "held_items": [
+    {
+      "name_en": "thick-club",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "monster"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "upright",
+  "habitat": "mountain"
 }

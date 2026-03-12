@@ -82,5 +82,48 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 45,
+  "base_experience": 161,
+  "weight": 1540,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [
+    {
+      "name_en": "sun-stone",
+      "rarity": 5
+    },
+    {
+      "name_en": "stardust",
+      "rarity": 50
+    },
+    {
+      "name_en": "comet-shard",
+      "rarity": 1
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 25,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "mineral"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "red",
+  "shape": "ball",
+  "habitat": "cave"
 }

@@ -130,5 +130,45 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 45,
+  "base_experience": 175,
+  "weight": 550,
+  "abilities": [
+    {
+      "name_en": "hyper-cutter",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "mold-breaker",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "moxie",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 25,
+  "generation": "generation-i",
+  "egg_groups": [
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": true,
+  "color": "brown",
+  "shape": "humanoid",
+  "habitat": "forest"
 }

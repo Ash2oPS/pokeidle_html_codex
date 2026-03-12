@@ -240,5 +240,45 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 45,
+  "base_experience": 65,
+  "weight": 65,
+  "abilities": [
+    {
+      "name_en": "run-away",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "adaptability",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "anticipation",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-defense": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 35,
+  "generation": "generation-i",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "quadruped",
+  "habitat": "urban"
 }

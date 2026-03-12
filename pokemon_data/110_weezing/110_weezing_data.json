@@ -140,5 +140,50 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 12,
-  "size": 0.0222
+  "size": 0.0222,
+  "catch_rate": 60,
+  "base_experience": 172,
+  "weight": 95,
+  "abilities": [
+    {
+      "name_en": "levitate",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "neutralizing-gas",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "stench",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "defense": 2
+  },
+  "held_items": [
+    {
+      "name_en": "smoke-ball",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "indeterminate"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "heads",
+  "habitat": "urban"
 }

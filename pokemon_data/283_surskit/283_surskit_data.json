@@ -94,5 +94,46 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 5,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 200,
+  "base_experience": 54,
+  "weight": 17,
+  "abilities": [
+    {
+      "name_en": "swift-swim",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "rain-dish",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "speed": 1
+  },
+  "held_items": [
+    {
+      "name_en": "honey",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 15,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "water1",
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "armor",
+  "habitat": "waters-edge"
 }

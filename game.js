@@ -172,7 +172,7 @@ const MAP_MARKER_OVERRIDES_BY_ROUTE_ID = Object.freeze({
   kanto_dungeon_cerulean_cave: Object.freeze({ x: 61.914, y: 29.834 }),
 });
 const ROUTE_UNLOCK_DEFEATS = 20;
-const ROUTE_DEFEAT_TIMER_MS = 60000;
+const ROUTE_DEFEAT_TIMER_MS = 20000;
 const ONLY_ONE_ENCOUNTER_INTERVAL = 50;
 const ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN = ONLY_ONE_ENCOUNTER_INTERVAL - 1;
 const ONLY_ONE_ENCOUNTER_HP_MULTIPLIER = 3;
@@ -381,7 +381,7 @@ const TUTORIAL_FLOW_DEFINITIONS = Object.freeze({
         lines: Object.freeze([
           "Battre des Pokemon rapporte de l'argent (Poke$).",
           "L'argent sert a acheter des balls, boosts et objets d'evolution.",
-          "Chaque zone se debloque en battant 20 Pokemon d'affilee, avec 1 minute max par combat.",
+          "Chaque zone se debloque en battant 20 Pokemon d'affilee, avec 20 secondes max par combat.",
         ]),
       }),
       Object.freeze({

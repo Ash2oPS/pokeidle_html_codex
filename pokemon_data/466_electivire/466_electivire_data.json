@@ -75,5 +75,45 @@
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 18,
-  "size": 0.0889
+  "size": 0.0889,
+  "catch_rate": 30,
+  "base_experience": 243,
+  "weight": 1386,
+  "abilities": [
+    {
+      "name_en": "motor-drive",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "vital-spirit",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 3
+  },
+  "held_items": [
+    {
+      "name_en": "electirizer",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 25,
+  "generation": "generation-iv",
+  "egg_groups": [
+    "humanshape"
+  ],
+  "gender_rate": 2,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "yellow",
+  "shape": "upright",
+  "habitat": null
 }

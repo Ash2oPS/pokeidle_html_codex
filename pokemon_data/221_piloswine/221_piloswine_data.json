@@ -121,5 +121,55 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 11,
-  "size": 0.0111
+  "size": 0.0111,
+  "catch_rate": 75,
+  "base_experience": 158,
+  "weight": 558,
+  "abilities": [
+    {
+      "name_en": "oblivious",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "snow-cloak",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "thick-fat",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1,
+    "attack": 1
+  },
+  "held_items": [
+    {
+      "name_en": "aspear-berry",
+      "rarity": 50
+    },
+    {
+      "name_en": "never-melt-ice",
+      "rarity": 5
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": false,
+  "color": "brown",
+  "shape": "quadruped",
+  "habitat": "cave"
 }

@@ -108,5 +108,40 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 17,
-  "size": 0.0778
+  "size": 0.0778,
+  "catch_rate": 45,
+  "base_experience": 240,
+  "weight": 795,
+  "abilities": [
+    {
+      "name_en": "blaze",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "flash-fire",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "special-attack": 3
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "medium-slow",
+  "hatch_counter": 20,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "ground"
+  ],
+  "gender_rate": 1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "yellow",
+  "shape": "quadruped",
+  "habitat": "grassland"
 }

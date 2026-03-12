@@ -130,5 +130,49 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 3,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 35,
+  "base_experience": 101,
+  "weight": 40,
+  "abilities": [
+    {
+      "name_en": "limber",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "imposter",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1
+  },
+  "held_items": [
+    {
+      "name_en": "metal-powder",
+      "rarity": 5
+    },
+    {
+      "name_en": "quick-powder",
+      "rarity": 50
+    }
+  ],
+  "base_happiness": 70,
+  "growth_rate": "medium",
+  "hatch_counter": 20,
+  "generation": "generation-i",
+  "egg_groups": [
+    "ditto"
+  ],
+  "gender_rate": -1,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "purple",
+  "shape": "ball",
+  "habitat": "urban"
 }

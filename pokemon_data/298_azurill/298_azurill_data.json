@@ -94,5 +94,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 2,
-  "size": 0.0
+  "size": 0.0,
+  "catch_rate": 150,
+  "base_experience": 38,
+  "weight": 20,
+  "abilities": [
+    {
+      "name_en": "thick-fat",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "huge-power",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "sap-sipper",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "hp": 1
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "fast",
+  "hatch_counter": 10,
+  "generation": "generation-iii",
+  "egg_groups": [
+    "no-eggs"
+  ],
+  "gender_rate": 6,
+  "is_baby": true,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": false,
+  "forms_switchable": false,
+  "color": "blue",
+  "shape": "legs",
+  "habitat": "waters-edge"
 }

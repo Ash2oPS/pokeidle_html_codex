@@ -99,5 +99,45 @@
   ],
   "default_sprite_variant_id": "emerald",
   "height": 15,
-  "size": 0.0556
+  "size": 0.0556,
+  "catch_rate": 45,
+  "base_experience": 175,
+  "weight": 540,
+  "abilities": [
+    {
+      "name_en": "swarm",
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "name_en": "guts",
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "name_en": "moxie",
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "ev_yield": {
+    "attack": 2
+  },
+  "held_items": [],
+  "base_happiness": 70,
+  "growth_rate": "slow",
+  "hatch_counter": 25,
+  "generation": "generation-ii",
+  "egg_groups": [
+    "bug"
+  ],
+  "gender_rate": 4,
+  "is_baby": false,
+  "is_legendary": false,
+  "is_mythical": false,
+  "has_gender_differences": true,
+  "forms_switchable": true,
+  "color": "blue",
+  "shape": "humanoid",
+  "habitat": "forest"
 }
