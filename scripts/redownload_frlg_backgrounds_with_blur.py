@@ -29,7 +29,7 @@ USER_AGENT = "pokeidle-frlg-background-refresh/1.0"
 # - blur radius is intentionally low
 # - blend keeps most original pixels to preserve readability
 BLUR_RADIUS = 2.0
-BLEND_ALPHA = 0.35
+BLEND_ALPHA = 0.25
 
 
 def build_background_jobs() -> List[Dict[str, str]]:

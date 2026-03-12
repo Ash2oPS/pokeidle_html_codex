@@ -44,15 +44,10 @@
                   <span class="pill-unit">Poke$</span>
                   <span id="money-anim-layer" class="money-anim-layer" aria-hidden="true"></span>
                 </div>
-                <div class="resource-pill">
-                  <span class="pill-icon" aria-hidden="true">O</span>
-                  <span class="pill-label">Poke Balls</span>
-                  <span id="pokeball-value">0</span>
-                </div>
                 <div class="resource-pill save-pill">
                   <span class="pill-icon" aria-hidden="true">S</span>
                   <span class="pill-label">Save</span>
-                  <span id="save-backend-value">localStorage</span>
+                  <span id="save-backend-value">Sauvegarde navigateur</span>
                 </div>
               </aside>
             </header>
@@ -152,7 +147,7 @@
           </div>
           <label class="shop-custom-qty-wrap" for="shop-custom-qty-input">
             Valeur custom
-            <input id="shop-custom-qty-input" class="shop-custom-qty-input" type="number" min="1" step="1" value="1" />
+            <input id="shop-custom-qty-input" class="shop-custom-qty-input" type="number" min="1" max="9999" step="1" value="1" />
           </label>
         </div>
 
@@ -287,6 +282,37 @@
         Changer l'apparence
       </button>
     </div>
+    <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="Reglages de capture par ball">
+      <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
+      <button
+        id="ball-capture-toggle-all"
+        class="team-context-menu-btn ball-capture-menu-btn"
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked="true"
+      ></button>
+      <button
+        id="ball-capture-toggle-unowned"
+        class="team-context-menu-btn ball-capture-menu-btn"
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked="true"
+      ></button>
+      <button
+        id="ball-capture-toggle-shiny"
+        class="team-context-menu-btn ball-capture-menu-btn"
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked="true"
+      ></button>
+      <button
+        id="ball-capture-toggle-ultra"
+        class="team-context-menu-btn ball-capture-menu-btn"
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked="true"
+      ></button>
+    </div>
     <section
       id="rename-modal"
       class="rename-modal hidden"
@@ -311,12 +337,12 @@
             type="text"
             inputmode="text"
             autocomplete="off"
-            maxlength="24"
+            maxlength="14"
             placeholder="Nom du Pokemon"
           />
           <div class="rename-meta">
-            <span id="rename-char-count" class="rename-char-count">0/24</span>
-            <span class="rename-hint">Laisse vide pour revenir au nom d'origine.</span>
+            <span id="rename-char-count" class="rename-char-count">0/14</span>
+            <span class="rename-hint">14 caracteres max. Vide = nom d'origine pour la famille.</span>
           </div>
           <div class="rename-actions">
             <button id="rename-reset-btn" class="rename-action-btn is-secondary" type="button">

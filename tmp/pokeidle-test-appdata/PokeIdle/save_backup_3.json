@@ -55,10 +55,11 @@
     "kanto_city_indigo_plateau": 0,
     "kanto_dungeon_cerulean_cave": 0
   },
-  "last_tick_epoch_ms": 1773239161116,
+  "last_tick_epoch_ms": 1773303586006,
   "team": [
     4,
-    16
+    16,
+    19
   ],
   "pokemon_entities": {
     "4": {
@@ -143,21 +144,21 @@
         "nameEn": "None",
         "descriptionFr": "Aucun effet passif pour le moment."
       },
-      "encountered_normal": 4,
+      "encountered_normal": 3,
       "encountered_shiny": 0,
       "encountered_ultra_shiny": 0,
-      "defeated_normal": 4,
+      "defeated_normal": 3,
       "defeated_shiny": 0,
       "defeated_ultra_shiny": 0,
-      "captured_normal": 4,
+      "captured_normal": 3,
       "captured_shiny": 0,
       "captured_ultra_shiny": 0
     },
     "19": {
       "id": 19,
       "level": 1,
-      "xp": 0,
-      "entity_unlocked": false,
+      "xp": 70,
+      "entity_unlocked": true,
       "base_stats": {
         "hp": 30,
         "attack": 56,
@@ -189,13 +190,13 @@
         "nameEn": "None",
         "descriptionFr": "Aucun effet passif pour le moment."
       },
-      "encountered_normal": 1,
+      "encountered_normal": 2,
       "encountered_shiny": 0,
       "encountered_ultra_shiny": 0,
-      "defeated_normal": 1,
+      "defeated_normal": 2,
       "defeated_shiny": 0,
       "defeated_ultra_shiny": 0,
-      "captured_normal": 0,
+      "captured_normal": 1,
       "captured_shiny": 0,
       "captured_ultra_shiny": 0
     }

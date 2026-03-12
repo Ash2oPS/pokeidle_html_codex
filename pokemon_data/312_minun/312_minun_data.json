@@ -80,5 +80,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald"
+  "default_sprite_variant_id": "emerald",
+  "height": 4,
+  "size": 0.0
 }

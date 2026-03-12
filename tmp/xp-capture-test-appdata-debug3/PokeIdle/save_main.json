@@ -1,0 +1,232 @@
+{
+  "version": 6,
+  "starter_chosen": true,
+  "current_route_id": "kanto_route_1",
+  "unlocked_route_ids": [
+    "kanto_city_pallet_town",
+    "kanto_route_1",
+    "kanto_city_viridian_city"
+  ],
+  "route_defeat_counts": {
+    "kanto_city_pallet_town": 0,
+    "kanto_route_1": 1358,
+    "kanto_city_viridian_city": 0,
+    "kanto_route_2": 0,
+    "kanto_dungeon_viridian_forest": 0,
+    "kanto_city_pewter_city": 0,
+    "kanto_route_3": 0,
+    "kanto_dungeon_mt_moon": 0,
+    "kanto_route_4": 0,
+    "kanto_city_cerulean_city": 0,
+    "kanto_route_24": 0,
+    "kanto_route_25": 0,
+    "kanto_route_5": 0,
+    "kanto_route_6": 0,
+    "kanto_city_vermilion_city": 0,
+    "kanto_route_11": 0,
+    "kanto_dungeon_digletts_cave": 0,
+    "kanto_route_9": 0,
+    "kanto_route_10": 0,
+    "kanto_dungeon_power_plant": 0,
+    "kanto_dungeon_rock_tunnel": 0,
+    "kanto_city_lavender_town": 0,
+    "kanto_dungeon_pokemon_tower": 0,
+    "kanto_route_8": 0,
+    "kanto_city_saffron_city": 0,
+    "kanto_route_7": 0,
+    "kanto_city_celadon_city": 0,
+    "kanto_route_16": 0,
+    "kanto_route_17": 0,
+    "kanto_route_18": 0,
+    "kanto_city_fuchsia_city": 0,
+    "kanto_dungeon_safari_zone": 0,
+    "kanto_route_15": 0,
+    "kanto_route_14": 0,
+    "kanto_route_13": 0,
+    "kanto_route_12": 0,
+    "kanto_route_19": 0,
+    "kanto_route_20": 0,
+    "kanto_dungeon_seafoam_islands": 0,
+    "kanto_city_cinnabar_island": 0,
+    "kanto_dungeon_pokemon_mansion": 0,
+    "kanto_route_21": 0,
+    "kanto_route_22": 0,
+    "kanto_route_23": 0,
+    "kanto_dungeon_victory_road": 0,
+    "kanto_city_indigo_plateau": 0,
+    "kanto_dungeon_cerulean_cave": 0
+  },
+  "last_tick_epoch_ms": 1773312037565,
+  "team": [
+    1
+  ],
+  "pokemon_entities": {
+    "1": {
+      "id": 1,
+      "level": 14,
+      "xp": 98,
+      "entity_unlocked": true,
+      "base_stats": {
+        "hp": 45,
+        "attack": 49,
+        "defense": 49,
+        "special-attack": 65,
+        "special-defense": 65,
+        "speed": 45
+      },
+      "stats": {
+        "hp": 6088,
+        "attack": 6250,
+        "defense": 6314,
+        "special-attack": 8249,
+        "special-defense": 8335,
+        "speed": 5558
+      },
+      "appearance_owned_variants": [
+        "firered_leafgreen"
+      ],
+      "appearance_selected_variant": "firered_leafgreen",
+      "appearance_shiny_mode": false,
+      "appearance_ultra_shiny_mode": false,
+      "evolution_item_ready_targets": [],
+      "nickname": "",
+      "happiness_box_streak_ms": 0,
+      "species_name_en": "bulbasaur",
+      "talent": {
+        "id": "NONE",
+        "nameFr": "Aucun",
+        "nameEn": "None",
+        "descriptionFr": "Aucun effet passif pour le moment."
+      },
+      "encountered_normal": 2,
+      "encountered_shiny": 0,
+      "encountered_ultra_shiny": 0,
+      "defeated_normal": 0,
+      "defeated_shiny": 0,
+      "defeated_ultra_shiny": 0,
+      "captured_normal": 2,
+      "captured_shiny": 0,
+      "captured_ultra_shiny": 0
+    },
+    "16": {
+      "id": 16,
+      "level": 1,
+      "xp": 0,
+      "entity_unlocked": false,
+      "base_stats": {
+        "hp": 40,
+        "attack": 45,
+        "defense": 40,
+        "special-attack": 35,
+        "special-defense": 35,
+        "speed": 56
+      },
+      "stats": {
+        "hp": 52,
+        "attack": 52,
+        "defense": 47,
+        "special-attack": 42,
+        "special-defense": 43,
+        "speed": 60
+      },
+      "appearance_owned_variants": [
+        "firered_leafgreen"
+      ],
+      "appearance_selected_variant": "firered_leafgreen",
+      "appearance_shiny_mode": false,
+      "appearance_ultra_shiny_mode": false,
+      "evolution_item_ready_targets": [],
+      "nickname": "",
+      "happiness_box_streak_ms": 0,
+      "species_name_en": "pidgey",
+      "talent": {
+        "id": "NONE",
+        "nameFr": "Aucun",
+        "nameEn": "None",
+        "descriptionFr": "Aucun effet passif pour le moment."
+      },
+      "encountered_normal": 656,
+      "encountered_shiny": 1,
+      "encountered_ultra_shiny": 0,
+      "defeated_normal": 656,
+      "defeated_shiny": 1,
+      "defeated_ultra_shiny": 0,
+      "captured_normal": 0,
+      "captured_shiny": 0,
+      "captured_ultra_shiny": 0
+    },
+    "19": {
+      "id": 19,
+      "level": 1,
+      "xp": 0,
+      "entity_unlocked": false,
+      "base_stats": {
+        "hp": 30,
+        "attack": 56,
+        "defense": 35,
+        "special-attack": 25,
+        "special-defense": 35,
+        "speed": 72
+      },
+      "stats": {
+        "hp": 42,
+        "attack": 62,
+        "defense": 43,
+        "special-attack": 33,
+        "special-defense": 43,
+        "speed": 74
+      },
+      "appearance_owned_variants": [
+        "firered_leafgreen"
+      ],
+      "appearance_selected_variant": "firered_leafgreen",
+      "appearance_shiny_mode": false,
+      "appearance_ultra_shiny_mode": false,
+      "evolution_item_ready_targets": [],
+      "nickname": "",
+      "happiness_box_streak_ms": 0,
+      "species_name_en": "rattata",
+      "talent": {
+        "id": "NONE",
+        "nameFr": "Aucun",
+        "nameEn": "None",
+        "descriptionFr": "Aucun effet passif pour le moment."
+      },
+      "encountered_normal": 701,
+      "encountered_shiny": 0,
+      "encountered_ultra_shiny": 0,
+      "defeated_normal": 701,
+      "defeated_shiny": 0,
+      "defeated_ultra_shiny": 0,
+      "captured_normal": 0,
+      "captured_shiny": 0,
+      "captured_ultra_shiny": 0
+    }
+  },
+  "money": 40757,
+  "ball_inventory": {
+    "poke_ball": 0,
+    "super_ball": 0,
+    "hyper_ball": 0
+  },
+  "active_ball_type": "poke_ball",
+  "shop_items": {
+    "water_stone": 0,
+    "fire_stone": 0,
+    "leaf_stone": 0,
+    "galarica_wreath": 0,
+    "ice_stone": 0,
+    "moon_stone": 0,
+    "sun_stone": 0,
+    "thunder_stone": 0,
+    "cable_link": 0
+  },
+  "attack_boost_until_ms": 0,
+  "pokeballs": 0,
+  "tutorials": {
+    "route1_intro_seen": true,
+    "evolution_intro_seen": false,
+    "appearance_intro_seen": true,
+    "appearance_editor_unlocked": true
+  }
+}

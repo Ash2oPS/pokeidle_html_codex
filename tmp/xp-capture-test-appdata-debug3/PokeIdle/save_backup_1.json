@@ -1,0 +1,17 @@
+{
+  "marker": "MY_MARKER_123",
+  "version": 6,
+  "team": [
+    4
+  ],
+  "pokemon_entities": {
+    "4": {
+      "id": 4,
+      "level": 20,
+      "xp": 0,
+      "entity_unlocked": true,
+      "encountered_normal": 1,
+      "captured_normal": 1
+    }
+  }
+}

@@ -21,11 +21,22 @@ OUTPUT_ROOT = Path("pokemon_data")
 ITEM_DATA_ROOT = Path("item_data")
 RETRY_ATTEMPTS = 5
 REQUEST_TIMEOUT_SECONDS = 30
+SIZE_REMAP_MIN = 10
+SIZE_REMAP_MAX = 100
 
 TRANSPARENT_SPRITE_CANDIDATES = [
     "home",
     "official-artwork",
 ]
+
+
+def compute_size_from_height(height_value: int | float | None) -> float:
+    height = float(height_value or 0)
+    remap_range = SIZE_REMAP_MAX - SIZE_REMAP_MIN
+    if remap_range <= 0:
+        return 0.0
+    clamped_height = max(SIZE_REMAP_MIN, min(SIZE_REMAP_MAX, height))
+    return round((clamped_height - SIZE_REMAP_MIN) / remap_range, 4)
 
 
 def fetch_bytes(url: str) -> bytes:
@@ -249,6 +260,8 @@ def main() -> None:
                 "id": poke_id,
                 "name_en": english_name,
                 "name_fr": french_name,
+                "height": int(pokemon_payload.get("height", 0) or 0),
+                "size": compute_size_from_height(pokemon_payload.get("height", 0)),
                 "defensive_types": defensive_types,
                 "offensive_type": offensive_type,
                 "stats": stats,
@@ -321,6 +334,8 @@ def main() -> None:
             "pokedex_number": poke_id,
             "name_fr": record["name_fr"],
             "name_en": name_en,
+            "height": record["height"],
+            "size": record["size"],
             "defensive_types": record["defensive_types"],
             "offensive_type": record["offensive_type"],
             "evolves_from": evolves_from,

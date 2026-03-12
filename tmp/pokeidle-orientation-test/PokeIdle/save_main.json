@@ -1,0 +1,91 @@
+{
+    "version":  6,
+    "starter_chosen":  true,
+    "current_route_id":  "kanto_route_1",
+    "unlocked_route_ids":  [
+                               "kanto_city_pallet_town",
+                               "kanto_route_1"
+                           ],
+    "route_defeat_counts":  {
+
+                            },
+    "last_tick_epoch_ms":  1773325532578,
+    "team":  [
+                 1,
+                 4,
+                 7,
+                 16,
+                 19,
+                 21
+             ],
+    "pokemon_entities":  {
+                             "7":  {
+                                       "id":  7,
+                                       "level":  20,
+                                       "xp":  0,
+                                       "entity_unlocked":  true,
+                                       "encountered_normal":  1,
+                                       "captured_normal":  1
+                                   },
+                             "21":  {
+                                        "id":  21,
+                                        "level":  20,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    },
+                             "19":  {
+                                        "id":  19,
+                                        "level":  20,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    },
+                             "16":  {
+                                        "id":  16,
+                                        "level":  20,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    },
+                             "1":  {
+                                       "id":  1,
+                                       "level":  20,
+                                       "xp":  0,
+                                       "entity_unlocked":  true,
+                                       "encountered_normal":  1,
+                                       "captured_normal":  1
+                                   },
+                             "4":  {
+                                       "id":  4,
+                                       "level":  20,
+                                       "xp":  0,
+                                       "entity_unlocked":  true,
+                                       "encountered_normal":  1,
+                                       "captured_normal":  1
+                                   }
+                         },
+    "money":  0,
+    "ball_inventory":  {
+                           "poke_ball":  60,
+                           "super_ball":  0,
+                           "hyper_ball":  0
+                       },
+    "active_ball_type":  "poke_ball",
+    "shop_items":  {
+                       "water_stone":  0,
+                       "fire_stone":  0,
+                       "leaf_stone":  0
+                   },
+    "attack_boost_until_ms":  0,
+    "pokeballs":  60,
+    "tutorials":  {
+                      "route1_intro_seen":  true,
+                      "evolution_intro_seen":  true,
+                      "appearance_intro_seen":  true,
+                      "appearance_editor_unlocked":  true
+                  }
+}

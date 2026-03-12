@@ -52,30 +52,6 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText($savePath, ($save | ConvertTo-Json -Depth 40), $utf8NoBom)
 [System.IO.File]::WriteAllText($actionsPath, '{"steps":[{"buttons":[],"frames":10}]}', $utf8NoBom)
 
-$previousAppdata = $env:APPDATA
-$previousSavePort = $env:POKEIDLE_SAVE_PORT
-$env:APPDATA = $testAppData
-$env:POKEIDLE_SAVE_PORT = "38475"
-
-$saveBridge = Start-Process -FilePath node -ArgumentList "save_bridge_server.mjs" -WorkingDirectory $repoRoot -PassThru
-
-$bridgeReady = $false
-for ($i = 0; $i -lt 25; $i++) {
-  Start-Sleep -Milliseconds 120
-  try {
-    $health = Invoke-RestMethod -Uri "http://127.0.0.1:38475/health" -Method GET -TimeoutSec 1
-    if ($health -and $health.ok -eq $true) {
-      $bridgeReady = $true
-      break
-    }
-  } catch {}
-}
-
-if (-not $bridgeReady) {
-  Stop-Process -Id $saveBridge.Id -Force -ErrorAction SilentlyContinue
-  throw "Le save bridge n'a pas demarre correctement sur le port 38475."
-}
-
 $server = Start-Process -FilePath py -ArgumentList @("-3", "-m", "http.server", "$port", "--bind", "127.0.0.1") -WorkingDirectory $repoRoot -PassThru
 $serverReady = $false
 for ($i = 0; $i -lt 80; $i++) {
@@ -89,25 +65,16 @@ for ($i = 0; $i -lt 80; $i++) {
 
 if (-not $serverReady) {
   Stop-Process -Id $server.Id -Force -ErrorAction SilentlyContinue
-  Stop-Process -Id $saveBridge.Id -Force -ErrorAction SilentlyContinue
   throw "Le serveur statique n'a pas demarre correctement sur le port $port."
 }
 
+$seedQuery = [Uri]::EscapeDataString("tmp/pokeidle-test-appdata/PokeIdle/save_main.json")
+$gameUrl = "http://127.0.0.1:$port/?dev_seed_save=$seedQuery"
+
 try {
-  node $clientPath --url "http://127.0.0.1:$port" --actions-file $actionsPath --iterations 90 --pause-ms 80 --screenshot-dir $screenshotDir
+  node $clientPath --url $gameUrl --actions-file $actionsPath --iterations 90 --pause-ms 80 --screenshot-dir $screenshotDir
   exit $LASTEXITCODE
 }
 finally {
   Stop-Process -Id $server.Id -Force -ErrorAction SilentlyContinue
-  Stop-Process -Id $saveBridge.Id -Force -ErrorAction SilentlyContinue
-  if ($null -eq $previousAppdata) {
-    $env:APPDATA = ""
-  } else {
-    $env:APPDATA = $previousAppdata
-  }
-  if ($null -eq $previousSavePort) {
-    $env:POKEIDLE_SAVE_PORT = ""
-  } else {
-    $env:POKEIDLE_SAVE_PORT = $previousSavePort
-  }
 }

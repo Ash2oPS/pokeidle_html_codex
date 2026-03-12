@@ -677,6 +677,38 @@ body {
   animation: notif-enter 120ms ease-out both;
 }
 
+.game-notif-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.game-notif-content {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.game-notif-sprite-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid rgba(208, 233, 255, 0.34);
+  background: linear-gradient(180deg, rgba(16, 54, 79, 0.78), rgba(9, 31, 46, 0.84));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.game-notif-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 .game-notif.notif-first {
   border-color: rgba(142, 204, 255, 0.46);
 }
@@ -2026,6 +2058,90 @@ body {
 .team-context-menu-btn:disabled {
   opacity: 0.58;
   cursor: not-allowed;
+}
+
+.ball-capture-menu {
+  min-width: 220px;
+  max-width: 270px;
+  padding: 6px;
+}
+
+.ball-capture-menu .team-context-menu-title {
+  padding: 4px 7px 6px;
+  font-size: 11px;
+}
+
+.ball-capture-menu .ball-capture-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  min-height: 30px;
+  font-size: 11px;
+  line-height: 1.2;
+  border-radius: 8px;
+}
+
+.ball-capture-menu .ball-capture-menu-btn + .ball-capture-menu-btn {
+  margin-top: 4px;
+  border-top: 0;
+}
+
+.ball-capture-toggle-check {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(146, 198, 230, 0.9);
+  background: linear-gradient(180deg, rgba(18, 44, 70, 0.95), rgba(10, 30, 52, 0.95));
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: transparent;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.ball-capture-toggle-label {
+  flex: 1;
+}
+
+.ball-capture-toggle-lock {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: rgba(232, 244, 255, 0.72);
+  letter-spacing: 0.01em;
+}
+
+.ball-capture-menu .ball-capture-menu-btn:hover:not(:disabled),
+.ball-capture-menu .ball-capture-menu-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(228, 244, 255, 0.65);
+  filter: brightness(1.11);
+  outline: none;
+}
+
+.ball-capture-menu-btn.is-on {
+  border-color: rgba(179, 233, 255, 0.42);
+  filter: brightness(1.08);
+}
+
+.ball-capture-menu-btn.is-on .ball-capture-toggle-check {
+  color: #f6fcff;
+  border-color: rgba(208, 242, 255, 0.95);
+  background: linear-gradient(180deg, rgba(39, 131, 199, 0.98), rgba(20, 94, 151, 0.98));
+}
+
+.ball-capture-menu-btn:hover:not(:disabled) .ball-capture-toggle-check,
+.ball-capture-menu-btn:focus-visible:not(:disabled) .ball-capture-toggle-check {
+  border-color: rgba(236, 247, 255, 0.98);
+}
+
+.ball-capture-menu-btn.is-locked {
+  opacity: 0.66;
 }
 
 .hidden {

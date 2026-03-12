@@ -1,4 +1,9 @@
-import { POKEIDLE_APP_VERSION } from "./version.js";
+import {
+  POKEIDLE_APP_VERSION,
+  getDisplayedAppVersion,
+  isProductionGithubPagesLocation,
+  isVersionAtLeast,
+} from "./version.js";
 import { createAudioManager } from "./lib/audio-manager.js";
 import {
   assertValidBallConfig,
@@ -6,7 +11,6 @@ import {
   assertValidShopItemConfig,
   parseCsvMethods,
   parseCsvObjects,
-  parseSaveBridgePayload,
   parseSerializedSave,
   readCsvBooleanCell,
   readCsvCell,
@@ -15,6 +19,17 @@ import {
   validatePokemonPayload,
   validateRouteDataPayload,
 } from "./lib/runtime-data.js";
+import {
+  repairNormalizedSaveData,
+  hasMeaningfulSaveProgress,
+  getOwnedEntityIdsFromSave,
+} from "./lib/save-consistency.js";
+import {
+  pickPreferredSaveCandidate,
+  SAVE_SOURCE_INDEXED_DB,
+  SAVE_SOURCE_LOCAL_STORAGE,
+  SAVE_SOURCE_SESSION_STORAGE,
+} from "./lib/browser-save-utils.js";
 import {
   getPassiveBehaviorIdForTalentId,
   resolveCombatTurnDecision,
@@ -101,9 +116,11 @@ const ENCOUNTER_METHOD_ALWAYS_UNLOCKED = Object.freeze({
   walk: true,
   gift: true,
 });
+const ENCOUNTER_METHOD_ONLY_ONE = "only-one";
 const ENCOUNTER_METHOD_DISABLED = Object.freeze({
-  "only-one": true,
+  [ENCOUNTER_METHOD_ONLY_ONE]: true,
 });
+const ENCOUNTER_METHOD_ONLY_ONE_ALLOW_SET = new Set([ENCOUNTER_METHOD_ONLY_ONE]);
 const MAP_REFERENCE_IMAGE_PATH = "assets/maps/kanto_map_reference_user.png";
 const MAP_MARKER_OVERRIDES_BY_ROUTE_ID = Object.freeze({
   kanto_route_1: Object.freeze({ x: 24.561, y: 55.11 }),
@@ -156,15 +173,27 @@ const MAP_MARKER_OVERRIDES_BY_ROUTE_ID = Object.freeze({
 });
 const ROUTE_UNLOCK_DEFEATS = 20;
 const ROUTE_DEFEAT_TIMER_MS = 60000;
+const ONLY_ONE_ENCOUNTER_INTERVAL = 50;
+const ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN = ONLY_ONE_ENCOUNTER_INTERVAL - 1;
+const ONLY_ONE_ENCOUNTER_HP_MULTIPLIER = 3;
+const ONLY_ONE_ENCOUNTER_TIMER_MS = 150000;
+const ENEMY_TIMER_STYLE_ROUTE = "route";
+const ENEMY_TIMER_STYLE_ONLY_ONE = "only-one";
 const ROUTE_1_TUTORIAL_ID = "kanto_route_1";
 const SAVE_KEY = "pokeidle_save_v3";
+const SAVE_SESSION_KEY = "pokeidle_save_v3_session";
+const SAVE_INDEXED_DB_NAME = "pokeidle_browser_save_v1";
+const SAVE_INDEXED_DB_STORE_NAME = "save_payloads";
+const SAVE_INDEXED_DB_RECORD_KEY = "main";
+const DEV_SEED_SAVE_QUERY_PARAM = "dev_seed_save";
 const WINDOWS_NOTIFICATION_PREF_KEY = "pokeidle_windows_notifications_enabled_v1";
-const SHINY_ODDS = 1024;
-const ULTRA_SHINY_ODDS = 4096;
+const SHINY_ODDS = 2048;
+const ULTRA_SHINY_ODDS = 8192;
 const SAVE_VERSION = 6;
+const MIN_SUPPORTED_SAVE_VERSION = 0;
+const MIN_SUPPORTED_SAVE_APP_VERSION = "0.1.1";
 const APP_VERSION = POKEIDLE_APP_VERSION;
-const SAVE_BRIDGE_URL = "http://127.0.0.1:38475";
-const SAVE_BRIDGE_TIMEOUT_MS = 260;
+const DISPLAY_APP_VERSION = getDisplayedAppVersion(window.location, APP_VERSION);
 const SPRITE_VARIANT_BASE_PRICE = 900;
 const SPRITE_VARIANT_GEN_PRICE_STEP = 230;
 const SPRITE_VARIANT_INDEX_PRICE_STEP = 120;
@@ -204,20 +233,58 @@ const TYPE_ICON_TYPES = Object.freeze([
   "steel",
   "fairy",
 ]);
-const TEAM_LEFT_SIDE_SLOT_INDEXES = new Set([3, 4, 5]);
+const TEAM_LEFT_SIDE_SLOT_INDEXES = new Set([0, 4, 5]);
 const MAX_TEAM_SIZE = 6;
+const TALENT_KEEN_EYE_ID = "KEEN_EYE";
+const TALENT_VALIANT_EYE_ID = "VALIANT_EYE";
+const TALENT_MORPHING_ID = "MORPHING";
+const TALENT_MIND_CONTROL_ID = "MIND_CONTROL";
+const TALENT_ORIGIN_MIMICRY_ID = "ORIGIN_MIMICRY";
+const TALENT_OVERGROW_ID = "OVERGROW";
+const TALENT_OVERGROW_PLUS_ID = "OVERGROW_PLUS";
+const TALENT_OVERGROW_PLUS_PLUS_ID = "OVERGROW_PLUS_PLUS";
+const TALENT_BLAZE_ID = "BLAZE";
+const TALENT_BLAZE_PLUS_ID = "BLAZE_PLUS";
+const TALENT_BLAZE_PLUS_PLUS_ID = "BLAZE_PLUS_PLUS";
+const TALENT_TORRENT_ID = "TORRENT";
+const TALENT_TORRENT_PLUS_ID = "TORRENT_PLUS";
+const TALENT_TORRENT_PLUS_PLUS_ID = "TORRENT_PLUS_PLUS";
+const TALENT_AURA_PROVIDER_BY_ID = Object.freeze({
+  [TALENT_OVERGROW_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.05 }),
+  [TALENT_OVERGROW_PLUS_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.1 }),
+  [TALENT_OVERGROW_PLUS_PLUS_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.15 }),
+  [TALENT_BLAZE_ID]: Object.freeze({ offensiveType: "fire", attackBonus: 0.05 }),
+  [TALENT_BLAZE_PLUS_ID]: Object.freeze({ offensiveType: "fire", attackBonus: 0.1 }),
+  [TALENT_BLAZE_PLUS_PLUS_ID]: Object.freeze({ offensiveType: "fire", attackBonus: 0.15 }),
+  [TALENT_TORRENT_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.05 }),
+  [TALENT_TORRENT_PLUS_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.1 }),
+  [TALENT_TORRENT_PLUS_PLUS_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.15 }),
+});
+const TALENT_ALWAYS_HIT_IDS = new Set([TALENT_KEEN_EYE_ID, TALENT_VALIANT_EYE_ID]);
+const TALENT_CRIT_BONUS_CHANCE_BY_ID = Object.freeze({
+  [TALENT_VALIANT_EYE_ID]: 0.1,
+});
+const MORPHING_SHADER_CONFIG = Object.freeze({
+  hueRotateDeg: -18,
+  saturate: 1.55,
+  brightness: 1.05,
+  contrast: 1.12,
+});
 const BASE_STEP_MS = 1000 / 60;
-const ATTACK_INTERVAL_MS = 500;
+const ATTACK_INTERVAL_MS = 420;
 const ATTACK_CRIT_CHANCE = 0.05;
 const ATTACK_MISS_CHANCE = 0.05;
 const ATTACK_CRIT_MULTIPLIER = 1.5;
 const STARTER_LEVEL = 1;
 const PROJECTILE_SPEED_PX_PER_SECOND = 520;
-const DAMAGE_SCALE = 1.7;
+const DAMAGE_SCALE = 2.2;
+const DAMAGE_LEVEL_PROGRESSION_EXPONENT = 0.62;
 const KO_RESPAWN_DELAY_MS = 420;
 const KO_ANIMATION_DURATION_MS = 210;
 const ATTACK_FLASH_DURATION_MS = 150;
 const ATTACK_FLASH_WHITE_BLEND = 0.4;
+const ATTACK_CHARGE_MIN_WINDOW_MS = 120;
+const ATTACK_CHARGE_WINDOW_RATIO = 0.42;
 const ENEMY_DAMAGE_FLASH_DURATION_MS = 150;
 const ENEMY_DAMAGE_FLASH_RED_BLEND = 0.4;
 const FLOATING_TEXT_LIFETIME_MS = 950;
@@ -235,6 +302,8 @@ const CAPTURE_POST_MS = 230;
 const CAPTURE_CRIT_CHANCE = 0.1;
 const CAPTURE_CRIT_MULTIPLIER = 2;
 const TEAM_SPRITE_SCALE = 1.18;
+const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
+const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
 const MAX_LEVEL = 100;
 const SHOP_TAB_POKEBALLS = "pokeballs";
 const SHOP_TAB_COMBAT = "combat";
@@ -247,15 +316,22 @@ const BOOST_X_DURATION_MS = 2 * 60 * 1000;
 const BOOST_X_ATTACK_INTERVAL_MULTIPLIER = 0.33;
 const DEFAULT_WILD_LEVEL_MIN = 2;
 const DEFAULT_WILD_LEVEL_MAX = 6;
-const ENEMY_MONEY_BASE = 10;
-const ENEMY_MONEY_LEVEL_MULT = 7;
-const ENEMY_MONEY_STAT_FACTOR = 0.05;
-const CAPTURE_XP_BASE = 16;
-const CAPTURE_XP_LEVEL_MULT = 8;
-const CAPTURE_XP_STAT_FACTOR = 0.045;
-const KO_XP_RATIO_OF_CAPTURE = 0.2;
+const ENEMY_MONEY_BASE = 16;
+const ENEMY_MONEY_LEVEL_MULT = 9;
+const ENEMY_MONEY_STAT_FACTOR = 0.06;
+const CAPTURE_XP_BASE = 20;
+const CAPTURE_XP_LEVEL_MULT = 10;
+const CAPTURE_XP_STAT_FACTOR = 0.055;
+const KO_XP_RATIO_OF_CAPTURE = 0.45;
+const LEVEL_PROGRESSION_LINEAR_PER_STEP = 0.055;
+const LEVEL_PROGRESSION_CURVE_EXPONENT = 1.52;
+const LEVEL_PROGRESSION_CURVE_PER_STEP = 0.038;
+const ENEMY_HP_TEAM_SCALE_MAX_BONUS = 1.8;
+const ENEMY_HP_TEAM_SCALE_EXPONENT = 1.12;
+const ENEMY_REWARD_SCALE_EXPONENT = 0.45;
+const ENEMY_REWARD_SCALE_BLEND = 0.7;
 const APPEARANCE_UNLOCK_LEVEL = 10;
-const POKEMON_NICKNAME_MAX_LENGTH = 24;
+const POKEMON_NICKNAME_MAX_LENGTH = 14;
 const FOREGROUND_FRAME_STEP_MS = 40;
 const HIDDEN_SIM_BUDGET_MS = 180000;
 const BULK_IDLE_THRESHOLD_MS = 1200;
@@ -502,6 +578,11 @@ const PERF_UPGRADE_HEADROOM_MS = 2.6;
 
 const BALL_TYPE_ORDER = ["hyper_ball", "super_ball", "poke_ball"];
 const BALL_TYPE_FALLBACK_ORDER = ["poke_ball", "super_ball", "hyper_ball"];
+const BALL_INVENTORY_MAX_PER_TYPE = 9999;
+const BALL_CAPTURE_RULE_CAPTURE_ALL = "capture_all";
+const BALL_CAPTURE_RULE_CAPTURE_UNOWNED = "capture_unowned";
+const BALL_CAPTURE_RULE_CAPTURE_SHINY = "capture_shiny";
+const BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY = "capture_ultra_shiny";
 const WEATHER_TYPES = ["neutral", "sunny", "rainy", "foggy", "storm"];
 const WEATHER_WEIGHT_TABLE = [
   { type: "neutral", weight: 40 },
@@ -608,7 +689,7 @@ function createDefaultBallConfigByType() {
     super_ball: {
       type: "super_ball",
       nameFr: "SuperBall",
-      price: 2500,
+      price: 10000,
       captureMultiplier: 2,
       description: "x2 chances de capture par rapport a une PokeBall.",
       spritePath: "assets/items/super_ball.png",
@@ -618,7 +699,7 @@ function createDefaultBallConfigByType() {
     hyper_ball: {
       type: "hyper_ball",
       nameFr: "HyperBall",
-      price: 15000,
+      price: 150000,
       captureMultiplier: 4,
       description: "x2 chances de capture par rapport a une SuperBall.",
       spritePath: "assets/items/hyper_ball.png",
@@ -948,6 +1029,34 @@ const teamContextMenuTitleEl = document.getElementById("team-context-menu-title"
 const teamContextMenuRenameButtonEl = document.getElementById("team-context-menu-rename");
 const teamContextMenuBoxesButtonEl = document.getElementById("team-context-menu-boxes");
 const teamContextMenuAppearanceButtonEl = document.getElementById("team-context-menu-appearance");
+const ballCaptureMenuEl = document.getElementById("ball-capture-menu");
+const ballCaptureMenuTitleEl = document.getElementById("ball-capture-menu-title");
+const ballCaptureToggleAllButtonEl = document.getElementById("ball-capture-toggle-all");
+const ballCaptureToggleUnownedButtonEl = document.getElementById("ball-capture-toggle-unowned");
+const ballCaptureToggleShinyButtonEl = document.getElementById("ball-capture-toggle-shiny");
+const ballCaptureToggleUltraButtonEl = document.getElementById("ball-capture-toggle-ultra");
+const BALL_CAPTURE_TOGGLE_DEFINITIONS = [
+  {
+    key: BALL_CAPTURE_RULE_CAPTURE_ALL,
+    label: "Tout capturer",
+    buttonEl: ballCaptureToggleAllButtonEl,
+  },
+  {
+    key: BALL_CAPTURE_RULE_CAPTURE_UNOWNED,
+    label: "Capturer les Pok\u00e9mon non poss\u00e9d\u00e9s",
+    buttonEl: ballCaptureToggleUnownedButtonEl,
+  },
+  {
+    key: BALL_CAPTURE_RULE_CAPTURE_SHINY,
+    label: "Capturer les Pok\u00e9mon shiny",
+    buttonEl: ballCaptureToggleShinyButtonEl,
+  },
+  {
+    key: BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY,
+    label: "Capturer les Pok\u00e9mon ultra shiny",
+    buttonEl: ballCaptureToggleUltraButtonEl,
+  },
+];
 const renameModalEl = document.getElementById("rename-modal");
 const renameTitleEl = document.getElementById("rename-title");
 const renameSubtitleEl = document.getElementById("rename-subtitle");
@@ -989,7 +1098,6 @@ const evolutionItemCloseButtonEl = document.getElementById("evolution-item-close
 const moneyPillEl = document.getElementById("money-pill");
 const moneyValueEl = document.getElementById("money-value");
 const moneyAnimLayerEl = document.getElementById("money-anim-layer");
-const pokeballValueEl = document.getElementById("pokeball-value");
 const saveBackendValueEl = document.getElementById("save-backend-value");
 const routeNavCurrentEl = document.getElementById("route-nav-current");
 const routeNavProgressEl = document.getElementById("route-nav-progress");
@@ -1020,6 +1128,8 @@ const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
 const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
 const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
+const pendingRouteDefinitionLoads = new Map();
+const pendingRouteBackgroundLoads = new Map();
 const ultraShinyOutlineCache = new Map();
 const ULTRA_SHINY_OUTLINE_CACHE_MAX_ENTRIES = 220;
 const mapMarkerButtonsByRouteId = new Map();
@@ -1028,6 +1138,7 @@ let evolutionItemChoiceStoneType = "";
 let evolutionItemChoiceCandidates = [];
 
 window.POKEIDLE_APP_VERSION = APP_VERSION;
+window.POKEIDLE_DISPLAY_VERSION = DISPLAY_APP_VERSION;
 const audioManager = createAudioManager();
 window.POKEIDLE_AUDIO = audioManager;
 
@@ -1059,6 +1170,10 @@ const state = {
   pokemonDefsById: new Map(),
   typeIconImages: new Map(),
   saveData: null,
+  onlyOneEncounterCycle: {
+    routeId: "",
+    normalCount: 0,
+  },
   team: [],
   enemy: null,
   battle: null,
@@ -1152,6 +1267,10 @@ const state = {
     appearanceTargetSlotIndex: -1,
     appearancePokemonId: null,
     hoveredTeamSlotIndex: -1,
+    hoveredBallOverlayType: "",
+    ballOverlayHitboxes: [],
+    ballCaptureMenuOpen: false,
+    ballCaptureMenuBallType: "",
     teamContextMenuOpen: false,
     teamContextMenuSlotIndex: -1,
     teamContextMenuPokemonId: null,
@@ -1161,9 +1280,12 @@ const state = {
     tutorialOpen: false,
   },
   saveBackend: {
-    bridgeAvailable: false,
-    bridgeWriteInFlight: false,
+    indexedDbAvailable: null,
+    syncStorageAvailable: true,
+    indexedDbWriteInFlight: false,
     pendingSerializedSave: null,
+    retryTimerId: 0,
+    lastPersistSucceeded: true,
   },
 };
 
@@ -2040,6 +2162,36 @@ function getVisibleNotificationItems(items) {
   });
 }
 
+function getNotificationPokemonId(item) {
+  const directId = Number(item?.pokemonId || 0);
+  if (directId > 0) {
+    return directId;
+  }
+  const fallbackId = Number(item?.fromId || 0);
+  return fallbackId > 0 ? fallbackId : 0;
+}
+
+function getNotificationPokemonSpritePath(item) {
+  const pokemonId = getNotificationPokemonId(item);
+  if (pokemonId <= 0) {
+    return "";
+  }
+  const forceUltraShiny = Boolean(item?.pokemonIsUltraShiny);
+  const forceShiny = forceUltraShiny || Boolean(item?.pokemonIsShiny);
+  const appearance = resolveSpriteAppearanceForEntity(pokemonId, {
+    respectAppearanceShinyMode: false,
+    respectAppearanceUltraShinyMode: false,
+    forceShiny,
+    forceUltraShiny,
+    shinyVisual: forceShiny,
+    ultraShinyVisual: forceUltraShiny,
+  });
+  const def = state.pokemonDefsById.get(pokemonId);
+  const fallbackShinyPath = forceShiny ? appearance?.variant?.frontShinyPath || def?.shinySpritePath || "" : "";
+  const fallbackNormalPath = appearance?.variant?.frontPath || def?.spritePath || "";
+  return String(appearance?.spritePath || fallbackShinyPath || fallbackNormalPath || "").trim();
+}
+
 function renderNotificationStackUi() {
   if (!notificationStackEl) {
     return;
@@ -2060,17 +2212,36 @@ function renderNotificationStackUi() {
       card.classList.add("notif-evolution");
     }
 
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "game-notif-body";
+    const pokemonId = getNotificationPokemonId(item);
+    const spritePath = getNotificationPokemonSpritePath(item);
+    if (spritePath) {
+      const spriteWrapEl = document.createElement("div");
+      spriteWrapEl.className = "game-notif-sprite-wrap";
+      const spriteImgEl = document.createElement("img");
+      spriteImgEl.className = "game-notif-sprite";
+      spriteImgEl.src = spritePath;
+      spriteImgEl.alt = pokemonId > 0 ? getPokemonDisplayNameById(pokemonId) : "Pokemon";
+      spriteWrapEl.appendChild(spriteImgEl);
+      bodyEl.appendChild(spriteWrapEl);
+    }
+
+    const contentEl = document.createElement("div");
+    contentEl.className = "game-notif-content";
     if (item.title) {
       const titleEl = document.createElement("div");
       titleEl.className = "game-notif-title";
       titleEl.textContent = item.title;
-      card.appendChild(titleEl);
+      contentEl.appendChild(titleEl);
     }
 
     const textEl = document.createElement("div");
     textEl.className = "game-notif-text";
     textEl.textContent = item.message || "";
-    card.appendChild(textEl);
+    contentEl.appendChild(textEl);
+    bodyEl.appendChild(contentEl);
+    card.appendChild(bodyEl);
 
     if (item.type === "evolution_ready") {
       const actions = document.createElement("div");
@@ -2104,12 +2275,18 @@ function pushTemporaryNotification(message, durationMs = 2600, options = {}) {
 
   const id = nextNotificationId();
   const duration = Math.max(650, toSafeInt(durationMs, 2600));
+  const pokemonId = Number(options.pokemonId || 0);
+  const pokemonIsUltraShiny = Boolean(options.pokemonIsUltraShiny);
+  const pokemonIsShiny = pokemonIsUltraShiny || Boolean(options.pokemonIsShiny);
   state.notifications.items.push({
     id,
     type: "temporary",
     tone: String(options.tone || "info"),
     title: options.title ? String(options.title) : "",
     message: text,
+    pokemonId: pokemonId > 0 ? pokemonId : 0,
+    pokemonIsShiny,
+    pokemonIsUltraShiny,
     createdAt: state.timeMs,
     expiresAt: state.timeMs + duration,
   });
@@ -2152,6 +2329,7 @@ function enqueueEvolutionReadyNotification(candidate) {
     message: `${fromName} peut evoluer en ${toName}.`,
     fromId,
     toId,
+    pokemonId: fromId,
     createdAt: state.timeMs,
   });
   queueEvolutionTutorialIfNeeded();
@@ -2250,7 +2428,11 @@ function triggerEvolutionFromNotification(notificationId) {
   const evolutionResult = applyEvolutionUnlockAndTeamPlacement(fromId, toId, preferredSlotIndex);
   if (!evolutionResult) {
     removeNotificationById(id);
-    pushTemporaryNotification("Evolution impossible pour ce Pokemon.", 1800, { tone: "info", title: "Evolution" });
+    pushTemporaryNotification("Evolution impossible pour ce Pokemon.", 1800, {
+      tone: "info",
+      title: "Evolution",
+      pokemonId: fromId,
+    });
     return false;
   }
 
@@ -2263,6 +2445,7 @@ function triggerEvolutionFromNotification(notificationId) {
   pushTemporaryNotification(`${evolutionResult.fromNameFr} evolue en ${evolutionResult.toNameFr} !`, 2200, {
     tone: "first",
     title: "Evolution",
+    pokemonId: Number(evolutionResult.toId || toId || 0),
   });
   return true;
 }
@@ -2315,6 +2498,7 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
     pushTemporaryNotification(`${pokemonName} apparait pour la premiere fois.`, 3000, {
       title: "Apparition",
       tone: "first",
+      pokemonId,
     });
     return;
   }
@@ -2323,6 +2507,8 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
     pushTemporaryNotification(`${pokemonName} capture pour la premiere fois en shiny.`, 4400, {
       title: "Premiere capture shiny",
       tone: "shiny",
+      pokemonId,
+      pokemonIsShiny: true,
     });
     return;
   }
@@ -2330,6 +2516,7 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
   pushTemporaryNotification(`${pokemonName} capture pour la premiere fois.`, 3200, {
     title: "Premiere capture",
     tone: "first",
+    pokemonId,
   });
 }
 
@@ -2345,6 +2532,9 @@ function notifyShinyEncounterUntilCaptured(enemy, speciesRecord = null) {
   pushTemporaryNotification(`Un ${enemy.nameFr} shiny sauvage apparait !`, 4200, {
     title: "Shiny sauvage",
     tone: "shiny",
+    pokemonId: Number(enemy.id || 0),
+    pokemonIsShiny: true,
+    pokemonIsUltraShiny: Boolean(enemy.isUltraShiny),
   });
 }
 
@@ -2624,9 +2814,12 @@ function getBaseStatTotal(stats) {
 function getLevelProgressionMultiplier(level) {
   const normalizedLevel = clamp(toSafeInt(level, 1), 1, MAX_LEVEL);
   const step = normalizedLevel - 1;
-  const quadratic = step * step * 0.35;
-  const quartic = step * step * step * step * 0.0025;
-  return 1 + quadratic + quartic;
+  if (step <= 0) {
+    return 1;
+  }
+  const linear = step * LEVEL_PROGRESSION_LINEAR_PER_STEP;
+  const curved = Math.pow(step, LEVEL_PROGRESSION_CURVE_EXPONENT) * LEVEL_PROGRESSION_CURVE_PER_STEP;
+  return 1 + linear + curved;
 }
 
 function computeStatsAtLevel(baseStats, level) {
@@ -2634,18 +2827,18 @@ function computeStatsAtLevel(baseStats, level) {
   const source = normalizeStatsPayload(baseStats);
   const progression = getLevelProgressionMultiplier(normalizedLevel);
 
-  const hp = Math.max(1, Math.round(source.hp * progression + normalizedLevel * 12));
-  const attack = Math.max(1, Math.round(source.attack * progression * 0.95 + normalizedLevel * 9));
-  const defense = Math.max(1, Math.round(source.defense * progression * 0.96 + normalizedLevel * 9));
+  const hp = Math.max(1, Math.round(source.hp * progression + normalizedLevel * 10));
+  const attack = Math.max(1, Math.round(source.attack * progression * 1.02 + normalizedLevel * 8));
+  const defense = Math.max(1, Math.round(source.defense * progression * 0.98 + normalizedLevel * 8));
   const specialAttack = Math.max(
     1,
-    Math.round(source["special-attack"] * progression * 0.95 + normalizedLevel * 9),
+    Math.round(source["special-attack"] * progression * 1.02 + normalizedLevel * 8),
   );
   const specialDefense = Math.max(
     1,
-    Math.round(source["special-defense"] * progression * 0.96 + normalizedLevel * 9),
+    Math.round(source["special-defense"] * progression * 0.98 + normalizedLevel * 8),
   );
-  const speed = Math.max(1, Math.round(source.speed * progression * 0.92 + normalizedLevel * 8));
+  const speed = Math.max(1, Math.round(source.speed * progression * 0.95 + normalizedLevel * 7));
 
   return {
     hp,
@@ -2659,19 +2852,19 @@ function computeStatsAtLevel(baseStats, level) {
 
 function computeBattleHpMax(stats, level, wild = false) {
   const hp = Math.max(1, Number(stats?.hp || 1));
-  const ratio = wild ? 3.25 : 3.55;
+  const ratio = wild ? 1.7 : 1.95;
   const normalizedLevel = clamp(toSafeInt(level, 1), 1, MAX_LEVEL);
-  const rawHp = Math.max(1, Math.round(hp * ratio + normalizedLevel * 11));
+  const rawHp = Math.max(1, Math.round(hp * ratio + normalizedLevel * 9));
 
   let lowLevelDivider = 1;
   if (normalizedLevel <= 1) {
-    lowLevelDivider = 5;
+    lowLevelDivider = 3.6;
   } else if (normalizedLevel === 2) {
-    lowLevelDivider = 4;
+    lowLevelDivider = 3;
   } else if (normalizedLevel === 3) {
-    lowLevelDivider = 2;
+    lowLevelDivider = 1.9;
   } else if (normalizedLevel === 4) {
-    lowLevelDivider = 1.5;
+    lowLevelDivider = 1.35;
   }
 
   return Math.max(1, Math.round(rawHp / lowLevelDivider));
@@ -2706,8 +2899,8 @@ function getXpToNextLevelForSpecies(pokemonId, level, fallbackStats = null) {
   }
   const baseStats = getPokemonBaseStats(pokemonId, fallbackStats);
   const growth = getSpeciesGrowthFactor(baseStats);
-  const requirement = (45 + level * level * 5.2 + level * 18) * growth;
-  return Math.max(45, Math.round(requirement));
+  const requirement = (36 + level * level * 3.6 + level * 12) * growth;
+  return Math.max(36, Math.round(requirement));
 }
 
 function createEmptySpeciesStats() {
@@ -3091,6 +3284,19 @@ function resolveEntitySpriteDrawSource(entity, timeMs = state.timeMs) {
   return { source: base, frameIndex: -1 };
 }
 
+function normalizePokemonSpriteScaleValue(rawValue) {
+  if (rawValue === null || typeof rawValue === "undefined" || rawValue === "") {
+    return 0.5;
+  }
+  const numeric = Number(rawValue);
+  return Number.isFinite(numeric) ? clamp(numeric, 0, 1) : 0.5;
+}
+
+function getPokemonDataSpriteScale(entity) {
+  const scaleValue = normalizePokemonSpriteScaleValue(entity?.spriteScaleValue ?? entity?.size);
+  return lerpNumber(POKEMON_DATA_SPRITE_SCALE_MIN, POKEMON_DATA_SPRITE_SCALE_MAX, scaleValue);
+}
+
 function trimUltraShinyOutlineCacheIfNeeded() {
   if (ultraShinyOutlineCache.size <= ULTRA_SHINY_OUTLINE_CACHE_MAX_ENTRIES) {
     return;
@@ -3362,16 +3568,88 @@ function formatTalentLabelFr(rawTalent, pokemonId = 0) {
   return resolveTalentDefinition(rawTalent, pokemonId).nameFr || TALENT_NONE_NAME_FR;
 }
 
+function getEntityTalentId(entity, fallbackPokemonId = 0) {
+  return normalizeTalentId(resolveTalentDefinition(entity?.talent, fallbackPokemonId || entity?.id).id);
+}
+
+function getTalentCritBonusChance(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return Math.max(0, Number(TALENT_CRIT_BONUS_CHANCE_BY_ID[talentId] || 0));
+}
+
+function hasAlwaysHitTalent(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return TALENT_ALWAYS_HIT_IDS.has(talentId);
+}
+
+function shouldApplyMorphingTalent(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return talentId === TALENT_MORPHING_ID;
+}
+
+function getEntityOffensiveType(entity, fallbackType = "normal") {
+  return normalizeType(entity?.offensiveType || entity?.defensiveTypes?.[0] || fallbackType);
+}
+
+function getTeamAuraProviderConfig(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return TALENT_AURA_PROVIDER_BY_ID[talentId] || null;
+}
+
+function getStackedTeamAuraAttackBonus(teamMembers, targetSlotIndex, targetOffensiveType) {
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return 0;
+  }
+
+  const targetType = normalizeType(targetOffensiveType || "normal");
+  let totalBonus = 0;
+  for (let i = 0; i < teamMembers.length; i += 1) {
+    if (i === targetSlotIndex) {
+      continue;
+    }
+    const teammate = teamMembers[i];
+    if (!teammate) {
+      continue;
+    }
+    const aura = getTeamAuraProviderConfig(teammate?.talent, teammate?.id);
+    if (!aura) {
+      continue;
+    }
+    if (normalizeType(aura.offensiveType) !== targetType) {
+      continue;
+    }
+    totalBonus += Math.max(0, Number(aura.attackBonus || 0));
+  }
+  return Math.max(0, totalBonus);
+}
+
+function getTeamAuraAttackBonusBySlot(teamMembers) {
+  const bonuses = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return bonuses;
+  }
+  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+    const member = teamMembers[i];
+    if (!member) {
+      continue;
+    }
+    bonuses[i] = getStackedTeamAuraAttackBonus(teamMembers, i, getEntityOffensiveType(member));
+  }
+  return bonuses;
+}
+
 function sanitizePokemonNickname(rawValue) {
   const normalized = String(rawValue ?? "")
     .replace(/[\r\n\t]+/g, " ")
-    .replace(/\s+/g, " ")
-    .replace(/[<>]/g, "")
     .trim();
   if (!normalized) {
     return "";
   }
-  return normalized.slice(0, POKEMON_NICKNAME_MAX_LENGTH);
+  return Array.from(normalized).slice(0, POKEMON_NICKNAME_MAX_LENGTH).join("");
+}
+
+function getPokemonNicknameLength(rawValue) {
+  return Array.from(sanitizePokemonNickname(rawValue)).length;
 }
 
 function escapeHtml(value) {
@@ -3417,6 +3695,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
     0,
     toSafeInt(rawEntity?.happiness_box_streak_ms ?? rawEntity?.happinessBoxStreakMs, 0),
   );
+  const speciesNameEn = String(rawEntity?.species_name_en ?? rawEntity?.name_en ?? "").toLowerCase().trim();
   const talent = resolveTalentDefinition(
     rawEntity?.talent ?? {
       id: rawEntity?.talent_id ?? rawEntity?.talentId,
@@ -3441,6 +3720,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
     evolution_item_ready_targets: evolutionItemReadyTargets,
     nickname,
     happiness_box_streak_ms: happinessBoxStreakMs,
+    species_name_en: speciesNameEn,
     talent,
     ...counters,
   };
@@ -3448,6 +3728,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
 
 function createPokemonEntityRecord(pokemonId, initialLevel = 1) {
   const level = clamp(toSafeInt(initialLevel, 1), 1, MAX_LEVEL);
+  const def = state.pokemonDefsById.get(Number(pokemonId));
   const baseStats = getPokemonBaseStats(pokemonId);
   const stats = computeStatsAtLevel(baseStats, level);
   return {
@@ -3464,6 +3745,7 @@ function createPokemonEntityRecord(pokemonId, initialLevel = 1) {
     evolution_item_ready_targets: [],
     nickname: "",
     happiness_box_streak_ms: 0,
+    species_name_en: String(def?.nameEn || "").toLowerCase().trim(),
     talent: getTalentDefinitionForPokemonId(pokemonId),
     ...createEmptySpeciesStats(),
   };
@@ -3480,11 +3762,99 @@ function createDefaultBallInventory() {
   return inventory;
 }
 
+function clampBallInventoryCount(value) {
+  return clamp(toSafeInt(value, 0), 0, BALL_INVENTORY_MAX_PER_TYPE);
+}
+
 function normalizeBallInventory(rawInventory) {
   const normalized = createDefaultBallInventory();
   const source = rawInventory && typeof rawInventory === "object" ? rawInventory : {};
   for (const key of Object.keys(normalized)) {
-    normalized[key] = Math.max(0, toSafeInt(source[key], 0));
+    normalized[key] = clampBallInventoryCount(source[key]);
+  }
+  return normalized;
+}
+
+function createDefaultBallInventorySeen() {
+  const seen = {};
+  for (const ballType of Object.keys(BALL_CONFIG_BY_TYPE)) {
+    seen[ballType] = ballType === "poke_ball";
+  }
+  if (!Object.prototype.hasOwnProperty.call(seen, "poke_ball")) {
+    seen.poke_ball = true;
+  }
+  return seen;
+}
+
+function normalizeBallInventorySeen(rawSeen, ballInventory = null) {
+  const normalized = createDefaultBallInventorySeen();
+  const source = rawSeen && typeof rawSeen === "object" ? rawSeen : {};
+  for (const key of Object.keys(normalized)) {
+    normalized[key] = Boolean(source[key]);
+  }
+  const inventory = ballInventory && typeof ballInventory === "object" ? ballInventory : {};
+  for (const key of Object.keys(normalized)) {
+    if (Math.max(0, toSafeInt(inventory[key], 0)) > 0) {
+      normalized[key] = true;
+    }
+  }
+  normalized.poke_ball = true;
+  return normalized;
+}
+
+function createDefaultSingleBallCaptureRules() {
+  return {
+    [BALL_CAPTURE_RULE_CAPTURE_ALL]: true,
+    [BALL_CAPTURE_RULE_CAPTURE_UNOWNED]: true,
+    [BALL_CAPTURE_RULE_CAPTURE_SHINY]: true,
+    [BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]: true,
+  };
+}
+
+function normalizeSingleBallCaptureRules(rawRules) {
+  const source = rawRules && typeof rawRules === "object" ? rawRules : {};
+  const normalized = {
+    [BALL_CAPTURE_RULE_CAPTURE_ALL]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_ALL]),
+    [BALL_CAPTURE_RULE_CAPTURE_UNOWNED]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_UNOWNED]),
+    [BALL_CAPTURE_RULE_CAPTURE_SHINY]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_SHINY]),
+    [BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]),
+  };
+  if (!Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_ALL)) {
+    normalized[BALL_CAPTURE_RULE_CAPTURE_ALL] = true;
+  }
+  if (
+    !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_UNOWNED)
+    && !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_SHINY)
+    && !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY)
+  ) {
+    normalized[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
+  }
+  if (normalized[BALL_CAPTURE_RULE_CAPTURE_ALL]) {
+    normalized[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
+  }
+  return normalized;
+}
+
+function createDefaultBallCaptureRulesByType() {
+  const rulesByType = {};
+  for (const ballType of Object.keys(BALL_CONFIG_BY_TYPE)) {
+    rulesByType[ballType] = createDefaultSingleBallCaptureRules();
+  }
+  if (!Object.prototype.hasOwnProperty.call(rulesByType, "poke_ball")) {
+    rulesByType.poke_ball = createDefaultSingleBallCaptureRules();
+  }
+  return rulesByType;
+}
+
+function normalizeBallCaptureRulesByType(rawRulesByType) {
+  const normalized = createDefaultBallCaptureRulesByType();
+  const source = rawRulesByType && typeof rawRulesByType === "object" ? rawRulesByType : {};
+  for (const ballType of Object.keys(normalized)) {
+    normalized[ballType] = normalizeSingleBallCaptureRules(source[ballType]);
   }
   return normalized;
 }
@@ -3493,7 +3863,7 @@ function computeBallInventoryTotal(ballInventory) {
   if (!ballInventory || typeof ballInventory !== "object") {
     return 0;
   }
-  return Object.values(ballInventory).reduce((sum, count) => sum + Math.max(0, toSafeInt(count, 0)), 0);
+  return Object.values(ballInventory).reduce((sum, count) => sum + clampBallInventoryCount(count), 0);
 }
 
 function hasStructuredBallInventory(rawInventory) {
@@ -3585,6 +3955,7 @@ function markEconomyNormalizationDirty() {
 function createEmptySave() {
   return {
     version: SAVE_VERSION,
+    app_build_version: APP_VERSION,
     starter_chosen: false,
     current_route_id: DEFAULT_ROUTE_ID,
     unlocked_route_ids: [DEFAULT_ROUTE_ID],
@@ -3593,12 +3964,168 @@ function createEmptySave() {
     team: [],
     pokemon_entities: {},
     money: 0,
+    first_free_pokeball_claimed: false,
+    first_free_pokeball_guaranteed_capture_pending: false,
     ball_inventory: createDefaultBallInventory(),
+    ball_inventory_seen: createDefaultBallInventorySeen(),
+    ball_capture_rules: createDefaultBallCaptureRulesByType(),
     active_ball_type: getDefaultActiveBallType(),
     shop_items: createDefaultShopItemsInventory(),
     attack_boost_until_ms: 0,
     pokeballs: 0,
     tutorials: createDefaultTutorialProgress(),
+  };
+}
+
+function getRawSaveVersion(rawSave) {
+  return Math.max(0, toSafeInt(rawSave?.version, 0));
+}
+
+function getRawSaveAppVersion(rawSave) {
+  if (!rawSave || typeof rawSave !== "object") {
+    return "";
+  }
+  const buildVersion = String(rawSave.app_build_version || "").trim();
+  if (buildVersion) {
+    return buildVersion;
+  }
+  return String(rawSave.app_version || "").trim();
+}
+
+function isRawSaveVersionSupported(rawSave) {
+  return getRawSaveVersion(rawSave) >= MIN_SUPPORTED_SAVE_VERSION;
+}
+
+function isRawSaveAppVersionSupported(rawSave) {
+  return isVersionAtLeast(getRawSaveAppVersion(rawSave), MIN_SUPPORTED_SAVE_APP_VERSION);
+}
+
+function isRawSaveSupported(rawSave) {
+  return isRawSaveVersionSupported(rawSave) && isRawSaveAppVersionSupported(rawSave);
+}
+
+function repairNormalizedSaveSnapshot(saveData) {
+  const repairResult = repairNormalizedSaveData(saveData, {
+    maxTeamSize: MAX_TEAM_SIZE,
+    defaultRouteId: DEFAULT_ROUTE_ID,
+  });
+
+  if (!repairResult.orphanedProgress) {
+    return {
+      saveData,
+      changed: repairResult.changed,
+      recoveredTeam: repairResult.recoveredTeam,
+      hardResetApplied: false,
+    };
+  }
+
+  return {
+    saveData: createEmptySave(),
+    changed: true,
+    recoveredTeam: false,
+    hardResetApplied: true,
+  };
+}
+
+function getRecoverableOwnedEntityIdsForRuntime() {
+  if (!state.saveData) {
+    return [];
+  }
+  return getOwnedEntityIdsFromSave(state.saveData, {
+    maxTeamSize: MAX_TEAM_SIZE,
+  }).filter((pokemonId) => state.pokemonDefsById.has(Number(pokemonId)));
+}
+
+function syncSpeciesIdentityForRecord(record, pokemonId) {
+  if (!record) {
+    return false;
+  }
+  const def = state.pokemonDefsById.get(Number(pokemonId));
+  const speciesNameEn = String(def?.nameEn || "").toLowerCase().trim();
+  if (!speciesNameEn || record.species_name_en === speciesNameEn) {
+    return false;
+  }
+  record.species_name_en = speciesNameEn;
+  return true;
+}
+
+function backfillSaveSpeciesIdentity() {
+  if (!state.saveData?.pokemon_entities || typeof state.saveData.pokemon_entities !== "object") {
+    return false;
+  }
+
+  let changed = false;
+  for (const [rawId, record] of Object.entries(state.saveData.pokemon_entities)) {
+    const pokemonId = Number(record?.id || rawId || 0);
+    if (pokemonId <= 0 || !record) {
+      continue;
+    }
+    if (syncSpeciesIdentityForRecord(record, pokemonId)) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function repairRuntimeSaveAfterDefinitionsLoaded() {
+  if (!state.saveData) {
+    return {
+      changed: false,
+      recoveredTeam: false,
+      hardResetApplied: false,
+    };
+  }
+
+  let changed = backfillSaveSpeciesIdentity();
+  const ownedEntityIds = getOwnedEntityIdsFromSave(state.saveData, {
+    maxTeamSize: MAX_TEAM_SIZE,
+  });
+  const recoverableOwnedIds = getRecoverableOwnedEntityIdsForRuntime();
+  const recoverableOwnedSet = new Set(recoverableOwnedIds);
+  const nextTeam = [];
+  const currentTeam = Array.isArray(state.saveData.team) ? state.saveData.team : [];
+
+  for (const rawId of currentTeam) {
+    const id = Number(rawId);
+    if (id <= 0 || nextTeam.includes(id) || !recoverableOwnedSet.has(id)) {
+      continue;
+    }
+    nextTeam.push(id);
+    if (nextTeam.length >= MAX_TEAM_SIZE) {
+      break;
+    }
+  }
+
+  let recoveredTeam = false;
+  if (nextTeam.length <= 0 && recoverableOwnedIds.length > 0) {
+    nextTeam.push(...recoverableOwnedIds.slice(0, MAX_TEAM_SIZE));
+    recoveredTeam = true;
+  }
+
+  if (JSON.stringify(currentTeam) !== JSON.stringify(nextTeam)) {
+    state.saveData.team = nextTeam;
+    changed = true;
+  }
+
+  const shouldHaveStarter = nextTeam.length > 0 || ownedEntityIds.length > 0;
+  if (Boolean(state.saveData.starter_chosen) !== shouldHaveStarter) {
+    state.saveData.starter_chosen = shouldHaveStarter;
+    changed = true;
+  }
+
+  if (!shouldHaveStarter && ownedEntityIds.length <= 0 && hasMeaningfulSaveProgress(state.saveData, DEFAULT_ROUTE_ID)) {
+    state.saveData = createEmptySave();
+    return {
+      changed: true,
+      recoveredTeam: false,
+      hardResetApplied: true,
+    };
+  }
+
+  return {
+    changed,
+    recoveredTeam,
+    hardResetApplied: false,
   };
 }
 
@@ -3776,6 +4303,8 @@ function normalizeSave(rawSave) {
   if (currentInventoryTotal <= 0 && legacyPokeballs > 0) {
     ballInventory[getLegacyBallBackfillType()] = legacyPokeballs;
   }
+  const ballInventorySeen = normalizeBallInventorySeen(rawSave.ball_inventory_seen, ballInventory);
+  const ballCaptureRules = normalizeBallCaptureRulesByType(rawSave.ball_capture_rules);
 
   const activeBallTypeRaw = String(rawSave.active_ball_type || "").toLowerCase().trim();
   const activeBallType = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, activeBallTypeRaw)
@@ -3785,9 +4314,16 @@ function normalizeSave(rawSave) {
   const attackBoostUntilMs = Math.max(0, toSafeInt(rawSave.attack_boost_until_ms, 0));
   const totalPokeballs = computeBallInventoryTotal(ballInventory);
   const tutorials = normalizeTutorialProgress(rawSave.tutorials, entities);
+  const hasFirstFreePokeballClaimedField = Object.prototype.hasOwnProperty.call(rawSave, "first_free_pokeball_claimed");
+  const firstFreePokeballClaimed = hasFirstFreePokeballClaimedField
+    ? Boolean(rawSave.first_free_pokeball_claimed)
+    : totalPokeballs > 0;
+  const firstFreePokeballGuaranteedCapturePending =
+    firstFreePokeballClaimed && Boolean(rawSave.first_free_pokeball_guaranteed_capture_pending);
 
   return {
     version: SAVE_VERSION,
+    app_build_version: APP_VERSION,
     starter_chosen:
       Boolean(rawSave.starter_chosen) || normalizedTeam.length > 0 || Object.values(entities).some((record) => isEntityUnlocked(record)),
     current_route_id: currentRouteId,
@@ -3797,7 +4333,11 @@ function normalizeSave(rawSave) {
     team: normalizedTeam,
     pokemon_entities: entities,
     money: Math.max(0, toSafeInt(rawSave.money, 0)),
+    first_free_pokeball_claimed: firstFreePokeballClaimed,
+    first_free_pokeball_guaranteed_capture_pending: firstFreePokeballGuaranteedCapturePending,
     ball_inventory: ballInventory,
+    ball_inventory_seen: ballInventorySeen,
+    ball_capture_rules: ballCaptureRules,
     active_ball_type: activeBallType,
     shop_items: shopItems,
     attack_boost_until_ms: attackBoostUntilMs,
@@ -4054,127 +4594,342 @@ function ensureAppearanceEditorUnlockedFromProgress() {
   return true;
 }
 
-function getSaveBridgeEndpoint(pathname = "") {
-  const pathValue = String(pathname || "");
-  if (!pathValue) {
-    return SAVE_BRIDGE_URL;
-  }
-  if (pathValue.startsWith("/")) {
-    return SAVE_BRIDGE_URL + pathValue;
-  }
-  return SAVE_BRIDGE_URL + "/" + pathValue;
-}
-
-async function fetchSaveBridge(pathname, options = {}) {
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), SAVE_BRIDGE_TIMEOUT_MS);
+function getBrowserStorageArea(areaName) {
   try {
-    return await fetch(getSaveBridgeEndpoint(pathname), {
-      ...options,
-      signal: controller.signal,
-    });
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
-}
-
-async function readSaveDataFromBridge() {
-  try {
-    const response = await fetchSaveBridge("/save", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      state.saveBackend.bridgeAvailable = false;
-      return { available: false, saveData: null };
-    }
-
-    const payload = await response.json();
-    const saveRaw = parseSaveBridgePayload(payload, "Save bridge");
-    const saveData = saveRaw ? normalizeSave(saveRaw) : null;
-    state.saveBackend.bridgeAvailable = true;
-    return { available: true, saveData };
-  } catch {
-    state.saveBackend.bridgeAvailable = false;
-    return { available: false, saveData: null };
-  }
-}
-
-async function writeSerializedSaveToBridge(serializedSave) {
-  try {
-    const response = await fetchSaveBridge("/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: serializedSave,
-    });
-    const ok = response.ok;
-    state.saveBackend.bridgeAvailable = ok;
-    return ok;
-  } catch {
-    state.saveBackend.bridgeAvailable = false;
-    return false;
-  }
-}
-
-function readSaveDataFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) {
-      return null;
-    }
-    return normalizeSave(parseSerializedSave(raw, "localStorage save"));
+    return window?.[areaName] || null;
   } catch {
     return null;
   }
 }
 
-function writeSerializedSaveToLocalStorage(serializedSave) {
+function readSaveDataFromStorageKey(areaName, key, contextLabel) {
+  const storageArea = getBrowserStorageArea(areaName);
+  if (!storageArea || typeof storageArea.getItem !== "function") {
+    return null;
+  }
   try {
-    localStorage.setItem(SAVE_KEY, serializedSave);
+    const raw = storageArea.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    const saveRaw = parseSerializedSave(raw, contextLabel);
+    if (!isRawSaveSupported(saveRaw)) {
+      removeSaveDataFromStorageKey(areaName, key);
+      return null;
+    }
+    return normalizeSave(saveRaw);
+  } catch {
+    return null;
+  }
+}
+
+function writeSerializedSaveToStorageKey(areaName, key, serializedSave) {
+  const storageArea = getBrowserStorageArea(areaName);
+  if (!storageArea || typeof storageArea.setItem !== "function") {
+    return false;
+  }
+  try {
+    storageArea.setItem(key, serializedSave);
     return true;
   } catch {
     return false;
   }
 }
 
-async function drainPendingBridgeSaveWrites() {
-  if (state.saveBackend.bridgeWriteInFlight) {
+function removeSaveDataFromStorageKey(areaName, key) {
+  const storageArea = getBrowserStorageArea(areaName);
+  if (!storageArea || typeof storageArea.removeItem !== "function") {
+    return false;
+  }
+  try {
+    storageArea.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readSaveDataFromLocalStorage() {
+  return readSaveDataFromStorageKey("localStorage", SAVE_KEY, "localStorage save");
+}
+
+function readSaveDataFromSessionStorage() {
+  return readSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY, "sessionStorage save");
+}
+
+function hasIndexedDbSaveSupport() {
+  return typeof window !== "undefined" && "indexedDB" in window;
+}
+
+function getDevSeedSaveUrl() {
+  if (isProductionGithubPagesLocation(window.location)) {
+    return "";
+  }
+
+  try {
+    const currentUrl = new URL(window.location.href);
+    const rawValue = currentUrl.searchParams.get(DEV_SEED_SAVE_QUERY_PARAM);
+    if (!rawValue) {
+      return "";
+    }
+    const resolved = new URL(rawValue, currentUrl.href);
+    return resolved.origin === currentUrl.origin ? resolved.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+async function readSeededDevSaveData() {
+  const seedUrl = getDevSeedSaveUrl();
+  if (!seedUrl) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(seedUrl, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const saveRaw = parseSerializedSave(await response.text(), "dev seeded save");
+    if (!isRawSaveSupported(saveRaw)) {
+      return null;
+    }
+    return normalizeSave(saveRaw);
+  } catch (error) {
+    console.warn("Dev seed save ignoree:", error?.message || error);
+    return null;
+  }
+}
+
+let saveIndexedDbOpenPromise = null;
+
+async function openSaveIndexedDb() {
+  if (!hasIndexedDbSaveSupport()) {
+    state.saveBackend.indexedDbAvailable = false;
+    return null;
+  }
+
+  if (!saveIndexedDbOpenPromise) {
+    saveIndexedDbOpenPromise = new Promise((resolve) => {
+      try {
+        const request = window.indexedDB.open(SAVE_INDEXED_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          const database = request.result;
+          if (!database.objectStoreNames.contains(SAVE_INDEXED_DB_STORE_NAME)) {
+            database.createObjectStore(SAVE_INDEXED_DB_STORE_NAME, { keyPath: "id" });
+          }
+        };
+        request.onsuccess = () => {
+          state.saveBackend.indexedDbAvailable = true;
+          resolve(request.result);
+        };
+        request.onerror = () => {
+          state.saveBackend.indexedDbAvailable = false;
+          resolve(null);
+        };
+        request.onblocked = () => {
+          state.saveBackend.indexedDbAvailable = false;
+          resolve(null);
+        };
+      } catch {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(null);
+      }
+    });
+  }
+
+  return saveIndexedDbOpenPromise;
+}
+
+async function readSaveDataFromIndexedDb() {
+  const database = await openSaveIndexedDb();
+  if (!database) {
+    return null;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = database.transaction(SAVE_INDEXED_DB_STORE_NAME, "readonly");
+      const store = transaction.objectStore(SAVE_INDEXED_DB_STORE_NAME);
+      const request = store.get(SAVE_INDEXED_DB_RECORD_KEY);
+      request.onsuccess = () => {
+        const serializedSave = typeof request.result?.serializedSave === "string" ? request.result.serializedSave : "";
+        if (!serializedSave) {
+          resolve(null);
+          return;
+        }
+        try {
+          const saveRaw = parseSerializedSave(serializedSave, "indexedDB save");
+          if (!isRawSaveSupported(saveRaw)) {
+            void deleteSaveDataFromIndexedDb();
+            resolve(null);
+            return;
+          }
+          state.saveBackend.indexedDbAvailable = true;
+          resolve(normalizeSave(saveRaw));
+        } catch {
+          resolve(null);
+        }
+      };
+      request.onerror = () => {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(null);
+      };
+    } catch {
+      state.saveBackend.indexedDbAvailable = false;
+      resolve(null);
+    }
+  });
+}
+
+async function writeSerializedSaveToIndexedDb(serializedSave) {
+  const database = await openSaveIndexedDb();
+  if (!database) {
+    return false;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = database.transaction(SAVE_INDEXED_DB_STORE_NAME, "readwrite");
+      transaction.oncomplete = () => {
+        state.saveBackend.indexedDbAvailable = true;
+        resolve(true);
+      };
+      transaction.onerror = () => {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(false);
+      };
+      transaction.onabort = () => {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(false);
+      };
+      const store = transaction.objectStore(SAVE_INDEXED_DB_STORE_NAME);
+      store.put({
+        id: SAVE_INDEXED_DB_RECORD_KEY,
+        serializedSave,
+        updatedAt: Date.now(),
+      });
+    } catch {
+      state.saveBackend.indexedDbAvailable = false;
+      resolve(false);
+    }
+  });
+}
+
+async function deleteSaveDataFromIndexedDb() {
+  const database = await openSaveIndexedDb();
+  if (!database) {
+    return true;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = database.transaction(SAVE_INDEXED_DB_STORE_NAME, "readwrite");
+      transaction.oncomplete = () => {
+        state.saveBackend.indexedDbAvailable = true;
+        resolve(true);
+      };
+      transaction.onerror = () => {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(false);
+      };
+      transaction.onabort = () => {
+        state.saveBackend.indexedDbAvailable = false;
+        resolve(false);
+      };
+      const store = transaction.objectStore(SAVE_INDEXED_DB_STORE_NAME);
+      store.delete(SAVE_INDEXED_DB_RECORD_KEY);
+    } catch {
+      state.saveBackend.indexedDbAvailable = false;
+      resolve(false);
+    }
+  });
+}
+
+function clearBrowserSaveRetry() {
+  if (!state.saveBackend.retryTimerId) {
+    return;
+  }
+  window.clearTimeout(state.saveBackend.retryTimerId);
+  state.saveBackend.retryTimerId = 0;
+}
+
+function scheduleBrowserSaveRetry() {
+  if (state.saveBackend.retryTimerId || !hasIndexedDbSaveSupport()) {
+    return;
+  }
+  state.saveBackend.retryTimerId = window.setTimeout(() => {
+    state.saveBackend.retryTimerId = 0;
+    void drainPendingBrowserSaveWrites();
+  }, 900);
+}
+
+async function drainPendingBrowserSaveWrites() {
+  if (state.saveBackend.indexedDbWriteInFlight || !state.saveBackend.pendingSerializedSave) {
     return;
   }
 
-  state.saveBackend.bridgeWriteInFlight = true;
+  clearBrowserSaveRetry();
+  state.saveBackend.indexedDbWriteInFlight = true;
   try {
     while (state.saveBackend.pendingSerializedSave) {
       const serializedSave = state.saveBackend.pendingSerializedSave;
-      state.saveBackend.pendingSerializedSave = null;
-      await writeSerializedSaveToBridge(serializedSave);
+      const ok = await writeSerializedSaveToIndexedDb(serializedSave);
+      if (!ok) {
+        if (state.saveBackend.indexedDbAvailable === false) {
+          state.saveBackend.pendingSerializedSave = null;
+          if (!state.saveBackend.syncStorageAvailable) {
+            state.saveBackend.lastPersistSucceeded = false;
+          }
+        }
+        break;
+      }
+      if (state.saveBackend.pendingSerializedSave === serializedSave) {
+        state.saveBackend.pendingSerializedSave = null;
+      }
+      state.saveBackend.lastPersistSucceeded = true;
     }
   } finally {
-    state.saveBackend.bridgeWriteInFlight = false;
+    state.saveBackend.indexedDbWriteInFlight = false;
     updateSaveBackendIndicator();
-    if (state.saveBackend.pendingSerializedSave) {
-      void drainPendingBridgeSaveWrites();
+    if (state.saveBackend.pendingSerializedSave && state.saveBackend.indexedDbAvailable !== false) {
+      scheduleBrowserSaveRetry();
     }
   }
 }
 
-function queueBridgeSaveWrite(serializedSave) {
-  state.saveBackend.pendingSerializedSave = serializedSave;
-  if (!state.saveBackend.bridgeWriteInFlight) {
-    void drainPendingBridgeSaveWrites();
+function queueBrowserSaveWrite(serializedSave) {
+  if (!hasIndexedDbSaveSupport()) {
+    state.saveBackend.indexedDbAvailable = false;
+    return;
   }
+  state.saveBackend.pendingSerializedSave = serializedSave;
+  if (!state.saveBackend.indexedDbWriteInFlight) {
+    void drainPendingBrowserSaveWrites();
+  }
+}
+
+function syncSerializedSaveToBrowserStorage(serializedSave) {
+  const localStorageOk = writeSerializedSaveToStorageKey("localStorage", SAVE_KEY, serializedSave);
+  const sessionStorageOk = writeSerializedSaveToStorageKey("sessionStorage", SAVE_SESSION_KEY, serializedSave);
+  state.saveBackend.syncStorageAvailable = localStorageOk || sessionStorageOk;
+  state.saveBackend.lastPersistSucceeded = state.saveBackend.syncStorageAvailable || hasIndexedDbSaveSupport();
+  queueBrowserSaveWrite(serializedSave);
+  updateSaveBackendIndicator();
+  return state.saveBackend.lastPersistSucceeded;
 }
 
 function updateSaveBackendIndicator() {
   if (!saveBackendValueEl) {
     return;
   }
-  const nextLabel = state.saveBackend.bridgeAvailable ? "AppData\\Roaming\\PokeIdle" : "localStorage (bridge off)";
+  const nextLabel = state.saveBackend.lastPersistSucceeded
+    ? "Sauvegarde navigateur"
+    : "Sauvegarde indisponible";
   if (saveBackendValueEl.textContent !== nextLabel) {
     saveBackendValueEl.textContent = nextLabel;
   }
@@ -4185,41 +4940,50 @@ function getSaveTickEpochMs(savePayload) {
 }
 
 async function loadSaveData() {
-  const bridgeResult = await readSaveDataFromBridge();
-  const bridgeSave = bridgeResult.saveData;
-  const localSave = readSaveDataFromLocalStorage();
-  const candidates = [bridgeSave, localSave].filter(Boolean);
-  let selected = null;
-  if (candidates.length > 0) {
-    selected = candidates.reduce((best, candidate) =>
-      getSaveTickEpochMs(candidate) > getSaveTickEpochMs(best) ? candidate : best,
-    candidates[0]);
-  } else {
-    selected = createEmptySave();
+  let selected = await readSeededDevSaveData();
+  if (!selected) {
+    const candidates = [];
+    const localStorageSave = readSaveDataFromLocalStorage();
+    if (localStorageSave) {
+      candidates.push({
+        source: SAVE_SOURCE_LOCAL_STORAGE,
+        saveData: localStorageSave,
+      });
+    }
+
+    const sessionStorageSave = readSaveDataFromSessionStorage();
+    if (sessionStorageSave) {
+      candidates.push({
+        source: SAVE_SOURCE_SESSION_STORAGE,
+        saveData: sessionStorageSave,
+      });
+    }
+
+    const indexedDbSave = await readSaveDataFromIndexedDb();
+    if (indexedDbSave) {
+      candidates.push({
+        source: SAVE_SOURCE_INDEXED_DB,
+        saveData: indexedDbSave,
+      });
+    }
+
+    selected = pickPreferredSaveCandidate(candidates)?.saveData || createEmptySave();
   }
 
-  const serializedSelected = JSON.stringify(selected);
-  writeSerializedSaveToLocalStorage(serializedSelected);
-  const shouldMirrorToBridge =
-    bridgeResult.available && (!bridgeSave || getSaveTickEpochMs(selected) > getSaveTickEpochMs(bridgeSave));
-  if (shouldMirrorToBridge) {
-    await writeSerializedSaveToBridge(serializedSelected);
-  }
-  updateSaveBackendIndicator();
+  const repairResult = repairNormalizedSaveSnapshot(selected);
+  selected = repairResult.saveData;
+  syncSerializedSaveToBrowserStorage(JSON.stringify(selected));
   return selected;
 }
 
-function persistSaveData() {
+function persistSaveData(_options = {}) {
   if (!state.saveData) {
     return;
   }
+  state.saveData.version = SAVE_VERSION;
+  state.saveData.app_build_version = APP_VERSION;
   state.saveData.last_tick_epoch_ms = Date.now();
-  const serialized = JSON.stringify(state.saveData);
-  writeSerializedSaveToLocalStorage(serialized);
-  if (state.saveBackend.bridgeAvailable) {
-    queueBridgeSaveWrite(serialized);
-  }
-  updateSaveBackendIndicator();
+  syncSerializedSaveToBrowserStorage(JSON.stringify(state.saveData));
 }
 
 function persistSaveDataForSimulationEvent() {
@@ -4412,6 +5176,7 @@ function ensureSpeciesStats(pokemonId) {
   if (!state.saveData.pokemon_entities[key]) {
     state.saveData.pokemon_entities[key] = createPokemonEntityRecord(pokemonId, 1);
   }
+  syncSpeciesIdentityForRecord(state.saveData.pokemon_entities[key], pokemonId);
   return state.saveData.pokemon_entities[key];
 }
 
@@ -4781,6 +5546,33 @@ function getEvolutionFamilySpeciesIds(pokemonId) {
   }
   familyIds.sort((a, b) => a - b);
   return familyIds;
+}
+
+function applyNicknameToEvolutionFamily(pokemonId, nickname) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return { changed: false, familySize: 0 };
+  }
+  const nextNickname = sanitizePokemonNickname(nickname);
+  const familyIds = getEvolutionFamilySpeciesIds(id);
+  const targetIds = Array.from(new Set((familyIds.length > 0 ? familyIds : [id]).map((entry) => Number(entry || 0))))
+    .filter((entry) => entry > 0);
+  let changed = false;
+
+  for (const familyId of targetIds) {
+    const record = ensureSpeciesStats(familyId);
+    const previousNickname = sanitizePokemonNickname(record?.nickname);
+    if (previousNickname === nextNickname) {
+      continue;
+    }
+    record.nickname = nextNickname;
+    changed = true;
+  }
+
+  return {
+    changed,
+    familySize: targetIds.length,
+  };
 }
 
 function getFamilyCounterTotal(pokemonId, counterField) {
@@ -5251,15 +6043,24 @@ function ensureMoneyAndItems() {
   if (!hasStructuredBallInventory(rawBallInventory) && normalizedInventoryTotal <= 0 && legacyBalls > 0) {
     const fallbackBallType = getLegacyBallBackfillType();
     normalizedBallInventory[fallbackBallType] =
-      Math.max(0, toSafeInt(normalizedBallInventory[fallbackBallType], 0)) + legacyBalls;
+      clampBallInventoryCount(Math.max(0, toSafeInt(normalizedBallInventory[fallbackBallType], 0)) + legacyBalls);
   }
   state.saveData.ball_inventory = normalizedBallInventory;
+  state.saveData.ball_inventory_seen = normalizeBallInventorySeen(
+    state.saveData.ball_inventory_seen,
+    normalizedBallInventory,
+  );
+  state.saveData.ball_capture_rules = normalizeBallCaptureRulesByType(state.saveData.ball_capture_rules);
   state.saveData.shop_items = normalizeShopItemsInventory(state.saveData.shop_items);
   state.saveData.attack_boost_until_ms = Math.max(0, toSafeInt(state.saveData.attack_boost_until_ms, 0));
   const activeBallType = String(state.saveData.active_ball_type || "").toLowerCase().trim();
   state.saveData.active_ball_type = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, activeBallType)
     ? activeBallType
     : getDefaultActiveBallType();
+  state.saveData.first_free_pokeball_claimed = Boolean(state.saveData.first_free_pokeball_claimed);
+  state.saveData.first_free_pokeball_guaranteed_capture_pending =
+    state.saveData.first_free_pokeball_claimed
+    && Boolean(state.saveData.first_free_pokeball_guaranteed_capture_pending);
   state.saveData.pokeballs = computeBallInventoryTotal(normalizedBallInventory);
   normalizationState.saveDataRef = state.saveData;
   normalizationState.ballRevision = ballRevision;
@@ -5275,7 +6076,20 @@ function getBallInventoryCount(ballType) {
   if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
     return 0;
   }
-  return Math.max(0, toSafeInt(state.saveData.ball_inventory?.[type], 0));
+  return clampBallInventoryCount(state.saveData.ball_inventory?.[type]);
+}
+
+function getBallInventoryRemainingCapacity(ballType) {
+  if (!state.saveData) {
+    return 0;
+  }
+  ensureMoneyAndItems();
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return 0;
+  }
+  const currentCount = clampBallInventoryCount(state.saveData.ball_inventory?.[type]);
+  return Math.max(0, BALL_INVENTORY_MAX_PER_TYPE - currentCount);
 }
 
 function getBallInventoryTotalCount() {
@@ -5284,6 +6098,86 @@ function getBallInventoryTotalCount() {
   }
   ensureMoneyAndItems();
   return computeBallInventoryTotal(state.saveData.ball_inventory);
+}
+
+function hasBallInventoryBeenSeen(ballType) {
+  if (!state.saveData) {
+    return false;
+  }
+  ensureMoneyAndItems();
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return false;
+  }
+  return Boolean(state.saveData.ball_inventory_seen?.[type]);
+}
+
+function markBallInventorySeen(ballType) {
+  if (!state.saveData) {
+    return;
+  }
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return;
+  }
+  if (!state.saveData.ball_inventory_seen || typeof state.saveData.ball_inventory_seen !== "object") {
+    state.saveData.ball_inventory_seen = createDefaultBallInventorySeen();
+  }
+  state.saveData.ball_inventory_seen[type] = true;
+  state.saveData.ball_inventory_seen.poke_ball = true;
+}
+
+function getBallCaptureRulesForType(ballType) {
+  if (!state.saveData) {
+    return createDefaultSingleBallCaptureRules();
+  }
+  ensureMoneyAndItems();
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return createDefaultSingleBallCaptureRules();
+  }
+  return normalizeSingleBallCaptureRules(state.saveData.ball_capture_rules?.[type]);
+}
+
+function setBallCaptureRulesForType(ballType, nextRules) {
+  if (!state.saveData) {
+    return false;
+  }
+  ensureMoneyAndItems();
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return false;
+  }
+  const previous = normalizeSingleBallCaptureRules(state.saveData.ball_capture_rules?.[type]);
+  const normalizedNext = normalizeSingleBallCaptureRules(nextRules);
+  if (JSON.stringify(previous) === JSON.stringify(normalizedNext)) {
+    return false;
+  }
+  state.saveData.ball_capture_rules[type] = normalizedNext;
+  return true;
+}
+
+function shouldCaptureEnemyWithBallType(ballType, enemy) {
+  if (!enemy) {
+    return false;
+  }
+  const rules = getBallCaptureRulesForType(ballType);
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_ALL]) {
+    return true;
+  }
+
+  const enemyId = Number(enemy.id || 0);
+  const owned = enemyId > 0 ? isPokemonEntityUnlockedById(enemyId) : false;
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !owned) {
+    return true;
+  }
+  if (Boolean(enemy.isUltraShiny)) {
+    return Boolean(rules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]);
+  }
+  if (Boolean(enemy.isShiny)) {
+    return Boolean(rules[BALL_CAPTURE_RULE_CAPTURE_SHINY]);
+  }
+  return false;
 }
 
 function setActiveBallType(ballType) {
@@ -5316,7 +6210,17 @@ function addBallItems(ballType, amount) {
   }
   ensureMoneyAndItems();
   const delta = Math.max(0, toSafeInt(amount, 0));
-  state.saveData.ball_inventory[type] = Math.max(0, toSafeInt(state.saveData.ball_inventory[type], 0)) + delta;
+  if (delta <= 0) {
+    return;
+  }
+  const currentCount = clampBallInventoryCount(state.saveData.ball_inventory[type]);
+  const capacityLeft = Math.max(0, BALL_INVENTORY_MAX_PER_TYPE - currentCount);
+  if (capacityLeft <= 0) {
+    return;
+  }
+  const appliedDelta = Math.min(delta, capacityLeft);
+  state.saveData.ball_inventory[type] = currentCount + appliedDelta;
+  markBallInventorySeen(type);
   state.saveData.pokeballs = computeBallInventoryTotal(state.saveData.ball_inventory);
   syncWindowsPokeballInventoryTracking(state.saveData.pokeballs);
 }
@@ -5341,17 +6245,18 @@ function consumeBallItem(ballType, amount = 1) {
   return true;
 }
 
-function getBallTypeForCapture() {
+function getBallTypeForCapture(enemy = null) {
   if (!state.saveData) {
     return null;
   }
   ensureMoneyAndItems();
+  const targetEnemy = enemy || state.enemy;
   const activeType = getActiveBallType();
-  if (getBallInventoryCount(activeType) > 0) {
+  if (getBallInventoryCount(activeType) > 0 && shouldCaptureEnemyWithBallType(activeType, targetEnemy)) {
     return activeType;
   }
   for (const type of BALL_TYPE_ORDER) {
-    if (getBallInventoryCount(type) > 0) {
+    if (getBallInventoryCount(type) > 0 && shouldCaptureEnemyWithBallType(type, targetEnemy)) {
       state.saveData.active_ball_type = type;
       return type;
     }
@@ -5359,8 +6264,8 @@ function getBallTypeForCapture() {
   return null;
 }
 
-function consumeBallForCapture() {
-  const ballType = getBallTypeForCapture();
+function consumeBallForCapture(enemy = null) {
+  const ballType = getBallTypeForCapture(enemy);
   if (!ballType) {
     return { consumed: false, ballType: null };
   }
@@ -5385,6 +6290,31 @@ function getBallCaptureMultiplier(ballType) {
     return Math.max(1, Number(BALL_CONFIG_BY_TYPE[type].captureMultiplier || 1));
   }
   return 1;
+}
+
+function getBallInventoryOverlayRows() {
+  if (!state.saveData) {
+    return [];
+  }
+  ensureMoneyAndItems();
+  const rows = [];
+  for (const ballType of BALL_TYPE_FALLBACK_ORDER) {
+    const type = String(ballType || "").toLowerCase().trim();
+    if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+      continue;
+    }
+    const count = Math.max(0, toSafeInt(state.saveData.ball_inventory?.[type], 0));
+    const alwaysVisible = type === "poke_ball";
+    if (!alwaysVisible && !hasBallInventoryBeenSeen(type) && count <= 0) {
+      continue;
+    }
+    rows.push({
+      type,
+      count,
+      spritePath: String(BALL_CONFIG_BY_TYPE[type]?.spritePath || ""),
+    });
+  }
+  return rows;
 }
 
 function addShopItemCount(itemType, amount = 1) {
@@ -6399,18 +7329,55 @@ function updateTeamXpGainEffects(deltaMs) {
   state.teamXpGainEffects = survivors;
 }
 
+function getActiveTeamSizeForBalance() {
+  const battleTeam = Array.isArray(state.battle?.team) ? state.battle.team : [];
+  const battleCount = battleTeam.reduce((count, member) => (member ? count + 1 : count), 0);
+  if (battleCount > 0) {
+    return clamp(battleCount, 1, MAX_TEAM_SIZE);
+  }
+
+  const runtimeTeam = Array.isArray(state.team) ? state.team : [];
+  const runtimeCount = runtimeTeam.reduce((count, member) => (member ? count + 1 : count), 0);
+  if (runtimeCount > 0) {
+    return clamp(runtimeCount, 1, MAX_TEAM_SIZE);
+  }
+
+  const saveTeam = Array.isArray(state.saveData?.team) ? state.saveData.team : [];
+  const saveCount = saveTeam.reduce((count, id) => (Number(id) > 0 ? count + 1 : count), 0);
+  return clamp(saveCount, 1, MAX_TEAM_SIZE);
+}
+
+function getEnemyHpTeamScaleMultiplier(teamSize = getActiveTeamSizeForBalance()) {
+  const normalizedTeamSize = clamp(toSafeInt(teamSize, 1), 1, MAX_TEAM_SIZE);
+  const fillRatio = MAX_TEAM_SIZE > 1 ? (normalizedTeamSize - 1) / (MAX_TEAM_SIZE - 1) : 1;
+  const bonus = Math.pow(fillRatio, ENEMY_HP_TEAM_SCALE_EXPONENT) * ENEMY_HP_TEAM_SCALE_MAX_BONUS;
+  return 1 + Math.max(0, bonus);
+}
+
+function getEnemyRewardScaleMultiplier(teamHpScaleMultiplier = 1, isOnlyOneEncounter = false) {
+  const teamScale = Math.max(1, Number(teamHpScaleMultiplier || 1));
+  const easedTeamScale = Math.pow(teamScale, ENEMY_REWARD_SCALE_EXPONENT);
+  const blendedTeamScale = 1 + (easedTeamScale - 1) * ENEMY_REWARD_SCALE_BLEND;
+  const onlyOneBonus = isOnlyOneEncounter ? 1.18 : 1;
+  return Math.max(1, blendedTeamScale * onlyOneBonus);
+}
+
 function computeCaptureXpReward(enemy) {
   const enemyLevel = Math.max(1, toSafeInt(enemy?.level, 1));
   const baseStatTotal = getBaseStatTotal(enemy?.baseStats || enemy?.stats);
+  const rewardScale = Math.max(1, Number(enemy?.balanceRewardMultiplier || 1));
   const baseReward = CAPTURE_XP_BASE + enemyLevel * CAPTURE_XP_LEVEL_MULT + baseStatTotal * CAPTURE_XP_STAT_FACTOR;
-  return Math.max(8, Math.round(baseReward * (enemy?.isShiny ? 1.35 : 1)));
+  const shinyMultiplier = enemy?.isShiny ? 1.35 : 1;
+  return Math.max(8, Math.round(baseReward * rewardScale * shinyMultiplier));
 }
 
 function computeDefeatMoneyReward(enemy) {
   const enemyLevel = Math.max(1, toSafeInt(enemy?.level, 1));
   const baseStatTotal = getBaseStatTotal(enemy?.baseStats || enemy?.stats);
+  const rewardScale = Math.max(1, Number(enemy?.balanceRewardMultiplier || 1));
   const baseReward = ENEMY_MONEY_BASE + enemyLevel * ENEMY_MONEY_LEVEL_MULT + baseStatTotal * ENEMY_MONEY_STAT_FACTOR;
-  return Math.max(4, Math.round(baseReward * (enemy?.isShiny ? 1.6 : 1)));
+  const shinyMultiplier = enemy?.isShiny ? 1.6 : 1;
+  return Math.max(4, Math.round(baseReward * rewardScale * shinyMultiplier));
 }
 
 function applyExperienceToEntity(record, amount) {
@@ -6651,7 +7618,7 @@ function getDefenseStat(defender, attackType) {
   return Math.max(1, Number(defender?.stats?.defense || defender?.stats?.["special-defense"] || 1));
 }
 
-function computeDamage(attacker, defender, attackType, typeMultiplier) {
+function computeDamage(attacker, defender, attackType, typeMultiplier, options = {}) {
   if (typeMultiplier <= 0) {
     return {
       damage: 0,
@@ -6663,7 +7630,7 @@ function computeDamage(attacker, defender, attackType, typeMultiplier) {
   const level = Math.max(1, Number(attacker?.level || 1));
   const attackStat = getAttackStat(attacker, attackType);
   const defenseStat = getDefenseStat(defender, attackType);
-  const progressionBoost = Math.pow(getLevelProgressionMultiplier(level), 0.8);
+  const progressionBoost = Math.pow(getLevelProgressionMultiplier(level), DAMAGE_LEVEL_PROGRESSION_EXPONENT);
   const levelFactor = (2 * level) / 5 + 2;
   const basePower = 70;
   const baseDamage = ((levelFactor * basePower * (attackStat / defenseStat)) / 50) + 2;
@@ -6671,10 +7638,14 @@ function computeDamage(attacker, defender, attackType, typeMultiplier) {
   const attackerTypes = Array.isArray(attacker?.defensiveTypes) ? attacker.defensiveTypes : [];
   const normalizedType = String(attackType || "normal").toLowerCase();
   const stab = attackerTypes.includes(normalizedType) || attacker?.offensiveType === normalizedType ? 1.25 : 1;
-  const isCritical = Math.random() < ATTACK_CRIT_CHANCE;
+  const critChanceBonus = Math.max(0, Number(options?.critChanceBonus || 0));
+  const critChance = clamp(ATTACK_CRIT_CHANCE + critChanceBonus, 0, 1);
+  const forceCritical = Boolean(options?.forceCritical);
+  const isCritical = forceCritical || Math.random() < critChance;
   const crit = isCritical ? ATTACK_CRIT_MULTIPLIER : 1;
+  const damageMultiplier = Math.max(0, Number(options?.damageMultiplier ?? 1));
   const variance = 0.9 + Math.random() * 0.2;
-  const total = baseDamage * stab * typeMultiplier * crit * variance * DAMAGE_SCALE * progressionBoost;
+  const total = baseDamage * stab * typeMultiplier * crit * variance * DAMAGE_SCALE * progressionBoost * damageMultiplier;
 
   return {
     damage: Math.max(1, Math.round(total)),
@@ -7289,7 +8260,10 @@ class PokemonBattleManager {
     this.createEnemy = typeof createEnemy === "function" ? createEnemy : () => null;
     this.onEnemySpawn = typeof onEnemySpawn === "function" ? onEnemySpawn : () => {};
     this.onEnemyDefeated = typeof onEnemyDefeated === "function" ? onEnemyDefeated : () => {};
-    this.getEnemyTimerConfig = typeof getEnemyTimerConfig === "function" ? getEnemyTimerConfig : () => ({ enabled: false });
+    this.getEnemyTimerConfig =
+      typeof getEnemyTimerConfig === "function"
+        ? getEnemyTimerConfig
+        : () => ({ enabled: false, style: ENEMY_TIMER_STYLE_ROUTE });
     this.onEnemyTimerExpired = typeof onEnemyTimerExpired === "function" ? onEnemyTimerExpired : () => {};
     this.turnIndex = 0;
     this.projectiles = [];
@@ -7310,6 +8284,7 @@ class PokemonBattleManager {
     this.enemyTimerEnabled = false;
     this.enemyTimerDurationMs = 0;
     this.enemyTimerMs = 0;
+    this.enemyTimerStyle = ENEMY_TIMER_STYLE_ROUTE;
     this.enemy = null;
     this.spawnEnemy();
   }
@@ -7368,10 +8343,11 @@ class PokemonBattleManager {
   }
 
   getEnemyTimerConfigSnapshot() {
-    const raw = this.getEnemyTimerConfig ? this.getEnemyTimerConfig() : null;
+    const raw = this.getEnemyTimerConfig ? this.getEnemyTimerConfig(this.enemy) : null;
     const enabled = Boolean(raw?.enabled);
     const durationMs = enabled ? Math.max(1000, toSafeInt(raw?.durationMs, ROUTE_DEFEAT_TIMER_MS)) : 0;
-    return { enabled, durationMs };
+    const style = raw?.style === ENEMY_TIMER_STYLE_ONLY_ONE ? ENEMY_TIMER_STYLE_ONLY_ONE : ENEMY_TIMER_STYLE_ROUTE;
+    return { enabled, durationMs, style };
   }
 
   resetEnemyTimer() {
@@ -7379,6 +8355,7 @@ class PokemonBattleManager {
     this.enemyTimerEnabled = config.enabled;
     this.enemyTimerDurationMs = config.durationMs;
     this.enemyTimerMs = config.enabled ? config.durationMs : 0;
+    this.enemyTimerStyle = config.style;
   }
 
   isEnemyTimerRunning() {
@@ -7392,6 +8369,7 @@ class PokemonBattleManager {
     return {
       enabled: this.enemyTimerEnabled,
       running: this.isEnemyTimerRunning(),
+      style: this.enemyTimerStyle,
       duration_ms: Math.round(durationMs),
       remaining_ms: Math.round(remainingMs),
       remaining_ratio: Math.round(remainingRatio * 1000) / 1000,
@@ -7467,10 +8445,12 @@ class PokemonBattleManager {
       return null;
     }
     const chanceDisplay = Number(this.captureSequence.chanceDisplay);
+    const ballType = normalizeBallTypeForVisual(this.captureSequence.ballType);
     return {
       phase: this.getCaptureSequencePhase(),
       captured: this.captureSequence.captured,
       critical: Boolean(this.captureSequence.isCritical),
+      ball_type: ballType,
       chance_display: Number.isFinite(chanceDisplay) ? Math.round(clamp(chanceDisplay, 0, 1) * 10000) / 10000 : null,
       elapsed_ms: Math.round(this.captureSequence.elapsedMs),
       total_ms: Math.round(this.captureSequence.totalMs),
@@ -7512,6 +8492,57 @@ class PokemonBattleManager {
       talentId,
       passiveBehaviorId: String(decision.passiveBehaviorId || getPassiveBehaviorIdForTalentId(talentId)),
     };
+  }
+
+  getRandomAllySlotIndex(attackerIndex, options = {}) {
+    const requireAttackReady = Boolean(options.requireAttackReady);
+    const candidates = [];
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      if (i === attackerIndex) {
+        continue;
+      }
+      const ally = this.team[i];
+      if (!ally) {
+        continue;
+      }
+      if (requireAttackReady) {
+        const allyDecision = this.resolveTurnDecisionForSlot(i, ally);
+        if (allyDecision.action !== TURN_ACTION_ATTACK) {
+          continue;
+        }
+      }
+      candidates.push(i);
+    }
+    if (candidates.length <= 0) {
+      return -1;
+    }
+    const pickIndex = randomInt(0, candidates.length - 1);
+    return candidates[pickIndex];
+  }
+
+  resolveAttackTypeForAttacker(attackerIndex, attacker = this.team[attackerIndex] || null) {
+    const defaultType = attacker?.offensiveType || attacker?.defensiveTypes?.[0] || "normal";
+    if (!attacker) {
+      return String(defaultType || "normal");
+    }
+    const talentId = getEntityTalentId(attacker, attacker?.id);
+    if (talentId !== TALENT_ORIGIN_MIMICRY_ID) {
+      return String(defaultType || "normal");
+    }
+    const allyIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: false });
+    if (allyIndex < 0) {
+      return String(defaultType || "normal");
+    }
+    const ally = this.team[allyIndex];
+    const copiedType = ally?.offensiveType || ally?.defensiveTypes?.[0] || defaultType;
+    return String(copiedType || defaultType || "normal");
+  }
+
+  getTeamAuraAttackBonusForAttacker(attackerIndex, attacker = this.team[attackerIndex] || null) {
+    if (!attacker) {
+      return 0;
+    }
+    return getStackedTeamAuraAttackBonus(this.team, attackerIndex, getEntityOffensiveType(attacker));
   }
 
   recordTurnEvent(slotIndex, attacker, decision, overrides = {}) {
@@ -7563,41 +8594,86 @@ class PokemonBattleManager {
     return null;
   }
 
+  getNextAttackSlotTimeline() {
+    const preview = this.getNextTurnPreview();
+    if (!preview) {
+      return null;
+    }
+    const interval = Math.max(1, this.attackIntervalMs);
+    const normalizedTimer = ((this.attackTimerMs % interval) + interval) % interval;
+    const progressToNextAttack = 1 - normalizedTimer / interval;
+    const canAttack = preview.action === TURN_ACTION_ATTACK;
+    const timeUntilAttackMs = normalizedTimer + preview.skipped_empty_slots * interval;
+    return {
+      preview,
+      interval,
+      normalizedTimer,
+      progressToNextAttack,
+      canAttack,
+      timeUntilAttackMs: Math.max(0, timeUntilAttackMs),
+    };
+  }
+
   getTurnIndicator(layout) {
     const slots = layout?.teamSlots;
     if (!Array.isArray(slots) || slots.length < MAX_TEAM_SIZE) {
       return null;
     }
 
-    const preview = this.getNextTurnPreview();
-    if (!preview) {
+    const timeline = this.getNextAttackSlotTimeline();
+    if (!timeline) {
       return null;
     }
 
-    const interval = Math.max(1, this.attackIntervalMs);
-    const normalizedTimer = ((this.attackTimerMs % interval) + interval) % interval;
-    const progressToNextAttack = 1 - normalizedTimer / interval;
-    const nextAttackSlotIndex = preview.slot_index;
+    const nextAttackSlotIndex = timeline.preview.slot_index;
     const slot = slots[nextAttackSlotIndex];
     if (!slot) {
       return null;
     }
 
-    const canAttack = preview.action === TURN_ACTION_ATTACK;
-    const timeUntilAttackMs = normalizedTimer + preview.skipped_empty_slots * interval;
     return {
       slot_index: nextAttackSlotIndex,
       x: slot.x,
       y: slot.y + slot.size * 0.34,
       radius: clamp(slot.size * 0.3, 19, 34),
       has_pokemon: true,
-      can_attack: canAttack,
-      next_turn_action: preview.action,
-      next_turn_reason: preview.reason,
-      passive_behavior_id: preview.passive_behavior_id,
-      progress_to_next_attack: Math.round(clamp(progressToNextAttack, 0, 1) * 1000) / 1000,
-      time_until_attack_ms: Math.round(Math.max(0, timeUntilAttackMs)),
+      can_attack: timeline.canAttack,
+      next_turn_action: timeline.preview.action,
+      next_turn_reason: timeline.preview.reason,
+      passive_behavior_id: timeline.preview.passive_behavior_id,
+      progress_to_next_attack: Math.round(clamp(timeline.progressToNextAttack, 0, 1) * 1000) / 1000,
+      time_until_attack_ms: Math.round(timeline.timeUntilAttackMs),
     };
+  }
+
+  getSlotChargeGlow(slotIndex) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (
+      safeSlotIndex < 0
+      || !this.enemy
+      || this.enemy.hpCurrent <= 0
+      || this.isEnemyRespawning()
+    ) {
+      return 0;
+    }
+
+    const timeline = this.getNextAttackSlotTimeline();
+    if (!timeline || !timeline.canAttack || timeline.preview.slot_index !== safeSlotIndex) {
+      return 0;
+    }
+
+    const chargeWindowMs = Math.min(
+      Math.max(ATTACK_CHARGE_MIN_WINDOW_MS, timeline.interval * ATTACK_CHARGE_WINDOW_RATIO),
+      Math.max(ATTACK_CHARGE_MIN_WINDOW_MS, timeline.interval - 12),
+    );
+    const timeUntilAttackMs = Math.max(0, timeline.timeUntilAttackMs);
+    if (timeUntilAttackMs > chargeWindowMs) {
+      return 0;
+    }
+
+    const ratio = clamp(1 - timeUntilAttackMs / Math.max(1, chargeWindowMs), 0, 1);
+    const pulse = 0.84 + Math.sin((chargeWindowMs - timeUntilAttackMs) * 0.022 + safeSlotIndex * 0.7) * 0.16;
+    return clamp(ratio * pulse, 0, 1);
   }
 
   getSlotRecoilOffset(slotIndex, layout) {
@@ -7729,20 +8805,47 @@ class PokemonBattleManager {
       return;
     }
 
-    const attackType = attacker.offensiveType || attacker.defensiveTypes[0] || "normal";
+    const attackType = this.resolveAttackTypeForAttacker(attackerIndex, attacker);
     const impactPoint = this.getEnemyImpactPoint(layout);
-    const targetX = impactPoint.x;
-    const targetY = impactPoint.y;
-    this.applyHit(
+    const queuedHits = [
       {
         attackType,
         attackerIndex,
         attackerNameFr: attacker.nameFr,
-        targetX,
-        targetY,
+        targetX: impactPoint.x,
+        targetY: impactPoint.y,
+        suppressTurnEvent: false,
       },
-      { idleMode: true },
-    );
+    ];
+    if (decision.talentId === TALENT_MIND_CONTROL_ID) {
+      const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
+      const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
+      if (supportAttacker) {
+        queuedHits.push({
+          attackType: this.resolveAttackTypeForAttacker(supportSlotIndex, supportAttacker),
+          attackerIndex: supportSlotIndex,
+          attackerNameFr: supportAttacker.nameFr,
+          targetX: impactPoint.x,
+          targetY: impactPoint.y,
+          suppressTurnEvent: true,
+        });
+      }
+    }
+    for (const hit of queuedHits) {
+      this.applyHit(
+        {
+          attackType: hit.attackType,
+          attackerIndex: hit.attackerIndex,
+          attackerNameFr: hit.attackerNameFr,
+          targetX: hit.targetX,
+          targetY: hit.targetY,
+        },
+        {
+          idleMode: true,
+          suppressTurnEvent: hit.suppressTurnEvent,
+        },
+      );
+    }
   }
 
   updateIdleCombat(deltaMs, layout) {
@@ -7869,6 +8972,7 @@ class PokemonBattleManager {
     }
     const isCritical = Boolean(sequence.isCritical);
     const celebrationParticles = shouldRenderCelebrationParticles();
+    const ballTheme = getBallRenderTheme(sequence.ballType);
 
     sequence.elapsedMs = Math.min(sequence.totalMs, sequence.elapsedMs + deltaMs);
     const shakeEnd = CAPTURE_THROW_MS + CAPTURE_SHAKE_MS;
@@ -7880,16 +8984,8 @@ class PokemonBattleManager {
         const angle = (Math.PI * 2 * i) / count + Math.random() * 0.35;
         const speed = (isCritical ? 120 : 90) + Math.random() * (isCritical ? 190 : 150);
         const lifeMs = (isCritical ? 360 : 320) + Math.random() * (isCritical ? 460 : 380);
-        const color =
-          isCritical
-            ? i % 3 === 0
-              ? [255, 236, 130]
-              : i % 3 === 1
-                ? [214, 174, 255]
-                : [184, 231, 255]
-            : i % 2 === 0
-              ? [115, 240, 160]
-              : [255, 255, 195];
+        const colorPool = isCritical ? ballTheme.criticalSuccessColors : ballTheme.successColors;
+        const color = colorPool[i % colorPool.length] || [255, 255, 255];
         sequence.particles.push({
           kind: "success",
           x: sequence.targetX,
@@ -7922,7 +9018,7 @@ class PokemonBattleManager {
           spin: (Math.random() - 0.5) * 9,
           lifeMs,
           maxLifeMs: lifeMs,
-          color: Math.random() < 0.5 ? [225, 48, 60] : [250, 250, 250],
+          color: ballTheme.breakColors[Math.floor(Math.random() * ballTheme.breakColors.length)] || [255, 255, 255],
         });
       }
     }
@@ -7991,35 +9087,25 @@ class PokemonBattleManager {
     this.hitEffects = survivors;
   }
 
-  spawnNextProjectile(layout) {
-    const turn = this.consumeTurnSlot();
-    const attackerIndex = turn.slotIndex;
-    const attacker = turn.attacker;
-    const slot = layout.teamSlots[attackerIndex];
-    const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
-    this.recordTurnEvent(attackerIndex, attacker, decision);
-    if (
-      decision.action !== TURN_ACTION_ATTACK ||
-      !attacker ||
-      !slot ||
-      !this.enemy ||
-      this.enemy.hpCurrent <= 0 ||
-      this.isEnemyRespawning()
-    ) {
-      return;
+  enqueueAttackProjectile(layout, attackerIndex, attacker, options = {}) {
+    const slot = layout?.teamSlots?.[attackerIndex];
+    if (!attacker || !slot || !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return null;
     }
 
-    const attackType = attacker.offensiveType || attacker.defensiveTypes[0] || "normal";
+    const attackType = String(options.attackType || this.resolveAttackTypeForAttacker(attackerIndex, attacker));
+    const targetOffsetX = Number(options.targetOffsetX) || 0;
+    const targetOffsetY = Number(options.targetOffsetY) || 0;
     const startX = slot.x;
     const startY = slot.y - slot.size * 0.12;
     const impactPoint = this.getEnemyImpactPoint(layout);
-    const targetX = impactPoint.x;
-    const targetY = impactPoint.y;
+    const targetX = impactPoint.x + targetOffsetX;
+    const targetY = impactPoint.y + targetOffsetY;
     this.triggerSlotRecoil(attackerIndex);
     this.triggerSlotAttackFlash(attackerIndex);
     this.addAttackLaunchEffects({ attackType, startX, startY });
     const initialDistance = Math.hypot(targetX - startX, targetY - startY) || 1;
-    this.projectiles.push({
+    const projectile = {
       x: startX,
       y: startY,
       prevX: startX,
@@ -8037,7 +9123,36 @@ class PokemonBattleManager {
       rotation: 0,
       lifetimeMs: 0,
       trail: [],
-    });
+    };
+    this.projectiles.push(projectile);
+    return projectile;
+  }
+
+  spawnNextProjectile(layout) {
+    const turn = this.consumeTurnSlot();
+    const attackerIndex = turn.slotIndex;
+    const attacker = turn.attacker;
+    const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
+    this.recordTurnEvent(attackerIndex, attacker, decision);
+    if (decision.action !== TURN_ACTION_ATTACK || !attacker) {
+      return;
+    }
+
+    const mainProjectile = this.enqueueAttackProjectile(layout, attackerIndex, attacker);
+    if (!mainProjectile) {
+      return;
+    }
+
+    if (decision.talentId === TALENT_MIND_CONTROL_ID && this.enemy && this.enemy.hpCurrent > 0) {
+      const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
+      const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
+      if (supportAttacker) {
+        this.enqueueAttackProjectile(layout, supportSlotIndex, supportAttacker, {
+          targetOffsetX: randomRange(-7, 7),
+          targetOffsetY: randomRange(-5, 5),
+        });
+      }
+    }
   }
 
   addAttackLaunchEffects({ attackType, startX, startY }) {
@@ -8214,6 +9329,7 @@ class PokemonBattleManager {
 
   applyHit(projectile, options = {}) {
     const idleMode = Boolean(options.idleMode);
+    const suppressTurnEvent = Boolean(options.suppressTurnEvent);
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
       return;
     }
@@ -8223,33 +9339,37 @@ class PokemonBattleManager {
       return;
     }
 
-    const missed = Math.random() < ATTACK_MISS_CHANCE;
+    const attackType = String(projectile?.attackType || attacker.offensiveType || attacker.defensiveTypes?.[0] || "normal");
+    const cannotMiss = hasAlwaysHitTalent(attacker?.talent, attacker?.id);
+    const missed = !cannotMiss && Math.random() < ATTACK_MISS_CHANCE;
     if (missed) {
       const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
       this.lastImpact = {
         attackerNameFr: attacker.nameFr,
-        attackType: projectile.attackType,
+        attackType,
         damage: 0,
         typeMultiplier: 1,
         enemyNameFr: this.enemy.nameFr,
         isCritical: false,
         missed: true,
       };
-      this.recordTurnEvent(projectile.attackerIndex, attacker, {
-        action: TURN_ACTION_ATTACK,
-        reason: "hit_missed",
-        talentId: decision.talentId,
-        passiveBehaviorId: decision.passiveBehaviorId,
-      }, {
-        damage: 0,
-        type_multiplier: 1,
-        is_critical: false,
-        missed: true,
-      });
+      if (!suppressTurnEvent) {
+        this.recordTurnEvent(projectile.attackerIndex, attacker, {
+          action: TURN_ACTION_ATTACK,
+          reason: "hit_missed",
+          talentId: decision.talentId,
+          passiveBehaviorId: decision.passiveBehaviorId,
+        }, {
+          damage: 0,
+          type_multiplier: 1,
+          is_critical: false,
+          missed: true,
+        });
+      }
       if (!idleMode) {
         this.addFloatingDamageText({
           damage: 0,
-          attackType: projectile.attackType,
+          attackType,
           typeMultiplier: 1,
           isCritical: false,
           targetX: projectile.targetX,
@@ -8260,8 +9380,13 @@ class PokemonBattleManager {
       return;
     }
 
-    const typeMultiplier = getTypeMultiplier(projectile.attackType, this.enemy.defensiveTypes);
-    const damageOutcome = computeDamage(attacker, this.enemy, projectile.attackType, typeMultiplier);
+    const typeMultiplier = getTypeMultiplier(attackType, this.enemy.defensiveTypes);
+    const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
+    const teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(projectile.attackerIndex, attacker);
+    const damageOutcome = computeDamage(attacker, this.enemy, attackType, typeMultiplier, {
+      critChanceBonus,
+      damageMultiplier: 1 + teamAuraAttackBonus,
+    });
     const baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
     const isCriticalHit = Boolean(damageOutcome?.isCritical);
     const damage = baseDamage <= 0 ? 0 : Math.max(1, Math.round(baseDamage));
@@ -8272,7 +9397,7 @@ class PokemonBattleManager {
     }
     this.lastImpact = {
       attackerNameFr: attacker.nameFr,
-      attackType: projectile.attackType,
+      attackType,
       damage,
       typeMultiplier,
       enemyNameFr: this.enemy.nameFr,
@@ -8280,21 +9405,24 @@ class PokemonBattleManager {
       missed: false,
     };
     const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
-    this.recordTurnEvent(projectile.attackerIndex, attacker, {
-      action: TURN_ACTION_ATTACK,
-      reason: "hit_resolved",
-      talentId: decision.talentId,
-      passiveBehaviorId: decision.passiveBehaviorId,
-    }, {
-      damage,
-      type_multiplier: Math.round(typeMultiplier * 1000) / 1000,
-      is_critical: isCriticalHit,
-      missed: false,
-    });
+    if (!suppressTurnEvent) {
+      this.recordTurnEvent(projectile.attackerIndex, attacker, {
+        action: TURN_ACTION_ATTACK,
+        reason: "hit_resolved",
+        talentId: decision.talentId,
+        passiveBehaviorId: decision.passiveBehaviorId,
+      }, {
+        damage,
+        type_multiplier: Math.round(typeMultiplier * 1000) / 1000,
+        is_critical: isCriticalHit,
+        missed: false,
+        team_aura_attack_bonus_pct: Math.round(Math.max(0, teamAuraAttackBonus) * 10000) / 100,
+      });
+    }
     if (!idleMode) {
       this.addFloatingDamageText({
         damage,
-        attackType: projectile.attackType,
+        attackType,
         typeMultiplier,
         isCritical: isCriticalHit,
         targetX: projectile.targetX,
@@ -8302,7 +9430,7 @@ class PokemonBattleManager {
       });
       this.addEnemyHitEffects({
         damage,
-        attackType: projectile.attackType,
+        attackType,
         typeMultiplier,
         isCritical: isCriticalHit,
         targetX: projectile.targetX,
@@ -8310,7 +9438,7 @@ class PokemonBattleManager {
       });
     }
 
-    if (this.enemy.hpCurrent <= 0) {
+    if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
       const defeatedEnemy = this.enemy;
       this.enemiesDefeated += 1;
       this.defeatedEnemyName = this.enemy.nameFr;
@@ -8340,9 +9468,11 @@ class PokemonBattleManager {
        if (captureAttempted) {
          const captureChanceDisplay = Number(captureResult?.capture_chance_display);
          const captureOnComplete = captureResult?.capture_on_complete;
+         const captureBallType = normalizeBallTypeForVisual(captureResult?.capture_ball_type || "poke_ball");
          this.captureSequence = {
            captured,
            isCritical: captureCritical,
+           ballType: captureBallType,
            chanceDisplay: Number.isFinite(captureChanceDisplay) ? clamp(captureChanceDisplay, 0, 1) : null,
            onComplete: typeof captureOnComplete === "function" ? captureOnComplete : null,
            elapsedMs: 0,
@@ -8376,6 +9506,7 @@ class PokemonBattleManager {
       this.enemyTimerEnabled = false;
       this.enemyTimerDurationMs = 0;
       this.enemyTimerMs = 0;
+      this.enemyTimerStyle = ENEMY_TIMER_STYLE_ROUTE;
       return;
     }
 
@@ -8469,6 +9600,7 @@ async function loadPokemonEntity(jsonPath) {
     defensiveTypes,
     offensiveType,
     catchRate: Number(payload?.catch_rate || 45),
+    spriteScaleValue: normalizePokemonSpriteScaleValue(payload?.size),
     spritePath,
     shinySpritePath,
     spriteImage,
@@ -8570,6 +9702,48 @@ function buildTeamMemberFromSaveEntry(entry) {
   };
 }
 
+function applyTeamTalentOverrides(teamMembers) {
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return teamMembers;
+  }
+
+  for (let index = 0; index < teamMembers.length; index += 1) {
+    const member = teamMembers[index];
+    if (!member || !shouldApplyMorphingTalent(member?.talent, member?.id)) {
+      continue;
+    }
+
+    const source = index > 0 ? teamMembers[index - 1] : null;
+    member.morphingSourceId = Number(source?.id || 0) > 0 ? Number(source.id) : null;
+    member.spriteShader = source ? MORPHING_SHADER_CONFIG : null;
+    if (!source) {
+      continue;
+    }
+
+    const level = clamp(toSafeInt(member.level, 1), 1, MAX_LEVEL);
+    const sourceBaseStats = normalizeStatsPayload(source.baseStats || source.stats || {});
+    const nextStats = computeStatsAtLevel(sourceBaseStats, level);
+    const hpRatio = member.hpMax > 0 ? clamp(member.hpCurrent / member.hpMax, 0, 1) : 1;
+    const hpMax = computeBattleHpMax(nextStats, level, false);
+
+    member.baseStats = sourceBaseStats;
+    member.stats = nextStats;
+    member.hpMax = hpMax;
+    member.hpCurrent = Math.max(1, Math.round(hpMax * hpRatio));
+    member.defensiveTypes =
+      Array.isArray(source.defensiveTypes) && source.defensiveTypes.length > 0
+        ? source.defensiveTypes.slice(0, 2)
+        : member.defensiveTypes;
+    member.offensiveType = source.offensiveType || member.offensiveType;
+    member.spritePath = source.spritePath || member.spritePath;
+    member.spriteImage = source.spriteImage || member.spriteImage;
+    member.spriteVariantId = source.spriteVariantId || member.spriteVariantId;
+    member.spriteAnimated = Boolean(source.spriteAnimated);
+  }
+
+  return teamMembers;
+}
+
 function hydrateTeamFromSave() {
   if (!state.saveData || !Array.isArray(state.saveData.team)) {
     return [];
@@ -8585,7 +9759,8 @@ function hydrateTeamFromSave() {
     }
   }
   state.saveData.team = uniqueIds;
-  return uniqueIds.map(buildTeamMemberFromSaveEntry).filter(Boolean);
+  const team = uniqueIds.map(buildTeamMemberFromSaveEntry).filter(Boolean);
+  return applyTeamTalentOverrides(team);
 }
 
 function applyAutoGrantedProgress(pokemonId, level = 1) {
@@ -8657,33 +9832,159 @@ function isEncounterMethodUnlocked(methodId) {
   return isRouteUnlocked(requiredRouteId);
 }
 
-function isEncounterEntryUnlocked(encounter) {
-  const methods = Array.isArray(encounter?.methods) ? encounter.methods : [];
+function getEncounterMethods(encounter) {
+  if (!Array.isArray(encounter?.methods)) {
+    return [];
+  }
+  return encounter.methods
+    .map((method) => String(method || "").toLowerCase().trim())
+    .filter(Boolean);
+}
+
+function encounterHasMethod(encounter, methodId) {
+  const id = String(methodId || "").toLowerCase().trim();
+  if (!id) {
+    return false;
+  }
+  const methods = getEncounterMethods(encounter);
+  return methods.includes(id);
+}
+
+function isEncounterMethodUnlockedForSelection(methodId, options = {}) {
+  const id = String(methodId || "").toLowerCase().trim();
+  if (!id) {
+    return true;
+  }
+  const allowDisabledMethods = options?.allowDisabledMethods instanceof Set ? options.allowDisabledMethods : null;
+  if (allowDisabledMethods?.has(id)) {
+    return true;
+  }
+  return isEncounterMethodUnlocked(id);
+}
+
+function isEncounterEntryUnlocked(encounter, options = {}) {
+  const methods = getEncounterMethods(encounter);
   if (methods.length === 0) {
     return true;
   }
   for (const method of methods) {
-    if (isEncounterMethodUnlocked(method)) {
+    if (isEncounterMethodUnlockedForSelection(method, options)) {
       return true;
     }
   }
   return false;
 }
 
-function getUnlockedEncountersForRoute(routeData) {
+function getUnlockedEncountersForRoute(routeData, options = {}) {
   const encounters = Array.isArray(routeData?.encounters) ? routeData.encounters : [];
   if (encounters.length === 0) {
     return [];
   }
-  return encounters.filter((encounter) => isEncounterEntryUnlocked(encounter));
+  const requireMethod = String(options?.requireMethod || "").toLowerCase().trim();
+  const excludeMethod = String(options?.excludeMethod || "").toLowerCase().trim();
+  const allowDisabledMethods = options?.allowDisabledMethods instanceof Set ? options.allowDisabledMethods : null;
+  return encounters.filter((encounter) => {
+    if (requireMethod && !encounterHasMethod(encounter, requireMethod)) {
+      return false;
+    }
+    if (excludeMethod && encounterHasMethod(encounter, excludeMethod)) {
+      return false;
+    }
+    return isEncounterEntryUnlocked(encounter, { allowDisabledMethods });
+  });
+}
+
+function ensureOnlyOneEncounterCycleRoute(routeId = null) {
+  const activeRouteId = String(routeId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
+  if (!state.onlyOneEncounterCycle || state.onlyOneEncounterCycle.routeId !== activeRouteId) {
+    state.onlyOneEncounterCycle = {
+      routeId: activeRouteId,
+      normalCount: 0,
+    };
+  }
+  return state.onlyOneEncounterCycle;
+}
+
+function resetOnlyOneEncounterCycle(routeId = null) {
+  const cycle = ensureOnlyOneEncounterCycleRoute(routeId);
+  cycle.normalCount = 0;
+  return cycle;
+}
+
+function incrementOnlyOneEncounterCycle(routeId = null) {
+  const cycle = ensureOnlyOneEncounterCycleRoute(routeId);
+  cycle.normalCount = clamp(toSafeInt(cycle.normalCount, 0) + 1, 0, ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN);
+  return cycle;
+}
+
+function shouldSpawnOnlyOneEncounter(routeId = null) {
+  const cycle = ensureOnlyOneEncounterCycleRoute(routeId);
+  return cycle.normalCount >= ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN;
+}
+
+function pickEncounterForCurrentRoute(routeData) {
+  const activeRouteId = String(routeData?.route_id || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
+  const normalEncounters = getUnlockedEncountersForRoute(routeData, {
+    excludeMethod: ENCOUNTER_METHOD_ONLY_ONE,
+  });
+  const onlyOneEncounters = getUnlockedEncountersForRoute(routeData, {
+    requireMethod: ENCOUNTER_METHOD_ONLY_ONE,
+    allowDisabledMethods: ENCOUNTER_METHOD_ONLY_ONE_ALLOW_SET,
+  });
+  const hasOnlyOneEncounters = onlyOneEncounters.length > 0;
+  if (hasOnlyOneEncounters && shouldSpawnOnlyOneEncounter(activeRouteId)) {
+    const pickedOnlyOne = weightedPick(onlyOneEncounters);
+    if (pickedOnlyOne) {
+      resetOnlyOneEncounterCycle(activeRouteId);
+      return {
+        encounter: pickedOnlyOne,
+        isOnlyOneEncounter: true,
+      };
+    }
+  }
+
+  const pickedNormal = weightedPick(normalEncounters);
+  if (pickedNormal) {
+    if (hasOnlyOneEncounters) {
+      incrementOnlyOneEncounterCycle(activeRouteId);
+    }
+    return {
+      encounter: pickedNormal,
+      isOnlyOneEncounter: false,
+    };
+  }
+
+  const fallbackOnlyOne = weightedPick(onlyOneEncounters);
+  if (fallbackOnlyOne) {
+    resetOnlyOneEncounterCycle(activeRouteId);
+    return {
+      encounter: fallbackOnlyOne,
+      isOnlyOneEncounter: true,
+    };
+  }
+
+  return {
+    encounter: null,
+    isOnlyOneEncounter: false,
+  };
+}
+
+function isOnlyOneEncounterEnemy(enemy) {
+  if (!enemy || typeof enemy !== "object") {
+    return false;
+  }
+  if (enemy.isOnlyOneEncounter === true) {
+    return true;
+  }
+  return encounterHasMethod({ methods: enemy.encounterMethods }, ENCOUNTER_METHOD_ONLY_ONE);
 }
 
 function createRouteEnemyInstance() {
   if (!state.routeData || !isCurrentRouteCombatEnabled() || !Array.isArray(state.routeData.encounters)) {
     return null;
   }
-  const encounters = getUnlockedEncountersForRoute(state.routeData);
-  const picked = weightedPick(encounters);
+  const pickResult = pickEncounterForCurrentRoute(state.routeData);
+  const picked = pickResult?.encounter || null;
   if (!picked) {
     return null;
   }
@@ -8697,9 +9998,16 @@ function createRouteEnemyInstance() {
   const forceUltraShiny = shouldForceUltraShinyAllPokemon();
   const ultraShinyVisual = Boolean(isUltraShiny || forceUltraShiny);
   const shinyVisual = Boolean(isShiny || ultraShinyVisual);
+  const isOnlyOneEncounter = Boolean(pickResult?.isOnlyOneEncounter && encounterHasMethod(picked, ENCOUNTER_METHOD_ONLY_ONE));
   const level = pickEncounterLevel(picked);
   const stats = computeStatsAtLevel(def.stats, level);
-  const hpMax = computeBattleHpMax(stats, level, true);
+  const baseHpMax = computeBattleHpMax(stats, level, true);
+  const teamSizeForBalance = getActiveTeamSizeForBalance();
+  const teamHpScaleMultiplier = getEnemyHpTeamScaleMultiplier(teamSizeForBalance);
+  const encounterHpMultiplier = isOnlyOneEncounter ? ONLY_ONE_ENCOUNTER_HP_MULTIPLIER : 1;
+  const hpBalanceMultiplier = teamHpScaleMultiplier * encounterHpMultiplier;
+  const hpMax = Math.max(1, Math.round(baseHpMax * hpBalanceMultiplier));
+  const rewardScaleMultiplier = getEnemyRewardScaleMultiplier(teamHpScaleMultiplier, isOnlyOneEncounter);
   const appearance = resolveSpriteAppearanceForEntity(def.id, {
     shinyVisual,
     ultraShinyVisual,
@@ -8725,6 +10033,12 @@ function createRouteEnemyInstance() {
     catchRate: Number(def.catchRate || picked.catch_rate || 45),
     isShiny,
     isUltraShiny,
+    isOnlyOneEncounter,
+    enemyTimerStyle: isOnlyOneEncounter ? ENEMY_TIMER_STYLE_ONLY_ONE : ENEMY_TIMER_STYLE_ROUTE,
+    encounterMethods: getEncounterMethods(picked),
+    balanceTeamSize: teamSizeForBalance,
+    balanceHpMultiplier: hpBalanceMultiplier,
+    balanceRewardMultiplier: rewardScaleMultiplier,
     isShinyVisual: Boolean(shinyVisual || appearance.shinyVisual || appearance.ultraShinyVisual),
     isUltraShinyVisual: Boolean(ultraShinyVisual || appearance.ultraShinyVisual),
     spritePath,
@@ -8751,8 +10065,28 @@ function handleEnemySpawn(enemy) {
   }
 }
 
+function getEnemyTimerConfigForBattle(enemy = null) {
+  if (isOnlyOneEncounterEnemy(enemy)) {
+    return {
+      enabled: true,
+      durationMs: ONLY_ONE_ENCOUNTER_TIMER_MS,
+      style: ENEMY_TIMER_STYLE_ONLY_ONE,
+    };
+  }
+  const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const progressState = getRouteUnlockProgressState(activeRouteId);
+  return {
+    enabled: progressState.timerEnabled,
+    durationMs: progressState.timerDurationMs,
+    style: ENEMY_TIMER_STYLE_ROUTE,
+  };
+}
+
 function handleEnemyTimerExpired(enemy) {
   const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  if (isOnlyOneEncounterEnemy(enemy)) {
+    resetOnlyOneEncounterCycle(activeRouteId);
+  }
   const progressState = getRouteUnlockProgressState(activeRouteId);
   if (!progressState.timerEnabled) {
     return;
@@ -8780,15 +10114,36 @@ function handleEnemyDefeated(enemy) {
   const captureEquivalentXpReward = computeCaptureXpReward(enemy);
   const koXpReward = Math.max(1, Math.floor(captureEquivalentXpReward * KO_XP_RATIO_OF_CAPTURE));
   const captureBonusXpReward = Math.max(0, captureEquivalentXpReward - koXpReward);
-  const koXpSummary = awardCaptureXpToTeam(enemy, { reward: koXpReward });
-  if (!state.simulationIdleMode) {
-    if (Array.isArray(koXpSummary.levelUps) && koXpSummary.levelUps.length > 0) {
-      queueTeamLevelUpEffects(koXpSummary.levelUps);
+  const applyXpSummaryEffects = (summary, tone) => {
+    if (state.simulationIdleMode || !summary) {
+      return;
     }
-    if (Array.isArray(koXpSummary.xpGains) && koXpSummary.xpGains.length > 0) {
-      queueTeamXpGainEffects(koXpSummary.xpGains, { tone: "defeat" });
+    if (Array.isArray(summary.levelUps) && summary.levelUps.length > 0) {
+      queueTeamLevelUpEffects(summary.levelUps);
     }
-  }
+    if (Array.isArray(summary.xpGains) && summary.xpGains.length > 0) {
+      queueTeamXpGainEffects(summary.xpGains, { tone });
+    }
+  };
+  let xpRewardGranted = false;
+  const awardKoXpReward = () => {
+    if (xpRewardGranted) {
+      return null;
+    }
+    xpRewardGranted = true;
+    const summary = awardCaptureXpToTeam(enemy, { reward: koXpReward });
+    applyXpSummaryEffects(summary, "defeat");
+    return summary;
+  };
+  const awardCaptureBonusXpReward = () => {
+    if (xpRewardGranted) {
+      return null;
+    }
+    xpRewardGranted = true;
+    const summary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
+    applyXpSummaryEffects(summary, "capture");
+    return summary;
+  };
   let captureAttempted = false;
   let captured = false;
   let captureCritical = false;
@@ -8799,20 +10154,26 @@ function handleEnemyDefeated(enemy) {
   let usedBallType = null;
 
   if (getBallInventoryTotalCount() > 0) {
-    const captureConsume = consumeBallForCapture();
+    const captureConsume = consumeBallForCapture(enemy);
     captureAttempted = Boolean(captureConsume.consumed);
     usedBallType = captureConsume.ballType;
     if (captureAttempted && usedBallType) {
-      const ballMultiplier = getBallCaptureMultiplier(usedBallType);
-      captureCritical = Math.random() < CAPTURE_CRIT_CHANCE;
-      const criticalMultiplier = captureCritical ? CAPTURE_CRIT_MULTIPLIER : 1;
-      captureChanceDisplay = computeCatchChance(enemy.catchRate, ballMultiplier * criticalMultiplier);
-      const shinyCaptureMultiplier = enemy.isUltraShiny ? 2 : enemy.isShiny ? 1.5 : 1;
-      const catchChance = computeCatchChance(
-        enemy.catchRate,
-        ballMultiplier * criticalMultiplier * shinyCaptureMultiplier,
-      );
-      captured = Math.random() < catchChance;
+      const guaranteedCapture = consumePendingGuaranteedCaptureBonus();
+      if (guaranteedCapture) {
+        captureChanceDisplay = 1;
+        captured = true;
+      } else {
+        const ballMultiplier = getBallCaptureMultiplier(usedBallType);
+        captureCritical = Math.random() < CAPTURE_CRIT_CHANCE;
+        const criticalMultiplier = captureCritical ? CAPTURE_CRIT_MULTIPLIER : 1;
+        captureChanceDisplay = computeCatchChance(enemy.catchRate, ballMultiplier * criticalMultiplier);
+        const shinyCaptureMultiplier = enemy.isUltraShiny ? 2 : enemy.isShiny ? 1.5 : 1;
+        const catchChance = computeCatchChance(
+          enemy.catchRate,
+          ballMultiplier * criticalMultiplier * shinyCaptureMultiplier,
+        );
+        captured = Math.random() < catchChance;
+      }
       if (captured) {
         if (state.simulationIdleMode) {
           incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
@@ -8821,13 +10182,7 @@ function handleEnemyDefeated(enemy) {
           }
           const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id);
           addedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
-          captureXpSummary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
-          if (!state.simulationIdleMode && Array.isArray(captureXpSummary.levelUps) && captureXpSummary.levelUps.length > 0) {
-            queueTeamLevelUpEffects(captureXpSummary.levelUps);
-          }
-          if (!state.simulationIdleMode && Array.isArray(captureXpSummary.xpGains) && captureXpSummary.xpGains.length > 0) {
-            queueTeamXpGainEffects(captureXpSummary.xpGains, { tone: "capture" });
-          }
+          captureXpSummary = awardCaptureBonusXpReward();
         } else {
           captureOnComplete = () => {
             incrementSpeciesStat(enemy.id, "captured", enemy.isShiny, 1, { isUltraShiny: enemy.isUltraShiny });
@@ -8836,15 +10191,7 @@ function handleEnemyDefeated(enemy) {
             }
             const captureUnlockSummary = resolveCaptureEntityUnlock(enemy.id);
             const captureAddedToTeam = Boolean(captureUnlockSummary?.addedToTeam);
-            const summary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
-            if (!state.simulationIdleMode) {
-              if (Array.isArray(summary.levelUps) && summary.levelUps.length > 0) {
-                queueTeamLevelUpEffects(summary.levelUps);
-              }
-              if (Array.isArray(summary.xpGains) && summary.xpGains.length > 0) {
-                queueTeamXpGainEffects(summary.xpGains, { tone: "capture" });
-              }
-            }
+            awardCaptureBonusXpReward();
 
             rebuildTeamAndSyncBattle();
             persistSaveDataForSimulationEvent();
@@ -8854,8 +10201,13 @@ function handleEnemyDefeated(enemy) {
             return captureAddedToTeam;
           };
         }
+      } else {
+        awardKoXpReward();
       }
     }
+  }
+  if (!captureAttempted || (!captured && !xpRewardGranted)) {
+    awardKoXpReward();
   }
 
   rebuildTeamAndSyncBattle();
@@ -8867,6 +10219,7 @@ function handleEnemyDefeated(enemy) {
     captured,
     capture_attempted: captureAttempted,
     capture_critical: captureCritical,
+    capture_ball_type: usedBallType,
     added_to_team: addedToTeam,
     capture_chance_display: captureChanceDisplay,
     capture_on_complete: captureOnComplete,
@@ -8916,13 +10269,7 @@ function startBattle() {
     createEnemy: createRouteEnemyInstance,
     onEnemySpawn: handleEnemySpawn,
     onEnemyDefeated: handleEnemyDefeated,
-    getEnemyTimerConfig: () => {
-      const progressState = getRouteUnlockProgressState();
-      return {
-        enabled: progressState.timerEnabled,
-        durationMs: progressState.timerDurationMs,
-      };
-    },
+    getEnemyTimerConfig: (enemy) => getEnemyTimerConfigForBattle(enemy),
     onEnemyTimerExpired: handleEnemyTimerExpired,
   });
   state.enemy = state.battle.getEnemy();
@@ -9101,9 +10448,6 @@ function updateHud() {
     state.moneyHud.pulseMs = 0;
     setMoneyCounterTextValue(0);
     refreshMoneyCounterTransform();
-    if (pokeballValueEl) {
-      pokeballValueEl.textContent = "0";
-    }
     refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
     updateSaveBackendIndicator();
     refreshRouteUi();
@@ -9128,19 +10472,6 @@ function updateHud() {
       state.moneyHud.pulseMs = MONEY_COUNTER_PULSE_MS;
     }
     state.moneyHud.lastRawValue = rawMoney;
-  }
-  if (pokeballValueEl) {
-    const totalText = String(state.saveData.pokeballs);
-    if (pokeballValueEl.textContent !== totalText) {
-      pokeballValueEl.textContent = totalText;
-    }
-    const activeType = getActiveBallType();
-    const activeLabel = getBallTypeLabel(activeType);
-    const activeStock = getBallInventoryCount(activeType);
-    const nextTitle = `Actif: ${activeLabel} (${activeStock})`;
-    if (pokeballValueEl.title !== nextTitle) {
-      pokeballValueEl.title = nextTitle;
-    }
   }
   refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
   updateSaveBackendIndicator();
@@ -9183,24 +10514,83 @@ function getShopBallUnitPrice(itemOrPrice) {
   return Math.max(0, toSafeInt(itemOrPrice, 0));
 }
 
+function getShopBallRemainingCapacity(itemOrPrice) {
+  if (!itemOrPrice || typeof itemOrPrice !== "object") {
+    return BALL_INVENTORY_MAX_PER_TYPE;
+  }
+  const ballType = String(itemOrPrice.ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, ballType)) {
+    return BALL_INVENTORY_MAX_PER_TYPE;
+  }
+  return getBallInventoryRemainingCapacity(ballType);
+}
+
+function hasPendingFirstFreePokeballPurchase() {
+  return Boolean(state.saveData && !state.saveData.first_free_pokeball_claimed);
+}
+
+function getShopBallPurchasePricing(itemOrPrice, quantity) {
+  const unitPrice = getShopBallUnitPrice(itemOrPrice);
+  const remainingCapacity = getShopBallRemainingCapacity(itemOrPrice);
+  const requestedQuantity = Math.min(Math.max(0, toSafeInt(quantity, 0)), remainingCapacity);
+  const freeQuantity = hasPendingFirstFreePokeballPurchase() ? Math.min(1, requestedQuantity) : 0;
+  const paidQuantity = Math.max(0, requestedQuantity - freeQuantity);
+  const totalCost = Math.max(0, unitPrice * paidQuantity);
+  return {
+    unitPrice,
+    requestedQuantity,
+    freeQuantity,
+    paidQuantity,
+    totalCost,
+  };
+}
+
+function consumeFirstFreePokeballPurchaseBonus() {
+  if (!state.saveData || !hasPendingFirstFreePokeballPurchase()) {
+    return false;
+  }
+  state.saveData.first_free_pokeball_claimed = true;
+  state.saveData.first_free_pokeball_guaranteed_capture_pending = true;
+  return true;
+}
+
+function consumePendingGuaranteedCaptureBonus() {
+  if (!state.saveData || !state.saveData.first_free_pokeball_guaranteed_capture_pending) {
+    return false;
+  }
+  state.saveData.first_free_pokeball_guaranteed_capture_pending = false;
+  return true;
+}
+
 function getMaxAffordableShopBallQuantity(itemOrPrice) {
   const unitPrice = getShopBallUnitPrice(itemOrPrice);
-  const currentMoney = Math.max(0, toSafeInt(state.saveData?.money, 0));
-  if (unitPrice <= 0 || currentMoney < unitPrice) {
+  const remainingCapacity = getShopBallRemainingCapacity(itemOrPrice);
+  if (remainingCapacity <= 0) {
     return 0;
   }
-  return Math.max(0, Math.floor(currentMoney / unitPrice));
+  const currentMoney = Math.max(0, toSafeInt(state.saveData?.money, 0));
+  if (unitPrice <= 0) {
+    const bonusQuantity = hasPendingFirstFreePokeballPurchase() ? 1 : 0;
+    return Math.max(0, Math.min(remainingCapacity, bonusQuantity));
+  }
+  const paidQuantity = currentMoney < unitPrice ? 0 : Math.max(0, Math.floor(currentMoney / unitPrice));
+  const bonusQuantity = hasPendingFirstFreePokeballPurchase() ? 1 : 0;
+  return Math.max(0, Math.min(remainingCapacity, paidQuantity + bonusQuantity));
 }
 
 function getSelectedShopBallQuantity(options = {}) {
   const mode = normalizeShopQuantityMode(options.mode ?? state.ui.shopQuantityMode);
+  const itemOrPrice = options.item ?? options.unitPrice ?? options.price ?? null;
+  let quantity = 0;
   if (mode === SHOP_QUANTITY_MODE_CUSTOM) {
-    return Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+    quantity = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+  } else if (mode === SHOP_QUANTITY_MODE_MAX) {
+    quantity = getMaxAffordableShopBallQuantity(itemOrPrice);
+  } else {
+    quantity = Math.max(1, toSafeInt(mode, 1));
   }
-  if (mode === SHOP_QUANTITY_MODE_MAX) {
-    return getMaxAffordableShopBallQuantity(options.item ?? options.unitPrice ?? options.price ?? null);
-  }
-  return Math.max(1, toSafeInt(mode, 1));
+  const remainingCapacity = getShopBallRemainingCapacity(itemOrPrice);
+  return Math.max(0, Math.min(quantity, remainingCapacity));
 }
 
 function getSelectedShopBallQuantitySummaryLabel() {
@@ -9213,19 +10603,23 @@ function getSelectedShopBallQuantitySummaryLabel() {
 
 function getShopBuyQuantityButtonLabel(item) {
   const mode = normalizeShopQuantityMode(state.ui.shopQuantityMode);
+  const remainingCapacity = getShopBallRemainingCapacity(item);
+  if (remainingCapacity <= 0) {
+    return "Stock max atteint";
+  }
   const quantity = getSelectedShopBallQuantity({ item, mode });
   if (mode === SHOP_QUANTITY_MODE_MAX) {
     return quantity > 0 ? `Acheter MAX (${quantity})` : "Acheter MAX";
   }
-  return `Acheter x${quantity}`;
+  return quantity > 0 ? `Acheter x${quantity}` : "Acheter";
 }
 
 function setShopQuantityMode(mode) {
   state.ui.shopQuantityMode = normalizeShopQuantityMode(mode);
   if (state.ui.shopQuantityMode === SHOP_QUANTITY_MODE_CUSTOM) {
-    state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+    state.ui.shopCustomQuantity = clamp(toSafeInt(state.ui.shopCustomQuantity, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
   } else if (state.ui.shopQuantityMode !== SHOP_QUANTITY_MODE_MAX) {
-    state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopQuantityMode, 1));
+    state.ui.shopCustomQuantity = clamp(toSafeInt(state.ui.shopQuantityMode, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
   }
   syncShopQuantityControls();
   renderShopModal();
@@ -9239,7 +10633,7 @@ function syncShopQuantityControls() {
   }
   if (shopCustomQtyInputEl) {
     shopCustomQtyInputEl.disabled = mode !== SHOP_QUANTITY_MODE_CUSTOM;
-    const value = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+    const value = clamp(toSafeInt(state.ui.shopCustomQuantity, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
     if (toSafeInt(shopCustomQtyInputEl.value, value) !== value) {
       shopCustomQtyInputEl.value = String(value);
     }
@@ -9356,27 +10750,45 @@ function buyShopItem(itemId) {
       setTopMessage(`${item.nameFr}: bientot disponible.`, 1400);
       return false;
     }
+    const remainingCapacity = getBallInventoryRemainingCapacity(item.ballType);
+    if (remainingCapacity <= 0) {
+      setTopMessage(`Stock max atteint pour ${item.nameFr} (${BALL_INVENTORY_MAX_PER_TYPE}).`, 1600);
+      updateHud();
+      renderShopModal();
+      return false;
+    }
     const quantity = getSelectedShopBallQuantity({ item });
-    if (quantity <= 0) {
+    const pricing = getShopBallPurchasePricing(item, quantity);
+    if (pricing.requestedQuantity <= 0) {
       setTopMessage(`Pas assez d'argent pour acheter ${item.nameFr}.`, 1500);
       updateHud();
       renderShopModal();
       return false;
     }
-    const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
-    if (!spendMoney(totalCost)) {
-      setTopMessage(`Pas assez d'argent pour ${quantity} ${item.nameFr} (${totalCost} Poke$).`, 1500);
+    if (!spendMoney(pricing.totalCost)) {
+      setTopMessage(
+        `Pas assez d'argent pour ${pricing.requestedQuantity} ${item.nameFr} (${pricing.totalCost} Poke$).`,
+        1500,
+      );
       updateHud();
       return false;
     }
-    addBallItems(item.ballType, quantity);
+    addBallItems(item.ballType, pricing.requestedQuantity);
+    const firstPurchaseBonusApplied = pricing.freeQuantity > 0 && consumeFirstFreePokeballPurchaseBonus();
     if (getBallInventoryCount(getActiveBallType()) <= 0) {
       setActiveBallType(item.ballType);
     }
     persistSaveData();
     updateHud();
     renderShopModal();
-    setTopMessage(`Achat: ${quantity} ${item.nameFr} pour ${totalCost} Poke$.`, 1500);
+    if (firstPurchaseBonusApplied) {
+      setTopMessage(
+        `Achat: ${pricing.requestedQuantity} ${item.nameFr} pour ${pricing.totalCost} Poke$. 1ere PokeBall offerte, prochaine capture garantie.`,
+        2200,
+      );
+    } else {
+      setTopMessage(`Achat: ${pricing.requestedQuantity} ${item.nameFr} pour ${pricing.totalCost} Poke$.`, 1500);
+    }
     return true;
   }
 
@@ -9476,9 +10888,11 @@ function createShopItemCard(item) {
     const stockCount = getBallInventoryCount(item.ballType);
     const isActive = getActiveBallType() === item.ballType;
     const isComingSoon = isBallTypeComingSoon(item.ballType);
+    const remainingCapacity = getBallInventoryRemainingCapacity(item.ballType);
+    const stockMaxReached = remainingCapacity <= 0;
     const quantity = getSelectedShopBallQuantity({ item });
-    const totalCost = Math.max(0, toSafeInt(item.price, 0)) * quantity;
-    const canAfford = quantity > 0 && currentMoney >= totalCost;
+    const pricing = getShopBallPurchasePricing(item, quantity);
+    const canAfford = !stockMaxReached && pricing.requestedQuantity > 0 && currentMoney >= pricing.totalCost;
     canAffordItem = canAfford;
     if (isComingSoon) {
       stockEl.textContent = "Bientot disponible";
@@ -9488,15 +10902,25 @@ function createShopItemCard(item) {
       canAffordItem = false;
       isComingSoonItem = true;
     } else {
-      stockEl.textContent = `Stock: ${stockCount} • Actif: ${isActive ? "Oui" : "Non"}`;
+      stockEl.textContent = `Stock: ${stockCount}/${BALL_INVENTORY_MAX_PER_TYPE} • Actif: ${isActive ? "Oui" : "Non"}`;
       primaryButton.textContent = getShopBuyQuantityButtonLabel(item);
-      primaryButton.disabled = !canAfford;
-      if (!canAfford) {
-        primaryButton.title = "Pas assez d'argent.";
-        const missingMoney = quantity > 0
-          ? Math.max(0, totalCost - currentMoney)
-          : Math.max(0, toSafeInt(item.price, 0) - currentMoney);
-        stockEl.textContent += ` | Manque: ${formatPokeDollarValue(missingMoney)} Poke$`;
+      if (pricing.freeQuantity > 0) {
+        stockEl.textContent += " | 1ere ball offerte";
+      }
+      if (stockMaxReached) {
+        primaryButton.textContent = "Stock max atteint";
+        primaryButton.disabled = true;
+        primaryButton.title = `Limite atteinte (${BALL_INVENTORY_MAX_PER_TYPE}).`;
+        stockEl.textContent += " | Stock max atteint";
+      } else {
+        primaryButton.disabled = !canAfford;
+        if (!canAfford) {
+          primaryButton.title = "Pas assez d'argent.";
+          const missingMoney = pricing.requestedQuantity > 0
+            ? Math.max(0, pricing.totalCost - currentMoney)
+            : Math.max(0, toSafeInt(item.price, 0) - currentMoney);
+          stockEl.textContent += ` | Manque: ${formatPokeDollarValue(missingMoney)} Poke$`;
+        }
       }
 
       const equipButton = document.createElement("button");
@@ -9913,17 +11337,27 @@ function computeLayout() {
       baseX: centerX,
       baseY: bottomGroupY,
     });
+    const clockwisePortraitPlacement = [
+      { row: "top", index: 0 },
+      { row: "top", index: 1 },
+      { row: "top", index: 2 },
+      { row: "bottom", index: 2 },
+      { row: "bottom", index: 1 },
+      { row: "bottom", index: 0 },
+    ];
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-      const source = i < 3 ? topSlots[i] : bottomSlots[i - 3];
+      const placement = clockwisePortraitPlacement[i] || { row: "top", index: 1 };
+      const isTopRow = placement.row === "top";
+      const source = isTopRow ? topSlots[placement.index] : bottomSlots[placement.index];
       const x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
       let y = clamp(source?.y ?? centerY, playTop + teamSize * 0.65, playBottom - teamSize * 0.65);
-      if (i < 3) {
+      if (isTopRow) {
         y = Math.min(y, centerY - enemySize * 0.44);
       } else {
         y = Math.max(y, centerY + enemySize * 0.44);
       }
-      const dirX = Math.sign(x - centerX);
-      const dirY = i < 3 ? -1 : 1;
+      const dirX = Math.sign(x - centerX) || (x >= centerX ? 1 : -1);
+      const dirY = isTopRow ? -1 : 1;
       let hudCenterX = x + dirX * (teamSize * 0.38 + teamHudWidth * 0.28);
       let hudCenterY = y + dirY * (teamSize * 0.68 + teamHudHeight * 0.62);
       hudCenterX = clamp(
@@ -9974,16 +11408,26 @@ function computeLayout() {
       baseX: rightX,
       baseY: centerY,
     });
+    const clockwiseLandscapePlacement = [
+      { side: "left", index: 0 },
+      { side: "right", index: 0 },
+      { side: "right", index: 1 },
+      { side: "right", index: 2 },
+      { side: "left", index: 2 },
+      { side: "left", index: 1 },
+    ];
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-      const source = i < 3 ? leftSlots[i] : rightSlots[i - 3];
+      const placement = clockwiseLandscapePlacement[i] || { side: "left", index: 1 };
+      const isLeftSide = placement.side === "left";
+      const source = isLeftSide ? leftSlots[placement.index] : rightSlots[placement.index];
       let x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
       const y = clamp(source?.y ?? centerY, playTop + teamSize * 0.6, playBottom - teamSize * 0.6);
-      if (i < 3) {
+      if (isLeftSide) {
         x = Math.min(x, centerX - enemySize * 0.62);
       } else {
         x = Math.max(x, centerX + enemySize * 0.62);
       }
-      const dirX = i < 3 ? -1 : 1;
+      const dirX = isLeftSide ? -1 : 1;
       const dirY = Math.sign(y - centerY);
       let hudCenterX = x + dirX * (teamSize * 0.85 + teamHudWidth * 0.54);
       let hudCenterY = y + dirY * (teamSize * 0.18);
@@ -10302,6 +11746,95 @@ function drawTeamHoverIndicator(slot, intensity = 1) {
   ctx.restore();
 }
 
+function drawTeamAttackChargeGlow(slot, member, slotIndex = 0, intensity = 0) {
+  if (!slot || !member || intensity <= 0.001) {
+    return;
+  }
+  const charge = clamp(Number(intensity) || 0, 0, 1);
+  if (charge <= 0.001) {
+    return;
+  }
+
+  const type = normalizeType(getEntityOffensiveType(member));
+  const rgb = getTypeColor(type);
+  const centerX = slot.x;
+  const centerY = slot.y + slot.size * 0.02;
+  const coreRadius = slot.size * (0.34 + charge * 0.08);
+  const auraRadius = coreRadius * (1.75 + charge * 0.42);
+  const pulse = 0.82 + Math.sin(state.timeMs * 0.02 + slotIndex * 0.73) * 0.18;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const aura = ctx.createRadialGradient(centerX, centerY, coreRadius * 0.16, centerX, centerY, auraRadius);
+  aura.addColorStop(0, rgba(rgb, (0.2 + charge * 0.34) * pulse));
+  aura.addColorStop(0.48, rgba(rgb, (0.12 + charge * 0.24) * pulse));
+  aura.addColorStop(1, rgba(rgb, 0));
+  ctx.fillStyle = aura;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, auraRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = rgba(rgb, 0.26 + charge * 0.5);
+  ctx.lineWidth = Math.max(1.4, slot.size * (0.016 + charge * 0.008));
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY + slot.size * 0.02, coreRadius * 1.08, coreRadius * 0.78, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const sparkCount = 3;
+  for (let i = 0; i < sparkCount; i += 1) {
+    const angle = state.timeMs * 0.008 + slotIndex * 0.48 + i * ((Math.PI * 2) / sparkCount);
+    const orbit = coreRadius * (0.9 + charge * 0.36);
+    const px = centerX + Math.cos(angle) * orbit;
+    const py = centerY + Math.sin(angle * 1.35) * orbit * 0.62;
+    const pointSize = slot.size * (0.016 + charge * 0.01);
+    const pointGlow = pointSize * 3.2;
+    const sparkle = ctx.createRadialGradient(px, py, 0, px, py, pointGlow);
+    sparkle.addColorStop(0, "rgba(255, 255, 255, 0.92)");
+    sparkle.addColorStop(0.45, rgba(rgb, 0.76));
+    sparkle.addColorStop(1, rgba(rgb, 0));
+    ctx.fillStyle = sparkle;
+    ctx.beginPath();
+    ctx.arc(px, py, pointGlow, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawTeamAuraIndicator(slot, member, stackedBonus = 0) {
+  if (!slot || !member) {
+    return;
+  }
+  const bonus = Math.max(0, Number(stackedBonus || 0));
+  if (bonus <= 0.001) {
+    return;
+  }
+
+  const [r, g, b] = getTypeColor(getEntityOffensiveType(member));
+  const centerY = slot.y + slot.size * 0.03;
+  const pulse = 0.5 + Math.sin(state.timeMs * 0.006 + slot.x * 0.021 + slot.y * 0.014) * 0.5;
+  const radiusX = slot.size * (0.43 + pulse * 0.05);
+  const radiusY = slot.size * (0.31 + pulse * 0.04);
+  const alphaBase = clamp(0.08 + bonus * 0.35, 0.08, 0.4);
+  const glowRadius = slot.size * (0.52 + pulse * 0.07);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(slot.x, centerY, radiusY * 0.25, slot.x, centerY, glowRadius);
+  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);
+  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, glowRadius * 0.95, glowRadius * 0.66, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.12).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.3, slot.size * (0.022 + bonus * 0.02));
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function getSpriteSnapFactor() {
   const dpr = Number(state.viewport?.dpr || 1);
   return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
@@ -10350,6 +11883,48 @@ function buildSpriteShaderFilter(shader = null) {
   }
 
   return parts.length > 0 ? parts.join(" ") : "none";
+}
+
+function mergeSpriteShaderConfig(primaryShader = null, secondaryShader = null) {
+  const primary = primaryShader && typeof primaryShader === "object" ? primaryShader : null;
+  const secondary = secondaryShader && typeof secondaryShader === "object" ? secondaryShader : null;
+  if (!primary && !secondary) {
+    return null;
+  }
+
+  const readNumber = (value) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+  const multiplyOrDefault = (valueA, valueB) => {
+    const numericA = readNumber(valueA);
+    const numericB = readNumber(valueB);
+    if (numericA == null && numericB == null) {
+      return null;
+    }
+    return (numericA == null ? 1 : numericA) * (numericB == null ? 1 : numericB);
+  };
+
+  const huePrimary = readNumber(primary?.hueRotateDeg);
+  const hueSecondary = readNumber(secondary?.hueRotateDeg);
+  const saturate = multiplyOrDefault(primary?.saturate, secondary?.saturate);
+  const brightness = multiplyOrDefault(primary?.brightness, secondary?.brightness);
+  const contrast = multiplyOrDefault(primary?.contrast, secondary?.contrast);
+
+  const merged = {};
+  if (huePrimary != null || hueSecondary != null) {
+    merged.hueRotateDeg = (huePrimary || 0) + (hueSecondary || 0);
+  }
+  if (saturate != null) {
+    merged.saturate = saturate;
+  }
+  if (brightness != null) {
+    merged.brightness = brightness;
+  }
+  if (contrast != null) {
+    merged.contrast = contrast;
+  }
+  return Object.keys(merged).length > 0 ? merged : null;
 }
 
 function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend, shader = null) {
@@ -10438,18 +12013,26 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
   const ultraSeed =
     Number(entity?.id || 0) * 0.73 + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 19.7;
+  const customShaderConfig =
+    options?.shader && typeof options.shader === "object"
+      ? options.shader
+      : entity?.spriteShader && typeof entity.spriteShader === "object"
+        ? entity.spriteShader
+        : null;
   const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;
+  const shaderConfig = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
   const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
   const spriteImage = resolvedSpriteSource.source;
-  let spriteDrawX = -size * 0.5;
-  let spriteDrawY = -size * 0.5;
-  let spriteDrawWidth = size;
-  let spriteDrawHeight = size;
+  const renderSize = size * getPokemonDataSpriteScale(entity);
+  let spriteDrawX = -renderSize * 0.5;
+  let spriteDrawY = -renderSize * 0.5;
+  let spriteDrawWidth = renderSize;
+  let spriteDrawHeight = renderSize;
   let spriteUsedImage = false;
 
   ctx.fillStyle = `rgba(0, 0, 0, ${POKEMON_SHADOW_ALPHA})`;
   ctx.beginPath();
-  ctx.ellipse(0, size * 0.34, size * 0.28, size * 0.1, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, renderSize * 0.34, renderSize * 0.28, renderSize * 0.1, 0, 0, Math.PI * 2);
   ctx.fill();
 
   if (isDrawableImage(spriteImage)) {
@@ -10457,12 +12040,12 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     const sourceWidth = dims.width;
     const sourceHeight = dims.height;
     const ratio = sourceWidth / Math.max(sourceHeight, 1);
-    let drawWidth = snapSpriteDimension(size);
-    let drawHeight = snapSpriteDimension(size);
+    let drawWidth = snapSpriteDimension(renderSize);
+    let drawHeight = snapSpriteDimension(renderSize);
     if (ratio > 1) {
-      drawHeight = snapSpriteDimension(size / ratio);
+      drawHeight = snapSpriteDimension(renderSize / ratio);
     } else {
-      drawWidth = snapSpriteDimension(size * ratio);
+      drawWidth = snapSpriteDimension(renderSize * ratio);
     }
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
@@ -10490,23 +12073,23 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
       drawHeight,
       tintColor,
       tintBlend,
-      ultraShaderConfig,
+      shaderConfig,
     );
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
-    spriteDrawX = -size * 0.3;
-    spriteDrawY = -size * 0.3;
-    spriteDrawWidth = size * 0.6;
-    spriteDrawHeight = size * 0.6;
+    spriteDrawX = -renderSize * 0.3;
+    spriteDrawY = -renderSize * 0.3;
+    spriteDrawWidth = renderSize * 0.6;
+    spriteDrawHeight = renderSize * 0.6;
     ctx.fillStyle = "rgba(180, 198, 232, 0.36)";
     ctx.strokeStyle = "rgba(226, 238, 255, 0.6)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#f7fbff";
-    ctx.font = `bold ${Math.round(size * 0.28)}px Trebuchet MS`;
+    ctx.font = `bold ${Math.round(renderSize * 0.28)}px Trebuchet MS`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(entity.nameFr.slice(0, 1), 0, 0);
@@ -10516,15 +12099,15 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
     // Fallback shape tinting when sprite image is unavailable.
     ctx.fillStyle = `rgba(${tintColor[0]}, ${tintColor[1]}, ${tintColor[2]}, ${(tintBlend * 0.62).toFixed(3)})`;
     ctx.beginPath();
-    ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);
     ctx.fill();
   }
 
   if (shinyVisual || ultraShinyVisual) {
-    drawShinySparkles(size, Number(entity?.id || 0), drawAlpha);
+    drawShinySparkles(renderSize, Number(entity?.id || 0), drawAlpha);
   }
   if (ultraShinyVisual) {
-    drawUltraShinyScintillation(size, ultraSeed, drawAlpha);
+    drawUltraShinyScintillation(renderSize, ultraSeed, drawAlpha);
   }
 
   ctx.restore();
@@ -10930,6 +12513,7 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   if (!timerState?.running || timerState.duration_ms <= 0) {
     return;
   }
+  const isOnlyOneTimer = String(timerState?.style || "").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;
   const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);
   const danger = 1 - ratio;
   const width = clamp(state.viewport.width * 0.58, 220, 540);
@@ -10968,23 +12552,337 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
 
   if (ratio > 0.001) {
     const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
-    fillGradient.addColorStop(0, "rgba(242, 181, 79, 0.98)");
-    fillGradient.addColorStop(0.48, "rgba(219, 121, 59, 0.98)");
-    fillGradient.addColorStop(1, "rgba(188, 77, 63, 0.98)");
+    if (isOnlyOneTimer) {
+      fillGradient.addColorStop(0, "rgba(197, 126, 255, 0.99)");
+      fillGradient.addColorStop(0.48, "rgba(162, 95, 237, 0.99)");
+      fillGradient.addColorStop(1, "rgba(127, 63, 212, 0.99)");
+    } else {
+      fillGradient.addColorStop(0, "rgba(242, 181, 79, 0.98)");
+      fillGradient.addColorStop(0.48, "rgba(219, 121, 59, 0.98)");
+      fillGradient.addColorStop(1, "rgba(188, 77, 63, 0.98)");
+    }
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
     ctx.roundRect(x, y, width * ratio, height, radius);
     ctx.fill();
 
-    ctx.fillStyle = `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;
+    ctx.fillStyle = isOnlyOneTimer
+      ? `rgba(240, 220, 255, ${(0.12 + pulse).toFixed(3)})`
+      : `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;
     ctx.fillRect(x + 1, y + 1, Math.max(0, width * ratio - 2), Math.max(1, height * 0.32));
   }
 
-  ctx.strokeStyle = `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;
+  ctx.strokeStyle = isOnlyOneTimer
+    ? `rgba(183, 146, 255, ${(0.62 + pulse * 0.4).toFixed(3)})`
+    : `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;
   ctx.lineWidth = 1.15;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.stroke();
+  ctx.restore();
+}
+
+function getProjectileTypeVfxProfile(typeName) {
+  switch (normalizeType(typeName)) {
+    case "fire":
+      return { motif: "flame", accent: [255, 217, 146], intensity: 1.12 };
+    case "water":
+      return { motif: "droplet", accent: [205, 241, 255], intensity: 1 };
+    case "grass":
+      return { motif: "leaf", accent: [232, 255, 196], intensity: 1.02 };
+    case "electric":
+      return { motif: "bolt", accent: [255, 247, 166], intensity: 1.18 };
+    case "ice":
+      return { motif: "crystal", accent: [236, 251, 255], intensity: 0.96 };
+    case "fighting":
+      return { motif: "impact", accent: [255, 211, 189], intensity: 1.05 };
+    case "poison":
+      return { motif: "bubble", accent: [234, 196, 255], intensity: 0.96 };
+    case "ground":
+      return { motif: "dust", accent: [244, 214, 154], intensity: 0.99 };
+    case "flying":
+      return { motif: "wind", accent: [235, 245, 255], intensity: 1 };
+    case "psychic":
+      return { motif: "orbit", accent: [255, 224, 242], intensity: 1.08 };
+    case "bug":
+      return { motif: "wing", accent: [233, 255, 186], intensity: 0.98 };
+    case "rock":
+      return { motif: "shard", accent: [236, 214, 173], intensity: 0.95 };
+    case "ghost":
+      return { motif: "wisp", accent: [222, 212, 255], intensity: 1.04 };
+    case "dragon":
+      return { motif: "rune", accent: [212, 207, 255], intensity: 1.13 };
+    case "dark":
+      return { motif: "shadow", accent: [189, 177, 166], intensity: 0.95 };
+    case "steel":
+      return { motif: "gear", accent: [227, 240, 250], intensity: 1 };
+    case "fairy":
+      return { motif: "sparkle", accent: [255, 226, 247], intensity: 1.08 };
+    case "normal":
+      return { motif: "ring", accent: [244, 236, 220], intensity: 0.9 };
+    default:
+      return { motif: "ring", accent: [232, 240, 255], intensity: 0.94 };
+  }
+}
+
+function drawProjectileTypeMotif(projectile, rgb, radius) {
+  if (!projectile || !Number.isFinite(projectile.x) || !Number.isFinite(projectile.y)) {
+    return;
+  }
+  const profile = getProjectileTypeVfxProfile(projectile.attackType);
+  const accent = Array.isArray(profile.accent) ? profile.accent : [255, 255, 255];
+  const intensity = clamp(Number(profile.intensity) || 1, 0.7, 1.4);
+  const ageMs = Math.max(0, Number(projectile.lifetimeMs) || 0);
+  const spin = Number(projectile.spinPhase) || 0;
+  const pulse = 0.72 + Math.sin(ageMs * 0.018 + spin) * 0.28;
+  const r = radius * intensity;
+
+  ctx.save();
+  ctx.translate(projectile.x, projectile.y);
+  ctx.rotate(Number(projectile.rotation) || 0);
+  ctx.globalCompositeOperation = "lighter";
+
+  switch (profile.motif) {
+    case "flame": {
+      for (let i = 0; i < 2; i += 1) {
+        const fx = -r * (1.05 + i * 0.42);
+        const fy = Math.sin(ageMs * 0.026 + i * 1.4) * r * 0.24;
+        const fr = r * (0.95 - i * 0.18) * (0.85 + pulse * 0.25);
+        const flame = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * 1.9);
+        flame.addColorStop(0, rgba(accent, 0.74));
+        flame.addColorStop(0.48, rgba(rgb, 0.56));
+        flame.addColorStop(1, rgba(rgb, 0));
+        ctx.fillStyle = flame;
+        ctx.beginPath();
+        ctx.arc(fx, fy, fr * 1.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "droplet": {
+      ctx.strokeStyle = rgba(accent, 0.45 + pulse * 0.12);
+      ctx.lineWidth = Math.max(1.1, r * 0.23);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.05 + pulse * 0.2), 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 2; i += 1) {
+        const dx = -r * (0.85 + i * 0.4);
+        const dy = Math.sin(ageMs * 0.018 + i * 1.3) * r * 0.32;
+        ctx.fillStyle = rgba(accent, 0.68);
+        ctx.beginPath();
+        ctx.ellipse(dx, dy, r * 0.26, r * 0.38, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "leaf": {
+      for (let i = 0; i < 2; i += 1) {
+        const angle = (i === 0 ? 0.62 : -0.62) + Math.sin(ageMs * 0.012 + i) * 0.12;
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.fillStyle = rgba(accent, 0.68);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * 0.78, r * 0.36, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      break;
+    }
+    case "bolt": {
+      ctx.strokeStyle = rgba(accent, 0.88);
+      ctx.lineWidth = Math.max(1.4, r * 0.26);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-r * 1.05, -r * 0.16);
+      ctx.lineTo(-r * 0.32, -r * 0.52);
+      ctx.lineTo(-r * 0.18, -r * 0.06);
+      ctx.lineTo(r * 0.76, -r * 0.33);
+      ctx.stroke();
+      ctx.strokeStyle = rgba(rgb, 0.72);
+      ctx.lineWidth = Math.max(1, r * 0.13);
+      ctx.beginPath();
+      ctx.moveTo(-r * 1.05, -r * 0.16);
+      ctx.lineTo(-r * 0.32, -r * 0.52);
+      ctx.lineTo(-r * 0.18, -r * 0.06);
+      ctx.lineTo(r * 0.76, -r * 0.33);
+      ctx.stroke();
+      break;
+    }
+    case "crystal": {
+      ctx.strokeStyle = rgba(accent, 0.78);
+      ctx.lineWidth = Math.max(1.1, r * 0.16);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = (Math.PI / 2) * i;
+        const dx = Math.cos(angle) * r * 0.9;
+        const dy = Math.sin(angle) * r * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "impact": {
+      ctx.strokeStyle = rgba(accent, 0.72);
+      ctx.lineWidth = Math.max(1.2, r * 0.18);
+      for (let i = 0; i < 3; i += 1) {
+        const offsetY = (i - 1) * r * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(-r * 1.1, offsetY);
+        ctx.lineTo(r * 0.86, offsetY * 0.45);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "bubble": {
+      for (let i = 0; i < 3; i += 1) {
+        const offset = i - 1;
+        const bx = offset * r * 0.46;
+        const by = Math.sin(ageMs * 0.01 + i * 1.3) * r * 0.28;
+        ctx.strokeStyle = rgba(accent, 0.54);
+        ctx.lineWidth = Math.max(1, r * 0.11);
+        ctx.beginPath();
+        ctx.arc(bx, by, r * (0.3 + i * 0.05), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "dust": {
+      for (let i = 0; i < 3; i += 1) {
+        const dx = -r * (0.55 + i * 0.35);
+        const dy = Math.sin(ageMs * 0.014 + i * 1.1) * r * 0.24;
+        ctx.fillStyle = rgba(accent, 0.56);
+        ctx.beginPath();
+        ctx.arc(dx, dy, r * (0.24 - i * 0.04), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "wind": {
+      ctx.strokeStyle = rgba(accent, 0.7);
+      ctx.lineWidth = Math.max(1.1, r * 0.17);
+      for (let i = 0; i < 2; i += 1) {
+        const stretch = 1 + i * 0.24;
+        ctx.beginPath();
+        ctx.ellipse(-r * 0.1, 0, r * 0.92 * stretch, r * 0.36, 0, Math.PI * 0.14, Math.PI * 1.74);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "orbit": {
+      ctx.strokeStyle = rgba(accent, 0.52);
+      ctx.lineWidth = Math.max(1.1, r * 0.13);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.02, r * 0.52, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 2; i += 1) {
+        const angle = ageMs * 0.012 + i * Math.PI;
+        const ox = Math.cos(angle) * r * 1.02;
+        const oy = Math.sin(angle) * r * 0.52;
+        ctx.fillStyle = rgba(accent, 0.88);
+        ctx.beginPath();
+        ctx.arc(ox, oy, r * 0.16, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "wing": {
+      for (let i = 0; i < 2; i += 1) {
+        const sign = i === 0 ? -1 : 1;
+        ctx.strokeStyle = rgba(accent, 0.62);
+        ctx.lineWidth = Math.max(1, r * 0.14);
+        ctx.beginPath();
+        ctx.ellipse(sign * r * 0.18, 0, r * 0.58, r * 0.24, sign * 0.28, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "shard": {
+      ctx.fillStyle = rgba(accent, 0.64);
+      for (let i = 0; i < 2; i += 1) {
+        const shift = i === 0 ? -r * 0.24 : r * 0.2;
+        ctx.beginPath();
+        ctx.moveTo(shift, -r * 0.48);
+        ctx.lineTo(shift + r * 0.3, -r * 0.05);
+        ctx.lineTo(shift + r * 0.08, r * 0.5);
+        ctx.lineTo(shift - r * 0.24, r * 0.06);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case "wisp": {
+      const glow = ctx.createRadialGradient(-r * 0.28, 0, 0, -r * 0.28, 0, r * 1.55);
+      glow.addColorStop(0, rgba(accent, 0.48 + pulse * 0.18));
+      glow.addColorStop(1, rgba(rgb, 0));
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.28, 0, r * 1.55, r * 0.78, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case "rune": {
+      ctx.strokeStyle = rgba(accent, 0.78);
+      ctx.lineWidth = Math.max(1.1, r * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(r * 0.78, r * 0.44);
+      ctx.lineTo(-r * 0.78, r * 0.44);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+    }
+    case "shadow": {
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "rgba(25, 24, 34, 0.45)";
+      ctx.beginPath();
+      ctx.arc(r * 0.14, 0, r * 1.08, Math.PI * 0.15, Math.PI * 1.85);
+      ctx.arc(-r * 0.28, 0, r * 0.8, Math.PI * 1.85, Math.PI * 0.15, true);
+      ctx.fill();
+      break;
+    }
+    case "gear": {
+      ctx.strokeStyle = rgba(accent, 0.74);
+      ctx.lineWidth = Math.max(1.2, r * 0.17);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.9, 0);
+      ctx.lineTo(r * 0.9, 0);
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(0, r * 0.9);
+      ctx.stroke();
+      break;
+    }
+    case "sparkle": {
+      ctx.strokeStyle = rgba(accent, 0.82);
+      ctx.lineWidth = Math.max(1.1, r * 0.14);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = (Math.PI / 4) * i + ageMs * 0.0009;
+        const dx = Math.cos(angle) * r * 0.9;
+        const dy = Math.sin(angle) * r * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-dx, -dy);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "ring":
+    default: {
+      ctx.strokeStyle = rgba(accent, 0.6 + pulse * 0.12);
+      ctx.lineWidth = Math.max(1, r * 0.13);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (0.92 + pulse * 0.16), 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+    }
+  }
+
   ctx.restore();
 }
 
@@ -11090,6 +12988,8 @@ function drawProjectiles(projectiles) {
     if (projectileAura || spriteDetail) {
       ctx.restore();
     }
+
+    drawProjectileTypeMotif(projectile, rgb, radius);
 
     ctx.save();
     ctx.translate(projectile.x, projectile.y);
@@ -11259,11 +13159,105 @@ function drawTurnIndicator(layout, indicator) {
   ctx.restore();
 }
 
+function normalizeBallTypeForVisual(ballType) {
+  const type = String(ballType || "").toLowerCase().trim();
+  return Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : "poke_ball";
+}
+
+function getBallRenderTheme(ballType) {
+  const type = normalizeBallTypeForVisual(ballType);
+  if (type === "super_ball") {
+    return {
+      type,
+      shell: [245, 248, 255],
+      seam: [15, 20, 34],
+      topA: [56, 148, 255],
+      topB: [18, 73, 182],
+      topHighlight: [190, 225, 255],
+      glowCore: [102, 189, 255],
+      glowOuter: [56, 112, 255],
+      buttonOuter: [31, 48, 81],
+      buttonCenter: [213, 233, 255],
+      breakColors: [
+        [56, 148, 255],
+        [228, 68, 88],
+        [248, 250, 255],
+      ],
+      successColors: [
+        [103, 188, 255],
+        [255, 116, 136],
+        [241, 248, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 229, 138],
+        [160, 220, 255],
+        [223, 191, 255],
+      ],
+    };
+  }
+  if (type === "hyper_ball") {
+    return {
+      type,
+      shell: [244, 247, 252],
+      seam: [12, 16, 25],
+      topA: [63, 69, 83],
+      topB: [23, 27, 38],
+      topHighlight: [152, 161, 183],
+      glowCore: [255, 229, 122],
+      glowOuter: [88, 98, 146],
+      buttonOuter: [32, 38, 58],
+      buttonCenter: [250, 220, 112],
+      breakColors: [
+        [248, 216, 86],
+        [63, 69, 83],
+        [243, 247, 252],
+      ],
+      successColors: [
+        [255, 220, 122],
+        [171, 183, 255],
+        [244, 249, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 234, 150],
+        [245, 202, 120],
+        [203, 177, 255],
+      ],
+    };
+  }
+  return {
+    type: "poke_ball",
+    shell: [248, 248, 248],
+    seam: [14, 17, 23],
+    topA: [232, 68, 82],
+    topB: [188, 39, 53],
+    topHighlight: [255, 168, 174],
+    glowCore: [176, 255, 202],
+    glowOuter: [96, 208, 148],
+    buttonOuter: [34, 41, 55],
+    buttonCenter: [250, 250, 250],
+    breakColors: [
+      [225, 48, 60],
+      [250, 250, 250],
+    ],
+    successColors: [
+      [115, 240, 160],
+      [255, 255, 195],
+    ],
+    criticalSuccessColors: [
+      [255, 236, 130],
+      [214, 174, 255],
+      [184, 231, 255],
+    ],
+  };
+}
+
 function drawPokeball(x, y, radius, options = {}) {
   const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   const rotation = Number.isFinite(options.rotation) ? options.rotation : 0;
   const broken = Boolean(options.broken);
   const critical = Boolean(options.critical);
+  const ballType = normalizeBallTypeForVisual(options.ball_type);
+  const theme = getBallRenderTheme(ballType);
   const crackRatio = clamp(Number(options.crack_ratio || 0), 0, 1);
   const glowRatio = clamp(Number(options.glow_ratio || 0), 0, 1);
 
@@ -11275,40 +13269,39 @@ function drawPokeball(x, y, radius, options = {}) {
   if (glowRatio > 0) {
     const glow = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius * (1.8 + glowRatio * 0.9));
     if (critical) {
-      glow.addColorStop(0, `rgba(255, 226, 130, ${0.52 + glowRatio * 0.42})`);
-      glow.addColorStop(0.62, `rgba(190, 150, 255, ${0.22 + glowRatio * 0.24})`);
+      glow.addColorStop(0, rgba([255, 226, 130], 0.52 + glowRatio * 0.42));
+      glow.addColorStop(0.62, rgba(theme.glowOuter, 0.22 + glowRatio * 0.24));
     } else {
-      glow.addColorStop(0, `rgba(176, 255, 202, ${0.42 + glowRatio * 0.4})`);
+      glow.addColorStop(0, rgba(theme.glowCore, 0.42 + glowRatio * 0.4));
     }
-    glow.addColorStop(1, "rgba(176, 255, 202, 0)");
+    glow.addColorStop(1, rgba(theme.glowOuter, 0));
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(0, 0, radius * (1.8 + glowRatio * 0.9), 0, Math.PI * 2);
     ctx.fill();
   }
 
-  ctx.fillStyle = "#f7f7f7";
+  ctx.fillStyle = rgba(theme.shell, 1);
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  const topFill = (() => {
-    if (!critical) {
-      return "#d5303e";
-    }
-    const gradient = ctx.createLinearGradient(-radius, -radius * 0.6, radius, radius * 0.2);
-    gradient.addColorStop(0, "#f5cb4a");
-    gradient.addColorStop(0.55, "#f07a93");
-    gradient.addColorStop(1, "#8f81ff");
-    return gradient;
-  })();
+  const topGradient = ctx.createLinearGradient(-radius, -radius * 0.8, radius, radius * 0.22);
+  topGradient.addColorStop(0, rgba(theme.topA, 1));
+  topGradient.addColorStop(0.7, rgba(theme.topB, 1));
+  topGradient.addColorStop(1, rgba(theme.topB, 0.95));
+  const topHighlight = ctx.createLinearGradient(-radius * 0.65, -radius * 0.9, radius * 0.4, -radius * 0.2);
+  topHighlight.addColorStop(0, rgba(theme.topHighlight, 0.58));
+  topHighlight.addColorStop(1, rgba(theme.topHighlight, 0));
 
   if (!broken || crackRatio < 0.45) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);
     ctx.clip();
-    ctx.fillStyle = topFill;
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.fillStyle = topHighlight;
     ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
     ctx.restore();
   } else {
@@ -11326,12 +13319,62 @@ function drawPokeball(x, y, radius, options = {}) {
     ctx.beginPath();
     ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);
     ctx.clip();
-    ctx.fillStyle = topFill;
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.fillStyle = topHighlight;
     ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
     ctx.restore();
   }
 
-  ctx.strokeStyle = "rgba(12, 14, 18, 0.92)";
+  if (!broken || crackRatio < 0.9) {
+    if (theme.type === "super_ball") {
+      ctx.fillStyle = "rgba(227, 64, 86, 0.96)";
+      for (const side of [-1, 1]) {
+        const cx = side * radius * 0.52;
+        const cy = -radius * 0.53;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.19, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(249, 231, 235, 0.92)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.085, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(227, 64, 86, 0.96)";
+      }
+    } else if (theme.type === "hyper_ball") {
+      ctx.strokeStyle = "rgba(246, 214, 80, 0.96)";
+      ctx.lineCap = "round";
+      ctx.lineWidth = Math.max(1.2, radius * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.62, -radius * 0.56);
+      ctx.lineTo(-radius * 0.2, -radius * 0.15);
+      ctx.lineTo(0, -radius * 0.36);
+      ctx.lineTo(radius * 0.2, -radius * 0.15);
+      ctx.lineTo(radius * 0.62, -radius * 0.56);
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1.1, radius * 0.12);
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.22, -radius * 0.36);
+      ctx.lineTo(radius * 0.22, -radius * 0.36);
+      ctx.stroke();
+    }
+  }
+
+  if (critical) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const sheen = ctx.createRadialGradient(-radius * 0.2, -radius * 0.45, radius * 0.06, 0, -radius * 0.2, radius * 0.95);
+    sheen.addColorStop(0, "rgba(255, 242, 179, 0.56)");
+    sheen.addColorStop(0.68, "rgba(210, 183, 255, 0.12)");
+    sheen.addColorStop(1, "rgba(210, 183, 255, 0)");
+    ctx.fillStyle = sheen;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.98, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.strokeStyle = rgba(theme.seam, 0.92);
   ctx.lineWidth = Math.max(1.4, radius * 0.11);
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -11343,7 +13386,7 @@ function drawPokeball(x, y, radius, options = {}) {
   ctx.lineTo(radius, 0);
   ctx.stroke();
 
-  ctx.fillStyle = "#fafafa";
+  ctx.fillStyle = rgba(theme.buttonCenter, 1);
   ctx.beginPath();
   ctx.arc(0, 0, radius * 0.33, 0, Math.PI * 2);
   ctx.fill();
@@ -11353,7 +13396,7 @@ function drawPokeball(x, y, radius, options = {}) {
     ctx.arc(0, 0, radius * 0.15, 0, Math.PI * 2);
     ctx.fill();
   }
-  ctx.strokeStyle = "rgba(12, 14, 18, 0.85)";
+  ctx.strokeStyle = rgba(theme.buttonOuter, 0.9);
   ctx.lineWidth = Math.max(1.2, radius * 0.09);
   ctx.stroke();
 
@@ -11397,12 +13440,15 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
 
   const sequence = captureSequence;
   const criticalCapture = Boolean(sequence.isCritical);
+  const ballType = normalizeBallTypeForVisual(sequence.ballType);
+  const ballTheme = getBallRenderTheme(ballType);
   const celebrationParticles = shouldRenderCelebrationParticles();
   const throwRatio = CAPTURE_THROW_MS > 0 ? clamp(sequence.elapsedMs / CAPTURE_THROW_MS, 0, 1) : 1;
   const easedThrow = easeOutCubic(throwRatio);
   let ballX = sequence.targetX;
   let ballY = sequence.targetY;
   let ballRotation = 0;
+  let ballRadius = 14;
   let broken = false;
   let crackRatio = 0;
   let glowRatio = 0;
@@ -11411,40 +13457,82 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     ballX = sequence.startX + (sequence.targetX - sequence.startX) * easedThrow;
     ballY = sequence.startY + (sequence.targetY - sequence.startY) * easedThrow - Math.sin(throwRatio * Math.PI) * 70;
     ballRotation = easedThrow * Math.PI * 2.6;
+    ballRadius = 13.2 + Math.sin(throwRatio * Math.PI) * 1.9;
     if (criticalCapture) {
-      glowRatio = 0.45 + Math.sin(throwRatio * Math.PI) * 0.35;
+      glowRatio = 0.48 + Math.sin(throwRatio * Math.PI) * 0.38;
     }
   } else if (capturePhase === "shake") {
     const localMs = sequence.elapsedMs - CAPTURE_THROW_MS;
     const shakeRatio = clamp(localMs / Math.max(1, CAPTURE_SHAKE_MS), 0, 1);
     const shakeAmpBase = criticalCapture ? 12 : 8;
     const shakeAmp = shakeAmpBase * (1 - shakeRatio * 0.35);
-    ballX = sequence.targetX + Math.sin(localMs * 0.03) * shakeAmp;
-    ballY = sequence.targetY;
-    ballRotation = Math.sin(localMs * 0.028) * 0.28;
+    const shakeWave = Math.sin(localMs * 0.036) * Math.exp(-shakeRatio * 0.5);
+    ballX = sequence.targetX + shakeWave * shakeAmp;
+    ballY = sequence.targetY + Math.abs(shakeWave) * 1.4;
+    ballRotation = shakeWave * 0.34;
+    ballRadius = 14.4 - shakeRatio * 0.95;
     if (criticalCapture) {
-      glowRatio = 0.36 + Math.sin(localMs * 0.02) * 0.2;
+      glowRatio = 0.4 + Math.sin(localMs * 0.02) * 0.22;
     }
   } else if (capturePhase === "success") {
     const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);
     const ratio = clamp(localMs / Math.max(1, CAPTURE_SUCCESS_BURST_MS), 0, 1);
     ballX = sequence.targetX;
-    ballY = sequence.targetY;
-    ballRotation = Math.sin(localMs * 0.024) * 0.08;
+    ballY = sequence.targetY - Math.sin(ratio * Math.PI) * 3.2;
+    ballRotation = Math.sin(localMs * 0.024) * 0.12;
+    ballRadius = 14 + Math.sin(ratio * Math.PI * 2.4) * 0.92 * (1 - ratio * 0.65);
     glowRatio = (criticalCapture ? 1.35 : 1) - ratio * (criticalCapture ? 0.16 : 0.25);
-  } else if (capturePhase === "break" || capturePhase === "reappear") {
+  } else if (capturePhase === "break") {
     const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);
     ballX = sequence.targetX;
-    ballY = sequence.targetY;
+    ballY = sequence.targetY + clamp(localMs / 120, 0, 1) * 1.8;
     broken = true;
     crackRatio = clamp(localMs / Math.max(1, CAPTURE_FAIL_BREAK_MS), 0, 1);
+    ballRadius = 14 - crackRatio * 0.82;
     if (criticalCapture) {
       glowRatio = 0.3 * (1 - crackRatio);
     }
+  } else if (capturePhase === "reappear") {
+    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS + CAPTURE_FAIL_BREAK_MS);
+    const ratio = clamp(localMs / Math.max(1, CAPTURE_FAIL_REAPPEAR_MS), 0, 1);
+    ballX = sequence.targetX;
+    ballY = sequence.targetY + ratio * 2.4;
+    broken = true;
+    crackRatio = 1;
+    ballRadius = 13.2 - ratio * 0.55;
   } else {
     ballX = sequence.targetX;
     ballY = sequence.targetY;
   }
+
+  if (capturePhase === "throw") {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 1; i <= 5; i += 1) {
+      const trailT = clamp(throwRatio - i * 0.085, 0, 1);
+      if (trailT <= 0) {
+        continue;
+      }
+      const easedTrail = easeOutCubic(trailT);
+      const trailX = sequence.startX + (sequence.targetX - sequence.startX) * easedTrail;
+      const trailY = sequence.startY + (sequence.targetY - sequence.startY) * easedTrail - Math.sin(trailT * Math.PI) * 70;
+      const trailAlpha = (0.17 - i * 0.025) * (criticalCapture ? 1.25 : 1);
+      ctx.fillStyle = rgba(ballTheme.glowCore, Math.max(0, trailAlpha));
+      ctx.beginPath();
+      ctx.arc(trailX, trailY, Math.max(2.2, ballRadius * (0.5 - i * 0.06)), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  const lift = Math.max(0, sequence.targetY - ballY);
+  const shadowScale = clamp(1 - lift / 120, 0.3, 1);
+  ctx.save();
+  ctx.fillStyle = `rgba(6, 12, 20, ${0.13 + shadowScale * 0.19})`;
+  ctx.beginPath();
+  ctx.ellipse(ballX, sequence.targetY + ballRadius * 0.88, ballRadius * (0.95 + shadowScale * 0.55), ballRadius * 0.34, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   if (celebrationParticles) {
     for (const particle of sequence.particles || []) {
@@ -11481,12 +13569,13 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     }
   }
 
-  drawPokeball(ballX, ballY, 14, {
+  drawPokeball(ballX, ballY, ballRadius, {
     rotation: ballRotation,
     broken,
     crack_ratio: crackRatio,
     glow_ratio: glowRatio,
     critical: criticalCapture,
+    ball_type: ballType,
   });
 
   if (criticalCapture && celebrationParticles) {
@@ -11510,13 +13599,19 @@ function drawCaptureSequence(layout, captureSequence, capturePhase) {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     const ringRadius = layout.enemySize * ((criticalCapture ? 0.36 : 0.28) + pulse);
-    ctx.strokeStyle = criticalCapture ? "rgba(255, 233, 150, 0.76)" : "rgba(172, 255, 190, 0.62)";
+    const successPrimary = criticalCapture
+      ? ballTheme.criticalSuccessColors[0] || [255, 233, 150]
+      : ballTheme.successColors[0] || [172, 255, 190];
+    const successSecondary = criticalCapture
+      ? ballTheme.criticalSuccessColors[1] || [199, 164, 255]
+      : ballTheme.successColors[1] || [186, 234, 255];
+    ctx.strokeStyle = rgba(successPrimary, criticalCapture ? 0.76 : 0.62);
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(sequence.targetX, sequence.targetY, ringRadius, 0, Math.PI * 2);
     ctx.stroke();
     if (criticalCapture) {
-      ctx.strokeStyle = "rgba(199, 164, 255, 0.54)";
+      ctx.strokeStyle = rgba(successSecondary, 0.54);
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(sequence.targetX, sequence.targetY, ringRadius * 0.74, 0, Math.PI * 2);
@@ -11955,6 +14050,7 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
   const alpha = clamp(Number(options.alpha ?? 1), 0, 1);
   const scale = Math.max(0.02, Number(options.scale ?? 1));
   const whiteRatio = clamp(Number(options.whiteRatio ?? 0), 0, 1);
+  const renderSize = size * getPokemonDataSpriteScale(entity);
 
   ctx.save();
   ctx.translate(x, y);
@@ -11963,17 +14059,17 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
 
   ctx.fillStyle = "rgba(0, 0, 0, " + (0.24 + (1 - whiteRatio) * 0.2).toFixed(3) + ")";
   ctx.beginPath();
-  ctx.ellipse(0, size * 0.38, size * 0.32, size * 0.11, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, renderSize * 0.38, renderSize * 0.32, renderSize * 0.11, 0, 0, Math.PI * 2);
   ctx.fill();
 
   if (isDrawableImage(entity?.spriteImage)) {
     const ratio = entity.spriteImage.width / Math.max(entity.spriteImage.height, 1);
-    let drawWidth = size;
-    let drawHeight = size;
+    let drawWidth = renderSize;
+    let drawHeight = renderSize;
     if (ratio > 1) {
-      drawHeight = size / ratio;
+      drawHeight = renderSize / ratio;
     } else {
-      drawWidth = size * ratio;
+      drawWidth = renderSize * ratio;
     }
     const drawX = -drawWidth * 0.5;
     const drawY = -drawHeight * 0.45;
@@ -11984,12 +14080,12 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
   } else {
     ctx.fillStyle = "rgba(195, 215, 245, 0.45)";
     ctx.beginPath();
-    ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
+    ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);
     ctx.fill();
     if (whiteRatio > 0) {
       ctx.fillStyle = "rgba(255, 255, 255, " + whiteRatio.toFixed(3) + ")";
       ctx.beginPath();
-      ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
+      ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -12261,6 +14357,98 @@ function drawLoadingOrError(text) {
   ctx.fillText(text, width * 0.5, height * 0.48);
 }
 
+function drawBallInventoryOverlay(layout) {
+  state.ui.ballOverlayHitboxes = [];
+  const rows = getBallInventoryOverlayRows();
+  if (rows.length <= 0) {
+    return;
+  }
+
+  const safeBounds = layout?.safeBounds || {
+    left: 8,
+    top: 8,
+    right: Math.max(8, state.viewport.width - 8),
+    bottom: Math.max(8, state.viewport.height - 8),
+  };
+  const viewportProfile = layout?.viewportProfile || {};
+  const compact = Boolean(viewportProfile.phone || viewportProfile.compact);
+  const iconSize = compact ? 17 : 21;
+  const rowGap = compact ? 5 : 7;
+  const panelPaddingX = compact ? 8 : 10;
+  const panelPaddingY = compact ? 7 : 9;
+  const iconTextGap = compact ? 7 : 9;
+  const fontSize = compact ? 12 : 14;
+  const rowHeight = iconSize;
+
+  ctx.save();
+  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+
+  let maxLabelWidth = 0;
+  for (const row of rows) {
+    const label = formatPokeDollarValue(row.count);
+    maxLabelWidth = Math.max(maxLabelWidth, Math.ceil(ctx.measureText(label).width));
+  }
+
+  const panelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxLabelWidth);
+  const panelHeight = Math.ceil(panelPaddingY * 2 + rows.length * rowHeight + Math.max(0, rows.length - 1) * rowGap);
+  const panelX = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
+  const panelY = clamp(safeBounds.top + 6, 6, state.viewport.height - panelHeight - 6);
+
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: compact ? 8 : 10,
+    fillTop: "rgba(36, 51, 72, 0.92)",
+    fillBottom: "rgba(20, 31, 47, 0.92)",
+    border: "rgba(142, 176, 210, 0.88)",
+    highlight: "rgba(198, 223, 248, 0.22)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.3,
+  });
+
+  const hitboxes = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i];
+    const centerY = panelY + panelPaddingY + iconSize * 0.5 + i * (rowHeight + rowGap);
+    const rowTop = centerY - rowHeight * 0.5;
+    const rowBottom = centerY + rowHeight * 0.5;
+    const iconCenterX = panelX + panelPaddingX + iconSize * 0.5;
+    const image = row.spritePath ? getCachedSpriteImage(row.spritePath) : null;
+    const label = formatPokeDollarValue(row.count);
+
+    if (isDrawableImage(image)) {
+      const drawX = snapSpriteValue(iconCenterX - iconSize * 0.5);
+      const drawY = snapSpriteValue(centerY - iconSize * 0.5);
+      const drawSize = snapSpriteDimension(iconSize);
+      const wasSmoothing = ctx.imageSmoothingEnabled;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(image, drawX, drawY, drawSize, drawSize);
+      ctx.imageSmoothingEnabled = wasSmoothing;
+    } else {
+      drawPokeball(iconCenterX, centerY, iconSize * 0.48, {
+        alpha: 0.92,
+      });
+    }
+
+    const textX = panelX + panelPaddingX + iconSize + iconTextGap;
+    ctx.strokeStyle = "rgba(6, 12, 20, 0.84)";
+    ctx.lineWidth = 3;
+    ctx.fillStyle = "rgba(232, 242, 255, 0.96)";
+    ctx.strokeText(label, textX, centerY + 0.2);
+    ctx.fillText(label, textX, centerY + 0.2);
+    hitboxes.push({
+      ballType: row.type,
+      x: panelX + 2,
+      y: Math.max(panelY + 2, rowTop - 2),
+      width: Math.max(8, panelWidth - 4),
+      height: Math.max(8, (rowBottom - rowTop) + 4),
+    });
+  }
+
+  state.ui.ballOverlayHitboxes = hitboxes;
+  ctx.restore();
+}
+
 function drawBattleUiOverlay(layout, options = {}) {
   if (options.showEnemyUi && state.enemy) {
     drawEnemyHpBar(
@@ -12351,7 +14539,7 @@ function drawNonCombatZoneOverlay(layout) {
 }
 
 function drawVersionOverlay() {
-  const label = `v${APP_VERSION}`;
+  const label = `v${DISPLAY_APP_VERSION}`;
   const fontSize = state.viewport.width <= 760 ? 10 : 11;
   const paddingX = 8;
   const paddingY = 5;
@@ -12442,7 +14630,6 @@ function render() {
   const captureSnapshot = state.battle ? state.battle.getCaptureSequence() : null;
   const capturePhase = captureSnapshot?.phase || null;
   const captureEnemyVisual = getCaptureEnemyVisual(captureSequence, capturePhase);
-  const turnIndicator = state.battle ? state.battle.getTurnIndicator(layout) : null;
   const enemyDamageTintBlend = state.battle ? state.battle.getEnemyDamageFlashBlend() : 0;
   const routeDefeatTimer = state.battle ? state.battle.getEnemyTimerState() : null;
   const environmentSnapshot = getEnvironmentSnapshotForRender();
@@ -12451,6 +14638,7 @@ function render() {
   drawEnvironmentBackgroundLayer(width, height, environmentSnapshot);
   if (hasTeamMembers) {
     const teamDrawPositions = [];
+    const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
       const slot = layout.teamSlots[i];
       if (!slot) {
@@ -12459,6 +14647,7 @@ function render() {
       const member = state.team[i];
       const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
       const hoverPulse = getHoveredTeamSlotPulse(i);
+      const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
       const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
       const drawX = slot.x + recoilOffset.x;
@@ -12472,7 +14661,9 @@ function render() {
         size: spriteSize,
         breath: teamBreath,
         hoverPulse,
+        chargeGlow,
         hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,
+        chargeScale: chargeGlow > 0 ? 1 + chargeGlow * 0.042 : 1,
       };
     }
 
@@ -12513,14 +14704,23 @@ function render() {
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
       const member = state.team[i];
       const slot = layout.teamSlots[i];
+      const drawPosition = teamDrawPositions[i];
       if (!member || !slot) {
         continue;
       }
       const hoverPulse = getHoveredTeamSlotPulse(i);
+      const chargeGlow = clamp(Number(drawPosition?.chargeGlow || 0), 0, 1);
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
+      const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));
       drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {
-        alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11,
+        alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11 + chargeGlow * 0.14,
       });
+      if (auraBonus > 0.001) {
+        drawTeamAuraIndicator(slot, member, auraBonus);
+      }
+      if (chargeGlow > 0.001) {
+        drawTeamAttackChargeGlow(slot, member, i, chargeGlow);
+      }
       if (hoverPulse > 0) {
         drawTeamHoverIndicator(slot, hoverPulse);
       }
@@ -12562,9 +14762,11 @@ function render() {
         continue;
       }
       const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };
+      const hoverScale = drawPosition.hoverScale || 1;
+      const chargeScale = drawPosition.chargeScale || 1;
       drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
-        scaleX: teamBreath.scaleX * (drawPosition.hoverScale || 1),
-        scaleY: teamBreath.scaleY * (drawPosition.hoverScale || 1),
+        scaleX: teamBreath.scaleX * hoverScale * chargeScale,
+        scaleY: teamBreath.scaleY * hoverScale * chargeScale,
         offsetY: teamBreath.offsetY,
         flipX: shouldFlipTeamSprite(i),
         shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
@@ -12574,7 +14776,6 @@ function render() {
       });
     }
 
-    drawTurnIndicator(layout, turnIndicator);
     drawTeamXpGainEffects();
     drawTeamLevelUpEffects();
     drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);
@@ -12589,6 +14790,7 @@ function render() {
   drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
   drawRouteDefeatTimerBar(routeDefeatTimer, layout);
   drawEvolutionAnimationOverlay(layout);
+  drawBallInventoryOverlay(layout);
   drawVersionOverlay();
 }
 
@@ -12702,10 +14904,25 @@ function syncCanvasInteractionCursor() {
   if (!canvas) {
     return;
   }
+  const hasOverlayHover = Boolean(state.ui.hoveredBallOverlayType);
   canvas.style.cursor =
-    state.ui.hoveredTeamSlotIndex >= 0 && !state.ui.teamContextMenuOpen && !isCanvasBattleInteractionBlocked()
+    (state.ui.hoveredTeamSlotIndex >= 0 || hasOverlayHover)
+      && !state.ui.teamContextMenuOpen
+      && !state.ui.ballCaptureMenuOpen
+      && !isCanvasBattleInteractionBlocked()
       ? "pointer"
       : "default";
+}
+
+function setHoveredBallOverlayType(ballType) {
+  const type = String(ballType || "").toLowerCase().trim();
+  const nextType = Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : "";
+  if (state.ui.hoveredBallOverlayType === nextType) {
+    syncCanvasInteractionCursor();
+    return;
+  }
+  state.ui.hoveredBallOverlayType = nextType;
+  syncCanvasInteractionCursor();
 }
 
 function setHoveredTeamSlotIndex(slotIndex) {
@@ -12718,6 +14935,20 @@ function setHoveredTeamSlotIndex(slotIndex) {
   syncCanvasInteractionCursor();
 }
 
+function getBallCaptureMenuBallType() {
+  const type = String(state.ui.ballCaptureMenuBallType || "").toLowerCase().trim();
+  return Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : "";
+}
+
+function closeBallCaptureMenu() {
+  state.ui.ballCaptureMenuOpen = false;
+  state.ui.ballCaptureMenuBallType = "";
+  if (ballCaptureMenuEl) {
+    ballCaptureMenuEl.classList.add("hidden");
+  }
+  syncCanvasInteractionCursor();
+}
+
 function closeTeamContextMenu() {
   state.ui.teamContextMenuOpen = false;
   state.ui.teamContextMenuSlotIndex = -1;
@@ -12725,13 +14956,14 @@ function closeTeamContextMenu() {
   if (teamContextMenuEl) {
     teamContextMenuEl.classList.add("hidden");
   }
+  syncCanvasInteractionCursor();
 }
 
 function refreshRenameCharCount() {
   if (!renameCharCountEl) {
     return;
   }
-  const currentLength = Math.max(0, Math.min(POKEMON_NICKNAME_MAX_LENGTH, String(renameInputEl?.value || "").length));
+  const currentLength = getPokemonNicknameLength(renameInputEl?.value || "");
   renameCharCountEl.textContent = `${currentLength}/${POKEMON_NICKNAME_MAX_LENGTH}`;
 }
 
@@ -12769,7 +15001,7 @@ function openRenameModalForTeamSlot(slotIndex) {
     renameTitleEl.textContent = `Renommer | ${nickname || baseNameFr}`;
   }
   if (renameSubtitleEl) {
-    renameSubtitleEl.textContent = `${baseNameFr} (${getTeamSlotLabel(index)})`;
+    renameSubtitleEl.textContent = `${baseNameFr} (${getTeamSlotLabel(index)}) | applique a la famille evolutive`;
   }
   if (renameInputEl) {
     renameInputEl.value = nickname;
@@ -12794,13 +15026,12 @@ function applyRenameModal() {
 
   const previousDisplayName = getPokemonDisplayNameForOwnedEntity(pokemonId);
   const nextNickname = sanitizePokemonNickname(renameInputEl?.value || "");
-  const previousNickname = sanitizePokemonNickname(record.nickname);
-  if (nextNickname === previousNickname) {
+  const renameResult = applyNicknameToEvolutionFamily(pokemonId, nextNickname);
+  if (!renameResult.changed) {
     closeRenameModal();
     return;
   }
 
-  record.nickname = nextNickname;
   rebuildTeamAndSyncBattle();
   persistSaveData();
   updateHud();
@@ -12809,14 +15040,18 @@ function applyRenameModal() {
 
   const nextDisplayName = getPokemonDisplayNameForOwnedEntity(pokemonId);
   if (nextNickname) {
-    setTopMessage(`Surnom applique: ${previousDisplayName} -> ${nextDisplayName}.`, 1700);
+    setTopMessage(
+      `Surnom de famille applique (${renameResult.familySize}): ${previousDisplayName} -> ${nextDisplayName}.`,
+      1900,
+    );
   } else {
-    setTopMessage(`Surnom retire sur ${getTeamSlotLabel(slotIndex)}.`, 1600);
+    setTopMessage(`Surnom de famille retire (${renameResult.familySize} Pokemon).`, 1800);
   }
 }
 
 function clearCanvasHoverState() {
   setHoveredTeamSlotIndex(-1);
+  setHoveredBallOverlayType("");
   hideHoverPopup();
 }
 
@@ -12838,6 +15073,28 @@ function findHoveredTeamSlot(worldX, worldY, layout) {
     if (Math.hypot(worldX - slot.x, worldY - slot.y) <= radius) {
       return { slotIndex: i, member, slot };
     }
+  }
+  return null;
+}
+
+function findHoveredBallOverlayHitbox(worldX, worldY) {
+  const hitboxes = Array.isArray(state.ui.ballOverlayHitboxes) ? state.ui.ballOverlayHitboxes : [];
+  for (const hitbox of hitboxes) {
+    const x = Number(hitbox?.x || 0);
+    const y = Number(hitbox?.y || 0);
+    const width = Number(hitbox?.width || 0);
+    const height = Number(hitbox?.height || 0);
+    if (width <= 0 || height <= 0) {
+      continue;
+    }
+    if (worldX < x || worldY < y || worldX > x + width || worldY > y + height) {
+      continue;
+    }
+    const ballType = String(hitbox?.ballType || "").toLowerCase().trim();
+    if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, ballType)) {
+      continue;
+    }
+    return hitbox;
   }
   return null;
 }
@@ -12867,10 +15124,12 @@ function showHoverPopup(entity, clientX, clientY) {
   const ultraTag = entity.isUltraShiny || entity.isUltraShinyVisual ? " ultra shiny" : "";
   const shinyTag = ultraTag || (entity.isShiny || entity.isShinyVisual ? " shiny" : "");
   const talent = resolveTalentDefinition(entity?.talent, entity?.id);
+  const safeDisplayName = escapeHtml(`${entity.nameFr}${shinyTag}`);
   hoverPopupEl.innerHTML = [
-    `<strong>${entity.nameFr}${shinyTag}</strong>`,
+    `<strong>${safeDisplayName}</strong>`,
     `Niv. ${entity.level}`,
     `Talent: ${formatTalentLabelFr(talent, entity?.id)}`,
+    `Effet talent: ${talent.descriptionFr || TALENT_NONE_DESCRIPTION_FR}`,
     `Rencontres: ${formatCompactNumber(stats.encountered_total)} (N ${formatCompactNumber(stats.encountered_normal)} / S ${formatCompactNumber(stats.encountered_shiny)})`,
     `Battus: ${formatCompactNumber(stats.defeated_total)} (N ${formatCompactNumber(stats.defeated_normal)} / S ${formatCompactNumber(stats.defeated_shiny)})`,
     `Captures: ${formatCompactNumber(stats.captured_total)} (N ${formatCompactNumber(stats.captured_normal)} / S ${formatCompactNumber(stats.captured_shiny)})`,
@@ -12881,6 +15140,137 @@ function showHoverPopup(entity, clientX, clientY) {
   hoverPopupEl.style.left = `${popupX}px`;
   hoverPopupEl.style.top = `${popupY}px`;
   hoverPopupEl.classList.remove("hidden");
+}
+
+function positionFloatingMenuElement(menuEl, clientX, clientY) {
+  if (!menuEl) {
+    return;
+  }
+  const menuRect = menuEl.getBoundingClientRect();
+  let left = clientX + 12;
+  let top = clientY + 12;
+  if (left + menuRect.width > window.innerWidth - 8) {
+    left = clientX - menuRect.width - 12;
+  }
+  if (top + menuRect.height > window.innerHeight - 8) {
+    top = clientY - menuRect.height - 12;
+  }
+  menuEl.style.left = `${Math.round(clamp(left, 8, window.innerWidth - menuRect.width - 8))}px`;
+  menuEl.style.top = `${Math.round(clamp(top, 8, window.innerHeight - menuRect.height - 8))}px`;
+}
+
+function setBallCaptureToggleButtonState(buttonEl, label, enabled, locked = false) {
+  if (!buttonEl) {
+    return;
+  }
+  const isEnabled = Boolean(enabled);
+  const isLocked = Boolean(locked);
+  buttonEl.disabled = isLocked;
+  buttonEl.setAttribute("aria-checked", isEnabled ? "true" : "false");
+  buttonEl.setAttribute("aria-disabled", isLocked ? "true" : "false");
+  buttonEl.classList.toggle("is-on", isEnabled);
+  buttonEl.classList.toggle("is-locked", isLocked);
+  buttonEl.textContent = "";
+
+  const checkEl = document.createElement("span");
+  checkEl.className = "ball-capture-toggle-check";
+  checkEl.setAttribute("aria-hidden", "true");
+  checkEl.textContent = isEnabled ? "X" : "";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "ball-capture-toggle-label";
+  labelEl.textContent = label;
+
+  buttonEl.appendChild(checkEl);
+  buttonEl.appendChild(labelEl);
+
+  if (isLocked) {
+    const lockEl = document.createElement("span");
+    lockEl.className = "ball-capture-toggle-lock";
+    lockEl.textContent = "verrouill\u00e9";
+    buttonEl.appendChild(lockEl);
+  }
+}
+
+function refreshBallCaptureMenu() {
+  if (!ballCaptureMenuEl) {
+    return;
+  }
+  const ballType = getBallCaptureMenuBallType();
+  if (!ballType) {
+    closeBallCaptureMenu();
+    return;
+  }
+  const config = BALL_CONFIG_BY_TYPE[ballType];
+  const rules = getBallCaptureRulesForType(ballType);
+  const captureAllEnabled = Boolean(rules[BALL_CAPTURE_RULE_CAPTURE_ALL]);
+
+  if (ballCaptureMenuTitleEl) {
+    ballCaptureMenuTitleEl.textContent = `${config.nameFr} | R\u00e9glages capture`;
+  }
+
+  for (const definition of BALL_CAPTURE_TOGGLE_DEFINITIONS) {
+    const key = definition.key;
+    const enabled = Boolean(rules[key]);
+    const locked = captureAllEnabled && key !== BALL_CAPTURE_RULE_CAPTURE_ALL;
+    setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled, locked);
+  }
+}
+
+function openBallCaptureMenu(ballType, clientX, clientY) {
+  if (!ballCaptureMenuEl) {
+    return;
+  }
+  const type = String(ballType || "").toLowerCase().trim();
+  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
+    return;
+  }
+  closeTeamContextMenu();
+  state.ui.ballCaptureMenuOpen = true;
+  state.ui.ballCaptureMenuBallType = type;
+  setHoveredBallOverlayType(type);
+  setHoveredTeamSlotIndex(-1);
+  hideHoverPopup();
+  refreshBallCaptureMenu();
+  ballCaptureMenuEl.classList.remove("hidden");
+  positionFloatingMenuElement(ballCaptureMenuEl, clientX, clientY);
+}
+
+function toggleBallCaptureRule(ruleKey) {
+  const ballType = getBallCaptureMenuBallType();
+  if (!ballType) {
+    return;
+  }
+  const key = String(ruleKey || "");
+  if (!BALL_CAPTURE_TOGGLE_DEFINITIONS.some((definition) => definition.key === key)) {
+    return;
+  }
+  const currentRules = getBallCaptureRulesForType(ballType);
+  let nextRules = { ...currentRules };
+  if (key === BALL_CAPTURE_RULE_CAPTURE_ALL) {
+    const nextCaptureAll = !Boolean(currentRules[BALL_CAPTURE_RULE_CAPTURE_ALL]);
+    nextRules[BALL_CAPTURE_RULE_CAPTURE_ALL] = nextCaptureAll;
+    if (nextCaptureAll) {
+      nextRules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+      nextRules[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
+      nextRules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
+    }
+  } else {
+    if (currentRules[BALL_CAPTURE_RULE_CAPTURE_ALL]) {
+      refreshBallCaptureMenu();
+      return;
+    }
+    nextRules[BALL_CAPTURE_RULE_CAPTURE_ALL] = false;
+    nextRules[key] = !Boolean(currentRules[key]);
+  }
+
+  const changed = setBallCaptureRulesForType(ballType, nextRules);
+  refreshBallCaptureMenu();
+  if (!changed) {
+    return;
+  }
+  persistSaveData();
+  render();
 }
 
 function refreshTeamContextMenu() {
@@ -12920,6 +15310,7 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   if (!teamContextMenuEl || !member) {
     return;
   }
+  closeBallCaptureMenu();
   if (state.ui.renameOpen) {
     closeRenameModal();
   }
@@ -12931,17 +15322,7 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   refreshTeamContextMenu();
 
   teamContextMenuEl.classList.remove("hidden");
-  const menuRect = teamContextMenuEl.getBoundingClientRect();
-  let left = clientX + 12;
-  let top = clientY + 12;
-  if (left + menuRect.width > window.innerWidth - 8) {
-    left = clientX - menuRect.width - 12;
-  }
-  if (top + menuRect.height > window.innerHeight - 8) {
-    top = clientY - menuRect.height - 12;
-  }
-  teamContextMenuEl.style.left = `${Math.round(clamp(left, 8, window.innerWidth - menuRect.width - 8))}px`;
-  teamContextMenuEl.style.top = `${Math.round(clamp(top, 8, window.innerHeight - menuRect.height - 8))}px`;
+  positionFloatingMenuElement(teamContextMenuEl, clientX, clientY);
 }
 
 function getTeamSlotLabel(slotIndex) {
@@ -13678,12 +16059,20 @@ function handleCanvasMouseMove(event) {
     clearCanvasHoverState();
     return;
   }
-  if (state.ui.teamContextMenuOpen) {
+  if (state.ui.teamContextMenuOpen || state.ui.ballCaptureMenuOpen) {
+    setHoveredTeamSlotIndex(-1);
     hideHoverPopup();
     syncCanvasInteractionCursor();
     return;
   }
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
+  const hoveredBallOverlay = findHoveredBallOverlayHitbox(worldX, worldY);
+  setHoveredBallOverlayType(hoveredBallOverlay?.ballType || "");
+  if (hoveredBallOverlay) {
+    setHoveredTeamSlotIndex(-1);
+    hideHoverPopup();
+    return;
+  }
   const layout = state.layout || computeLayout();
   const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
   setHoveredTeamSlotIndex(hoveredTeamSlot?.slotIndex ?? -1);
@@ -13697,9 +16086,16 @@ function handleCanvasClick(event) {
   }
   closeTeamContextMenu();
   if (isCanvasBattleInteractionBlocked()) {
+    closeBallCaptureMenu();
     return;
   }
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
+  const hoveredBallOverlay = findHoveredBallOverlayHitbox(worldX, worldY);
+  if (hoveredBallOverlay) {
+    openBallCaptureMenu(hoveredBallOverlay.ballType, event.clientX, event.clientY);
+    return;
+  }
+  closeBallCaptureMenu();
   const layout = state.layout || computeLayout();
   const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
   if (!hoveredTeamSlot) {
@@ -13710,6 +16106,7 @@ function handleCanvasClick(event) {
 
 function handleCanvasContextMenu(event) {
   event.preventDefault();
+  closeBallCaptureMenu();
   if (isCanvasBattleInteractionBlocked()) {
     closeTeamContextMenu();
     return;
@@ -13738,6 +16135,7 @@ function exportTextState() {
           id: state.enemy.id,
           name_fr: state.enemy.nameFr,
           level: state.enemy.level,
+          sprite_scale: Math.round(getPokemonDataSpriteScale(state.enemy) * 1000) / 1000,
           hp_current: state.enemy.hpCurrent,
           hp_max: state.enemy.hpMax,
           is_shiny: Boolean(state.enemy.isShiny),
@@ -13748,6 +16146,10 @@ function exportTextState() {
           ),
           sprite_variant_id: state.enemy.spriteVariantId || null,
           defensive_types: state.enemy.defensiveTypes,
+          balance_team_size: Math.max(1, toSafeInt(state.enemy.balanceTeamSize, 1)),
+          balance_hp_multiplier: Math.round(Math.max(0, Number(state.enemy.balanceHpMultiplier || 1)) * 1000) / 1000,
+          balance_reward_multiplier:
+            Math.round(Math.max(0, Number(state.enemy.balanceRewardMultiplier || 1)) * 1000) / 1000,
           talent_id: enemyTalent.id,
           talent_name_fr: enemyTalent.nameFr,
           talent_name_en: enemyTalent.nameEn,
@@ -13767,6 +16169,7 @@ function exportTextState() {
   const routeDefeatTimer = battle ? battle.getEnemyTimerState() : null;
   const appearancePokemonId = Number(state.ui.appearancePokemonId || 0);
   const appearanceRecord = appearancePokemonId > 0 ? getPokemonEntityRecord(appearancePokemonId) : null;
+  const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);
 
   const team = state.team.map((member, index) => {
     const slot = layout.teamSlots[index];
@@ -13778,6 +16181,7 @@ function exportTextState() {
       id: member.id,
       name_fr: member.nameFr,
       level: member.level,
+      sprite_scale: Math.round(getPokemonDataSpriteScale(member) * 1000) / 1000,
       xp: Math.max(0, toSafeInt(member.xp, 0)),
       xp_to_next: Math.max(0, toSafeInt(member.xpToNext, 0)),
       is_shiny: Boolean(member.isShiny),
@@ -13793,6 +16197,7 @@ function exportTextState() {
       talent_name_en: talent.nameEn,
       talent_description_fr: talent.descriptionFr,
       passive_behavior_id: passiveBehaviorId,
+      team_aura_attack_bonus_pct: Math.round(Math.max(0, Number(teamAuraAttackBonusBySlot[index] || 0)) * 10000) / 100,
       type_multiplier_vs_enemy:
         enemyDefensiveTypes.length > 0 ? Math.round(getTypeMultiplier(offensiveType, enemyDefensiveTypes) * 100) / 100 : null,
       x: slot ? Math.round(slot.x) : null,
@@ -13801,7 +16206,8 @@ function exportTextState() {
   });
 
   const payload = {
-    app_version: APP_VERSION,
+    app_version: DISPLAY_APP_VERSION,
+    app_build_version: APP_VERSION,
     mode: state.mode,
     debug_force_ultra_shiny_all_pokemon: shouldForceUltraShinyAllPokemon(),
     coordinate_system: {
@@ -13918,9 +16324,7 @@ function exportTextState() {
         effect_duration_ms: Math.max(0, toSafeInt(item.effectDurationMs, 0)),
         stock_tracked: Boolean(item.stockTracked),
       })),
-    save_backend: state.saveBackend.bridgeAvailable
-      ? "appdata_roaming"
-      : "local_storage",
+    save_backend: "browser_storage",
     shop_open: Boolean(state.ui.shopOpen),
     map_open: Boolean(state.ui.mapOpen),
     shop_tab: String(state.ui.shopTab || SHOP_TAB_POKEBALLS),
@@ -13939,6 +16343,13 @@ function exportTextState() {
     appearance_pokemon_id: Number(state.ui.appearancePokemonId || 0) || null,
     team_context_menu_open: Boolean(state.ui.teamContextMenuOpen),
     team_context_menu_slot_index: toSafeInt(state.ui.teamContextMenuSlotIndex, -1),
+    ball_capture_menu_open: Boolean(state.ui.ballCaptureMenuOpen),
+    ball_capture_menu_ball_type: getBallCaptureMenuBallType() || null,
+    ball_capture_rules: state.saveData
+      ? Object.fromEntries(
+          BALL_TYPE_FALLBACK_ORDER.map((ballType) => [ballType, getBallCaptureRulesForType(ballType)]),
+        )
+      : null,
     appearance_selected_variant_id: appearanceRecord?.appearance_selected_variant || null,
     appearance_shiny_mode: Boolean(appearanceRecord?.appearance_shiny_mode),
     appearance_ultra_shiny_mode: Boolean(appearanceRecord?.appearance_ultra_shiny_mode),
@@ -14042,6 +16453,16 @@ function getPokemonLoadTargets(routeDataInput) {
   const targetsById = new Map();
   for (const starter of STARTER_CHOICES) {
     targetsById.set(Number(starter.id), starter.nameEn);
+  }
+
+  if (state.saveData?.pokemon_entities && typeof state.saveData.pokemon_entities === "object") {
+    for (const [rawId, record] of Object.entries(state.saveData.pokemon_entities)) {
+      const id = Number(record?.id || rawId || 0);
+      const speciesNameEn = String(record?.species_name_en || record?.name_en || "").toLowerCase().trim();
+      if (id > 0 && speciesNameEn) {
+        targetsById.set(id, speciesNameEn);
+      }
+    }
   }
 
   const routeDataList = Array.isArray(routeDataInput)
@@ -14521,14 +16942,172 @@ async function loadRouteCatalog(routeIds = ROUTE_ID_ORDER) {
   return catalog;
 }
 
-async function preloadRouteBackgrounds(routeCatalog) {
+function getRouteDataListFromInput(routeInput) {
+  if (routeInput instanceof Map) {
+    return Array.from(routeInput.values());
+  }
+  if (Array.isArray(routeInput)) {
+    return routeInput.filter((routeData) => routeData && typeof routeData === "object");
+  }
+  return [];
+}
+
+function getRouteDataByIds(routeIds, routeCatalog = state.routeCatalog) {
+  if (!(routeCatalog instanceof Map) || routeCatalog.size <= 0) {
+    return [];
+  }
+  const sourceIds = Array.isArray(routeIds) ? routeIds : [routeIds];
+  const uniqueIds = Array.from(new Set(sourceIds.map((routeId) => String(routeId || ""))));
+  const routeDataList = [];
+  for (const routeId of uniqueIds) {
+    const routeData = routeCatalog.get(routeId) || null;
+    if (routeData) {
+      routeDataList.push(routeData);
+    }
+  }
+  return routeDataList;
+}
+
+function getInitialAssetRouteIds() {
+  const routeIds = new Set([DEFAULT_ROUTE_ID, ROUTE_1_TUTORIAL_ID]);
+  const currentRouteId = String(state.saveData?.current_route_id || "");
+  if (currentRouteId) {
+    routeIds.add(currentRouteId);
+  }
+  const unlockedRouteIds = normalizeUnlockedRouteIds(state.saveData?.unlocked_route_ids, getOrderedCatalogRouteIds());
+  for (const routeId of unlockedRouteIds) {
+    routeIds.add(routeId);
+  }
+  return Array.from(routeIds).filter((routeId) => state.routeCatalog.has(routeId));
+}
+
+async function preloadRouteBackgrounds(routeInput) {
+  const routeDataList = getRouteDataListFromInput(routeInput);
   const entries = await Promise.all(
-    Array.from(routeCatalog.values()).map(async (routeData) => [
-      routeData.route_id,
-      await loadImage(routeData.background_image || null),
-    ]),
+    routeDataList.map(async (routeData) => [routeData.route_id, await loadImage(routeData.background_image || null)]),
   );
   return new Map(entries);
+}
+
+function queueDeferredRouteAssetWarmup(preloadedRouteIds = []) {
+  if (!(state.routeCatalog instanceof Map) || state.routeCatalog.size <= 0) {
+    return;
+  }
+  const alreadyLoaded = new Set(
+    (Array.isArray(preloadedRouteIds) ? preloadedRouteIds : [preloadedRouteIds]).map((routeId) => String(routeId || "")),
+  );
+  const remainingRouteIds = getOrderedCatalogRouteIds().filter((routeId) => !alreadyLoaded.has(routeId));
+  if (remainingRouteIds.length <= 0) {
+    return;
+  }
+
+  const runWarmup = () => {
+    const routeDataList = getRouteDataByIds(remainingRouteIds);
+    if (routeDataList.length <= 0) {
+      return;
+    }
+    Promise.all([loadPokemonDefinitions(routeDataList, { append: true }), preloadRouteBackgrounds(routeDataList)])
+      .then(([, warmBackgrounds]) => {
+        if (warmBackgrounds instanceof Map && warmBackgrounds.size > 0) {
+          state.routeBackgroundsById = new Map([...state.routeBackgroundsById, ...warmBackgrounds]);
+        }
+      })
+      .catch((error) => {
+        console.warn(
+          "Prechargement differe des assets de routes indisponible:",
+          error instanceof Error ? error.message : String(error || ""),
+        );
+      });
+  };
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(
+      () => {
+        runWarmup();
+      },
+      { timeout: 2500 },
+    );
+    return;
+  }
+  window.setTimeout(() => {
+    runWarmup();
+  }, 220);
+}
+
+function hasMissingRoutePokemonDefinitions(routeData) {
+  const encounters = Array.isArray(routeData?.encounters) ? routeData.encounters : [];
+  for (const encounter of encounters) {
+    const id = Number(encounter?.id || 0);
+    if (id > 0 && !state.pokemonDefsById.has(id)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function ensureRouteBackgroundLoaded(routeData) {
+  const routeId = String(routeData?.route_id || "");
+  if (!routeId) {
+    return;
+  }
+  if (state.routeBackgroundsById.has(routeId) || pendingRouteBackgroundLoads.has(routeId)) {
+    return;
+  }
+  const task = loadImage(routeData?.background_image || null)
+    .then((image) => {
+      state.routeBackgroundsById.set(routeId, image || null);
+      if (state.routeData?.route_id === routeId) {
+        state.backgroundImage = image || null;
+        render();
+      }
+    })
+    .finally(() => {
+      pendingRouteBackgroundLoads.delete(routeId);
+    });
+  pendingRouteBackgroundLoads.set(routeId, task);
+}
+
+function ensureRouteDefinitionsLoaded(routeData) {
+  const routeId = String(routeData?.route_id || "");
+  if (!routeId || !hasMissingRoutePokemonDefinitions(routeData)) {
+    return;
+  }
+  if (pendingRouteDefinitionLoads.has(routeId)) {
+    return;
+  }
+  const task = loadPokemonDefinitions([routeData], { append: true })
+    .then(() => {
+      if (state.routeData?.route_id !== routeId) {
+        return;
+      }
+      if (!state.battle || state.enemy || !isCurrentRouteCombatEnabled()) {
+        return;
+      }
+      state.battle.spawnEnemy();
+      state.enemy = state.battle.getEnemy();
+      if (!state.simulationIdleMode) {
+        updateHud();
+      }
+      render();
+    })
+    .catch((error) => {
+      console.warn(
+        `Impossible de precharger les definitions de ${routeId}:`,
+        error instanceof Error ? error.message : String(error || ""),
+      );
+    })
+    .finally(() => {
+      pendingRouteDefinitionLoads.delete(routeId);
+    });
+  pendingRouteDefinitionLoads.set(routeId, task);
+}
+
+function ensureRouteAssetsLoaded(routeData) {
+  if (!routeData || typeof routeData !== "object") {
+    return;
+  }
+  ensureRouteBackgroundLoaded(routeData);
+  ensureRouteDefinitionsLoaded(routeData);
 }
 
 function ensureUnlockedRoutesForCurrentCatalog() {
@@ -14554,6 +17133,7 @@ function setActiveRoute(routeId, options = {}) {
   state.routeData = routeData;
   state.backgroundImage = state.routeBackgroundsById.get(routeData.route_id) || null;
   resetBackgroundDriftForRoute(routeData.route_id, { immediate: true });
+  resetOnlyOneEncounterCycle(routeData.route_id);
   if (state.saveData) {
     state.saveData.current_route_id = routeData.route_id;
     ensureUnlockedRoutesForCurrentCatalog();
@@ -14567,6 +17147,7 @@ function setActiveRoute(routeId, options = {}) {
   queueRoute1TutorialIfNeeded(routeData.route_id);
   refreshRouteUi();
   tryOpenPendingTutorialFlow();
+  ensureRouteAssetsLoaded(routeData);
   return true;
 }
 
@@ -14611,8 +17192,9 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
   };
 }
 
-async function loadPokemonDefinitions(routeDataInput) {
-  const defsById = new Map();
+async function loadPokemonDefinitions(routeDataInput, options = {}) {
+  const append = options?.append !== false;
+  const defsById = append ? new Map(state.pokemonDefsById) : new Map();
   const queuedIds = new Set();
   const queue = [];
 
@@ -14675,7 +17257,7 @@ async function initializeScene() {
     ? state.ui.shopTab
     : SHOP_TAB_POKEBALLS;
   state.ui.shopQuantityMode = normalizeShopQuantityMode(state.ui.shopQuantityMode || "1");
-  state.ui.shopCustomQuantity = Math.max(1, toSafeInt(state.ui.shopCustomQuantity, 1));
+  state.ui.shopCustomQuantity = clamp(toSafeInt(state.ui.shopCustomQuantity, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
   state.teamLevelUpEffects = [];
   state.teamXpGainEffects = [];
   state.teamXpPulseMsBySlot = {};
@@ -14757,16 +17339,20 @@ async function initializeScene() {
     state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
     refreshOrderedCatalogRouteIds();
-    await loadPokemonDefinitions(Array.from(state.routeCatalog.values()));
+    ensureUnlockedRoutesForCurrentCatalog();
+    const initialAssetRouteIds = getInitialAssetRouteIds();
+    const initialAssetRouteData = getRouteDataByIds(initialAssetRouteIds);
+    await loadPokemonDefinitions(initialAssetRouteData, { append: false });
     const unlockStateReconciled = reconcileEntityUnlockStates();
     const appearanceStateReconciled = reconcileEntityAppearanceStates();
+    const runtimeSaveRepair = repairRuntimeSaveAfterDefinitionsLoaded();
     const tutorialProgressBefore = JSON.stringify(state.saveData.tutorials || {});
     getTutorialProgress();
     const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();
     const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});
     const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;
     const [routeBackgroundsById, typeIconImages] = await Promise.all([
-      preloadRouteBackgrounds(state.routeCatalog),
+      preloadRouteBackgrounds(initialAssetRouteData),
       preloadTypeIcons(),
       preloadSelectedAppearanceAssetsForTeam(),
     ]);
@@ -14781,38 +17367,47 @@ async function initializeScene() {
 
     ensureMoneyAndItems();
     syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
-    if (unlockStateReconciled || appearanceStateReconciled || tutorialProgressChanged) {
+    rebuildTeamAndSyncBattle();
+    if (
+      unlockStateReconciled
+      || appearanceStateReconciled
+      || runtimeSaveRepair.changed
+      || tutorialProgressChanged
+    ) {
       persistSaveData();
     }
     offlineCatchupMs = queueOfflineCatchupFromSave(Date.now());
 
     renderStarterChoices();
-    rebuildTeamAndSyncBattle();
     updateHud();
 
-    if (!state.saveData.starter_chosen || state.team.length === 0) {
-      state.saveData.starter_chosen = false;
-      state.saveData.team = [];
+    if (state.saveData.starter_chosen && state.team.length === 0) {
+      throw new Error("La sauvegarde est incoherente: impossible de reconstruire une equipe jouable.");
+    }
+
+    if (!state.saveData.starter_chosen) {
       state.team = [];
       state.battle = null;
       state.enemy = null;
       state.pendingSimMs = 0;
       showStarterModal();
-      persistSaveData();
       setTopMessage("Choisis ton starter pour debuter sur Route 1.", 2200);
     } else {
       hideStarterModal();
       startBattle();
+      if (runtimeSaveRepair.recoveredTeam) {
+        setTopMessage("Sauvegarde reparee: equipe restauree automatiquement.", 2600);
+      } else if (runtimeSaveRepair.hardResetApplied) {
+        setTopMessage("Sauvegarde incoherente nettoyee. Une nouvelle partie est prete.", 2600);
+      }
     }
 
-    if (!state.saveBackend.bridgeAvailable && state.saveData.starter_chosen && state.team.length > 0) {
-      setTopMessage(
-        "Save bridge hors ligne: sauvegarde localeStorage. Lance run_local_game_with_save.ps1 pour AppData\\Roaming\\PokeIdle.",
-        4200,
-      );
+    if (runtimeSaveRepair.hardResetApplied && !state.saveData.starter_chosen) {
+      setTopMessage("Sauvegarde incoherente nettoyee. Choisis un starter pour repartir proprement.", 3200);
     }
 
     state.mode = "ready";
+    queueDeferredRouteAssetWarmup(initialAssetRouteIds);
     queueAppearanceTutorialIfNeeded();
     tryOpenPendingTutorialFlow();
     if (offlineCatchupMs > 0 && state.battle) {
@@ -14832,12 +17427,23 @@ async function initializeScene() {
   render();
 }
 
-function resetSaveAndRestart() {
+async function resetSaveAndRestart() {
   const shouldReset = window.confirm("Supprimer toute la sauvegarde locale et recommencer ?");
   if (!shouldReset) {
     return;
   }
-  localStorage.removeItem(SAVE_KEY);
+
+  state.saveBackend.pendingSerializedSave = null;
+  clearBrowserSaveRetry();
+  const removedLocalStorage = removeSaveDataFromStorageKey("localStorage", SAVE_KEY);
+  const removedSessionStorage = removeSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY);
+  const removedIndexedDb = await deleteSaveDataFromIndexedDb();
+  if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb) {
+    window.alert("Impossible de supprimer la sauvegarde navigateur.");
+    updateSaveBackendIndicator();
+    return;
+  }
+
   state.saveData = createEmptySave();
   syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
   state.team = [];
@@ -14905,6 +17511,11 @@ document.addEventListener("keydown", (event) => {
   if (key === "escape" && state.ui.renameOpen) {
     event.preventDefault();
     closeRenameModal();
+    return;
+  }
+  if (key === "escape" && state.ui.ballCaptureMenuOpen) {
+    event.preventDefault();
+    closeBallCaptureMenu();
     return;
   }
   if (key === "escape" && state.ui.teamContextMenuOpen) {
@@ -14982,14 +17593,38 @@ if (teamContextMenuAppearanceButtonEl) {
     }
   });
 }
+if (ballCaptureToggleAllButtonEl) {
+  ballCaptureToggleAllButtonEl.addEventListener("click", () => {
+    toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_ALL);
+  });
+}
+if (ballCaptureToggleUnownedButtonEl) {
+  ballCaptureToggleUnownedButtonEl.addEventListener("click", () => {
+    toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_UNOWNED);
+  });
+}
+if (ballCaptureToggleShinyButtonEl) {
+  ballCaptureToggleShinyButtonEl.addEventListener("click", () => {
+    toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_SHINY);
+  });
+}
+if (ballCaptureToggleUltraButtonEl) {
+  ballCaptureToggleUltraButtonEl.addEventListener("click", () => {
+    toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY);
+  });
+}
 document.addEventListener("pointerdown", (event) => {
-  if (!state.ui.teamContextMenuOpen) {
-    return;
+  const target = event.target;
+  if (state.ui.teamContextMenuOpen) {
+    if (!teamContextMenuEl || !teamContextMenuEl.contains(target)) {
+      closeTeamContextMenu();
+    }
   }
-  if (teamContextMenuEl && teamContextMenuEl.contains(event.target)) {
-    return;
+  if (state.ui.ballCaptureMenuOpen) {
+    if (!ballCaptureMenuEl || !ballCaptureMenuEl.contains(target)) {
+      closeBallCaptureMenu();
+    }
   }
-  closeTeamContextMenu();
 });
 if (resetSaveButtonEl) {
   resetSaveButtonEl.addEventListener("click", resetSaveAndRestart);
@@ -15066,7 +17701,7 @@ for (const button of shopQtyPresetButtonEls) {
 }
 if (shopCustomQtyInputEl) {
   shopCustomQtyInputEl.addEventListener("input", () => {
-    state.ui.shopCustomQuantity = Math.max(1, toSafeInt(shopCustomQtyInputEl.value, 1));
+    state.ui.shopCustomQuantity = clamp(toSafeInt(shopCustomQtyInputEl.value, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
     if (state.ui.shopQuantityMode === SHOP_QUANTITY_MODE_CUSTOM) {
       renderShopModal();
     }

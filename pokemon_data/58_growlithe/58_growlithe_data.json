@@ -140,5 +140,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "firered_leafgreen"
+  "default_sprite_variant_id": "firered_leafgreen",
+  "height": 7,
+  "size": 0.0
 }

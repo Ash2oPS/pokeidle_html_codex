@@ -1,4 +1,4 @@
 ball_type,name_fr,price,capture_multiplier,coming_soon,description,sprite_path,sort_order
 poke_ball,PokeBall,200,1,false,Balle standard pour capturer les Pokemon sauvages.,assets/items/poke_ball.png,10
-super_ball,SuperBall,2500,2,true,x2 chances de capture par rapport a une PokeBall.,assets/items/super_ball.png,20
-hyper_ball,HyperBall,15000,4,true,x2 chances de capture par rapport a une SuperBall.,assets/items/hyper_ball.png,30
+super_ball,SuperBall,10000,2,true,x2 chances de capture par rapport a une PokeBall.,assets/items/super_ball.png,20
+hyper_ball,HyperBall,150000,4,true,x2 chances de capture par rapport a une SuperBall.,assets/items/hyper_ball.png,30

@@ -74,5 +74,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "heartgold_soulsilver"
+  "default_sprite_variant_id": "heartgold_soulsilver",
+  "height": 9,
+  "size": 0.0
 }

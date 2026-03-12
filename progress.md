@@ -138,6 +138,48 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Added a right-click context menu:
   - new DOM node in `index.html` for the menu;
   - new styling in `styles.css`;
+
+## Additional progress (save hardening + anti-hybrid fix)
+- Refactored save backend policy so local play and public play are now intentionally separated:
+  - local contexts (`localhost`, `127.0.0.1`, private IPv4, `file:`) now use the disk bridge as the single source of truth;
+  - non-local/public contexts keep using browser `localStorage`;
+  - local gameplay no longer arbitrates between bridge and per-origin `localStorage`, which removes the old mixed-backend behavior.
+- Added shared save-origin policy helpers in `lib/save-origin-policy.js` and reused them in both the browser and `save_bridge_server.mjs`.
+- Hardened the save bridge:
+  - cross-OS save directory resolution (`APPDATA` / macOS Application Support / XDG data dir);
+  - CORS now only allows local origins instead of `*`;
+  - restoring from a readable backup now repairs `save_main.json` immediately.
+- Added save consistency helpers in `lib/save-consistency.js` to repair impossible states before runtime:
+  - missing team + owned Pokemon now reconstructs a valid team automatically;
+  - orphaned progress without any owned/team Pokemon is treated as an incoherent save and reset to a clean new-game snapshot instead of producing a hybrid state.
+- Removed the old "semi-reset" path in `initializeScene()`:
+  - the game no longer persists a fake new game when runtime team hydration comes back empty;
+  - if a save still cannot reconstruct any playable team after repair, the game now fails loudly instead of silently corrupting the save further.
+- Added species identity persistence (`species_name_en`) on Pokemon entity records so locally saved owned species can be reloaded more reliably across sessions.
+- Local save resets are now full resets:
+  - browser local key is cleared when local disk save is authoritative;
+  - `DELETE /save` is called for local bridge mode so both the main save and backups are wiped before recreating a fresh save.
+- Bridge writes now retry instead of dropping the pending disk save as soon as one POST fails.
+- Added a best-effort `sendBeacon` flush for page lifecycle persistence in bridge mode.
+
+## Save validation
+- `node --check game.js`: PASS.
+- `node --check save_bridge_server.mjs`: PASS.
+- `npm run test:save`: PASS.
+  - covers origin policy, anti-hybrid consistency repair, backup restore + main-file repair, and bridge origin filtering.
+- Develop-web-game Playwright validation with a seeded hybrid save (`tmp/save-integration-validation/PokeIdle/save_main.json`): PASS.
+  - Launch context: local server + bridge mode.
+  - Artifact: `output/save-recovery-validation/shot-0.png`.
+  - Artifact: `output/save-recovery-validation/state-0.json`.
+  - Verified result:
+    - no starter modal (`starter_modal_visible: false`);
+    - recovered team size is `2`;
+    - old nickname preserved (`Briquet`, level 17);
+    - route/progression remains on `kanto_route_8`;
+    - backend reports `bridge_file`;
+    - repaired disk save now has `starter_chosen: true` and `team: [4,16]`.
+- Added `run_local_game_with_save.bat` as a Windows double-click / cmd wrapper around `run_local_game_with_save.ps1` using `powershell.exe -ExecutionPolicy Bypass`.
+- Updated `run_local_game_with_save.ps1` so it now opens `http://127.0.0.1:<port>` automatically in the default browser once the save bridge and local web server are ready.
   - menu actions in `game.js`: `Echanger avec la boite` and `Changer l'apparence`;
   - left click still directly opens the boxes modal as before.
 - Expanded `render_game_to_text` with:
@@ -2639,3 +2681,463 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - after buy: `money=150`, `ball_inventory.poke_ball=4`, total `pokeballs=4`, `PokeBall` button disabled with `Acheter MAX`
   - screenshots checked: `output/shop-max-verify/shop-max-before-buy.png`, `output/shop-max-verify/shop-max-after-buy.png`
   - summary artifact: `output/shop-max-verify/shop-max-summary.json`
+
+## Additional progress (Pokemon heights data)
+- Added `height` to `download_pokemon_data.py` so future full dataset rebuilds keep the field in each Pokemon JSON.
+- Added `scripts_download_pokemon_heights.py` to backfill the current `pokemon_data/*/*_data.json` files without re-running the full sprite download pipeline.
+
+## Validation (Pokemon heights data)
+- `py -3 -m py_compile download_pokemon_data.py scripts_download_pokemon_heights.py`: PASS.
+- `py -3 scripts_download_pokemon_heights.py`: PASS.
+  - `Pokemon JSON updated: 493`
+  - `Missing pokemon directories: 0`
+  - `Fetch errors: 0`
+- Dataset verification: PASS.
+  - `json_count=493`
+  - `missing_or_invalid_height=0`
+  - sample heights checked:
+    - `100_voltorb -> 5`
+    - `236_tyrogue -> 7`
+    - `9_blastoise -> 16`
+- `run_playwright_check.ps1`: PASS.
+  - fresh smoke-test artifacts regenerated in `output/web-game-poke/` (`state-0..2.json`, `shot-0..2.png`)
+  - no new Playwright failure introduced by the data update
+
+## Additional progress (Pokemon size remap data)
+- Added a derived `size` field to Pokemon JSON data.
+- `size` is computed from `height` with a clamped remap on `[10, 100]`:
+  - `10 -> 0`
+  - `100 -> 1`
+  - below `10` stays `0`
+  - above `100` stays `1`
+- Updated both the base generator and the local backfill script so future rebuilds and current dataset stay aligned.
+
+## Validation (Pokemon size remap data)
+- `py -3 -m py_compile download_pokemon_data.py scripts_download_pokemon_heights.py`: PASS.
+- `py -3 scripts_download_pokemon_heights.py`: PASS.
+  - `Pokemon JSON updated: 493`
+  - `Missing pokemon directories: 0`
+  - `Fetch errors: 0`
+  - `Height fetches performed: 0`
+- Dataset verification: PASS.
+  - `json_count=493`
+  - `invalid_size_count=0`
+  - sample remap checks:
+    - `1_bulbasaur: height=7 -> size=0.0`
+    - `9_blastoise: height=16 -> size=0.0667`
+    - `321_wailord: height=145 -> size=1.0`
+- `run_playwright_check.ps1`: PASS.
+
+## Additional progress (sprite scale driven by Pokemon data size)
+- Wired the new Pokemon data `size` field into battle sprite rendering in `game.js`.
+- The sprite visual scale now remaps `size` from `0..1` to a render multiplier of `0.8..1.2`.
+- Scope kept intentionally narrow:
+  - affects the Pokemon sprite render itself on canvas,
+  - affects evolution sprite frames too for consistency,
+  - does **not** resize HUD/UI elements such as HP bars, cards, labels, or slot layout.
+- Added `sprite_scale` to `render_game_to_text` for enemy/team debug validation.
+
+## Validation (sprite scale driven by Pokemon data size)
+- `node --check game.js`: PASS.
+- `run_playwright_capturechance.ps1`: PASS.
+  - combat state confirms runtime sprite scale is exported:
+    - `output/web-game-capturechance/state-20.json` shows `enemy.sprite_scale=0.8`
+    - `output/web-game-capturechance/state-20.json` shows `team[0].sprite_scale=0.8`
+  - no `errors-0.json` generated for this run.
+- `run_playwright_check.ps1`: PASS.
+- Data cross-check for bounds:
+  - `pokemon_data/4_charmander/4_charmander_data.json` has `size=0.0` -> runtime scale target `0.8`
+  - `pokemon_data/321_wailord/321_wailord_data.json` has `size=1.0` -> runtime scale target `1.2`
+
+## Additional progress (talents CSV + gameplay talents)
+- Updated `pokemon_data/pokemon_talents.csv` for talent rollout:
+  - Replaced `[A traduire]` values with EN labels (`Keen Eye`, `Valiant Eye`, `Mind Control`, `Origin Mimicry`).
+  - Assigned concrete talent IDs for active talents: `KEEN_EYE`, `VALIANT_EYE`, `MORPHING`, `MIND_CONTROL`, `ORIGIN_MIMICRY`.
+- Added passive behavior mapping in `lib/combat-passives.js` for non-`NONE` attack talents:
+  - `ACCURATE_ATTACK`, `VALIANT_ATTACK`, `MORPHING`, `MIND_CONTROL`, `ORIGIN_MIMICRY`.
+  - Kept `LOSER` on `NO_ATTACK`.
+- Implemented missing talent effects in `game.js`:
+  - `KEEN_EYE`: cannot miss.
+  - `VALIANT_EYE`: cannot miss + additional critical chance.
+  - `MIND_CONTROL`: triggers an extra same-turn hit from a random ally that can attack.
+  - `ORIGIN_MIMICRY`: attack type is copied from a random ally offensive type.
+  - `MORPHING`: Ditto copies previous teammate base stats/sprite/offensive+defensive typing at Ditto level, with a purple/pink shader tint.
+- UI update:
+  - Added talent effect line to hover popup (`Effet talent: ...`) in addition to existing boxes panel display.
+  - CSV comments are not surfaced in UI.
+- Validation:
+  - `node --check game.js` PASS.
+  - `node --check lib/combat-passives.js` PASS.
+  - Playwright capture run with save bridge + local server (`output/web-game-talents`) PASS.
+  - State snapshot confirms `Roucool` uses `talent_id: KEEN_EYE` and `passive_behavior_id: ACCURATE_ATTACK`.
+
+## Additional progress (capture XP flow without double reward)
+- Updated `handleEnemyDefeated` in `game.js` so XP is granted exactly once per enemy defeat:
+  - If no Pokeball is thrown: grant KO XP (`koXpReward`) as before.
+  - If a Pokeball is thrown and capture succeeds: do **not** grant KO XP; grant only capture bonus XP (`captureBonusXpReward`) when capture reward is applied.
+  - If a Pokeball is thrown and capture fails: grant KO XP (same reward as no Pokeball case).
+- Added reward-guard logic (`xpRewardGranted`) to prevent any double XP grant in mixed paths.
+- Refactored XP effect dispatch (level-up + floating XP text) through a shared helper to keep UI behavior consistent between KO and capture rewards.
+
+## Validation (capture XP flow without double reward)
+- `node --check game.js`: PASS.
+- `run_playwright_capturechance.ps1`: PASS.
+- Deterministic Playwright validation (isolated `browser_local_storage` mode on `127.0.0.1.nip.io` + forced RNG):
+  - Scenario `no_ball`: `xpDelta=7`, `defeatedDelta=1`.
+  - Scenario `capture_success`: `xpDelta=28`, `defeatedDelta=1`, `pokeballs 1 -> 0`.
+  - Scenario `capture_fail`: `xpDelta=7`, `defeatedDelta=1`, `pokeballs 1 -> 0`.
+  - Confirms no double XP on successful capture, and KO-equivalent XP on failed capture.
+
+## Additional progress (ultra shiny odds update)
+- Updated `ULTRA_SHINY_ODDS` in `game.js` from `4096` to `8192` so ultra shiny wild appearance rate is now 1/8192.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (script exits 0; latest captures generated in `output/web-game-poke/`).
+
+## Additional progress (bridge removal + browser save hardening)
+- Removed the local disk save bridge system from the active codebase:
+  - deleted `save_bridge_server.mjs`, `run_local_game_with_save.ps1`, and `run_local_game_with_save.bat`;
+  - removed bridge-specific runtime logic and package script references.
+- Browser save backend is now the only persistence path:
+  - synchronous write-through to `localStorage`;
+  - same-session mirror to `sessionStorage`;
+  - async persistent mirror to IndexedDB with retry.
+- Save loading now reconciles browser storage candidates by freshest `last_tick_epoch_ms`, then normalizes and rewrites the chosen payload across browser backends.
+- Added production-vs-dev version detection:
+  - GitHub Pages prod (`https://ash2ops.github.io/pokeidle_html_codex/`) keeps the plain version label;
+  - every non-prod context (local server, file URL, other hosts) appends `dev-mode`.
+- Added a dev-only `?dev_seed_save=...` bootstrap hook for local Playwright/debug flows without reintroducing a save bridge.
+- Added tests for browser save candidate selection and GitHub Pages prod detection / `dev-mode` labeling.
+
+## Additional progress (starter aura talents Overgrow/Blaze/Torrent)
+- Added new starter-family talents in `pokemon_data/pokemon_talents.csv` with FR/EN naming and requested effects:
+  - Overgrow tiers: `OVERGROW`, `OVERGROW_PLUS`, `OVERGROW_PLUS_PLUS` (Engrais / Engrais+ / Engrais++)
+  - Blaze tiers: `BLAZE`, `BLAZE_PLUS`, `BLAZE_PLUS_PLUS` (Brasier / Brasier+ / Brasier++)
+  - Torrent tiers: `TORRENT`, `TORRENT_PLUS`, `TORRENT_PLUS_PLUS` (Torrent / Torrent+ / Torrent++)
+  - Applied to requested species across Gen 1/2/3/4 starter lines.
+- Added passive behavior mapping aliases in `lib/combat-passives.js` so new talent IDs are recognized at runtime (`TEAM_AURA_ATTACK` behavior family).
+- Implemented stacked team aura gameplay effect in `game.js`:
+  - Each aura talent grants attack bonus to *other* team members with matching offensive type.
+  - Bonuses stack cumulatively when multiple aura providers are present.
+  - Applied as damage multiplier during hit resolution (`damageMultiplier: 1 + stackedBonus`).
+- Added small visual feedback when aura bonus is active:
+  - Type-colored pulsing ring/glow on team slots receiving a bonus (`drawTeamAuraIndicator`).
+- Exposed aura bonus in exported text state for debugging:
+  - `team_aura_attack_bonus_pct` per team member.
+- Validation:
+  - `node --check game.js` PASS.
+  - `node --check lib/combat-passives.js` PASS.
+  - Talent/passive mapping sanity check: no unresolved non-`NONE` talent IDs.
+- Note:
+  - Could not run end-to-end browser validation with save bridge in this turn because `save_bridge_server.mjs` is currently missing from workspace.
+
+## Additional progress (first purchased Pokeball free + guaranteed capture)
+- Added persistent save flags in `game.js`:
+  - `first_free_pokeball_claimed`
+  - `first_free_pokeball_guaranteed_capture_pending`
+- Save lifecycle updates:
+  - `createEmptySave()` now initializes both flags to `false`.
+  - `normalizeSave(...)` now normalizes both flags and keeps backward compatibility for older saves.
+  - `ensureMoneyAndItems()` now enforces boolean normalization for both fields during runtime economy normalization.
+- Shop purchase logic updates:
+  - Added first-purchase pricing helpers (`hasPendingFirstFreePokeballPurchase`, `getShopBallPurchasePricing`, `consumeFirstFreePokeballPurchaseBonus`).
+  - The very first Pokeball purchase now discounts exactly one ball (free), including when money is `0`.
+  - `MAX` quantity mode now includes this one-time free unit in affordability computation.
+  - Shop card affordability/stock text now reflects the first free ball state (`1ere ball offerte`).
+- Capture logic updates:
+  - Added `consumePendingGuaranteedCaptureBonus()`.
+  - `handleEnemyDefeated(...)` now consumes the pending first-free bonus on the next capture attempt and forces success (`captured = true`, `capture_chance_display = 1`).
+
+## Validation (first free Pokeball + guaranteed capture)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Playwright e2e flow with seeded save (`money=0`, `pokeballs=0`, first-free flags disabled): PASS.
+  - Before buy: `money=0`, `pokeballs=0`.
+  - After first Pokeball buy: `money=0`, `pokeballs=1`.
+  - First capture sequence phases observed: `throw -> shake -> success -> post` (no `break`).
+  - Capture snapshot: `captured=true`, `chance_display=1`.
+  - After capture: `pokeballs=0`.
+  - Artifacts:
+    - `output/first-free-ball-flow.json`
+    - `output/first-free-ball-flow.png`
+
+## Additional progress (UI stock balls in gameplay top-left)
+- Removed the global topbar Pokeballs pill from `index.html` so stock is no longer shown in the upper panel.
+- Added a new in-canvas overlay in `game.js` (`drawBallInventoryOverlay`) anchored at the top-left of the gameplay safe bounds.
+- Overlay rows now render as requested:
+  - always show `PokeBall` symbol + owned count,
+  - show `SuperBall` and `HyperBall` only after they have been acquired at least once.
+- Added persistent history tracking for this behavior via save field `ball_inventory_seen`:
+  - initialized in empty saves,
+  - normalized on load/migration,
+  - auto-backfilled from current inventory counts,
+  - updated on ball purchases (`addBallItems`) so visibility remains even when stock returns to 0.
+- Removed old topbar Pokeballs HUD update logic from `updateHud()`.
+
+## Validation (ball inventory overlay)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (script execution/exports OK).
+- Targeted gameplay Playwright run with starter auto-click (`.starter-choice`): PASS.
+  - artifacts: `output/web-game-ui-pokeballs/shot-0.png`, `output/web-game-ui-pokeballs/shot-1.png`
+  - gameplay state confirmed (`starter_modal_visible=false`, `save_team_size=1`).
+  - visual check confirms top-left gameplay overlay shows Pokeball icon + count and no topbar Pokeballs pill.
+- Extra seeded validation for visibility memory (`ball_inventory_seen`) with all stocks at 0:
+  - seed file: `output/seed_balls_seen.json`
+  - artifact: `output/web-game-ui-pokeballs-seen/shot-0.png`
+  - confirmed overlay shows 3 rows (Poke/Super/Hyper) at top-left even with `super_ball=0` and `hyper_ball=0`.
+
+## Additional progress (arena startup load optimization)
+- Optimized boot-time route asset loading in `game.js` to reduce initial page-to-arena latency:
+  - Added route-scoped preload helpers (`getInitialAssetRouteIds`, `getRouteDataByIds`, `getRouteDataListFromInput`).
+  - `initializeScene()` now preloads Pokemon definitions + route backgrounds only for initial critical routes (default route, Route 1 tutorial route, current route, and already unlocked routes), instead of preloading full catalog assets up front.
+  - Added deferred idle warmup (`queueDeferredRouteAssetWarmup`) to load remaining route assets after the game is already interactive.
+  - Updated `loadPokemonDefinitions(...)` with append mode so deferred warmup can progressively merge additional species definitions without resetting already loaded data.
+- Expected impact:
+  - Faster first interactive render and faster transition to playable arena state on page load.
+  - Full route asset completeness is preserved via background warmup.
+
+## Validation (arena startup load optimization)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+  - Fresh artifacts regenerated in `output/web-game-poke/` (`shot-0..2.png`, `state-0..2.json`).
+  - Visual inspection: startup scene/starter flow still renders correctly.
+- Note: existing generic browser `404` console resource error is still present in `output/web-game-poke/errors-0.json` (pre-existing, unchanged by this optimization).
+
+## Additional progress (route on-demand fallback after deferred warmup)
+- Added safety fallback loaders to avoid empty route states if deferred warmup is not finished yet:
+  - new pending maps: `pendingRouteDefinitionLoads`, `pendingRouteBackgroundLoads`.
+  - new route asset guards: `hasMissingRoutePokemonDefinitions`, `ensureRouteBackgroundLoaded`, `ensureRouteDefinitionsLoaded`, `ensureRouteAssetsLoaded`.
+  - `setActiveRoute(...)` now triggers `ensureRouteAssetsLoaded(routeData)` so missing route assets are fetched on demand.
+  - When route definitions finish loading and active battle had no enemy yet, enemy spawn is retried automatically (`state.battle.spawnEnemy()`), then HUD/render refresh.
+- Result:
+  - Keeps fast startup optimization while preventing combat dead-ends on routes that were not yet fully warmed.
+
+## Validation (route on-demand fallback)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+  - Fresh artifacts regenerated in `output/web-game-poke/` (`shot-0..2.png`, `state-0..2.json`).
+  - Visual inspection: startup/starter scene remains correct.
+- Existing note unchanged: generic `404` resource console error still appears in `output/web-game-poke/errors-0.json`.
+- Extra combat verification run after optimization: `run_playwright_capturechance.ps1`: PASS.
+  - Seeded Route 1 save still enters active combat with enemy present (`output/web-game-capturechance/state-0.json`: `route_id="kanto_route_1"`, `enemy.id=19`, `mode="ready"`).
+  - Late-run screenshot visually inspected: `output/web-game-capturechance/shot-89.png` (combat ongoing, no empty-arena regression).
+  - `output/web-game-capturechance/errors-0.json`: no errors file generated.
+- Added `only-one` encounter cycle logic in `game.js`:
+  - Tracks per-zone cycle internally (hidden from UI).
+  - On zone entry, cycle resets.
+  - Spawns `only-one` encounters every 50th encounter (49 normal, then 1 `only-one`), then repeats.
+- Added `only-one` combat modifiers:
+  - `only-one` enemies now spawn with 10x `hpMax`.
+  - `only-one` enemies now use a dedicated 120s timer.
+- Added timer style propagation through `PokemonBattleManager` and rendering:
+  - Timer state now includes a style key.
+  - `only-one` timer renders with a purple bar.
+- Playwright validation (develop-web-game skill):
+  - Run 1: `output/web-game-onlyone-cycle`
+    - Confirmed first special spawn at `defeats=49` (`state-339`, enemy 101 Electrode, `route_defeat_timer_duration_ms=120000`).
+    - Confirmed repetition at `defeats=99` (`state-675`, same special timer and boosted HP).
+    - Visual check: `shot-339.png` shows the purple timer bar.
+  - Run 2 (timeout case): `output/web-game-onlyone-timeout`
+    - Confirmed timer countdown on special until near zero (`state-383`, remaining ~758ms).
+    - Confirmed timeout transition to next normal enemy (`state-384`) with timer off and no extra defeat granted (still `defeats=49` at transition).
+    - Visual check: `shot-383.png` (purple timer visible) and `shot-384.png` (timer gone, normal encounter).
+- Console/runtime notes:
+  - No game console errors observed during these runs.
+  - Node emitted a non-blocking module-type warning for the shared skill script path.
+
+## Additional progress (ball capture menu + capture rule behavior)
+- Implemented interactive ball-capture rules menu opened by clicking the in-game top-left ball inventory row.
+- Added complete menu logic in `game.js`:
+  - open/close/refresh for `#ball-capture-menu`;
+  - per-ball-type rule editing (`capture_all`, `capture_unowned`, `capture_shiny`, `capture_ultra_shiny`);
+  - lock behavior: when `capture_all=true`, the 3 selective toggles are forced to true and disabled.
+- Wired canvas interactions:
+  - hover detection on ball overlay hitboxes for pointer affordance;
+  - left-click on overlay rows opens menu for that specific ball type;
+  - outside-click and `Escape` now close the ball-capture menu;
+  - team context menu and ball-capture menu now close each other to avoid overlap.
+- Added export debug fields in `render_game_to_text`:
+  - `ball_capture_menu_open`
+  - `ball_capture_menu_ball_type`
+  - `ball_capture_rules`
+- Confirmed capture usage honors rules at runtime:
+  - with all poke-ball capture rules set to false, defeats continue but pokeballs are not consumed;
+  - when `capture_all` is re-enabled, defeats consume pokeballs again.
+
+## Validation (ball capture menu + rules)
+- `node --check game.js`: PASS.
+- develop-web-game client smoke run: PASS.
+  - Artifacts: `output/ball-capture-menu-smoke/` and `output/ball-capture-menu-open/`.
+- Targeted Playwright toggle/locking validation: PASS.
+  - Artifact: `output/ball-capture-menu-toggle/summary.json`.
+  - Verified lock semantics and menu close on outside click.
+- Targeted Playwright gameplay behavior validation: PASS.
+  - Seed: `output/seed_capture_rule_behavior.json`.
+  - Artifact: `output/ball-capture-rule-behavior/summary.json`.
+  - Verified:
+    - rules all false -> defeats increase while pokeballs stay unchanged;
+    - `capture_all=true` -> defeats increase and pokeballs decrease.
+
+## Additional progress (combat/economy rebalance focused on 6v1 scaling)
+- Rebalanced core combat pacing constants in `game.js` to improve readability and progression feel:
+  - `ATTACK_INTERVAL_MS`: `500 -> 420` (snappier baseline combat loop)
+  - `DAMAGE_SCALE`: `1.7 -> 2.2`
+  - damage level boost exponent now configurable via `DAMAGE_LEVEL_PROGRESSION_EXPONENT = 0.62`
+- Reworked level/stat growth to remove runaway inflation while keeping power gain:
+  - new `getLevelProgressionMultiplier(...)` model using linear + curved growth constants
+  - adjusted `computeStatsAtLevel(...)` coefficients (HP/Atk/Def/SpA/SpD/Speed)
+  - adjusted `computeBattleHpMax(...)` ratios/dividers for lower frustration at low team sizes
+- Rebalanced progression/economy rewards:
+  - `CAPTURE_XP_*`, `ENEMY_MONEY_*` raised and smoothed
+  - `KO_XP_RATIO_OF_CAPTURE`: `0.2 -> 0.45` (KO progression less punishing when capture fails)
+  - `getXpToNextLevelForSpecies(...)` curve softened (`5.2*l^2 + 18*l` -> `3.6*l^2 + 12*l`)
+- Added explicit 6v1 balance layer (critical request):
+  - `getActiveTeamSizeForBalance()`
+  - `getEnemyHpTeamScaleMultiplier(...)`
+  - `getEnemyRewardScaleMultiplier(...)`
+  - wild enemy HP now scales with active team size (up to 6), and rewards scale accordingly
+  - exported debug fields in `render_game_to_text`:
+    - `enemy.balance_team_size`
+    - `enemy.balance_hp_multiplier`
+    - `enemy.balance_reward_multiplier`
+- Rebalanced `only-one` spike encounters to avoid hard frustration walls:
+  - `ONLY_ONE_ENCOUNTER_HP_MULTIPLIER`: `10 -> 3`
+  - `ONLY_ONE_ENCOUNTER_TIMER_MS`: `120000 -> 150000`
+
+## Validation (this turn)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS.
+- `run_playwright_check.ps1`: PASS.
+  - starter flow still renders properly (`output/web-game-poke`).
+- `run_playwright_capturechance.ps1`: PASS.
+  - no console/page errors file generated.
+  - runtime state confirms dynamic scaling fields:
+    - early solo: `balance_hp_multiplier=1`, `balance_reward_multiplier=1`
+    - after team growth: `balance_hp_multiplier=1.297/1.645`, rewards scaled accordingly.
+- Extra targeted full-team balancing run (seeded): PASS.
+  - artifacts: `output/web-game-fullteam-balance/`
+  - observed `balance_hp_multiplier ~ 2.402` and `balance_reward_multiplier ~ 1.338` with multi-member team.
+  - no console/page errors.
+- Visual review done on latest gameplay captures:
+  - `output/web-game-capturechance/shot-89.png`
+  - `output/web-game-fullteam-balance/shot-20.png`
+
+## Remaining TODO ideas
+- Add a small in-game tuning panel (dev-only) exposing HP/reward scaling constants to iterate faster without code edits.
+- Add route-tier contribution to scaling (optional) if late-game still feels too flat/too fast after player feedback.
+
+## Additional progress (capture animation polish + ball-type colors)
+- Improved capture animation feel in `game.js`:
+  - smoother throw arc with luminous trail,
+  - stronger shake readability with damped oscillation,
+  - dynamic ball shadow/lift perception,
+  - richer success pulse and ring feedback,
+  - more expressive fail/break transitions.
+- Ball visuals are now type-aware during capture animation:
+  - `poke_ball` keeps classic red/white styling,
+  - `super_ball` now renders with blue shell + red side marks,
+  - `hyper_ball` now renders with dark shell + yellow stripe accents.
+- Critical captures no longer override ball identity with a full rainbow top; ball type colors stay readable while critical glow remains present.
+- Capture particles are now palette-driven by the launched ball type (success + break colors).
+- Capture pipeline now forwards the launched ball type from gameplay logic to battle animation:
+  - `handleEnemyDefeated(...)` returns `capture_ball_type`,
+  - battle capture sequence stores `ballType`,
+  - `getCaptureSequence()` exports `ball_type` for debug/test.
+
+## Validation (capture animation + ball-type colors)
+- `node --check game.js`: PASS.
+- develop-web-game smoke run (`run_playwright_check.ps1`): PASS.
+- Targeted Playwright color validation with seeded saves:
+  - artifacts: `output/capture-ball-colors/summary.json`
+  - screenshots:
+    - `output/capture-ball-colors/poke_ball-throw.png`
+    - `output/capture-ball-colors/super_ball-throw.png`
+    - `output/capture-ball-colors/hyper_ball-throw.png`
+  - verified `capture_sequence.ball_type` matches launched type in each scenario.
+
+## Additional progress (attaque charge glow + ordre horaire + VFX projectiles)
+- Combat readability update in `game.js`:
+  - Removed the visual turn circle from gameplay render path (`drawTurnIndicator(...)` is no longer called).
+  - Added a pre-attack charge glow (`getSlotChargeGlow`) so the upcoming attacker emits a short, pulsing aura just before firing.
+  - Added a dedicated team charge effect renderer (`drawTeamAttackChargeGlow`) and integrated it into team rendering (backdrop boost + slight charge scale).
+- Turn order/orientation consistency:
+  - Kept slot turn logic deterministic (`0..MAX_TEAM_SIZE-1`) and remapped `computeLayout()` slot placement so slot progression follows a clockwise path.
+  - Portrait mapping now follows top-left -> top-center -> top-right -> bottom-right -> bottom-center -> bottom-left.
+  - Landscape mapping now follows left-top -> right-top -> right-mid -> right-bottom -> left-bottom -> left-mid.
+  - This keeps the same directional turn flow when rotating between landscape and portrait.
+- Projectile VFX polish by type:
+  - Added per-type VFX profiles (`getProjectileTypeVfxProfile`) and type-specific motifs (`drawProjectileTypeMotif`) used during projectile render.
+  - Added distinct visual signatures for all Pokemon types (fire/water/grass/electric/ice/fighting/poison/ground/flying/psychic/bug/rock/ghost/dragon/dark/steel/fairy/normal).
+
+## Validation (attack visuals + order)
+- `node --check game.js`: PASS.
+- Skill Playwright run (seeded combat): `run_playwright_capturechance.ps1` PASS.
+  - Artifacts refreshed in `output/web-game-capturechance/`.
+  - No `errors-0.json` generated.
+- Additional orientation consistency validation (Playwright custom viewport checks):
+  - Artifacts: `output/orientation-order-check.json`, `output/orientation-landscape.png`, `output/orientation-portrait.png`, `output/orientation-landscape-projectile.png`, `output/orientation-portrait-projectile.png`.
+  - `next_attacker_sequence` remained consistent and clockwise across both orientations in the captured runs.
+- Additional projectile-visibility validation without capture phase:
+  - Artifacts: `output/web-game-vfx-test/`.
+  - Observed projectile samples for multiple types (`fire`, `normal`) and no Playwright error file generated.
+
+## TODO / Next
+- Optional: run one more targeted VFX showcase seed with a 6-member team covering more attack types in a single run (e.g. electric/water/psychic/rock) to visually review additional motifs in screenshots.
+
+## Additional progress (notification sprites in in-game stack)
+- Added Pokemon sprite support inside in-game notification cards (`game.js`):
+  - New helpers `getNotificationPokemonId` and `getNotificationPokemonSpritePath`.
+  - Notification renderer now builds a media row (`game-notif-body`) with optional sprite + text block.
+- Extended notification payloads with Pokemon context:
+  - `pushTemporaryNotification` now accepts and stores `pokemonId`, `pokemonIsShiny`, `pokemonIsUltraShiny`.
+  - Evolution-ready notifications now carry `pokemonId` (source species).
+  - First encounter/capture/shiny encounter/evolution success-fail notification calls now pass the related Pokemon id.
+- Added styles in `styles.css` for sprite layout in notifications:
+  - `.game-notif-body`, `.game-notif-content`, `.game-notif-sprite-wrap`, `.game-notif-sprite`.
+
+## Validation runs (notification sprite update)
+- `node --check game.js`: PASS.
+- Develop-web-game client run (fresh origin via dedicated port):
+  - `output/web-game-notif-sprite` and `output/web-game-notif-sprite-starter`: PASS (no console/page errors).
+- Extra Playwright DOM verification (full-page capture from skill environment):
+  - Result: `notifCount: 3`, `spriteCount: 1`.
+  - Captured file: `output/web-game-notif-sprite-dom/fullpage-notif-check.png`.
+
+## TODO / Next suggestions
+- Add sprite support to grouped evolution summary cards if we ever want to show one representative species there.
+- Consider adding optional sprite to generic `setTopMessage` calls when contextual Pokemon data is available.
+
+## Additional progress (2026-03-12 shiny odds update)
+- Updated shiny encounter odds in `game.js`: `SHINY_ODDS` changed from `1024` to `2048` (target rate: 1/2048).
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (no Playwright console/page errors; latest screenshot reviewed: `output/web-game-poke/shot-2.png`).
+
+## Additional progress (0.1.1 stable + legacy save reset)
+- Bumped app version to stable `0.1.1` (removed prerelease alpha marker):
+  - Updated `version.js` version constant.
+  - Updated `package.json` / `package-lock.json` version metadata.
+- Added semver helpers in `version.js` (`parseSemver`, `compareSemver`, `isVersionAtLeast`) for deterministic app-version compatibility checks.
+- Enforced save compatibility gate in `game.js`:
+  - Added `MIN_SUPPORTED_SAVE_APP_VERSION = "0.1.1"`.
+  - Saves now include `app_build_version` in newly created/normalized/persisted payloads.
+  - Any save older than `0.1.1` is considered unsupported and is discarded at boot.
+  - Unsupported storage entries are actively removed from local/session storage; IndexedDB stale entries are deleted.
+- Fixed an obvious runtime regression found during validation:
+  - `item_data/pokeballs.csv` had mixed line endings causing PapaParse `TooManyFields` and fallback config usage.
+  - Normalized CSV lines, restoring successful ball CSV loading (`ball_csv_loaded: true`).
+
+## Validation (this pass)
+- `node --check version.js`: PASS
+- `node --check game.js`: PASS
+- `npm run test:save`: PASS (10/10)
+- Develop-web-game Playwright client smoke:
+  - Starter click flow run (`output/web-game-011-smoke`): PASS
+  - No `errors-*.json` produced.
+  - `render_game_to_text` confirms:
+    - `app_build_version: "0.1.1"`
+    - `app_version: "0.1.1 dev-mode"`
+    - battle loop active after starter selection.
+- Legacy save compatibility run (`output/web-game-legacy-seed-check`): PASS
+  - Seeded pre-0.1.1 save is rejected at startup.
+  - Game starts in fresh state (starter modal visible, empty team), then persists 0.1.1 save data.
