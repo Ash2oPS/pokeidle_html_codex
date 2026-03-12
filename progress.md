@@ -3162,3 +3162,32 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
     - level 20 member `xp_to_next: 3927` (previous balancing baseline was around `2461`)
     - level 1 member `xp_to_next: 109` (previous balancing baseline was around `68`)
   - Visual screenshot reviewed: `output/web-game-xp-balance-check/shot-11.png`.
+
+## Additional progress (2026-03-12, super/hyper balls purchasable)
+- Updated `createDefaultBallConfigByType()` in `game.js`:
+  - `super_ball.comingSoon` set from `true` to `false`.
+  - `hyper_ball.comingSoon` set from `true` to `false`.
+- Updated `item_data/pokeballs.csv`:
+  - `super_ball` row `coming_soon` set from `true` to `false`.
+  - `hyper_ball` row `coming_soon` set from `true` to `false`.
+- Verification:
+  - Ran `./run_playwright_check.ps1` (skill client). Output state confirms:
+    - `ball_configs.super_ball.coming_soon = false`
+    - `ball_configs.hyper_ball.coming_soon = false`
+  - Ran a seeded Playwright check with `shop_open = true` and high money (`output/web-game-shop-buyable/state-0.json`), confirming both ball configs remain non-coming-soon in runtime state.
+  - Ran `npm run test:save`: 10/10 tests passed.
+
+## Additional progress (2026-03-12, uncapped render loop to 60 FPS)
+- Goal: remove render-side FPS cap (~40-45 observed) and target 60 FPS display cadence across all quality levels.
+- Changes in `game.js`:
+  - Added `TARGET_RENDER_INTERVAL_MS = Math.round(TARGET_FRAME_MS)`.
+  - Updated `RENDER_QUALITY_PRESETS` so `renderFrameIntervalMs` is `TARGET_RENDER_INTERVAL_MS` for all presets (`ultra`, `high`, `medium`, `low`, `very_low`).
+  - Kept quality adaptation on render scale/effects only, without throttling render cadence per quality.
+- Verification:
+  - Ran `./run_playwright_check.ps1`.
+  - Runtime state (`output/web-game-poke/state-2.json`) now reports:
+    - `render_frame_ms_estimate: 16.69`
+    - `render_fps_estimate: 59.9`
+    - `render_quality: low` (proves 60 FPS cadence is no longer tied to high quality preset only).
+  - Visual screenshot check: `output/web-game-poke/shot-2.png` shows in-game overlay at `60 FPS`.
+  - Ran `npm run test:save`: 10/10 tests passed.

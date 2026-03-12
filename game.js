@@ -444,6 +444,7 @@ const BREATH_OFFSET_RATIO = 0.022;
 const MAX_RENDER_DPR = 1.35;
 const TARGET_FPS = 60;
 const TARGET_FRAME_MS = 1000 / TARGET_FPS;
+const TARGET_RENDER_INTERVAL_MS = Math.round(TARGET_FRAME_MS);
 const MAX_FOREGROUND_PENDING_MS = 320;
 const HUD_AUTO_REFRESH_INTERVAL_MS = 200;
 const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
@@ -452,7 +453,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   ultra: Object.freeze({
     maxDpr: 1.25,
     renderScale: 0.9,
-    renderFrameIntervalMs: 16,
+    renderFrameIntervalMs: TARGET_RENDER_INTERVAL_MS,
     foregroundSimBudgetMs: 72,
     environmentParticleScale: 0.45,
     environmentUpdateIntervalMult: 1.3,
@@ -475,7 +476,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   high: Object.freeze({
     maxDpr: 1.08,
     renderScale: 0.84,
-    renderFrameIntervalMs: 16,
+    renderFrameIntervalMs: TARGET_RENDER_INTERVAL_MS,
     foregroundSimBudgetMs: 64,
     environmentParticleScale: 0.22,
     environmentUpdateIntervalMult: 1.6,
@@ -498,7 +499,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   medium: Object.freeze({
     maxDpr: 1,
     renderScale: 0.78,
-    renderFrameIntervalMs: 22,
+    renderFrameIntervalMs: TARGET_RENDER_INTERVAL_MS,
     foregroundSimBudgetMs: 56,
     environmentParticleScale: 0.06,
     environmentUpdateIntervalMult: 2,
@@ -521,7 +522,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   low: Object.freeze({
     maxDpr: 1,
     renderScale: 0.68,
-    renderFrameIntervalMs: 34,
+    renderFrameIntervalMs: TARGET_RENDER_INTERVAL_MS,
     foregroundSimBudgetMs: 48,
     environmentParticleScale: 0,
     environmentUpdateIntervalMult: 2.4,
@@ -544,7 +545,7 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
   very_low: Object.freeze({
     maxDpr: 1,
     renderScale: 0.58,
-    renderFrameIntervalMs: 42,
+    renderFrameIntervalMs: TARGET_RENDER_INTERVAL_MS,
     foregroundSimBudgetMs: 40,
     environmentParticleScale: 0,
     environmentUpdateIntervalMult: 2.8,
@@ -693,7 +694,7 @@ function createDefaultBallConfigByType() {
       captureMultiplier: 2,
       description: "x2 chances de capture par rapport a une PokeBall.",
       spritePath: "assets/items/super_ball.png",
-      comingSoon: true,
+      comingSoon: false,
       sortOrder: 20,
     },
     hyper_ball: {
@@ -703,7 +704,7 @@ function createDefaultBallConfigByType() {
       captureMultiplier: 4,
       description: "x2 chances de capture par rapport a une SuperBall.",
       spritePath: "assets/items/hyper_ball.png",
-      comingSoon: true,
+      comingSoon: false,
       sortOrder: 30,
     },
   };
