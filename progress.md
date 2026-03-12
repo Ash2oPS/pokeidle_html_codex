@@ -3244,3 +3244,14 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `node --check game.js`: PASS.
   - `run_playwright_check.ps1`: PASS.
   - Reviewed latest screenshot artifact: `output/web-game-poke/shot-2.png` (render remains stable).
+
+## Additional progress (2026-03-12, mobile HUD shrink for currency + timer)
+- Mobile HUD compacting pass applied:
+  - Reduced top-right currency stack dimensions on small/coarse-pointer devices (money + coins pills, icon and text sizes).
+  - Added tighter overrides for very small screens (<= 520px).
+- Route defeat timer compact mode:
+  - Added compact sizing branch in `drawRouteDefeatTimerBar` for coarse-pointer/small viewport.
+  - Reduced timer bar width/height, panel padding, timer text size, and counter text size/offset.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.

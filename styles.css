@@ -4836,3 +4836,65 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+@media (max-width: 900px), (pointer: coarse) {
+  .resource-strip.currency-stack {
+    width: min(170px, 42vw);
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .resource-strip.currency-stack .resource-pill.currency-pill {
+    min-height: 36px;
+    padding: 4px 6px;
+    gap: 6px;
+  }
+
+  .currency-pill-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+
+  .currency-pill-content {
+    gap: 1px;
+  }
+
+  .currency-pill-value {
+    font-size: clamp(11px, 1vw, 14px);
+  }
+
+  .currency-pill-caption {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (max-width: 520px) {
+  .resource-strip.currency-stack {
+    width: min(154px, 44vw);
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .resource-strip.currency-stack .resource-pill.currency-pill {
+    min-height: 32px;
+    padding: 3px 5px;
+    gap: 5px;
+  }
+
+  .currency-pill-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+
+  .currency-pill-value {
+    font-size: clamp(10px, 0.95vw, 13px);
+  }
+
+  .currency-pill-caption {
+    font-size: 6px;
+    letter-spacing: 0.05em;
+  }
+}

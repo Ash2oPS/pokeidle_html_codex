@@ -325,6 +325,7 @@ const CAPTURE_BALL_MULTIPLIER_NERF = 0.5;
 const COIN_REWARD_PER_CAPTURE = 1;
 const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
+const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE = 0.2;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
@@ -9976,12 +9977,16 @@ function applyAutoGrantedProgress(pokemonId, level = 1) {
     return { addedToTeam: false };
   }
 
+  const familyOwnedBeforeCapture = isEvolutionFamilyOwned(pokemonId);
   const { record, wasUnlocked } = ensurePokemonEntityUnlocked(pokemonId, level);
   const capturedBefore = getCapturedTotal(record);
   incrementSpeciesStat(pokemonId, "encountered", false, 1);
   incrementSpeciesStat(pokemonId, "captured", false, 1);
+  const baseCaptureCoinReward = familyOwnedBeforeCapture
+    ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE ? COIN_REWARD_PER_CAPTURE : 0)
+    : COIN_REWARD_PER_CAPTURE;
   const firstCaptureBonus = capturedBefore <= 0 ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0;
-  addCoins(COIN_REWARD_PER_CAPTURE + firstCaptureBonus);
+  addCoins(baseCaptureCoinReward + firstCaptureBonus);
   record.encountered_normal = Math.max(1, record.encountered_normal);
   record.captured_normal = Math.max(1, record.captured_normal);
 
@@ -10363,10 +10368,14 @@ function handleEnemyDefeated(enemy) {
   let addedToTeam = false;
   let captureXpSummary = null;
   let usedBallType = null;
+  const familyOwnedBeforeCapture = isEvolutionFamilyOwned(enemy.id);
   const awardCaptureCoinReward = () => {
     const speciesRecord = ensureSpeciesStats(enemy.id);
     const isFirstCapture = getCapturedTotal(speciesRecord) <= 0;
-    addCoins(COIN_REWARD_PER_CAPTURE + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
+    const baseCaptureCoinReward = familyOwnedBeforeCapture
+      ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE ? COIN_REWARD_PER_CAPTURE : 0)
+      : COIN_REWARD_PER_CAPTURE;
+    addCoins(baseCaptureCoinReward + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
   };
 
   if (getBallInventoryTotalCount() > 0) {
@@ -12744,19 +12753,29 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   const timerText = `${remainingDisplaySeconds.toFixed(1)}s`;
   const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);
   const danger = 1 - ratio;
-  const width = clamp(state.viewport.width * 0.58, 220, 540);
-  const height = clamp(state.viewport.height * 0.028, 14, 20);
+  const compactHud = isCoarsePointerDevice() || state.viewport.width <= 760;
+  const width = compactHud
+    ? clamp(state.viewport.width * 0.44, 170, 420)
+    : clamp(state.viewport.width * 0.58, 220, 540);
+  const height = compactHud
+    ? clamp(state.viewport.height * 0.019, 10, 14)
+    : clamp(state.viewport.height * 0.028, 14, 20);
   const x = (state.viewport.width - width) * 0.5;
   const safeTop = Number(layout?.safeBounds?.top);
+  const verticalOffset = compactHud
+    ? clamp(state.viewport.height * 0.01, 8, 12)
+    : clamp(state.viewport.height * 0.012, 10, 18);
   const y = Number.isFinite(safeTop)
-    ? clamp(safeTop + clamp(state.viewport.height * 0.012, 10, 18), 24, state.viewport.height - height - 24)
-    : clamp(state.viewport.height * 0.025, 10, 20);
+    ? clamp(safeTop + verticalOffset, 24, state.viewport.height - height - 24)
+    : clamp(state.viewport.height * 0.025, compactHud ? 8 : 10, compactHud ? 16 : 20);
   const radius = Math.max(2, height * 0.36);
   const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;
-  const panelX = x - 6;
-  const panelY = y - 4;
-  const panelWidth = width + 12;
-  const panelHeight = height + 8;
+  const panelPaddingX = compactHud ? 4 : 6;
+  const panelPaddingY = compactHud ? 3 : 4;
+  const panelX = x - panelPaddingX;
+  const panelY = y - panelPaddingY;
+  const panelWidth = width + panelPaddingX * 2;
+  const panelHeight = height + panelPaddingY * 2;
 
   ctx.save();
   ctx.globalAlpha = 0.94;
@@ -12808,7 +12827,9 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   ctx.roundRect(x, y, width, height, radius);
   ctx.stroke();
 
-  const timerTextSize = Math.max(10, Math.min(15, Math.round(height * 0.7)));
+  const timerTextSize = compactHud
+    ? Math.max(8, Math.min(12, Math.round(height * 0.64)))
+    : Math.max(10, Math.min(15, Math.round(height * 0.7)));
   ctx.font = `700 ${timerTextSize}px Tahoma`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -12819,8 +12840,10 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   ctx.fillText(timerText, x + width * 0.5, y + height * 0.5);
 
   if (defeatCounterText) {
-    const counterTextSize = Math.max(10, Math.min(14, Math.round(height * 0.64)));
-    const counterY = y + height + 6;
+    const counterTextSize = compactHud
+      ? Math.max(8, Math.min(11, Math.round(height * 0.58)))
+      : Math.max(10, Math.min(14, Math.round(height * 0.64)));
+    const counterY = y + height + (compactHud ? 4 : 6);
     ctx.font = `700 ${counterTextSize}px Tahoma`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
