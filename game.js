@@ -680,7 +680,7 @@ function createDefaultBallConfigByType() {
     poke_ball: {
       type: "poke_ball",
       nameFr: "PokeBall",
-      price: 200,
+      price: 350,
       captureMultiplier: 1,
       description: "Balle standard pour capturer les Pokemon sauvages.",
       spritePath: "assets/items/poke_ball.png",
