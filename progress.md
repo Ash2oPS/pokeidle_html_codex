@@ -3308,3 +3308,49 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Visual inspection done on latest captures:
   - `output/web-game-leveldiff-high/shot-119.png`
   - `output/web-game-leveldiff-low/shot-119.png`
+
+## Additional progress (2026-03-13, Jackpot + Teleport talents)
+- Added new talent support in `game.js`:
+  - `JACKPOT` (x1.2 money), `JACKPOT_PLUS` (x1.4 money).
+  - `TELEPORT` (10%), `TELEPORT_PLUS` (20%), `TELEPORT_PLUS_PLUS` (30%) post-attack swap chance.
+  - `TELEPORT_PLUS_PLUS` now grants x1.5 damage to the swapped ally's next attack (consumed on use).
+- Integrated reward modifier logic:
+  - Defeat money now includes active-team talent money multiplier (`getTeamMoneyTalentMultiplier`).
+  - Talent effects are runtime-only from active battle team (no UI exposure added).
+- Added teleport swap battle flow:
+  - Slot swap utility in `PokemonBattleManager`.
+  - Swap VFX (`teleport_trail`, rings/sparks), plus quick scale-down/up teleport animation.
+  - Alakazam boost aura rendering on boosted ally until its next attack is consumed.
+  - Turn-event telemetry now includes `teleport_swap`, source/target slots, boosted slot, and consumed boost percent.
+- Added passive behavior aliases in `lib/combat-passives.js`:
+  - `JACKPOT` / `JACKPOT_PLUS` recognized as normal attack behavior.
+  - Teleport talents mapped to `TELEPORT_SWAP` behavior id for debug/combat decision consistency.
+- Updated `pokemon_data/pokemon_talents.csv` entries:
+  - #52 Meowth -> `JACKPOT`
+  - #53 Persian -> `JACKPOT_PLUS`
+  - #63 Abra -> `TELEPORT`
+  - #64 Kadabra -> `TELEPORT_PLUS`
+  - #65 Alakazam -> `TELEPORT_PLUS_PLUS`
+- Fixed blocking CSV runtime issue:
+  - `pokemon_talents.csv` had mixed LF/CRLF after edits, causing PapaParse quote errors and `talents_csv_loaded=false`.
+  - Normalized file newlines to consistent CRLF; talent CSV now parses correctly in runtime (`talents_csv_loaded=true`).
+
+## Validation log (Jackpot + Teleport)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS (10/10).
+- `./run_playwright_check.ps1`: PASS (no new console/page errors).
+- Targeted talent runs:
+  - `./tmp/run_talent_validation.ps1`:
+    - `output/web-game-jackpot-validate`
+    - `output/web-game-control-validate`
+    - `output/web-game-teleport-validate`
+    - all ran full iterations, no `errors-*.json`.
+  - Jackpot no-capture compare (`./tmp/run_jackpot_compare.ps1`):
+    - `output/web-game-jackpot-nocap-validate`: Meowth only, `talents_csv_loaded=true`, money/KO delta `151.667`.
+    - `output/web-game-control-nocap-validate`: Rattata only, `talents_csv_loaded=true`, money/KO delta `123.667`.
+    - observed ratio is consistent with Jackpot money uplift.
+  - Teleport tier scenarios (`./tmp/run_teleport_tiers_validation.ps1`):
+    - Abra/Kadabra/Alakazam seeded on Route 24 with no captures.
+    - Teleport swap events confirmed for teleport talents; no boost events observed outside Alakazam scenarios.
+  - Alakazam boost consumption confirmed in `output/web-game-teleport-validate`:
+    - event with `teleport_damage_boost_pct: 50` observed after prior teleport swap.

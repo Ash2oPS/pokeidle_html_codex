@@ -270,6 +270,11 @@ const TALENT_BLAZE_PLUS_PLUS_ID = "BLAZE_PLUS_PLUS";
 const TALENT_TORRENT_ID = "TORRENT";
 const TALENT_TORRENT_PLUS_ID = "TORRENT_PLUS";
 const TALENT_TORRENT_PLUS_PLUS_ID = "TORRENT_PLUS_PLUS";
+const TALENT_JACKPOT_ID = "JACKPOT";
+const TALENT_JACKPOT_PLUS_ID = "JACKPOT_PLUS";
+const TALENT_TELEPORT_ID = "TELEPORT";
+const TALENT_TELEPORT_PLUS_ID = "TELEPORT_PLUS";
+const TALENT_TELEPORT_PLUS_PLUS_ID = "TELEPORT_PLUS_PLUS";
 const TALENT_AURA_PROVIDER_BY_ID = Object.freeze({
   [TALENT_OVERGROW_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.05 }),
   [TALENT_OVERGROW_PLUS_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.1 }),
@@ -285,6 +290,16 @@ const TALENT_ALWAYS_HIT_IDS = new Set([TALENT_KEEN_EYE_ID, TALENT_VALIANT_EYE_ID
 const TALENT_CRIT_BONUS_CHANCE_BY_ID = Object.freeze({
   [TALENT_VALIANT_EYE_ID]: 0.1,
 });
+const TALENT_MONEY_MULTIPLIER_BY_ID = Object.freeze({
+  [TALENT_JACKPOT_ID]: 1.2,
+  [TALENT_JACKPOT_PLUS_ID]: 1.4,
+});
+const TALENT_TELEPORT_SWAP_CHANCE_BY_ID = Object.freeze({
+  [TALENT_TELEPORT_ID]: 0.1,
+  [TALENT_TELEPORT_PLUS_ID]: 0.2,
+  [TALENT_TELEPORT_PLUS_PLUS_ID]: 0.3,
+});
+const TALENT_TELEPORT_PLUS_PLUS_DAMAGE_MULTIPLIER = 1.5;
 const MORPHING_SHADER_CONFIG = Object.freeze({
   hueRotateDeg: -18,
   saturate: 1.55,
@@ -306,6 +321,7 @@ const ATTACK_FLASH_DURATION_MS = 150;
 const ATTACK_FLASH_WHITE_BLEND = 0.4;
 const ATTACK_CHARGE_MIN_WINDOW_MS = 120;
 const ATTACK_CHARGE_WINDOW_RATIO = 0.42;
+const TELEPORT_SWAP_SCALE_DURATION_MS = 130;
 const ENEMY_DAMAGE_FLASH_DURATION_MS = 150;
 const ENEMY_DAMAGE_FLASH_RED_BLEND = 0.4;
 const FLOATING_TEXT_LIFETIME_MS = 950;
@@ -3625,6 +3641,21 @@ function getTalentCritBonusChance(rawTalent, pokemonId = 0) {
 function hasAlwaysHitTalent(rawTalent, pokemonId = 0) {
   const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
   return TALENT_ALWAYS_HIT_IDS.has(talentId);
+}
+
+function getTalentMoneyMultiplier(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return Math.max(1, Number(TALENT_MONEY_MULTIPLIER_BY_ID[talentId] || 1));
+}
+
+function getTalentTeleportSwapChance(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return clamp(Number(TALENT_TELEPORT_SWAP_CHANCE_BY_ID[talentId] || 0), 0, 1);
+}
+
+function isTeleportPlusPlusTalent(rawTalent, pokemonId = 0) {
+  const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
+  return talentId === TALENT_TELEPORT_PLUS_PLUS_ID;
 }
 
 function shouldApplyMorphingTalent(rawTalent, pokemonId = 0) {
@@ -7488,6 +7519,20 @@ function getHighestTeamLevelForRewardScaling() {
   return Math.max(1, highestLevel);
 }
 
+function getTeamMoneyTalentMultiplier(teamMembers = state.team) {
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return 1;
+  }
+  let multiplier = 1;
+  for (const member of teamMembers) {
+    if (!member) {
+      continue;
+    }
+    multiplier = Math.max(multiplier, getTalentMoneyMultiplier(member?.talent, member?.id));
+  }
+  return Math.max(1, multiplier);
+}
+
 function computeCaptureXpReward(enemy) {
   const enemyLevel = Math.max(1, toSafeInt(enemy?.level, 1));
   const baseStatTotal = getBaseStatTotal(enemy?.baseStats || enemy?.stats);
@@ -8437,6 +8482,8 @@ class PokemonBattleManager {
     this.captureSequence = null;
     this.slotRecoil = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotAttackFlash = Array.from({ length: MAX_TEAM_SIZE }, () => null);
+    this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
+    this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
     this.enemyTimerEnabled = false;
     this.enemyTimerDurationMs = 0;
     this.enemyTimerMs = 0;
@@ -8475,6 +8522,8 @@ class PokemonBattleManager {
   syncTeam(team) {
     this.team = Array.isArray(team) ? team : [];
     this.turnIndex = this.team.length === 0 ? 0 : this.turnIndex % MAX_TEAM_SIZE;
+    this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
+    this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
   }
 
   getEnemy() {
@@ -8656,6 +8705,7 @@ class PokemonBattleManager {
 
   buildPrecomputedHitOutcome(attackerIndex, attacker, attackType) {
     const resolvedType = String(attackType || attacker?.offensiveType || attacker?.defensiveTypes?.[0] || "normal");
+    const teleportDamageBoost = this.consumeTeleportDamageBoostForSlot(attackerIndex);
     if (!attacker || !this.enemy || this.enemy.hpCurrent <= 0) {
       return {
         attackType: resolvedType,
@@ -8664,6 +8714,7 @@ class PokemonBattleManager {
         isCritical: false,
         damage: 0,
         teamAuraAttackBonus: 0,
+        teleportDamageBoost,
       };
     }
 
@@ -8677,6 +8728,7 @@ class PokemonBattleManager {
         isCritical: false,
         damage: 0,
         teamAuraAttackBonus: 0,
+        teleportDamageBoost,
       };
     }
 
@@ -8685,7 +8737,7 @@ class PokemonBattleManager {
     const teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(attackerIndex, attacker);
     const damageOutcome = computeDamage(attacker, this.enemy, resolvedType, typeMultiplier, {
       critChanceBonus,
-      damageMultiplier: 1 + teamAuraAttackBonus,
+      damageMultiplier: (1 + teamAuraAttackBonus) * teleportDamageBoost,
     });
     const baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
     const damage = baseDamage <= 0 ? 0 : Math.max(1, Math.round(baseDamage));
@@ -8697,6 +8749,7 @@ class PokemonBattleManager {
       isCritical: Boolean(damageOutcome?.isCritical),
       damage,
       teamAuraAttackBonus,
+      teleportDamageBoost,
     };
   }
 
@@ -8972,6 +9025,205 @@ class PokemonBattleManager {
     return ATTACK_FLASH_WHITE_BLEND * ratio;
   }
 
+  updateSlotTeleportScale(deltaMs) {
+    for (let i = 0; i < this.slotTeleportScale.length; i += 1) {
+      const scaleFx = this.slotTeleportScale[i];
+      if (!scaleFx) {
+        continue;
+      }
+      scaleFx.elapsedMs += deltaMs;
+      if (scaleFx.elapsedMs >= scaleFx.durationMs) {
+        this.slotTeleportScale[i] = null;
+      }
+    }
+  }
+
+  triggerSlotTeleportScale(slotIndex) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return;
+    }
+    this.slotTeleportScale[safeSlotIndex] = {
+      elapsedMs: 0,
+      durationMs: TELEPORT_SWAP_SCALE_DURATION_MS,
+    };
+  }
+
+  getSlotTeleportScale(slotIndex) {
+    const scaleFx = this.slotTeleportScale[slotIndex];
+    if (!scaleFx) {
+      return 1;
+    }
+    const ratio = clamp(scaleFx.elapsedMs / Math.max(1, scaleFx.durationMs), 0, 1);
+    const minScale = 0.16;
+    if (ratio <= 0.5) {
+      const downRatio = ratio / 0.5;
+      return clamp(1 - (1 - minScale) * downRatio, minScale, 1);
+    }
+    const upRatio = (ratio - 0.5) / 0.5;
+    return clamp(minScale + (1 - minScale) * upRatio, minScale, 1);
+  }
+
+  getTeleportDamageBoostForSlot(slotIndex) {
+    return Math.max(1, Number(this.teleportDamageBoostBySlot?.[slotIndex] || 1));
+  }
+
+  consumeTeleportDamageBoostForSlot(slotIndex) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return 1;
+    }
+    const multiplier = Math.max(1, Number(this.teleportDamageBoostBySlot[safeSlotIndex] || 1));
+    this.teleportDamageBoostBySlot[safeSlotIndex] = 1;
+    return multiplier;
+  }
+
+  swapTeamSlots(firstSlotIndex, secondSlotIndex) {
+    const a = clamp(toSafeInt(firstSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    const b = clamp(toSafeInt(secondSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (a < 0 || b < 0 || a === b) {
+      return false;
+    }
+
+    const tempMember = this.team[a];
+    this.team[a] = this.team[b];
+    this.team[b] = tempMember;
+
+    const tempBoost = this.teleportDamageBoostBySlot[a];
+    this.teleportDamageBoostBySlot[a] = this.teleportDamageBoostBySlot[b];
+    this.teleportDamageBoostBySlot[b] = tempBoost;
+    return true;
+  }
+
+  addTeleportSwapEffects(firstSlotIndex, secondSlotIndex, layout) {
+    if (!layout) {
+      return;
+    }
+    const firstSlot = layout?.teamSlots?.[firstSlotIndex];
+    const secondSlot = layout?.teamSlots?.[secondSlotIndex];
+    if (!firstSlot || !secondSlot) {
+      return;
+    }
+    const psychicColor = getTypeColor("psychic");
+    const midX = (firstSlot.x + secondSlot.x) * 0.5 + randomRange(-18, 18);
+    const midY = (firstSlot.y + secondSlot.y) * 0.5 + randomRange(-24, 24);
+
+    this.hitEffects.push({
+      kind: "teleport_trail",
+      x: firstSlot.x,
+      y: firstSlot.y - firstSlot.size * 0.08,
+      toX: secondSlot.x,
+      toY: secondSlot.y - secondSlot.size * 0.08,
+      ctrlX: midX,
+      ctrlY: midY,
+      lifeMs: 170,
+      maxLifeMs: 170,
+      lineWidth: Math.max(2.2, Math.min(firstSlot.size, secondSlot.size) * 0.075),
+      color: psychicColor,
+    });
+
+    this.hitEffects.push({
+      kind: "ring",
+      x: firstSlot.x,
+      y: firstSlot.y,
+      radius: 5,
+      expandSpeed: 240,
+      lifeMs: 140,
+      maxLifeMs: 140,
+      lineWidth: 2.1,
+      color: psychicColor,
+    });
+    this.hitEffects.push({
+      kind: "ring",
+      x: secondSlot.x,
+      y: secondSlot.y,
+      radius: 5,
+      expandSpeed: 240,
+      lifeMs: 140,
+      maxLifeMs: 140,
+      lineWidth: 2.1,
+      color: psychicColor,
+    });
+
+    const sparkCount = shouldRenderCelebrationParticles() ? 10 : 0;
+    for (let i = 0; i < sparkCount; i += 1) {
+      const angle = (Math.PI * 2 * i) / Math.max(1, sparkCount) + Math.random() * 0.4;
+      const speed = 70 + Math.random() * 130;
+      const lifeMs = 110 + Math.random() * 140;
+      const sourceX = i % 2 === 0 ? firstSlot.x : secondSlot.x;
+      const sourceY = i % 2 === 0 ? firstSlot.y : secondSlot.y;
+      this.hitEffects.push({
+        kind: "spark",
+        x: sourceX,
+        y: sourceY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 16,
+        lifeMs,
+        maxLifeMs: lifeMs,
+        size: 1.4 + Math.random() * 2.1,
+        color: psychicColor,
+      });
+    }
+
+    this.triggerSlotTeleportScale(firstSlotIndex);
+    this.triggerSlotTeleportScale(secondSlotIndex);
+  }
+
+  tryApplyTeleportSwap(attackerIndex, attacker, decision, layout, options = {}) {
+    if (!attacker || decision?.action !== TURN_ACTION_ATTACK) {
+      return { swapped: false };
+    }
+    const swapChance = getTalentTeleportSwapChance(attacker?.talent, attacker?.id);
+    if (swapChance <= 0 || Math.random() >= swapChance) {
+      return { swapped: false };
+    }
+
+    const allySlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: false });
+    if (allySlotIndex < 0) {
+      return { swapped: false };
+    }
+    const attackerSlotIndex = clamp(toSafeInt(attackerIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (attackerSlotIndex < 0 || attackerSlotIndex === allySlotIndex) {
+      return { swapped: false };
+    }
+
+    const nextScheduledSlotIndex = ((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
+    const nextScheduledMember = this.team[nextScheduledSlotIndex] || null;
+    const allyBeforeSwap = this.team[allySlotIndex];
+
+    if (!this.swapTeamSlots(attackerSlotIndex, allySlotIndex)) {
+      return { swapped: false };
+    }
+
+    let boostedSlotIndex = -1;
+    if (isTeleportPlusPlusTalent(attacker?.talent, attacker?.id) && allyBeforeSwap) {
+      boostedSlotIndex = this.team.indexOf(allyBeforeSwap);
+      if (boostedSlotIndex >= 0) {
+        this.teleportDamageBoostBySlot[boostedSlotIndex] = Math.max(
+          TALENT_TELEPORT_PLUS_PLUS_DAMAGE_MULTIPLIER,
+          Number(this.teleportDamageBoostBySlot[boostedSlotIndex] || 1),
+        );
+      }
+    }
+
+    if (nextScheduledMember) {
+      const nextMemberSlotIndex = this.team.indexOf(nextScheduledMember);
+      if (nextMemberSlotIndex >= 0) {
+        this.turnIndex = nextMemberSlotIndex;
+      }
+    }
+
+    if (!options.idleMode) {
+      this.addTeleportSwapEffects(attackerSlotIndex, allySlotIndex, layout);
+    }
+    return {
+      swapped: true,
+      fromSlotIndex: attackerSlotIndex,
+      toSlotIndex: allySlotIndex,
+      boostedSlotIndex,
+    };
+  }
+
   getEnemyDamageFlashBlend() {
     if (this.enemyDamageFlashMs <= 0) {
       return 0;
@@ -9071,6 +9323,7 @@ class PokemonBattleManager {
         {
           idleMode: true,
           suppressTurnEvent: hit.suppressTurnEvent,
+          layout,
         },
       );
     }
@@ -9136,6 +9389,7 @@ class PokemonBattleManager {
     this.updateKoTransition(deltaMs);
     this.updateSlotRecoil(deltaMs);
     this.updateSlotAttackFlash(deltaMs);
+    this.updateSlotTeleportScale(deltaMs);
     if (!layout) {
       return;
     }
@@ -9490,7 +9744,7 @@ class PokemonBattleManager {
       const frameDistance = projectile.speed * speedMultiplier * dt;
 
       if (distance <= frameDistance || distance <= 0.0001 || projectile.lifetimeMs > 1600) {
-        this.applyHit(projectile);
+        this.applyHit(projectile, { layout });
         continue;
       }
 
@@ -9643,25 +9897,41 @@ class PokemonBattleManager {
           isMiss: true,
         });
       }
+      const teleportSwapResult = this.tryApplyTeleportSwap(
+        projectile.attackerIndex,
+        attacker,
+        decision,
+        options.layout,
+        { idleMode },
+      );
+      if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
+        this.lastTurnEvent.teleport_swap = true;
+        this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
+        this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
+        this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
+      }
       return;
     }
 
     let typeMultiplier;
     let teamAuraAttackBonus;
+    let teleportDamageBoost;
     let isCriticalHit;
     let baseDamage;
     if (precomputedHit) {
       typeMultiplier = Number(precomputedHit.typeMultiplier || 1);
       teamAuraAttackBonus = Math.max(0, Number(precomputedHit.teamAuraAttackBonus) || 0);
+      teleportDamageBoost = Math.max(1, Number(precomputedHit.teleportDamageBoost || 1));
       isCriticalHit = Boolean(precomputedHit.isCritical);
       baseDamage = Math.max(0, Number(precomputedHit.damage || 0));
     } else {
       typeMultiplier = getTypeMultiplier(attackType, this.enemy.defensiveTypes);
       const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
       teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(projectile.attackerIndex, attacker);
+      teleportDamageBoost = this.consumeTeleportDamageBoostForSlot(projectile.attackerIndex);
       const damageOutcome = computeDamage(attacker, this.enemy, attackType, typeMultiplier, {
         critChanceBonus,
-        damageMultiplier: 1 + teamAuraAttackBonus,
+        damageMultiplier: (1 + teamAuraAttackBonus) * teleportDamageBoost,
       });
       baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
       isCriticalHit = Boolean(damageOutcome?.isCritical);
@@ -9695,6 +9965,7 @@ class PokemonBattleManager {
         is_critical: isCriticalHit,
         missed: false,
         team_aura_attack_bonus_pct: Math.round(Math.max(0, teamAuraAttackBonus) * 10000) / 100,
+        teleport_damage_boost_pct: Math.round((Math.max(1, teleportDamageBoost) - 1) * 10000) / 100,
       });
     }
     if (!idleMode) {
@@ -9714,6 +9985,19 @@ class PokemonBattleManager {
         targetX: projectile.targetX,
         targetY: projectile.targetY,
       });
+    }
+    const teleportSwapResult = this.tryApplyTeleportSwap(
+      projectile.attackerIndex,
+      attacker,
+      decision,
+      options.layout,
+      { idleMode },
+    );
+    if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
+      this.lastTurnEvent.teleport_swap = true;
+      this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
+      this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
+      this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
     }
 
     if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
@@ -10405,8 +10689,13 @@ function handleEnemyDefeated(enemy) {
     MIN_LEVEL_DIFF_MONEY_MULTIPLIER,
     clamp(Number(teamDiffMultipliers.money || 1), 0, 1),
   );
+  const moneyTalentMultiplier = getTeamMoneyTalentMultiplier(state.battle?.team || state.team);
   const coinChanceMultiplier = clamp(Number(teamDiffMultipliers.coin || 1), 0, 1);
-  const moneyReward = scaleRewardByMultiplier(computeDefeatMoneyReward(enemy), moneyMultiplier, 1);
+  const moneyReward = scaleRewardByMultiplier(
+    computeDefeatMoneyReward(enemy),
+    moneyMultiplier * moneyTalentMultiplier,
+    1,
+  );
   addMoney(moneyReward);
   const captureEquivalentXpReward = computeCaptureXpReward(enemy);
   const koXpReward = Math.max(1, Math.floor(captureEquivalentXpReward * KO_XP_RATIO_OF_CAPTURE));
@@ -10458,6 +10747,7 @@ function handleEnemyDefeated(enemy) {
   let captureCritical = false;
   let captureChanceDisplay = null;
   let captureOnComplete = null;
+  let deferKoXpRewardToCaptureEnd = false;
   let addedToTeam = false;
   let captureXpSummary = null;
   let usedBallType = null;
@@ -10526,11 +10816,25 @@ function handleEnemyDefeated(enemy) {
           };
         }
       } else {
-        awardKoXpReward();
+        if (state.simulationIdleMode) {
+          awardKoXpReward();
+        } else {
+          deferKoXpRewardToCaptureEnd = true;
+          captureOnComplete = () => {
+            awardKoXpReward();
+
+            rebuildTeamAndSyncBattle();
+            persistSaveDataForSimulationEvent();
+            if (!state.simulationIdleMode) {
+              updateHud();
+            }
+            return false;
+          };
+        }
       }
     }
   }
-  if (!captureAttempted || (!captured && !xpRewardGranted)) {
+  if (!captureAttempted || (!captured && !xpRewardGranted && !deferKoXpRewardToCaptureEnd)) {
     awardKoXpReward();
   }
 
@@ -12159,6 +12463,57 @@ function drawTeamAuraIndicator(slot, member, stackedBonus = 0) {
   ctx.restore();
 }
 
+function drawTeamTeleportBoostIndicator(slot, boostMultiplier = 1) {
+  if (!slot) {
+    return;
+  }
+  const boost = Math.max(1, Number(boostMultiplier || 1));
+  if (boost <= 1.001) {
+    return;
+  }
+
+  const [r, g, b] = getTypeColor("psychic");
+  const centerY = slot.y + slot.size * 0.02;
+  const pulse = 0.5 + Math.sin(state.timeMs * 0.008 + slot.x * 0.014 + slot.y * 0.017) * 0.5;
+  const ringRadiusX = slot.size * (0.46 + pulse * 0.05);
+  const ringRadiusY = slot.size * (0.33 + pulse * 0.05);
+  const alphaBase = clamp(0.18 + (boost - 1) * 0.34, 0.16, 0.48);
+  const glowRadius = slot.size * (0.57 + pulse * 0.08);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(slot.x, centerY, ringRadiusY * 0.2, slot.x, centerY, glowRadius);
+  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);
+  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, glowRadius * 0.96, glowRadius * 0.68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.16).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.8, slot.size * 0.028);
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, ringRadiusX, ringRadiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const sparkCount = 4;
+  for (let i = 0; i < sparkCount; i += 1) {
+    const angle = state.timeMs * 0.01 + i * ((Math.PI * 2) / sparkCount);
+    const px = slot.x + Math.cos(angle) * ringRadiusX * 0.92;
+    const py = centerY + Math.sin(angle * 1.25) * ringRadiusY * 0.85;
+    const sparkRadius = slot.size * 0.032;
+    const sparkGlow = ctx.createRadialGradient(px, py, 0, px, py, sparkRadius * 2.8);
+    sparkGlow.addColorStop(0, "rgba(255, 255, 255, 0.92)");
+    sparkGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.78)`);
+    sparkGlow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    ctx.fillStyle = sparkGlow;
+    ctx.beginPath();
+    ctx.arc(px, py, sparkRadius * 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function getSpriteSnapFactor() {
   const dpr = Number(state.viewport?.dpr || 1);
   return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
@@ -13392,7 +13747,34 @@ function drawEnemyHitEffects(hitEffects) {
     const rgb = Array.isArray(effect.color) ? effect.color : [220, 236, 255];
 
     ctx.save();
-    if (effect.kind === "ring") {
+    if (effect.kind === "teleport_trail") {
+      const fromX = Number(effect.x) || 0;
+      const fromY = Number(effect.y) || 0;
+      const toX = Number(effect.toX) || fromX;
+      const toY = Number(effect.toY) || fromY;
+      const ctrlX = Number(effect.ctrlX);
+      const ctrlY = Number(effect.ctrlY);
+      const trailGradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
+      trailGradient.addColorStop(0, rgba(rgb, 0));
+      trailGradient.addColorStop(0.25, rgba(rgb, 0.35 + lifeRatio * 0.3));
+      trailGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.85)");
+      trailGradient.addColorStop(0.75, rgba(rgb, 0.35 + lifeRatio * 0.3));
+      trailGradient.addColorStop(1, rgba(rgb, 0));
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = clamp(lifeRatio * 1.1, 0, 1);
+      ctx.strokeStyle = trailGradient;
+      ctx.lineWidth = (effect.lineWidth || 2.2) * (0.65 + lifeRatio * 0.55);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      if (Number.isFinite(ctrlX) && Number.isFinite(ctrlY)) {
+        ctx.quadraticCurveTo(ctrlX, ctrlY, toX, toY);
+      } else {
+        ctx.lineTo(toX, toY);
+      }
+      ctx.stroke();
+    } else if (effect.kind === "ring") {
       ctx.globalAlpha = lifeRatio * 0.9;
       ctx.strokeStyle = rgba(rgb, 0.95);
       ctx.lineWidth = (effect.lineWidth || 2) * (0.7 + lifeRatio * 0.9);
@@ -15019,6 +15401,7 @@ function render() {
       const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
       const hoverPulse = getHoveredTeamSlotPulse(i);
       const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;
+      const teleportScale = state.battle ? state.battle.getSlotTeleportScale(i) : 1;
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
       const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
       const drawX = slot.x + recoilOffset.x;
@@ -15033,6 +15416,7 @@ function render() {
         breath: teamBreath,
         hoverPulse,
         chargeGlow,
+        teleportScale,
         hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,
         chargeScale: chargeGlow > 0 ? 1 + chargeGlow * 0.042 : 1,
       };
@@ -15083,11 +15467,15 @@ function render() {
       const chargeGlow = clamp(Number(drawPosition?.chargeGlow || 0), 0, 1);
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
       const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));
+      const teleportBoostMultiplier = state.battle ? state.battle.getTeleportDamageBoostForSlot(i) : 1;
       drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {
         alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11 + chargeGlow * 0.14,
       });
       if (auraBonus > 0.001) {
         drawTeamAuraIndicator(slot, member, auraBonus);
+      }
+      if (teleportBoostMultiplier > 1.001) {
+        drawTeamTeleportBoostIndicator(slot, teleportBoostMultiplier);
       }
       if (chargeGlow > 0.001) {
         drawTeamAttackChargeGlow(slot, member, i, chargeGlow);
@@ -15135,9 +15523,10 @@ function render() {
       const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };
       const hoverScale = drawPosition.hoverScale || 1;
       const chargeScale = drawPosition.chargeScale || 1;
+      const teleportScale = drawPosition.teleportScale || 1;
       drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
-        scaleX: teamBreath.scaleX * hoverScale * chargeScale,
-        scaleY: teamBreath.scaleY * hoverScale * chargeScale,
+        scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale,
+        scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale,
         offsetY: teamBreath.offsetY,
         flipX: shouldFlipTeamSprite(i),
         shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
