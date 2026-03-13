@@ -1,0 +1,6 @@
+{
+  "url": "http://127.0.0.1:5322/?dev_seed_save=tmp/pokeidle-test-appdata/PokeIdle/save_jackpot_route5_nocap.json",
+  "outDir": "output/web-game-jackpot-nocap-validate",
+  "iterations": 260,
+  "stepMs": 420
+}

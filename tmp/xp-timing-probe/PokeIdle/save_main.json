@@ -1,0 +1,72 @@
+{
+    "version":  6,
+    "app_build_version":  "0.1.9",
+    "starter_chosen":  true,
+    "current_route_id":  "kanto_route_1",
+    "unlocked_route_ids":  [
+                               "kanto_city_pallet_town",
+                               "kanto_route_1"
+                           ],
+    "route_defeat_counts":  {
+
+                            },
+    "last_tick_epoch_ms":  1773396952281,
+    "team":  [
+                 4
+             ],
+    "pokemon_entities":  {
+                             "4":  {
+                                       "id":  4,
+                                       "level":  30,
+                                       "xp":  0,
+                                       "entity_unlocked":  true,
+                                       "encountered_normal":  10,
+                                       "captured_normal":  10
+                                   }
+                         },
+    "money":  0,
+    "coins":  0,
+    "ball_inventory":  {
+                           "poke_ball":  300,
+                           "super_ball":  0,
+                           "hyper_ball":  0
+                       },
+    "active_ball_type":  "poke_ball",
+    "ball_capture_rules":  {
+                               "poke_ball":  {
+                                                 "capture_all":  true,
+                                                 "capture_unowned":  true,
+                                                 "capture_shiny":  true,
+                                                 "capture_ultra_shiny":  true
+                                             },
+                               "super_ball":  {
+                                                  "capture_all":  true,
+                                                  "capture_unowned":  true,
+                                                  "capture_shiny":  true,
+                                                  "capture_ultra_shiny":  true
+                                              },
+                               "hyper_ball":  {
+                                                  "capture_all":  true,
+                                                  "capture_unowned":  true,
+                                                  "capture_shiny":  true,
+                                                  "capture_ultra_shiny":  true
+                                              }
+                           },
+    "shop_items":  {
+                       "water_stone":  0,
+                       "fire_stone":  0,
+                       "leaf_stone":  0,
+                       "galarica_wreath":  0,
+                       "ice_stone":  0,
+                       "moon_stone":  0,
+                       "sun_stone":  0,
+                       "thunder_stone":  0,
+                       "cable_link":  0
+                   },
+    "tutorials":  {
+                      "route1_intro_seen":  true,
+                      "evolution_intro_seen":  true,
+                      "appearance_intro_seen":  true,
+                      "appearance_editor_unlocked":  true
+                  }
+}

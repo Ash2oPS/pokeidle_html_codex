@@ -1,0 +1,6 @@
+{
+  "url": "http://127.0.0.1:5323/?dev_seed_save=tmp/pokeidle-test-appdata/PokeIdle/save_teleport_alakazam_route24_nocap.json",
+  "outDir": "output/web-game-teleport-alakazam-nocap-validate",
+  "iterations": 260,
+  "stepMs": 420
+}

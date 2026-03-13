@@ -111,7 +111,6 @@ kanto_route_10,Route 10 (Kanto),route,true,27,sandshrew,Sabelette,25,11,17,walk
 kanto_route_10,Route 10 (Kanto),route,true,130,gyarados,Léviator,15,15,25,super-rod
 kanto_route_10,Route 10 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_10,Route 10 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
-kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,101,electrode,Électrode,200,34,34,only-one
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,145,zapdos,Électhor,100,50,50,only-one
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,81,magnemite,Magnéti,30,22,25,walk
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,100,voltorb,Voltorbe,30,22,25,walk
@@ -303,6 +302,7 @@ kanto_route_23,Route 23 (Kanto),route,true,130,gyarados,Léviator,15,15,25,super
 kanto_route_23,Route 23 (Kanto),route,true,24,arbok,Arbok,5,44,44,walk
 kanto_route_23,Route 23 (Kanto),route,true,28,sandslash,Sablaireau,5,44,44,walk
 kanto_route_23,Route 23 (Kanto),route,true,57,primeape,Colossinge,5,42,42,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,146,moltres,Sulfura,100,50,50,only-one
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,95,onix,Onix,30,40,48,walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,66,machop,Machoc,20,32,34,walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,74,geodude,Racaillou,20,32,34,walk

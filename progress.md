@@ -3354,3 +3354,142 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
     - Teleport swap events confirmed for teleport talents; no boost events observed outside Alakazam scenarios.
   - Alakazam boost consumption confirmed in `output/web-game-teleport-validate`:
     - event with `teleport_damage_boost_pct: 50` observed after prior teleport swap.
+
+## Additional progress (2026-03-13, XP display timing at end of capture animation)
+- Fixed capture reward timing in `handleEnemyDefeated(...)` (`game.js`):
+  - Failed capture path now defers KO XP reward to `capture_on_complete` (end of capture animation), matching the successful capture path behavior.
+  - Added `deferKoXpRewardToCaptureEnd` guard to prevent immediate fallback XP grant when a failed capture has a deferred completion callback.
+- Added render safety to avoid XP reveal during active capture animation:
+  - `drawTeamXpGainEffects()` and `drawTeamLevelUpEffects()` are now skipped while `captureSequence` is active.
+  - This prevents lingering XP/level-up VFX from appearing during throw/shake/reappear phases and leaking capture outcome cues.
+
+## Validation (XP capture timing pass)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS (10/10).
+- `run_playwright_capturechance.ps1`: PASS (client run completed; existing warning about skill package module type).
+- Targeted Playwright probe with valid seeded save (`output/xp_timing_probe_result.json`):
+  - Captured both outcomes and phases (`throw/shake/success/break/reappear/post`) over many defeats.
+  - XP reward application is now deferred to capture completion callback for failed captures (same end timing model as successful captures).
+  - Note: runtime `team_xp_gain_effects_active` can remain >0 in some capture states due lingering counters from previous rewards, but XP/level-up VFX are now gated from rendering during active `captureSequence`.
+
+## Additional progress (family shiny/ultra sync)
+- Updated appearance mode toggles in `game.js` so shiny and ultra shiny now sync across the full evolution family of the selected Pokemon.
+  - Added `applyAppearanceModesToEvolutionFamily(pokemonId, { shinyMode, ultraShinyMode })`.
+  - `toggleAppearanceShinyMode()` now applies the same shiny state to every family member and disables ultra shiny for the whole family when shiny is turned off.
+  - `toggleAppearanceUltraShinyMode()` now applies the same ultra shiny state to every family member and keeps shiny enabled when ultra shiny is enabled.
+  - Added a team-wide appearance asset preload after mode toggles to avoid stale sprite caches on family members already in team.
+- Updated top messages to explicitly mention family-wide mode sync.
+
+## Validation runs (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS (artifacts refreshed in `output/web-game-poke/`).
+- Note: Playwright smoke reported a browser `console.error` 403 resource load in `output/web-game-poke/errors-0.json`.
+
+## Additional progress (2026-03-13, team swap family lock)
+- Updated team box swap rules in `game.js` to block placing a Pokemon if another team slot (except the slot being replaced) already contains a member of the same evolution family.
+- Added `findTeamFamilyConflictSlotIndex(candidatePokemonId, ignoredSlotIndex)` to centralize family conflict detection against current team slots.
+- In `renderBoxesGrid()`:
+  - Candidate buttons are now disabled when family conflict exists.
+  - Tag now shows `Famille deja en slot X` for blocked family conflicts.
+  - Click guard now blocks family duplicates with top message: `Impossible: un Pokemon de la meme famille est deja dans l'equipe.`
+  - Kept direct swap exception: replacing a slot member with another member of the same family is allowed because the target slot is ignored during conflict check.
+
+## Validation (team swap family lock)
+- `npm run test:save`: PASS (10/10).
+- `web_game_playwright_client.js` run with local server and actions payload: generated `output/web-game-family/shot-0.png`, `state-0.json`, `errors-0.json`.
+- Screenshot and text state reviewed.
+- Note: run still reports existing browser `console.error` 403 resource load (`output/web-game-family/errors-0.json`); feature change does not touch resource loading paths.
+- `run_playwright_check.ps1`: PASS (artifacts refreshed in `output/web-game-poke/`; same existing 403 resource console error observed in `errors-0.json`).
+
+## Additional progress (boxes mobile compact pass)
+- Reworked the `Boites` modal mobile behavior to preserve visible grid space on phone screens.
+- Added a dedicated responsive pass for boxes with breakpoint-specific sizing at `900px`, `760px`, and `430px`.
+- Forced the lower info section into a bounded row (`clamp(...)`) so it no longer expands with long stat text.
+- Tuned mobile spacing and typography for header, cards, and info panel to keep entries readable without wasting vertical space.
+
+## Validation runs (boxes mobile compact pass)
+- `run_playwright_check.ps1`: PASS (game still boots and baseline screenshots/state generate).
+- Manual mobile UI capture with Playwright environment: `output/ui_mobile_boxes_after.png`.
+  - Confirmed: boxes grid now keeps most of the height on phone.
+  - Confirmed: bottom info panel remains scrollable/readable and does not eat the whole modal.
+
+## Additional progress (2026-03-13, mobile team context menu fit + nickname spaces)
+- Fixed mobile/context menu overflow behavior:
+  - Updated `positionFloatingMenuElement(...)` in `game.js` to handle oversized floating menus safely.
+  - Added viewport-safe clamping with explicit fallback anchors when menu dimensions exceed available width/height.
+- Improved context menu CSS responsiveness in `styles.css`:
+  - `team-context-menu` now has responsive width constraints, viewport max-height, and internal scrolling.
+  - Added mobile/coarse-pointer compact sizing (reduced padding/font/button heights).
+  - Enabled button text wrapping to avoid oversized multiline overflow.
+- Fixed nickname input sanitization so spaces are usable on mobile:
+  - `sanitizePokemonNickname(...)` now supports `{ trimEdges: false }` for live typing (prevents trailing-space deletion while entering multi-word names).
+  - Kept final save behavior trimmed (default sanitize path still trims edges when applying rename).
+  - Added normalization of non-breaking and unicode spaces to regular spaces.
+  - Rename character counter now measures the live input variant (`trimEdges: false`).
+
+## Validation (mobile context + rename spaces)
+- `node --check game.js`: PASS.
+- Standard skill smoke run: `./run_playwright_check.ps1`: PASS (same pre-existing `console.error` 403 resource warning in `output/web-game-poke/errors-0.json`).
+- Targeted mobile viewport Playwright validation (390x844, seeded team save): PASS.
+  - Script: temporary Playwright probe (removed after run).
+  - Artifact: `output/mobile-context-rename-fix/result.json`.
+  - Screenshots:
+    - `output/mobile-context-rename-fix/menu-open-mobile.png`
+    - `output/mobile-context-rename-fix/after-rename-mobile.png`
+  - Confirmed:
+    - Team context menu opens and stays fully inside viewport (`withinViewport: true`).
+    - Typing keeps trailing space during entry (`afterSpace: "Pika "`).
+    - Final submitted nickname with space persists and renders (`"Pika chu"`).
+
+## Additional progress (projectile trails type + perf)
+- Added optimized projectile-trail sampling in `PokemonBattleManager.updateProjectiles`:
+  - Trail points are now spawned by traveled distance (pixel spacing) instead of every frame.
+  - Added per-projectile `trailStepDistance` and `trailCarryDistance` to reduce churn while keeping visual continuity.
+  - Trail point payload now includes tiny cached variance (`phase`, `scale`) for richer visuals at minimal runtime cost.
+- Added type-driven trail VFX profiles (`getProjectileTrailTypeVfxProfile`) reusing projectile type motifs/accent colors.
+- Updated trail rendering (`drawProjectiles`) with lightweight, type-dependent trail stamps:
+  - ember / droplet / leaf / spark / shard / dust / wisp / sparkle / streak
+  - all styles remain quality-aware and use existing quality toggles.
+- Added helper utilities:
+  - `createProjectileTrailPoint(x, y)`
+  - `blendRgb(baseColor, accentColor, blendRatio)`
+
+## Validation runs (projectile trail update)
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (10/10).
+- `run_playwright_projectile.ps1`: PASS launch; generated artifacts under `output/web-game-projectile`.
+- Focused Playwright run with starter+route click script (`output/web-game-projectile-trails`):
+  - combat state reached (`route_id: kanto_route_1`, `route_combat_enabled: true`, attacks/impacts active).
+  - screenshot reviewed.
+- Note: intermittent `update-required-modal` can block automated starter clicks on some runs (GitHub version check timing).
+
+## Additional progress (2026-03-13, terrain sprite common PPU harmonization)
+- Implemented a shared sprite pixels-per-unit sizing pass for battlefield Pokemon rendering (enemy + team), while keeping per-Pokemon size multiplier (`spriteScaleValue`) applied afterward.
+- Added a common PPU baseline (`POKEMON_SPRITE_COMMON_PPU`) and final render size helper so every terrain sprite now follows:
+  - common PPU normalization from source pixel dimensions
+  - then Pokemon-specific size multiplier
+- Added opaque-bounds analysis and caching for sprite sources:
+  - static image sources now compute/use cached opaque bounds
+  - animated sources now compute max opaque bounds across decoded GIF/APNG frames
+- Animated sprite pipeline updated so decoded frame entries carry `opaqueWidth/opaqueHeight`, and draw-source resolution returns these metrics to the renderer.
+- `drawPokemonSprite(...)` now uses the new shared PPU render-size helper.
+- `drawEvolutionSpriteFrame(...)` updated to reuse the same render-size logic and animated frame source resolution (consistency with terrain sprite sizing).
+
+## Validation runs (common PPU sizing)
+- `node --check game.js`: PASS.
+- `web_game_playwright_client.js` run with no-input actions (`tmp/noop_actions.json`): PASS.
+  - Artifacts: `output/web-game-ppu-check/shot-0.png`, `state-0.json`.
+- Seeded combat run (Route 1 + team) with shared PPU sizing: PASS.
+  - Artifacts: `output/web-game-ppu-check/shot-0.png..shot-2.png`, `state-0.json..state-2.json`.
+  - Confirmed combat state in text output (`route_id: kanto_route_1`, `route_combat_enabled: true`, enemy/team present).
+- Seeded animated-variant run (`black_white`) to validate animated sprite sizing path: PASS.
+  - Artifacts: `output/web-game-ppu-check-animated/shot-0.png..shot-2.png`, `state-0.json..state-2.json`.
+  - Confirmed selected animated variant in text output (`team[0].sprite_variant_id: "black_white"`).
+## Additional progress (enemy HP bar width stability)
+- Fixed enemy HP HUD layout in `game.js` (`drawEnemyHpBar`): the numeric value area now has a fixed reserved width.
+- The HP track width no longer depends on `measureText(hpLabel)`, preventing visual bar-size jumps when label length changes (example: `9.69K/33.8K` -> `9K/33.8K`).
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (no blocking runtime failure).
+  - Custom starter->Route1 run (`output/hpbar-fix-check/shot-0.png`) reviewed visually: enemy HP HUD renders correctly with fixed track region.
+- Note: Playwright console reported an existing `403` resource error during custom run (`errors-0.json`).

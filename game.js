@@ -330,6 +330,9 @@ const MONEY_COUNTER_PULSE_MS = 520;
 const PROJECTILE_SPRITE_PX = 72;
 const PROJECTILE_TRAIL_POINT_LIFETIME_MS = 170;
 const PROJECTILE_TRAIL_MAX_POINTS = 10;
+const PROJECTILE_TRAIL_POINT_BASE_SPACING_PX = 7.2;
+const PROJECTILE_TRAIL_POINT_MIN_SPACING_PX = 4.5;
+const PROJECTILE_TRAIL_POINT_MAX_SPACING_PX = 13.5;
 const CAPTURE_THROW_MS = 360;
 const CAPTURE_SHAKE_MS = 560;
 const CAPTURE_SUCCESS_BURST_MS = 560;
@@ -348,6 +351,9 @@ const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
+const POKEMON_SPRITE_COMMON_PPU = 64;
+const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN = 0.5;
+const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX = 1.8;
 const MAX_LEVEL = 100;
 const SHOP_TAB_POKEBALLS = "pokeballs";
 const SHOP_TAB_COMBAT = "combat";
@@ -1062,6 +1068,10 @@ const ctx =
   canvas.getContext("2d");
 const spriteTintBufferCanvas = document.createElement("canvas");
 const spriteTintBufferCtx = spriteTintBufferCanvas.getContext("2d");
+const spriteOpaqueBoundsCanvas = document.createElement("canvas");
+const spriteOpaqueBoundsCtx =
+  spriteOpaqueBoundsCanvas.getContext("2d", { willReadFrequently: true }) ||
+  spriteOpaqueBoundsCanvas.getContext("2d");
 const gameStageEl = document.getElementById("game-stage");
 const gameOverlayEl = document.querySelector(".game-overlay");
 const uiTopbarEl = document.querySelector(".ui-topbar");
@@ -1174,6 +1184,8 @@ const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
 const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
 const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
+const spriteOpaqueBoundsCache = new Map();
+const SPRITE_OPAQUE_BOUNDS_CACHE_MAX_ENTRIES = 900;
 const pendingRouteDefinitionLoads = new Map();
 const pendingRouteBackgroundLoads = new Map();
 const ultraShinyOutlineCache = new Map();
@@ -1482,6 +1494,17 @@ function getProjectileTrailMaxPointsForQuality() {
     return 0;
   }
   return Math.max(0, toSafeInt(quality.projectileTrailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS));
+}
+
+function createProjectileTrailPoint(x, y) {
+  return {
+    x: Number(x) || 0,
+    y: Number(y) || 0,
+    lifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
+    maxLifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
+    phase: Math.random() * Math.PI * 2,
+    scale: 0.84 + Math.random() * 0.36,
+  };
 }
 
 function getRenderFrameIntervalMs() {
@@ -3068,6 +3091,10 @@ function destroyAnimatedSpriteFramesCacheEntry(entry) {
   entry.frames = [];
   entry.frameStartsMs = [];
   entry.totalDurationMs = 0;
+  entry.width = 0;
+  entry.height = 0;
+  entry.opaqueWidth = 0;
+  entry.opaqueHeight = 0;
 }
 
 function trimAnimatedSpriteFramesCacheIfNeeded() {
@@ -3186,6 +3213,8 @@ async function decodeGifToAnimatedFrames(arrayBuffer, stableKey) {
 
   const working = new Uint8ClampedArray(width * height * 4);
   const frames = [];
+  let maxOpaqueWidth = 0;
+  let maxOpaqueHeight = 0;
   let previousFrameInfo = null;
   let previousRestore = null;
 
@@ -3205,6 +3234,9 @@ async function decodeGifToAnimatedFrames(arrayBuffer, stableKey) {
 
     const delayMs = normalizeGifFrameDelayMs(frameInfo?.delay);
     const rgbaCopy = working.slice();
+    const opaqueBounds = computeOpaqueBoundsFromRgba(rgbaCopy, width, height);
+    maxOpaqueWidth = Math.max(maxOpaqueWidth, toSafeInt(opaqueBounds.opaqueWidth, width));
+    maxOpaqueHeight = Math.max(maxOpaqueHeight, toSafeInt(opaqueBounds.opaqueHeight, height));
     const source = await createAnimatedFrameSourceFromRgba(rgbaCopy, width, height);
     if (!source) {
       previousFrameInfo = frameInfo;
@@ -3218,7 +3250,13 @@ async function decodeGifToAnimatedFrames(arrayBuffer, stableKey) {
     previousRestore = restore;
   }
 
-  return { width, height, frames };
+  return {
+    width,
+    height,
+    frames,
+    opaqueWidth: Math.max(1, maxOpaqueWidth || width),
+    opaqueHeight: Math.max(1, maxOpaqueHeight || height),
+  };
 }
 
 async function decodeApngToAnimatedFrames(arrayBuffer, stableKey) {
@@ -3232,9 +3270,14 @@ async function decodeApngToAnimatedFrames(arrayBuffer, stableKey) {
   const rgbaBuffers = Array.isArray(UPNG.toRGBA8(decoded)) ? UPNG.toRGBA8(decoded) : [];
 
   const frames = [];
+  let maxOpaqueWidth = 0;
+  let maxOpaqueHeight = 0;
   for (let i = 0; i < rgbaBuffers.length; i += 1) {
     const rgba = new Uint8ClampedArray(rgbaBuffers[i]);
     const delayMs = clamp(toSafeInt(decoded?.frames?.[i]?.delay, 100), 20, 2000);
+    const opaqueBounds = computeOpaqueBoundsFromRgba(rgba, width, height);
+    maxOpaqueWidth = Math.max(maxOpaqueWidth, toSafeInt(opaqueBounds.opaqueWidth, width));
+    maxOpaqueHeight = Math.max(maxOpaqueHeight, toSafeInt(opaqueBounds.opaqueHeight, height));
     const source = await createAnimatedFrameSourceFromRgba(rgba, width, height);
     if (!source) {
       continue;
@@ -3252,7 +3295,13 @@ async function decodeApngToAnimatedFrames(arrayBuffer, stableKey) {
     }
   }
 
-  return { width, height, frames };
+  return {
+    width,
+    height,
+    frames,
+    opaqueWidth: Math.max(1, maxOpaqueWidth || width),
+    opaqueHeight: Math.max(1, maxOpaqueHeight || height),
+  };
 }
 
 async function loadAnimatedSpriteFrames(spritePath) {
@@ -3291,6 +3340,8 @@ function ensureAnimatedSpriteFramesEntry(spritePath) {
     totalDurationMs: 0,
     width: 0,
     height: 0,
+    opaqueWidth: 0,
+    opaqueHeight: 0,
     lastAccessMs: performance.now(),
     error: "",
     loadPromise: null,
@@ -3299,6 +3350,8 @@ function ensureAnimatedSpriteFramesEntry(spritePath) {
     .then((result) => {
       entry.width = Math.max(1, toSafeInt(result?.width, 1));
       entry.height = Math.max(1, toSafeInt(result?.height, 1));
+      entry.opaqueWidth = Math.max(1, toSafeInt(result?.opaqueWidth, entry.width));
+      entry.opaqueHeight = Math.max(1, toSafeInt(result?.opaqueHeight, entry.height));
       entry.frames = Array.isArray(result?.frames) ? result.frames : [];
       const timeline = buildAnimatedSpriteTimeline(entry.frames);
       entry.frameStartsMs = timeline.starts;
@@ -3326,23 +3379,44 @@ function resolveAnimatedSpriteFrameSource(spritePath, timeMs) {
     return null;
   }
   entry.lastAccessMs = performance.now();
-  return resolveAnimatedSpriteFrame(entry, timeMs);
+  const resolved = resolveAnimatedSpriteFrame(entry, timeMs);
+  if (!resolved?.source) {
+    return null;
+  }
+  return {
+    source: resolved.source,
+    frameIndex: toSafeInt(resolved.frameIndex, -1),
+    width: Math.max(1, toSafeInt(entry.width, 1)),
+    height: Math.max(1, toSafeInt(entry.height, 1)),
+    opaqueWidth: Math.max(1, toSafeInt(entry.opaqueWidth, entry.width || 1)),
+    opaqueHeight: Math.max(1, toSafeInt(entry.opaqueHeight, entry.height || 1)),
+  };
 }
 
 function resolveEntitySpriteDrawSource(entity, timeMs = state.timeMs) {
   const base = entity?.spriteImage || null;
+  const baseDims = getDrawableImageDimensions(base);
+  const baseOpaqueBounds = isDrawableImage(base) ? getOpaqueBoundsForDrawableImage(base) : { opaqueWidth: 0, opaqueHeight: 0 };
+  const fallback = {
+    source: base,
+    frameIndex: -1,
+    width: Math.max(0, toSafeInt(baseDims.width, 0)),
+    height: Math.max(0, toSafeInt(baseDims.height, 0)),
+    opaqueWidth: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueWidth, baseDims.width)),
+    opaqueHeight: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueHeight, baseDims.height)),
+  };
   if (!entity?.spriteAnimated) {
-    return { source: base, frameIndex: -1 };
+    return fallback;
   }
   const spritePath = String(entity?.spritePath || base?.currentSrc || base?.src || "");
   if (!spritePath) {
-    return { source: base, frameIndex: -1 };
+    return fallback;
   }
   const resolved = resolveAnimatedSpriteFrameSource(spritePath, timeMs);
   if (resolved?.source) {
-    return { source: resolved.source, frameIndex: toSafeInt(resolved.frameIndex, -1) };
+    return resolved;
   }
-  return { source: base, frameIndex: -1 };
+  return fallback;
 }
 
 function normalizePokemonSpriteScaleValue(rawValue) {
@@ -3356,6 +3430,35 @@ function normalizePokemonSpriteScaleValue(rawValue) {
 function getPokemonDataSpriteScale(entity) {
   const scaleValue = normalizePokemonSpriteScaleValue(entity?.spriteScaleValue ?? entity?.size);
   return lerpNumber(POKEMON_DATA_SPRITE_SCALE_MIN, POKEMON_DATA_SPRITE_SCALE_MAX, scaleValue);
+}
+
+function getSpriteSourceMaxPixelDimension(source) {
+  const opaqueWidth = Math.max(0, toSafeInt(source?.opaqueWidth, 0));
+  const opaqueHeight = Math.max(0, toSafeInt(source?.opaqueHeight, 0));
+  if (opaqueWidth > 0 || opaqueHeight > 0) {
+    return Math.max(opaqueWidth, opaqueHeight);
+  }
+  const width = Math.max(0, toSafeInt(source?.width, 0));
+  const height = Math.max(0, toSafeInt(source?.height, 0));
+  if (width > 0 || height > 0) {
+    return Math.max(width, height);
+  }
+  return Math.max(1, toSafeInt(POKEMON_SPRITE_COMMON_PPU, 64));
+}
+
+function getPokemonSpriteCommonPpuMultiplier(source) {
+  const sourcePixels = Math.max(1, getSpriteSourceMaxPixelDimension(source));
+  const commonPpu = Math.max(1, toSafeInt(POKEMON_SPRITE_COMMON_PPU, 64));
+  const raw = sourcePixels / commonPpu;
+  return clamp(raw, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX);
+}
+
+function getPokemonSpriteRenderSize(entity, size, source = null) {
+  const baseSize = Math.max(0, Number(size) || 0);
+  if (baseSize <= 0) {
+    return 0;
+  }
+  return baseSize * getPokemonDataSpriteScale(entity) * getPokemonSpriteCommonPpuMultiplier(source);
 }
 
 function trimUltraShinyOutlineCacheIfNeeded() {
@@ -3496,6 +3599,102 @@ function getDrawableImageDimensions(image) {
     return { width, height };
   }
   return { width: 0, height: 0 };
+}
+
+function trimSpriteOpaqueBoundsCacheIfNeeded() {
+  if (spriteOpaqueBoundsCache.size <= SPRITE_OPAQUE_BOUNDS_CACHE_MAX_ENTRIES) {
+    return;
+  }
+  const extraCount = spriteOpaqueBoundsCache.size - SPRITE_OPAQUE_BOUNDS_CACHE_MAX_ENTRIES;
+  const keys = spriteOpaqueBoundsCache.keys();
+  for (let i = 0; i < extraCount; i += 1) {
+    const key = keys.next().value;
+    if (typeof key === "undefined") {
+      break;
+    }
+    spriteOpaqueBoundsCache.delete(key);
+  }
+}
+
+function computeOpaqueBoundsFromRgba(rgba, width, height) {
+  const w = Math.max(1, toSafeInt(width, 1));
+  const h = Math.max(1, toSafeInt(height, 1));
+  if (!rgba || typeof rgba.length !== "number" || rgba.length < w * h * 4) {
+    return { opaqueWidth: w, opaqueHeight: h };
+  }
+
+  let minX = w;
+  let minY = h;
+  let maxX = -1;
+  let maxY = -1;
+  const pixelCount = w * h;
+  for (let index = 0; index < pixelCount; index += 1) {
+    const alpha = Number(rgba[index * 4 + 3] || 0);
+    if (alpha <= 0) {
+      continue;
+    }
+    const x = index % w;
+    const y = Math.floor(index / w);
+    if (x < minX) {
+      minX = x;
+    }
+    if (x > maxX) {
+      maxX = x;
+    }
+    if (y < minY) {
+      minY = y;
+    }
+    if (y > maxY) {
+      maxY = y;
+    }
+  }
+
+  if (maxX < minX || maxY < minY) {
+    return { opaqueWidth: w, opaqueHeight: h };
+  }
+  return {
+    opaqueWidth: Math.max(1, maxX - minX + 1),
+    opaqueHeight: Math.max(1, maxY - minY + 1),
+  };
+}
+
+function getOpaqueBoundsForDrawableImage(image) {
+  if (!isDrawableImage(image)) {
+    return { opaqueWidth: 1, opaqueHeight: 1 };
+  }
+  const cacheKey = getImageCacheStableId(image);
+  if (cacheKey && spriteOpaqueBoundsCache.has(cacheKey)) {
+    return spriteOpaqueBoundsCache.get(cacheKey);
+  }
+
+  const dims = getDrawableImageDimensions(image);
+  const width = Math.max(1, toSafeInt(dims.width, 1));
+  const height = Math.max(1, toSafeInt(dims.height, 1));
+  let bounds = { opaqueWidth: width, opaqueHeight: height };
+
+  if (spriteOpaqueBoundsCtx) {
+    try {
+      if (spriteOpaqueBoundsCanvas.width !== width || spriteOpaqueBoundsCanvas.height !== height) {
+        spriteOpaqueBoundsCanvas.width = width;
+        spriteOpaqueBoundsCanvas.height = height;
+      }
+      spriteOpaqueBoundsCtx.setTransform(1, 0, 0, 1, 0, 0);
+      spriteOpaqueBoundsCtx.globalAlpha = 1;
+      spriteOpaqueBoundsCtx.globalCompositeOperation = "copy";
+      spriteOpaqueBoundsCtx.clearRect(0, 0, width, height);
+      spriteOpaqueBoundsCtx.drawImage(image, 0, 0, width, height);
+      const rgba = spriteOpaqueBoundsCtx.getImageData(0, 0, width, height).data;
+      bounds = computeOpaqueBoundsFromRgba(rgba, width, height);
+    } catch (error) {
+      bounds = { opaqueWidth: width, opaqueHeight: height };
+    }
+  }
+
+  if (cacheKey) {
+    spriteOpaqueBoundsCache.set(cacheKey, bounds);
+    trimSpriteOpaqueBoundsCacheIfNeeded();
+  }
+  return bounds;
 }
 
 function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
@@ -3714,18 +3913,20 @@ function getTeamAuraAttackBonusBySlot(teamMembers) {
   return bonuses;
 }
 
-function sanitizePokemonNickname(rawValue) {
+function sanitizePokemonNickname(rawValue, options = {}) {
+  const trimEdges = options.trimEdges !== false;
   const normalized = String(rawValue ?? "")
     .replace(/[\r\n\t]+/g, " ")
-    .trim();
-  if (!normalized) {
+    .replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/g, " ");
+  const candidate = trimEdges ? normalized.trim() : normalized;
+  if (!candidate.trim()) {
     return "";
   }
-  return Array.from(normalized).slice(0, POKEMON_NICKNAME_MAX_LENGTH).join("");
+  return Array.from(candidate).slice(0, POKEMON_NICKNAME_MAX_LENGTH).join("");
 }
 
-function getPokemonNicknameLength(rawValue) {
-  return Array.from(sanitizePokemonNickname(rawValue)).length;
+function getPokemonNicknameLength(rawValue, options = {}) {
+  return Array.from(sanitizePokemonNickname(rawValue, options)).length;
 }
 
 function escapeHtml(value) {
@@ -5653,6 +5854,47 @@ function applyNicknameToEvolutionFamily(pokemonId, nickname) {
   };
 }
 
+function applyAppearanceModesToEvolutionFamily(pokemonId, options = {}) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return { changed: false, familySize: 0 };
+  }
+  const hasShinyMode = Object.prototype.hasOwnProperty.call(options, "shinyMode");
+  const hasUltraShinyMode = Object.prototype.hasOwnProperty.call(options, "ultraShinyMode");
+  const familyIds = getEvolutionFamilySpeciesIds(id);
+  const targetIds = Array.from(new Set((familyIds.length > 0 ? familyIds : [id]).map((entry) => Number(entry || 0))))
+    .filter((entry) => entry > 0);
+  const requestedShinyMode = hasShinyMode ? Boolean(options.shinyMode) : null;
+  const requestedUltraShinyMode = hasUltraShinyMode ? Boolean(options.ultraShinyMode) : null;
+  let changed = false;
+
+  for (const familyId of targetIds) {
+    const record = ensureSpeciesStats(familyId);
+    let recordChanged = false;
+
+    if (requestedShinyMode != null && Boolean(record.appearance_shiny_mode) !== requestedShinyMode) {
+      record.appearance_shiny_mode = requestedShinyMode;
+      recordChanged = true;
+    }
+    if (requestedUltraShinyMode != null && Boolean(record.appearance_ultra_shiny_mode) !== requestedUltraShinyMode) {
+      record.appearance_ultra_shiny_mode = requestedUltraShinyMode;
+      recordChanged = true;
+    }
+
+    if (reconcileAppearanceForEntityRecord(record, familyId)) {
+      recordChanged = true;
+    }
+    if (recordChanged) {
+      changed = true;
+    }
+  }
+
+  return {
+    changed,
+    familySize: targetIds.length,
+  };
+}
+
 function getFamilyCounterTotal(pokemonId, counterField) {
   const field = String(counterField || "").trim();
   if (!field) {
@@ -7479,6 +7721,23 @@ function getRewardMultipliersFromLevelDiff(levelDiff) {
   return { xp: 0.05, money: 0.35, coin: 0.1 };
 }
 
+function getXpMultiplierFromLevelDiff(levelDiff) {
+  const diff = toSafeInt(levelDiff, 0);
+  if (diff >= 0) {
+    return 1;
+  }
+  if (diff >= -5) {
+    return 0.9;
+  }
+  if (diff >= -10) {
+    return 0.7;
+  }
+  if (diff >= -20) {
+    return 0.45;
+  }
+  return 0.1;
+}
+
 function scaleRewardByMultiplier(baseReward, multiplier, minimumIfPositive = 0) {
   const reward = Math.max(0, toSafeInt(baseReward, 0));
   if (reward <= 0) {
@@ -7840,6 +8099,17 @@ function computeDamage(attacker, defender, attackType, typeMultiplier, options =
 function rgba(rgb, alpha) {
   const color = Array.isArray(rgb) ? rgb : [220, 236, 255];
   return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
+}
+
+function blendRgb(baseColor, accentColor, blendRatio = 0.5) {
+  const base = Array.isArray(baseColor) ? baseColor : [220, 236, 255];
+  const accent = Array.isArray(accentColor) ? accentColor : base;
+  const t = clamp(Number(blendRatio) || 0, 0, 1);
+  return [
+    Math.round(base[0] + (accent[0] - base[0]) * t),
+    Math.round(base[1] + (accent[1] - base[1]) * t),
+    Math.round(base[2] + (accent[2] - base[2]) * t),
+  ];
 }
 
 function getTypeColor(typeName) {
@@ -9583,6 +9853,12 @@ class PokemonBattleManager {
     const attackType = String(options.attackType || this.resolveAttackTypeForAttacker(attackerIndex, attacker));
     const targetOffsetX = Number(options.targetOffsetX) || 0;
     const targetOffsetY = Number(options.targetOffsetY) || 0;
+    const trailProfile = getProjectileTrailTypeVfxProfile(attackType);
+    const trailStepDistance = clamp(
+      Number(trailProfile.spacingPx) || PROJECTILE_TRAIL_POINT_BASE_SPACING_PX,
+      PROJECTILE_TRAIL_POINT_MIN_SPACING_PX,
+      PROJECTILE_TRAIL_POINT_MAX_SPACING_PX,
+    );
     const startX = slot.x;
     const startY = slot.y - slot.size * 0.12;
     const impactPoint = this.getEnemyImpactPoint(layout);
@@ -9624,6 +9900,8 @@ class PokemonBattleManager {
       rotation: 0,
       lifetimeMs: 0,
       trail: [],
+      trailStepDistance,
+      trailCarryDistance: trailStepDistance,
       precomputedHit,
       plannedDamage,
       reservesDefeat,
@@ -9707,30 +9985,6 @@ class PokemonBattleManager {
       projectile.targetX = impactPoint.x;
       projectile.targetY = impactPoint.y;
       projectile.lifetimeMs += deltaMs;
-      if (trailMaxPoints > 0) {
-        const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
-        let writeIndex = 0;
-        for (const point of existingTrail) {
-          point.lifeMs -= deltaMs;
-          if (point.lifeMs > 0) {
-            existingTrail[writeIndex] = point;
-            writeIndex += 1;
-          }
-        }
-        existingTrail.length = writeIndex;
-        existingTrail.push({
-          x: projectile.x,
-          y: projectile.y,
-          lifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
-          maxLifeMs: PROJECTILE_TRAIL_POINT_LIFETIME_MS,
-        });
-        if (existingTrail.length > trailMaxPoints) {
-          existingTrail.splice(0, existingTrail.length - trailMaxPoints);
-        }
-        projectile.trail = existingTrail;
-      } else if (Array.isArray(projectile.trail) && projectile.trail.length > 0) {
-        projectile.trail.length = 0;
-      }
 
       const dx = projectile.targetX - projectile.x;
       const dy = projectile.targetY - projectile.y;
@@ -9752,6 +10006,58 @@ class PokemonBattleManager {
       projectile.rotation = Math.atan2(dy, dx) + projectile.spinPhase * 0.33;
       projectile.x += (dx / distance) * frameDistance;
       projectile.y += (dy / distance) * frameDistance;
+
+      if (trailMaxPoints > 0) {
+        const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
+        let writeIndex = 0;
+        for (const point of existingTrail) {
+          point.lifeMs -= deltaMs;
+          if (point.lifeMs > 0) {
+            existingTrail[writeIndex] = point;
+            writeIndex += 1;
+          }
+        }
+        existingTrail.length = writeIndex;
+
+        const stepDistance = clamp(
+          Number(projectile.trailStepDistance) || PROJECTILE_TRAIL_POINT_BASE_SPACING_PX,
+          PROJECTILE_TRAIL_POINT_MIN_SPACING_PX,
+          PROJECTILE_TRAIL_POINT_MAX_SPACING_PX,
+        );
+        const movementX = projectile.x - projectile.prevX;
+        const movementY = projectile.y - projectile.prevY;
+        const movementDistance = Math.hypot(movementX, movementY);
+        const carryDistance = clamp(Number(projectile.trailCarryDistance) || 0, 0, stepDistance - 0.001);
+        const totalDistance = carryDistance + movementDistance;
+        if (existingTrail.length <= 0) {
+          existingTrail.push(createProjectileTrailPoint(projectile.prevX, projectile.prevY));
+        }
+        if (movementDistance > 0.0001 && totalDistance >= stepDistance) {
+          const sampleCount = Math.min(4, Math.floor(totalDistance / stepDistance));
+          const firstDistance = stepDistance - carryDistance;
+          for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+            const sampleDistance = firstDistance + sampleIndex * stepDistance;
+            const t = clamp(sampleDistance / movementDistance, 0, 1);
+            existingTrail.push(
+              createProjectileTrailPoint(
+                projectile.prevX + movementX * t,
+                projectile.prevY + movementY * t,
+              ),
+            );
+          }
+          projectile.trailCarryDistance = totalDistance - sampleCount * stepDistance;
+        } else {
+          projectile.trailCarryDistance = totalDistance;
+        }
+        if (existingTrail.length > trailMaxPoints) {
+          existingTrail.splice(0, existingTrail.length - trailMaxPoints);
+        }
+        projectile.trail = existingTrail;
+      } else if (Array.isArray(projectile.trail) && projectile.trail.length > 0) {
+        projectile.trail.length = 0;
+        projectile.trailCarryDistance = 0;
+      }
+
       survivors.push(projectile);
     }
 
@@ -10703,8 +11009,7 @@ function handleEnemyDefeated(enemy) {
   const resolveXpMultiplier = ({ teamLevel }) => {
     const level = Math.max(1, toSafeInt(teamLevel, 1));
     const levelDiff = enemyLevel - level;
-    const multipliers = getRewardMultipliersFromLevelDiff(levelDiff);
-    return clamp(Number(multipliers.xp || 1), 0, 1);
+    return clamp(Number(getXpMultiplierFromLevelDiff(levelDiff) || 1), 0, 1);
   };
   const applyXpSummaryEffects = (summary, tone) => {
     if (state.simulationIdleMode || !summary) {
@@ -12702,7 +13007,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const shaderConfig = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
   const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
   const spriteImage = resolvedSpriteSource.source;
-  const renderSize = size * getPokemonDataSpriteScale(entity);
+  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);
   let spriteDrawX = -renderSize * 0.5;
   let spriteDrawY = -renderSize * 0.5;
   let spriteDrawWidth = renderSize;
@@ -13012,9 +13317,12 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   ctx.save();
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
-  const valueWidth = Math.ceil(ctx.measureText(hpLabel).width);
+  // Reserve a fixed value area so the HP track width stays stable when number formatting changes.
+  const valueAreaWidth = clamp(Math.round(panelWidth * 0.34), 72, 132);
+  const valueTextRightX = panelX + panelWidth - 8;
+  const valueAreaLeftX = valueTextRightX - valueAreaWidth;
   const trackX = chipX + chipWidth + 8;
-  const trackWidth = Math.max(50, panelWidth - (trackX - panelX) - valueWidth - 16);
+  const trackWidth = Math.max(50, valueAreaLeftX - trackX - 8);
   const trackRadius = Math.max(2, height * 0.32);
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
@@ -13085,7 +13393,7 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   ctx.textBaseline = "middle";
   ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
   ctx.fillStyle = "#c6dbf2";
-  ctx.fillText(hpLabel, panelX + panelWidth - 8, panelY + panelHeight * 0.56);
+  ctx.fillText(hpLabel, valueTextRightX, panelY + panelHeight * 0.56);
   ctx.restore();
 }
 
@@ -13348,6 +13656,122 @@ function getProjectileTypeVfxProfile(typeName) {
       return { motif: "ring", accent: [244, 236, 220], intensity: 0.9 };
     default:
       return { motif: "ring", accent: [232, 240, 255], intensity: 0.94 };
+  }
+}
+
+function getProjectileTrailTypeVfxProfile(typeName) {
+  const typeProfile = getProjectileTypeVfxProfile(typeName);
+  const accent = Array.isArray(typeProfile.accent) ? typeProfile.accent : [232, 240, 255];
+  switch (typeProfile.motif) {
+    case "flame":
+      return {
+        mode: "ember",
+        accent,
+        accentMix: 0.66,
+        radiusMul: 0.92,
+        stretch: 1.8,
+        alphaBase: 0.14,
+        alphaLife: 0.31,
+        spacingPx: 6.1,
+      };
+    case "droplet":
+    case "bubble":
+      return {
+        mode: "droplet",
+        accent,
+        accentMix: 0.54,
+        radiusMul: 0.9,
+        stretch: 1.4,
+        alphaBase: 0.14,
+        alphaLife: 0.28,
+        spacingPx: 7.1,
+      };
+    case "leaf":
+    case "wing":
+      return {
+        mode: "leaf",
+        accent,
+        accentMix: 0.62,
+        radiusMul: 0.84,
+        stretch: 1.45,
+        alphaBase: 0.12,
+        alphaLife: 0.29,
+        spacingPx: 7.4,
+      };
+    case "bolt":
+    case "impact":
+    case "gear":
+      return {
+        mode: "spark",
+        accent,
+        accentMix: 0.67,
+        radiusMul: 0.74,
+        stretch: 1.75,
+        alphaBase: 0.14,
+        alphaLife: 0.33,
+        spacingPx: 6.2,
+      };
+    case "crystal":
+    case "shard":
+    case "rune":
+      return {
+        mode: "shard",
+        accent,
+        accentMix: 0.59,
+        radiusMul: 0.82,
+        stretch: 1.42,
+        alphaBase: 0.12,
+        alphaLife: 0.29,
+        spacingPx: 7.5,
+      };
+    case "dust":
+      return {
+        mode: "dust",
+        accent,
+        accentMix: 0.44,
+        radiusMul: 0.96,
+        stretch: 1.22,
+        alphaBase: 0.12,
+        alphaLife: 0.25,
+        spacingPx: 8.4,
+      };
+    case "wisp":
+    case "shadow":
+      return {
+        mode: "wisp",
+        accent,
+        accentMix: 0.5,
+        radiusMul: 1.02,
+        stretch: 1.25,
+        alphaBase: 0.1,
+        alphaLife: 0.24,
+        spacingPx: 8.6,
+      };
+    case "sparkle":
+      return {
+        mode: "sparkle",
+        accent,
+        accentMix: 0.69,
+        radiusMul: 0.78,
+        stretch: 1.52,
+        alphaBase: 0.12,
+        alphaLife: 0.3,
+        spacingPx: 7,
+      };
+    case "orbit":
+    case "wind":
+    case "ring":
+    default:
+      return {
+        mode: "streak",
+        accent,
+        accentMix: 0.52,
+        radiusMul: 0.86,
+        stretch: 1.58,
+        alphaBase: 0.12,
+        alphaLife: 0.27,
+        spacingPx: 7.8,
+      };
   }
 }
 
@@ -13624,9 +14048,25 @@ function drawProjectiles(projectiles) {
   for (const projectile of projectiles || []) {
     const rgb = getTypeColor(projectile.attackType);
     const radius = projectile.radius || 8;
+    const trailProfile = getProjectileTrailTypeVfxProfile(projectile.attackType);
+    const trailAccent = Array.isArray(trailProfile.accent) ? trailProfile.accent : rgb;
+    const trailColor = blendRgb(rgb, trailAccent, trailProfile.accentMix);
     const sprite = spriteDetail ? getProjectileSprite(projectile.attackType) : null;
     const auraRadius = radius * 3.3 * auraScale;
     const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];
+    const movementX = Number(projectile.x) - Number(projectile.prevX);
+    const movementY = Number(projectile.y) - Number(projectile.prevY);
+    const movementDistance = Math.hypot(movementX, movementY);
+    let trailAngle = Number(projectile.rotation) || 0;
+    let trailDirX = Math.cos(trailAngle);
+    let trailDirY = Math.sin(trailAngle);
+    if (movementDistance > 0.0001) {
+      trailDirX = movementX / movementDistance;
+      trailDirY = movementY / movementDistance;
+      trailAngle = Math.atan2(trailDirY, trailDirX);
+    }
+    const trailPerpX = -trailDirY;
+    const trailPerpY = trailDirX;
 
     if (trailPoints.length > 0) {
       ctx.save();
@@ -13639,21 +14079,160 @@ function drawProjectiles(projectiles) {
           continue;
         }
         const lifeRatio = clamp(point.lifeMs / Math.max(1, point.maxLifeMs), 0, 1);
-        const pointRadius = radius * (0.8 + lifeRatio * 0.9);
+        const pointScale = clamp(Number(point.scale) || 1, 0.72, 1.4);
+        const pointRadius = radius * trailProfile.radiusMul * (0.5 + lifeRatio * 0.82) * pointScale;
         if (trailGlow) {
           const glow = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pointRadius * 2.6);
-          glow.addColorStop(0, rgba(rgb, 0.26 * lifeRatio));
-          glow.addColorStop(1, rgba(rgb, 0));
+          glow.addColorStop(0, rgba(trailColor, 0.24 * lifeRatio));
+          glow.addColorStop(1, rgba(trailColor, 0));
           ctx.fillStyle = glow;
           ctx.beginPath();
           ctx.arc(point.x, point.y, pointRadius * 2.6, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          ctx.globalAlpha = 0.16 + lifeRatio * 0.2;
-          ctx.fillStyle = rgba(rgb, 0.72);
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, pointRadius * 1.35, 0, Math.PI * 2);
-          ctx.fill();
+          const pointPhase = Number(point.phase) || 0;
+          const alpha = clamp(
+            (trailProfile.alphaBase + lifeRatio * trailProfile.alphaLife) * (0.78 + lifeRatio * 0.24),
+            0.04,
+            0.72,
+          );
+          ctx.globalAlpha = alpha;
+          switch (trailProfile.mode) {
+            case "ember": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.fillStyle = rgba(trailColor, 0.92);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * length * 0.28,
+                point.y - trailDirY * length * 0.28,
+                pointRadius * trailProfile.stretch,
+                Math.max(0.8, pointRadius * 0.54),
+                trailAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              ctx.fillStyle = rgba(trailAccent, 0.74);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, Math.max(0.5, pointRadius * 0.32), 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "droplet": {
+              const wobbleAngle = trailAngle + Math.sin(pointPhase + (projectile.lifetimeMs || 0) * 0.013) * 0.24;
+              ctx.fillStyle = rgba(trailColor, 0.9);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * pointRadius * 0.18,
+                point.y - trailDirY * pointRadius * 0.18,
+                pointRadius * 1.08,
+                Math.max(0.8, pointRadius * 0.68),
+                wobbleAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              if ((pointIndex & 1) === 0) {
+                ctx.strokeStyle = rgba(trailAccent, 0.84);
+                ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pointRadius * 0.82, 0, Math.PI * 2);
+                ctx.stroke();
+              }
+              break;
+            }
+            case "leaf": {
+              const leafAngle = trailAngle + Math.sin(pointPhase) * 0.52;
+              ctx.fillStyle = rgba(trailColor, 0.9);
+              ctx.beginPath();
+              ctx.ellipse(point.x, point.y, pointRadius * 1.2, Math.max(0.72, pointRadius * 0.52), leafAngle, 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "spark": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.strokeStyle = rgba(trailAccent, 0.94);
+              ctx.lineWidth = Math.max(1, pointRadius * 0.42);
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);
+              ctx.lineTo(point.x + trailDirX * length * 0.42, point.y + trailDirY * length * 0.42);
+              if ((pointIndex & 1) === 0) {
+                ctx.moveTo(point.x - trailPerpX * length * 0.42, point.y - trailPerpY * length * 0.42);
+                ctx.lineTo(point.x + trailPerpX * length * 0.42, point.y + trailPerpY * length * 0.42);
+              }
+              ctx.stroke();
+              break;
+            }
+            case "shard": {
+              const length = pointRadius * trailProfile.stretch;
+              const width = Math.max(0.6, pointRadius * 0.66);
+              ctx.fillStyle = rgba(trailColor, 0.88);
+              ctx.beginPath();
+              ctx.moveTo(point.x + trailDirX * length, point.y + trailDirY * length);
+              ctx.lineTo(point.x + trailPerpX * width, point.y + trailPerpY * width);
+              ctx.lineTo(point.x - trailDirX * length * 0.86, point.y - trailDirY * length * 0.86);
+              ctx.lineTo(point.x - trailPerpX * width, point.y - trailPerpY * width);
+              ctx.closePath();
+              ctx.fill();
+              break;
+            }
+            case "dust": {
+              const jitterX = Math.sin(pointPhase) * pointRadius * 0.2;
+              const jitterY = Math.cos(pointPhase * 1.4) * pointRadius * 0.2;
+              ctx.fillStyle = rgba(trailColor, 0.86);
+              ctx.beginPath();
+              ctx.arc(point.x + jitterX, point.y + jitterY, pointRadius * 1.06, 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "wisp": {
+              ctx.fillStyle = rgba(trailColor, 0.72);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, pointRadius * 1.2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = rgba(trailAccent, 0.54);
+              ctx.beginPath();
+              ctx.arc(
+                point.x - trailDirX * pointRadius * 0.58,
+                point.y - trailDirY * pointRadius * 0.58,
+                pointRadius * 0.62,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              break;
+            }
+            case "sparkle": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.strokeStyle = rgba(trailAccent, 0.9);
+              ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);
+              ctx.lineTo(point.x + trailDirX * length, point.y + trailDirY * length);
+              ctx.moveTo(point.x - trailPerpX * length * 0.84, point.y - trailPerpY * length * 0.84);
+              ctx.lineTo(point.x + trailPerpX * length * 0.84, point.y + trailPerpY * length * 0.84);
+              ctx.stroke();
+              break;
+            }
+            case "streak":
+            default: {
+              ctx.fillStyle = rgba(trailColor, 0.88);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * pointRadius * 0.24,
+                point.y - trailDirY * pointRadius * 0.24,
+                pointRadius * trailProfile.stretch,
+                Math.max(0.7, pointRadius * 0.48),
+                trailAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              break;
+            }
+          }
         }
       }
       ctx.restore();
@@ -14803,7 +15382,9 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
   const alpha = clamp(Number(options.alpha ?? 1), 0, 1);
   const scale = Math.max(0.02, Number(options.scale ?? 1));
   const whiteRatio = clamp(Number(options.whiteRatio ?? 0), 0, 1);
-  const renderSize = size * getPokemonDataSpriteScale(entity);
+  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
+  const spriteImage = resolvedSpriteSource?.source || entity?.spriteImage || null;
+  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);
 
   ctx.save();
   ctx.translate(x, y);
@@ -14815,8 +15396,9 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
   ctx.ellipse(0, renderSize * 0.38, renderSize * 0.32, renderSize * 0.11, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  if (isDrawableImage(entity?.spriteImage)) {
-    const ratio = entity.spriteImage.width / Math.max(entity.spriteImage.height, 1);
+  if (isDrawableImage(spriteImage)) {
+    const dims = getDrawableImageDimensions(spriteImage);
+    const ratio = dims.width / Math.max(dims.height, 1);
     let drawWidth = renderSize;
     let drawHeight = renderSize;
     if (ratio > 1) {
@@ -14828,7 +15410,7 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
     const drawY = -drawHeight * 0.45;
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
-    drawSpriteImageWithTint(entity.spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);
+    drawSpriteImageWithTint(spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
     ctx.fillStyle = "rgba(195, 215, 245, 0.45)";
@@ -15536,8 +16118,10 @@ function render() {
       });
     }
 
-    drawTeamXpGainEffects();
-    drawTeamLevelUpEffects();
+    if (!captureSequence) {
+      drawTeamXpGainEffects();
+      drawTeamLevelUpEffects();
+    }
     drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);
     drawBattleUiOverlay(layout, {
       showEnemyUi: Boolean(state.enemy) && !koTransition?.active && !captureSequence,
@@ -15723,7 +16307,7 @@ function refreshRenameCharCount() {
   if (!renameCharCountEl) {
     return;
   }
-  const currentLength = getPokemonNicknameLength(renameInputEl?.value || "");
+  const currentLength = getPokemonNicknameLength(renameInputEl?.value || "", { trimEdges: false });
   renameCharCountEl.textContent = `${currentLength}/${POKEMON_NICKNAME_MAX_LENGTH}`;
 }
 
@@ -15906,17 +16490,26 @@ function positionFloatingMenuElement(menuEl, clientX, clientY) {
   if (!menuEl) {
     return;
   }
+  const viewportPadding = 8;
   const menuRect = menuEl.getBoundingClientRect();
   let left = clientX + 12;
   let top = clientY + 12;
-  if (left + menuRect.width > window.innerWidth - 8) {
+  if (left + menuRect.width > window.innerWidth - viewportPadding) {
     left = clientX - menuRect.width - 12;
   }
-  if (top + menuRect.height > window.innerHeight - 8) {
+  if (top + menuRect.height > window.innerHeight - viewportPadding) {
     top = clientY - menuRect.height - 12;
   }
-  menuEl.style.left = `${Math.round(clamp(left, 8, window.innerWidth - menuRect.width - 8))}px`;
-  menuEl.style.top = `${Math.round(clamp(top, 8, window.innerHeight - menuRect.height - 8))}px`;
+  const maxLeft = Math.max(viewportPadding, window.innerWidth - menuRect.width - viewportPadding);
+  const maxTop = Math.max(viewportPadding, window.innerHeight - menuRect.height - viewportPadding);
+  if (menuRect.width + viewportPadding * 2 > window.innerWidth) {
+    left = viewportPadding;
+  }
+  if (menuRect.height + viewportPadding * 2 > window.innerHeight) {
+    top = viewportPadding;
+  }
+  menuEl.style.left = `${Math.round(clamp(left, viewportPadding, maxLeft))}px`;
+  menuEl.style.top = `${Math.round(clamp(top, viewportPadding, maxTop))}px`;
 }
 
 function setBallCaptureToggleButtonState(buttonEl, label, enabled) {
@@ -16087,6 +16680,26 @@ function getTeamSlotLabel(slotIndex) {
 function getPokemonDisplayNameById(pokemonId) {
   const id = Number(pokemonId);
   return state.pokemonDefsById.get(id)?.nameFr || "Pokemon " + String(id);
+}
+
+function findTeamFamilyConflictSlotIndex(candidatePokemonId, ignoredSlotIndex = -1) {
+  const candidateId = Number(candidatePokemonId || 0);
+  if (candidateId <= 0 || !state.saveData || !Array.isArray(state.saveData.team)) {
+    return -1;
+  }
+  const ignoredIndex = toSafeInt(ignoredSlotIndex, -1);
+  const familyIds = getEvolutionFamilySpeciesIds(candidateId);
+  const familyIdSet = new Set((familyIds.length > 0 ? familyIds : [candidateId]).map((id) => Number(id || 0)).filter((id) => id > 0));
+  for (let index = 0; index < state.saveData.team.length; index += 1) {
+    if (index === ignoredIndex) {
+      continue;
+    }
+    const teamPokemonId = Number(state.saveData.team[index] || 0);
+    if (teamPokemonId > 0 && familyIdSet.has(teamPokemonId)) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function getCapturedEntityBoxesEntries() {
@@ -16298,6 +16911,8 @@ function renderBoxesGrid() {
     const isCurrent = entry.id === currentTargetId;
     const inAnotherSlot = entry.inTeamIndex >= 0 && entry.inTeamIndex !== targetSlotIndex;
     const unavailable = !entry.usableInTeam;
+    const familyConflictSlotIndex = findTeamFamilyConflictSlotIndex(entry.id, targetSlotIndex);
+    const hasFamilyConflict = familyConflictSlotIndex >= 0;
 
     const button = document.createElement("button");
     button.type = "button";
@@ -16305,7 +16920,7 @@ function renderBoxesGrid() {
     if (isCurrent) {
       button.classList.add("is-current");
     }
-    if (inAnotherSlot || unavailable) {
+    if (inAnotherSlot || unavailable || hasFamilyConflict) {
       button.classList.add("is-disabled");
       button.disabled = true;
     }
@@ -16373,6 +16988,8 @@ function renderBoxesGrid() {
       tagEl.textContent = "Indispo dans cette version";
     } else if (inAnotherSlot) {
       tagEl.textContent = "Deja en " + getTeamSlotLabel(entry.inTeamIndex);
+    } else if (hasFamilyConflict) {
+      tagEl.textContent = "Famille deja en " + getTeamSlotLabel(familyConflictSlotIndex);
     } else if (isCurrent) {
       tagEl.textContent = "Slot actuel";
     } else {
@@ -16397,6 +17014,10 @@ function renderBoxesGrid() {
         setTopMessage("Impossible: ce Pokemon est deja dans l'equipe.", 1600);
         return;
       }
+      if (familyConflictSlotIndex >= 0) {
+        setTopMessage("Impossible: un Pokemon de la meme famille est deja dans l'equipe.", 1700);
+        return;
+      }
       const targetIndex = state.ui.boxesTargetSlotIndex;
       if (targetIndex < 0 || targetIndex >= MAX_TEAM_SIZE) {
         return;
@@ -16414,6 +17035,12 @@ function renderBoxesGrid() {
       const duplicateIndex = state.saveData.team.findIndex((id, idx) => idx !== targetIndex && Number(id) === entry.id);
       if (duplicateIndex >= 0) {
         setTopMessage("Impossible: ce Pokemon est deja dans l'equipe.", 1600);
+        renderBoxesGrid();
+        return;
+      }
+      const duplicateFamilyIndex = findTeamFamilyConflictSlotIndex(entry.id, targetIndex);
+      if (duplicateFamilyIndex >= 0) {
+        setTopMessage("Impossible: un Pokemon de la meme famille est deja dans l'equipe.", 1700);
         renderBoxesGrid();
         return;
       }
@@ -16742,15 +17369,18 @@ async function toggleAppearanceShinyMode() {
     renderAppearanceModal();
     return;
   }
-  record.appearance_shiny_mode = !record.appearance_shiny_mode;
-  if (!record.appearance_shiny_mode) {
-    record.appearance_ultra_shiny_mode = false;
-  }
-  reconcileAppearanceForEntityRecord(record, pokemonId);
-  const selectedVariant = getSelectedOwnedSpriteVariantForRecord(record, def);
-  await ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
-    includeShiny: Boolean(record.appearance_shiny_mode || record.appearance_ultra_shiny_mode),
+  const nextShinyMode = !Boolean(record.appearance_shiny_mode);
+  const nextUltraShinyMode = nextShinyMode ? Boolean(record.appearance_ultra_shiny_mode) : false;
+  const familySyncResult = applyAppearanceModesToEvolutionFamily(pokemonId, {
+    shinyMode: nextShinyMode,
+    ultraShinyMode: nextUltraShinyMode,
   });
+  const syncedRecord = getPokemonEntityRecord(pokemonId) || record;
+  const selectedVariant = getSelectedOwnedSpriteVariantForRecord(syncedRecord, def);
+  await ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
+    includeShiny: Boolean(syncedRecord.appearance_shiny_mode || syncedRecord.appearance_ultra_shiny_mode),
+  });
+  await preloadSelectedAppearanceAssetsForTeam();
   rebuildTeamAndSyncBattle();
   persistSaveData();
   if (state.ui.boxesOpen) {
@@ -16759,9 +17389,9 @@ async function toggleAppearanceShinyMode() {
   renderAppearanceModal();
   render();
   setTopMessage(
-    record.appearance_shiny_mode
-      ? `${def.nameFr}: mode shiny active.`
-      : `${def.nameFr}: mode shiny desactive.`,
+    syncedRecord.appearance_shiny_mode
+      ? `${def.nameFr}: mode shiny actif pour la famille (${familySyncResult.familySize} Pokemon).`
+      : `${def.nameFr}: mode shiny desactive pour la famille (${familySyncResult.familySize} Pokemon).`,
     1400,
   );
 }
@@ -16783,16 +17413,18 @@ async function toggleAppearanceUltraShinyMode() {
   }
 
   const nextUltraMode = !Boolean(record.appearance_ultra_shiny_mode);
-  record.appearance_ultra_shiny_mode = nextUltraMode;
-  if (nextUltraMode) {
-    record.appearance_shiny_mode = true;
-  }
-  reconcileAppearanceForEntityRecord(record, pokemonId);
-
-  const selectedVariant = getSelectedOwnedSpriteVariantForRecord(record, def);
-  await ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
-    includeShiny: Boolean(record.appearance_shiny_mode || record.appearance_ultra_shiny_mode),
+  const nextShinyMode = nextUltraMode ? true : Boolean(record.appearance_shiny_mode);
+  const familySyncResult = applyAppearanceModesToEvolutionFamily(pokemonId, {
+    shinyMode: nextShinyMode,
+    ultraShinyMode: nextUltraMode,
   });
+  const syncedRecord = getPokemonEntityRecord(pokemonId) || record;
+
+  const selectedVariant = getSelectedOwnedSpriteVariantForRecord(syncedRecord, def);
+  await ensureVariantAppearanceAssetsLoaded(def, selectedVariant, {
+    includeShiny: Boolean(syncedRecord.appearance_shiny_mode || syncedRecord.appearance_ultra_shiny_mode),
+  });
+  await preloadSelectedAppearanceAssetsForTeam();
   rebuildTeamAndSyncBattle();
   persistSaveData();
   if (state.ui.boxesOpen) {
@@ -16801,9 +17433,9 @@ async function toggleAppearanceUltraShinyMode() {
   renderAppearanceModal();
   render();
   setTopMessage(
-    record.appearance_ultra_shiny_mode
-      ? `${def.nameFr}: mode ultra shiny active.`
-      : `${def.nameFr}: mode ultra shiny desactive.`,
+    syncedRecord.appearance_ultra_shiny_mode
+      ? `${def.nameFr}: mode ultra shiny actif pour la famille (${familySyncResult.familySize} Pokemon).`
+      : `${def.nameFr}: mode ultra shiny desactive pour la famille (${familySyncResult.familySize} Pokemon).`,
     1500,
   );
 }
@@ -18484,7 +19116,7 @@ if (renameResetButtonEl) {
 }
 if (renameInputEl) {
   renameInputEl.addEventListener("input", () => {
-    const sanitized = sanitizePokemonNickname(renameInputEl.value);
+    const sanitized = sanitizePokemonNickname(renameInputEl.value, { trimEdges: false });
     if (renameInputEl.value !== sanitized) {
       renameInputEl.value = sanitized;
     }

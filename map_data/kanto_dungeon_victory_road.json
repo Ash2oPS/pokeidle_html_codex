@@ -22,6 +22,25 @@
   },
   "encounters": [
     {
+      "id": 146,
+      "name_en": "moltres",
+      "name_fr": "Sulfura",
+      "methods": [
+        "only-one"
+      ],
+      "max_chance_firered": 100,
+      "max_chance_leafgreen": 100,
+      "spawn_weight": 100,
+      "min_level": 50,
+      "max_level": 50,
+      "level_weights": [
+        {
+          "level": 50,
+          "weight": 200
+        }
+      ]
+    },
+    {
       "id": 95,
       "name_en": "onix",
       "name_fr": "Onix",
@@ -268,7 +287,7 @@
       ]
     }
   ],
-  "encounter_species_count_source": 10,
+  "encounter_species_count_source": 11,
   "generated_from": "pokeapi + bulbagarden",
   "generated_at_utc": "2026-03-07T17:06:59.473Z"
 }

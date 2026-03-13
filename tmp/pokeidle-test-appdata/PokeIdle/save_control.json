@@ -1,0 +1,82 @@
+{
+    "version":  6,
+    "app_build_version":  "0.1.9",
+    "starter_chosen":  true,
+    "current_route_id":  "kanto_route_1",
+    "unlocked_route_ids":  [
+                               "kanto_city_pallet_town",
+                               "kanto_route_1"
+                           ],
+    "route_defeat_counts":  {
+                                "kanto_city_pallet_town":  0,
+                                "kanto_route_1":  0
+                            },
+    "last_tick_epoch_ms":  1773394695144,
+    "team":  [
+
+             ],
+    "pokemon_entities":  {
+                             "19":  {
+                                        "id":  19,
+                                        "level":  20,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    }
+                         },
+    "money":  0,
+    "coins":  0,
+    "first_free_pokeball_claimed":  true,
+    "first_free_pokeball_guaranteed_capture_pending":  false,
+    "ball_inventory":  {
+                           "poke_ball":  220,
+                           "super_ball":  0,
+                           "hyper_ball":  0
+                       },
+    "ball_inventory_seen":  {
+                                "poke_ball":  true,
+                                "super_ball":  false,
+                                "hyper_ball":  false
+                            },
+    "ball_capture_rules":  {
+                               "poke_ball":  {
+                                                 "capture_all":  true,
+                                                 "capture_unowned":  true,
+                                                 "capture_shiny":  true,
+                                                 "capture_ultra_shiny":  true
+                                             },
+                               "super_ball":  {
+                                                  "capture_all":  true,
+                                                  "capture_unowned":  true,
+                                                  "capture_shiny":  true,
+                                                  "capture_ultra_shiny":  true
+                                              },
+                               "hyper_ball":  {
+                                                  "capture_all":  true,
+                                                  "capture_unowned":  true,
+                                                  "capture_shiny":  true,
+                                                  "capture_ultra_shiny":  true
+                                              }
+                           },
+    "active_ball_type":  "poke_ball",
+    "shop_items":  {
+                       "water_stone":  0,
+                       "fire_stone":  0,
+                       "leaf_stone":  0,
+                       "galarica_wreath":  0,
+                       "ice_stone":  0,
+                       "moon_stone":  0,
+                       "sun_stone":  0,
+                       "thunder_stone":  0,
+                       "cable_link":  0
+                   },
+    "attack_boost_until_ms":  0,
+    "pokeballs":  220,
+    "tutorials":  {
+                      "route1_intro_seen":  true,
+                      "evolution_intro_seen":  false,
+                      "appearance_intro_seen":  false,
+                      "appearance_editor_unlocked":  false
+                  }
+}
