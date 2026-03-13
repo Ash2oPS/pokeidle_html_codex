@@ -5584,23 +5584,204 @@ body.update-required-active {
     width: 100%;
   }
 
+  .gacha-modal {
+    place-items: center;
+    padding: 6px;
+  }
+
+  .gacha-card {
+    width: min(980px, calc(100vw - 12px));
+    max-height: calc(100dvh - 12px);
+    border-radius: 14px;
+    padding: 9px;
+    gap: 8px;
+    overscroll-behavior: contain;
+  }
+
+  .gacha-header {
+    gap: 8px;
+    align-items: start;
+  }
+
+  .gacha-title {
+    font-size: clamp(24px, 7.2vw, 34px);
+    line-height: 0.98;
+  }
+
+  .gacha-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.22;
+  }
+
+  .gacha-close-btn {
+    min-height: 36px;
+    padding: 6px 11px;
+    font-size: 13px;
+  }
+
   .gacha-wallet {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .gacha-wallet-item {
+    padding: 6px 7px;
+    gap: 2px;
+    border-radius: 8px;
+  }
+
+  .gacha-wallet-label {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    line-height: 1.05;
+  }
+
+  .gacha-wallet-value {
+    font-size: clamp(16px, 5.9vw, 26px);
+    line-height: 0.95;
+  }
+
+  #gacha-wallet-cost {
+    font-size: clamp(14px, 4.8vw, 19px);
+  }
+
+  .gacha-machine {
+    border-radius: 11px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .gacha-lights {
+    height: 8px;
+  }
+
+  .gacha-reel-window {
+    border-radius: 10px;
+    padding: 9px 6px;
+  }
+
+  .gacha-reel-track {
+    gap: 8px;
   }
 
   .gacha-reel-item {
-    flex-basis: 92px;
-    width: 92px;
-    padding: 6px 5px;
+    flex-basis: 80px;
+    width: 80px;
+    padding: 5px 4px;
+    gap: 4px;
   }
 
   .gacha-reel-item-media {
-    width: 56px;
-    height: 56px;
+    width: 46px;
+    height: 46px;
+    border-radius: 6px;
   }
 
   .gacha-reel-item-media img {
-    max-width: 52px;
-    max-height: 52px;
+    max-width: 42px;
+    max-height: 42px;
+  }
+
+  .gacha-reel-item-name {
+    font-size: 10px;
+  }
+
+  .gacha-reel-item-skin {
+    font-size: 9px;
+  }
+
+  .gacha-status {
+    min-height: 24px;
+    font-size: 12px;
+  }
+
+  .gacha-result {
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+
+  .gacha-result-kicker {
+    font-size: 10px;
+  }
+
+  .gacha-result-name {
+    font-size: 15px;
+  }
+
+  .gacha-result-skin {
+    font-size: 11px;
+  }
+
+  .gacha-result-preview {
+    margin-top: 6px;
+    width: 66px;
+    height: 66px;
+    border-radius: 9px;
+  }
+
+  .gacha-result-preview img {
+    max-width: 58px;
+    max-height: 58px;
+  }
+
+  .gacha-spin-btn {
+    width: 100%;
+    min-height: 42px;
+    border-radius: 10px;
+    font-size: clamp(15px, 5.2vw, 19px);
+    line-height: 1.06;
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -4px 14px rgba(9, 7, 4, 0.5);
+    z-index: 2;
+  }
+}
+
+@media (max-width: 430px) {
+  .gacha-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+  }
+
+  .gacha-title {
+    font-size: clamp(22px, 9vw, 31px);
+  }
+
+  .gacha-subtitle {
+    font-size: 12px;
+  }
+
+  .gacha-wallet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gacha-wallet-item:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .gacha-wallet-value {
+    font-size: clamp(15px, 6.1vw, 22px);
+  }
+
+  #gacha-wallet-cost {
+    font-size: clamp(13px, 5vw, 17px);
+  }
+
+  .gacha-reel-item {
+    flex-basis: 74px;
+    width: 74px;
+  }
+
+  .gacha-reel-item-media {
+    width: 42px;
+    height: 42px;
+  }
+
+  .gacha-reel-item-media img {
+    max-width: 38px;
+    max-height: 38px;
   }
 }

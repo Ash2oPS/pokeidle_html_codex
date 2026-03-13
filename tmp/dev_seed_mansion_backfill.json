@@ -1,0 +1,31 @@
+{
+  "version": 6,
+  "app_version": "0.1.12",
+  "app_build_version": "0.1.12",
+  "starter_chosen": true,
+  "current_route_id": "kanto_dungeon_pokemon_mansion",
+  "unlocked_route_ids": [
+    "kanto_city_pallet_town",
+    "kanto_route_1",
+    "kanto_route_22"
+  ],
+  "route_defeat_counts": {
+    "kanto_route_22": 12,
+    "kanto_route_21": 20
+  },
+  "team": [1],
+  "pokemon_entities": {
+    "1": {
+      "id": 1,
+      "level": 35,
+      "captured_normal": 1,
+      "encountered_normal": 1,
+      "defeated_normal": 50,
+      "defeated_shiny": 0,
+      "entity_unlocked": true
+    }
+  },
+  "money": 25000,
+  "coins": 0,
+  "pokeballs": 25
+}

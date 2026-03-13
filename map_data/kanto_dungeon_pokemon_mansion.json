@@ -29,9 +29,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 30,
-      "max_chance_leafgreen": 30,
-      "spawn_weight": 30,
+      "max_chance_firered": 21,
+      "max_chance_leafgreen": 21,
+      "spawn_weight": 21,
       "min_level": 32,
       "max_level": 38,
       "level_weights": [
@@ -60,9 +60,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 5,
-      "max_chance_leafgreen": 30,
-      "spawn_weight": 30,
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
       "min_level": 28,
       "max_level": 30,
       "level_weights": [
@@ -83,9 +83,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 30,
-      "max_chance_leafgreen": 5,
-      "spawn_weight": 30,
+      "max_chance_firered": 20,
+      "max_chance_leafgreen": 20,
+      "spawn_weight": 20,
       "min_level": 28,
       "max_level": 30,
       "level_weights": [
@@ -129,9 +129,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 0,
-      "max_chance_leafgreen": 15,
-      "spawn_weight": 15,
+      "max_chance_firered": 8,
+      "max_chance_leafgreen": 8,
+      "spawn_weight": 8,
       "min_level": 30,
       "max_level": 32,
       "level_weights": [
@@ -152,9 +152,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 15,
-      "max_chance_leafgreen": 0,
-      "spawn_weight": 15,
+      "max_chance_firered": 8,
+      "max_chance_leafgreen": 8,
+      "spawn_weight": 8,
       "min_level": 30,
       "max_level": 32,
       "level_weights": [
@@ -175,9 +175,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 10,
-      "max_chance_leafgreen": 10,
-      "spawn_weight": 10,
+      "max_chance_firered": 5,
+      "max_chance_leafgreen": 5,
+      "spawn_weight": 5,
       "min_level": 30,
       "max_level": 30,
       "level_weights": [
@@ -194,9 +194,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 0,
-      "max_chance_leafgreen": 5,
-      "spawn_weight": 5,
+      "max_chance_firered": 1,
+      "max_chance_leafgreen": 1,
+      "spawn_weight": 1,
       "min_level": 32,
       "max_level": 34,
       "level_weights": [
@@ -217,9 +217,9 @@
       "methods": [
         "walk"
       ],
-      "max_chance_firered": 5,
-      "max_chance_leafgreen": 0,
-      "spawn_weight": 5,
+      "max_chance_firered": 1,
+      "max_chance_leafgreen": 1,
+      "spawn_weight": 1,
       "min_level": 32,
       "max_level": 34,
       "level_weights": [
@@ -232,9 +232,36 @@
           "weight": 5
         }
       ]
+    },
+    {
+      "id": 133,
+      "name_en": "eevee",
+      "name_fr": "Evoli",
+      "methods": [
+        "walk"
+      ],
+      "max_chance_firered": 1,
+      "max_chance_leafgreen": 1,
+      "spawn_weight": 1,
+      "min_level": 30,
+      "max_level": 32,
+      "level_weights": [
+        {
+          "level": 30,
+          "weight": 14
+        },
+        {
+          "level": 31,
+          "weight": 8
+        },
+        {
+          "level": 32,
+          "weight": 4
+        }
+      ]
     }
   ],
-  "encounter_species_count_source": 9,
+  "encounter_species_count_source": 10,
   "generated_from": "pokeapi + bulbagarden",
   "generated_at_utc": "2026-03-07T17:06:59.473Z"
 }

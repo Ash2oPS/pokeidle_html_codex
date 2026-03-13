@@ -3809,3 +3809,264 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - legendary field trio + 0.8 attack interval (`tmp/legendary_fields_quick_check.cjs`)
 - Asset risk sanity check PASS:
   - scanned all `pokemon_data/*_data.json` for referenced local sprite paths under `pokemon_data/...` and found no missing files.
+
+## Additional progress (2026-03-13, gacha UI mobile compaction/readability pass)
+- Reworked gacha modal responsive styles in `styles.css` for phone-first readability and compactness:
+  - Reduced modal/card paddings and radii on <=760px, with top alignment and bounded card height (`calc(100dvh - 12px)`).
+  - Tightened header spacing and mobile typography; adjusted close button dimensions.
+  - Reworked wallet layout to dense grid cards on mobile (instead of a tall single-column stack), with smaller labels/values and per-field scaling.
+  - Reduced machine/reel visual density (lights height, reel paddings, card size, sprite box size, labels) to keep key info above the fold.
+  - Reduced status/result card footprint and tightened result preview sizing.
+  - Made spin CTA full-width and sticky at the card bottom on mobile for better accessibility while scrolling.
+  - Added <=430px refinements (2-column wallet with remaining-skins row spanning full width, smaller reel/media sizing).
+
+### Validation
+- Skill loop smoke:
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS (no blocking errors).
+- Mobile screenshot capture (Playwright, viewport 390x844):
+  - Output: `output/gacha-mobile-after.png`.
+  - Visual check: modal now fits in one viewport with denser readable sections and reduced vertical bloat.
+- Follow-up tweak: reduced mobile gacha title scale (`<=760px` and `<=430px`) and top-header alignment for better information density.
+- Re-captured mobile screenshot after tweak: `output/gacha-mobile-after.png`.
+
+## Additional progress (2026-03-13, shiny/ultra odds hard set)
+- Updated shiny odds logic in `game.js`:
+  - `ULTRA_SHINY_ODDS` changed from `8192` to `8196`.
+  - Kept total shiny spawn chance exactly at `1/2048` (ultra included) by using a dedicated non-ultra shiny roll when the ultra roll fails.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+## Additional progress (2026-03-13, update checker robustness for delayed popup)
+- Hardened `lib/github-update-checker.js` to reduce missed update popups in production:
+  - The checker now tries to read the deployed version from current GitHub Pages origin first (`version.js`, then `package.json`) with cache-busting query param and `cache: no-store`.
+  - GitHub API polling remains as fallback when same-origin files are unavailable.
+  - Poll interval remains unchanged at 5 minutes (`5 * 60 * 1000`).
+- Added automated tests in `tests/github-update-checker.test.mjs`:
+  - verifies default polling interval is 5 minutes;
+  - verifies same-origin version source is preferred before GitHub API;
+  - verifies fallback to GitHub API still works when deployed files are unavailable.
+
+## Validation (update checker robustness)
+- `node --check lib/github-update-checker.js`: PASS.
+- `node --test tests/github-update-checker.test.mjs`: PASS (2/2).
+- `npm run -s test:save`: PASS (12/12).
+- Gacha mobile cleanup: removed subtitle (`#gacha-subtitle`) and reel status text block (`#gacha-status`) from modal markup as requested to reduce visual noise.
+- Verification screenshot: `output/gacha-mobile-no-useless-text.png`.
+
+## Validation complémentaire (2026-03-13, check ciblé Morphing Metamorph sprite)
+- Objectif: vérifier que Metamorph (talent `MORPHING`) copie bien le sprite du Pokémon qu'il imite (slot précédent) et que le build reste stable.
+- Préparation test:
+  - Ajout d'un save seed dédié `tmp/pokeidle-test-appdata/PokeIdle/save_morphing_sprite_check.json` avec team `[25, 132, 16]` (Pikachu, Metamorph, Roucool).
+  - Ajout d'un script de validation runtime `tmp/morphing_sprite_validate.mjs`.
+- Validation ciblée (Playwright):
+  - Exécution sur 90 checks (`stepMs=420`) via `window.render_game_to_text` + `window.__pokeidle_debug_getSpriteFrameIndex`.
+  - Résultat: `mismatchCount: 0`, `missingMorphingCount: 0`, `allPassed: true`.
+  - Preuve clé: Metamorph (`id:132`) et source (`id:25`) exposent le même `sprite_path` à chaque check:
+    - `pokemon_data/25_pikachu/sprites/25_pikachu_firered_leafgreen_front.png`
+  - Artefacts:
+    - `output/morphing-sprite-check/summary.json`
+    - `output/morphing-sprite-check/checks.json`
+    - `output/morphing-sprite-check/final.png`
+- Vérif globale de stabilité:
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_long.ps1`: PASS
+  - `node --check game.js`: PASS
+  - `npm run -s test:save`: PASS (12/12)
+- Conclusion: le morphing de Metamorph copie correctement le sprite du Pokémon imité, et aucun souci global détecté sur les passes de validation exécutées.
+
+## Additional progress (2026-03-13, Morphing shader recolor to Metamorph palette)
+- Reworked Morphing shader pipeline in `game.js` so copied sprites now keep the target silhouette/details while adopting Metamorph's own pink/lilac palette.
+- Added dynamic palette sampling from Metamorph default sprite (`id: 132`):
+  - introduced color sampling canvas/context and cache (`morphingColorSampleCache`),
+  - compute alpha-weighted dominant color from opaque pixels,
+  - fallback color used if sampling is temporarily unavailable.
+- Extended sprite shader capabilities:
+  - `mergeSpriteShaderConfig(...)` now supports merging `colorizeRgb` + `colorizeBlend` in addition to hue/saturation/brightness/contrast.
+  - `drawSpriteImageWithTint(...)` now applies an extra shader colorize pass (`source-atop`) even when base tint is 0.
+- Morphing talent application now uses runtime shader build:
+  - `member.spriteShader = source ? buildMorphingShaderConfig() : null;`
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Targeted morphing runtime validation (`tmp/morphing_sprite_validate.mjs` with seeded Metamorph save): PASS.
+  - `totalChecks: 90`
+  - `mismatchCount: 0`
+  - `missingMorphingCount: 0`
+  - `allPassed: true`
+  - visual artifact: `output/morphing-sprite-check/final.png` (Metamorph shows copied form with pink/lilac Metamorph coloration).
+- Smoke validation: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, Morphing shader hard recolor to Ditto pink-violet)
+- Reworked Morphing visual from simple tinting to a true palette remap:
+  - added fixed Ditto gradient palette stops (pink/violet) and `paletteKind: "metamorph"` shader mode.
+  - new `getMorphingPaletteMappedTexture(...)` remaps copied sprite pixels by luminance to Ditto palette while preserving shading/details and alpha.
+  - added cache for mapped textures (`morphingPaletteTextureCache`) to avoid expensive per-frame recomputation.
+- Shader merge pipeline now supports palette fields (`paletteKind`, `paletteStrength`) in addition to existing color filters.
+- `drawSpriteImageWithTint(...)` now applies the mapped texture source before normal tint/filter passes.
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Targeted Morphing validation (`tmp/morphing_sprite_validate.mjs`): PASS.
+  - sprite copy still correct (`mismatchCount: 0`, `missingMorphingCount: 0`, `allPassed: true`).
+- Smoke run: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+- Visual check: `output/morphing-sprite-check/final.png` now shows copied form in strong Ditto-like pink-violet tones.
+
+## Additional progress (2026-03-13, Morphing dark-violet outline)
+- Added a dedicated Morphing outline inspired by Ultra Shiny outline pipeline:
+  - reuses `getUltraShinyOutlineTexture(...)` silhouette generation,
+  - recolors that silhouette in dark violet via offscreen tint buffer,
+  - draws it before sprite render so contour is visible around the copied form.
+- New Morphing outline tuning constants:
+  - `MORPHING_OUTLINE_PX = 1.9`
+  - `MORPHING_OUTLINE_RGB = [93, 49, 133]`
+  - `MORPHING_OUTLINE_ALPHA = 0.95`
+- Outline is applied only when Morphing is active (`morphingSourceId > 0` + metamorph palette shader).
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Targeted Morphing validation (`tmp/morphing_sprite_validate.mjs`): PASS (`allPassed: true`, 90 checks).
+- Smoke validation: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+- Visual artifact: `output/morphing-sprite-check/final.png` now shows clear dark-violet contour around Morphing Metamorph sprite.
+
+## Additional progress (2026-03-13, Morphing opacity reduction + slime drip effect)
+- Adjusted Morphing purple opacity/intensity to reveal more of copied sprite details:
+  - `MORPHING_SHADER_CONFIG.paletteStrength`: `0.76`
+  - `MORPHING_SHADER_CONFIG.colorizeBlend`: `0.10`
+  - `MORPHING_OUTLINE_ALPHA`: `0.85`
+- Added animated slime/dripping effect for active Morphing state:
+  - new `drawMorphingSlimeEffect(size, seed, alpha)` renders a semi-transparent gelatin layer with animated drips and droplets.
+  - effect is triggered only when Morphing is active (same gating as Morphing outline/palette shader).
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Targeted Morphing validation (`tmp/morphing_sprite_validate.mjs`): PASS (`allPassed: true`, 90 checks).
+- Smoke validation: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+- Visual artifact: `output/morphing-sprite-check/final.png` shows softer purple recolor and visible slime-like dripping treatment.
+
+## Additional progress (2026-03-13, accentuated Morphing wobble)
+- Strongly increased Morphing visibility with animated wobble deformation:
+  - added `getMorphingWobbleTransform(entity, size)`.
+  - applies animated squash/stretch, shear, micro-rotation, and positional drift while Morphing is active.
+- Increased slime effect readability:
+  - `MORPHING_SLIME_ALPHA` raised to `0.56`.
+  - drip amplitude increased (`0.165 * size`).
+  - added second front-pass slime overlay after sprite draw for clearer gelatin impression.
+- Existing dark-violet outline and Ditto palette remap remain active.
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Morphing targeted validation: PASS (`tmp/morphing_sprite_validate.mjs`, 90 checks, all passed).
+- Morphing motion proof capture:
+  - `output/morphing-slime-proof/frame-a.png`
+  - `output/morphing-slime-proof/frame-b.png`
+- Smoke validation: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+
+## Validation complémentaire (2026-03-13, Alakazam teleport -> Morphing refresh)
+- Demande testée: ajouter Alakazam dans la team et vérifier qu'après chaque téléport d'Alakazam, Métamorph refresh correctement sa copie si nécessaire.
+- Setup:
+  - Save seed dédié: `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_morphing_teleport_check.json`.
+  - Team seed: `[16, 65, 132, 25, 19, 43]` (inclut Alakazam + Métamorph).
+  - Script de validation: `tmp/alakazam_morphing_teleport_refresh_check.mjs`.
+- Vérification effectuée à chaque event `last_turn_event.teleport_swap=true` déclenché par Alakazam (`talent_id: TELEPORT_PLUS_PLUS`):
+  - cas swap immédiat: contrôle de synchro Métamorph vs slot précédent:
+    - `metamorph.offensive_type === source.offensive_type`
+    - `metamorph.sprite_path === source.sprite_path` (via `window.__pokeidle_debug_getSpriteFrameIndex`).
+  - cas différé (KO -> respawn): comptabilisé séparément.
+- Résultat:
+  - `alakazamTeleportEvents: 45`
+  - `immediateTeleportChecks: 14`
+  - `deferredTeleportEvents: 31`
+  - `failureCount: 0`
+  - `allPassed: true`
+- Artifacts:
+  - `output/alakazam-morphing-teleport-refresh-check/summary.json`
+  - `output/alakazam-morphing-teleport-refresh-check/checks.json`
+  - `output/alakazam-morphing-teleport-refresh-check/final.png`
+- Sanity:
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, Manoir Pokemon tuning + retro-save unlock backfill)
+- Rebalanced `kanto_dungeon_pokemon_mansion` encounters to remove FR/LG split and keep both poison lines equally available:
+  - `Tadmorv` and `Smogo` both set to weight `20`.
+  - Added `Evoli` (`id:133`) at exactly `1%` spawn chance (weight `1` over total `100`).
+  - Updated both data sources used by runtime loading:
+    - `map_data/kanto_dungeon_pokemon_mansion.json`
+    - `map_data/kanto_zone_encounters.csv`
+- Added save compatibility backfill in `game.js` for inserted routes:
+  - New `backfillInsertedUnlockedRouteIds(...)` path ensures saves that already progressed past inserted checkpoints still get those checkpoints unlocked.
+  - Specifically includes `kanto_dungeon_pokemon_mansion` backfill when later Kanto routes are already unlocked.
+  - Also backfills up to `current_route_id` when needed to stabilize older/partial saves.
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- Playwright smoke (`run_playwright_check.ps1`): PASS.
+- Seeded compatibility run with `?dev_seed_save=tmp/dev_seed_mansion_backfill.json`:
+  - route loads on `Manoir Pokemon (Kanto)`.
+  - `current_route_encounter_count`: `10`.
+  - `unlocked_route_ids` includes `kanto_dungeon_pokemon_mansion` even though seed `unlocked_route_ids` intentionally omitted it.
+  - visual artifact: `output/mansion-backfill-check/shot-4.png`.
+
+## Validation complémentaire (2026-03-13, cas demandés Alakazam<->Métamorph)
+- Objectif explicite:
+  - vérifier le refresh Morphing quand Alakazam swap directement avec Métamorph,
+  - vérifier le refresh quand Métamorph swap avec son voisin source (slot précédent à copier).
+- Setup ciblé:
+  - save seed 2-slot forcé (`[Alakazam, Métamorph]`): `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_metamorph_direct_swap_check.json`.
+  - script de test: `tmp/alakazam_metamorph_direct_swap_check.mjs`.
+- Résultat:
+  - `directSwapChecks: 25` (Alakazam swap direct impliquant Métamorph)
+  - `neighborSwapChecks: 4` (Métamorph swap avec son voisin source)
+  - `copiedStateSeen: true` (Métamorph recopie bien après swap)
+  - `revertedStateSeen: true` (Métamorph repasse bien en profil Ditto quand il tombe en slot 0)
+  - `failures: 0`
+  - `allPassed: true`
+- Artifacts:
+  - `output/alakazam-metamorph-direct-swap-check/summary.json`
+  - `output/alakazam-metamorph-direct-swap-check/checks.json`
+  - `output/alakazam-metamorph-direct-swap-check/copied-slotgt0.png`
+  - `output/alakazam-metamorph-direct-swap-check/reverted-slot0.png`
+- Smoke global après test: `run_playwright_check.ps1`: PASS.
+
+## Additional progress (team drag & drop swap)
+- Added drag-and-drop team slot swapping on the battlefield canvas for left-click drag gestures:
+  - `mousedown` on a team member starts a drag candidate.
+  - Movement beyond a threshold activates drag mode.
+  - `mouseup` over another occupied slot swaps both Pokemon.
+- Reused existing team-edit gate (`getTeamBoxesAccessState`) so swap is allowed only when team editing is allowed (town/city, or combat route with next zone unlocked).
+- Added robust interaction guards:
+  - Prevent accidental box-open click right after a drag release.
+  - Cancel drag safely on `Escape`, window blur, or mouseup outside canvas.
+  - Keep right-click context menu behavior intact when not dragging.
+- Added visual drag feedback:
+  - Source/target slot highlight while dragging.
+  - Dashed trajectory line and dragged sprite ghost preview.
+  - Cursor changes to `grab`/`grabbing` during drag lifecycle.
+- Extended `render_game_to_text` with drag state fields:
+  - `team_drag_active`, `team_drag_moved`, `team_drag_source_slot_index`, `team_drag_target_slot_index`.
+
+## Validation runs (team drag feature)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS (12/12).
+- `run_playwright_check.ps1`: PASS (no console/page errors).
+- Custom Playwright swap scenario with dev-seeded town save (`tmp/test_team_drag_swap.mjs`): PASS.
+  - Team order changed from `[1,4]` to `[4,1]`.
+  - Artifacts: `output/web-game-drag-swap/state-before.json`, `output/web-game-drag-swap/state-after.json`, `output/web-game-drag-swap/shot-after.png`, `output/web-game-drag-swap/errors.json`.
+- Custom Playwright locked-route scenario with dev-seeded Route 1 save (`tmp/test_team_drag_swap_locked.mjs`): PASS.
+  - Team order remained unchanged while chrono lock is active.
+  - Artifacts: `output/web-game-drag-swap-locked/state-before.json`, `output/web-game-drag-swap-locked/state-after.json`, `output/web-game-drag-swap-locked/shot-after.png`, `output/web-game-drag-swap-locked/errors.json`.
+
+## Additional progress (mobile version visibility)
+- Fixed mobile visibility for canvas overlays (drawVersionOverlay + drawFpsOverlay) in game.js:
+  - Added getBottomHudSafeEdge() to keep overlays above the bottom action dock.
+  - Reused layout safe bounds + live dock rect fallback so labels stay readable even in compact phone view.
+  - Slightly increased phone overlay text size/contrast for better legibility.
+- Validation:
+  - node --check game.js: PASS.
+  - run_playwright_check.ps1: PASS (no console/page errors).
+  - Dedicated mobile viewport capture (iPhone 13 emulation): output/mobile-version-gameplay-clear.png confirms version label remains visible above dock.

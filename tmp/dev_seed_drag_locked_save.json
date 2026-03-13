@@ -1,0 +1,19 @@
+﻿{
+  "version": 6,
+  "app_build_version": "0.1.12",
+  "starter_chosen": true,
+  "current_route_id": "kanto_route_1",
+  "unlocked_route_ids": ["kanto_city_pallet_town", "kanto_route_1"],
+  "route_defeat_counts": {
+    "kanto_city_pallet_town": 0,
+    "kanto_route_1": 0
+  },
+  "team": [1, 4],
+  "pokemon_entities": {
+    "1": { "id": 1, "level": 8, "captured_normal": 1, "encountered_normal": 1, "entity_unlocked": true },
+    "4": { "id": 4, "level": 9, "captured_normal": 1, "encountered_normal": 1, "entity_unlocked": true }
+  },
+  "money": 5000,
+  "coins": 0,
+  "ball_inventory": { "poke_ball": 5, "super_ball": 0, "hyper_ball": 0 }
+}
