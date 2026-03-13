@@ -1,6 +1,8 @@
 export const POKEIDLE_APP_VERSION = "0.1.7";
 export const POKEIDLE_PRODUCTION_HOSTNAME = "ash2ops.github.io";
 export const POKEIDLE_PRODUCTION_PATH_PREFIX = "/pokeidle_html_codex";
+export const POKEIDLE_GITHUB_REPO_OWNER = "ash2ops";
+export const POKEIDLE_GITHUB_REPO_NAME = "pokeidle_html_codex";
 const SEMVER_PATTERN =
   /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
 
@@ -25,6 +27,22 @@ export function isProductionGithubPagesLocation(locationLike) {
     return false;
   }
   return pathname === productionPath || pathname.startsWith(`${productionPath}/`);
+}
+
+export function getGithubRepositoryFromLocation(
+  locationLike,
+  fallbackOwner = POKEIDLE_GITHUB_REPO_OWNER,
+  fallbackRepo = POKEIDLE_GITHUB_REPO_NAME,
+) {
+  const hostname = String(locationLike?.hostname || "").trim().toLowerCase();
+  const pathname = normalizePathname(locationLike?.pathname || "/");
+  const isGithubPagesHost = hostname.endsWith(".github.io");
+  const inferredOwner = isGithubPagesHost ? hostname.split(".")[0] : "";
+  const inferredRepo = isGithubPagesHost ? pathname.split("/").filter(Boolean)[0] || "" : "";
+  return {
+    owner: inferredOwner || String(fallbackOwner || "").trim(),
+    repo: inferredRepo || String(fallbackRepo || "").trim(),
+  };
 }
 
 export function getDisplayedAppVersion(locationLike, baseVersion = POKEIDLE_APP_VERSION) {

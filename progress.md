@@ -3255,3 +3255,29 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Validation:
   - `node --check game.js`: PASS.
   - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, GitHub update checker + blocking popup)
+- Added a new client-side update checker module: lib/github-update-checker.js.
+  - Sends GitHub API requests to detect the latest version from repo default branch.
+  - Reads version.js first, falls back to package.json when needed.
+  - Compares local POKEIDLE_APP_VERSION against remote semver.
+  - Runs once on startup, then every 5 minutes.
+- Added repo inference support in version.js.
+- Integrated checker into bootstrap (game.js) via initializeGithubUpdateChecker({ currentVersion: APP_VERSION }).
+- Added a full-screen blocking update popup style in styles.css.
+- Interaction lock behavior when popup is visible:
+  - Non-closable modal.
+  - Blocks keyboard/mouse/touch interactions with the game.
+  - Refresh button performs forced reload with cache-busting query params.
+
+## Additional progress (sprite stretch fix: notifications + boites)
+- Fixed sprite ratio handling in UI cards to prevent stretched Pokemon visuals:
+  - Updated `.game-notif-sprite` to `width/height: auto`, `max-width/max-height: 100%`, `object-fit: contain`, centered with `object-position`, and `display: block`.
+  - Updated `.boxes-mon-btn img` with the same ratio-safe rules.
+  - Updated the mobile override for boxes sprites from fixed `56x56` to `max-width/max-height: 56px` to preserve intrinsic ratio.
+- Validation:
+  - `run_playwright_check.ps1`: PASS (screenshots/states produced, no new errors file generated).
+  - Seeded Playwright run with deterministic interaction to open boxes: PASS (`boxes_open: true` reached in probe runs such as `output/boxes-probe-open_x540_y360/state-0.json`).
+  - Confirmed no console/page error files in the new targeted runs.
+- Notes:
+  - Seeded saves now require `app_build_version` (>= `0.1.3`) to be accepted by dev seed loading.

@@ -5,6 +5,7 @@ import {
   isVersionAtLeast,
 } from "./version.js";
 import { createAudioManager } from "./lib/audio-manager.js";
+import { initializeGithubUpdateChecker } from "./lib/github-update-checker.js";
 import {
   assertValidBallConfig,
   assertValidEncounter,
@@ -18128,5 +18129,6 @@ window.addEventListener("beforeunload", handlePageLifecyclePersist);
 applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
+initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
 initializeScene();
 window.requestAnimationFrame(gameLoop);
