@@ -3281,3 +3281,30 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - Confirmed no console/page error files in the new targeted runs.
 - Notes:
   - Seeded saves now require `app_build_version` (>= `0.1.3`) to be accepted by dev seed loading.
+## Additional progress (level-diff anti-farm rewards)
+- Implemented hidden anti-farm reward scaling based on level difference (`enemy level - team level`) in `game.js`.
+- XP scaling now applies per team member (not global):
+  - `>= 0`: x1.00
+  - `-1..-5`: x0.75
+  - `-6..-15`: x0.40
+  - `-16..-30`: x0.15
+  - `<= -31`: x0.05
+- Money scaling now uses the highest team level as reference and enforces a minimum multiplier floor of `x0.35`.
+- Coin reward chance on capture now scales with the same level-diff profile and enforces a minimum final chance floor of `10%`.
+- No UI surfaced for this mechanic (no new HUD text or visual indicator).
+
+## TODO / Next (after level-diff anti-farm)
+- Validate with Playwright seeded combat runs and inspect reward pace over multiple captures.
+- Optional: expose debug-only telemetry in `render_game_to_text` behind a dev flag if balancing iterations become frequent.
+## Validation log (level-diff anti-farm)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS (10/10).
+- `run_playwright_check.ps1`: PASS (no regressions observed on startup flow).
+- `run_playwright_capturechance.ps1`: script runs, but seeded save payload is currently rejected by runtime save compatibility checks (missing `app_build_version`), so this run did not cover combat behavior.
+- Added targeted seeded Playwright combat checks (custom run, 120 iterations each) with valid save payloads:
+  - High-level team seed (`Salameche lv50` on Route 1): `money=120`, `enemies_defeated=8`, `money/KO=15`, `xp team slot0=8`.
+  - Low-level team seed (`Salameche lv1` on Route 1): `money=262`, `enemies_defeated=6`, `money/KO=43.67`, `xp team slot0=69`.
+  - Result confirms strong reward nerf when overleveled, while gameplay flow remains stable.
+- Visual inspection done on latest captures:
+  - `output/web-game-leveldiff-high/shot-119.png`
+  - `output/web-game-leveldiff-low/shot-119.png`

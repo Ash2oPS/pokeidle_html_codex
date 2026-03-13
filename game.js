@@ -327,6 +327,8 @@ const COIN_REWARD_PER_CAPTURE = 1;
 const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
 const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE = 0.2;
+const MIN_CAPTURE_COIN_CHANCE = 0.1;
+const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
@@ -7429,6 +7431,63 @@ function getEnemyRewardScaleMultiplier(teamHpScaleMultiplier = 1, isOnlyOneEncou
   return Math.max(1, blendedTeamScale * onlyOneBonus);
 }
 
+function getRewardMultipliersFromLevelDiff(levelDiff) {
+  const diff = toSafeInt(levelDiff, 0);
+  if (diff >= 0) {
+    return { xp: 1, money: 1, coin: 1 };
+  }
+  if (diff >= -5) {
+    return { xp: 0.75, money: 0.9, coin: 0.85 };
+  }
+  if (diff >= -15) {
+    return { xp: 0.4, money: 0.65, coin: 0.55 };
+  }
+  if (diff >= -30) {
+    return { xp: 0.15, money: 0.35, coin: 0.25 };
+  }
+  return { xp: 0.05, money: 0.35, coin: 0.1 };
+}
+
+function scaleRewardByMultiplier(baseReward, multiplier, minimumIfPositive = 0) {
+  const reward = Math.max(0, toSafeInt(baseReward, 0));
+  if (reward <= 0) {
+    return 0;
+  }
+  const scaled = Math.floor(reward * Math.max(0, Number(multiplier) || 0));
+  const minimum = Math.max(0, toSafeInt(minimumIfPositive, 0));
+  return Math.max(minimum, scaled);
+}
+
+function getHighestTeamLevelForRewardScaling() {
+  const battleTeam = Array.isArray(state.battle?.team) ? state.battle.team : [];
+  let highestLevel = 0;
+  for (const member of battleTeam) {
+    highestLevel = Math.max(highestLevel, Math.max(1, toSafeInt(member?.level, 1)));
+  }
+  if (highestLevel > 0) {
+    return highestLevel;
+  }
+
+  const runtimeTeam = Array.isArray(state.team) ? state.team : [];
+  for (const member of runtimeTeam) {
+    highestLevel = Math.max(highestLevel, Math.max(1, toSafeInt(member?.level, 1)));
+  }
+  if (highestLevel > 0) {
+    return highestLevel;
+  }
+
+  const saveTeam = Array.isArray(state.saveData?.team) ? state.saveData.team : [];
+  for (const rawId of saveTeam) {
+    const pokemonId = Number(rawId);
+    if (pokemonId <= 0) {
+      continue;
+    }
+    const record = getPokemonEntityRecord(pokemonId);
+    highestLevel = Math.max(highestLevel, Math.max(1, toSafeInt(record?.level, 1)));
+  }
+  return Math.max(1, highestLevel);
+}
+
 function computeCaptureXpReward(enemy) {
   const enemyLevel = Math.max(1, toSafeInt(enemy?.level, 1));
   const baseStatTotal = getBaseStatTotal(enemy?.baseStats || enemy?.stats);
@@ -7480,6 +7539,8 @@ function awardCaptureXpToTeam(enemy, options = {}) {
     return { reward: 0, levelUps: [], evolutionReady: [], xpGains: [] };
   }
   const overrideReward = Number(options.reward);
+  const rewardMultiplierResolver =
+    typeof options.rewardMultiplierResolver === "function" ? options.rewardMultiplierResolver : null;
   const reward = Number.isFinite(overrideReward)
     ? Math.max(0, toSafeInt(overrideReward, 0))
     : computeCaptureXpReward(enemy);
@@ -7496,17 +7557,27 @@ function awardCaptureXpToTeam(enemy, options = {}) {
     }
     const record = ensureSpeciesStats(pokemonId);
     const def = state.pokemonDefsById.get(Number(pokemonId));
+    const rewardMultiplier = rewardMultiplierResolver
+      ? Math.max(0, Number(rewardMultiplierResolver({
+          pokemonId,
+          slotIndex,
+          enemy,
+          record,
+          teamLevel: Math.max(1, toSafeInt(record?.level, 1)),
+        })) || 0)
+      : 1;
+    const memberReward = scaleRewardByMultiplier(reward, rewardMultiplier, 1);
     const beforeLevel = record.level;
-    const result = applyExperienceToEntity(record, reward);
+    const result = applyExperienceToEntity(record, memberReward);
     if (beforeLevel < APPEARANCE_UNLOCK_LEVEL && record.level >= APPEARANCE_UNLOCK_LEVEL) {
       reachedAppearanceUnlockLevelNow = true;
     }
-    if (reward > 0) {
+    if (memberReward > 0) {
       xpGains.push({
         id: Number(pokemonId),
         slotIndex,
         nameFr: def?.nameFr || `Pokemon ${pokemonId}`,
-        amount: reward,
+        amount: memberReward,
         gainedLevels: Math.max(0, toSafeInt(result.gainedLevels, 0)),
       });
     }
@@ -10326,11 +10397,26 @@ function handleEnemyDefeated(enemy) {
   const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
   incrementRouteDefeatCount(activeRouteId, 1);
   tryUnlockNextRouteAfterDefeat(activeRouteId);
-  const moneyReward = computeDefeatMoneyReward(enemy);
+  const enemyLevel = Math.max(1, toSafeInt(enemy?.level, 1));
+  const highestTeamLevel = getHighestTeamLevelForRewardScaling();
+  const teamLevelDiff = enemyLevel - highestTeamLevel;
+  const teamDiffMultipliers = getRewardMultipliersFromLevelDiff(teamLevelDiff);
+  const moneyMultiplier = Math.max(
+    MIN_LEVEL_DIFF_MONEY_MULTIPLIER,
+    clamp(Number(teamDiffMultipliers.money || 1), 0, 1),
+  );
+  const coinChanceMultiplier = clamp(Number(teamDiffMultipliers.coin || 1), 0, 1);
+  const moneyReward = scaleRewardByMultiplier(computeDefeatMoneyReward(enemy), moneyMultiplier, 1);
   addMoney(moneyReward);
   const captureEquivalentXpReward = computeCaptureXpReward(enemy);
   const koXpReward = Math.max(1, Math.floor(captureEquivalentXpReward * KO_XP_RATIO_OF_CAPTURE));
   const captureBonusXpReward = Math.max(0, captureEquivalentXpReward - koXpReward);
+  const resolveXpMultiplier = ({ teamLevel }) => {
+    const level = Math.max(1, toSafeInt(teamLevel, 1));
+    const levelDiff = enemyLevel - level;
+    const multipliers = getRewardMultipliersFromLevelDiff(levelDiff);
+    return clamp(Number(multipliers.xp || 1), 0, 1);
+  };
   const applyXpSummaryEffects = (summary, tone) => {
     if (state.simulationIdleMode || !summary) {
       return;
@@ -10348,7 +10434,10 @@ function handleEnemyDefeated(enemy) {
       return null;
     }
     xpRewardGranted = true;
-    const summary = awardCaptureXpToTeam(enemy, { reward: koXpReward });
+    const summary = awardCaptureXpToTeam(enemy, {
+      reward: koXpReward,
+      rewardMultiplierResolver: resolveXpMultiplier,
+    });
     applyXpSummaryEffects(summary, "defeat");
     return summary;
   };
@@ -10357,7 +10446,10 @@ function handleEnemyDefeated(enemy) {
       return null;
     }
     xpRewardGranted = true;
-    const summary = awardCaptureXpToTeam(enemy, { reward: captureBonusXpReward });
+    const summary = awardCaptureXpToTeam(enemy, {
+      reward: captureBonusXpReward,
+      rewardMultiplierResolver: resolveXpMultiplier,
+    });
     applyXpSummaryEffects(summary, "capture");
     return summary;
   };
@@ -10373,9 +10465,13 @@ function handleEnemyDefeated(enemy) {
   const awardCaptureCoinReward = () => {
     const speciesRecord = ensureSpeciesStats(enemy.id);
     const isFirstCapture = getCapturedTotal(speciesRecord) <= 0;
-    const baseCaptureCoinReward = familyOwnedBeforeCapture
-      ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE ? COIN_REWARD_PER_CAPTURE : 0)
-      : COIN_REWARD_PER_CAPTURE;
+    const baseCaptureCoinChance = familyOwnedBeforeCapture ? COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE : 1;
+    const adjustedCaptureCoinChance = clamp(
+      Math.max(MIN_CAPTURE_COIN_CHANCE, baseCaptureCoinChance * coinChanceMultiplier),
+      MIN_CAPTURE_COIN_CHANCE,
+      1,
+    );
+    const baseCaptureCoinReward = Math.random() < adjustedCaptureCoinChance ? COIN_REWARD_PER_CAPTURE : 0;
     addCoins(baseCaptureCoinReward + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
   };
 
