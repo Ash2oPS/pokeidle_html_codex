@@ -1,4 +1,4 @@
-Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. Creons un fan game pokemon idle. voici comment il se presente : on a un ennemi au centre de l'ecran et nous avons notre team de 6 pokemon max qui encerclent l'ennemi. L'ennemi est le seul ennemi a avoir une barre de vie. sinon tous les poke ont leur nom (fr pour l'instant) et leur lvl d'affiche. Pour l'instant fais ca.
+﻿Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. Creons un fan game pokemon idle. voici comment il se presente : on a un ennemi au centre de l'ecran et nous avons notre team de 6 pokemon max qui encerclent l'ennemi. L'ennemi est le seul ennemi a avoir une barre de vie. sinon tous les poke ont leur nom (fr pour l'instant) et leur lvl d'affiche. Pour l'instant fais ca.
 
 ## Progress log
 - Created a minimal web game scaffold with `index.html`, `styles.css`, and `game.js`.
@@ -53,7 +53,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - Build Pokemon definitions from starter set + route encounters.
 - Added no-save onboarding:
   - If no valid save/team exists, game starts with zero team members.
-  - Starter modal appears with Bulbizarre / SalamÃ¨che / Carapuce, all level 5.
+  - Starter modal appears with Bulbizarre / SalamÃƒÂ¨che / Carapuce, all level 5.
   - Choosing one starter captures it and initializes team with only that Pokemon.
 - Refactored `PokemonBattleManager`:
   - Removed fixed enemy roster.
@@ -753,7 +753,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - notification disappears,
   - no automatic evolution occurs before user click.
 
-## Additional progress (zones FRLG + carte Kanto cliquable + stabilitÃ© des marqueurs)
+## Additional progress (zones FRLG + carte Kanto cliquable + stabilitÃƒÂ© des marqueurs)
 - Added full Kanto story-zone flow beyond routes:
   - integrated towns (`zone_type: town`, `combat_enabled: false`) and dungeons/caves/forest/safari/mansion/tower (`zone_type: dungeon`) into main progression order.
   - progression now starts at `kanto_city_pallet_town` and follows a 47-zone FR/LG order in `ROUTE_ID_ORDER`.
@@ -1019,7 +1019,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Playwright sanity run: `output/web-game-no-art-blur`.
   - no `errors-*.json` generated.
   - visual render normal and stable (`shot-2.png`).
-- Ajustement backdrop Pokemon: cercle blanc fixe avec alpha 0.5, sans pulse, sans follow du breath/recoil d'attaque. VÃ©rifiÃ© via run Playwright (output/web-game-static-circle-check, shots 1..5), aucun errors-*.json.
+- Ajustement backdrop Pokemon: cercle blanc fixe avec alpha 0.5, sans pulse, sans follow du breath/recoil d'attaque. VÃƒÂ©rifiÃƒÂ© via run Playwright (output/web-game-static-circle-check, shots 1..5), aucun errors-*.json.
 - Perf pass: ajoute qualite de rendu adaptative (high/medium/low) selon frame-time, cap DPR dynamique (max 1.35/1.2/1.0), allege les effets couteux (trail/aura projectiles, glow impacts, particules meteo/niveau), et reduit les allocations de trail projectile (compaction in-place). Verification: node --check OK, run Playwright dedie output/web-game-perf-opt OK sans errors-*.json.
 - Shop fix: suppression du rerender continu du shop dans updateHud (le clic etait casse car le DOM de la modale etait reconstruit en boucle), refonte UI shop (cartes avec layout media/content/footer, boutons regroupes, wraps/ellipsis anti-overflow, grille plus large, responsive mobile). Validation auto: clic achat Pokeball => money -200 et stock +1 (script output/tmp_shop_verify.js), screenshots output/shop-ui-open.png + output/shop-ui-open-mobile.png.
 - Shop interaction stability: suppression de la fermeture implicite via listener document global (la fermeture se fait uniquement via backdrop/fermer/ESC), ce qui evite la fermeture apres achat lorsque la carte est rerendue.
@@ -1125,7 +1125,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `node --check game.js`: PASS.
   - `run_playwright_check.ps1`: PASS.
   - Real-flow Playwright validation: PASS.
-    - Fresh game with SalamÃ¨che -> first visit Route 1 -> earn money naturally in combat.
+    - Fresh game with SalamÃƒÂ¨che -> first visit Route 1 -> earn money naturally in combat.
     - Shop shows `SuperBall` / `HyperBall` as `Bientot disponible` and disabled.
     - Bought 1 classic `PokeBall`, then confirmed it was consumed down to `0` and stayed at `0`.
   - Artifacts written to:
@@ -1185,7 +1185,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - one smoke run produced a transient `Failed to load resource: net::ERR_CONNECTION_REFUSED` artifact at shutdown in `output/web-game-poke/errors-1.json`; the page state/screenshots were otherwise correct, and the same behavior matches the helper script's server shutdown timing rather than a game runtime crash.
 
 ## Additional progress (long-session perf investigation + hot-loop cleanup)
-- Investigated the reported â€œthe longer the game stays open, the more it lagsâ€ issue with targeted probes:
+- Investigated the reported Ã¢â‚¬Å“the longer the game stays open, the more it lagsÃ¢â‚¬Â issue with targeted probes:
   - deterministic `advanceTime(...)` batches,
   - real-time long-open sampling,
   - Chromium CPU profile after warm-up.
@@ -1776,7 +1776,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 ## Additional progress (talents passifs)
 - Ajout d'un schema `talent` (passif) avec normalisation centralisee dans `game.js`.
   - Valeur par defaut partout: `NONE` / `NONE` / `Aucun effet passif pour le moment.`
-- Intégration du talent dans les structures Pokemon:
+- IntÃ©gration du talent dans les structures Pokemon:
   - Definitions chargees (`loadPokemonEntity`).
   - Records sauvegarde (`normalizePokemonEntityRecord`, `createPokemonEntityRecord`).
   - Membres d'equipe hydrates (`buildTeamMemberFromSaveEntry`).
@@ -1923,23 +1923,23 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `output/evolution-orb-transition-check-2/phase-shrink-near-end.png`
 
 ## Additional progress (evolution bonheur via temps en boite)
-- Implémenté une progression dédiée pour les évolutions `minHappiness`:
-  - nouveau champ persistant par espèce: `happiness_box_streak_ms` (normalisé + créé à 0 sur nouveaux records),
-  - ajout d'une règle globale: condition bonheur validée à `3h` (`HAPPINESS_EVOLUTION_BOX_REQUIRED_MS`) passées en boîte,
-  - mise à jour continue du streak pendant la simulation (`updateHappinessEvolutionBoxProgress(deltaMs)`) uniquement pour les espèces ayant au moins une évolution bonheur,
-  - reset immédiat du streak si le Pokémon est présent dans la team,
-  - intégration de la condition dans `isEvolutionMethodSatisfied` (suppression du blocage précédent qui rejetait `minHappiness`).
+- ImplÃ©mentÃ© une progression dÃ©diÃ©e pour les Ã©volutions `minHappiness`:
+  - nouveau champ persistant par espÃ¨ce: `happiness_box_streak_ms` (normalisÃ© + crÃ©Ã© Ã  0 sur nouveaux records),
+  - ajout d'une rÃ¨gle globale: condition bonheur validÃ©e Ã  `3h` (`HAPPINESS_EVOLUTION_BOX_REQUIRED_MS`) passÃ©es en boÃ®te,
+  - mise Ã  jour continue du streak pendant la simulation (`updateHappinessEvolutionBoxProgress(deltaMs)`) uniquement pour les espÃ¨ces ayant au moins une Ã©volution bonheur,
+  - reset immÃ©diat du streak si le PokÃ©mon est prÃ©sent dans la team,
+  - intÃ©gration de la condition dans `isEvolutionMethodSatisfied` (suppression du blocage prÃ©cÃ©dent qui rejetait `minHappiness`).
 
 ## Validation (evolution bonheur via temps en boite)
 - `node --check game.js`: PASS.
 - `run_playwright_check.ps1`: PASS.
-- Test ciblé (boîte noire, save seedée Meowth hors team, streak à `3h - 10s`):
+- Test ciblÃ© (boÃ®te noire, save seedÃ©e Meowth hors team, streak Ã  `3h - 10s`):
   - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
-  - après `advanceTime(10000)`: `notifications_evolution_ready = 1`.
+  - aprÃ¨s `advanceTime(10000)`: `notifications_evolution_ready = 1`.
   - artefacts: `output/happiness-evolution-threshold-test.json`, `output/happiness-evolution-threshold-test.png`.
-- Test ciblé “dans la team” (Meowth en team, même streak seedé):
+- Test ciblÃ© â€œdans la teamâ€ (Meowth en team, mÃªme streak seedÃ©):
   - avant `advanceTime(10000)`: `notifications_evolution_ready = 0`,
-  - après `advanceTime(10000)`: `notifications_evolution_ready = 0`.
+  - aprÃ¨s `advanceTime(10000)`: `notifications_evolution_ready = 0`.
 - Artefact test team: `output/happiness-evolution-in-team-test.json`.
 
 ## Additional progress (enemy type HUD visibility fix)
@@ -2268,7 +2268,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - new shop stock keys present (`galarica_wreath`, `ice_stone`, `moon_stone`, `sun_stone`, `thunder_stone`, `cable_link`);
   - new `shop_item_configs` entries loaded.
 - Data spot-check script confirms:
-  - `ice-stone` now maps to Ã‰voli -> Givrali only;
+  - `ice-stone` now maps to Ãƒâ€°voli -> Givrali only;
   - `thunder-stone` / `moon-stone` / `sun-stone` / `galarica-wreath` mappings present;
   - trade-without-item pairs detected for Cable Link candidates: Gravalanch, Kadabra, Machopeur, Spectrum lines.
 
@@ -3221,8 +3221,8 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - Starter auto-grant capture path also awards capture coins consistently.
 - HUD/UI updates:
   - Removed the save-backend type display from top-right UI (save type interface no longer shown).
-  - Replaced the Pok�dollars block with a compact counter style using symbol `?`.
-  - Added a `Coins` counter directly below Pok�dollars in the same top-right stack.
+  - Replaced the Pokédollars block with a compact counter style using symbol `?`.
+  - Added a `Coins` counter directly below Pokédollars in the same top-right stack.
   - Added dedicated CSS overrides for the new currency stack and compact pill visuals.
 - Debug state output (`render_game_to_text`) now includes:
   - `coins`
@@ -3561,7 +3561,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Re-validated after discard/pull-main sync that requested systems are present in runtime code:
   - Abra family teleport real slot swap (`swapTeamSlots`) now swaps runtime team + mirrored `state.team` + persisted `state.saveData.team`.
   - Legendary field talents are active in runtime:
-    - `ELECTRIC_FIELD` (�lecthor), `ARDENT_FIELD` (Sulfura), `ARCTIC_FIELD` (Artikodin)
+    - `ELECTRIC_FIELD` (Électhor), `ARDENT_FIELD` (Sulfura), `ARCTIC_FIELD` (Artikodin)
     - team aura bonus +35% for matching offensive type including the caster (`includeSelf: true`)
     - trio synergy applies team attack interval multiplier `0.8` (non-stackable)
     - screen-edge type VFX + trinity pulse are rendered in combat.
@@ -3590,7 +3590,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `swapCount = 34`
   - `boostConsumedCount = 2`
   - boosted non-Alakazam ally hits observed with `teleport_damage_boost_pct = 50`.
-- Legendary trio field validation (�lecthor + Sulfura + Artikodin seed):
+- Legendary trio field validation (Électhor + Sulfura + Artikodin seed):
   - `legendary_fields_active = { electric: true, ardent: true, arctic: true, trinity: true }` across run
   - `legendary_field_attack_interval_multiplier = 0.8`
   - `attack_interval_ms = 336` (base 420 * 0.8)
@@ -3699,19 +3699,19 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - No CSV warnings.
   - No `AudioContext` warning.
 
-## Validation compl�mentaire (2026-03-13, TP famille Abra + KO->spawn)
-- V�rification data talents dans `pokemon_data/pokemon_talents.csv`:
+## Validation complémentaire (2026-03-13, TP famille Abra + KO->spawn)
+- Vérification data talents dans `pokemon_data/pokemon_talents.csv`:
   - Abra (63): `TELEPORT`
   - Kadabra (64): `TELEPORT_PLUS`
   - Alakazam (65): `TELEPORT_PLUS_PLUS`
-- V�rification logique runtime `game.js`:
-  - m�me pipeline de swap pour les 3 talents (`buildTeleportSwapPlan` -> `applyTeleportSwapPlan`), seules les chances/effets secondaires diff�rent.
-  - cas KO: le swap est bien diff�r� (`teleport_swap_deferred_until_next_spawn`) puis appliqu� dans `spawnEnemy()` via `applyPendingTeleportSwapAfterRespawn(...)`.
-- Validation ex�cution:
+- Vérification logique runtime `game.js`:
+  - même pipeline de swap pour les 3 talents (`buildTeleportSwapPlan` -> `applyTeleportSwapPlan`), seules les chances/effets secondaires diffèrent.
+  - cas KO: le swap est bien différé (`teleport_swap_deferred_until_next_spawn`) puis appliqué dans `spawnEnemy()` via `applyPendingTeleportSwapAfterRespawn(...)`.
+- Validation exécution:
   - `node --check game.js`: PASS.
-  - `tmp/teleport_deferred_spawn_check.cjs`: PASS (`verifiedAppliedOnSpawn: true`, swap appliqu� au respawn).
+  - `tmp/teleport_deferred_spawn_check.cjs`: PASS (`verifiedAppliedOnSpawn: true`, swap appliqué au respawn).
   - `run_playwright_check.ps1`: PASS.
-- Note: le script `tmp/run_teleport_tiers_validation.ps1` d�pend d'un client absent (`~/.codex/skills/develop-web-game/scripts/talent_validate.mjs`) dans cet environnement.
+- Note: le script `tmp/run_teleport_tiers_validation.ps1` dépend d'un client absent (`~/.codex/skills/develop-web-game/scripts/talent_validate.mjs`) dans cet environnement.
 
 ## Additional progress (2026-03-13, teleport VFX always + Alakazam buff contract)
 - Reworked teleport swap VFX reliability in `game.js`:
@@ -3853,26 +3853,26 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
 - Gacha mobile cleanup: removed subtitle (`#gacha-subtitle`) and reel status text block (`#gacha-status`) from modal markup as requested to reduce visual noise.
 - Verification screenshot: `output/gacha-mobile-no-useless-text.png`.
 
-## Validation complémentaire (2026-03-13, check ciblé Morphing Metamorph sprite)
-- Objectif: vérifier que Metamorph (talent `MORPHING`) copie bien le sprite du Pokémon qu'il imite (slot précédent) et que le build reste stable.
-- Préparation test:
-  - Ajout d'un save seed dédié `tmp/pokeidle-test-appdata/PokeIdle/save_morphing_sprite_check.json` avec team `[25, 132, 16]` (Pikachu, Metamorph, Roucool).
+## Validation complÃ©mentaire (2026-03-13, check ciblÃ© Morphing Metamorph sprite)
+- Objectif: vÃ©rifier que Metamorph (talent `MORPHING`) copie bien le sprite du PokÃ©mon qu'il imite (slot prÃ©cÃ©dent) et que le build reste stable.
+- PrÃ©paration test:
+  - Ajout d'un save seed dÃ©diÃ© `tmp/pokeidle-test-appdata/PokeIdle/save_morphing_sprite_check.json` avec team `[25, 132, 16]` (Pikachu, Metamorph, Roucool).
   - Ajout d'un script de validation runtime `tmp/morphing_sprite_validate.mjs`.
-- Validation ciblée (Playwright):
-  - Exécution sur 90 checks (`stepMs=420`) via `window.render_game_to_text` + `window.__pokeidle_debug_getSpriteFrameIndex`.
-  - Résultat: `mismatchCount: 0`, `missingMorphingCount: 0`, `allPassed: true`.
-  - Preuve clé: Metamorph (`id:132`) et source (`id:25`) exposent le même `sprite_path` à chaque check:
+- Validation ciblÃ©e (Playwright):
+  - ExÃ©cution sur 90 checks (`stepMs=420`) via `window.render_game_to_text` + `window.__pokeidle_debug_getSpriteFrameIndex`.
+  - RÃ©sultat: `mismatchCount: 0`, `missingMorphingCount: 0`, `allPassed: true`.
+  - Preuve clÃ©: Metamorph (`id:132`) et source (`id:25`) exposent le mÃªme `sprite_path` Ã  chaque check:
     - `pokemon_data/25_pikachu/sprites/25_pikachu_firered_leafgreen_front.png`
   - Artefacts:
     - `output/morphing-sprite-check/summary.json`
     - `output/morphing-sprite-check/checks.json`
     - `output/morphing-sprite-check/final.png`
-- Vérif globale de stabilité:
+- VÃ©rif globale de stabilitÃ©:
   - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS
   - `powershell -ExecutionPolicy Bypass -File .\run_playwright_long.ps1`: PASS
   - `node --check game.js`: PASS
   - `npm run -s test:save`: PASS (12/12)
-- Conclusion: le morphing de Metamorph copie correctement le sprite du Pokémon imité, et aucun souci global détecté sur les passes de validation exécutées.
+- Conclusion: le morphing de Metamorph copie correctement le sprite du PokÃ©mon imitÃ©, et aucun souci global dÃ©tectÃ© sur les passes de validation exÃ©cutÃ©es.
 
 ## Additional progress (2026-03-13, Morphing shader recolor to Metamorph palette)
 - Reworked Morphing shader pipeline in `game.js` so copied sprites now keep the target silhouette/details while adopting Metamorph's own pink/lilac palette.
@@ -3966,18 +3966,18 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `output/morphing-slime-proof/frame-b.png`
 - Smoke validation: `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
 
-## Validation complémentaire (2026-03-13, Alakazam teleport -> Morphing refresh)
-- Demande testée: ajouter Alakazam dans la team et vérifier qu'après chaque téléport d'Alakazam, Métamorph refresh correctement sa copie si nécessaire.
+## Validation complÃ©mentaire (2026-03-13, Alakazam teleport -> Morphing refresh)
+- Demande testÃ©e: ajouter Alakazam dans la team et vÃ©rifier qu'aprÃ¨s chaque tÃ©lÃ©port d'Alakazam, MÃ©tamorph refresh correctement sa copie si nÃ©cessaire.
 - Setup:
-  - Save seed dédié: `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_morphing_teleport_check.json`.
-  - Team seed: `[16, 65, 132, 25, 19, 43]` (inclut Alakazam + Métamorph).
+  - Save seed dÃ©diÃ©: `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_morphing_teleport_check.json`.
+  - Team seed: `[16, 65, 132, 25, 19, 43]` (inclut Alakazam + MÃ©tamorph).
   - Script de validation: `tmp/alakazam_morphing_teleport_refresh_check.mjs`.
-- Vérification effectuée à chaque event `last_turn_event.teleport_swap=true` déclenché par Alakazam (`talent_id: TELEPORT_PLUS_PLUS`):
-  - cas swap immédiat: contrôle de synchro Métamorph vs slot précédent:
+- VÃ©rification effectuÃ©e Ã  chaque event `last_turn_event.teleport_swap=true` dÃ©clenchÃ© par Alakazam (`talent_id: TELEPORT_PLUS_PLUS`):
+  - cas swap immÃ©diat: contrÃ´le de synchro MÃ©tamorph vs slot prÃ©cÃ©dent:
     - `metamorph.offensive_type === source.offensive_type`
     - `metamorph.sprite_path === source.sprite_path` (via `window.__pokeidle_debug_getSpriteFrameIndex`).
-  - cas différé (KO -> respawn): comptabilisé séparément.
-- Résultat:
+  - cas diffÃ©rÃ© (KO -> respawn): comptabilisÃ© sÃ©parÃ©ment.
+- RÃ©sultat:
   - `alakazamTeleportEvents: 45`
   - `immediateTeleportChecks: 14`
   - `deferredTeleportEvents: 31`
@@ -4012,18 +4012,18 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `unlocked_route_ids` includes `kanto_dungeon_pokemon_mansion` even though seed `unlocked_route_ids` intentionally omitted it.
   - visual artifact: `output/mansion-backfill-check/shot-4.png`.
 
-## Validation complémentaire (2026-03-13, cas demandés Alakazam<->Métamorph)
+## Validation complÃ©mentaire (2026-03-13, cas demandÃ©s Alakazam<->MÃ©tamorph)
 - Objectif explicite:
-  - vérifier le refresh Morphing quand Alakazam swap directement avec Métamorph,
-  - vérifier le refresh quand Métamorph swap avec son voisin source (slot précédent à copier).
-- Setup ciblé:
-  - save seed 2-slot forcé (`[Alakazam, Métamorph]`): `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_metamorph_direct_swap_check.json`.
+  - vÃ©rifier le refresh Morphing quand Alakazam swap directement avec MÃ©tamorph,
+  - vÃ©rifier le refresh quand MÃ©tamorph swap avec son voisin source (slot prÃ©cÃ©dent Ã  copier).
+- Setup ciblÃ©:
+  - save seed 2-slot forcÃ© (`[Alakazam, MÃ©tamorph]`): `tmp/pokeidle-test-appdata/PokeIdle/save_alakazam_metamorph_direct_swap_check.json`.
   - script de test: `tmp/alakazam_metamorph_direct_swap_check.mjs`.
-- Résultat:
-  - `directSwapChecks: 25` (Alakazam swap direct impliquant Métamorph)
-  - `neighborSwapChecks: 4` (Métamorph swap avec son voisin source)
-  - `copiedStateSeen: true` (Métamorph recopie bien après swap)
-  - `revertedStateSeen: true` (Métamorph repasse bien en profil Ditto quand il tombe en slot 0)
+- RÃ©sultat:
+  - `directSwapChecks: 25` (Alakazam swap direct impliquant MÃ©tamorph)
+  - `neighborSwapChecks: 4` (MÃ©tamorph swap avec son voisin source)
+  - `copiedStateSeen: true` (MÃ©tamorph recopie bien aprÃ¨s swap)
+  - `revertedStateSeen: true` (MÃ©tamorph repasse bien en profil Ditto quand il tombe en slot 0)
   - `failures: 0`
   - `allPassed: true`
 - Artifacts:
@@ -4031,7 +4031,7 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `output/alakazam-metamorph-direct-swap-check/checks.json`
   - `output/alakazam-metamorph-direct-swap-check/copied-slotgt0.png`
   - `output/alakazam-metamorph-direct-swap-check/reverted-slot0.png`
-- Smoke global après test: `run_playwright_check.ps1`: PASS.
+- Smoke global aprÃ¨s test: `run_playwright_check.ps1`: PASS.
 
 ## Additional progress (team drag & drop swap)
 - Added drag-and-drop team slot swapping on the battlefield canvas for left-click drag gestures:
@@ -4070,3 +4070,638 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - node --check game.js: PASS.
   - run_playwright_check.ps1: PASS (no console/page errors).
   - Dedicated mobile viewport capture (iPhone 13 emulation): output/mobile-version-gameplay-clear.png confirms version label remains visible above dock.
+
+## Additional progress (tween polish UI/combat)
+- Integrated tween library for runtime UI animation orchestration:
+  - Added dependency `@tweenjs/tween.js`.
+  - Added browser vendor module `vendor/tween.js` and vendor entry `vendor-src/tween.entry.js`.
+  - Updated `scripts/build-browser-vendors.mjs` to include a `tween` bundle entry.
+- Implemented shared tween helpers in `game.js`:
+  - `showModalWithTween` / `hideModalWithTween` for window/modal enter/exit.
+  - `showPopupWithTween` / `hidePopupWithTween` + `showTooltipWithTween` for tooltip/popup enter/exit.
+  - Unified tween group update in main update loop (`tweenGroup.update(state.timeMs)`).
+- Applied modal/window tweens to major UI flows:
+  - Starter modal, tutorial modal, map modal, shop modal, gacha modal, evolution item choice modal.
+  - Rename modal, boxes modal, appearance modal.
+- Applied tooltip/popup tweens:
+  - Hover tooltip (`hover-popup`) now tweened on show/hide.
+  - Team context menu and ball capture menu now tweened on show/hide.
+- Reworked notification stack rendering for tweened lifecycle:
+  - Replaced full `innerHTML` reset with keyed card reconciliation.
+  - Added tweened notification card enter and exit animations.
+  - Preserved evolution action button behavior (`Evoluer`).
+- Added tweened dynamic combat text feel:
+  - Floating damage texts now have tweened alpha/scale entrance and exit overlays.
+  - Added cleanup of floating-text tweens on lifecycle resets/removals.
+- CSS adjustments:
+  - Removed old CSS-only notification keyframe enter animation.
+  - Added `will-change` hints for modal/popup/notif animated elements.
+
+## Validation runs (after tween integration)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1` (develop-web-game client): PASS (new screenshots/state emitted in `output/web-game-poke`; no new console/page errors emitted).
+- Manual Playwright interaction capture pass (targeted UI states):
+  - Captures in `output/tween-manual/` for: after-start, shop-open/close, map-open/close, combat-wait, hover-center, and notif-focused frame.
+  - No runtime console/page errors captured (`output/tween-manual/errors.json` not generated).
+- `npm run test:save`: PASS (12/12 tests).
+
+## TODO / Next
+- Add a deterministic automated Playwright actions payload that explicitly opens/closes each modal through pointer events (not evaluate-click) to lock in tween regressions.
+- Optionally extend tween coverage to gacha result panel and any remaining transient panels for full UI consistency.
+- Fix tooltip hover disappearance stability:
+  - Added popup animation phase tracking (`visible/showing/hiding/hidden`) in UI tween state.
+  - Prevented repeated hide restarts while already hiding (main source of jitter/flicker on mouseout loops).
+  - Allowed tooltip show to correctly recover from an in-progress hide tween.
+  - Switched popup hide/show to start from current inline tween values instead of hard reset values (prevents visual snaps).
+- Revalidated syntax and Playwright skill check after tooltip fix:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (UI alignment + mobile pass)
+- Implemented requested top HUD adjustments:
+  - Added a new top-bar `Pokeballs` counter pill in `index.html` (`#pokeballs-pill`) with the same visual format as `Pokedollars`.
+  - Wired live `Pokeballs` value updates in `game.js` via `setPokeballsCounterTextValue` (including zero-state handling).
+  - Kept `Coins` in the same pill system and unified top counter heights/spacing.
+- Updated layout behavior in `styles.css` to match requested composition:
+  - Route bar with arrows remains centered horizontally.
+  - Resource counters are aligned in one row on desktop (top-right), with consistent sizing.
+  - Mobile breakpoints stack route + counters cleanly so everything remains visible and readable.
+- Timer placement adjusted upward in `drawRouteDefeatTimerBar`:
+  - Timer now anchors closer to the top HUD (using topbar client height + overlay padding), resulting in a visibly higher position.
+- Reduced duplicate Pokeball HUD clutter:
+  - Canvas ball overlay is now hidden when only the default single Pokeball row exists; multi-ball overlay remains available when relevant.
+
+## Validation runs (UI pass)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Real page screenshot validation with Playwright (desktop + mobile):
+  - `output/ui-pass/desktop-ui-clean.png`
+  - `output/ui-pass/mobile-ui-clean.png`
+  - Also retained tutorial-on captures:
+    - `output/ui-pass/desktop-ui.png`
+    - `output/ui-pass/mobile-ui.png`
+## Additional progress (2026-03-13, accents/special chars Windows notifs)
+- Updated Windows notification UX strings in `game.js` to proper French accents and special characters (e.g. "dÃ©sactivÃ©es", "systÃ¨me", "aperÃ§u", "capturÃ©", "Ã‰volution", "PokÃ©mon").
+- Added `normalizeUiDisplayText(...)` and applied it to Notification title/body emission to keep Unicode text normalized (`NFC`) before browser/OS notification rendering.
+- Applied the same text normalization path to nickname sanitization so composed accents are preserved consistently in user-facing labels.
+
+### Validation
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (12/12).
+- `run_playwright_check.ps1`: PASS.
+- Visual capture: `output/web-game-poke/shot-2.png`.
+
+## Additional progress (UI correction pass per montage)
+- Reworked top HUD to match montage intent:
+  - Route display bar is centered horizontally relative to viewport (independent of right currency block).
+  - Right currency block now shows only `Pokedollars` + `Coins` stacked vertically with same card format.
+  - Removed the extra top-right Pokeballs pill introduced in previous pass.
+- Restored Pokeball HUD behavior on the left side of battle area:
+  - Re-enabled left-side ball overlay even when only Pokeball is present.
+- Kept timer in raised position while preserving centered route header alignment.
+- Verified with fresh screenshots:
+  - `output/ui-pass/desktop-ui-clean-v2.png`
+  - `output/ui-pass/mobile-ui-clean-v2.png`
+
+- Rebalanced classic (already-owned family) capture coin chance tiers to 80% / 60% / 50% / 40% based on level diff in getFamilyOwnedCaptureCoinChanceFromLevelDiff (used in battle capture reward flow).
+- Kept non-classic capture coin scaling path intact (still uses level-diff coin multiplier + minimum clamp).
+- Ran ./run_playwright_check.ps1 after the change; run completed successfully and latest screenshot/state were generated in output/web-game-poke (shot-2.png, state-2.json).
+- Projectile movement upgraded to tween-based travel (not only UI tweens):
+  - Added per-projectile travel tween state (`travelTweenState.progress`) driven by global tween group timeline.
+  - Replaced frame-distance movement with tweened progress interpolation.
+  - Added slight arced trajectory profile (perpendicular sinus offset) for more lively travel feel.
+  - Preserved hit resolution, trail generation, turn logic, and precomputed damage behavior.
+  - Added cleanup helpers to stop projectile tweens safely when projectiles are cleared on respawn/idle/timer transitions.
+- Validation after projectile tween change:
+  - `node --check game.js`: PASS.
+  - `run_playwright_projectile.ps1`: PASS.
+  - Manual capture with active projectile detected in text state (`output/tween-manual/state-16-projectile-tween.json` includes `active_projectiles`).
+  - `run_playwright_check.ps1`: PASS.
+  - `npm run test:save`: PASS (12/12).
+## Additional progress (2026-03-13, fix global affichage accents/caracteres speciaux)
+- Added shared text normalization module: `lib/text-normalization.js`.
+  - NFC Unicode normalization for UI strings.
+  - Mojibake repair path for common UTF-8<->CP1252 decoding issues (e.g. `SalamÃƒÂ¨che` -> `SalamÃ¨che`).
+  - Optional French typography pass for common in-game labels (`Pokemon` -> `PokÃ©mon`, `Oeil` -> `Å’il`, `Teleport` -> `TÃ©lÃ©port`, etc.).
+- Wired normalization into talents pipeline (`lib/talents.js`):
+  - `nameFr` and `descriptionFr` now pass through shared normalization + FR typography.
+  - Covers CSV talents and also talents restored from existing saves.
+- Wired normalization into key UI display paths in `game.js`:
+  - `setTopMessage(...)` now normalizes displayed text.
+  - Windows system notifications title/body now normalize with FR typography.
+  - Route display names and CSV route encounter `name_fr` now normalize before display.
+  - Pokemon display name load path now normalizes FR text.
+- Added regression tests: `tests/text-normalization.test.mjs`.
+
+### Validation
+- `node --check lib/text-normalization.js`: PASS.
+- `node --check lib/talents.js`: PASS.
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (15/15).
+- Visual Alakazam tooltip capture with accented talent text:
+  - `output/alakazam-talent-tooltip/alakazam-tooltip.png`
+  - `output/alakazam-talent-tooltip/tooltip.txt`
+
+## Additional progress (2026-03-13, ball capture toggles + strongest-ball priority + ball HUD polish)
+- Added a new per-ball capture toggle for owned species:
+  - `Capturer les Pokemon deja possedes` (`capture_owned`) in the ball capture popup.
+  - Wired in `index.html` and `game.js` (definitions, listeners, menu refresh).
+- Extended capture rules model for backward-compatible save normalization:
+  - `createDefaultSingleBallCaptureRules` now includes `capture_owned`.
+  - `normalizeSingleBallCaptureRules` now supports `capture_owned` and keeps legacy saves coherent.
+  - `capture_all` now synchronizes `capture_unowned`, `capture_owned`, `capture_shiny`, and `capture_ultra_shiny`.
+- Updated capture decision logic:
+  - `shouldCaptureEnemyWithBallType` now explicitly supports owned-family captures.
+- Implemented requested priority behavior when multiple ball types match the same toggle(s):
+  - `getBallTypeForCapture` now checks `BALL_TYPE_ORDER` first (strongest capture multiplier first), then falls back to active type only if needed.
+  - Result: HyperBall > SuperBall > PokeBall on overlapping rules (e.g. ultra shiny enabled on all three).
+- Shop cleanup for balls:
+  - Removed useless `Equiper/Actif` secondary button from ball cards.
+  - Removed `Actif: Oui/Non` stock text.
+  - Updated pokeball-tab subtitle to explain capture-rule configuration from in-combat counters.
+- Ball counters UI polish in combat overlay:
+  - Distinct per-ball row visual styles (PokeBall/SuperBall/HyperBall colors).
+  - Added independent hover animation per row (lift, icon pulse, glow).
+  - Labels now display explicit ball name + count (`PokeBall x...`, `SuperBall x...`, `HyperBall x...`).
+
+### Validation
+- `node --check game.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File .\\run_playwright_check.ps1`: PASS.
+- Targeted visual capture pass for ball HUD + toggle menu:
+  - `output/ball-ui-pass/01-overlay-base.png`
+  - `output/ball-ui-pass/02-hover-pokeball.png`
+  - `output/ball-ui-pass/03-hover-superball.png`
+  - `output/ball-ui-pass/04-hover-hyperball.png`
+  - `output/ball-ui-pass/05-capture-menu.png` (shows new `Capturer les Pokemon deja possedes` toggle)
+
+## Additional progress (Pokeball counters UI parity)
+- Reworked left Pokeball overlay UI to align visually with top-right money counters:
+  - Dark blue HUD card style per ball type (same visual family as Pokedollars/Coins cards).
+  - Value-first display + uppercase caption (ball type label).
+  - Added per-row gauge bar for quick stock reading.
+  - Kept per-row click hitboxes active (still opens capture rules menu).
+- Updated ball overlay style config constants for consistent card palette and per-type gauge accents.
+- Updated ball row visibility logic:
+  - All non-coming-soon ball types are now shown in overlay even at `0` so different counters are always visible.
+
+## Validation runs (Pokeball counters parity)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual checks:
+  - `output/web-game-poke/shot-2.png` (new row style visible).
+  - `output/ui-pass/desktop-ball-overlay-click.png` (click opens capture menu from row).
+  - `output/ui-pass/mobile-ball-overlay-v1.png` (mobile readability/layout).
+
+## Additional progress (2026-03-13, gacha anti-blockage + snap final smooth)
+- Hardened Gacha spin completion flow in `game.js` to guarantee UI unlock even if an error occurs mid-sequence:
+  - wrapped the spin sequence in `try/catch/finally` so `state.gacha.spinning` always returns to `false`;
+  - centralised reward reveal assignment in a helper to avoid inconsistent end states;
+  - added a recovery attempt in `catch` to still unlock the chosen reward skin when possible.
+- Removed reward reveal dependency on asset preload latency:
+  - `unlockGachaRewardSkin` now starts sprite preload in background (`void ...catch`) instead of awaiting it,
+  - this prevents end-of-reel stalls waiting on image decode/load before unlock is applied.
+- Added deterministic two-phase reel stop for a consistent-duration ending with a smooth snap:
+  - new constants: `GACHA_SPIN_FINAL_SNAP_DURATION_MS`, `GACHA_SPIN_MAIN_SCROLL_DURATION_MS`, `GACHA_SPIN_FINAL_SNAP_LEAD_PX`;
+  - main scroll ends slightly before the reward, then a short eased snap lands exactly on reward center;
+  - total spin timing remains fixed per run (`main + snap`).
+
+## Validation (gacha anti-blockage + smooth snap)
+- `node --check game.js`: PASS.
+- Skill loop check (`run_playwright_check.ps1`): PASS.
+- Seeded Gacha E2E (`tmp/pw_gacha_e2e_validate.cjs`): PASS.
+  - assertions all true: coins -10, candidates -1, reward present, reward owned in save, `gacha_spinning=false`, modal still open.
+  - screenshots updated: `output/web-game-gacha-e2e/before-spin.png`, `output/web-game-gacha-e2e/after-spin.png`.
+- Multi-spin duration probe (3 consecutive seeded spins): stable timings around ~2.51s end-to-end (`2522ms`, `2508ms`, `2512ms`).
+
+## Additional progress (2026-03-13, Pokedex modal + discovery states)
+- Added a new bottom action button `Pokedex` in `index.html` (`#pokedex-btn`).
+- Added a dedicated Pokedex modal (`#pokedex-modal`) with:
+  - species grid (`#pokedex-grid`),
+  - summary counters (`#pokedex-counter`),
+  - detail panel (`#pokedex-info-panel`).
+- Implemented Pokedex runtime logic in `game.js`:
+  - new UI state: `pokedexOpen`, `pokedexHoverPokemonId`;
+  - modal lifecycle: `openPokedexModal()`, `closePokedexModal()`, `renderPokedexGrid()`;
+  - species source = full game catalog hints (route encounters + starters + save entities + loaded defs), sorted by id;
+  - warmup loading for missing definitions via `warmupPokedexDefinitions()` so the full species set can be displayed.
+- Added requested visual states for each species card:
+  - never encountered/captured: black silhouette (`brightness(0) saturate(0)`),
+  - encountered but not captured: sprite alpha `0.35`,
+  - captured: sprite alpha `1`.
+- Reused the same shiny / ultra-shiny symbols and badge classes as boxes (`boxes-mode-badge-*`, `?`) for Pokedex entries.
+- Integrated modal coordination/UX:
+  - Escape closes Pokedex;
+  - click outside closes Pokedex;
+  - opening map/shop/gacha/tutorial/reset/init now closes Pokedex;
+  - canvas interactions are blocked while Pokedex is open;
+  - `render_game_to_text` now exposes `pokedex_open`, `pokedex_hover_pokemon_id`, `pokedex_species_count`.
+
+## Validation (this turn)
+- `node --check game.js`: PASS.
+- `npm run -s test:save`: PASS (15/15).
+- Develop-web-game Playwright client smoke (new output dir):
+  - `output/web-game-poke-pokedex-pass/shot-0.png..shot-2.png`
+  - `output/web-game-poke-pokedex-pass/state-0.json..state-2.json`
+- Targeted Playwright visual validation of Pokedex modal:
+  - Screenshot: `output/pokedex-modal-check/pokedex-open.png`
+  - Summary: `output/pokedex-modal-check/summary.json`
+  - Verified values:
+    - `pokedex_open: true`
+    - `encountered_opacity: "0.35"`
+    - `captured_opacity: "1"`
+    - `unknown_filter: "brightness(0) saturate(0)"`
+
+## Additional progress (desktop counters vertical alignment)
+- Aligned left Pokeball counters to the same top Y-level as the right money counters in desktop mode.
+- Implementation detail: adjusted `drawBallInventoryOverlay` panel Y anchoring to use overlay top padding on non-compact viewports.
+- Kept compact/mobile behavior unchanged to avoid crowding.
+- Visual validation: `output/ui-pass/desktop-counters-same-height-v1.png`.
+- Pokedex text polish (2026-03-13):
+  - removed status labels on Pokedex cards (no more "Capture" / "Rencontre" / "Jamais rencontre" under each card),
+  - never-encountered species now display name `???` on cards,
+  - never-encountered species also display `???` in the Pokedex info panel header.
+- Validation:
+  - `node --check game.js`: PASS.
+  - Playwright smoke pass: `output/web-game-poke-pokedex-text-pass/`.
+
+## Additional progress (Pokeball cards size parity + label removal)
+- Increased Pokeball overlay row cards in desktop mode to match money card footprint (height/visual weight equivalent).
+- Removed ball type text labels from Pokeball counters (`POKEBALL`, `SUPERBALL`, `HYPERBALL`).
+- Kept numeric value + gauge + click behavior per row.
+- Validation screenshot: `output/ui-pass/desktop-ball-size-equivalent-v2.png`.
+
+## Additional progress (2026-03-13, gacha pointer exact center alignment)
+- Fixed final Gacha centering offset between reel pointer and reward card center:
+  - root cause was center math using `gachaReelWindowEl.clientWidth / 2` while reel items are laid out in the window content box (excluding horizontal padding), introducing an 8px bias.
+  - updated `getGachaRewardTargetOffsetPx` to compute center from the reel window content width (`clientWidth - paddingLeft - paddingRight`).
+- Result: final snap now lands on exact horizontal center under the pointer.
+
+## Validation (pointer exact center)
+- Numeric alignment probe after spin: `deltaPx = 0` (reward center - pointer center).
+- Visual capture: `output/web-game-gacha-e2e/after-spin-alignment-check.png`.
+- Skill Playwright loop (`run_playwright_check.ps1`): PASS.
+
+## Additional progress (2026-03-13, Pokedex 493 complet + perf window)
+- Pokedex species source switched to talent CSV catalog (`state.pokedexSpeciesCsvByPokemonId`) so the modal now uses the full 493-species roster.
+- `loadPokemonTalentCsv` now records a Pokédex species entry for each valid `pokemon_id` row (even when one localized field is missing), preserving full catalog coverage.
+- Reworked Pokedex rendering trigger flow in `game.js`:
+  - removed full-grid rerender calls from `updateHud()` (was running repeatedly and causing lag),
+  - added `queuePokedexGridRender()` + `cancelQueuedPokedexGridRender()` with `requestAnimationFrame` throttling,
+  - hooked rerender queue on meaningful data changes only (CSV load update / species stat increments / modal open).
+- Removed obsolete Pokedex warmup path that loaded all route definitions (`warmupPokedexDefinitions`) and replaced sprite fallback with deterministic CSV path resolution:
+  - `pokemon_data/<id>_<name_en>/sprites/<id>_<name_en>_transparent_front.png`.
+- Optimized grid rendering pass:
+  - build cards in a `DocumentFragment` then `replaceChildren(...)`,
+  - enable image `loading="lazy"` and `decoding="async"` for reduced open-time pressure.
+- Added lightweight CSS rendering optimizations for the Pokédex grid/cards:
+  - `align-content: start` on `.pokedex-grid`,
+  - `contain: content`, `content-visibility: auto`, `contain-intrinsic-size` on `.pokedex-mon-btn`.
+
+### Validation (Pokedex 493 + perf pass)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- `render_game_to_text` artifacts now report `pokedex_species_count: 493` in:
+  - `output/web-game-poke/state-0.json`
+  - `output/web-game-poke/state-1.json`
+  - `output/web-game-poke/state-2.json`
+- Targeted visual capture with Pokédex modal open:
+  - `output/web-game-poke/pokedex-493.png`
+  - `output/web-game-poke/pokedex-493-meta.json` (`{"pokedexCount":493,"subtitle":"Pokedex complet | 493 especes"}`).
+
+- Added a dedicated skip-turn visual effect for team slots when a Pokemon does not attack on its turn (`TURN_ACTION_SKIP` with attacker present):
+  - New per-slot FX state in `PokemonBattleManager`: `slotSkipTurnFx`.
+  - New methods: `triggerSlotSkipTurnEffect`, `updateSlotSkipTurnEffects`, `getSlotSkipTurnVisual`.
+  - Effect includes eased fade in/out, tremor offsets, slight squash/stretch, and grayscale blend.
+- Hooked effect triggering in both combat loops:
+  - `spawnNextProjectile(...)` (normal mode).
+  - `simulateAttackTickInstant(...)` (idle simulation).
+- Hooked effect rendering in team sprite draw path:
+  - Applies jitter offsets and scale from skip FX.
+  - Applies grayscale shader (saturation/brightness/contrast) merged with existing sprite shader so morphing/other shaders remain compatible.
+- Validation:
+  - `node --check game.js` passed.
+  - `npm run test:save` passed (15/15).
+  - Playwright skill run with starter click + combat wait produced artifacts: `output/skip-turn-smoke/`.
+  - Targeted Magicarpe (`LOSER`) verification run confirmed passive skip event and visual frames:
+    - State confirmation (`last_turn_reason: passive_no_attack`) in `output/skip-turn-verify/state-during.json`.
+    - Visual sequence in `output/skip-turn-verify/shot-before.png`, `shot-during.png`, `shot-after.png` (gray+tremble during skip, color restored after).
+- Note:
+  - Temporary verification scripts and seeded save were created under `output/` (`tmp_skip_turn_verify.mjs`, `tmp_inspect_save_load.mjs`, `skip_turn_save_valid.json`) to force deterministic passive-no-attack coverage.
+
+## 2026-03-13 - Once encounter gating + timer text cleanup
+- Changed `only-one` encounter cycle behavior in `game.js` so the 1/50 counter is armed only after the route unlock defeat target is reached (e.g. 20/20 for next zone).
+- While unlock target is not reached, the `only-one` cycle is forced to `0` and cannot increment/spawn.
+- Kept fallback safety for routes that would otherwise have no normal encounters.
+- Updated timer HUD rendering so `only-one` timers never show the route defeat counter text (`X / Y Pokemon battus`).
+
+Validation:
+- `node --check game.js`: PASS
+- `npm run test:save`: PASS (15/15)
+- `run_playwright_check.ps1`: PASS
+- `run_playwright_long.ps1`: PASS
+- `run_playwright_projectile.ps1`: PASS
+- `run_playwright_capturechance.ps1`: timed out in this environment, but generated screenshots/states before timeout in `output/web-game-capturechance/`.
+
+## Additional progress (2026-03-13, Pokedex sprite defaults par generation)
+- Updated Pokedex sprite selection to use generation-aware default variant priority (Pokedex-only, no global team/combat sprite behavior changes):
+  - Dex #1-#386: prefer `firered_leafgreen`, fallback `emerald`, then `ruby_sapphire`.
+  - Dex #387-#493: prefer `diamond_pearl`, fallback `heartgold_soulsilver`, then `platinum`.
+- Added dedicated Pokedex variant constants and resolver helpers in `game.js`:
+  - `POKEDEX_VARIANT_PREFERENCE_GEN_1_TO_3`
+  - `POKEDEX_VARIANT_PREFERENCE_GEN_4`
+  - `resolvePokedexSpeciesSpritePath(...)`
+- For species not preloaded in `state.pokemonDefsById`, Pokedex now uses deterministic offline-safe fallback paths so cards still render fast while respecting requested defaults.
+- Kept existing silhouette/alpha/??? rules untouched.
+
+### Validation (sprite defaults)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted browser extraction from open Pokedex:
+  - `output/web-game-poke/pokedex-default-variants-meta.json`
+  - sample `src` results:
+    - `#025` -> `..._firered_leafgreen_front.png`
+    - `#152` -> `..._emerald_front.png` (fallback when FRLG is unavailable in assets)
+    - `#216` -> `..._firered_leafgreen_front.png`
+    - `#386` -> `..._firered_leafgreen_front.png`
+    - `#387` -> `..._diamond_pearl_front.png`
+    - `#493` -> `..._diamond_pearl_front.png`
+- Visual artifact:
+  - `output/web-game-poke/pokedex-default-variants.png`
+
+## 2026-03-13 - Team drag & drop mobile tactile UX
+- Reworked team drag/drop input handling on canvas from mouse-only listeners to pointer events (`pointerdown/move/up/cancel`) so touch + mouse are both supported in one flow.
+- Added active pointer tracking for team drag (`teamDragPointerId`, `teamDragPointerType`) to avoid multi-touch conflicts and ignore unrelated pointers.
+- Added pointer capture/release during drag for stable touch interactions even if the finger leaves the canvas bounds mid-gesture.
+- Added touch-specific drag activation tuning (`getTeamDragActivationDistancePx`) to reduce accidental drags on tap.
+- Expanded slot hit radius for touch drag targeting (`findHoveredTeamSlot(..., { pointerType: "touch" })`) to make mobile drops easier and more reliable.
+- Kept desktop behavior intact: hover popups/cursor only react to mouse pointer moves, while touch avoids noisy hover states.
+- Updated canvas CSS to `touch-action: none` to prevent gesture interference during drag.
+
+Validation:
+- `node --check game.js`: PASS
+- `run_playwright_check.ps1`: PASS
+- Mobile touch drag functional verification (Playwright mobile context with seeded save):
+  - Team order before: `[1,4,7]`
+  - Team order after touch drag swap: `[4,1,7]`
+  - Artifact screenshot: `output/mobile-team-drag-swap.png`
+  - Artifact state log: `output/mobile-team-drag-state.json`
+
+## Additional progress (Pokeball counters hover polish)
+- Removed bounce-style hover movement on Pokeball counters.
+- Replaced with pure hover enlargement (scale-in-place) for cleaner interaction.
+- Removed yellow active outline from Pokeball counters (kept consistent blue border styling).
+- Removed right-side arrow glyph from Pokeball counter rows.
+- Validation screenshots:
+  - `output/ui-pass/desktop-ball-hover-clean-v3.png`
+  - `output/ui-pass/desktop-ball-hovered-v3.png`
+
+## Additional progress (2026-03-13, Pokedex ultra-optimisation window/data/sprites)
+- Implemented Pokedex rendering virtualization to drastically reduce DOM work:
+  - only visible cards (+ small overscan) are mounted while scrolling,
+  - top/bottom spacers preserve full scroll height,
+  - viewport slices are rendered through `requestAnimationFrame`.
+- Added Pokedex cache lifecycle to reduce repeated heavy computations:
+  - species entries cached by id/list,
+  - encountered/captured species counters cached,
+  - cache invalidation wired on species progression and talent CSV updates.
+- Removed per-card listener overhead for Pokedex cards:
+  - switched to event delegation (`mouseover`, `focusin`, `click`) on the grid container.
+- Added adaptive virtual layout metrics:
+  - live measurement of grid paddings/gaps across responsive breakpoints,
+  - dynamic column count and row slicing.
+- Added sprite loading optimizations:
+  - prefetch around the visible slice (`Image()` prewarm) to smooth scroll,
+  - visible-slice-only image mounting (instead of all 493 at once),
+  - decorative sprite `alt` removed (button keeps `aria-label`) to avoid fallback text paint noise.
+- Added dedicated Pokedex virtual CSS layer:
+  - `.pokedex-virtual-content` + spacer blocks,
+  - fixed card height for stable row math and reduced reflow cost,
+  - preserved all existing discovery visuals (`unknown` silhouette / alpha encountered / alpha captured).
+
+### Validation (ultra-optimisation)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted Pokedex performance probe with modal open + bottom scroll:
+  - `output/web-game-poke/pokedex-optimized-metrics.json`
+  - measured:
+    - total species in dex: `493`
+    - rendered cards at top: `77` (instead of 493)
+    - rendered cards near bottom: `52` (instead of 493)
+- Visual artifact:
+  - `output/web-game-poke/pokedex-optimized-window.png`
+
+## Additional progress (enemy HP bar full width + centered value)
+- Updated enemy HP HUD rendering in `game.js` (`drawEnemyHpBar`):
+  - Removed the reserved right-side numeric zone so the HP track now uses the full available width of the HP panel (after the `HP` chip).
+  - Moved HP value text (`current/max`) inside the HP track.
+  - Centered HP value text horizontally in the track with adaptive font shrink and in-track clipping for readability/stability.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Targeted Playwright visual capture with starter/route automation: `output/hpbar-layout-check/combat-hpbar-clean.png`.
+  - State confirms combat scene active during capture: `output/hpbar-layout-check/state-clean.json` (`route_combat_enabled: true`, enemy present).
+
+## Additional progress (enemy HP text contrast adaptive)
+- Improved enemy HP text readability in `drawEnemyHpBar` (`game.js`) so the value stays legible regardless of bar color/fill state:
+  - Added adaptive contrast selection from sampled fill/track luminance.
+  - Split text rendering into two clipped passes (filled segment vs empty segment), each with its own contrasting fill + outline.
+  - Kept in-bar centered placement and width-adaptive font sizing.
+- Added small color utilities used by the HUD renderer:
+  - `parseRgbaColor`, `lerpColorChannel`, `getColorLuminance`, `pickContrastingHudTextColor`.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, Pokedex sprite loading animation)
+- Added a per-card loading animation in Pokedex while sprite images are loading:
+  - each visible card sprite now gets a lightweight 3-dot animated indicator during fetch/decode,
+  - indicator auto-removes on `img load`,
+  - if sprite loading fails, card falls back to `?` visual and exits loading state cleanly.
+- Implemented image loading lifecycle helpers in `game.js`:
+  - `createPokedexLoadingIndicatorElement()`
+  - `attachPokedexSpriteLoadingLifecycle(...)`
+- Updated card creation path so visible virtualized cards use the new lifecycle (`createPokedexCardButton`).
+- Added CSS animation styles in `styles.css`:
+  - `.pokedex-loading-indicator`
+  - `.pokedex-loading-dot`
+  - `@keyframes pokedex-loading-bounce`
+  - pending-image opacity control with `.boxes-mon-visual.is-loading .pokedex-mon-sprite.is-pending`.
+
+### Validation (loading animation)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted throttled DOM probe confirms loading nodes are present during Pokedex sprite fetch:
+  - `output/web-game-poke/pokedex-loading-animation-dom-probe.json`
+  - observed sample: `loadingWrappers: 62`, `loadingDots: 186`.
+
+## Additional progress (2026-03-13, mobile phone UI overhaul compact + overlap fixes)
+- Reworked phone HUD density and spacing in `styles.css` (new final mobile override block at file end):
+  - top HUD compacted (route bar + resource pills reduced height/padding/font sizes),
+  - action dock tightened while keeping 6 buttons visible,
+  - route progress text hidden on phone to reclaim vertical space,
+  - notification stack moved above bottom dock (`bottom` safe offset raised) to prevent masking `Map`/`Pokedex` row.
+- Fixed route defeat timer vertical anchoring in `game.js` (`drawRouteDefeatTimerBar`):
+  - changed Y anchor logic to stay *below* top HUD instead of clamping toward overlap-prone top values.
+- Compacted left ball inventory overlay in `game.js` (`drawBallInventoryOverlay`) for phone profiles:
+  - reduced icon size, row height, paddings, row gaps, and compact target width.
+
+### Validation
+- `node --check game.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File .\\run_playwright_check.ps1`: PASS.
+- Dedicated phone viewport iterative validation loop (`tmp/mobile_ui_validation.mjs`): PASS with no console/page errors.
+- Updated visual artifacts:
+  - `output/mobile-ui-loop/00-town-current.png` (clean town HUD + full dock visible)
+  - `output/mobile-ui-loop/01-home.png` (route gameplay with compact HUD and visible dock first row)
+  - `output/mobile-ui-loop/report.json` (geometry + interaction diagnostics)
+
+### Notes / next
+- Playwright mobile `page.click` remains flaky on some fixed overlay elements in this app context; touch/DOM dispatch checks were used for resilience.
+- If needed later: build a deterministic touch-only mobile E2E script that advances tutorial states and validates each modal open/close path in isolation.
+- Added isolated touch-modal validation run on phone viewport (new artifact `output/mobile-ui-loop/modal-touch-check.json`):
+  - `Map`, `Pokedex`, `Shop`, `Gacha` all open + close successfully (`opened=true`, `closed=true` per modal).
+
+## Additional progress (2026-03-13, perf boot + FPS optimization pass)
+- Optimized frame-time stability by removing per-frame layout recomputation pressure:
+  - Added throttled layout refresh helper `refreshLayoutIfNeeded(...)` in `game.js`.
+  - New cadence constant: `LAYOUT_RECOMPUTE_INTERVAL_MS = 220`.
+  - Render/update now reuse cached layout; forced recompute only on key transitions (resize/route switch/start battle/init).
+  - Idle simulation path avoids unnecessary layout churn when possible.
+- Optimized arena boot asset strategy:
+  - `getInitialAssetRouteIds()` now loads only the strict initial route set (current/default + Route 1 tutorial only when needed), instead of all unlocked routes.
+  - `initializeScene()` now preloads only the initial route background before entering ready state.
+  - Type icons + team appearance assets are now deferred with `Promise.allSettled(...)` and applied asynchronously after boot.
+- Reduced background warmup spikes (post-boot stutter reduction):
+  - `queueDeferredRouteAssetWarmup(...)` now warms routes in chunks (`DEFERRED_ROUTE_WARMUP_CHUNK_SIZE = 2`) scheduled via idle callback/timeout loop.
+
+### Validation (perf pass)
+- `node --check game.js`: PASS.
+- `npm run test:save`: PASS (15/15).
+- `powershell -ExecutionPolicy Bypass -File .\\run_playwright_check.ps1`: PASS (no new console/page error produced in this run).
+- Extended Playwright run produced ready-state screenshots on latest pass (`output/web-game-ko/shot-15.png`, `state-15.json` mode `ready`).
+
+### Notes
+- A transient regression (`ReferenceError: idleMode is not defined`) was introduced during refactor and fixed in the same pass; subsequent runs no longer generate a new corresponding error artifact.
+
+## Additional progress (2026-03-13, audit backgrounds FRLG zones + blur)
+- Audited all 47 Kanto FRLG zones (`map_data/kanto_frlg_zones.json`) for `route_id -> background_image` consistency.
+- Fixed wrong dungeon background sources in generators/scripts:
+  - Diglett's Cave: `Diglett_Cave_FRLG.png` (was `Kanto_Digletts_Cave_Map.png`).
+  - Pokemon Tower: `Pokémon_Tower_1F_FRLG.png` (was `Pokémon_Tower_FRLG.png`).
+  - Pokemon Mansion: `Pokémon_Mansion_1F_FRLG.png` (was `Pokémon_Mansion_FRLG.png`).
+- Refreshed all FRLG backgrounds with the blur pipeline (`scripts/redownload_frlg_backgrounds_with_blur.py`).
+- Updated zone naming alignment for Rock Tunnel:
+  - `route_name_fr`: `Tunnel Roche (Kanto)` in catalog, zone JSON, and CSV rows.
+- Validation:
+  - Automated audit script: 47 zones checked, 0 missing/mismatched backgrounds.
+  - Visual checks: Diglett/Tower/Mansion backgrounds now use proper FRLG area layouts.
+  - Playwright smoke run: `run_playwright_check.ps1` completed, screenshots refreshed in `output/web-game-poke`.
+  - Generated full visual audit sheet: `output/background-audit/kanto_backgrounds_audit_sheet.png`.
+
+## Additional progress (2026-03-13, loading screen UX overhaul)
+- Replaced the old canvas loading text with a dedicated full-screen loading overlay:
+  - black background,
+  - animated rotating Pokeball,
+  - centered white message: "Le code de ce jeu a ete entierement genere par IA." (displayed with proper accents in UI).
+- Added a stylized transition from loading to gameplay:
+  - loading core scales/fades with blur,
+  - radial flash pulse,
+  - overlay fades out smoothly before gameplay remains visible.
+- Wired lifecycle in `game.js`:
+  - `showLoadingScreen(...)` at `initializeScene()` start,
+  - `hideLoadingScreen()` on `state.mode = "ready"`,
+  - immediate hide on error fallback.
+- Kept a black fallback render while mode is `loading` so no old loading text appears on canvas.
+
+### Validation
+- `node --check game.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File .\\run_playwright_check.ps1`: PASS.
+- `npm run test:save`: PASS (15/15).
+- Dedicated full-page visual capture script for loading flow:
+  - `output/loading-screen-check/01-loading-visible.png`
+  - `output/loading-screen-check/02-loading-transition.png`
+  - `output/loading-screen-check/03-game-visible.png`
+- Pokedex header progress summary refined and validated:
+  - Added 4 natural-language progress lines (rencontres, captures, shiny hors ultra, ultra shiny) with count/total and percent.
+  - Added dedicated responsive card layout for these stats in the Pokedex header.
+  - Verified runtime values against 493 species denominator and shiny-non-ultra split logic.
+  - Validation: `node --check game.js` PASS, `run_playwright_check.ps1` PASS.
+  - Added visual artifact: `output/pokedex-header-stats.png` (+ extracted lines JSON) showing the new header in-game.
+- Increased enemy HP numeric value text size in `drawEnemyHpBar`:
+  - base size now uses `panelHeight * 0.5` (was `* 0.38`),
+  - minimum shrink floor now `9px` (was `7px`).
+- Validation: `node --check game.js` PASS, `run_playwright_check.ps1` PASS.
+- Pokedex header: added a primary global completion KPI (prominent line) that aggregates all 4 tracked species metrics.
+  - Formula: average of encountered%, captured%, shiny(excluding ultra)% and ultra shiny%.
+  - Implemented in `setPokedexHeaderProgressSummary` with dedicated formatter.
+  - Added UI element + styles for emphasized display.
+  - Validation: `node --check game.js` PASS, `run_playwright_check.ps1` PASS.
+  - Visual check artifact: `output/pokedex-header-global-completion.png`.
+
+## Additional progress (floating damage text tween + palette rework)
+- Reworked floating enemy damage texts in `game.js` to use impact-tone driven visuals instead of attacker type colors.
+  - Added tone categories: `miss`, `resist`, `normal`, `super`, `critical`.
+  - Added new fixed palette mapping requested by user:
+    - miss/immune -> semi-transparent gray
+    - not very effective -> dull violet/blue
+    - normal -> yellow/orange
+    - super effective -> dynamic orange/red
+    - critical -> very dynamic red
+- Added per-tone tween presets (enter/settle/exit durations, easing curves, pulse strength, spawn jitter, rise/drift speed).
+- Added dynamic scaling based on damage magnitude + context (super/critical boosts), and per-tone alpha/pulse behavior.
+- Replaced shorthand labels with explicit FR labels used by the player-facing feedback:
+  - `RATE`, `N'AFFECTE PAS`, `PAS TRES EFFICACE`, `EFFICACITE NORMALE`, `COUP CRITIQUE`.
+- Updated enemy hit FX tinting to follow the same tone logic (not attacker type driven).
+
+## Validation (manual + scripted)
+- `node --check game.js`: PASS.
+- Develop-web-game client smoke run: `output/web-game-poke` (no execution error).
+- Manual Playwright scenario (starter -> Route 1 -> close tutorial -> combat polling) captured multiple states:
+  - Normal effectiveness label: `output/manual-damagefx-hit-clear-canvas.png`, `output/manual-damagefx-hit-clear-state.json`.
+  - Critical/resist combination: `output/manual-damagefx-crit-canvas.png`, `output/manual-damagefx-crit-state.json`.
+  - Miss (`RATE`) case: `output/manual-damagefx-miss-canvas.png`, `output/manual-damagefx-miss-state.json`.
+  - Post-patch regression check snapshot: `output/manual-damagefx-postpatch-canvas.png`, `output/manual-damagefx-postpatch-state.json`.
+- Label sweep artifact confirms live labels seen during combat:
+  - `output/manual-damagefx-labels.json` includes `EFFICACITE NORMALE`, `PAS TRES EFFICACE`, `COUP CRITIQUE PAS TRES EFFICACE`.
+- Pokédex UX pass (accents + scroll + loader):
+  - Added explicit UTF-8 accented labels in Pokédex header/info texts.
+  - Hardened UI text normalization (`lib/text-normalization.js`) to decode mojibake in multiple passes and fixed FR typography replacements.
+  - Updated normalization tests to assert proper accented outputs.
+  - Added non-passive `wheel` handling on Pokédex grid to make trackpad momentum scroll directly controllable/stoppable.
+  - Replaced Pokédex card loading dots with a rotating Pokéball loader.
+  - Validation:
+    - `node --check game.js` PASS
+    - `node --check lib/text-normalization.js` PASS
+    - `node --test tests/text-normalization.test.mjs` PASS
+    - `run_playwright_check.ps1` PASS
+  - Visual artifacts:
+    - `output/pokedex-interface-accents.png`
+    - `output/pokedex-loader-pokeball.png`
+    - scroll/loader runtime metrics in `output/pokedex-accent-scroll-loader.json` and `output/pokedex-loader-ball-count.json`.
+
+## Additional progress (damage text sizing + discreet labels + horizontal sway)
+- Updated floating damage text behavior in `game.js` per user request:
+  - hidden normal-effectiveness label (`EFFICACITE NORMALE` no longer shown),
+  - reduced global floating text size/scale,
+  - reduced effectiveness label size and opacity to make it more discreet,
+  - added clear left/right sway (oscillating horizontal jump) during text lifetime.
+- Kept miss/immune/super/crit categories and color mapping intact.
+
+## Validation
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Manual combat captures:
+  - normal hit with empty label: `output/manual-damagefx-user2-normal-canvas.png`, `output/manual-damagefx-user2-normal-state.json`.
+  - not-very-effective hit with smaller/discreet label: `output/manual-damagefx-user2-resist-canvas.png`, `output/manual-damagefx-user2-resist-state.json`.
+  - summary artifact confirming normal label hidden: `output/manual-damagefx-user2-summary.json`.
+
+## Additional progress (floating damage text viewport compaction)
+- Added viewport-aware compaction in `drawFloatingDamageTexts` so dynamic damage text scales down significantly on phone-sized screens and remains reasonably small on all formats.
+- Kept previous behavior: normal effectiveness label hidden, effectiveness labels discreet.
+- Tuned stroke widths and sway amplitude to match the compacted size profile.
+
+## Validation
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Mobile viewport (390x844) combat captures:
+  - no normal-effectiveness label + compact number: `output/manual-damagefx-mobile-canvas.png`, `output/manual-damagefx-mobile-state.json`.
+  - not-very-effective case in mobile viewport: `output/manual-damagefx-mobile-resist-canvas.png`, `output/manual-damagefx-mobile-resist-state.json`.

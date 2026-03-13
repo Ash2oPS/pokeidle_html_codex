@@ -117,12 +117,12 @@ kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,100,voltorb,Voltorbe,30,
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,25,pikachu,Pikachu,25,22,26,walk
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,82,magneton,Magnéton,15,31,34,walk
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,125,electabuzz,Élektek,5,32,35,walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,74,geodude,Racaillou,130,5,30,rock-smash|walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,41,zubat,Nosferapti,30,15,16,walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,56,mankey,Férosinge,15,16,17,walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,66,machop,Machoc,15,16,17,walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,95,onix,Onix,10,13,17,walk
-kanto_dungeon_rock_tunnel,Grotte (Kanto),dungeon,true,75,graveler,Gravalanch,5,25,40,rock-smash
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,74,geodude,Racaillou,130,5,30,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,41,zubat,Nosferapti,30,15,16,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,56,mankey,Férosinge,15,16,17,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,66,machop,Machoc,15,16,17,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,95,onix,Onix,10,13,17,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,75,graveler,Gravalanch,5,25,40,rock-smash
 kanto_city_lavender_town,Lavanville (Kanto),town,false,,,,,,,
 kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,92,gastly,Fantominus,101,13,19,walk
 kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,93,haunter,Spectrum,15,20,25,walk
@@ -336,3 +336,17 @@ kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,130,gyarados,L�
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,57,primeape,Colossinge,11,52,61,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,101,electrode,Électrode,5,58,64,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,202,wobbuffet,Qulbutoké,5,55,61,walk
+kanto_route_17,Route 17 (Kanto),route,true,77,ponyta,Ponyta,12,24,28,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,77,ponyta,Ponyta,6,30,34,walk
+kanto_route_12,Route 12 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
+kanto_route_13,Route 13 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
+kanto_route_18,Route 18 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
+kanto_route_18,Route 18 (Kanto),route,true,108,lickitung,Excelangue,8,25,29,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,108,lickitung,Excelangue,12,52,64,walk
+kanto_route_19,Route 19 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
+kanto_route_20,Route 20 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
+kanto_route_18,Route 18 (Kanto),route,true,122,mr-mime,M. Mime,1,26,30,walk
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,124,jynx,Lippoutou,25,34,40,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,126,magmar,Magmar,4,45,50,walk
+kanto_route_21,Route 21 (Kanto),route,true,131,lapras,Lokhlass,13,25,35,surf

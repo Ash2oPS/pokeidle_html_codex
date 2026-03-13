@@ -18,6 +18,10 @@ const entries = [
     name: "zod",
     entry: path.resolve(repoRoot, "vendor-src/zod.entry.js"),
   },
+  {
+    name: "tween",
+    entry: path.resolve(repoRoot, "vendor-src/tween.entry.js"),
+  },
 ];
 
 await rm(vendorOutDir, { recursive: true, force: true });

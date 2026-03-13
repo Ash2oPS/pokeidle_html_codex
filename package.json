@@ -11,6 +11,7 @@
     "zone:editor:export": "node scripts/export_zone_encounters_from_workbook.mjs"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "^25.0.0",
     "howler": "^2.2.4",
     "papaparse": "^5.5.3",
     "zod": "^4.3.6"

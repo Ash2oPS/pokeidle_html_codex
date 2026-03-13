@@ -4,6 +4,7 @@ import {
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "./version.js";
+import { Easing, Group, Tween } from "./vendor/tween.js";
 import { createAudioManager } from "./lib/audio-manager.js";
 import { initializeGithubUpdateChecker } from "./lib/github-update-checker.js";
 import {
@@ -25,6 +26,7 @@ import {
   hasMeaningfulSaveProgress,
   getOwnedEntityIdsFromSave,
 } from "./lib/save-consistency.js";
+import { normalizeUiDisplayText } from "./lib/text-normalization.js";
 import {
   pickPreferredSaveCandidate,
   SAVE_SOURCE_INDEXED_DB,
@@ -227,6 +229,42 @@ const DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE = Object.freeze([
   "transparent",
   "default",
 ]);
+const POKEDEX_VARIANT_PREFERENCE_GEN_1_TO_3 = Object.freeze([
+  "firered_leafgreen",
+  "emerald",
+  "ruby_sapphire",
+  "heartgold_soulsilver",
+  "platinum",
+  "diamond_pearl",
+  "crystal",
+  "gold_silver",
+  "yellow",
+  "green",
+  "red_blue",
+  "transparent",
+  "default",
+]);
+const POKEDEX_VARIANT_PREFERENCE_GEN_4 = Object.freeze([
+  "diamond_pearl",
+  "heartgold_soulsilver",
+  "platinum",
+  "firered_leafgreen",
+  "emerald",
+  "ruby_sapphire",
+  "crystal",
+  "gold_silver",
+  "yellow",
+  "green",
+  "red_blue",
+  "transparent",
+  "default",
+]);
+const POKEDEX_FRLG_AVAILABLE_POST_KANTO_IDS = new Set([216, 386]);
+const POKEDEX_VIRTUAL_CARD_MIN_WIDTH_PX = 112;
+const POKEDEX_VIRTUAL_CARD_HEIGHT_PX = 150;
+const POKEDEX_VIRTUAL_GAP_PX = 9;
+const POKEDEX_VIRTUAL_OVERSCAN_ROWS = 3;
+const POKEDEX_SPRITE_PREFETCH_EXTRA_ROWS = 2;
 const TYPE_ICON_ASSET_DIR = "assets/type-icons";
 const TYPE_ICON_TYPES = Object.freeze([
   "normal",
@@ -386,18 +424,162 @@ const ATTACK_MISS_CHANCE = 0.05;
 const ATTACK_CRIT_MULTIPLIER = 1.5;
 const STARTER_LEVEL = 1;
 const PROJECTILE_SPEED_PX_PER_SECOND = 520;
+const PROJECTILE_TWEEN_DURATION_MIN_MS = 140;
+const PROJECTILE_TWEEN_DURATION_MAX_MS = 620;
+const PROJECTILE_TWEEN_ARC_BASE_PX = 8;
+const PROJECTILE_TWEEN_ARC_RANDOM_PX = 14;
 const DAMAGE_SCALE = 2.2;
 const DAMAGE_LEVEL_PROGRESSION_EXPONENT = 0.62;
 const KO_RESPAWN_DELAY_MS = 420;
 const KO_ANIMATION_DURATION_MS = 210;
 const ATTACK_FLASH_DURATION_MS = 150;
 const ATTACK_FLASH_WHITE_BLEND = 0.4;
+const SKIP_TURN_EFFECT_DURATION_MIN_MS = 190;
+const SKIP_TURN_EFFECT_DURATION_MAX_MS = 720;
+const SKIP_TURN_EFFECT_FADE_RATIO = 0.24;
+const SKIP_TURN_EFFECT_GRAYSCALE_MAX = 0.94;
 const ATTACK_CHARGE_MIN_WINDOW_MS = 120;
 const ATTACK_CHARGE_WINDOW_RATIO = 0.42;
 const TELEPORT_SWAP_SCALE_DURATION_MS = 130;
 const ENEMY_DAMAGE_FLASH_DURATION_MS = 150;
 const ENEMY_DAMAGE_FLASH_RED_BLEND = 0.4;
 const FLOATING_TEXT_LIFETIME_MS = 950;
+const FLOATING_TEXT_ENTER_TWEEN_MS = 120;
+const FLOATING_TEXT_EXIT_TWEEN_MS = 220;
+const FLOATING_TEXT_TONE_MISS = "miss";
+const FLOATING_TEXT_TONE_RESIST = "resist";
+const FLOATING_TEXT_TONE_NORMAL = "normal";
+const FLOATING_TEXT_TONE_SUPER = "super";
+const FLOATING_TEXT_TONE_CRITICAL = "critical";
+const FLOATING_TEXT_TONE_PALETTES = Object.freeze({
+  [FLOATING_TEXT_TONE_MISS]: Object.freeze({
+    main: [158, 166, 180],
+    secondary: [130, 139, 153],
+    label: [216, 222, 232],
+    alpha: 0.74,
+  }),
+  [FLOATING_TEXT_TONE_RESIST]: Object.freeze({
+    main: [134, 129, 182],
+    secondary: [111, 133, 172],
+    label: [206, 216, 255],
+    alpha: 0.95,
+  }),
+  [FLOATING_TEXT_TONE_NORMAL]: Object.freeze({
+    main: [255, 191, 95],
+    secondary: [255, 147, 82],
+    label: [255, 236, 175],
+    alpha: 0.98,
+  }),
+  [FLOATING_TEXT_TONE_SUPER]: Object.freeze({
+    main: [255, 138, 62],
+    secondary: [255, 79, 52],
+    label: [255, 210, 156],
+    alpha: 1,
+  }),
+  [FLOATING_TEXT_TONE_CRITICAL]: Object.freeze({
+    main: [255, 82, 66],
+    secondary: [255, 28, 38],
+    label: [255, 182, 168],
+    alpha: 1,
+  }),
+});
+const FLOATING_TEXT_TONE_VISUAL_STYLES = Object.freeze({
+  [FLOATING_TEXT_TONE_MISS]: Object.freeze({
+    enterDurationMs: 92,
+    settleDurationMs: 138,
+    exitDurationMs: 280,
+    exitLifeRatio: 0.62,
+    startScale: 0.72,
+    peakScale: 0.92,
+    settleScale: 0.88,
+    exitScale: 0.74,
+    pulseStrength: 0.02,
+    spawnJitterX: 18,
+    spawnLiftY: 8,
+    horizontalDriftPx: 18,
+    verticalRiseSpeed: 78,
+    verticalRiseVariance: 16,
+    enterEasing: Easing.Quadratic.Out,
+    settleEasing: Easing.Quadratic.Out,
+    exitEasing: Easing.Quadratic.In,
+  }),
+  [FLOATING_TEXT_TONE_RESIST]: Object.freeze({
+    enterDurationMs: 116,
+    settleDurationMs: 152,
+    exitDurationMs: 252,
+    exitLifeRatio: 0.52,
+    startScale: 0.78,
+    peakScale: 1.04,
+    settleScale: 0.98,
+    exitScale: 0.84,
+    pulseStrength: 0.04,
+    spawnJitterX: 22,
+    spawnLiftY: 10,
+    horizontalDriftPx: 22,
+    verticalRiseSpeed: 90,
+    verticalRiseVariance: 20,
+    enterEasing: Easing.Back.Out,
+    settleEasing: Easing.Cubic.Out,
+    exitEasing: Easing.Quadratic.In,
+  }),
+  [FLOATING_TEXT_TONE_NORMAL]: Object.freeze({
+    enterDurationMs: FLOATING_TEXT_ENTER_TWEEN_MS,
+    settleDurationMs: 142,
+    exitDurationMs: FLOATING_TEXT_EXIT_TWEEN_MS,
+    exitLifeRatio: 0.48,
+    startScale: 0.8,
+    peakScale: 1.08,
+    settleScale: 1,
+    exitScale: 0.86,
+    pulseStrength: 0.06,
+    spawnJitterX: 24,
+    spawnLiftY: 10,
+    horizontalDriftPx: 24,
+    verticalRiseSpeed: 94,
+    verticalRiseVariance: 22,
+    enterEasing: Easing.Back.Out,
+    settleEasing: Easing.Cubic.Out,
+    exitEasing: Easing.Quadratic.In,
+  }),
+  [FLOATING_TEXT_TONE_SUPER]: Object.freeze({
+    enterDurationMs: 96,
+    settleDurationMs: 166,
+    exitDurationMs: 230,
+    exitLifeRatio: 0.44,
+    startScale: 0.82,
+    peakScale: 1.2,
+    settleScale: 1.06,
+    exitScale: 0.92,
+    pulseStrength: 0.12,
+    spawnJitterX: 28,
+    spawnLiftY: 11,
+    horizontalDriftPx: 28,
+    verticalRiseSpeed: 104,
+    verticalRiseVariance: 24,
+    enterEasing: Easing.Back.Out,
+    settleEasing: Easing.Cubic.Out,
+    exitEasing: Easing.Cubic.In,
+  }),
+  [FLOATING_TEXT_TONE_CRITICAL]: Object.freeze({
+    enterDurationMs: 88,
+    settleDurationMs: 174,
+    exitDurationMs: 252,
+    exitLifeRatio: 0.46,
+    startScale: 0.86,
+    peakScale: 1.3,
+    settleScale: 1.12,
+    exitScale: 0.94,
+    pulseStrength: 0.18,
+    spawnJitterX: 30,
+    spawnLiftY: 12,
+    horizontalDriftPx: 30,
+    verticalRiseSpeed: 114,
+    verticalRiseVariance: 28,
+    enterEasing: Easing.Back.Out,
+    settleEasing: Easing.Cubic.Out,
+    exitEasing: Easing.Cubic.In,
+  }),
+});
 const MONEY_COUNTER_LERP_MS = 180;
 const MONEY_COUNTER_PULSE_MS = 520;
 const PROJECTILE_SPRITE_PX = 72;
@@ -418,7 +600,10 @@ const CAPTURE_BALL_MULTIPLIER_NERF = 0.5;
 const COIN_REWARD_PER_CAPTURE = 1;
 const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
-const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE = 0.2;
+const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE = 0.8;
+const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MID = 0.6;
+const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_LOW = 0.5;
+const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MIN = 0.4;
 const MIN_CAPTURE_COIN_CHANCE = 0.1;
 const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const GACHA_SPIN_COST_COINS = 10;
@@ -426,6 +611,9 @@ const GACHA_MAX_POKEMON_ID = 151;
 const GACHA_REEL_TOTAL_ITEMS = 64;
 const GACHA_REEL_REWARD_INDEX = 44;
 const GACHA_SPIN_DURATION_MS = 2400;
+const GACHA_SPIN_FINAL_SNAP_DURATION_MS = 220;
+const GACHA_SPIN_MAIN_SCROLL_DURATION_MS = Math.max(200, GACHA_SPIN_DURATION_MS - GACHA_SPIN_FINAL_SNAP_DURATION_MS);
+const GACHA_SPIN_FINAL_SNAP_LEAD_PX = 24;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
@@ -586,6 +774,11 @@ const TARGET_FRAME_MS = 1000 / TARGET_FPS;
 const TARGET_RENDER_INTERVAL_MS = Math.round(TARGET_FRAME_MS);
 const MAX_FOREGROUND_PENDING_MS = 320;
 const HUD_AUTO_REFRESH_INTERVAL_MS = 200;
+const LAYOUT_RECOMPUTE_INTERVAL_MS = 220;
+const DEFERRED_ROUTE_WARMUP_CHUNK_SIZE = 2;
+const DEFERRED_ROUTE_WARMUP_DELAY_MS = 180;
+const LOADING_SCREEN_EXIT_DURATION_MS = 820;
+const LOADING_SCREEN_DEFAULT_TEXT = "Le code de ce jeu a \u00e9t\u00e9 enti\u00e8rement g\u00e9n\u00e9r\u00e9 par IA.";
 const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
 const RENDER_QUALITY_ORDER = Object.freeze(["very_low", "low", "medium", "high", "ultra"]);
 const RENDER_QUALITY_PRESETS = Object.freeze({
@@ -721,8 +914,67 @@ const BALL_TYPE_FALLBACK_ORDER = ["poke_ball", "super_ball", "hyper_ball"];
 const BALL_INVENTORY_MAX_PER_TYPE = 9999;
 const BALL_CAPTURE_RULE_CAPTURE_ALL = "capture_all";
 const BALL_CAPTURE_RULE_CAPTURE_UNOWNED = "capture_unowned";
+const BALL_CAPTURE_RULE_CAPTURE_OWNED = "capture_owned";
 const BALL_CAPTURE_RULE_CAPTURE_SHINY = "capture_shiny";
 const BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY = "capture_ultra_shiny";
+const BALL_OVERLAY_UI_STYLE_BY_TYPE = Object.freeze({
+  poke_ball: Object.freeze({
+    rowFillTop: "rgba(48, 67, 96, 0.96)",
+    rowFillBottom: "rgba(27, 42, 64, 0.98)",
+    rowBorder: "rgba(135, 169, 209, 0.86)",
+    rowBorderActive: "rgba(135, 169, 209, 0.86)",
+    text: "rgba(244, 250, 255, 0.98)",
+    caption: "rgba(173, 206, 238, 0.94)",
+    iconTop: "rgba(255, 241, 177, 0.98)",
+    iconBottom: "rgba(238, 189, 74, 0.98)",
+    gaugeStart: "rgba(236, 132, 90, 0.98)",
+    gaugeEnd: "rgba(191, 73, 61, 0.98)",
+    phaseOffset: 0.24,
+    glow: "rgba(130, 186, 255, 0.34)",
+  }),
+  super_ball: Object.freeze({
+    rowFillTop: "rgba(48, 67, 96, 0.96)",
+    rowFillBottom: "rgba(27, 42, 64, 0.98)",
+    rowBorder: "rgba(135, 169, 209, 0.86)",
+    rowBorderActive: "rgba(135, 169, 209, 0.86)",
+    text: "rgba(244, 250, 255, 0.98)",
+    caption: "rgba(173, 206, 238, 0.94)",
+    iconTop: "rgba(255, 241, 177, 0.98)",
+    iconBottom: "rgba(238, 189, 74, 0.98)",
+    gaugeStart: "rgba(121, 170, 255, 0.98)",
+    gaugeEnd: "rgba(80, 111, 227, 0.98)",
+    phaseOffset: 1.18,
+    glow: "rgba(130, 186, 255, 0.34)",
+  }),
+  hyper_ball: Object.freeze({
+    rowFillTop: "rgba(48, 67, 96, 0.96)",
+    rowFillBottom: "rgba(27, 42, 64, 0.98)",
+    rowBorder: "rgba(135, 169, 209, 0.86)",
+    rowBorderActive: "rgba(135, 169, 209, 0.86)",
+    text: "rgba(244, 250, 255, 0.98)",
+    caption: "rgba(173, 206, 238, 0.94)",
+    iconTop: "rgba(255, 241, 177, 0.98)",
+    iconBottom: "rgba(238, 189, 74, 0.98)",
+    gaugeStart: "rgba(246, 202, 105, 0.98)",
+    gaugeEnd: "rgba(198, 134, 56, 0.98)",
+    phaseOffset: 2.04,
+    glow: "rgba(130, 186, 255, 0.34)",
+  }),
+});
+const BALL_OVERLAY_UI_STYLE_DEFAULT = Object.freeze({
+  rowFillTop: "rgba(48, 67, 96, 0.96)",
+  rowFillBottom: "rgba(27, 42, 64, 0.98)",
+  rowBorder: "rgba(135, 169, 209, 0.86)",
+  rowBorderActive: "rgba(135, 169, 209, 0.86)",
+  text: "rgba(244, 250, 255, 0.98)",
+  caption: "rgba(173, 206, 238, 0.94)",
+  iconTop: "rgba(255, 241, 177, 0.98)",
+  iconBottom: "rgba(238, 189, 74, 0.98)",
+  gaugeStart: "rgba(144, 185, 255, 0.98)",
+  gaugeEnd: "rgba(91, 123, 219, 0.98)",
+  glow: "rgba(130, 186, 255, 0.34)",
+  phaseOffset: 0,
+});
 const WEATHER_TYPES = ["neutral", "sunny", "rainy", "foggy", "storm"];
 const WEATHER_WEIGHT_TABLE = [
   { type: "neutral", weight: 40 },
@@ -1309,6 +1561,8 @@ const spriteOutlineTintBufferCanvas = document.createElement("canvas");
 const spriteOutlineTintBufferCtx = spriteOutlineTintBufferCanvas.getContext("2d");
 const gameStageEl = document.getElementById("game-stage");
 const gameOverlayEl = document.querySelector(".game-overlay");
+const loadingScreenEl = document.getElementById("loading-screen");
+const loadingScreenTextEl = document.getElementById("loading-screen-text");
 const uiTopbarEl = document.querySelector(".ui-topbar");
 const actionDockEl = document.querySelector(".action-dock");
 const starterModalEl = document.getElementById("starter-modal");
@@ -1323,6 +1577,7 @@ const ballCaptureMenuEl = document.getElementById("ball-capture-menu");
 const ballCaptureMenuTitleEl = document.getElementById("ball-capture-menu-title");
 const ballCaptureToggleAllButtonEl = document.getElementById("ball-capture-toggle-all");
 const ballCaptureToggleUnownedButtonEl = document.getElementById("ball-capture-toggle-unowned");
+const ballCaptureToggleOwnedButtonEl = document.getElementById("ball-capture-toggle-owned");
 const ballCaptureToggleShinyButtonEl = document.getElementById("ball-capture-toggle-shiny");
 const ballCaptureToggleUltraButtonEl = document.getElementById("ball-capture-toggle-ultra");
 const BALL_CAPTURE_TOGGLE_DEFINITIONS = [
@@ -1335,6 +1590,11 @@ const BALL_CAPTURE_TOGGLE_DEFINITIONS = [
     key: BALL_CAPTURE_RULE_CAPTURE_UNOWNED,
     label: "Capturer les Pok\u00e9mon non poss\u00e9d\u00e9s",
     buttonEl: ballCaptureToggleUnownedButtonEl,
+  },
+  {
+    key: BALL_CAPTURE_RULE_CAPTURE_OWNED,
+    label: "Capturer les Pok\u00e9mon d\u00e9j\u00e0 poss\u00e9d\u00e9s",
+    buttonEl: ballCaptureToggleOwnedButtonEl,
   },
   {
     key: BALL_CAPTURE_RULE_CAPTURE_SHINY,
@@ -1357,6 +1617,7 @@ const renameCloseButtonEl = document.getElementById("rename-close-btn");
 const renameResetButtonEl = document.getElementById("rename-reset-btn");
 const resetSaveButtonEl = document.getElementById("reset-save-btn");
 const mapButtonEl = document.getElementById("map-btn");
+const pokedexButtonEl = document.getElementById("pokedex-btn");
 const mapModalEl = document.getElementById("map-modal");
 const mapCloseButtonEl = document.getElementById("map-close-btn");
 const mapStageEl = document.querySelector(".map-stage");
@@ -1416,6 +1677,16 @@ const boxesInfoPanelEl = document.getElementById("boxes-info-panel");
 const boxesCloseButtonEl = document.getElementById("boxes-close-btn");
 const boxesSubtitleEl = document.getElementById("boxes-subtitle");
 const boxesShinyCounterEl = document.getElementById("boxes-shiny-counter");
+const pokedexModalEl = document.getElementById("pokedex-modal");
+const pokedexGridEl = document.getElementById("pokedex-grid");
+const pokedexInfoPanelEl = document.getElementById("pokedex-info-panel");
+const pokedexCloseButtonEl = document.getElementById("pokedex-close-btn");
+const pokedexSubtitleEl = document.getElementById("pokedex-subtitle");
+const pokedexGlobalCompletionEl = document.getElementById("pokedex-global-completion");
+const pokedexEncounteredStatEl = document.getElementById("pokedex-stat-encountered");
+const pokedexCapturedStatEl = document.getElementById("pokedex-stat-captured");
+const pokedexShinyStatEl = document.getElementById("pokedex-stat-shiny");
+const pokedexUltraShinyStatEl = document.getElementById("pokedex-stat-ultra");
 const appearanceModalEl = document.getElementById("appearance-modal");
 const appearanceTitleEl = document.getElementById("appearance-title");
 const appearanceSubtitleEl = document.getElementById("appearance-subtitle");
@@ -1433,6 +1704,36 @@ const tutorialProgressEl = document.getElementById("tutorial-progress");
 const tutorialPrevButtonEl = document.getElementById("tutorial-prev-btn");
 const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
 const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
+const tweenGroup = new Group();
+const uiAnimationStateByElement = new WeakMap();
+const notificationCardById = new Map();
+const notificationCardExitingIds = new Set();
+const UI_TWEEN_MODAL_OPEN = Object.freeze({
+  overlayDurationMs: 180,
+  panelDurationMs: 290,
+  panelOffsetY: 26,
+  panelStartScale: 0.94,
+  panelStartBlur: 3.2,
+});
+const UI_TWEEN_MODAL_CLOSE = Object.freeze({
+  overlayDurationMs: 160,
+  panelDurationMs: 220,
+  panelOffsetY: 18,
+  panelEndScale: 0.965,
+  panelEndBlur: 2.5,
+});
+const UI_TWEEN_POPUP_OPEN = Object.freeze({
+  durationMs: 200,
+  offsetY: 12,
+  startScale: 0.95,
+  startBlur: 2.1,
+});
+const UI_TWEEN_POPUP_CLOSE = Object.freeze({
+  durationMs: 150,
+  offsetY: 10,
+  endScale: 0.97,
+  endBlur: 1.8,
+});
 const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
 const spriteOpaqueBoundsCache = new Map();
@@ -1443,12 +1744,41 @@ const morphingPaletteTextureCache = new Map();
 const MORPHING_PALETTE_TEXTURE_CACHE_MAX_ENTRIES = 180;
 const pendingRouteDefinitionLoads = new Map();
 const pendingRouteBackgroundLoads = new Map();
+let pokedexRenderRafHandle = 0;
+let pokedexViewportRenderRafHandle = 0;
+let pokedexEntriesCacheDirty = true;
+let pokedexEntriesCacheSaveDataRef = null;
+let pokedexEntriesCacheSpeciesRef = null;
+let pokedexEntriesCachePokemonDefsCount = -1;
+let pokedexEntriesCacheList = [];
+let pokedexEntriesCacheById = new Map();
+let pokedexEntriesCacheEncounteredSpeciesCount = 0;
+let pokedexEntriesCacheCapturedSpeciesCount = 0;
+let pokedexEntriesCacheShinySpeciesCount = 0;
+let pokedexEntriesCacheUltraShinySpeciesCount = 0;
+let pokedexVirtualContentEl = null;
+let pokedexVirtualTopSpacerEl = null;
+let pokedexVirtualBottomSpacerEl = null;
+let pokedexVirtualLastSliceKey = "";
+let pokedexVirtualLastStartIndex = 0;
+let pokedexVirtualLastEndIndex = 0;
+let pokedexVirtualEventsBound = false;
+let pokedexVirtualResizeObserver = null;
+let pokedexVirtualLayoutCacheKey = "";
+let pokedexVirtualPaddingLeftPx = 10;
+let pokedexVirtualPaddingRightPx = 10;
+let pokedexVirtualPaddingTopPx = 10;
+let pokedexVirtualPaddingBottomPx = 10;
+let pokedexVirtualColumnGapPx = POKEDEX_VIRTUAL_GAP_PX;
+let pokedexVirtualRowGapPx = POKEDEX_VIRTUAL_GAP_PX;
+const pokedexSpritePrefetchStateByPath = new Map();
 const ultraShinyOutlineCache = new Map();
 const ULTRA_SHINY_OUTLINE_CACHE_MAX_ENTRIES = 220;
 const mapMarkerButtonsByRouteId = new Map();
 let evolutionItemChoiceResolver = null;
 let evolutionItemChoiceStoneType = "";
 let evolutionItemChoiceCandidates = [];
+let loadingScreenHideTimerId = 0;
 
 window.POKEIDLE_APP_VERSION = APP_VERSION;
 window.POKEIDLE_DISPLAY_VERSION = DISPLAY_APP_VERSION;
@@ -1508,6 +1838,7 @@ const state = {
   zoneEncounterCsvRouteIds: new Set(),
   zoneEncounterCsvLoaded: false,
   pokemonTalentCsvByPokemonId: new Map(),
+  pokedexSpeciesCsvByPokemonId: new Map(),
   pokemonTalentCsvLoaded: false,
   ballConfigCsvLoaded: false,
   shopItemConfigCsvLoaded: false,
@@ -1532,6 +1863,11 @@ const state = {
   battle: null,
   viewport: { width: 960, height: 540, dpr: 1 },
   layout: null,
+  layoutRefresh: {
+    viewportWidth: 0,
+    viewportHeight: 0,
+    nextRecomputeAtMs: 0,
+  },
   lastFrameTimestamp: 0,
   lastRenderTimestamp: 0,
   realClockLastMs: 0,
@@ -1617,6 +1953,8 @@ const state = {
     boxesOpen: false,
     boxesTargetSlotIndex: -1,
     boxesHoverEntityId: null,
+    pokedexOpen: false,
+    pokedexHoverPokemonId: null,
     appearanceOpen: false,
     appearanceTargetSlotIndex: -1,
     appearancePokemonId: null,
@@ -1636,6 +1974,8 @@ const state = {
     teamDragStartClientY: 0,
     teamDragCurrentWorldX: 0,
     teamDragCurrentWorldY: 0,
+    teamDragPointerId: -1,
+    teamDragPointerType: "",
     teamDragSuppressClickUntilMs: 0,
     renameOpen: false,
     renameSlotIndex: -1,
@@ -1662,6 +2002,510 @@ const state = {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getUiAnimationState(element) {
+  if (!element) {
+    return null;
+  }
+  let stateEntry = uiAnimationStateByElement.get(element);
+  if (!stateEntry) {
+    stateEntry = {
+      token: 0,
+      tweens: [],
+      phase: element.classList.contains("hidden") ? "hidden" : "visible",
+    };
+    uiAnimationStateByElement.set(element, stateEntry);
+  }
+  return stateEntry;
+}
+
+function stopUiElementTweens(element) {
+  const stateEntry = getUiAnimationState(element);
+  if (!stateEntry) {
+    return 0;
+  }
+  for (const tween of stateEntry.tweens) {
+    tween.stop();
+  }
+  stateEntry.tweens = [];
+  stateEntry.token += 1;
+  return stateEntry.token;
+}
+
+function composeUiTransform(values) {
+  const x = Number(values?.x || 0);
+  const y = Number(values?.y || 0);
+  const scale = Number(values?.scale ?? 1);
+  const transforms = [];
+  if (Math.abs(x) > 0.001 || Math.abs(y) > 0.001) {
+    transforms.push(`translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`);
+  }
+  if (Math.abs(scale - 1) > 0.0005) {
+    transforms.push(`scale(${scale.toFixed(4)})`);
+  }
+  return transforms.join(" ");
+}
+
+function applyUiTweenStyles(element, values) {
+  if (!element) {
+    return;
+  }
+  const opacity = clamp(Number(values?.opacity ?? 1), 0, 1);
+  element.style.opacity = String(opacity);
+  const transform = composeUiTransform(values);
+  element.style.transform = transform;
+  const blur = Math.max(0, Number(values?.blur || 0));
+  element.style.filter = blur > 0.01 ? `blur(${blur.toFixed(2)}px)` : "";
+}
+
+function clearUiTweenStyles(element) {
+  if (!element) {
+    return;
+  }
+  element.style.opacity = "";
+  element.style.transform = "";
+  element.style.filter = "";
+  element.style.pointerEvents = "";
+}
+
+function clearLoadingScreenHideTimer() {
+  if (loadingScreenHideTimerId) {
+    window.clearTimeout(loadingScreenHideTimerId);
+    loadingScreenHideTimerId = 0;
+  }
+}
+
+function setLoadingScreenMessage(message = LOADING_SCREEN_DEFAULT_TEXT) {
+  if (!loadingScreenTextEl) {
+    return;
+  }
+  const normalized = String(message || "").trim() || LOADING_SCREEN_DEFAULT_TEXT;
+  loadingScreenTextEl.textContent = normalized;
+}
+
+function showLoadingScreen(message = LOADING_SCREEN_DEFAULT_TEXT) {
+  if (!loadingScreenEl) {
+    return;
+  }
+  clearLoadingScreenHideTimer();
+  setLoadingScreenMessage(message);
+  loadingScreenEl.classList.remove("is-hidden", "is-exiting");
+  loadingScreenEl.classList.add("is-visible");
+}
+
+function hideLoadingScreen(options = {}) {
+  if (!loadingScreenEl) {
+    return;
+  }
+  const immediate = options?.immediate === true;
+  clearLoadingScreenHideTimer();
+  if (immediate) {
+    loadingScreenEl.classList.remove("is-visible", "is-exiting");
+    loadingScreenEl.classList.add("is-hidden");
+    return;
+  }
+  if (loadingScreenEl.classList.contains("is-hidden") || loadingScreenEl.classList.contains("is-exiting")) {
+    return;
+  }
+  loadingScreenEl.classList.remove("is-visible");
+  loadingScreenEl.classList.add("is-exiting");
+  loadingScreenHideTimerId = window.setTimeout(() => {
+    loadingScreenHideTimerId = 0;
+    loadingScreenEl.classList.remove("is-exiting");
+    loadingScreenEl.classList.add("is-hidden");
+  }, LOADING_SCREEN_EXIT_DURATION_MS);
+}
+
+function parseUiTweenTransformValue(transformText) {
+  const source = String(transformText || "");
+  const translateMatch = source.match(/translate3d\(\s*[-\d.]+px,\s*([-\d.]+)px,\s*0\s*\)/i);
+  const scaleMatch = source.match(/scale\(\s*([-\d.]+)\s*\)/i);
+  return {
+    y: translateMatch ? Number.parseFloat(translateMatch[1]) || 0 : 0,
+    scale: scaleMatch ? Number.parseFloat(scaleMatch[1]) || 1 : 1,
+  };
+}
+
+function parseUiTweenFilterBlurValue(filterText) {
+  const source = String(filterText || "");
+  const blurMatch = source.match(/blur\(\s*([-\d.]+)px\s*\)/i);
+  return blurMatch ? Math.max(0, Number.parseFloat(blurMatch[1]) || 0) : 0;
+}
+
+function getCurrentUiTweenValues(element, fallback = {}) {
+  const transformData = parseUiTweenTransformValue(element?.style?.transform || "");
+  const opacityRaw = Number.parseFloat(String(element?.style?.opacity ?? ""));
+  return {
+    opacity: Number.isFinite(opacityRaw) ? clamp(opacityRaw, 0, 1) : Number(fallback?.opacity ?? 1),
+    x: Number(fallback?.x || 0),
+    y: Number.isFinite(transformData.y) ? transformData.y : Number(fallback?.y || 0),
+    scale: Number.isFinite(transformData.scale) ? transformData.scale : Number(fallback?.scale ?? 1),
+    blur: parseUiTweenFilterBlurValue(element?.style?.filter || ""),
+  };
+}
+
+function animateUiElement(element, fromValues, toValues, durationMs, easingFn, onComplete) {
+  if (!element) {
+    return;
+  }
+  const stateEntry = getUiAnimationState(element);
+  if (!stateEntry) {
+    return;
+  }
+  const animationToken = stateEntry.token;
+  const from = {
+    opacity: Number(fromValues?.opacity ?? 1),
+    x: Number(fromValues?.x || 0),
+    y: Number(fromValues?.y || 0),
+    scale: Number(fromValues?.scale ?? 1),
+    blur: Number(fromValues?.blur || 0),
+  };
+  const to = {
+    opacity: Number(toValues?.opacity ?? from.opacity),
+    x: Number(toValues?.x ?? from.x),
+    y: Number(toValues?.y ?? from.y),
+    scale: Number(toValues?.scale ?? from.scale),
+    blur: Number(toValues?.blur ?? from.blur),
+  };
+  applyUiTweenStyles(element, from);
+  const tween = new Tween(from, tweenGroup)
+    .to(to, Math.max(1, Math.round(Number(durationMs) || 1)))
+    .easing(easingFn || Easing.Cubic.Out)
+    .onUpdate((values) => {
+      applyUiTweenStyles(element, values);
+    })
+    .onComplete(() => {
+      if (!stateEntry || stateEntry.token !== animationToken) {
+        return;
+      }
+      if (typeof onComplete === "function") {
+        onComplete();
+      }
+    })
+    .start(state.timeMs);
+  stateEntry.tweens.push(tween);
+}
+
+function resolveModalPanelElement(modalEl) {
+  if (!modalEl) {
+    return null;
+  }
+  return modalEl.firstElementChild instanceof HTMLElement ? modalEl.firstElementChild : null;
+}
+
+function showModalWithTween(modalEl) {
+  if (!modalEl) {
+    return;
+  }
+  stopUiElementTweens(modalEl);
+  const panelEl = resolveModalPanelElement(modalEl);
+  if (panelEl) {
+    stopUiElementTweens(panelEl);
+  }
+
+  modalEl.classList.remove("hidden");
+  modalEl.style.pointerEvents = "";
+  animateUiElement(
+    modalEl,
+    { opacity: 0 },
+    { opacity: 1 },
+    UI_TWEEN_MODAL_OPEN.overlayDurationMs,
+    Easing.Cubic.Out,
+    () => {
+      clearUiTweenStyles(modalEl);
+    },
+  );
+
+  if (panelEl) {
+    panelEl.style.pointerEvents = "";
+    animateUiElement(
+      panelEl,
+      {
+        opacity: 0,
+        y: UI_TWEEN_MODAL_OPEN.panelOffsetY,
+        scale: UI_TWEEN_MODAL_OPEN.panelStartScale,
+        blur: UI_TWEEN_MODAL_OPEN.panelStartBlur,
+      },
+      { opacity: 1, y: 0, scale: 1, blur: 0 },
+      UI_TWEEN_MODAL_OPEN.panelDurationMs,
+      Easing.Back.Out,
+      () => {
+        clearUiTweenStyles(panelEl);
+      },
+    );
+  }
+}
+
+function hideModalWithTween(modalEl) {
+  if (!modalEl || modalEl.classList.contains("hidden")) {
+    return;
+  }
+  stopUiElementTweens(modalEl);
+  const panelEl = resolveModalPanelElement(modalEl);
+  if (panelEl) {
+    stopUiElementTweens(panelEl);
+  }
+  const modalState = getUiAnimationState(modalEl);
+  const modalToken = modalState ? modalState.token : 0;
+  modalEl.style.pointerEvents = "none";
+  if (panelEl) {
+    panelEl.style.pointerEvents = "none";
+  }
+
+  animateUiElement(
+    modalEl,
+    { opacity: 1 },
+    { opacity: 0 },
+    UI_TWEEN_MODAL_CLOSE.overlayDurationMs,
+    Easing.Quadratic.Out,
+    () => {
+      modalEl.classList.add("hidden");
+      clearUiTweenStyles(modalEl);
+    },
+  );
+
+  if (panelEl) {
+    animateUiElement(
+      panelEl,
+      { opacity: 1, y: 0, scale: 1, blur: 0 },
+      {
+        opacity: 0,
+        y: UI_TWEEN_MODAL_CLOSE.panelOffsetY,
+        scale: UI_TWEEN_MODAL_CLOSE.panelEndScale,
+        blur: UI_TWEEN_MODAL_CLOSE.panelEndBlur,
+      },
+      UI_TWEEN_MODAL_CLOSE.panelDurationMs,
+      Easing.Quadratic.Out,
+      () => {
+      clearUiTweenStyles(panelEl);
+    },
+  );
+
+  window.setTimeout(() => {
+    const latestState = getUiAnimationState(modalEl);
+    if (!latestState || latestState.token !== modalToken) {
+      return;
+    }
+    modalEl.classList.add("hidden");
+    clearUiTweenStyles(modalEl);
+    if (panelEl) {
+      clearUiTweenStyles(panelEl);
+    }
+  }, UI_TWEEN_MODAL_CLOSE.panelDurationMs + 40);
+}
+}
+
+function showPopupWithTween(element) {
+  if (!element) {
+    return;
+  }
+  const stateEntry = getUiAnimationState(element);
+  const isHidden = element.classList.contains("hidden");
+  if (stateEntry && !isHidden && stateEntry.phase !== "hiding") {
+    stateEntry.phase = "visible";
+    clearUiTweenStyles(element);
+    return;
+  }
+  stopUiElementTweens(element);
+  if (stateEntry) {
+    stateEntry.phase = "showing";
+  }
+  element.classList.remove("hidden");
+  element.style.pointerEvents = "";
+  const fromValues = getCurrentUiTweenValues(element, {
+    opacity: 0,
+    y: UI_TWEEN_POPUP_OPEN.offsetY,
+    scale: UI_TWEEN_POPUP_OPEN.startScale,
+  });
+  animateUiElement(
+    element,
+    {
+      opacity: isHidden ? 0 : fromValues.opacity,
+      y: isHidden ? UI_TWEEN_POPUP_OPEN.offsetY : fromValues.y,
+      scale: isHidden ? UI_TWEEN_POPUP_OPEN.startScale : fromValues.scale,
+      blur: isHidden ? UI_TWEEN_POPUP_OPEN.startBlur : fromValues.blur,
+    },
+    { opacity: 1, y: 0, scale: 1, blur: 0 },
+    UI_TWEEN_POPUP_OPEN.durationMs,
+    Easing.Cubic.Out,
+    () => {
+      const latestState = getUiAnimationState(element);
+      if (latestState) {
+        latestState.phase = "visible";
+      }
+      clearUiTweenStyles(element);
+    },
+  );
+}
+
+function hidePopupWithTween(element) {
+  if (!element) {
+    return;
+  }
+  const stateEntry = getUiAnimationState(element);
+  if (element.classList.contains("hidden")) {
+    if (stateEntry) {
+      stateEntry.phase = "hidden";
+    }
+    return;
+  }
+  if (stateEntry && stateEntry.phase === "hiding") {
+    return;
+  }
+  stopUiElementTweens(element);
+  if (stateEntry) {
+    stateEntry.phase = "hiding";
+  }
+  const elementState = getUiAnimationState(element);
+  const elementToken = elementState ? elementState.token : 0;
+  element.style.pointerEvents = "none";
+  const fromValues = getCurrentUiTweenValues(element, {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+  });
+  animateUiElement(
+    element,
+    { opacity: fromValues.opacity, y: fromValues.y, scale: fromValues.scale, blur: fromValues.blur },
+    {
+      opacity: 0,
+      y: UI_TWEEN_POPUP_CLOSE.offsetY,
+      scale: UI_TWEEN_POPUP_CLOSE.endScale,
+      blur: UI_TWEEN_POPUP_CLOSE.endBlur,
+    },
+    UI_TWEEN_POPUP_CLOSE.durationMs,
+    Easing.Quadratic.Out,
+    () => {
+      const latestState = getUiAnimationState(element);
+      if (latestState) {
+        latestState.phase = "hidden";
+      }
+      element.classList.add("hidden");
+      clearUiTweenStyles(element);
+    },
+  );
+
+  window.setTimeout(() => {
+    const latestState = getUiAnimationState(element);
+    if (!latestState || latestState.token !== elementToken) {
+      return;
+    }
+    latestState.phase = "hidden";
+    element.classList.add("hidden");
+    clearUiTweenStyles(element);
+  }, UI_TWEEN_POPUP_CLOSE.durationMs + 32);
+}
+
+function showTooltipWithTween(element) {
+  if (!element) {
+    return;
+  }
+  const stateEntry = getUiAnimationState(element);
+  const isHidden = element.classList.contains("hidden");
+  const isHiding = stateEntry?.phase === "hiding";
+  if (!isHidden && !isHiding) {
+    if (stateEntry) {
+      stateEntry.phase = "visible";
+    }
+    clearUiTweenStyles(element);
+    return;
+  }
+  showPopupWithTween(element);
+}
+
+function createFloatingTextVisualTween(maxLifeMs = FLOATING_TEXT_LIFETIME_MS, options = {}) {
+  const safeLifetimeMs = Math.max(140, Number(maxLifeMs) || FLOATING_TEXT_LIFETIME_MS);
+  const tone = String(options.tone || FLOATING_TEXT_TONE_NORMAL);
+  const style = getFloatingTextToneVisualStyle(tone);
+  const scaleBoost = clamp(Number(options.scaleBoost) || 0, 0, 0.68);
+  const intensityBoost = clamp(Number(options.intensityBoost) || 0, 0, 0.8);
+  const enterDurationMs = clamp(
+    Math.round((Number(style.enterDurationMs) || FLOATING_TEXT_ENTER_TWEEN_MS) * (1 - scaleBoost * 0.18)),
+    70,
+    300,
+  );
+  const settleDurationMs = clamp(
+    Math.round((Number(style.settleDurationMs) || 140) * (1 - intensityBoost * 0.12)),
+    90,
+    320,
+  );
+  const baseExitDurationMs = clamp(
+    Math.round((Number(style.exitDurationMs) || FLOATING_TEXT_EXIT_TWEEN_MS) * (1 + intensityBoost * 0.12)),
+    140,
+    420,
+  );
+  const fadeOutDurationMs = Math.min(
+    baseExitDurationMs,
+    Math.max(120, Math.round(safeLifetimeMs * (Number(style.exitLifeRatio) || 0.45))),
+  );
+  const fadeOutDelayMs = Math.max(0, safeLifetimeMs - fadeOutDurationMs);
+  const startScale = Math.max(0.56, Number(style.startScale) + scaleBoost * 0.12);
+  const peakScale = Math.max(startScale + 0.04, Number(style.peakScale) + scaleBoost * 0.34 + intensityBoost * 0.08);
+  const settleScale = Math.max(0.74, Number(style.settleScale) + scaleBoost * 0.2 + intensityBoost * 0.04);
+  const exitScale = Math.max(0.68, Number(style.exitScale) + scaleBoost * 0.11);
+  const visual = { alpha: 0, scale: startScale, pulse: 0 };
+  const tweenIn = new Tween(visual, tweenGroup)
+    .to({ alpha: 1, scale: peakScale, pulse: 1 }, enterDurationMs)
+    .easing(style.enterEasing || Easing.Back.Out)
+    .start(state.timeMs);
+  const tweenSettle = new Tween(visual, tweenGroup)
+    .to({ scale: settleScale, pulse: 0.2 }, settleDurationMs)
+    .delay(Math.max(0, enterDurationMs - 12))
+    .easing(style.settleEasing || Easing.Cubic.Out)
+    .start(state.timeMs);
+  const tweenOut = new Tween(visual, tweenGroup)
+    .to({ alpha: 0, scale: exitScale, pulse: 0 }, fadeOutDurationMs)
+    .delay(fadeOutDelayMs)
+    .easing(style.exitEasing || Easing.Quadratic.In)
+    .start(state.timeMs);
+  return { visual, tweenIn, tweenSettle, tweenOut };
+}
+
+function stopFloatingTextVisualTween(text) {
+  if (!text || !text.visualTween) {
+    return;
+  }
+  text.visualTween.tweenIn?.stop();
+  text.visualTween.tweenSettle?.stop();
+  text.visualTween.tweenOut?.stop();
+}
+
+function stopProjectileTravelTween(projectile) {
+  if (!projectile) {
+    return;
+  }
+  if (projectile.travelTween && typeof projectile.travelTween.stop === "function") {
+    projectile.travelTween.stop();
+  }
+  projectile.travelTween = null;
+  projectile.travelTweenState = null;
+  projectile.travelTweenCompleted = false;
+}
+
+function createProjectileTravelTween(projectile, durationMs) {
+  if (!projectile) {
+    return null;
+  }
+  const safeDurationMs = clamp(
+    Math.round(Number(durationMs) || PROJECTILE_TWEEN_DURATION_MIN_MS),
+    PROJECTILE_TWEEN_DURATION_MIN_MS,
+    PROJECTILE_TWEEN_DURATION_MAX_MS,
+  );
+  const tweenState = { progress: 0 };
+  projectile.travelTweenState = tweenState;
+  projectile.travelTweenCompleted = false;
+  const tween = new Tween(tweenState, tweenGroup)
+    .to({ progress: 1 }, safeDurationMs)
+    .easing(Easing.Cubic.In)
+    .onComplete(() => {
+      if (projectile.travelTweenState === tweenState) {
+        projectile.travelTweenCompleted = true;
+      }
+    })
+    .start(state.timeMs);
+  projectile.travelTween = tween;
+  return tween;
 }
 
 function shouldForceUltraShinyAllPokemon() {
@@ -2273,19 +3117,19 @@ function refreshWindowsNotificationButtonUi() {
   const enabled = Boolean(state.windowsNotifications?.enabled);
 
   let label = "Notifs Windows";
-  let title = "Notifs systeme Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+  let title = "Notifs système Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   if (!supported) {
-    label = "Notifs non supportees";
+    label = "Notifs non supportées";
     title = "Ce navigateur ne supporte pas l'API Notification.";
   } else if (permission === "denied") {
-    label = "Notifs bloquees";
-    title = "Autorise les notifications dans les reglages du navigateur.";
+    label = "Notifs bloquées";
+    title = "Autorise les notifications dans les réglages du navigateur.";
   } else if (enabled) {
     label = "Notifs Windows ON";
-    title = "Notifications systeme actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+    title = "Notifications système actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   } else {
     label = "Activer notifs";
-    title = "Clique pour activer les notifications systeme hors premier plan.";
+    title = "Clique pour activer les notifications système hors premier plan.";
   }
 
   windowsNotificationButtonEl.setAttribute("aria-pressed", enabled ? "true" : "false");
@@ -2367,20 +3211,20 @@ async function toggleWindowsNotificationSystemFromButton() {
   }
   if (state.windowsNotifications.enabled) {
     disableWindowsNotificationSystem();
-    setTopMessage("Notifications Windows desactivees.", 1700);
+    setTopMessage("Notifications Windows désactivées.", 1700);
     return;
   }
 
   const result = await enableWindowsNotificationSystem();
   if (result.enabled) {
-    setTopMessage("Notifications Windows activees.", 1800);
+    setTopMessage("Notifications Windows activées.", 1800);
     return;
   }
   if (result.permission === "denied") {
-    setTopMessage("Notifications bloquees. Autorise-les dans le navigateur.", 2600);
+    setTopMessage("Notifications bloquées. Autorise-les dans le navigateur.", 2600);
     return;
   }
-  setTopMessage("Permission de notification non accordee.", 1800);
+  setTopMessage("Permission de notification non accordée.", 1800);
 }
 
 function sendWindowsSystemNotification(title, body, options = {}) {
@@ -2397,11 +3241,11 @@ function sendWindowsSystemNotification(title, body, options = {}) {
   if (isGamePageVisibleAndFocused()) {
     return false;
   }
-  const safeTitle = String(title || "").trim();
+  const safeTitle = normalizeUiDisplayText(title || "", { frenchTypography: true }).trim();
   if (!safeTitle) {
     return false;
   }
-  const safeBody = String(body || "").trim();
+  const safeBody = normalizeUiDisplayText(body || "", { frenchTypography: true }).trim();
   const autoCloseMs = Math.max(0, toSafeInt(options.autoCloseMs, 9000));
   try {
     const notification = new Notification(safeTitle, {
@@ -2454,7 +3298,7 @@ function notifyWindowsOutOfPokeballs(options = {}) {
   const routeId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
   const routeName = getRouteDisplayName(routeId);
   const lastBallLabel = options.ballType ? getBallTypeLabel(options.ballType) : "Poke Ball";
-  const bodyParts = [`Ta derniere ${lastBallLabel} vient d'etre utilisee.`];
+  const bodyParts = [`Ta dernière ${lastBallLabel} vient d'être utilisée.`];
   if (routeName) {
     bodyParts.push(`Zone: ${routeName}.`);
   }
@@ -2475,14 +3319,10 @@ function notifyWindowsShinyEncounter(enemy) {
   const routeName = getRouteDisplayName(routeId);
   const level = Math.max(1, toSafeInt(enemy.level, 1));
   const enemyName = enemy.nameFr || getPokemonDisplayNameById(enemy.id);
-  sendWindowsSystemNotification(
-    "Shiny rencontre",
-    `${enemyName} shiny sauvage apercu (${routeName}, niv ${level}).`,
-    {
-      tag: `shiny-encounter-${enemy.id}-${Date.now()}`,
-      autoCloseMs: 12000,
-    },
-  );
+  sendWindowsSystemNotification("Rencontre shiny", `${enemyName} shiny sauvage aperçu (${routeName}, niv ${level}).`, {
+    tag: `shiny-encounter-${enemy.id}-${Date.now()}`,
+    autoCloseMs: 12000,
+  });
 }
 
 function notifyWindowsShinyCapture(enemy, options = {}) {
@@ -2491,7 +3331,7 @@ function notifyWindowsShinyCapture(enemy, options = {}) {
   }
   const enemyName = enemy.nameFr || getPokemonDisplayNameById(enemy.id);
   const criticalSuffix = options.isCritical ? " (capture critique)" : "";
-  sendWindowsSystemNotification("Shiny capture", `${enemyName} shiny capture${criticalSuffix} !`, {
+  sendWindowsSystemNotification("Shiny capturé", `${enemyName} shiny capturé${criticalSuffix} !`, {
     tag: `shiny-capture-${enemy.id}-${Date.now()}`,
     requireInteraction: true,
     autoCloseMs: 0,
@@ -2503,6 +3343,15 @@ function resetNotificationSystem() {
   state.notifications.nextId = 1;
   state.notifications.dirty = true;
   state.notifications.nextEvolutionScanMs = state.timeMs + 500;
+  for (const card of notificationCardById.values()) {
+    stopUiElementTweens(card);
+    card.remove();
+  }
+  notificationCardById.clear();
+  notificationCardExitingIds.clear();
+  if (notificationStackEl) {
+    notificationStackEl.innerHTML = "";
+  }
   renderNotificationStackUi();
 }
 
@@ -2588,75 +3437,140 @@ function getNotificationPokemonSpritePath(item) {
   return String(appearance?.spritePath || fallbackShinyPath || fallbackNormalPath || "").trim();
 }
 
+function animateNotificationCardEnter(card) {
+  if (!card) {
+    return;
+  }
+  stopUiElementTweens(card);
+  card.style.pointerEvents = "auto";
+  animateUiElement(
+    card,
+    { opacity: 0, y: 18, scale: 0.94, blur: 2.2 },
+    { opacity: 1, y: 0, scale: 1, blur: 0 },
+    260,
+    Easing.Back.Out,
+    () => {
+      clearUiTweenStyles(card);
+    },
+  );
+}
+
+function animateNotificationCardExit(card, notificationKey) {
+  if (!card) {
+    return;
+  }
+  stopUiElementTweens(card);
+  card.style.pointerEvents = "none";
+  animateUiElement(
+    card,
+    { opacity: 1, y: 0, scale: 1, blur: 0 },
+    { opacity: 0, y: 14, scale: 0.965, blur: 1.3 },
+    180,
+    Easing.Quadratic.Out,
+    () => {
+      clearUiTweenStyles(card);
+      card.remove();
+      notificationCardById.delete(notificationKey);
+      notificationCardExitingIds.delete(notificationKey);
+    },
+  );
+}
+
+function renderNotificationCard(card, item) {
+  card.className = "game-notif";
+  if (item.tone === "first") {
+    card.classList.add("notif-first");
+  } else if (item.tone === "shiny") {
+    card.classList.add("notif-shiny");
+  } else if (item.type === "evolution_ready" || item.type === "evolution_summary") {
+    card.classList.add("notif-evolution");
+  }
+
+  card.innerHTML = "";
+  const bodyEl = document.createElement("div");
+  bodyEl.className = "game-notif-body";
+  const pokemonId = getNotificationPokemonId(item);
+  const spritePath = getNotificationPokemonSpritePath(item);
+  if (spritePath) {
+    const spriteWrapEl = document.createElement("div");
+    spriteWrapEl.className = "game-notif-sprite-wrap";
+    const spriteImgEl = document.createElement("img");
+    spriteImgEl.className = "game-notif-sprite";
+    spriteImgEl.src = spritePath;
+    spriteImgEl.alt = pokemonId > 0 ? getPokemonDisplayNameById(pokemonId) : "Pokemon";
+    spriteWrapEl.appendChild(spriteImgEl);
+    bodyEl.appendChild(spriteWrapEl);
+  }
+
+  const contentEl = document.createElement("div");
+  contentEl.className = "game-notif-content";
+  if (item.title) {
+    const titleEl = document.createElement("div");
+    titleEl.className = "game-notif-title";
+    titleEl.textContent = item.title;
+    contentEl.appendChild(titleEl);
+  }
+
+  const textEl = document.createElement("div");
+  textEl.className = "game-notif-text";
+  textEl.textContent = item.message || "";
+  contentEl.appendChild(textEl);
+  bodyEl.appendChild(contentEl);
+  card.appendChild(bodyEl);
+
+  if (item.type === "evolution_ready") {
+    const actions = document.createElement("div");
+    actions.className = "game-notif-actions";
+
+    const evolveButton = document.createElement("button");
+    evolveButton.type = "button";
+    evolveButton.className = "game-notif-btn";
+    evolveButton.textContent = "Evoluer";
+    evolveButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      triggerEvolutionFromNotification(item.id);
+    });
+    actions.appendChild(evolveButton);
+    card.appendChild(actions);
+  }
+}
+
 function renderNotificationStackUi() {
   if (!notificationStackEl) {
     return;
   }
   const items = Array.isArray(state.notifications.items) ? state.notifications.items : [];
-  notificationStackEl.innerHTML = "";
-
   const sorted = getVisibleNotificationItems(items);
-
+  const visibleKeys = new Set();
   for (const item of sorted) {
-    const card = document.createElement("article");
-    card.className = "game-notif";
-    if (item.tone === "first") {
-      card.classList.add("notif-first");
-    } else if (item.tone === "shiny") {
-      card.classList.add("notif-shiny");
-    } else if (item.type === "evolution_ready" || item.type === "evolution_summary") {
-      card.classList.add("notif-evolution");
+    const key = String(item?.id ?? "");
+    if (!key) {
+      continue;
     }
-
-    const bodyEl = document.createElement("div");
-    bodyEl.className = "game-notif-body";
-    const pokemonId = getNotificationPokemonId(item);
-    const spritePath = getNotificationPokemonSpritePath(item);
-    if (spritePath) {
-      const spriteWrapEl = document.createElement("div");
-      spriteWrapEl.className = "game-notif-sprite-wrap";
-      const spriteImgEl = document.createElement("img");
-      spriteImgEl.className = "game-notif-sprite";
-      spriteImgEl.src = spritePath;
-      spriteImgEl.alt = pokemonId > 0 ? getPokemonDisplayNameById(pokemonId) : "Pokemon";
-      spriteWrapEl.appendChild(spriteImgEl);
-      bodyEl.appendChild(spriteWrapEl);
+    visibleKeys.add(key);
+    notificationCardExitingIds.delete(key);
+    let card = notificationCardById.get(key);
+    const isNewCard = !card;
+    if (!card) {
+      card = document.createElement("article");
+      notificationCardById.set(key, card);
     }
-
-    const contentEl = document.createElement("div");
-    contentEl.className = "game-notif-content";
-    if (item.title) {
-      const titleEl = document.createElement("div");
-      titleEl.className = "game-notif-title";
-      titleEl.textContent = item.title;
-      contentEl.appendChild(titleEl);
-    }
-
-    const textEl = document.createElement("div");
-    textEl.className = "game-notif-text";
-    textEl.textContent = item.message || "";
-    contentEl.appendChild(textEl);
-    bodyEl.appendChild(contentEl);
-    card.appendChild(bodyEl);
-
-    if (item.type === "evolution_ready") {
-      const actions = document.createElement("div");
-      actions.className = "game-notif-actions";
-
-      const evolveButton = document.createElement("button");
-      evolveButton.type = "button";
-      evolveButton.className = "game-notif-btn";
-      evolveButton.textContent = "Evoluer";
-      evolveButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        triggerEvolutionFromNotification(item.id);
-      });
-      actions.appendChild(evolveButton);
-      card.appendChild(actions);
-    }
-
+    renderNotificationCard(card, item);
     notificationStackEl.appendChild(card);
+    if (isNewCard) {
+      animateNotificationCardEnter(card);
+    } else {
+      card.style.pointerEvents = "auto";
+    }
+  }
+
+  for (const [key, card] of notificationCardById.entries()) {
+    if (visibleKeys.has(key) || notificationCardExitingIds.has(key)) {
+      continue;
+    }
+    notificationCardExitingIds.add(key);
+    animateNotificationCardExit(card, key);
   }
 }
 
@@ -2824,7 +3738,7 @@ function triggerEvolutionFromNotification(notificationId) {
   const evolutionResult = applyEvolutionUnlockAndTeamPlacement(fromId, toId, preferredSlotIndex);
   if (!evolutionResult) {
     removeNotificationById(id);
-    pushTemporaryNotification("Evolution impossible pour ce Pokemon.", 1800, {
+    pushTemporaryNotification("Évolution impossible pour ce Pokémon.", 1800, {
       tone: "info",
       title: "Evolution",
       pokemonId: fromId,
@@ -2839,7 +3753,7 @@ function triggerEvolutionFromNotification(notificationId) {
   persistSaveData();
   updateHud();
   render();
-  pushTemporaryNotification(`${evolutionResult.fromNameFr} evolue en ${evolutionResult.toNameFr} !`, 2200, {
+  pushTemporaryNotification(`${evolutionResult.fromNameFr} évolue en ${evolutionResult.toNameFr} !`, 2200, {
     tone: "first",
     title: "Evolution",
     pokemonId: Number(evolutionResult.toId || toId || 0),
@@ -2892,7 +3806,7 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
     if (isShiny) {
       return;
     }
-    pushTemporaryNotification(`${pokemonName} apparait pour la premiere fois.`, 3000, {
+    pushTemporaryNotification(`${pokemonName} apparaît pour la première fois.`, 3000, {
       title: "Apparition",
       tone: "first",
       pokemonId,
@@ -2901,7 +3815,7 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
   }
 
   if (isShiny) {
-    pushTemporaryNotification(`${pokemonName} capture pour la premiere fois en shiny.`, 4400, {
+    pushTemporaryNotification(`${pokemonName} capturé pour la première fois en shiny.`, 4400, {
       title: "Premiere capture shiny",
       tone: "shiny",
       pokemonId,
@@ -2910,7 +3824,7 @@ function notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue,
     return;
   }
 
-  pushTemporaryNotification(`${pokemonName} capture pour la premiere fois.`, 3200, {
+  pushTemporaryNotification(`${pokemonName} capturé pour la première fois.`, 3200, {
     title: "Premiere capture",
     tone: "first",
     pokemonId,
@@ -2926,7 +3840,7 @@ function notifyShinyEncounterUntilCaptured(enemy, speciesRecord = null) {
   if (shinyCaptures > 0) {
     return;
   }
-  pushTemporaryNotification(`Un ${enemy.nameFr} shiny sauvage apparait !`, 4200, {
+  pushTemporaryNotification(`Un ${enemy.nameFr} shiny sauvage apparaît !`, 4200, {
     title: "Shiny sauvage",
     tone: "shiny",
     pokemonId: Number(enemy.id || 0),
@@ -4522,7 +5436,7 @@ function getTeamAuraAttackBonusBySlot(teamMembers) {
 
 function sanitizePokemonNickname(rawValue, options = {}) {
   const trimEdges = options.trimEdges !== false;
-  const normalized = String(rawValue ?? "")
+  const normalized = normalizeUiDisplayText(rawValue)
     .replace(/[\r\n\t]+/g, " ")
     .replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/g, " ");
   const candidate = trimEdges ? normalized.trim() : normalized;
@@ -4690,6 +5604,7 @@ function createDefaultSingleBallCaptureRules() {
   return {
     [BALL_CAPTURE_RULE_CAPTURE_ALL]: true,
     [BALL_CAPTURE_RULE_CAPTURE_UNOWNED]: true,
+    [BALL_CAPTURE_RULE_CAPTURE_OWNED]: true,
     [BALL_CAPTURE_RULE_CAPTURE_SHINY]: true,
     [BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]: true,
   };
@@ -4700,6 +5615,7 @@ function normalizeSingleBallCaptureRules(rawRules) {
   const normalized = {
     [BALL_CAPTURE_RULE_CAPTURE_ALL]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_ALL]),
     [BALL_CAPTURE_RULE_CAPTURE_UNOWNED]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_UNOWNED]),
+    [BALL_CAPTURE_RULE_CAPTURE_OWNED]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_OWNED]),
     [BALL_CAPTURE_RULE_CAPTURE_SHINY]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_SHINY]),
     [BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]: Boolean(source[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]),
   };
@@ -4708,15 +5624,18 @@ function normalizeSingleBallCaptureRules(rawRules) {
   }
   if (
     !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_UNOWNED)
+    && !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_OWNED)
     && !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_SHINY)
     && !Object.prototype.hasOwnProperty.call(source, BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY)
   ) {
     normalized[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_OWNED] = true;
     normalized[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
     normalized[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
   }
   if (normalized[BALL_CAPTURE_RULE_CAPTURE_ALL]) {
     normalized[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+    normalized[BALL_CAPTURE_RULE_CAPTURE_OWNED] = true;
     normalized[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
     normalized[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
   }
@@ -5364,7 +6283,14 @@ function canOpenTutorialModalNow() {
   if (state.evolutionAnimation.current) {
     return false;
   }
-  if (state.ui.mapOpen || state.ui.shopOpen || state.ui.gachaOpen || state.ui.boxesOpen || state.ui.appearanceOpen) {
+  if (
+    state.ui.mapOpen
+    || state.ui.shopOpen
+    || state.ui.gachaOpen
+    || state.ui.boxesOpen
+    || state.ui.pokedexOpen
+    || state.ui.appearanceOpen
+  ) {
     return false;
   }
   return true;
@@ -5424,7 +6350,7 @@ function closeTutorialModal() {
   state.ui.tutorialOpen = false;
   state.tutorial.active = null;
   if (tutorialModalEl) {
-    tutorialModalEl.classList.add("hidden");
+    hideModalWithTween(tutorialModalEl);
   }
   if (tutorialBodyEl) {
     tutorialBodyEl.innerHTML = "";
@@ -5446,13 +6372,14 @@ function openTutorialFlow(flowId, initialPage = 0) {
   setShopOpen(false);
   closeGachaModal({ force: true });
   closeBoxesModal();
+  closePokedexModal();
   closeAppearanceModal();
   state.tutorial.active = {
     flowId: String(flowId),
     pageIndex: clamp(toSafeInt(initialPage, 0), 0, Math.max(0, (flow.pages?.length || 1) - 1)),
   };
   state.ui.tutorialOpen = true;
-  tutorialModalEl.classList.remove("hidden");
+  showModalWithTween(tutorialModalEl);
   renderTutorialModal();
   persistSaveDataForSimulationEvent();
   return true;
@@ -6125,6 +7052,10 @@ function incrementSpeciesStat(pokemonId, kind, isShiny, amount = 1, options = {}
   }
   if (delta > 0) {
     notifyFirstTimeSpeciesProgress(pokemonId, kind, isShiny, previousValue, nextValue);
+  }
+  invalidatePokedexEntriesCache();
+  if (state.ui.pokedexOpen) {
+    queuePokedexGridRender();
   }
 }
 function buildOrderedCatalogRouteIds(routeCatalog = state.routeCatalog) {
@@ -7154,6 +8085,9 @@ function shouldCaptureEnemyWithBallType(ballType, enemy) {
   if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !familyOwned) {
     return true;
   }
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_OWNED] && familyOwned) {
+    return true;
+  }
   if (Boolean(enemy.isUltraShiny)) {
     return Boolean(rules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]);
   }
@@ -7234,15 +8168,15 @@ function getBallTypeForCapture(enemy = null) {
   }
   ensureMoneyAndItems();
   const targetEnemy = enemy || state.enemy;
-  const activeType = getActiveBallType();
-  if (getBallInventoryCount(activeType) > 0 && shouldCaptureEnemyWithBallType(activeType, targetEnemy)) {
-    return activeType;
-  }
   for (const type of BALL_TYPE_ORDER) {
     if (getBallInventoryCount(type) > 0 && shouldCaptureEnemyWithBallType(type, targetEnemy)) {
       state.saveData.active_ball_type = type;
       return type;
     }
+  }
+  const activeType = getActiveBallType();
+  if (getBallInventoryCount(activeType) > 0 && shouldCaptureEnemyWithBallType(activeType, targetEnemy)) {
+    return activeType;
   }
   return null;
 }
@@ -7287,11 +8221,10 @@ function getBallInventoryOverlayRows() {
     if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
       continue;
     }
-    const count = Math.max(0, toSafeInt(state.saveData.ball_inventory?.[type], 0));
-    const alwaysVisible = type === "poke_ball";
-    if (!alwaysVisible && !hasBallInventoryBeenSeen(type) && count <= 0) {
+    if (isBallTypeComingSoon(type)) {
       continue;
     }
+    const count = Math.max(0, toSafeInt(state.saveData.ball_inventory?.[type], 0));
     rows.push({
       type,
       count,
@@ -8020,7 +8953,7 @@ function closeEvolutionItemChoiceModal(selectedCandidate = null) {
   state.ui.evolutionItemChoiceOpen = false;
   state.ui.evolutionItemChoiceStoneType = "";
   if (evolutionItemModalEl) {
-    evolutionItemModalEl.classList.add("hidden");
+    hideModalWithTween(evolutionItemModalEl);
   }
   if (typeof resolver === "function") {
     resolver(selectedCandidate);
@@ -8044,7 +8977,7 @@ function promptEvolutionStoneChoice(stoneType, candidates) {
   state.ui.evolutionItemChoiceOpen = true;
   state.ui.evolutionItemChoiceStoneType = key;
   renderEvolutionItemChoiceModal();
-  evolutionItemModalEl.classList.remove("hidden");
+  showModalWithTween(evolutionItemModalEl);
   return new Promise((resolve) => {
     evolutionItemChoiceResolver = resolve;
   });
@@ -8384,6 +9317,20 @@ function getRewardMultipliersFromLevelDiff(levelDiff) {
     return { xp: 0.15, money: 0.35, coin: 0.25 };
   }
   return { xp: 0.05, money: 0.35, coin: 0.1 };
+}
+
+function getFamilyOwnedCaptureCoinChanceFromLevelDiff(levelDiff) {
+  const diff = toSafeInt(levelDiff, 0);
+  if (diff >= 0) {
+    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE;
+  }
+  if (diff >= -5) {
+    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MID;
+  }
+  if (diff >= -15) {
+    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_LOW;
+  }
+  return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MIN;
 }
 
 function getXpMultiplierFromLevelDiff(levelDiff) {
@@ -8779,6 +9726,82 @@ function blendRgb(baseColor, accentColor, blendRatio = 0.5) {
 
 function getTypeColor(typeName) {
   return TYPE_COLORS[String(typeName || "normal").toLowerCase()] || [220, 236, 255];
+}
+
+function getFloatingTextTonePalette(tone) {
+  return FLOATING_TEXT_TONE_PALETTES[String(tone || FLOATING_TEXT_TONE_NORMAL)] || FLOATING_TEXT_TONE_PALETTES[FLOATING_TEXT_TONE_NORMAL];
+}
+
+function getFloatingTextToneVisualStyle(tone) {
+  return FLOATING_TEXT_TONE_VISUAL_STYLES[String(tone || FLOATING_TEXT_TONE_NORMAL)]
+    || FLOATING_TEXT_TONE_VISUAL_STYLES[FLOATING_TEXT_TONE_NORMAL];
+}
+
+function resolveFloatingDamageEffectLabel({ isMiss = false, typeMultiplier = 1 } = {}) {
+  if (isMiss) {
+    return "RATE";
+  }
+  const multiplier = Number(typeMultiplier);
+  if (!Number.isFinite(multiplier) || multiplier <= 0.001) {
+    return "N'AFFECTE PAS";
+  }
+  if (multiplier >= 1.999) {
+    return "SUPER EFFICACE";
+  }
+  if (multiplier < 0.999) {
+    return "PAS TRES EFFICACE";
+  }
+  return "";
+}
+
+function resolveFloatingDamageTone({ isMiss = false, typeMultiplier = 1, isCritical = false } = {}) {
+  const multiplier = Number(typeMultiplier);
+  if (isMiss || !Number.isFinite(multiplier) || multiplier <= 0.001) {
+    return FLOATING_TEXT_TONE_MISS;
+  }
+  if (isCritical) {
+    return FLOATING_TEXT_TONE_CRITICAL;
+  }
+  if (multiplier >= 1.999) {
+    return FLOATING_TEXT_TONE_SUPER;
+  }
+  if (multiplier < 0.999) {
+    return FLOATING_TEXT_TONE_RESIST;
+  }
+  return FLOATING_TEXT_TONE_NORMAL;
+}
+
+function buildFloatingDamageLabels({ isMiss = false, typeMultiplier = 1, isCritical = false } = {}) {
+  const effectLabel = resolveFloatingDamageEffectLabel({ isMiss, typeMultiplier });
+  const multiplier = Number(typeMultiplier);
+  const immuneLike = !Number.isFinite(multiplier) || multiplier <= 0.001;
+  if (isMiss || immuneLike) {
+    return {
+      primary: effectLabel,
+      secondary: "",
+      summary: effectLabel,
+      hasEffectivenessLabel: effectLabel !== "RATE",
+      hasCriticalLabel: false,
+    };
+  }
+  if (isCritical) {
+    const secondary = effectLabel || "";
+    const summary = secondary ? `COUP CRITIQUE ${secondary}` : "COUP CRITIQUE";
+    return {
+      primary: "COUP CRITIQUE",
+      secondary,
+      summary,
+      hasEffectivenessLabel: Boolean(secondary),
+      hasCriticalLabel: true,
+    };
+  }
+  return {
+    primary: effectLabel,
+    secondary: "",
+    summary: effectLabel,
+    hasEffectivenessLabel: Boolean(effectLabel),
+    hasCriticalLabel: false,
+  };
 }
 
 function normalizeType(typeName) {
@@ -9417,6 +10440,7 @@ class PokemonBattleManager {
     this.captureSequence = null;
     this.slotRecoil = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotAttackFlash = Array.from({ length: MAX_TEAM_SIZE }, () => null);
+    this.slotSkipTurnFx = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
     this.teleportBoostVisualBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
@@ -9480,6 +10504,7 @@ class PokemonBattleManager {
 
     this.team = Array.isArray(team) ? team : [];
     this.turnIndex = this.team.length === 0 ? 0 : this.turnIndex % MAX_TEAM_SIZE;
+    this.slotSkipTurnFx = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
     this.teleportBoostVisualBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
@@ -9509,6 +10534,20 @@ class PokemonBattleManager {
 
   getFloatingTexts() {
     return this.floatingTexts;
+  }
+
+  clearProjectiles() {
+    for (const projectile of this.projectiles) {
+      stopProjectileTravelTween(projectile);
+    }
+    this.projectiles = [];
+  }
+
+  clearFloatingTexts() {
+    for (const text of this.floatingTexts) {
+      stopFloatingTextVisualTween(text);
+    }
+    this.floatingTexts = [];
   }
 
   getHitEffects() {
@@ -9569,8 +10608,8 @@ class PokemonBattleManager {
       return;
     }
     const expiredEnemy = this.enemy;
-    this.projectiles = [];
-    this.floatingTexts = [];
+    this.clearProjectiles();
+    this.clearFloatingTexts();
     this.hitEffects = [];
     this.enemyHitPulseMs = 0;
     this.enemyDamageFlashMs = 0;
@@ -9998,6 +11037,73 @@ class PokemonBattleManager {
     return ATTACK_FLASH_WHITE_BLEND * ratio;
   }
 
+  getSkipTurnEffectDurationMs() {
+    return clamp(
+      Math.round(Math.max(1, Number(this.attackIntervalMs) || ATTACK_INTERVAL_MS) * 0.96),
+      SKIP_TURN_EFFECT_DURATION_MIN_MS,
+      SKIP_TURN_EFFECT_DURATION_MAX_MS,
+    );
+  }
+
+  updateSlotSkipTurnEffects(deltaMs) {
+    for (let i = 0; i < this.slotSkipTurnFx.length; i += 1) {
+      const effect = this.slotSkipTurnFx[i];
+      if (!effect) {
+        continue;
+      }
+      effect.elapsedMs += deltaMs;
+      if (effect.elapsedMs >= effect.durationMs) {
+        this.slotSkipTurnFx[i] = null;
+      }
+    }
+  }
+
+  triggerSlotSkipTurnEffect(slotIndex, options = {}) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0 || !this.team[safeSlotIndex]) {
+      return;
+    }
+    const durationMs = clamp(
+      Math.round(Number(options.durationMs) || this.getSkipTurnEffectDurationMs()),
+      SKIP_TURN_EFFECT_DURATION_MIN_MS,
+      SKIP_TURN_EFFECT_DURATION_MAX_MS,
+    );
+    this.slotSkipTurnFx[safeSlotIndex] = {
+      elapsedMs: 0,
+      durationMs,
+      phaseSeed: Math.random() * Math.PI * 2,
+    };
+  }
+
+  getSlotSkipTurnVisual(slotIndex) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return null;
+    }
+    const effect = this.slotSkipTurnFx[safeSlotIndex];
+    if (!effect) {
+      return null;
+    }
+    const durationMs = Math.max(1, Number(effect.durationMs) || 1);
+    const elapsedMs = clamp(Number(effect.elapsedMs) || 0, 0, durationMs);
+    const progress = clamp(elapsedMs / durationMs, 0, 1);
+    const fadeRatio = clamp(SKIP_TURN_EFFECT_FADE_RATIO, 0.08, 0.45);
+    const fadeIn = easeInOutSine(clamp(progress / fadeRatio, 0, 1));
+    const fadeOut = easeInOutSine(clamp((1 - progress) / fadeRatio, 0, 1));
+    const envelope = clamp(Math.min(fadeIn, fadeOut), 0, 1);
+    const phaseSeed = Number(effect.phaseSeed || 0);
+    const tremor = envelope * (0.78 + Math.sin(elapsedMs * 0.037 + phaseSeed) * 0.14);
+    const offsetX = Math.sin(elapsedMs * 0.19 + phaseSeed) * (0.55 + tremor * 1.45);
+    const offsetY = Math.sin(elapsedMs * 0.24 + phaseSeed * 1.37) * (0.22 + tremor * 0.52);
+    return {
+      offsetX,
+      offsetY,
+      scaleX: 1 - tremor * 0.016,
+      scaleY: 1 + tremor * 0.006,
+      grayscaleBlend: clamp(easeInOutSine(envelope) * SKIP_TURN_EFFECT_GRAYSCALE_MAX, 0, 1),
+    };
+  }
+
   updateSlotTeleportScale(deltaMs) {
     for (let i = 0; i < this.slotTeleportScale.length; i += 1) {
       const scaleFx = this.slotTeleportScale[i];
@@ -10408,8 +11514,8 @@ class PokemonBattleManager {
       this.captureSequence = null;
       this.koAnimMs = 0;
       this.resetQueuedAttackState();
-      this.projectiles = [];
-      this.floatingTexts = [];
+      this.clearProjectiles();
+      this.clearFloatingTexts();
       this.hitEffects = [];
       this.enemyHitPulseMs = 0;
       this.enemyDamageFlashMs = 0;
@@ -10427,6 +11533,9 @@ class PokemonBattleManager {
     const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
     this.recordTurnEvent(attackerIndex, attacker, decision);
     if (decision.action !== TURN_ACTION_ATTACK) {
+      if (attacker) {
+        this.triggerSlotSkipTurnEffect(attackerIndex);
+      }
       return;
     }
 
@@ -10534,6 +11643,7 @@ class PokemonBattleManager {
     this.updateKoTransition(deltaMs);
     this.updateSlotRecoil(deltaMs);
     this.updateSlotAttackFlash(deltaMs);
+    this.updateSlotSkipTurnEffects(deltaMs);
     this.updateSlotTeleportScale(deltaMs);
     this.updateTeleportBoostVisuals(deltaMs);
     if (!layout) {
@@ -10543,8 +11653,8 @@ class PokemonBattleManager {
     if (idleMode) {
       this.resetQueuedAttackState();
       this.updateIdleCombat(deltaMs, layout);
-      this.projectiles = [];
-      this.floatingTexts = [];
+      this.clearProjectiles();
+      this.clearFloatingTexts();
       this.hitEffects = [];
       this.enemyHitPulseMs = 0;
       this.enemyDamageFlashMs = 0;
@@ -10680,6 +11790,7 @@ class PokemonBattleManager {
     for (const text of this.floatingTexts) {
       text.lifeMs -= deltaMs;
       if (text.lifeMs <= 0) {
+        stopFloatingTextVisualTween(text);
         continue;
       }
       text.x += text.vx * (deltaMs / 1000);
@@ -10767,15 +11878,40 @@ class PokemonBattleManager {
     this.triggerSlotAttackFlash(attackerIndex);
     this.addAttackLaunchEffects({ attackType, startX, startY });
     const initialDistance = Math.hypot(targetX - startX, targetY - startY) || 1;
+    const directionX = (targetX - startX) / initialDistance;
+    const directionY = (targetY - startY) / initialDistance;
+    const perpendicularX = -directionY;
+    const perpendicularY = directionX;
+    const arcDistanceScale = clamp(initialDistance / 260, 0.7, 1.3);
+    const arcAmplitude =
+      (PROJECTILE_TWEEN_ARC_BASE_PX + Math.random() * PROJECTILE_TWEEN_ARC_RANDOM_PX) *
+      arcDistanceScale *
+      (Math.random() < 0.5 ? -1 : 1);
+    const travelDurationMs = clamp(
+      Math.round((initialDistance / Math.max(1, PROJECTILE_SPEED_PX_PER_SECOND)) * 1000),
+      PROJECTILE_TWEEN_DURATION_MIN_MS,
+      PROJECTILE_TWEEN_DURATION_MAX_MS,
+    );
     const projectile = {
       x: startX,
       y: startY,
       prevX: startX,
       prevY: startY,
+      startX,
+      startY,
       targetX,
       targetY,
       initialDistance,
+      directionX,
+      directionY,
+      perpendicularX,
+      perpendicularY,
+      arcAmplitude,
       speed: PROJECTILE_SPEED_PX_PER_SECOND,
+      travelDurationMs,
+      travelTween: null,
+      travelTweenState: null,
+      travelTweenCompleted: false,
       radius: clamp(slot.size * 0.11, 6, 12),
       attackType,
       attackerIndex,
@@ -10799,6 +11935,7 @@ class PokemonBattleManager {
       plannedDamage,
       reservesDefeat,
     };
+    createProjectileTravelTween(projectile, travelDurationMs);
     this.projectiles.push(projectile);
     return projectile;
   }
@@ -10813,6 +11950,9 @@ class PokemonBattleManager {
     const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
     this.recordTurnEvent(attackerIndex, attacker, decision);
     if (decision.action !== TURN_ACTION_ATTACK || !attacker) {
+      if (attacker && decision.action !== TURN_ACTION_ATTACK) {
+        this.triggerSlotSkipTurnEffect(attackerIndex);
+      }
       return;
     }
 
@@ -10880,27 +12020,38 @@ class PokemonBattleManager {
       projectile.targetX = impactPoint.x;
       projectile.targetY = impactPoint.y;
       projectile.lifetimeMs += deltaMs;
+      const tweenProgress = clamp(Number(projectile.travelTweenState?.progress || 0), 0, 1);
+      const startX = Number(projectile.startX ?? projectile.x ?? 0);
+      const startY = Number(projectile.startY ?? projectile.y ?? 0);
+      const targetX = Number(projectile.targetX ?? startX);
+      const targetY = Number(projectile.targetY ?? startY);
+      const travelX = targetX - startX;
+      const travelY = targetY - startY;
+      const travelDistance = Math.max(0.0001, Math.hypot(travelX, travelY));
+      const perpendicularX = -travelY / travelDistance;
+      const perpendicularY = travelX / travelDistance;
+      const arcAmplitude = Number(projectile.arcAmplitude || 0);
+      const arcRatio = Math.sin(tweenProgress * Math.PI);
+      const arcOffsetX = perpendicularX * arcAmplitude * arcRatio;
+      const arcOffsetY = perpendicularY * arcAmplitude * arcRatio;
 
-      const dx = projectile.targetX - projectile.x;
-      const dy = projectile.targetY - projectile.y;
-      const distance = Math.hypot(dx, dy);
-      const distanceRatio = clamp(
-        1 - distance / Math.max(1, Number(projectile.initialDistance) || distance || 1),
-        0,
-        1,
-      );
-      const speedMultiplier = 0.8 + distanceRatio * 0.9;
-      const frameDistance = projectile.speed * speedMultiplier * dt;
+      projectile.x = startX + travelX * tweenProgress + arcOffsetX;
+      projectile.y = startY + travelY * tweenProgress + arcOffsetY;
+      projectile.spinPhase += projectile.spinVelocity * dt;
+      const movementX = projectile.x - projectile.prevX;
+      const movementY = projectile.y - projectile.prevY;
+      const movementDistance = Math.hypot(movementX, movementY);
+      if (movementDistance > 0.0001) {
+        projectile.rotation = Math.atan2(movementY, movementX) + projectile.spinPhase * 0.24;
+      }
 
-      if (distance <= frameDistance || distance <= 0.0001 || projectile.lifetimeMs > 1600) {
+      const timeoutMs = Math.max(1000, Number(projectile.travelDurationMs || 0) + 520);
+      const hasArrived = tweenProgress >= 0.999 || projectile.travelTweenCompleted;
+      if (hasArrived || projectile.lifetimeMs > timeoutMs) {
+        stopProjectileTravelTween(projectile);
         this.applyHit(projectile, { layout });
         continue;
       }
-
-      projectile.spinPhase += projectile.spinVelocity * dt;
-      projectile.rotation = Math.atan2(dy, dx) + projectile.spinPhase * 0.33;
-      projectile.x += (dx / distance) * frameDistance;
-      projectile.y += (dy / distance) * frameDistance;
 
       if (trailMaxPoints > 0) {
         const existingTrail = Array.isArray(projectile.trail) ? projectile.trail : [];
@@ -10919,9 +12070,6 @@ class PokemonBattleManager {
           PROJECTILE_TRAIL_POINT_MIN_SPACING_PX,
           PROJECTILE_TRAIL_POINT_MAX_SPACING_PX,
         );
-        const movementX = projectile.x - projectile.prevX;
-        const movementY = projectile.y - projectile.prevY;
-        const movementDistance = Math.hypot(movementX, movementY);
         const carryDistance = clamp(Number(projectile.trailCarryDistance) || 0, 0, stepDistance - 0.001);
         const totalDistance = carryDistance + movementDistance;
         if (existingTrail.length <= 0) {
@@ -10968,37 +12116,79 @@ class PokemonBattleManager {
     targetY,
     isMiss = false,
   }) {
-    const labelParts = [];
-    if (isCritical && !isMiss) {
-      labelParts.push("CRIT");
-    }
-    if (!isMiss && typeMultiplier >= 2) {
-      labelParts.push("SUPER");
-    } else if (!isMiss && typeMultiplier > 0 && typeMultiplier < 1) {
-      labelParts.push("RESIST");
-    } else if (!isMiss && typeMultiplier === 0) {
-      labelParts.push("IMMUNE");
-    }
-    const label = labelParts.join(" ");
+    const safeMultiplier = Math.max(0, Number(typeMultiplier) || 0);
+    const tone = resolveFloatingDamageTone({
+      isMiss,
+      typeMultiplier: safeMultiplier,
+      isCritical,
+    });
+    const labels = buildFloatingDamageLabels({
+      isMiss,
+      typeMultiplier: safeMultiplier,
+      isCritical,
+    });
+    const palette = getFloatingTextTonePalette(tone);
+    const toneStyle = getFloatingTextToneVisualStyle(tone);
+    const damageValue = isMiss ? 0 : Math.max(0, Number(damage) || 0);
+    const damageScaleBoost = isMiss
+      ? 0
+      : clamp(
+          Math.log10(damageValue + 1) * 0.22
+            + (safeMultiplier >= 1.999 ? 0.09 : 0)
+            + (isCritical ? 0.2 : 0),
+          0,
+          0.68,
+        );
+    const visualTween = createFloatingTextVisualTween(FLOATING_TEXT_LIFETIME_MS, {
+      tone,
+      scaleBoost: damageScaleBoost,
+      intensityBoost: isCritical ? 0.4 : safeMultiplier >= 1.999 ? 0.2 : 0,
+    });
 
     this.floatingTexts.push({
-      x: targetX + (Math.random() - 0.5) * 26,
-      y: targetY - 10,
-      vx: (Math.random() - 0.5) * 26,
-      vy: -92 - Math.random() * 24,
+      x: targetX + (Math.random() - 0.5) * toneStyle.spawnJitterX,
+      y: targetY - toneStyle.spawnLiftY,
+      vx: (Math.random() - 0.5) * toneStyle.horizontalDriftPx * 0.42,
+      vy: -toneStyle.verticalRiseSpeed - Math.random() * toneStyle.verticalRiseVariance,
       lifeMs: FLOATING_TEXT_LIFETIME_MS,
       maxLifeMs: FLOATING_TEXT_LIFETIME_MS,
       damage: isMiss ? 0 : damage,
       isMiss,
-      label,
+      label: labels.summary,
+      labelPrimary: labels.primary,
+      labelSecondary: labels.secondary,
+      hasEffectivenessLabel: Boolean(labels.hasEffectivenessLabel),
+      hasCriticalLabel: Boolean(labels.hasCriticalLabel),
       attackType,
-      color: getTypeColor(attackType),
+      tone,
+      color: palette.main,
+      colorSecondary: palette.secondary,
+      alphaFactor: palette.alpha,
+      pulseStrength: toneStyle.pulseStrength,
+      scaleFactor: 0.9 + damageScaleBoost * 0.32,
+      swayPhase: Math.random() * Math.PI * 2,
+      swayAmplitudePx: 10 + Math.random() * 12 + (isCritical ? 3.2 : 0),
+      swayFrequencyHz: 1.9 + Math.random() * 1.4,
+      visualTween,
     });
   }
 
   addEnemyHitEffects({ attackType, typeMultiplier, isCritical = false, targetX, targetY, damage }) {
-    const color = getTypeColor(attackType);
-    const impactFactorBase = typeMultiplier >= 2 ? 1.25 : typeMultiplier > 0 && typeMultiplier < 1 ? 0.9 : 1;
+    const safeMultiplier = Math.max(0, Number(typeMultiplier) || 0);
+    const tone = resolveFloatingDamageTone({
+      isMiss: false,
+      typeMultiplier: safeMultiplier,
+      isCritical,
+    });
+    const palette = getFloatingTextTonePalette(tone);
+    const color = blendRgb(palette.main, palette.secondary, 0.35);
+    const impactFactorBase = safeMultiplier >= 2
+      ? 1.25
+      : safeMultiplier > 0 && safeMultiplier < 1
+        ? 0.9
+        : safeMultiplier <= 0.001
+          ? 0.72
+          : 1;
     const impactFactor = impactFactorBase * (isCritical ? 1.18 : 1);
     this.enemyHitPulseMs = 120;
 
@@ -11254,11 +12444,11 @@ class PokemonBattleManager {
         this.captureSequence = null;
         this.pendingRespawnMs = 0;
         this.koAnimMs = 0;
-        this.projectiles = [];
+        this.clearProjectiles();
         this.enemyHitPulseMs = 0;
         this.enemyDamageFlashMs = 0;
         this.hitEffects = [];
-        this.floatingTexts = [];
+        this.clearFloatingTexts();
         this.spawnEnemy();
         return;
       }
@@ -11290,7 +12480,7 @@ class PokemonBattleManager {
         this.pendingRespawnMs = this.enemyRespawnDelayMs;
         this.koAnimMs = KO_ANIMATION_DURATION_MS;
       }
-      this.projectiles = [];
+      this.clearProjectiles();
       this.enemyHitPulseMs = 0;
       this.enemyDamageFlashMs = 0;
       this.hitEffects = [];
@@ -11313,7 +12503,7 @@ class PokemonBattleManager {
       ...source,
       hpCurrent: source.hpMax,
     };
-    this.projectiles = [];
+    this.clearProjectiles();
     this.hitEffects = [];
     this.enemyHitPulseMs = 0;
     this.enemyDamageFlashMs = 0;
@@ -11392,7 +12582,7 @@ async function loadPokemonEntity(jsonPath) {
   return {
     jsonPath,
     id: Number(payload.pokedex_number || 0),
-    nameFr: payload.name_fr || payload.name_en || "Pokemon",
+    nameFr: normalizeUiDisplayText(payload.name_fr || payload.name_en || "Pokemon", { frenchTypography: true }),
     nameEn: payload.name_en || "pokemon",
     level: calcLevel(payload.stats, 0),
     hpMax: 0,
@@ -11415,11 +12605,11 @@ async function loadPokemonEntity(jsonPath) {
 }
 
 function hideStarterModal() {
-  starterModalEl.classList.add("hidden");
+  hideModalWithTween(starterModalEl);
 }
 
 function showStarterModal() {
-  starterModalEl.classList.remove("hidden");
+  showModalWithTween(starterModalEl);
 }
 
 function renderStarterChoices() {
@@ -11623,7 +12813,7 @@ function applyAutoGrantedProgress(pokemonId, level = 1) {
   incrementSpeciesStat(pokemonId, "encountered", false, 1);
   incrementSpeciesStat(pokemonId, "captured", false, 1);
   const baseCaptureCoinReward = familyOwnedBeforeCapture
-    ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE ? COIN_REWARD_PER_CAPTURE : 0)
+    ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE ? COIN_REWARD_PER_CAPTURE : 0)
     : COIN_REWARD_PER_CAPTURE;
   const firstCaptureBonus = capturedBefore <= 0 ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0;
   addCoins(baseCaptureCoinReward + firstCaptureBonus);
@@ -11769,13 +12959,33 @@ function resetOnlyOneEncounterCycle(routeId = null) {
 
 function incrementOnlyOneEncounterCycle(routeId = null) {
   const cycle = ensureOnlyOneEncounterCycleRoute(routeId);
+  if (!isOnlyOneEncounterCycleArmed(routeId)) {
+    cycle.normalCount = 0;
+    return cycle;
+  }
   cycle.normalCount = clamp(toSafeInt(cycle.normalCount, 0) + 1, 0, ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN);
   return cycle;
 }
 
 function shouldSpawnOnlyOneEncounter(routeId = null) {
   const cycle = ensureOnlyOneEncounterCycleRoute(routeId);
+  if (!isOnlyOneEncounterCycleArmed(routeId)) {
+    cycle.normalCount = 0;
+    return false;
+  }
   return cycle.normalCount >= ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN;
+}
+
+function isOnlyOneEncounterCycleArmed(routeId = null) {
+  const activeRouteId = String(routeId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
+  const progressState = getRouteUnlockProgressState(activeRouteId);
+  if (!progressState.nextRouteId) {
+    return true;
+  }
+  if (progressState.unlockMode !== "defeats" || progressState.unlockTarget <= 0) {
+    return true;
+  }
+  return progressState.nextUnlocked || progressState.currentDefeats >= progressState.unlockTarget;
 }
 
 function pickEncounterForCurrentRoute(routeData) {
@@ -11788,7 +12998,8 @@ function pickEncounterForCurrentRoute(routeData) {
     allowDisabledMethods: ENCOUNTER_METHOD_ONLY_ONE_ALLOW_SET,
   });
   const hasOnlyOneEncounters = onlyOneEncounters.length > 0;
-  if (hasOnlyOneEncounters && shouldSpawnOnlyOneEncounter(activeRouteId)) {
+  const onlyOneCycleArmed = isOnlyOneEncounterCycleArmed(activeRouteId);
+  if (hasOnlyOneEncounters && onlyOneCycleArmed && shouldSpawnOnlyOneEncounter(activeRouteId)) {
     const pickedOnlyOne = weightedPick(onlyOneEncounters);
     if (pickedOnlyOne) {
       resetOnlyOneEncounterCycle(activeRouteId);
@@ -11811,7 +13022,8 @@ function pickEncounterForCurrentRoute(routeData) {
   }
 
   const fallbackOnlyOne = weightedPick(onlyOneEncounters);
-  if (fallbackOnlyOne) {
+  const allowOnlyOneFallback = onlyOneCycleArmed || normalEncounters.length <= 0;
+  if (fallbackOnlyOne && allowOnlyOneFallback) {
     resetOnlyOneEncounterCycle(activeRouteId);
     return {
       encounter: fallbackOnlyOne,
@@ -12041,12 +13253,13 @@ function handleEnemyDefeated(enemy) {
   const awardCaptureCoinReward = () => {
     const speciesRecord = ensureSpeciesStats(enemy.id);
     const isFirstCapture = getCapturedTotal(speciesRecord) <= 0;
-    const baseCaptureCoinChance = familyOwnedBeforeCapture ? COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE : 1;
-    const adjustedCaptureCoinChance = clamp(
-      Math.max(MIN_CAPTURE_COIN_CHANCE, baseCaptureCoinChance * coinChanceMultiplier),
-      MIN_CAPTURE_COIN_CHANCE,
-      1,
-    );
+    const adjustedCaptureCoinChance = familyOwnedBeforeCapture
+      ? getFamilyOwnedCaptureCoinChanceFromLevelDiff(teamLevelDiff)
+      : clamp(
+        Math.max(MIN_CAPTURE_COIN_CHANCE, coinChanceMultiplier),
+        MIN_CAPTURE_COIN_CHANCE,
+        1,
+      );
     const baseCaptureCoinReward = Math.random() < adjustedCaptureCoinChance ? COIN_REWARD_PER_CAPTURE : 0;
     addCoins(baseCaptureCoinReward + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
   };
@@ -12169,7 +13382,7 @@ function chooseStarter(starterId) {
 }
 
 function startBattle() {
-  state.layout = computeLayout();
+  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   if (!state.team.length || !isCurrentRouteCombatEnabled()) {
     state.battle = null;
     state.enemy = null;
@@ -12193,12 +13406,16 @@ function setTopMessage(text, durationMs = 1200) {
   if (!text) {
     return null;
   }
-  return pushTemporaryNotification(String(text), durationMs, { tone: "info" });
+  const normalized = normalizeUiDisplayText(text, { frenchTypography: true }).trim();
+  if (!normalized) {
+    return null;
+  }
+  return pushTemporaryNotification(normalized, durationMs, { tone: "info" });
 }
 
 function getRouteDisplayName(routeId) {
   const id = String(routeId || DEFAULT_ROUTE_ID);
-  return state.routeCatalog.get(id)?.route_name_fr || id;
+  return normalizeUiDisplayText(state.routeCatalog.get(id)?.route_name_fr || id, { frenchTypography: true });
 }
 
 function getRouteNavigationState() {
@@ -12316,7 +13533,7 @@ function applyRouteChange(routeId, options = {}) {
 
   persistSaveData();
   updateHud();
-  state.layout = computeLayout();
+  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   render();
 
   if (announce) {
@@ -12628,30 +13845,6 @@ async function useEvolutionStoneFromShop(stoneType) {
   return true;
 }
 
-function setBallTypeAsActive(ballType) {
-  if (!state.saveData) {
-    return false;
-  }
-  const type = String(ballType || "").toLowerCase().trim();
-  if (!Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type)) {
-    return false;
-  }
-  if (getBallInventoryCount(type) <= 0) {
-    setTopMessage(`Aucune ${BALL_CONFIG_BY_TYPE[type].nameFr} en stock.`, 1400);
-    return false;
-  }
-  if (isBallTypeComingSoon(type)) {
-    setTopMessage(`${BALL_CONFIG_BY_TYPE[type].nameFr}: bientot disponible.`, 1400);
-    return false;
-  }
-  setActiveBallType(type);
-  persistSaveData();
-  updateHud();
-  renderShopModal();
-  setTopMessage(`${BALL_CONFIG_BY_TYPE[type].nameFr} equipee pour les captures.`, 1400);
-  return true;
-}
-
 function buyShopItem(itemId) {
   if (!state.saveData) {
     return false;
@@ -12802,7 +13995,6 @@ function createShopItemCard(item) {
 
   if (item.itemType === "ball") {
     const stockCount = getBallInventoryCount(item.ballType);
-    const isActive = getActiveBallType() === item.ballType;
     const isComingSoon = isBallTypeComingSoon(item.ballType);
     const remainingCapacity = getBallInventoryRemainingCapacity(item.ballType);
     const stockMaxReached = remainingCapacity <= 0;
@@ -12818,7 +14010,7 @@ function createShopItemCard(item) {
       canAffordItem = false;
       isComingSoonItem = true;
     } else {
-      stockEl.textContent = `Stock: ${stockCount}/${BALL_INVENTORY_MAX_PER_TYPE} • Actif: ${isActive ? "Oui" : "Non"}`;
+      stockEl.textContent = `Stock: ${stockCount}/${BALL_INVENTORY_MAX_PER_TYPE}`;
       primaryButton.textContent = getShopBuyQuantityButtonLabel(item);
       if (pricing.freeQuantity > 0) {
         stockEl.textContent += " | 1ere ball offerte";
@@ -12838,16 +14030,6 @@ function createShopItemCard(item) {
           stockEl.textContent += ` | Manque: ${formatPokeDollarValue(missingMoney)} Poke$`;
         }
       }
-
-      const equipButton = document.createElement("button");
-      equipButton.type = "button";
-      equipButton.className = "shop-item-buy-btn is-secondary";
-      equipButton.textContent = isActive ? "Actif" : "Equiper";
-      equipButton.disabled = isActive || stockCount <= 0;
-      equipButton.addEventListener("click", () => {
-        setBallTypeAsActive(item.ballType);
-      });
-      actionRow.appendChild(equipButton);
     }
   } else if (item.itemType === "boost") {
     const remainingMs = getAttackBoostRemainingMs();
@@ -12916,7 +14098,7 @@ function renderShopModal() {
 
   if (shopModalSubtitleEl) {
     if (activeTab === SHOP_TAB_POKEBALLS) {
-      shopModalSubtitleEl.textContent = "Achete des balls et choisis celle utilisee pour les captures.";
+      shopModalSubtitleEl.textContent = "Achete des balls et configure les regles de capture depuis les compteurs en combat.";
     } else if (activeTab === SHOP_TAB_COMBAT) {
       shopModalSubtitleEl.textContent = "Objets de combat temporaires pour accelerer les attaques.";
     } else {
@@ -12963,16 +14145,17 @@ function setShopOpen(open) {
     clearCanvasHoverState();
     closeRenameModal();
     closeBoxesModal();
+    closePokedexModal();
     closeAppearanceModal();
     closeEvolutionItemChoiceModal(null);
-    shopModalEl.classList.remove("hidden");
+    showModalWithTween(shopModalEl);
     if (!state.ui.shopTab) {
       state.ui.shopTab = SHOP_TAB_POKEBALLS;
     }
     setShopTab(state.ui.shopTab);
   } else {
     closeEvolutionItemChoiceModal(null);
-    shopModalEl.classList.add("hidden");
+    hideModalWithTween(shopModalEl);
   }
 }
 
@@ -13073,11 +14256,12 @@ function setMapOpen(open) {
     clearCanvasHoverState();
     closeRenameModal();
     closeBoxesModal();
+    closePokedexModal();
     closeAppearanceModal();
     closeEvolutionItemChoiceModal(null);
     setShopOpen(false);
     applyMapReferenceImage();
-    mapModalEl.classList.remove("hidden");
+    showModalWithTween(mapModalEl);
     syncMapMarkerLayerBounds();
     renderMapModal();
     window.requestAnimationFrame(() => {
@@ -13088,7 +14272,7 @@ function setMapOpen(open) {
       renderMapModal();
     });
   } else {
-    mapModalEl.classList.add("hidden");
+    hideModalWithTween(mapModalEl);
   }
 }
 
@@ -13108,6 +14292,11 @@ function setGachaStatusText(text) {
     return;
   }
   gachaStatusEl.textContent = String(text || "");
+}
+
+function waitForGachaDelay(durationMs) {
+  const safeDurationMs = Math.max(0, Math.round(Number(durationMs) || 0));
+  return new Promise((resolve) => window.setTimeout(resolve, safeDurationMs));
 }
 
 function clearGachaResultPanel() {
@@ -13253,8 +14442,15 @@ function getGachaRewardTargetOffsetPx(rewardIndex) {
   if (!(rewardElement instanceof HTMLElement)) {
     return 0;
   }
+  let contentWidth = gachaReelWindowEl.clientWidth;
+  if (typeof window.getComputedStyle === "function") {
+    const reelWindowStyles = window.getComputedStyle(gachaReelWindowEl);
+    const paddingLeft = Math.max(0, parseFloat(reelWindowStyles.paddingLeft || "0") || 0);
+    const paddingRight = Math.max(0, parseFloat(reelWindowStyles.paddingRight || "0") || 0);
+    contentWidth = Math.max(0, gachaReelWindowEl.clientWidth - paddingLeft - paddingRight);
+  }
   const rewardCenter = rewardElement.offsetLeft + rewardElement.offsetWidth * 0.5;
-  const windowCenter = gachaReelWindowEl.clientWidth * 0.5;
+  const windowCenter = contentWidth * 0.5;
   return Math.max(0, rewardCenter - windowCenter);
 }
 
@@ -13318,7 +14514,7 @@ function closeGachaModal(options = {}) {
   }
   state.ui.gachaOpen = false;
   if (gachaModalEl) {
-    gachaModalEl.classList.add("hidden");
+    hideModalWithTween(gachaModalEl);
   }
   resetGachaUiState();
   clearGachaResultPanel();
@@ -13385,12 +14581,13 @@ function setGachaOpen(open) {
     clearCanvasHoverState();
     closeRenameModal();
     closeBoxesModal();
+    closePokedexModal();
     closeAppearanceModal();
     closeEvolutionItemChoiceModal(null);
     setMapOpen(false);
     setShopOpen(false);
     state.ui.gachaOpen = true;
-    gachaModalEl.classList.remove("hidden");
+    showModalWithTween(gachaModalEl);
     populateGachaPreviewReel(getGachaSkinCandidates(), { forceRefresh: true });
     renderGachaModal();
     return;
@@ -13443,8 +14640,10 @@ async function unlockGachaRewardSkin(reward) {
     record.appearance_selected_variant = defaultVariantId || variant.id;
   }
   reconcileAppearanceForEntityRecord(record, pokemonId);
-  await ensureVariantAppearanceAssetsLoaded(def, variant, {
+  void ensureVariantAppearanceAssetsLoaded(def, variant, {
     includeShiny: false,
+  }).catch((error) => {
+    console.warn("Gacha asset preload failed", error);
   });
   return {
     pokemonId,
@@ -13500,40 +14699,11 @@ async function startGachaSpin() {
   }
   state.gacha.reelItems = reelItems.slice();
   state.gacha.reelRewardIndex = GACHA_REEL_REWARD_INDEX;
-
-  renderGachaReelItems(reelItems, GACHA_REEL_REWARD_INDEX);
-  if (gachaReelTrackEl) {
-    gachaReelTrackEl.style.transition = "none";
-    gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
-    gachaReelTrackEl.style.setProperty("--gacha-spin-ms", `${GACHA_SPIN_DURATION_MS}ms`);
-  }
-
-  updateHud();
-  persistSaveData();
-
-  await new Promise((resolve) => window.requestAnimationFrame(resolve));
-  const targetOffsetPx = getGachaRewardTargetOffsetPx(GACHA_REEL_REWARD_INDEX);
-  state.gacha.reelOffsetPx = targetOffsetPx;
-  if (gachaReelTrackEl) {
-    void gachaReelTrackEl.offsetWidth;
-    gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_DURATION_MS}ms cubic-bezier(0.08, 0.7, 0.14, 1)`;
-    gachaReelTrackEl.style.transform = `translate3d(${-targetOffsetPx}px, 0px, 0px)`;
-  }
-
-  const suspenseAccelerationDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.18);
-  const suspenseSlowdownDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.56);
-  const suspenseFinalDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.82);
-  state.gacha.suspenseTimerIds.push(
-    window.setTimeout(() => setGachaStatusText("Le reel accelere..."), suspenseAccelerationDelayMs),
-    window.setTimeout(() => setGachaStatusText("Ca ralentit... suspense..."), suspenseSlowdownDelayMs),
-    window.setTimeout(() => setGachaStatusText("Encore un instant..."), suspenseFinalDelayMs),
-  );
-
-  await new Promise((resolve) => window.setTimeout(resolve, GACHA_SPIN_DURATION_MS + 120));
-  clearGachaSuspenseTimers();
-
-  const unlockedReward = await unlockGachaRewardSkin(reward);
-  if (unlockedReward) {
+  const setUnlockedRewardResult = (unlockedReward) => {
+    if (!unlockedReward) {
+      setGachaStatusText("Le tirage est termine.");
+      return false;
+    }
     state.gacha.lastReward = unlockedReward;
     renderGachaResultPanel(unlockedReward);
     setGachaStatusText("Incroyable tirage. Nouveau skin debloque.");
@@ -13541,23 +14711,82 @@ async function startGachaSpin() {
       `Gacha: ${unlockedReward.pokemonNameFr} | skin ${unlockedReward.variantLabel} debloque.`,
       2300,
     );
-  } else {
-    setGachaStatusText("Le tirage est termine.");
-  }
+    return true;
+  };
 
-  state.gacha.spinning = false;
-  if (gachaMachineEl) {
-    gachaMachineEl.classList.remove("is-spinning");
-  }
+  try {
+    renderGachaReelItems(reelItems, GACHA_REEL_REWARD_INDEX);
+    if (gachaReelTrackEl) {
+      gachaReelTrackEl.style.transition = "none";
+      gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
+      gachaReelTrackEl.style.setProperty("--gacha-spin-ms", `${GACHA_SPIN_MAIN_SCROLL_DURATION_MS}ms`);
+    }
 
-  rebuildTeamAndSyncBattle();
-  persistSaveData();
-  updateHud();
-  if (state.ui.appearanceOpen) {
-    renderAppearanceModal();
+    updateHud();
+    persistSaveData();
+
+    await new Promise((resolve) => window.requestAnimationFrame(resolve));
+    const targetOffsetPx = getGachaRewardTargetOffsetPx(GACHA_REEL_REWARD_INDEX);
+    const finalSnapLeadPx = Math.min(
+      GACHA_SPIN_FINAL_SNAP_LEAD_PX,
+      Math.max(0, Math.round(targetOffsetPx)),
+    );
+    const preSnapOffsetPx = Math.max(0, targetOffsetPx - finalSnapLeadPx);
+    state.gacha.reelOffsetPx = targetOffsetPx;
+    if (gachaReelTrackEl) {
+      void gachaReelTrackEl.offsetWidth;
+      gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_MAIN_SCROLL_DURATION_MS}ms cubic-bezier(0.08, 0.7, 0.14, 1)`;
+      gachaReelTrackEl.style.transform = `translate3d(${-preSnapOffsetPx}px, 0px, 0px)`;
+    }
+
+    const suspenseAccelerationDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.18);
+    const suspenseSlowdownDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.56);
+    const suspenseFinalDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.82);
+    state.gacha.suspenseTimerIds.push(
+      window.setTimeout(() => setGachaStatusText("Le reel accelere..."), suspenseAccelerationDelayMs),
+      window.setTimeout(() => setGachaStatusText("Ca ralentit... suspense..."), suspenseSlowdownDelayMs),
+      window.setTimeout(() => setGachaStatusText("Encore un instant..."), suspenseFinalDelayMs),
+    );
+
+    await waitForGachaDelay(GACHA_SPIN_MAIN_SCROLL_DURATION_MS);
+    clearGachaSuspenseTimers();
+    setGachaStatusText("Revelation...");
+    if (gachaReelTrackEl) {
+      void gachaReelTrackEl.offsetWidth;
+      gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_FINAL_SNAP_DURATION_MS}ms cubic-bezier(0.2, 0.88, 0.2, 1)`;
+      gachaReelTrackEl.style.transform = `translate3d(${-targetOffsetPx}px, 0px, 0px)`;
+    }
+    await waitForGachaDelay(GACHA_SPIN_FINAL_SNAP_DURATION_MS);
+
+    const unlockedReward = await unlockGachaRewardSkin(reward);
+    setUnlockedRewardResult(unlockedReward);
+  } catch (error) {
+    console.error("Gacha spin failed", error);
+    const recoveredReward = await unlockGachaRewardSkin(reward).catch((recoveryError) => {
+      console.error("Gacha recovery unlock failed", recoveryError);
+      return null;
+    });
+    setUnlockedRewardResult(recoveredReward);
+  } finally {
+    clearGachaSuspenseTimers();
+    state.gacha.spinning = false;
+    if (gachaMachineEl) {
+      gachaMachineEl.classList.remove("is-spinning");
+    }
+
+    try {
+      rebuildTeamAndSyncBattle();
+    } catch (error) {
+      console.error("Failed to rebuild team after gacha spin", error);
+    }
+    persistSaveData();
+    updateHud();
+    if (state.ui.appearanceOpen) {
+      renderAppearanceModal();
+    }
+    renderGachaModal();
+    render();
   }
-  renderGachaModal();
-  render();
 }
 
 function isCoarsePointerDevice() {
@@ -13898,6 +15127,30 @@ function computeLayout() {
     },
     teamSlots,
   };
+}
+
+function refreshLayoutIfNeeded(options = {}) {
+  const force = options?.force === true;
+  const nowMsRaw = options?.nowMs;
+  const nowMs = Number.isFinite(nowMsRaw) ? Math.max(0, Number(nowMsRaw)) : Math.max(0, Number(state.timeMs) || 0);
+  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);
+  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
+  const refresh = state.layoutRefresh || {};
+  const viewportChanged =
+    viewportWidth !== Math.max(0, Number(refresh.viewportWidth) || 0)
+    || viewportHeight !== Math.max(0, Number(refresh.viewportHeight) || 0);
+  const dueAt = Math.max(0, Number(refresh.nextRecomputeAtMs) || 0);
+  if (!force && state.layout && !viewportChanged && nowMs < dueAt) {
+    return state.layout;
+  }
+
+  state.layout = computeLayout();
+  state.layoutRefresh = {
+    viewportWidth,
+    viewportHeight,
+    nextRecomputeAtMs: nowMs + LAYOUT_RECOMPUTE_INTERVAL_MS,
+  };
+  return state.layout;
 }
 
 function getShinySparkleCountForQuality() {
@@ -15072,6 +16325,39 @@ function getEnemyHpPalette(ratio) {
   };
 }
 
+function parseRgbaColor(colorText, fallback = { r: 255, g: 255, b: 255, a: 1 }) {
+  const match = String(colorText || "").match(
+    /rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)/i,
+  );
+  if (!match) {
+    return { ...fallback };
+  }
+  return {
+    r: clamp(Number.parseFloat(match[1]) || 0, 0, 255),
+    g: clamp(Number.parseFloat(match[2]) || 0, 0, 255),
+    b: clamp(Number.parseFloat(match[3]) || 0, 0, 255),
+    a: clamp(Number.parseFloat(match[4] ?? 1) || 1, 0, 1),
+  };
+}
+
+function lerpColorChannel(start, end, t) {
+  return start + (end - start) * clamp(Number(t) || 0, 0, 1);
+}
+
+function getColorLuminance(color) {
+  const r = clamp((Number(color?.r) || 0) / 255, 0, 1);
+  const g = clamp((Number(color?.g) || 0) / 255, 0, 1);
+  const b = clamp((Number(color?.b) || 0) / 255, 0, 1);
+  return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
+
+function pickContrastingHudTextColor(baseColor) {
+  const luminance = getColorLuminance(baseColor);
+  return luminance >= 0.56
+    ? { fill: "rgba(18, 33, 51, 0.98)", stroke: "rgba(240, 248, 255, 0.9)" }
+    : { fill: "rgba(244, 251, 255, 0.98)", stroke: "rgba(12, 22, 34, 0.92)" };
+}
+
 function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
   const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);
@@ -15097,12 +16383,8 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   ctx.save();
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
   ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
-  // Reserve a fixed value area so the HP track width stays stable when number formatting changes.
-  const valueAreaWidth = clamp(Math.round(panelWidth * 0.34), 72, 132);
-  const valueTextRightX = panelX + panelWidth - 8;
-  const valueAreaLeftX = valueTextRightX - valueAreaWidth;
   const trackX = chipX + chipWidth + 8;
-  const trackWidth = Math.max(50, valueAreaLeftX - trackX - 8);
+  const trackWidth = Math.max(50, panelX + panelWidth - trackX - 8);
   const trackRadius = Math.max(2, height * 0.32);
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
@@ -15169,11 +16451,67 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
   ctx.stroke();
 
-  ctx.textAlign = "right";
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
-  ctx.fillStyle = "#c6dbf2";
-  ctx.fillText(hpLabel, valueTextRightX, panelY + panelHeight * 0.56);
+  const hpTextMinSize = 9;
+  let hpTextSize = Math.max(hpTextMinSize, Math.round(panelHeight * 0.5));
+  ctx.font = `700 ${hpTextSize}px Tahoma`;
+  const maxHpLabelWidth = Math.max(24, trackWidth - 10);
+  while (hpTextSize > hpTextMinSize && ctx.measureText(hpLabel).width > maxHpLabelWidth) {
+    hpTextSize -= 1;
+    ctx.font = `700 ${hpTextSize}px Tahoma`;
+  }
+  const labelX = trackX + trackWidth * 0.5;
+  const labelY = trackY + height * 0.52;
+  const filledWidth = trackWidth * frontRatio;
+  const trackBaseColor = { r: 82, g: 95, b: 116, a: 1 };
+  const emptyTextStyle = pickContrastingHudTextColor(trackBaseColor);
+
+  let fillTextStyle = emptyTextStyle;
+  if (frontRatio > 0.001) {
+    const palette = getEnemyHpPalette(frontRatio);
+    const fillStart = parseRgbaColor(palette.start, trackBaseColor);
+    const fillEnd = parseRgbaColor(palette.end, trackBaseColor);
+    const sampledFillColor = {
+      r: lerpColorChannel(fillStart.r, fillEnd.r, 0.5),
+      g: lerpColorChannel(fillStart.g, fillEnd.g, 0.5),
+      b: lerpColorChannel(fillStart.b, fillEnd.b, 0.5),
+      a: lerpColorChannel(fillStart.a, fillEnd.a, 0.5),
+    };
+    fillTextStyle = pickContrastingHudTextColor(sampledFillColor);
+  }
+
+  const drawHpText = (style) => {
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(1.7, hpTextSize * 0.24);
+    ctx.strokeStyle = style.stroke;
+    ctx.strokeText(hpLabel, labelX, labelY);
+    ctx.fillStyle = style.fill;
+    ctx.fillText(hpLabel, labelX, labelY);
+  };
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
+  ctx.clip();
+  if (filledWidth > 0.25) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(trackX - 1, trackY - 2, filledWidth + 2, height + 4);
+    ctx.clip();
+    drawHpText(fillTextStyle);
+    ctx.restore();
+  }
+  if (filledWidth < trackWidth - 0.25) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(trackX + filledWidth - 1, trackY - 2, trackWidth - filledWidth + 2, height + 4);
+    ctx.clip();
+    drawHpText(emptyTextStyle);
+    ctx.restore();
+  }
+  ctx.restore();
   ctx.restore();
 }
 
@@ -15280,13 +16618,16 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   if (!timerState?.running || timerState.duration_ms <= 0) {
     return;
   }
+  const isOnlyOneTimer = String(timerState?.style || "").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;
   const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
   const unlockProgressState = getRouteUnlockProgressState(currentRouteId);
-  const showDefeatCounter = unlockProgressState.unlockMode === "defeats" && unlockProgressState.unlockTarget > 0;
+  const showDefeatCounter =
+    !isOnlyOneTimer &&
+    unlockProgressState.unlockMode === "defeats" &&
+    unlockProgressState.unlockTarget > 0;
   const defeatCounterText = showDefeatCounter
     ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pokemon battus`
     : "";
-  const isOnlyOneTimer = String(timerState?.style || "").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;
   const remainingMs = Math.max(0, Number(timerState.remaining_ms) || 0);
   const remainingSeconds = Math.max(0, remainingMs / 1000);
   const remainingDisplaySeconds = Math.max(0, Math.ceil(remainingSeconds * 10) / 10);
@@ -15305,8 +16646,22 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   const verticalOffset = compactHud
     ? clamp(state.viewport.height * 0.01, 8, 12)
     : clamp(state.viewport.height * 0.012, 10, 18);
+  const overlayPaddingTop = getOverlayPaddingSnapshot().top;
+  const topHudHeight = getElementClientHeight(uiTopbarEl);
+  const hudAnchorY = overlayPaddingTop + topHudHeight + (compactHud ? 2 : 4);
+  const yFromSafeBounds = Number.isFinite(safeTop)
+    ? safeTop + verticalOffset
+    : state.viewport.height * 0.025;
+  const topHudGap = compactHud ? 4 : 6;
+  const preferredY = Number.isFinite(safeTop)
+    ? Math.max(yFromSafeBounds, hudAnchorY + topHudGap)
+    : state.viewport.height * 0.025;
   const y = Number.isFinite(safeTop)
-    ? clamp(safeTop + verticalOffset, 24, state.viewport.height - height - 24)
+    ? clamp(
+      preferredY,
+      compactHud ? 8 : 10,
+      state.viewport.height - height - 24,
+    )
     : clamp(state.viewport.height * 0.025, compactHud ? 8 : 10, compactHud ? 16 : 20);
   const radius = Math.max(2, height * 0.36);
   const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;
@@ -16183,37 +17538,101 @@ function drawEnemyHitEffects(hitEffects) {
 }
 
 function drawFloatingDamageTexts(floatingTexts) {
+  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);
+  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
+  const shortestSide = Math.max(220, Math.min(viewportWidth || 220, viewportHeight || 220));
+  const phoneLike = shortestSide <= 500;
+  const compactScale = phoneLike
+    ? clamp(shortestSide / 500, 0.62, 0.86)
+    : clamp(shortestSide / 900, 0.82, 0.96);
   for (const text of floatingTexts || []) {
     const lifeRatio = clamp(text.lifeMs / Math.max(1, text.maxLifeMs), 0, 1);
-    const alpha = lifeRatio;
-    const rgb = Array.isArray(text.color) ? text.color : [220, 236, 255];
+    const elapsedRatio = 1 - lifeRatio;
+    const tone = String(text.tone || FLOATING_TEXT_TONE_NORMAL);
+    const tonePalette = getFloatingTextTonePalette(tone);
+    const tweenVisual = text.visualTween?.visual || null;
+    const tweenAlpha = clamp(Number(tweenVisual?.alpha ?? 1), 0, 1);
+    const tweenPulse = clamp(Number(tweenVisual?.pulse ?? 0), 0, 1);
+    const baseScale = clamp(Number(text.scaleFactor ?? 1), 0.72, 1.72);
+    const pulseStrength = clamp(Number(text.pulseStrength ?? 0.05), 0, 0.35);
+    const scale = clamp((Number(tweenVisual?.scale ?? 1) * baseScale) * (1 + tweenPulse * pulseStrength), 0.52, 1.85);
+    const alphaFactor = clamp(Number(text.alphaFactor ?? tonePalette.alpha ?? 1), 0.4, 1);
+    const alpha = lifeRatio * tweenAlpha * alphaFactor;
+    const rgb = Array.isArray(text.color) ? text.color : tonePalette.main;
+    const rgbSecondary = Array.isArray(text.colorSecondary) ? text.colorSecondary : tonePalette.secondary;
+    const labelPrimary = String(text.labelPrimary || text.label || "").trim();
+    const labelSecondary = String(text.labelSecondary || "").trim();
+    const hasEffectivenessLabel = Boolean(text.hasEffectivenessLabel);
+    const hasCriticalLabel = Boolean(text.hasCriticalLabel);
+    const numericDamage = Math.max(0, Number(text.damage) || 0);
+    const dynamicFontBoost = clamp(Math.log10(numericDamage + 1) * 3.7, 0, 5);
+    const mainFontSize = Math.round(((text.isMiss ? 16 : 19) + dynamicFontBoost + (tone === FLOATING_TEXT_TONE_CRITICAL ? 1 : 0)) * compactScale);
+    const swayAmplitudePx = clamp((Number(text.swayAmplitudePx) || 0) * compactScale, 0, 22);
+    const swayFrequencyHz = clamp(Number(text.swayFrequencyHz) || 1.4, 0.3, 3.2);
+    const swayPhase = Number(text.swayPhase) || 0;
+    const swayX = Math.sin(elapsedRatio * Math.PI * 2 * swayFrequencyHz + swayPhase) * swayAmplitudePx * (0.45 + lifeRatio * 0.65);
 
     ctx.save();
+    ctx.translate(text.x + swayX, text.y);
+    ctx.scale(scale, scale);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.globalAlpha = alpha;
     ctx.lineJoin = "round";
 
-    ctx.font = "700 24px Trebuchet MS";
-    ctx.lineWidth = 4;
+    ctx.font = `700 ${mainFontSize}px Trebuchet MS`;
+    ctx.lineWidth = Math.max(2, mainFontSize * 0.16);
     ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
     const mainText = text.isMiss
       ? "RATE"
-      : `-${formatCompactNumber(text.damage, {
+      : tone === FLOATING_TEXT_TONE_MISS && numericDamage <= 0
+        ? "0"
+        : `-${formatCompactNumber(text.damage, {
           decimalsSmall: 2,
           decimalsMedium: 1,
           decimalsLarge: 0,
         })}`;
-    ctx.strokeText(mainText, text.x, text.y);
-    ctx.fillStyle = rgba(rgb, 0.98);
-    ctx.fillText(mainText, text.x, text.y);
+    ctx.strokeText(mainText, 0, 0);
+    if (Array.isArray(rgbSecondary) && (rgbSecondary[0] !== rgb[0] || rgbSecondary[1] !== rgb[1] || rgbSecondary[2] !== rgb[2])) {
+      const gradient = ctx.createLinearGradient(0, -mainFontSize * 0.9, 0, mainFontSize * 0.35);
+      gradient.addColorStop(0, rgba(rgbSecondary, 1));
+      gradient.addColorStop(1, rgba(rgb, 0.98));
+      ctx.fillStyle = gradient;
+    } else {
+      ctx.fillStyle = rgba(rgb, 0.98);
+    }
+    ctx.fillText(mainText, 0, 0);
 
-    if (text.label) {
-      ctx.font = "700 12px Trebuchet MS";
-      ctx.lineWidth = 3;
-      ctx.strokeText(text.label, text.x, text.y - 19);
-      ctx.fillStyle = "#f5fbff";
-      ctx.fillText(text.label, text.x, text.y - 19);
+    if (labelPrimary || labelSecondary) {
+      const labels = [];
+      if (labelPrimary) {
+        labels.push(labelPrimary);
+      }
+      if (labelSecondary) {
+        labels.push(labelSecondary);
+      }
+      let labelY = -Math.round(mainFontSize * (labels.length > 1 ? 1.42 : 0.96));
+      labels.forEach((label, index) => {
+        const isPrimaryCriticalLine = index === 0 && hasCriticalLabel;
+        const isEffectivenessLine = hasEffectivenessLabel && !isPrimaryCriticalLine;
+        const size = isPrimaryCriticalLine
+          ? Math.max(7, Math.round(mainFontSize * 0.42))
+          : isEffectivenessLine
+            ? Math.max(6, Math.round(mainFontSize * 0.34))
+            : Math.max(7, Math.round(mainFontSize * 0.38));
+        ctx.font = `700 ${size}px Trebuchet MS`;
+        ctx.lineWidth = Math.max(1.2, size * 0.18);
+        ctx.strokeText(label, 0, labelY);
+        if (isPrimaryCriticalLine) {
+          ctx.fillStyle = rgba(tonePalette.label, 0.9);
+        } else if (isEffectivenessLine) {
+          ctx.fillStyle = rgba(tonePalette.label, 0.62);
+        } else {
+          ctx.fillStyle = "rgba(240, 248, 255, 0.72)";
+        }
+        ctx.fillText(label, 0, labelY);
+        labelY += Math.round(size * 1.08);
+      });
     }
 
     ctx.restore();
@@ -17687,7 +19106,8 @@ function drawBackground(width, height) {
 
 function drawLoadingOrError(text) {
   const { width, height } = state.viewport;
-  drawBackground(width, height);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = "#f7fbff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -17709,30 +19129,42 @@ function drawBallInventoryOverlay(layout) {
     bottom: Math.max(8, state.viewport.height - 8),
   };
   const viewportProfile = layout?.viewportProfile || {};
-  const compact = Boolean(viewportProfile.phone || viewportProfile.compact);
-  const iconSize = compact ? 17 : 21;
-  const rowGap = compact ? 5 : 7;
-  const panelPaddingX = compact ? 8 : 10;
-  const panelPaddingY = compact ? 7 : 9;
-  const iconTextGap = compact ? 7 : 9;
-  const fontSize = compact ? 12 : 14;
-  const rowHeight = iconSize;
+  const isPhone = Boolean(viewportProfile.phone);
+  const compact = Boolean(isPhone || viewportProfile.compact);
+  const iconSize = isPhone ? 14 : compact ? 16 : 22;
+  const rowGap = isPhone ? 3 : compact ? 4 : 6;
+  const panelPaddingX = isPhone ? 5 : 6;
+  const panelPaddingY = isPhone ? 5 : 6;
+  const iconTextGap = isPhone ? 5 : compact ? 6 : 8;
+  const valueFontSize = isPhone ? 12 : compact ? 13 : 16;
+  const rowHeight = isPhone ? 30 : compact ? 34 : 44;
+  const rightInset = isPhone ? 6 : compact ? 8 : 12;
 
   ctx.save();
-  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.font = `800 ${valueFontSize}px Tahoma`;
   ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "alphabetic";
 
-  let maxLabelWidth = 0;
+  let maxValueWidth = 0;
   for (const row of rows) {
-    const label = formatPokeDollarValue(row.count);
-    maxLabelWidth = Math.max(maxLabelWidth, Math.ceil(ctx.measureText(label).width));
+    const value = formatCompactNumber(Math.max(0, toSafeInt(row.count, 0)), {
+      decimalsSmall: 0,
+      decimalsMedium: 0,
+      decimalsLarge: 0,
+    });
+    maxValueWidth = Math.max(maxValueWidth, Math.ceil(ctx.measureText(value).width));
   }
-
-  const panelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxLabelWidth);
+  const dynamicPanelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxValueWidth + rightInset);
+  const targetDesktopRowWidth = 220;
+  const targetCompactRowWidth = isPhone ? 102 : 116;
+  const panelWidth = Math.max(dynamicPanelWidth, (compact ? targetCompactRowWidth : targetDesktopRowWidth) + 6);
   const panelHeight = Math.ceil(panelPaddingY * 2 + rows.length * rowHeight + Math.max(0, rows.length - 1) * rowGap);
   const panelX = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
-  const panelY = clamp(safeBounds.top + 6, 6, state.viewport.height - panelHeight - 6);
+  const overlayPaddingTop = getOverlayPaddingSnapshot().top;
+  const panelTopDefault = safeBounds.top + 6;
+  const panelTopDesktopAligned = overlayPaddingTop + 6;
+  const panelTop = compact ? panelTopDefault : panelTopDesktopAligned;
+  const panelY = clamp(panelTop, 6, state.viewport.height - panelHeight - 6);
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
     cut: compact ? 8 : 10,
@@ -17745,41 +19177,102 @@ function drawBallInventoryOverlay(layout) {
   });
 
   const hitboxes = [];
+  const hoveredType = String(state.ui.hoveredBallOverlayType || "").toLowerCase().trim();
+  const timeMs = Number(state.timeMs) || 0;
   for (let i = 0; i < rows.length; i += 1) {
     const row = rows[i];
-    const centerY = panelY + panelPaddingY + iconSize * 0.5 + i * (rowHeight + rowGap);
-    const rowTop = centerY - rowHeight * 0.5;
-    const rowBottom = centerY + rowHeight * 0.5;
-    const iconCenterX = panelX + panelPaddingX + iconSize * 0.5;
+    const style = BALL_OVERLAY_UI_STYLE_BY_TYPE[row.type] || BALL_OVERLAY_UI_STYLE_DEFAULT;
+    const isHovered = hoveredType === row.type;
+    const hoverPulse = isHovered
+      ? (Math.sin(timeMs * 0.018 + Number(style.phaseOffset || 0)) + 1) * 0.5
+      : 0;
+    const baseRowY = panelY + panelPaddingY + i * (rowHeight + rowGap);
+    const baseRowX = panelX + 3;
+    const baseRowWidth = panelWidth - 6;
+    const baseRowHeight = rowHeight;
+    const rowScale = isHovered ? 1.03 + hoverPulse * 0.02 : 1;
+    const rowWidth = baseRowWidth * rowScale;
+    const rowVisualHeight = baseRowHeight * rowScale;
+    const rowX = baseRowX - (rowWidth - baseRowWidth) * 0.5;
+    const rowY = baseRowY - (rowVisualHeight - baseRowHeight) * 0.5;
+    const centerY = rowY + rowVisualHeight * 0.5;
+    const rowTop = rowY;
+    const rowBottom = rowY + rowVisualHeight;
+    const iconCenterX = rowX + panelPaddingX + iconSize * 0.5;
     const image = row.spritePath ? getCachedSpriteImage(row.spritePath) : null;
-    const label = formatPokeDollarValue(row.count);
+    const valueText = formatCompactNumber(Math.max(0, toSafeInt(row.count, 0)), {
+      decimalsSmall: 0,
+      decimalsMedium: 0,
+      decimalsLarge: 0,
+    });
 
+    drawRetroHudPanel(rowX, rowY, rowWidth, rowVisualHeight, {
+      cut: compact ? 6 : 8,
+      fillTop: style.rowFillTop,
+      fillBottom: style.rowFillBottom,
+      border: style.rowBorder,
+      highlight: "rgba(255, 255, 255, 0.2)",
+      shadow: isHovered ? style.glow : "rgba(0, 0, 0, 0.3)",
+      borderWidth: isHovered ? 1.5 : 1.15,
+    });
+
+    const badgeRadius = iconSize * 0.6;
+    const badgeGradient = ctx.createLinearGradient(
+      iconCenterX - badgeRadius,
+      centerY - badgeRadius,
+      iconCenterX,
+      centerY + badgeRadius,
+    );
+    badgeGradient.addColorStop(0, style.iconTop || BALL_OVERLAY_UI_STYLE_DEFAULT.iconTop);
+    badgeGradient.addColorStop(1, style.iconBottom || BALL_OVERLAY_UI_STYLE_DEFAULT.iconBottom);
+    ctx.fillStyle = badgeGradient;
+    ctx.beginPath();
+    ctx.arc(iconCenterX, centerY, badgeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.34)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const iconScale = isHovered ? 1 + 0.04 + hoverPulse * 0.05 : 1;
+    const iconDrawSize = iconSize * iconScale * 0.95;
     if (isDrawableImage(image)) {
-      const drawX = snapSpriteValue(iconCenterX - iconSize * 0.5);
-      const drawY = snapSpriteValue(centerY - iconSize * 0.5);
-      const drawSize = snapSpriteDimension(iconSize);
+      const drawX = snapSpriteValue(iconCenterX - iconDrawSize * 0.5);
+      const drawY = snapSpriteValue(centerY - iconDrawSize * 0.5);
+      const drawSize = snapSpriteDimension(iconDrawSize);
       const wasSmoothing = ctx.imageSmoothingEnabled;
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(image, drawX, drawY, drawSize, drawSize);
       ctx.imageSmoothingEnabled = wasSmoothing;
     } else {
-      drawPokeball(iconCenterX, centerY, iconSize * 0.48, {
+      drawPokeball(iconCenterX, centerY, iconDrawSize * 0.48, {
         alpha: 0.92,
       });
     }
 
-    const textX = panelX + panelPaddingX + iconSize + iconTextGap;
+    const textX = rowX + panelPaddingX + iconSize + iconTextGap;
+    const valueY = rowY + (compact ? 21 : 24);
     ctx.strokeStyle = "rgba(6, 12, 20, 0.84)";
-    ctx.lineWidth = 3;
-    ctx.fillStyle = "rgba(232, 242, 255, 0.96)";
-    ctx.strokeText(label, textX, centerY + 0.2);
-    ctx.fillText(label, textX, centerY + 0.2);
+    ctx.lineWidth = 2.8;
+    ctx.fillStyle = style.text;
+    if (isHovered) {
+      ctx.shadowColor = style.glow;
+      ctx.shadowBlur = 10 + hoverPulse * 8;
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+    }
+    ctx.font = `800 ${valueFontSize}px Tahoma`;
+    ctx.strokeText(valueText, textX, valueY);
+    ctx.fillText(valueText, textX, valueY);
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
     hitboxes.push({
       ballType: row.type,
       x: panelX + 2,
-      y: Math.max(panelY + 2, rowTop - 2),
+      y: Math.max(panelY + 2, rowTop),
       width: Math.max(8, panelWidth - 4),
-      height: Math.max(8, (rowBottom - rowTop) + 4),
+      height: Math.max(8, rowBottom - rowTop),
     });
   }
 
@@ -17985,8 +19478,8 @@ function render() {
   ctx.clearRect(0, 0, width, height);
 
   if (state.mode === "loading") {
-    drawLoadingOrError("Chargement de l'arene...");
-    drawVersionOverlay();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
     return;
   }
   if (state.mode === "error") {
@@ -17995,8 +19488,7 @@ function render() {
     return;
   }
 
-  const layout = state.layout || computeLayout();
-  state.layout = layout;
+  const layout = refreshLayoutIfNeeded({ nowMs: state.timeMs });
   const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();
   const routeCombatEnabled = isCurrentRouteCombatEnabled();
   const hasTeamMembers = state.team.length > 0;
@@ -18025,10 +19517,11 @@ function render() {
       const hoverPulse = getHoveredTeamSlotPulse(i);
       const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;
       const teleportScale = state.battle ? state.battle.getSlotTeleportScale(i) : 1;
+      const skipTurnVisual = state.battle ? state.battle.getSlotSkipTurnVisual(i) : null;
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
       const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
-      const drawX = slot.x + recoilOffset.x;
-      const drawY = slot.y + recoilOffset.y - hoverLift;
+      const drawX = slot.x + recoilOffset.x + Number(skipTurnVisual?.offsetX || 0);
+      const drawY = slot.y + recoilOffset.y + Number(skipTurnVisual?.offsetY || 0) - hoverLift;
       const teamBreath = member
         ? getPokemonBreathTransform(member, spriteSize, i, { active: true })
         : { scaleX: 1, scaleY: 1, offsetY: 0 };
@@ -18040,6 +19533,9 @@ function render() {
         hoverPulse,
         chargeGlow,
         teleportScale,
+        skipScaleX: Number(skipTurnVisual?.scaleX || 1),
+        skipScaleY: Number(skipTurnVisual?.scaleY || 1),
+        skipGrayscaleBlend: clamp(Number(skipTurnVisual?.grayscaleBlend || 0), 0, 1),
         hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,
         chargeScale: chargeGlow > 0 ? 1 + chargeGlow * 0.042 : 1,
       };
@@ -18150,15 +19646,27 @@ function render() {
       const hoverScale = drawPosition.hoverScale || 1;
       const chargeScale = drawPosition.chargeScale || 1;
       const teleportScale = drawPosition.teleportScale || 1;
+      const skipScaleX = drawPosition.skipScaleX || 1;
+      const skipScaleY = drawPosition.skipScaleY || 1;
+      const skipGrayscaleBlend = clamp(Number(drawPosition.skipGrayscaleBlend || 0), 0, 1);
+      const skipShader = skipGrayscaleBlend > 0.001
+        ? {
+            saturate: lerpNumber(1, 0, skipGrayscaleBlend),
+            brightness: lerpNumber(1, 0.82, skipGrayscaleBlend),
+            contrast: lerpNumber(1, 1.08, skipGrayscaleBlend),
+          }
+        : null;
+      const memberShader = member?.spriteShader && typeof member.spriteShader === "object" ? member.spriteShader : null;
       drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
-        scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale,
-        scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale,
+        scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale * skipScaleX,
+        scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale * skipScaleY,
         offsetY: teamBreath.offsetY,
         flipX: shouldFlipTeamSprite(i),
         shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
         ultraShinyVisual: Boolean(forceUltraShinyAll || member.isUltraShiny || member.isUltraShinyVisual),
         tintBlend: state.battle ? state.battle.getSlotAttackFlashBlend(i) : 0,
         tintColor: [255, 255, 255],
+        shader: skipShader ? mergeSpriteShaderConfig(memberShader, skipShader) : null,
       });
     }
     drawTeamDragSwapOverlay(layout);
@@ -18187,6 +19695,7 @@ function render() {
 function update(deltaMs, options = {}) {
   const idleMode = Boolean(options.idleMode);
   state.timeMs += deltaMs;
+  tweenGroup.update(state.timeMs);
   updateEnvironment();
   updateHappinessEvolutionBoxProgress(deltaMs);
   updateNotificationSystem();
@@ -18198,8 +19707,9 @@ function update(deltaMs, options = {}) {
   if (state.ui.gachaOpen) {
     renderGachaModal();
   }
-  const layout = computeLayout();
-  state.layout = layout;
+  const layout = idleMode
+    ? (state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs }))
+    : refreshLayoutIfNeeded({ nowMs: state.timeMs });
   updateEvolutionAnimation(deltaMs);
 
   state.simulationIdleMode = idleMode;
@@ -18266,7 +19776,7 @@ function resizeCanvas() {
   ctx.setTransform(effectiveDpr, 0, 0, effectiveDpr, 0, 0);
 
   state.viewport = { width, height, dpr: effectiveDpr, deviceDpr, renderScale };
-  state.layout = computeLayout();
+  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   render();
 }
 
@@ -18284,6 +19794,7 @@ function isCanvasBattleInteractionBlocked() {
   return Boolean(
     state.mode !== "ready"
     || state.ui.boxesOpen
+    || state.ui.pokedexOpen
     || state.ui.appearanceOpen
     || state.ui.renameOpen
     || state.ui.tutorialOpen
@@ -18333,6 +19844,64 @@ function setHoveredTeamSlotIndex(slotIndex) {
   syncCanvasInteractionCursor();
 }
 
+function getNormalizedPointerType(pointerType) {
+  return String(pointerType || "").toLowerCase().trim();
+}
+
+function isPrimaryCanvasPointerEvent(event) {
+  const pointerType = getNormalizedPointerType(event?.pointerType);
+  if (pointerType === "mouse") {
+    return Number(event?.button) === 0;
+  }
+  if (typeof event?.isPrimary === "boolean" && !event.isPrimary) {
+    return false;
+  }
+  return true;
+}
+
+function isEventFromActiveTeamDragPointer(event) {
+  const activePointerId = toSafeInt(state.ui.teamDragPointerId, -1);
+  if (activePointerId < 0) {
+    return true;
+  }
+  return toSafeInt(event?.pointerId, -2) === activePointerId;
+}
+
+function captureCanvasPointer(pointerId) {
+  const safePointerId = toSafeInt(pointerId, -1);
+  if (!canvas || safePointerId < 0 || typeof canvas.setPointerCapture !== "function") {
+    return;
+  }
+  try {
+    canvas.setPointerCapture(safePointerId);
+  } catch (_) {
+    // Pointer capture can fail on unsupported devices; drag still works without it.
+  }
+}
+
+function releaseCanvasPointer(pointerId) {
+  const safePointerId = toSafeInt(pointerId, -1);
+  if (!canvas || safePointerId < 0 || typeof canvas.releasePointerCapture !== "function") {
+    return;
+  }
+  try {
+    if (typeof canvas.hasPointerCapture === "function" && !canvas.hasPointerCapture(safePointerId)) {
+      return;
+    }
+    canvas.releasePointerCapture(safePointerId);
+  } catch (_) {
+    // Ignore release errors if capture was already dropped by the browser.
+  }
+}
+
+function getTeamDragActivationDistancePx(pointerType) {
+  const normalizedPointerType = getNormalizedPointerType(pointerType || state.ui.teamDragPointerType);
+  if (normalizedPointerType === "touch") {
+    return TEAM_DRAG_START_DISTANCE_PX * 1.4;
+  }
+  return TEAM_DRAG_START_DISTANCE_PX;
+}
+
 function isTeamSlotSwapAllowed(routeId = null) {
   return getTeamBoxesAccessState(routeId).allowed;
 }
@@ -18345,6 +19914,7 @@ function clearTeamDragState(options = {}) {
       Date.now() + suppressClickMs,
     );
   }
+  releaseCanvasPointer(state.ui.teamDragPointerId);
   state.ui.teamDragActive = false;
   state.ui.teamDragMoved = false;
   state.ui.teamDragSourceSlotIndex = -1;
@@ -18353,6 +19923,8 @@ function clearTeamDragState(options = {}) {
   state.ui.teamDragStartClientY = 0;
   state.ui.teamDragCurrentWorldX = 0;
   state.ui.teamDragCurrentWorldY = 0;
+  state.ui.teamDragPointerId = -1;
+  state.ui.teamDragPointerType = "";
   syncCanvasInteractionCursor();
 }
 
@@ -18370,6 +19942,8 @@ function beginTeamDragForSlot(slotIndex, pointerPosition) {
   state.ui.teamDragStartClientY = Number(pointerPosition?.clientY || 0);
   state.ui.teamDragCurrentWorldX = Number(pointerPosition?.worldX || 0);
   state.ui.teamDragCurrentWorldY = Number(pointerPosition?.worldY || 0);
+  state.ui.teamDragPointerId = toSafeInt(pointerPosition?.pointerId, -1);
+  state.ui.teamDragPointerType = getNormalizedPointerType(pointerPosition?.pointerType);
   syncCanvasInteractionCursor();
   return true;
 }
@@ -18425,7 +19999,7 @@ function closeBallCaptureMenu() {
   state.ui.ballCaptureMenuOpen = false;
   state.ui.ballCaptureMenuBallType = "";
   if (ballCaptureMenuEl) {
-    ballCaptureMenuEl.classList.add("hidden");
+    hidePopupWithTween(ballCaptureMenuEl);
   }
   syncCanvasInteractionCursor();
 }
@@ -18435,7 +20009,7 @@ function closeTeamContextMenu() {
   state.ui.teamContextMenuSlotIndex = -1;
   state.ui.teamContextMenuPokemonId = null;
   if (teamContextMenuEl) {
-    teamContextMenuEl.classList.add("hidden");
+    hidePopupWithTween(teamContextMenuEl);
   }
   syncCanvasInteractionCursor();
 }
@@ -18453,7 +20027,7 @@ function closeRenameModal() {
   state.ui.renameSlotIndex = -1;
   state.ui.renamePokemonId = null;
   if (renameModalEl) {
-    renameModalEl.classList.add("hidden");
+    hideModalWithTween(renameModalEl);
   }
   if (renameInputEl) {
     renameInputEl.value = "";
@@ -18488,7 +20062,7 @@ function openRenameModalForTeamSlot(slotIndex) {
     renameInputEl.value = nickname;
   }
   refreshRenameCharCount();
-  renameModalEl.classList.remove("hidden");
+  showModalWithTween(renameModalEl);
   window.requestAnimationFrame(() => {
     renameInputEl?.focus();
     renameInputEl?.select();
@@ -18540,20 +20114,29 @@ function clearCanvasHoverState() {
 }
 
 function hideHoverPopup() {
-  hoverPopupEl.classList.add("hidden");
+  if (!hoverPopupEl) {
+    return;
+  }
+  const popupState = getUiAnimationState(hoverPopupEl);
+  if (hoverPopupEl.classList.contains("hidden") || popupState?.phase === "hiding") {
+    return;
+  }
+  hidePopupWithTween(hoverPopupEl);
 }
 
-function findHoveredTeamSlot(worldX, worldY, layout) {
+function findHoveredTeamSlot(worldX, worldY, layout, options = {}) {
   if (!layout) {
     return null;
   }
+  const pointerType = getNormalizedPointerType(options?.pointerType);
+  const radiusMultiplier = pointerType === "touch" ? 0.46 : 0.34;
   for (let i = 0; i < state.team.length; i += 1) {
     const member = state.team[i];
     const slot = layout.teamSlots[i];
     if (!member || !slot) {
       continue;
     }
-    const radius = slot.size * 0.34;
+    const radius = slot.size * radiusMultiplier;
     if (Math.hypot(worldX - slot.x, worldY - slot.y) <= radius) {
       return { slotIndex: i, member, slot };
     }
@@ -18623,7 +20206,7 @@ function showHoverPopup(entity, clientX, clientY) {
   const popupY = Math.round(clientY + 14);
   hoverPopupEl.style.left = `${popupX}px`;
   hoverPopupEl.style.top = `${popupY}px`;
-  hoverPopupEl.classList.remove("hidden");
+  showTooltipWithTween(hoverPopupEl);
 }
 
 function positionFloatingMenuElement(menuEl, clientX, clientY) {
@@ -18716,7 +20299,7 @@ function openBallCaptureMenu(ballType, clientX, clientY) {
   setHoveredTeamSlotIndex(-1);
   hideHoverPopup();
   refreshBallCaptureMenu();
-  ballCaptureMenuEl.classList.remove("hidden");
+  showPopupWithTween(ballCaptureMenuEl);
   positionFloatingMenuElement(ballCaptureMenuEl, clientX, clientY);
 }
 
@@ -18736,6 +20319,7 @@ function toggleBallCaptureRule(ruleKey) {
     nextRules[BALL_CAPTURE_RULE_CAPTURE_ALL] = nextCaptureAll;
     if (nextCaptureAll) {
       nextRules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] = true;
+      nextRules[BALL_CAPTURE_RULE_CAPTURE_OWNED] = true;
       nextRules[BALL_CAPTURE_RULE_CAPTURE_SHINY] = true;
       nextRules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY] = true;
     }
@@ -18744,6 +20328,7 @@ function toggleBallCaptureRule(ruleKey) {
     nextRules[key] = !Boolean(currentRules[key]);
     const allSubRulesEnabled =
       Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED])
+      && Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_OWNED])
       && Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_SHINY])
       && Boolean(nextRules[BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY]);
     if (allSubRulesEnabled) {
@@ -18808,7 +20393,7 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   hideHoverPopup();
   refreshTeamContextMenu();
 
-  teamContextMenuEl.classList.remove("hidden");
+  showPopupWithTween(teamContextMenuEl);
   positionFloatingMenuElement(teamContextMenuEl, clientX, clientY);
 }
 
@@ -18938,6 +20523,903 @@ function getTotalShinyCapturesGlobal() {
   return total;
 }
 
+function cancelQueuedPokedexGridRender() {
+  if (pokedexRenderRafHandle > 0) {
+    window.cancelAnimationFrame(pokedexRenderRafHandle);
+    pokedexRenderRafHandle = 0;
+  }
+}
+
+function cancelQueuedPokedexViewportRender() {
+  if (pokedexViewportRenderRafHandle > 0) {
+    window.cancelAnimationFrame(pokedexViewportRenderRafHandle);
+    pokedexViewportRenderRafHandle = 0;
+  }
+}
+
+function invalidatePokedexEntriesCache(options = {}) {
+  pokedexEntriesCacheDirty = true;
+  if (options?.resetSlice) {
+    pokedexVirtualLastSliceKey = "";
+    pokedexVirtualLastStartIndex = 0;
+    pokedexVirtualLastEndIndex = 0;
+  }
+}
+
+function queuePokedexGridRender() {
+  if (!state.ui.pokedexOpen || !state.saveData) {
+    return;
+  }
+  if (pokedexRenderRafHandle > 0) {
+    return;
+  }
+  pokedexRenderRafHandle = window.requestAnimationFrame(() => {
+    pokedexRenderRafHandle = 0;
+    if (!state.ui.pokedexOpen || !state.saveData) {
+      return;
+    }
+    renderPokedexGrid();
+  });
+}
+
+function queuePokedexViewportRender() {
+  if (!state.ui.pokedexOpen || !state.saveData || !pokedexGridEl) {
+    return;
+  }
+  if (pokedexViewportRenderRafHandle > 0) {
+    return;
+  }
+  pokedexViewportRenderRafHandle = window.requestAnimationFrame(() => {
+    pokedexViewportRenderRafHandle = 0;
+    if (!state.ui.pokedexOpen || !state.saveData) {
+      return;
+    }
+    renderPokedexViewportSlice();
+  });
+}
+
+function buildPokedexSpeciesHintMap() {
+  const hintsById = new Map();
+  const setHint = (idRaw, hint = {}) => {
+    const id = Number(idRaw || 0);
+    if (id <= 0) {
+      return;
+    }
+    const previous = hintsById.get(id) || {};
+    const nameFr = String(hint.nameFr || previous.nameFr || "").trim();
+    const nameEn = String(hint.nameEn || previous.nameEn || "").toLowerCase().trim();
+    hintsById.set(id, { nameFr, nameEn });
+  };
+
+  for (const starter of STARTER_CHOICES) {
+    setHint(starter.id, { nameEn: starter.nameEn });
+  }
+
+  if (state.routeCatalog instanceof Map) {
+    for (const routeData of state.routeCatalog.values()) {
+      const encounters = Array.isArray(routeData?.encounters) ? routeData.encounters : [];
+      for (const encounter of encounters) {
+        setHint(encounter?.id, {
+          nameFr: encounter?.name_fr,
+          nameEn: encounter?.name_en,
+        });
+      }
+    }
+  }
+
+  if (state.saveData?.pokemon_entities && typeof state.saveData.pokemon_entities === "object") {
+    for (const [rawId, rawRecord] of Object.entries(state.saveData.pokemon_entities)) {
+      const recordId = Number(rawRecord?.id || rawId || 0);
+      setHint(recordId, {
+        nameFr: rawRecord?.name_fr,
+        nameEn: rawRecord?.species_name_en || rawRecord?.name_en,
+      });
+    }
+  }
+
+  for (const [id, def] of state.pokemonDefsById.entries()) {
+    setHint(id, { nameFr: def?.nameFr, nameEn: def?.nameEn });
+  }
+
+  return hintsById;
+}
+
+function normalizePokedexSpeciesNameEn(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function getPokedexVariantPreferenceByPokemonId(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id >= 387 && id <= 493) {
+    return POKEDEX_VARIANT_PREFERENCE_GEN_4;
+  }
+  return POKEDEX_VARIANT_PREFERENCE_GEN_1_TO_3;
+}
+
+function buildPokedexSpeciesSpritePathForVariant(pokemonId, nameEn, variantId) {
+  const id = Number(pokemonId || 0);
+  const normalizedNameEn = normalizePokedexSpeciesNameEn(nameEn);
+  const normalizedVariantId = normalizeSpriteVariantId(variantId);
+  if (id <= 0 || !normalizedNameEn || !normalizedVariantId) {
+    return "";
+  }
+  return `pokemon_data/${id}_${normalizedNameEn}/sprites/${id}_${normalizedNameEn}_${normalizedVariantId}_front.png`;
+}
+
+function getPokedexPreferredOfflineVariantId(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id >= 387 && id <= 493) {
+    return "diamond_pearl";
+  }
+  if (id > 0 && (id <= 151 || POKEDEX_FRLG_AVAILABLE_POST_KANTO_IDS.has(id))) {
+    return "firered_leafgreen";
+  }
+  return "emerald";
+}
+
+function buildPokedexSpeciesSpritePath(pokemonId, nameEn) {
+  const id = Number(pokemonId || 0);
+  const variantId = getPokedexPreferredOfflineVariantId(id);
+  return buildPokedexSpeciesSpritePathForVariant(id, nameEn, variantId);
+}
+
+function getPokedexPreferredSpriteVariantFromDef(def, pokemonId) {
+  if (!def || typeof def !== "object") {
+    return null;
+  }
+  const variants = getSpriteVariantsForDef(def);
+  if (variants.length <= 0) {
+    return null;
+  }
+  const variantsById = new Map(variants.map((entry) => [entry.id, entry]));
+  for (const preferredId of getPokedexVariantPreferenceByPokemonId(pokemonId)) {
+    const normalizedId = normalizeSpriteVariantId(preferredId);
+    if (normalizedId && variantsById.has(normalizedId)) {
+      return variantsById.get(normalizedId) || null;
+    }
+  }
+  return getPreferredDefaultSpriteVariant(def) || variants[0] || null;
+}
+
+function resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def = null) {
+  const preferredVariant = getPokedexPreferredSpriteVariantFromDef(def, pokemonId);
+  if (preferredVariant?.frontPath) {
+    return String(preferredVariant.frontPath || "");
+  }
+  if (def?.spritePath) {
+    return String(def.spritePath || "");
+  }
+  if (!def) {
+    const offlinePreferredPath = buildPokedexSpeciesSpritePath(pokemonId, nameEn);
+    if (offlinePreferredPath) {
+      return offlinePreferredPath;
+    }
+  }
+  const normalizedNameEn = normalizePokedexSpeciesNameEn(nameEn);
+  const fallbackVariantOrder = getPokedexVariantPreferenceByPokemonId(pokemonId);
+  for (const variantId of fallbackVariantOrder) {
+    const candidatePath = buildPokedexSpeciesSpritePathForVariant(pokemonId, normalizedNameEn, variantId);
+    if (candidatePath) {
+      return candidatePath;
+    }
+  }
+  return "";
+}
+
+function getPokedexSpeciesCatalogByPokemonId() {
+  const speciesById = new Map();
+  if (state.pokedexSpeciesCsvByPokemonId instanceof Map && state.pokedexSpeciesCsvByPokemonId.size > 0) {
+    for (const [rawPokemonId, rawSpecies] of state.pokedexSpeciesCsvByPokemonId.entries()) {
+      const pokemonId = Number(rawPokemonId || rawSpecies?.id || 0);
+      if (pokemonId <= 0) {
+        continue;
+      }
+      const def = state.pokemonDefsById.get(pokemonId) || null;
+      const nameEn = normalizePokedexSpeciesNameEn(rawSpecies?.nameEn || def?.nameEn);
+      const fallbackNameEn = String(nameEn || "").replace(/[_-]+/g, " ").trim();
+      const fallbackName = fallbackNameEn
+        ? fallbackNameEn.charAt(0).toUpperCase() + fallbackNameEn.slice(1)
+        : `Pokemon ${pokemonId}`;
+      const nameFr = normalizeUiDisplayText(String(rawSpecies?.nameFr || def?.nameFr || fallbackName), {
+        frenchTypography: true,
+      });
+      speciesById.set(pokemonId, {
+        id: pokemonId,
+        nameFr,
+        nameEn,
+        spritePath: resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def),
+      });
+    }
+    return speciesById;
+  }
+
+  const hintsById = buildPokedexSpeciesHintMap();
+  for (const [pokemonId, hint] of hintsById.entries()) {
+    const def = state.pokemonDefsById.get(pokemonId) || null;
+    const nameEn = normalizePokedexSpeciesNameEn(hint?.nameEn || def?.nameEn);
+    const fallbackNameEn = String(nameEn || "").replace(/[_-]+/g, " ").trim();
+    const fallbackName = fallbackNameEn
+      ? fallbackNameEn.charAt(0).toUpperCase() + fallbackNameEn.slice(1)
+      : `Pokemon ${pokemonId}`;
+    const nameFr = normalizeUiDisplayText(String(hint?.nameFr || def?.nameFr || fallbackName), {
+      frenchTypography: true,
+    });
+    speciesById.set(pokemonId, {
+      id: pokemonId,
+      nameFr,
+      nameEn,
+      spritePath: resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def),
+    });
+  }
+  return speciesById;
+}
+
+function refreshPokedexEntriesCacheIfNeeded() {
+  const saveDataRef = state.saveData || null;
+  const speciesRef = state.pokedexSpeciesCsvByPokemonId;
+  const pokemonDefsCount = state.pokemonDefsById instanceof Map ? state.pokemonDefsById.size : 0;
+  if (
+    !pokedexEntriesCacheDirty
+    && pokedexEntriesCacheSaveDataRef === saveDataRef
+    && pokedexEntriesCacheSpeciesRef === speciesRef
+    && pokedexEntriesCachePokemonDefsCount === pokemonDefsCount
+  ) {
+    return;
+  }
+
+  const entries = [];
+  const entriesById = new Map();
+  let encounteredSpeciesCount = 0;
+  let capturedSpeciesCount = 0;
+  let shinySpeciesCount = 0;
+  let ultraShinySpeciesCount = 0;
+  const speciesById = getPokedexSpeciesCatalogByPokemonId();
+  const sortedIds = Array.from(speciesById.keys()).sort((a, b) => a - b);
+
+  for (const pokemonId of sortedIds) {
+    const def = state.pokemonDefsById.get(pokemonId) || null;
+    const rawRecord = state.saveData?.pokemon_entities?.[String(pokemonId)] || null;
+    const record = rawRecord ? normalizePokemonEntityRecord(rawRecord, pokemonId) : null;
+
+    const encounteredNormal = Math.max(0, toSafeInt(record?.encountered_normal, 0));
+    const encounteredShiny = Math.max(0, toSafeInt(record?.encountered_shiny, 0));
+    const encounteredUltraShiny = Math.max(0, toSafeInt(record?.encountered_ultra_shiny, 0));
+    const capturedNormal = Math.max(0, toSafeInt(record?.captured_normal, 0));
+    const capturedShiny = Math.max(0, toSafeInt(record?.captured_shiny, 0));
+    const capturedUltraShiny = Math.max(0, toSafeInt(record?.captured_ultra_shiny, 0));
+    const capturedShinyNonUltra = Math.max(0, capturedShiny - capturedUltraShiny);
+    const encounteredTotal = encounteredNormal + encounteredShiny + encounteredUltraShiny;
+    const capturedTotal = capturedNormal + capturedShiny + capturedUltraShiny;
+
+    let discoveryState = "unknown";
+    if (capturedTotal > 0) {
+      discoveryState = "captured";
+      capturedSpeciesCount += 1;
+      encounteredSpeciesCount += 1;
+    } else if (encounteredTotal > 0) {
+      discoveryState = "encountered";
+      encounteredSpeciesCount += 1;
+    }
+    if (capturedShinyNonUltra > 0) {
+      shinySpeciesCount += 1;
+    }
+    if (capturedUltraShiny > 0) {
+      ultraShinySpeciesCount += 1;
+    }
+
+    const species = speciesById.get(pokemonId) || null;
+    const nameFr = normalizeUiDisplayText(String(species?.nameFr || def?.nameFr || `Pokemon ${pokemonId}`), {
+      frenchTypography: true,
+    });
+
+    const shinyModeUnlocked = record ? isShinyAppearanceUnlockedForRecord(record, pokemonId) : false;
+    const ultraShinyModeUnlocked = record ? isUltraShinyAppearanceUnlockedForRecord(record, pokemonId) : false;
+
+    const entry = {
+      id: pokemonId,
+      nameFr,
+      spritePath: String(species?.spritePath || resolvePokedexSpeciesSpritePath(pokemonId, species?.nameEn, def) || ""),
+      discoveryState,
+      encounteredTotal,
+      capturedTotal,
+      encounteredNormal,
+      encounteredShiny,
+      encounteredUltraShiny,
+      capturedNormal,
+      capturedShiny,
+      capturedUltraShiny,
+      shinyModeUnlocked,
+      ultraShinyModeUnlocked,
+    };
+    entries.push(entry);
+    entriesById.set(entry.id, entry);
+  }
+
+  pokedexEntriesCacheList = entries;
+  pokedexEntriesCacheById = entriesById;
+  pokedexEntriesCacheEncounteredSpeciesCount = encounteredSpeciesCount;
+  pokedexEntriesCacheCapturedSpeciesCount = capturedSpeciesCount;
+  pokedexEntriesCacheShinySpeciesCount = shinySpeciesCount;
+  pokedexEntriesCacheUltraShinySpeciesCount = ultraShinySpeciesCount;
+  pokedexEntriesCacheSaveDataRef = saveDataRef;
+  pokedexEntriesCacheSpeciesRef = speciesRef;
+  pokedexEntriesCachePokemonDefsCount = pokemonDefsCount;
+  pokedexEntriesCacheDirty = false;
+}
+
+function getPokedexEntries() {
+  refreshPokedexEntriesCacheIfNeeded();
+  return pokedexEntriesCacheList;
+}
+
+function getPokedexEntryByPokemonId(pokemonId) {
+  refreshPokedexEntriesCacheIfNeeded();
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return null;
+  }
+  return pokedexEntriesCacheById.get(id) || null;
+}
+
+function getPokedexSpeciesProgressCounters() {
+  refreshPokedexEntriesCacheIfNeeded();
+  return {
+    encounteredSpeciesCount: pokedexEntriesCacheEncounteredSpeciesCount,
+    capturedSpeciesCount: pokedexEntriesCacheCapturedSpeciesCount,
+    shinySpeciesCount: pokedexEntriesCacheShinySpeciesCount,
+    ultraShinySpeciesCount: pokedexEntriesCacheUltraShinySpeciesCount,
+  };
+}
+
+function formatPokedexSpeciesProgressPercent(count, total) {
+  const safeTotal = Math.max(0, toSafeInt(total, 0));
+  if (safeTotal <= 0) {
+    return "0%";
+  }
+  const safeCount = Math.max(0, toSafeInt(count, 0));
+  const ratio = clamp(safeCount / safeTotal, 0, 1);
+  const percent = ratio * 100;
+  const fractionDigits = percent >= 10 || Number.isInteger(percent) ? 0 : 1;
+  return `${percent.toLocaleString("fr-FR", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: 1,
+  })}%`;
+}
+
+function formatPokedexCompletionPercentFromRatio(ratio) {
+  const rawRatio = Number(ratio);
+  const safeRatio = clamp(Number.isFinite(rawRatio) ? rawRatio : 0, 0, 1);
+  const percent = safeRatio * 100;
+  const fractionDigits = percent >= 10 || Number.isInteger(percent) ? 0 : 1;
+  return `${percent.toLocaleString("fr-FR", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: 1,
+  })}%`;
+}
+
+function setPokedexHeaderProgressSummary(counters, totalSpecies) {
+  const total = Math.max(0, toSafeInt(totalSpecies, 0));
+  const encountered = Math.max(0, toSafeInt(counters?.encounteredSpeciesCount, 0));
+  const captured = Math.max(0, toSafeInt(counters?.capturedSpeciesCount, 0));
+  const shiny = Math.max(0, toSafeInt(counters?.shinySpeciesCount, 0));
+  const ultra = Math.max(0, toSafeInt(counters?.ultraShinySpeciesCount, 0));
+  const completionRatio = total > 0
+    ? (
+      clamp(encountered / total, 0, 1)
+      + clamp(captured / total, 0, 1)
+      + clamp(shiny / total, 0, 1)
+      + clamp(ultra / total, 0, 1)
+    ) / 4
+    : 0;
+  if (pokedexGlobalCompletionEl) {
+    pokedexGlobalCompletionEl.textContent =
+      `Complétion générale du Pokédex: ${formatPokedexCompletionPercentFromRatio(completionRatio)}.`;
+  }
+  if (pokedexEncounteredStatEl) {
+    pokedexEncounteredStatEl.textContent =
+      `Tu as rencontré ${formatCompactNumber(encountered)} espèce${encountered !== 1 ? "s" : ""} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(encountered, total)}).`;
+  }
+  if (pokedexCapturedStatEl) {
+    pokedexCapturedStatEl.textContent =
+      `Tu as capturé ${formatCompactNumber(captured)} espèce${captured !== 1 ? "s" : ""} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(captured, total)}).`;
+  }
+  if (pokedexShinyStatEl) {
+    pokedexShinyStatEl.textContent =
+      `En shiny (hors ultra), tu en as capturé ${formatCompactNumber(shiny)} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(shiny, total)}).`;
+  }
+  if (pokedexUltraShinyStatEl) {
+    pokedexUltraShinyStatEl.textContent =
+      `En ultra shiny, tu en as capturé ${formatCompactNumber(ultra)} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(ultra, total)}).`;
+  }
+}
+
+function setPokedexInfoFromEntry(entry) {
+  if (!pokedexInfoPanelEl) {
+    return;
+  }
+  if (!entry) {
+    pokedexInfoPanelEl.textContent = "Survole un Pokémon du Pokédex pour voir ses infos.";
+    return;
+  }
+  const displayName = escapeHtml(String(entry.discoveryState === "unknown" ? "???" : entry.nameFr || ""));
+  const shinyBadgeLabel = entry.shinyModeUnlocked ? "Badge shiny: oui" : "Badge shiny: non";
+  const ultraBadgeLabel = entry.ultraShinyModeUnlocked ? "Badge ultra shiny: oui" : "Badge ultra shiny: non";
+
+  pokedexInfoPanelEl.innerHTML = [
+    `<strong>${displayName} (#${entry.id})</strong>`,
+    `Rencontres: ${formatCompactNumber(entry.encounteredTotal)} (N ${formatCompactNumber(entry.encounteredNormal)} / S ${formatCompactNumber(entry.encounteredShiny)} / U ${formatCompactNumber(entry.encounteredUltraShiny)})`,
+    `Captures: ${formatCompactNumber(entry.capturedTotal)} (N ${formatCompactNumber(entry.capturedNormal)} / S ${formatCompactNumber(entry.capturedShiny)} / U ${formatCompactNumber(entry.capturedUltraShiny)})`,
+    shinyBadgeLabel,
+    ultraBadgeLabel,
+  ].join("<br/>");
+}
+
+function resetPokedexVirtualDomReferences() {
+  pokedexVirtualContentEl = null;
+  pokedexVirtualTopSpacerEl = null;
+  pokedexVirtualBottomSpacerEl = null;
+  pokedexVirtualLastSliceKey = "";
+  pokedexVirtualLastStartIndex = 0;
+  pokedexVirtualLastEndIndex = 0;
+  pokedexVirtualLayoutCacheKey = "";
+}
+
+function updatePokedexVirtualLayoutMetricsIfNeeded() {
+  if (!pokedexGridEl) {
+    return;
+  }
+  const layoutCacheKey = `${pokedexGridEl.clientWidth}x${pokedexGridEl.clientHeight}`;
+  if (layoutCacheKey === pokedexVirtualLayoutCacheKey) {
+    return;
+  }
+  pokedexVirtualLayoutCacheKey = layoutCacheKey;
+  const style = window.getComputedStyle(pokedexGridEl);
+  pokedexVirtualPaddingLeftPx = Math.max(0, Number.parseFloat(style.paddingLeft || "0") || 0);
+  pokedexVirtualPaddingRightPx = Math.max(0, Number.parseFloat(style.paddingRight || "0") || 0);
+  pokedexVirtualPaddingTopPx = Math.max(0, Number.parseFloat(style.paddingTop || "0") || 0);
+  pokedexVirtualPaddingBottomPx = Math.max(0, Number.parseFloat(style.paddingBottom || "0") || 0);
+  const columnGap = Number.parseFloat(style.columnGap || style.gap || "0");
+  const rowGap = Number.parseFloat(style.rowGap || style.gap || "0");
+  pokedexVirtualColumnGapPx = Number.isFinite(columnGap) && columnGap > 0 ? columnGap : POKEDEX_VIRTUAL_GAP_PX;
+  pokedexVirtualRowGapPx = Number.isFinite(rowGap) && rowGap > 0 ? rowGap : POKEDEX_VIRTUAL_GAP_PX;
+}
+
+function getPokedexVirtualMetrics(totalEntriesCount) {
+  if (!pokedexGridEl) {
+    return null;
+  }
+  updatePokedexVirtualLayoutMetricsIfNeeded();
+  const safeTotal = Math.max(0, toSafeInt(totalEntriesCount, 0));
+  const innerWidth = Math.max(0, pokedexGridEl.clientWidth - pokedexVirtualPaddingLeftPx - pokedexVirtualPaddingRightPx);
+  const innerHeight = Math.max(0, pokedexGridEl.clientHeight - pokedexVirtualPaddingTopPx - pokedexVirtualPaddingBottomPx);
+  const cardWidth = POKEDEX_VIRTUAL_CARD_MIN_WIDTH_PX;
+  const cardHeight = POKEDEX_VIRTUAL_CARD_HEIGHT_PX;
+  const columnCount = Math.max(1, Math.floor((innerWidth + pokedexVirtualColumnGapPx) / (cardWidth + pokedexVirtualColumnGapPx)));
+  const totalRows = Math.max(1, Math.ceil(safeTotal / columnCount));
+  const rowStride = Math.max(1, cardHeight + pokedexVirtualRowGapPx);
+  const firstVisibleRow = Math.max(0, Math.floor(Math.max(0, pokedexGridEl.scrollTop) / rowStride));
+  const startRow = Math.max(0, firstVisibleRow - POKEDEX_VIRTUAL_OVERSCAN_ROWS);
+  const visibleRows = Math.max(1, Math.ceil(innerHeight / rowStride) + POKEDEX_VIRTUAL_OVERSCAN_ROWS * 2);
+  const endRowExclusive = Math.min(totalRows, startRow + visibleRows);
+  const startIndex = Math.min(safeTotal, startRow * columnCount);
+  const endIndex = Math.min(safeTotal, endRowExclusive * columnCount);
+  const topSpacerHeight = Math.max(0, startRow * rowStride);
+  const bottomSpacerHeight = Math.max(0, (totalRows - endRowExclusive) * rowStride);
+  return {
+    columnCount,
+    startIndex,
+    endIndex,
+    topSpacerHeight,
+    bottomSpacerHeight,
+  };
+}
+
+function resolvePokedexCardButtonFromEventTarget(target) {
+  if (!(target instanceof Element) || !pokedexGridEl) {
+    return null;
+  }
+  const button = target.closest(".pokedex-mon-btn[data-pokedex-id]");
+  if (!(button instanceof HTMLButtonElement) || !pokedexGridEl.contains(button)) {
+    return null;
+  }
+  return button;
+}
+
+function handlePokedexCardInteractionEvent(event) {
+  const button = resolvePokedexCardButtonFromEventTarget(event?.target);
+  if (!button) {
+    return;
+  }
+  const pokemonId = Number(button.dataset.pokedexId || 0);
+  if (pokemonId <= 0 || pokemonId === Number(state.ui.pokedexHoverPokemonId || 0)) {
+    return;
+  }
+  const entry = getPokedexEntryByPokemonId(pokemonId);
+  if (!entry) {
+    return;
+  }
+  state.ui.pokedexHoverPokemonId = entry.id;
+  setPokedexInfoFromEntry(entry);
+}
+
+function bindPokedexVirtualEventsIfNeeded() {
+  if (!pokedexGridEl || pokedexVirtualEventsBound) {
+    return;
+  }
+  pokedexGridEl.addEventListener("mouseover", handlePokedexCardInteractionEvent);
+  pokedexGridEl.addEventListener("focusin", handlePokedexCardInteractionEvent);
+  pokedexGridEl.addEventListener("click", handlePokedexCardInteractionEvent);
+  pokedexGridEl.addEventListener(
+    "scroll",
+    () => {
+      queuePokedexViewportRender();
+    },
+    { passive: true },
+  );
+  pokedexGridEl.addEventListener(
+    "wheel",
+    (event) => {
+      if (!state.ui.pokedexOpen || !pokedexGridEl) {
+        return;
+      }
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      const rawDeltaY = Number(event.deltaY || 0);
+      if (!Number.isFinite(rawDeltaY) || rawDeltaY === 0) {
+        return;
+      }
+      const deltaMode = Number(event.deltaMode || 0);
+      let deltaY = rawDeltaY;
+      if (deltaMode === 1) {
+        deltaY *= 18;
+      } else if (deltaMode === 2) {
+        deltaY *= Math.max(1, pokedexGridEl.clientHeight);
+      }
+      const maxScrollTop = Math.max(0, pokedexGridEl.scrollHeight - pokedexGridEl.clientHeight);
+      const nextScrollTop = clamp(pokedexGridEl.scrollTop + deltaY, 0, maxScrollTop);
+      if (nextScrollTop !== pokedexGridEl.scrollTop) {
+        pokedexGridEl.scrollTop = nextScrollTop;
+        queuePokedexViewportRender();
+      }
+    },
+    { passive: false },
+  );
+  pokedexVirtualEventsBound = true;
+}
+
+function ensurePokedexVirtualResizeObserver() {
+  if (!pokedexGridEl || pokedexVirtualResizeObserver || typeof ResizeObserver !== "function") {
+    return;
+  }
+  pokedexVirtualResizeObserver = new ResizeObserver(() => {
+    if (!state.ui.pokedexOpen) {
+      return;
+    }
+    pokedexVirtualLastSliceKey = "";
+    queuePokedexViewportRender();
+  });
+  pokedexVirtualResizeObserver.observe(pokedexGridEl);
+}
+
+function ensurePokedexVirtualElements() {
+  if (!pokedexGridEl) {
+    return false;
+  }
+  const stillMounted = Boolean(
+    pokedexVirtualTopSpacerEl
+      && pokedexVirtualBottomSpacerEl
+      && pokedexVirtualContentEl
+      && pokedexGridEl.contains(pokedexVirtualTopSpacerEl)
+      && pokedexGridEl.contains(pokedexVirtualBottomSpacerEl)
+      && pokedexGridEl.contains(pokedexVirtualContentEl),
+  );
+  if (!stillMounted) {
+    const topSpacer = document.createElement("div");
+    topSpacer.className = "pokedex-virtual-spacer";
+    const content = document.createElement("div");
+    content.className = "pokedex-virtual-content";
+    const bottomSpacer = document.createElement("div");
+    bottomSpacer.className = "pokedex-virtual-spacer";
+    pokedexGridEl.replaceChildren(topSpacer, content, bottomSpacer);
+    pokedexVirtualTopSpacerEl = topSpacer;
+    pokedexVirtualContentEl = content;
+    pokedexVirtualBottomSpacerEl = bottomSpacer;
+    pokedexVirtualLastSliceKey = "";
+  }
+  bindPokedexVirtualEventsIfNeeded();
+  ensurePokedexVirtualResizeObserver();
+  return true;
+}
+
+function prefetchPokedexSpritePath(path) {
+  const spritePath = String(path || "").trim();
+  if (!spritePath || pokedexSpritePrefetchStateByPath.has(spritePath)) {
+    return;
+  }
+  const image = new Image();
+  image.decoding = "async";
+  image.src = spritePath;
+  pokedexSpritePrefetchStateByPath.set(spritePath, image);
+}
+
+function prefetchPokedexSpritesAroundSlice(entries, startIndex, endIndex, columnCount) {
+  if (!Array.isArray(entries) || entries.length <= 0) {
+    return;
+  }
+  const preloadRadius = Math.max(1, toSafeInt(columnCount, 1) * POKEDEX_SPRITE_PREFETCH_EXTRA_ROWS);
+  const prefetchStart = Math.max(0, toSafeInt(startIndex, 0) - preloadRadius);
+  const prefetchEnd = Math.min(entries.length, Math.max(prefetchStart, toSafeInt(endIndex, 0)) + preloadRadius);
+  for (let index = prefetchStart; index < prefetchEnd; index += 1) {
+    const spritePath = entries[index]?.spritePath;
+    if (spritePath) {
+      prefetchPokedexSpritePath(spritePath);
+    }
+  }
+}
+
+function createPokedexLoadingIndicatorElement() {
+  const indicator = document.createElement("span");
+  indicator.className = "pokedex-loading-indicator";
+  indicator.setAttribute("aria-hidden", "true");
+  const pokeball = document.createElement("span");
+  pokeball.className = "pokedex-loading-pokeball";
+  indicator.appendChild(pokeball);
+  return indicator;
+}
+
+function attachPokedexSpriteLoadingLifecycle(image, visualWrap, button) {
+  if (!(image instanceof HTMLImageElement) || !(visualWrap instanceof HTMLElement)) {
+    return;
+  }
+  let settled = false;
+  const loadingIndicator = createPokedexLoadingIndicatorElement();
+  visualWrap.classList.add("is-loading");
+  visualWrap.appendChild(loadingIndicator);
+  image.classList.add("is-pending");
+
+  const settleLoadingState = (loaded) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    visualWrap.classList.remove("is-loading");
+    image.classList.remove("is-pending");
+    loadingIndicator.remove();
+    if (!loaded) {
+      image.remove();
+      const fallback = document.createElement("span");
+      fallback.className = "boxes-mon-fallback pokedex-mon-fallback";
+      fallback.textContent = "?";
+      visualWrap.appendChild(fallback);
+      if (button instanceof HTMLButtonElement) {
+        button.classList.add("is-loading-failed");
+      }
+    }
+  };
+
+  image.addEventListener(
+    "load",
+    () => {
+      settleLoadingState(true);
+    },
+    { once: true },
+  );
+  image.addEventListener(
+    "error",
+    () => {
+      settleLoadingState(false);
+    },
+    { once: true },
+  );
+
+  if (image.complete) {
+    settleLoadingState(image.naturalWidth > 0);
+  }
+}
+
+function createPokedexCardButton(entry) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "boxes-mon-btn pokedex-mon-btn";
+  button.classList.add(`is-${entry.discoveryState}`);
+  button.dataset.pokedexId = String(entry.id);
+  button.setAttribute(
+    "aria-label",
+    `${entry.discoveryState === "unknown" ? "Pokemon inconnu" : entry.nameFr} #${String(entry.id).padStart(3, "0")}`,
+  );
+
+  const visualWrap = document.createElement("div");
+  visualWrap.className = "boxes-mon-visual";
+  if (entry.spritePath) {
+    const image = document.createElement("img");
+    image.alt = "";
+    image.src = entry.spritePath;
+    image.loading = "eager";
+    image.decoding = "async";
+    image.draggable = false;
+    image.className = "pokedex-mon-sprite";
+    visualWrap.appendChild(image);
+    attachPokedexSpriteLoadingLifecycle(image, visualWrap, button);
+  } else {
+    const fallback = document.createElement("span");
+    fallback.className = "boxes-mon-fallback pokedex-mon-fallback";
+    fallback.textContent = "?";
+    visualWrap.appendChild(fallback);
+  }
+
+  if (entry.shinyModeUnlocked || entry.ultraShinyModeUnlocked) {
+    const badgeRow = document.createElement("span");
+    badgeRow.className = "boxes-mode-badges";
+    if (entry.shinyModeUnlocked) {
+      const shinyBadge = document.createElement("span");
+      shinyBadge.className = "boxes-mode-badge boxes-mode-badge-shiny";
+      shinyBadge.textContent = "\u2726";
+      shinyBadge.title = "Mode shiny débloqué";
+      badgeRow.appendChild(shinyBadge);
+    }
+    if (entry.ultraShinyModeUnlocked) {
+      const ultraBadge = document.createElement("span");
+      ultraBadge.className = "boxes-mode-badge boxes-mode-badge-ultra";
+      ultraBadge.textContent = "\u2726";
+      ultraBadge.title = "Mode ultra shiny débloqué";
+      badgeRow.appendChild(ultraBadge);
+    }
+    visualWrap.appendChild(badgeRow);
+  }
+  button.appendChild(visualWrap);
+
+  const numberEl = document.createElement("span");
+  numberEl.className = "boxes-mon-line";
+  numberEl.textContent = "#" + String(entry.id).padStart(3, "0");
+  button.appendChild(numberEl);
+
+  const nameEl = document.createElement("span");
+  nameEl.className = "boxes-mon-name";
+  nameEl.textContent = entry.discoveryState === "unknown" ? "???" : entry.nameFr;
+  button.appendChild(nameEl);
+  return button;
+}
+
+function renderPokedexViewportSlice(options = {}) {
+  if (!state.ui.pokedexOpen || !state.saveData || !pokedexGridEl || !pokedexVirtualContentEl) {
+    return;
+  }
+  const entries = getPokedexEntries();
+  if (entries.length <= 0) {
+    return;
+  }
+  const metrics = getPokedexVirtualMetrics(entries.length);
+  if (!metrics) {
+    return;
+  }
+
+  const { columnCount, startIndex, endIndex, topSpacerHeight, bottomSpacerHeight } = metrics;
+  const sliceKey = `${columnCount}:${startIndex}:${endIndex}`;
+  if (!options?.force && sliceKey === pokedexVirtualLastSliceKey) {
+    prefetchPokedexSpritesAroundSlice(entries, startIndex, endIndex, columnCount);
+    return;
+  }
+  pokedexVirtualLastSliceKey = sliceKey;
+  pokedexVirtualLastStartIndex = startIndex;
+  pokedexVirtualLastEndIndex = endIndex;
+
+  pokedexVirtualContentEl.style.gridTemplateColumns = `repeat(${columnCount}, minmax(${POKEDEX_VIRTUAL_CARD_MIN_WIDTH_PX}px, 1fr))`;
+  pokedexVirtualContentEl.style.columnGap = `${Math.max(0, pokedexVirtualColumnGapPx)}px`;
+  pokedexVirtualContentEl.style.rowGap = `${Math.max(0, pokedexVirtualRowGapPx)}px`;
+  const fragment = document.createDocumentFragment();
+  for (let index = startIndex; index < endIndex; index += 1) {
+    const entry = entries[index];
+    if (!entry) {
+      continue;
+    }
+    fragment.appendChild(createPokedexCardButton(entry));
+  }
+  pokedexVirtualContentEl.replaceChildren(fragment);
+  if (pokedexVirtualTopSpacerEl) {
+    pokedexVirtualTopSpacerEl.style.height = `${Math.max(0, topSpacerHeight)}px`;
+  }
+  if (pokedexVirtualBottomSpacerEl) {
+    pokedexVirtualBottomSpacerEl.style.height = `${Math.max(0, bottomSpacerHeight)}px`;
+  }
+  prefetchPokedexSpritesAroundSlice(entries, startIndex, endIndex, columnCount);
+}
+
+function closePokedexModal() {
+  state.ui.pokedexOpen = false;
+  state.ui.pokedexHoverPokemonId = null;
+  cancelQueuedPokedexGridRender();
+  cancelQueuedPokedexViewportRender();
+  if (pokedexVirtualResizeObserver) {
+    pokedexVirtualResizeObserver.disconnect();
+    pokedexVirtualResizeObserver = null;
+  }
+  if (pokedexModalEl) {
+    hideModalWithTween(pokedexModalEl);
+  }
+  if (pokedexSubtitleEl) {
+    pokedexSubtitleEl.textContent = "Toutes les espèces du jeu.";
+  }
+  setPokedexHeaderProgressSummary(
+    {
+      encounteredSpeciesCount: 0,
+      capturedSpeciesCount: 0,
+      shinySpeciesCount: 0,
+      ultraShinySpeciesCount: 0,
+    },
+    0,
+  );
+  if (pokedexGridEl) {
+    pokedexGridEl.innerHTML = "";
+  }
+  resetPokedexVirtualDomReferences();
+  setPokedexInfoFromEntry(null);
+}
+
+function renderPokedexGrid() {
+  if (!pokedexGridEl || !state.saveData) {
+    return;
+  }
+  cancelQueuedPokedexGridRender();
+  cancelQueuedPokedexViewportRender();
+  invalidatePokedexEntriesCache();
+  const entries = getPokedexEntries();
+  const counters = getPokedexSpeciesProgressCounters();
+
+  if (pokedexSubtitleEl) {
+    pokedexSubtitleEl.textContent = `Pokédex complet | ${entries.length} espèces`;
+  }
+  setPokedexHeaderProgressSummary(counters, entries.length);
+
+  if (entries.length <= 0) {
+    const emptyEl = document.createElement("div");
+    emptyEl.className = "boxes-empty";
+    emptyEl.textContent = "Aucune espèce disponible pour le moment.";
+    pokedexGridEl.replaceChildren(emptyEl);
+    resetPokedexVirtualDomReferences();
+    setPokedexInfoFromEntry(null);
+    return;
+  }
+
+  let hoverEntry = getPokedexEntryByPokemonId(state.ui.pokedexHoverPokemonId);
+  if (!hoverEntry) {
+    hoverEntry = entries[0] || null;
+    state.ui.pokedexHoverPokemonId = hoverEntry ? hoverEntry.id : null;
+  }
+  if (!ensurePokedexVirtualElements()) {
+    return;
+  }
+  renderPokedexViewportSlice({ force: true });
+  setPokedexInfoFromEntry(hoverEntry);
+}
+
+function openPokedexModal() {
+  if (!pokedexModalEl || !state.saveData) {
+    return;
+  }
+  if (state.ui.tutorialOpen) {
+    return;
+  }
+  closeTeamContextMenu();
+  closeBallCaptureMenu();
+  clearCanvasHoverState();
+  closeRenameModal();
+  closeBoxesModal();
+  closeAppearanceModal();
+  closeEvolutionItemChoiceModal(null);
+  setMapOpen(false);
+  setShopOpen(false);
+  closeGachaModal({ force: true });
+  state.ui.pokedexOpen = true;
+  state.ui.pokedexHoverPokemonId = null;
+  if (pokedexGridEl) {
+    pokedexGridEl.scrollTop = 0;
+  }
+  pokedexVirtualLastSliceKey = "";
+  showModalWithTween(pokedexModalEl);
+  queuePokedexGridRender();
+}
+
 function setBoxesInfoFromEntry(entry) {
   if (!boxesInfoPanelEl) {
     return;
@@ -18989,7 +21471,7 @@ function closeBoxesModal() {
   state.ui.boxesTargetSlotIndex = -1;
   state.ui.boxesHoverEntityId = null;
   if (boxesModalEl) {
-    boxesModalEl.classList.add("hidden");
+    hideModalWithTween(boxesModalEl);
   }
   if (boxesSubtitleEl) {
     boxesSubtitleEl.textContent = "Choisis un Pokemon pour remplacer ton slot d'equipe.";
@@ -19236,7 +21718,7 @@ function openBoxesForTeamSlot(slotIndex) {
   state.ui.boxesOpen = true;
   state.ui.boxesTargetSlotIndex = index;
   state.ui.boxesHoverEntityId = currentId;
-  boxesModalEl.classList.remove("hidden");
+  showModalWithTween(boxesModalEl);
   renderBoxesGrid();
 }
 
@@ -19245,7 +21727,7 @@ function closeAppearanceModal() {
   state.ui.appearanceTargetSlotIndex = -1;
   state.ui.appearancePokemonId = null;
   if (appearanceModalEl) {
-    appearanceModalEl.classList.add("hidden");
+    hideModalWithTween(appearanceModalEl);
   }
   if (appearanceGridEl) {
     appearanceGridEl.innerHTML = "";
@@ -19282,7 +21764,7 @@ function openAppearanceForPokemon(pokemonId, options = {}) {
   state.ui.appearanceOpen = true;
   state.ui.appearanceTargetSlotIndex = preferredSlotIndex;
   state.ui.appearancePokemonId = id;
-  appearanceModalEl.classList.remove("hidden");
+  showModalWithTween(appearanceModalEl);
   renderAppearanceModal();
   return true;
 }
@@ -19564,8 +22046,8 @@ async function toggleAppearanceUltraShinyMode() {
   );
 }
 
-function handleCanvasMouseDown(event) {
-  if (event.button !== 0) {
+function handleCanvasPointerDown(event) {
+  if (!isPrimaryCanvasPointerEvent(event)) {
     return;
   }
   if (isCanvasBattleInteractionBlocked()) {
@@ -19591,15 +22073,22 @@ function handleCanvasMouseDown(event) {
       clientY: event.clientY,
       worldX,
       worldY,
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
     })
   ) {
+    captureCanvasPointer(event.pointerId);
     setHoveredBallOverlayType("");
     setHoveredTeamSlotIndex(hoveredTeamSlot.slotIndex);
     hideHoverPopup();
   }
 }
 
-function handleCanvasMouseMove(event) {
+function handleCanvasPointerMove(event) {
+  const pointerType = getNormalizedPointerType(event.pointerType);
+  if (state.ui.teamDragActive && !isEventFromActiveTeamDragPointer(event)) {
+    return;
+  }
   if (isCanvasBattleInteractionBlocked()) {
     if (state.ui.teamDragActive) {
       clearTeamDragState();
@@ -19611,12 +22100,16 @@ function handleCanvasMouseMove(event) {
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
   const layout = state.layout || computeLayout();
   if (state.ui.teamDragActive) {
+    if (pointerType === "touch" && event.cancelable) {
+      event.preventDefault();
+    }
     state.ui.teamDragCurrentWorldX = worldX;
     state.ui.teamDragCurrentWorldY = worldY;
     const dx = Number(event.clientX || 0) - Number(state.ui.teamDragStartClientX || 0);
     const dy = Number(event.clientY || 0) - Number(state.ui.teamDragStartClientY || 0);
     const distanceSquared = dx * dx + dy * dy;
-    const activationDistanceSquared = TEAM_DRAG_START_DISTANCE_PX * TEAM_DRAG_START_DISTANCE_PX;
+    const activationDistancePx = getTeamDragActivationDistancePx(pointerType);
+    const activationDistanceSquared = activationDistancePx * activationDistancePx;
     if (!state.ui.teamDragMoved && distanceSquared >= activationDistanceSquared) {
       if (!isTeamSlotSwapAllowed()) {
         setTopMessage(getTeamBoxesLockedMessage(), 2100);
@@ -19632,7 +22125,7 @@ function handleCanvasMouseMove(event) {
     }
 
     if (state.ui.teamDragMoved) {
-      const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
+      const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout, { pointerType });
       const sourceSlotIndex = clamp(toSafeInt(state.ui.teamDragSourceSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
       const targetSlotIndex =
         hoveredTeamSlot && hoveredTeamSlot.slotIndex !== sourceSlotIndex
@@ -19645,6 +22138,14 @@ function handleCanvasMouseMove(event) {
       render();
       return;
     }
+  }
+
+  if (pointerType !== "mouse") {
+    setHoveredBallOverlayType("");
+    setHoveredTeamSlotIndex(-1);
+    hideHoverPopup();
+    syncCanvasInteractionCursor();
+    return;
   }
 
   if (state.ui.teamContextMenuOpen || state.ui.ballCaptureMenuOpen) {
@@ -19666,8 +22167,12 @@ function handleCanvasMouseMove(event) {
   showHoverPopup(hovered, event.clientX, event.clientY);
 }
 
-function handleCanvasMouseUp(event) {
-  if (event.button !== 0 || !state.ui.teamDragActive) {
+function handleCanvasPointerUp(event) {
+  const pointerType = getNormalizedPointerType(event.pointerType);
+  if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
+    return;
+  }
+  if (pointerType === "mouse" && Number(event.button) !== 0) {
     return;
   }
   const sourceSlotIndex = clamp(toSafeInt(state.ui.teamDragSourceSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
@@ -19678,7 +22183,7 @@ function handleCanvasMouseUp(event) {
     const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
     state.ui.teamDragCurrentWorldX = worldX;
     state.ui.teamDragCurrentWorldY = worldY;
-    const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
+    const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout, { pointerType });
     const targetSlotIndex = hoveredTeamSlot ? hoveredTeamSlot.slotIndex : -1;
     if (targetSlotIndex >= 0 && targetSlotIndex !== sourceSlotIndex) {
       didSwap = swapTeamSlotsFromUi(sourceSlotIndex, targetSlotIndex);
@@ -19700,7 +22205,7 @@ function handleCanvasClick(event) {
   if (isTeamDragClickSuppressed() || state.ui.teamDragActive) {
     return;
   }
-  if (event.button !== 0) {
+  if (typeof event.button === "number" && event.button !== 0) {
     return;
   }
   closeTeamContextMenu();
@@ -19749,8 +22254,27 @@ function handleCanvasContextMenu(event) {
   openTeamContextMenu(hoveredTeamSlot.slotIndex, hoveredTeamSlot.member, event.clientX, event.clientY);
 }
 
-function handleWindowMouseUpOutsideCanvas(event) {
-  if (!state.ui.teamDragActive || event.button !== 0) {
+function handleCanvasPointerCancel(event) {
+  if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
+    return;
+  }
+  const dragMoved = Boolean(state.ui.teamDragMoved);
+  clearTeamDragState({
+    suppressClickMs: dragMoved ? TEAM_DRAG_CLICK_SUPPRESS_MS : 0,
+  });
+  setHoveredTeamSlotIndex(-1);
+  hideHoverPopup();
+  if (dragMoved) {
+    render();
+  }
+}
+
+function handleWindowPointerUpOutsideCanvas(event) {
+  const pointerType = getNormalizedPointerType(event.pointerType);
+  if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
+    return;
+  }
+  if (pointerType === "mouse" && Number(event.button) !== 0) {
     return;
   }
   if (event.target === canvas) {
@@ -20019,6 +22543,9 @@ function exportTextState() {
     boxes_target_slot_index: toSafeInt(state.ui.boxesTargetSlotIndex, -1),
     boxes_entity_count: state.saveData ? getCapturedEntityCount() : 0,
     boxes_shiny_capture_total: state.saveData ? getTotalShinyCapturesGlobal() : 0,
+    pokedex_open: Boolean(state.ui.pokedexOpen),
+    pokedex_hover_pokemon_id: Number(state.ui.pokedexHoverPokemonId || 0) || null,
+    pokedex_species_count: state.saveData ? getPokedexEntries().length : 0,
     appearance_editor_unlocked: isAppearanceEditorUnlocked(),
     appearance_open: Boolean(state.ui.appearanceOpen),
     appearance_target_slot_index: toSafeInt(state.ui.appearanceTargetSlotIndex, -1),
@@ -20207,6 +22734,7 @@ async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
   const rawCsv = await response.text();
   const rows = parseCsvObjects(rawCsv, csvPath);
   const talentsByPokemonId = new Map();
+  const pokedexSpeciesByPokemonId = new Map();
   const unresolvedTalentIds = new Set();
 
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
@@ -20220,6 +22748,16 @@ async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
     if (!normalized) {
       continue;
     }
+    const pokemonNameEn = String(readCsvCell(row, "pokemon_name_en")).toLowerCase().trim();
+    const pokemonNameFr = normalizeUiDisplayText(readCsvCell(row, "pokemon_name_fr"), { frenchTypography: true });
+    const previousPokedexSpecies = pokedexSpeciesByPokemonId.get(pokemonId) || null;
+    const resolvedNameEn = pokemonNameEn || String(previousPokedexSpecies?.nameEn || "").toLowerCase().trim();
+    const resolvedNameFr = pokemonNameFr || String(previousPokedexSpecies?.nameFr || "").trim();
+    pokedexSpeciesByPokemonId.set(pokemonId, {
+      id: pokemonId,
+      nameFr: resolvedNameFr || `Pokemon ${pokemonId}`,
+      nameEn: resolvedNameEn,
+    });
     talentsByPokemonId.set(normalized.pokemonId, normalized.talent);
 
     if (!hasImplementedTalentEffect(normalized.talent.id)) {
@@ -20231,6 +22769,7 @@ async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
     path: csvPath,
     rowCount: rows.length,
     talentsByPokemonId,
+    pokedexSpeciesByPokemonId,
     unresolvedTalentIds: Array.from(unresolvedTalentIds.values()),
   };
 }
@@ -20238,7 +22777,13 @@ async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
 function setPokemonTalentCsvState(payload) {
   state.pokemonTalentCsvByPokemonId =
     payload?.talentsByPokemonId instanceof Map ? payload.talentsByPokemonId : new Map();
+  state.pokedexSpeciesCsvByPokemonId =
+    payload?.pokedexSpeciesByPokemonId instanceof Map ? payload.pokedexSpeciesByPokemonId : new Map();
   state.pokemonTalentCsvLoaded = state.pokemonTalentCsvByPokemonId.size > 0;
+  invalidatePokedexEntriesCache({ resetSlice: true });
+  if (state.ui.pokedexOpen) {
+    queuePokedexGridRender();
+  }
 }
 
 function getPokemonTalentCsvForPokemonId(pokemonId) {
@@ -20551,7 +23096,9 @@ function mergeRouteEncountersFromCsv(routeData, csvEntries) {
     merged.push({
       id,
       name_en: nameEn,
-      name_fr: String(entry?.name_fr || fallback?.name_fr || nameEn).trim(),
+      name_fr: normalizeUiDisplayText(String(entry?.name_fr || fallback?.name_fr || nameEn).trim(), {
+        frenchTypography: true,
+      }),
       spawn_weight: Math.max(1, toSafeInt(entry?.spawn_weight, fallback?.spawn_weight ?? 1)),
       min_level: minLevel,
       max_level: maxLevel,
@@ -20649,14 +23196,13 @@ function getRouteDataByIds(routeIds, routeCatalog = state.routeCatalog) {
 }
 
 function getInitialAssetRouteIds() {
-  const routeIds = new Set([DEFAULT_ROUTE_ID, ROUTE_1_TUTORIAL_ID]);
+  const routeIds = new Set();
   const currentRouteId = String(state.saveData?.current_route_id || "");
-  if (currentRouteId) {
-    routeIds.add(currentRouteId);
-  }
-  const unlockedRouteIds = normalizeUnlockedRouteIds(state.saveData?.unlocked_route_ids, getOrderedCatalogRouteIds());
-  for (const routeId of unlockedRouteIds) {
-    routeIds.add(routeId);
+  const preferredRouteId = currentRouteId && state.routeCatalog.has(currentRouteId) ? currentRouteId : DEFAULT_ROUTE_ID;
+  routeIds.add(preferredRouteId);
+  routeIds.add(DEFAULT_ROUTE_ID);
+  if (!state.saveData?.starter_chosen) {
+    routeIds.add(ROUTE_1_TUTORIAL_ID);
   }
   return Array.from(routeIds).filter((routeId) => state.routeCatalog.has(routeId));
 }
@@ -20681,9 +23227,16 @@ function queueDeferredRouteAssetWarmup(preloadedRouteIds = []) {
     return;
   }
 
-  const runWarmup = () => {
-    const routeDataList = getRouteDataByIds(remainingRouteIds);
+  const queue = remainingRouteIds.slice();
+
+  const runNextChunk = () => {
+    if (queue.length <= 0) {
+      return;
+    }
+    const chunkRouteIds = queue.splice(0, DEFERRED_ROUTE_WARMUP_CHUNK_SIZE);
+    const routeDataList = getRouteDataByIds(chunkRouteIds);
     if (routeDataList.length <= 0) {
+      scheduleNextChunk();
       return;
     }
     Promise.all([loadPokemonDefinitions(routeDataList, { append: true }), preloadRouteBackgrounds(routeDataList)])
@@ -20697,21 +23250,31 @@ function queueDeferredRouteAssetWarmup(preloadedRouteIds = []) {
           "Prechargement differe des assets de routes indisponible:",
           error instanceof Error ? error.message : String(error || ""),
         );
+      })
+      .finally(() => {
+        scheduleNextChunk();
       });
   };
 
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(
-      () => {
-        runWarmup();
-      },
-      { timeout: 2500 },
-    );
-    return;
-  }
-  window.setTimeout(() => {
-    runWarmup();
-  }, 220);
+  const scheduleNextChunk = () => {
+    if (queue.length <= 0) {
+      return;
+    }
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(
+        () => {
+          runNextChunk();
+        },
+        { timeout: 2500 },
+      );
+      return;
+    }
+    window.setTimeout(() => {
+      runNextChunk();
+    }, DEFERRED_ROUTE_WARMUP_DELAY_MS);
+  };
+
+  scheduleNextChunk();
 }
 
 function hasMissingRoutePokemonDefinitions(routeData) {
@@ -20927,6 +23490,7 @@ async function loadPokemonDefinitions(routeDataInput, options = {}) {
 
 async function initializeScene() {
   state.mode = "loading";
+  showLoadingScreen(LOADING_SCREEN_DEFAULT_TEXT);
   state.pendingSimMs = 0;
   state.deferredSaveDirty = false;
   state.environment.nextUpdateAtMs = 0;
@@ -20969,6 +23533,7 @@ async function initializeScene() {
   clearCanvasHoverState();
   closeRenameModal();
   closeBoxesModal();
+  closePokedexModal();
   closeAppearanceModal();
   closeGachaModal({ force: true });
   setMapOpen(false);
@@ -21021,7 +23586,9 @@ async function initializeScene() {
     state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
     refreshOrderedCatalogRouteIds();
-    ensureUnlockedRoutesForCurrentCatalog();
+    const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();
+    const preferredRouteId = typeof state.saveData.current_route_id === "string" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;
+    const initialRouteId = unlockedRouteIds.includes(preferredRouteId) ? preferredRouteId : unlockedRouteIds[0];
     const initialAssetRouteIds = getInitialAssetRouteIds();
     const initialAssetRouteData = getRouteDataByIds(initialAssetRouteIds);
     await loadPokemonDefinitions(initialAssetRouteData, { append: false });
@@ -21033,18 +23600,26 @@ async function initializeScene() {
     const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();
     const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});
     const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;
-    const [routeBackgroundsById, typeIconImages] = await Promise.all([
-      preloadRouteBackgrounds(initialAssetRouteData),
-      preloadTypeIcons(),
-      preloadSelectedAppearanceAssetsForTeam(),
-    ]);
+    const routeBackgroundsById = await preloadRouteBackgrounds(getRouteDataByIds([initialRouteId]));
     state.routeBackgroundsById = routeBackgroundsById;
-    state.typeIconImages = typeIconImages;
+    Promise.allSettled([preloadTypeIcons(), preloadSelectedAppearanceAssetsForTeam()])
+      .then(([typeIconResult, appearanceResult]) => {
+        if (typeIconResult.status === "fulfilled" && typeIconResult.value instanceof Map) {
+          state.typeIconImages = typeIconResult.value;
+        } else if (typeIconResult.status === "rejected") {
+          console.warn("Impossible de precharger les icones de type:", typeIconResult.reason?.message || typeIconResult.reason);
+        }
+        if (appearanceResult.status === "rejected") {
+          console.warn(
+            "Impossible de precharger les apparences d'equipe:",
+            appearanceResult.reason?.message || appearanceResult.reason,
+          );
+        }
+        if (state.mode === "ready") {
+          render();
+        }
+      });
 
-    ensureUnlockedRoutesForCurrentCatalog();
-    const preferredRouteId = typeof state.saveData.current_route_id === "string" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;
-    const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();
-    const initialRouteId = unlockedRouteIds.includes(preferredRouteId) ? preferredRouteId : unlockedRouteIds[0];
     setActiveRoute(initialRouteId, { announceUnlock: false });
 
     ensureMoneyAndItems();
@@ -21089,6 +23664,7 @@ async function initializeScene() {
     }
 
     state.mode = "ready";
+    hideLoadingScreen();
     queueDeferredRouteAssetWarmup(initialAssetRouteIds);
     queueAppearanceTutorialIfNeeded();
     tryOpenPendingTutorialFlow();
@@ -21101,8 +23677,9 @@ async function initializeScene() {
   } catch (error) {
     state.mode = "error";
     state.error = error instanceof Error ? error.message : "Erreur inconnue";
+    hideLoadingScreen({ immediate: true });
   }
-  state.layout = computeLayout();
+  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   if (document.hidden) {
     ensureBackgroundTicker();
   }
@@ -21166,6 +23743,7 @@ async function resetSaveAndRestart() {
   closeGachaModal({ force: true });
   closeRenameModal();
   closeBoxesModal();
+  closePokedexModal();
   closeAppearanceModal();
   closeTeamContextMenu();
   clearTeamDragState();
@@ -21244,6 +23822,11 @@ document.addEventListener("keydown", (event) => {
     closeAppearanceModal();
     return;
   }
+  if (key === "escape" && state.ui.pokedexOpen) {
+    event.preventDefault();
+    closePokedexModal();
+    return;
+  }
   if (key === "escape" && state.ui.boxesOpen) {
     event.preventDefault();
     closeBoxesModal();
@@ -21263,13 +23846,20 @@ document.addEventListener(
   { capture: true },
 );
 
-canvas.addEventListener("mousedown", handleCanvasMouseDown);
-canvas.addEventListener("mousemove", handleCanvasMouseMove);
-canvas.addEventListener("mouseup", handleCanvasMouseUp);
+canvas.addEventListener("pointerdown", handleCanvasPointerDown);
+canvas.addEventListener("pointermove", handleCanvasPointerMove);
+canvas.addEventListener("pointerup", handleCanvasPointerUp);
+canvas.addEventListener("pointercancel", handleCanvasPointerCancel);
+canvas.addEventListener("lostpointercapture", handleCanvasPointerCancel);
 canvas.addEventListener("click", handleCanvasClick);
 canvas.addEventListener("contextmenu", handleCanvasContextMenu);
-canvas.addEventListener("mouseleave", clearCanvasHoverState);
-window.addEventListener("mouseup", handleWindowMouseUpOutsideCanvas);
+canvas.addEventListener("pointerleave", (event) => {
+  if (state.ui.teamDragActive || getNormalizedPointerType(event.pointerType) !== "mouse") {
+    return;
+  }
+  clearCanvasHoverState();
+});
+window.addEventListener("pointerup", handleWindowPointerUpOutsideCanvas);
 window.addEventListener("blur", () => {
   if (!state.ui.teamDragActive) {
     return;
@@ -21320,6 +23910,11 @@ if (ballCaptureToggleUnownedButtonEl) {
     toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_UNOWNED);
   });
 }
+if (ballCaptureToggleOwnedButtonEl) {
+  ballCaptureToggleOwnedButtonEl.addEventListener("click", () => {
+    toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_OWNED);
+  });
+}
 if (ballCaptureToggleShinyButtonEl) {
   ballCaptureToggleShinyButtonEl.addEventListener("click", () => {
     toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_SHINY);
@@ -21349,6 +23944,15 @@ if (resetSaveButtonEl) {
 if (mapButtonEl) {
   mapButtonEl.addEventListener("click", () => {
     setMapOpen(!state.ui.mapOpen);
+  });
+}
+if (pokedexButtonEl) {
+  pokedexButtonEl.addEventListener("click", () => {
+    if (state.ui.pokedexOpen) {
+      closePokedexModal();
+      return;
+    }
+    openPokedexModal();
   });
 }
 if (shopButtonEl) {
@@ -21478,6 +24082,11 @@ if (boxesCloseButtonEl) {
     closeBoxesModal();
   });
 }
+if (pokedexCloseButtonEl) {
+  pokedexCloseButtonEl.addEventListener("click", () => {
+    closePokedexModal();
+  });
+}
 if (appearanceCloseButtonEl) {
   appearanceCloseButtonEl.addEventListener("click", () => {
     closeAppearanceModal();
@@ -21527,6 +24136,13 @@ if (boxesModalEl) {
   boxesModalEl.addEventListener("click", (event) => {
     if (event.target === boxesModalEl) {
       closeBoxesModal();
+    }
+  });
+}
+if (pokedexModalEl) {
+  pokedexModalEl.addEventListener("click", (event) => {
+    if (event.target === pokedexModalEl) {
+      closePokedexModal();
     }
   });
 }
@@ -21602,3 +24218,4 @@ if (isProductionGithubPagesLocation(window.location)) {
 }
 initializeScene();
 window.requestAnimationFrame(gameLoop);
+

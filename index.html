@@ -15,6 +15,15 @@
       <main class="app-shell">
         <div id="game-stage" class="game-stage">
           <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
+          <section id="loading-screen" class="loading-screen is-visible" aria-live="polite" aria-label="Chargement">
+            <div class="loading-screen-core">
+              <div class="loading-pokeball" aria-hidden="true"></div>
+              <p id="loading-screen-text" class="loading-screen-text">
+                Le code de ce jeu a &eacute;t&eacute; enti&egrave;rement g&eacute;n&eacute;r&eacute; par IA.
+              </p>
+            </div>
+            <div class="loading-screen-flash" aria-hidden="true"></div>
+          </section>
           <div class="game-overlay">
             <header class="ui-topbar">
               <div class="route-nav-wrap">
@@ -59,6 +68,10 @@
               <button id="map-btn" class="map-btn action-btn" type="button">
                 <span class="btn-icon" aria-hidden="true">M</span>
                 <span class="btn-label">Map</span>
+              </button>
+              <button id="pokedex-btn" class="pokedex-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">D</span>
+                <span class="btn-label">Pokédex</span>
               </button>
               <button id="shop-btn" class="shop-btn action-btn" type="button">
                 <span class="btn-icon" aria-hidden="true">B</span>
@@ -245,6 +258,41 @@
       </div>
     </section>
 
+    <section id="pokedex-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Pokédex">
+      <div class="boxes-card pokedex-card">
+        <div class="boxes-header">
+          <div class="pokedex-header-copy">
+            <h2 class="boxes-title">Pokédex</h2>
+            <p id="pokedex-subtitle" class="boxes-subtitle">Toutes les espèces du jeu.</p>
+            <p id="pokedex-global-completion" class="pokedex-global-completion">
+              Complétion générale du Pokédex: 0%.
+            </p>
+            <div id="pokedex-counter" class="pokedex-header-stats" aria-live="polite">
+              <p id="pokedex-stat-encountered" class="pokedex-header-stat">
+                Espèces rencontrées: 0 sur 0 (0%).
+              </p>
+              <p id="pokedex-stat-captured" class="pokedex-header-stat">
+                Espèces capturées: 0 sur 0 (0%).
+              </p>
+              <p id="pokedex-stat-shiny" class="pokedex-header-stat">
+                Espèces capturées en shiny (hors ultra): 0 sur 0 (0%).
+              </p>
+              <p id="pokedex-stat-ultra" class="pokedex-header-stat">
+                Espèces capturées en ultra shiny: 0 sur 0 (0%).
+              </p>
+            </div>
+          </div>
+          <button id="pokedex-close-btn" class="boxes-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="boxes-layout">
+          <div id="pokedex-grid" class="boxes-grid pokedex-grid"></div>
+          <aside id="pokedex-info-panel" class="boxes-info-panel">
+            Survole un Pokémon du Pokédex pour voir ses infos.
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section
       id="appearance-modal"
       class="appearance-modal hidden"
@@ -343,6 +391,13 @@
       ></button>
       <button
         id="ball-capture-toggle-unowned"
+        class="team-context-menu-btn ball-capture-menu-btn"
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked="true"
+      ></button>
+      <button
+        id="ball-capture-toggle-owned"
         class="team-context-menu-btn ball-capture-menu-btn"
         type="button"
         role="menuitemcheckbox"

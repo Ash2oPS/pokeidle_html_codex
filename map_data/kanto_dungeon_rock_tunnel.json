@@ -1,6 +1,6 @@
 {
   "route_id": "kanto_dungeon_rock_tunnel",
-  "route_name_fr": "Grotte (Kanto)",
+  "route_name_fr": "Tunnel Roche (Kanto)",
   "zone_type": "dungeon",
   "combat_enabled": true,
   "unlock_mode": "defeats",
