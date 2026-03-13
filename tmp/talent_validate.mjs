@@ -42,7 +42,10 @@ async function runScenario({ url, outDir, iterations = 120, stepMs = 420 }) {
   await browser.close();
 }
 
-const scenario = JSON.parse(process.argv[2]);
+const rawArg = String(process.argv[2] || "").trim();
+const scenarioInputRaw = rawArg && fs.existsSync(rawArg) ? fs.readFileSync(rawArg, "utf8") : rawArg;
+const scenarioInput = String(scenarioInputRaw || "").replace(/^\uFEFF/, "");
+const scenario = JSON.parse(scenarioInput);
 runScenario(scenario).catch((err) => {
   console.error(err);
   process.exit(1);

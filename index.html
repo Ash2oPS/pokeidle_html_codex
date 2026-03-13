@@ -64,6 +64,10 @@
                 <span class="btn-icon" aria-hidden="true">B</span>
                 <span class="btn-label">Shop</span>
               </button>
+              <button id="gacha-btn" class="gacha-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">G</span>
+                <span class="btn-label">Machine Gacha</span>
+              </button>
               <button id="windows-notification-btn" class="shop-btn action-btn" type="button" aria-live="polite">
                 <span class="btn-icon" aria-hidden="true">N</span>
                 <span id="windows-notification-btn-label" class="btn-label">Notifs Windows</span>
@@ -155,6 +159,51 @@
         </div>
 
         <div id="shop-grid" class="shop-grid"></div>
+      </div>
+    </section>
+
+    <section id="gacha-modal" class="gacha-modal hidden" role="dialog" aria-modal="true" aria-label="Machine Gacha">
+      <div class="gacha-card">
+        <div class="gacha-header">
+          <div>
+            <h2 class="gacha-title">Machine Gacha Skins</h2>
+            <p id="gacha-subtitle" class="gacha-subtitle">Silhouettes noires jusqu'au reveal final. Un tirage coute 10 Coins.</p>
+          </div>
+          <button id="gacha-close-btn" class="gacha-close-btn" type="button">Fermer</button>
+        </div>
+
+        <div id="gacha-wallet" class="gacha-wallet" aria-live="polite">
+          <div class="gacha-wallet-item">
+            <span class="gacha-wallet-label">Coins</span>
+            <span id="gacha-wallet-coins" class="gacha-wallet-value">0</span>
+          </div>
+          <div class="gacha-wallet-item">
+            <span class="gacha-wallet-label">Prix</span>
+            <span id="gacha-wallet-cost" class="gacha-wallet-value">10 Coins</span>
+          </div>
+          <div class="gacha-wallet-item">
+            <span class="gacha-wallet-label">Skins restants (Kanto #001-151)</span>
+            <span id="gacha-wallet-remaining" class="gacha-wallet-value">0</span>
+          </div>
+        </div>
+
+        <div id="gacha-machine" class="gacha-machine">
+          <div class="gacha-lights" aria-hidden="true"></div>
+          <div id="gacha-reel-window" class="gacha-reel-window">
+            <div id="gacha-reel-track" class="gacha-reel-track"></div>
+            <div class="gacha-reel-pointer" aria-hidden="true"></div>
+          </div>
+          <div id="gacha-status" class="gacha-status">Pret a tenter ta chance.</div>
+        </div>
+
+        <div id="gacha-result" class="gacha-result hidden">
+          <div class="gacha-result-kicker">Nouveau skin debloque</div>
+          <div id="gacha-result-name" class="gacha-result-name">-</div>
+          <div id="gacha-result-skin" class="gacha-result-skin">-</div>
+          <div id="gacha-result-preview" class="gacha-result-preview"></div>
+        </div>
+
+        <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin aleatoire (10 Coins)</button>
       </div>
     </section>
 

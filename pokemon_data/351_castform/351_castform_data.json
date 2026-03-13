@@ -42,8 +42,8 @@
       "label_fr": "Rubis / Saphir",
       "generation": 3,
       "game_key": "ruby-sapphire",
-      "front": "sprites/351_castform_ruby_sapphire_front.png",
-      "front_shiny": "sprites/351_castform_ruby_sapphire_front_shiny.png"
+      "front": "sprites/351_castform_emerald_front.png",
+      "front_shiny": "sprites/351_castform_emerald_front.png"
     },
     {
       "id": "heartgold_soulsilver",

@@ -59,7 +59,7 @@
       "generation": 5,
       "game_key": "black-white",
       "front": "sprites/493_arceus_black_white_front.gif",
-      "front_shiny": "sprites/493_arceus_black_white_front_shiny.gif",
+      "front_shiny": "sprites/493_arceus_black_white_front.gif",
       "animated": true
     }
   ],

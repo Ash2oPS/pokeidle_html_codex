@@ -270,11 +270,16 @@ const TALENT_BLAZE_PLUS_PLUS_ID = "BLAZE_PLUS_PLUS";
 const TALENT_TORRENT_ID = "TORRENT";
 const TALENT_TORRENT_PLUS_ID = "TORRENT_PLUS";
 const TALENT_TORRENT_PLUS_PLUS_ID = "TORRENT_PLUS_PLUS";
+const TALENT_ELECTRIC_FIELD_ID = "ELECTRIC_FIELD";
+const TALENT_ARDENT_FIELD_ID = "ARDENT_FIELD";
+const TALENT_ARCTIC_FIELD_ID = "ARCTIC_FIELD";
 const TALENT_JACKPOT_ID = "JACKPOT";
 const TALENT_JACKPOT_PLUS_ID = "JACKPOT_PLUS";
 const TALENT_TELEPORT_ID = "TELEPORT";
 const TALENT_TELEPORT_PLUS_ID = "TELEPORT_PLUS";
 const TALENT_TELEPORT_PLUS_PLUS_ID = "TELEPORT_PLUS_PLUS";
+const TALENT_LEGENDARY_FIELD_ATTACK_BONUS = 0.35;
+const TALENT_LEGENDARY_FIELD_ATTACK_INTERVAL_MULTIPLIER = 0.8;
 const TALENT_AURA_PROVIDER_BY_ID = Object.freeze({
   [TALENT_OVERGROW_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.05 }),
   [TALENT_OVERGROW_PLUS_ID]: Object.freeze({ offensiveType: "grass", attackBonus: 0.1 }),
@@ -285,6 +290,49 @@ const TALENT_AURA_PROVIDER_BY_ID = Object.freeze({
   [TALENT_TORRENT_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.05 }),
   [TALENT_TORRENT_PLUS_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.1 }),
   [TALENT_TORRENT_PLUS_PLUS_ID]: Object.freeze({ offensiveType: "water", attackBonus: 0.15 }),
+  [TALENT_ELECTRIC_FIELD_ID]: Object.freeze({
+    offensiveType: "electric",
+    attackBonus: TALENT_LEGENDARY_FIELD_ATTACK_BONUS,
+    includeSelf: true,
+  }),
+  [TALENT_ARDENT_FIELD_ID]: Object.freeze({
+    offensiveType: "fire",
+    attackBonus: TALENT_LEGENDARY_FIELD_ATTACK_BONUS,
+    includeSelf: true,
+  }),
+  [TALENT_ARCTIC_FIELD_ID]: Object.freeze({
+    offensiveType: "ice",
+    attackBonus: TALENT_LEGENDARY_FIELD_ATTACK_BONUS,
+    includeSelf: true,
+  }),
+});
+const TALENT_LEGENDARY_FIELD_IDS = new Set([
+  TALENT_ELECTRIC_FIELD_ID,
+  TALENT_ARDENT_FIELD_ID,
+  TALENT_ARCTIC_FIELD_ID,
+]);
+const LEGENDARY_FIELD_VFX_THEME_BY_KEY = Object.freeze({
+  electric: Object.freeze({
+    key: "electric",
+    edgeColor: [132, 228, 255],
+    pulseColor: [202, 245, 255],
+    edgeAlpha: 0.36,
+    particleColor: [188, 241, 255],
+  }),
+  ardent: Object.freeze({
+    key: "ardent",
+    edgeColor: [255, 126, 78],
+    pulseColor: [255, 206, 120],
+    edgeAlpha: 0.35,
+    particleColor: [255, 182, 132],
+  }),
+  arctic: Object.freeze({
+    key: "arctic",
+    edgeColor: [168, 234, 255],
+    pulseColor: [228, 249, 255],
+    edgeAlpha: 0.34,
+    particleColor: [216, 245, 255],
+  }),
 });
 const TALENT_ALWAYS_HIT_IDS = new Set([TALENT_KEEN_EYE_ID, TALENT_VALIANT_EYE_ID]);
 const TALENT_CRIT_BONUS_CHANCE_BY_ID = Object.freeze({
@@ -348,6 +396,11 @@ const COIN_REWARD_PER_EVOLUTION = 3;
 const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE = 0.2;
 const MIN_CAPTURE_COIN_CHANCE = 0.1;
 const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
+const GACHA_SPIN_COST_COINS = 10;
+const GACHA_MAX_POKEMON_ID = 151;
+const GACHA_REEL_TOTAL_ITEMS = 64;
+const GACHA_REEL_REWARD_INDEX = 44;
+const GACHA_SPIN_DURATION_MS = 2400;
 const TEAM_SPRITE_SCALE = 1.18;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
@@ -467,7 +520,7 @@ const TUTORIAL_FLOW_DEFINITIONS = Object.freeze({
         lines: Object.freeze([
           "Des qu'un Pokemon de ton equipe atteint le niveau 10, l'editeur d'apparence se debloque.",
           "Fais clic droit sur un Pokemon de ta team pour ouvrir ses skins.",
-          "Tu peux acheter des sprites non possedes et equiper ceux debloques.",
+          "Les skins se debloquent avec la machine Gacha. Ici, tu equipes seulement ceux deja debloques.",
         ]),
       }),
     ]),
@@ -783,6 +836,55 @@ function createDefaultEvolutionStoneConfigByType() {
       spritePath: "assets/items/leaf_stone.png",
       methodItem: "leaf-stone",
     },
+    galarica_wreath: {
+      type: "galarica_wreath",
+      nameFr: "Couronne Galanoa",
+      price: 100000,
+      spritePath: "assets/items/galarica_wreath.png",
+      methodItem: "galarica-wreath",
+    },
+    ice_stone: {
+      type: "ice_stone",
+      nameFr: "Pierre Glace",
+      price: 100000,
+      spritePath: "assets/items/ice_stone.png",
+      methodItem: "ice-stone",
+    },
+    moon_stone: {
+      type: "moon_stone",
+      nameFr: "Pierre Lune",
+      price: 100000,
+      spritePath: "assets/items/moon_stone.png",
+      methodItem: "moon-stone",
+    },
+    sun_stone: {
+      type: "sun_stone",
+      nameFr: "Pierre Soleil",
+      price: 100000,
+      spritePath: "assets/items/sun_stone.png",
+      methodItem: "sun-stone",
+    },
+    thunder_stone: {
+      type: "thunder_stone",
+      nameFr: "Pierre Foudre",
+      price: 100000,
+      spritePath: "assets/items/thunder_stone.png",
+      methodItem: "thunder-stone",
+    },
+    cable_link: {
+      type: "cable_link",
+      nameFr: "Cable Link",
+      price: 100000,
+      spritePath: "assets/items/cable_link.png",
+      methodItem: "cable-link",
+    },
+    metal_coat: {
+      type: "metal_coat",
+      nameFr: "Peau Metal",
+      price: 100000,
+      spritePath: "assets/items/metal_coat.png",
+      methodItem: "metal-coat",
+    },
   };
 }
 
@@ -840,6 +942,97 @@ function createDefaultExtraShopItemConfigById(stoneConfigByType = createDefaultE
       methodItem: stoneConfigByType.leaf_stone.methodItem,
       stockTracked: true,
       sortOrder: 30,
+    },
+    galarica_wreath: {
+      id: "galarica_wreath",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.galarica_wreath.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.galarica_wreath.price,
+      spritePath: stoneConfigByType.galarica_wreath.spritePath,
+      itemType: "stone",
+      stoneType: "galarica_wreath",
+      methodItem: stoneConfigByType.galarica_wreath.methodItem,
+      stockTracked: true,
+      sortOrder: 40,
+    },
+    ice_stone: {
+      id: "ice_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.ice_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.ice_stone.price,
+      spritePath: stoneConfigByType.ice_stone.spritePath,
+      itemType: "stone",
+      stoneType: "ice_stone",
+      methodItem: stoneConfigByType.ice_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 50,
+    },
+    moon_stone: {
+      id: "moon_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.moon_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.moon_stone.price,
+      spritePath: stoneConfigByType.moon_stone.spritePath,
+      itemType: "stone",
+      stoneType: "moon_stone",
+      methodItem: stoneConfigByType.moon_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 60,
+    },
+    sun_stone: {
+      id: "sun_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.sun_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.sun_stone.price,
+      spritePath: stoneConfigByType.sun_stone.spritePath,
+      itemType: "stone",
+      stoneType: "sun_stone",
+      methodItem: stoneConfigByType.sun_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 70,
+    },
+    thunder_stone: {
+      id: "thunder_stone",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.thunder_stone.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.thunder_stone.price,
+      spritePath: stoneConfigByType.thunder_stone.spritePath,
+      itemType: "stone",
+      stoneType: "thunder_stone",
+      methodItem: stoneConfigByType.thunder_stone.methodItem,
+      stockTracked: true,
+      sortOrder: 80,
+    },
+    cable_link: {
+      id: "cable_link",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.cable_link.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.cable_link.price,
+      spritePath: stoneConfigByType.cable_link.spritePath,
+      itemType: "stone",
+      stoneType: "cable_link",
+      methodItem: stoneConfigByType.cable_link.methodItem,
+      stockTracked: true,
+      sortOrder: 90,
+    },
+    metal_coat: {
+      id: "metal_coat",
+      category: SHOP_TAB_EVOLUTIONS,
+      nameFr: stoneConfigByType.metal_coat.nameFr,
+      description: "Remplit la condition d'evolution d'une espece compatible (sans evolution immediate).",
+      price: stoneConfigByType.metal_coat.price,
+      spritePath: stoneConfigByType.metal_coat.spritePath,
+      itemType: "stone",
+      stoneType: "metal_coat",
+      methodItem: stoneConfigByType.metal_coat.methodItem,
+      stockTracked: true,
+      sortOrder: 100,
     },
   };
 }
@@ -1128,6 +1321,7 @@ const mapStageEl = document.querySelector(".map-stage");
 const mapImageEl = document.getElementById("map-image");
 const mapMarkersEl = document.getElementById("map-markers");
 const shopButtonEl = document.getElementById("shop-btn");
+const gachaButtonEl = document.getElementById("gacha-btn");
 const windowsNotificationButtonEl = document.getElementById("windows-notification-btn");
 const windowsNotificationButtonLabelEl = document.getElementById("windows-notification-btn-label");
 const shopModalEl = document.getElementById("shop-modal");
@@ -1145,6 +1339,21 @@ const shopWalletQtyValueEl = document.getElementById("shop-wallet-qty-value");
 const shopTabButtonEls = Array.from(document.querySelectorAll("[data-shop-tab]"));
 const shopQtyPresetButtonEls = Array.from(document.querySelectorAll("[data-shop-qty]"));
 const closeShopButtonEl = document.getElementById("close-shop-btn");
+const gachaModalEl = document.getElementById("gacha-modal");
+const gachaCloseButtonEl = document.getElementById("gacha-close-btn");
+const gachaSubtitleEl = document.getElementById("gacha-subtitle");
+const gachaWalletCoinsEl = document.getElementById("gacha-wallet-coins");
+const gachaWalletCostEl = document.getElementById("gacha-wallet-cost");
+const gachaWalletRemainingEl = document.getElementById("gacha-wallet-remaining");
+const gachaMachineEl = document.getElementById("gacha-machine");
+const gachaReelWindowEl = document.getElementById("gacha-reel-window");
+const gachaReelTrackEl = document.getElementById("gacha-reel-track");
+const gachaStatusEl = document.getElementById("gacha-status");
+const gachaResultEl = document.getElementById("gacha-result");
+const gachaResultNameEl = document.getElementById("gacha-result-name");
+const gachaResultSkinEl = document.getElementById("gacha-result-skin");
+const gachaResultPreviewEl = document.getElementById("gacha-result-preview");
+const gachaSpinButtonEl = document.getElementById("gacha-spin-btn");
 const evolutionItemModalEl = document.getElementById("evolution-item-modal");
 const evolutionItemTitleEl = document.getElementById("evolution-item-title");
 const evolutionItemSubtitleEl = document.getElementById("evolution-item-subtitle");
@@ -1197,8 +1406,48 @@ let evolutionItemChoiceCandidates = [];
 
 window.POKEIDLE_APP_VERSION = APP_VERSION;
 window.POKEIDLE_DISPLAY_VERSION = DISPLAY_APP_VERSION;
-const audioManager = createAudioManager();
-window.POKEIDLE_AUDIO = audioManager;
+let audioManager = null;
+
+function ensureAudioManager() {
+  if (!audioManager) {
+    audioManager = createAudioManager();
+  }
+  return audioManager;
+}
+
+function initializeAudioManagerAfterGesture() {
+  ensureAudioManager();
+  window.removeEventListener("pointerdown", initializeAudioManagerAfterGesture, true);
+  window.removeEventListener("keydown", initializeAudioManagerAfterGesture, true);
+}
+
+window.POKEIDLE_AUDIO = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const manager = ensureAudioManager();
+      const value = manager[prop];
+      return typeof value === "function" ? value.bind(manager) : value;
+    },
+    has(_target, prop) {
+      return prop in ensureAudioManager();
+    },
+    ownKeys() {
+      return Reflect.ownKeys(ensureAudioManager());
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      const manager = ensureAudioManager();
+      const descriptor = Object.getOwnPropertyDescriptor(manager, prop);
+      if (!descriptor) {
+        return undefined;
+      }
+      return { ...descriptor, configurable: true };
+    },
+  },
+);
+
+window.addEventListener("pointerdown", initializeAudioManagerAfterGesture, { capture: true, passive: true });
+window.addEventListener("keydown", initializeAudioManagerAfterGesture, { capture: true });
 
 const state = {
   mode: "loading",
@@ -1313,6 +1562,7 @@ const state = {
   ui: {
     mapOpen: false,
     shopOpen: false,
+    gachaOpen: false,
     shopTab: SHOP_TAB_POKEBALLS,
     shopQuantityMode: "1",
     shopCustomQuantity: 1,
@@ -1336,6 +1586,14 @@ const state = {
     renameSlotIndex: -1,
     renamePokemonId: null,
     tutorialOpen: false,
+  },
+  gacha: {
+    spinning: false,
+    suspenseTimerIds: [],
+    reelItems: [],
+    reelRewardIndex: -1,
+    reelOffsetPx: 0,
+    lastReward: null,
   },
   saveBackend: {
     indexedDbAvailable: null,
@@ -3847,10 +4105,23 @@ function getTalentMoneyMultiplier(rawTalent, pokemonId = 0) {
   return Math.max(1, Number(TALENT_MONEY_MULTIPLIER_BY_ID[talentId] || 1));
 }
 
+function hasImplementedTalentEffect(talentIdRaw) {
+  const talentId = normalizeTalentId(talentIdRaw);
+  if (talentId === TALENT_NONE_ID) {
+    return true;
+  }
+  if (getPassiveBehaviorIdForTalentId(talentId) !== TALENT_NONE_ID) {
+    return true;
+  }
+  return Number(TALENT_MONEY_MULTIPLIER_BY_ID[talentId] || 1) > 1;
+}
+
 function getTalentTeleportSwapChance(rawTalent, pokemonId = 0) {
   const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
-  return clamp(Number(TALENT_TELEPORT_SWAP_CHANCE_BY_ID[talentId] || 0), 0, 1);
+  const baseChance = clamp(Number(TALENT_TELEPORT_SWAP_CHANCE_BY_ID[talentId] || 0), 0, 1);
+  return baseChance;
 }
+
 
 function isTeleportPlusPlusTalent(rawTalent, pokemonId = 0) {
   const talentId = normalizeTalentId(resolveTalentDefinition(rawTalent, pokemonId).id);
@@ -3871,6 +4142,49 @@ function getTeamAuraProviderConfig(rawTalent, pokemonId = 0) {
   return TALENT_AURA_PROVIDER_BY_ID[talentId] || null;
 }
 
+function getLegendaryFieldPresence(teamMembers) {
+  const stateByField = {
+    electric: false,
+    ardent: false,
+    arctic: false,
+  };
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return {
+      ...stateByField,
+      trinityActive: false,
+    };
+  }
+  for (let i = 0; i < teamMembers.length; i += 1) {
+    const teammate = teamMembers[i];
+    if (!teammate) {
+      continue;
+    }
+    const talentId = getEntityTalentId(teammate, teammate?.id);
+    if (!TALENT_LEGENDARY_FIELD_IDS.has(talentId)) {
+      continue;
+    }
+    if (talentId === TALENT_ELECTRIC_FIELD_ID) {
+      stateByField.electric = true;
+    } else if (talentId === TALENT_ARDENT_FIELD_ID) {
+      stateByField.ardent = true;
+    } else if (talentId === TALENT_ARCTIC_FIELD_ID) {
+      stateByField.arctic = true;
+    }
+  }
+  return {
+    ...stateByField,
+    trinityActive: stateByField.electric && stateByField.ardent && stateByField.arctic,
+  };
+}
+
+function getLegendaryFieldAttackIntervalMultiplier(teamMembers) {
+  const fields = getLegendaryFieldPresence(teamMembers);
+  if (!fields.trinityActive) {
+    return 1;
+  }
+  return TALENT_LEGENDARY_FIELD_ATTACK_INTERVAL_MULTIPLIER;
+}
+
 function getStackedTeamAuraAttackBonus(teamMembers, targetSlotIndex, targetOffensiveType) {
   if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
     return 0;
@@ -3879,15 +4193,15 @@ function getStackedTeamAuraAttackBonus(teamMembers, targetSlotIndex, targetOffen
   const targetType = normalizeType(targetOffensiveType || "normal");
   let totalBonus = 0;
   for (let i = 0; i < teamMembers.length; i += 1) {
-    if (i === targetSlotIndex) {
-      continue;
-    }
     const teammate = teamMembers[i];
     if (!teammate) {
       continue;
     }
     const aura = getTeamAuraProviderConfig(teammate?.talent, teammate?.id);
     if (!aura) {
+      continue;
+    }
+    if (i === targetSlotIndex && !Boolean(aura.includeSelf)) {
       continue;
     }
     if (normalizeType(aura.offensiveType) !== targetType) {
@@ -4715,7 +5029,7 @@ function canOpenTutorialModalNow() {
   if (state.evolutionAnimation.current) {
     return false;
   }
-  if (state.ui.mapOpen || state.ui.shopOpen || state.ui.boxesOpen || state.ui.appearanceOpen) {
+  if (state.ui.mapOpen || state.ui.shopOpen || state.ui.gachaOpen || state.ui.boxesOpen || state.ui.appearanceOpen) {
     return false;
   }
   return true;
@@ -4795,6 +5109,7 @@ function openTutorialFlow(flowId, initialPage = 0) {
   hideHoverPopup();
   setMapOpen(false);
   setShopOpen(false);
+  closeGachaModal({ force: true });
   closeBoxesModal();
   closeAppearanceModal();
   state.tutorial.active = {
@@ -6735,10 +7050,12 @@ function getAttackBoostRemainingMs(nowMs = Date.now()) {
 
 function getCurrentAttackIntervalMs(nowMs = Date.now()) {
   const baseInterval = ATTACK_INTERVAL_MS;
-  if (!isAttackBoostActive(nowMs)) {
-    return baseInterval;
+  let multiplier = 1;
+  if (isAttackBoostActive(nowMs)) {
+    multiplier *= getAttackBoostIntervalMultiplier();
   }
-  return Math.max(65, Math.round(baseInterval * getAttackBoostIntervalMultiplier()));
+  multiplier *= getLegendaryFieldAttackIntervalMultiplier(state.team);
+  return Math.max(65, Math.round(baseInterval * multiplier));
 }
 
 function activateAttackBoost(durationMs = getAttackBoostDurationMsFromConfig()) {
@@ -6779,6 +7096,19 @@ function spendMoney(amount) {
     return false;
   }
   state.saveData.money -= cost;
+  return true;
+}
+
+function spendCoins(amount) {
+  if (!state.saveData) {
+    return false;
+  }
+  ensureMoneyAndItems();
+  const cost = Math.max(0, toSafeInt(amount, 0));
+  if (state.saveData.coins < cost) {
+    return false;
+  }
+  state.saveData.coins -= cost;
   return true;
 }
 
@@ -8754,6 +9084,8 @@ class PokemonBattleManager {
     this.slotAttackFlash = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
+    this.teleportBoostVisualBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
+    this.pendingTeleportSwapAfterRespawn = null;
     this.enemyTimerEnabled = false;
     this.enemyTimerDurationMs = 0;
     this.enemyTimerMs = 0;
@@ -8790,10 +9122,46 @@ class PokemonBattleManager {
   }
 
   syncTeam(team) {
+    const previousTeam = Array.isArray(this.team) ? this.team : [];
+    const previousBoostByPokemonId = new Map();
+    const previousBoostVisualByPokemonId = new Map();
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const member = previousTeam[i];
+      const pokemonId = Number(member?.id || 0);
+      if (pokemonId <= 0) {
+        continue;
+      }
+      const previousBoost = Math.max(1, Number(this.teleportDamageBoostBySlot?.[i] || 1));
+      const previousVisual = clamp(Number(this.teleportBoostVisualBySlot?.[i] || 0), 0, 1);
+      previousBoostByPokemonId.set(
+        pokemonId,
+        Math.max(previousBoost, Number(previousBoostByPokemonId.get(pokemonId) || 1)),
+      );
+      previousBoostVisualByPokemonId.set(
+        pokemonId,
+        Math.max(previousVisual, Number(previousBoostVisualByPokemonId.get(pokemonId) || 0)),
+      );
+    }
+
     this.team = Array.isArray(team) ? team : [];
     this.turnIndex = this.team.length === 0 ? 0 : this.turnIndex % MAX_TEAM_SIZE;
     this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
+    this.teleportBoostVisualBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const member = this.team[i];
+      const pokemonId = Number(member?.id || 0);
+      if (pokemonId <= 0) {
+        continue;
+      }
+      const preservedBoost = Math.max(1, Number(previousBoostByPokemonId.get(pokemonId) || 1));
+      this.teleportDamageBoostBySlot[i] = preservedBoost;
+      this.teleportBoostVisualBySlot[i] = Math.max(
+        clamp(Number(previousBoostVisualByPokemonId.get(pokemonId) || 0), 0, 1),
+        preservedBoost > 1.001 ? 1 : 0,
+      );
+    }
+    this.refreshPlacementDependentTalentOverrides();
   }
 
   getEnemy() {
@@ -9338,6 +9706,25 @@ class PokemonBattleManager {
     return Math.max(1, Number(this.teleportDamageBoostBySlot?.[slotIndex] || 1));
   }
 
+  getTeleportBoostVisualIntensityForSlot(slotIndex) {
+    return clamp(Number(this.teleportBoostVisualBySlot?.[slotIndex] || 0), 0, 1);
+  }
+
+  updateTeleportBoostVisuals(deltaMs) {
+    const dt = Math.max(0, Number(deltaMs) || 0) / 1000;
+    if (dt <= 0) {
+      return;
+    }
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const hasBoost = this.getTeleportDamageBoostForSlot(i) > 1.001;
+      const current = clamp(Number(this.teleportBoostVisualBySlot[i] || 0), 0, 1);
+      const next = hasBoost
+        ? clamp(current + dt * 3.4, 0, 1)
+        : clamp(current - dt * 2.2, 0, 1);
+      this.teleportBoostVisualBySlot[i] = next;
+    }
+  }
+
   consumeTeleportDamageBoostForSlot(slotIndex) {
     const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
     if (safeSlotIndex < 0) {
@@ -9345,7 +9732,26 @@ class PokemonBattleManager {
     }
     const multiplier = Math.max(1, Number(this.teleportDamageBoostBySlot[safeSlotIndex] || 1));
     this.teleportDamageBoostBySlot[safeSlotIndex] = 1;
+    if (multiplier > 1.001) {
+      this.teleportBoostVisualBySlot[safeSlotIndex] = Math.max(
+        0.5,
+        Number(this.teleportBoostVisualBySlot[safeSlotIndex] || 0),
+      );
+    }
     return multiplier;
+  }
+
+  refreshPlacementDependentTalentOverrides() {
+    const teamCollections = [];
+    if (Array.isArray(this.team)) {
+      teamCollections.push(this.team);
+    }
+    if (Array.isArray(state.team) && state.team !== this.team) {
+      teamCollections.push(state.team);
+    }
+    for (const teamMembers of teamCollections) {
+      applyTeamTalentOverrides(teamMembers);
+    }
   }
 
   swapTeamSlots(firstSlotIndex, secondSlotIndex) {
@@ -9362,10 +9768,36 @@ class PokemonBattleManager {
     const tempBoost = this.teleportDamageBoostBySlot[a];
     this.teleportDamageBoostBySlot[a] = this.teleportDamageBoostBySlot[b];
     this.teleportDamageBoostBySlot[b] = tempBoost;
+    const tempTeleportBoostVisual = this.teleportBoostVisualBySlot[a];
+    this.teleportBoostVisualBySlot[a] = this.teleportBoostVisualBySlot[b];
+    this.teleportBoostVisualBySlot[b] = tempTeleportBoostVisual;
+
+    if (Array.isArray(state.team) && state.team !== this.team && a < state.team.length && b < state.team.length) {
+      const tempStateMember = state.team[a];
+      state.team[a] = state.team[b];
+      state.team[b] = tempStateMember;
+    }
+
+    if (Array.isArray(state.saveData?.team) && a < state.saveData.team.length && b < state.saveData.team.length) {
+      const tempSavedId = state.saveData.team[a];
+      state.saveData.team[a] = state.saveData.team[b];
+      state.saveData.team[b] = tempSavedId;
+    }
+    this.refreshPlacementDependentTalentOverrides();
     return true;
   }
 
-  addTeleportSwapEffects(firstSlotIndex, secondSlotIndex, layout) {
+  resolveTeleportEffectLayout(layout) {
+    if (layout?.teamSlots?.length >= MAX_TEAM_SIZE) {
+      return layout;
+    }
+    if (state.layout?.teamSlots?.length >= MAX_TEAM_SIZE) {
+      return state.layout;
+    }
+    return computeLayout();
+  }
+
+  addTeleportSwapEffects(firstSlotIndex, secondSlotIndex, layout, options = {}) {
     if (!layout) {
       return;
     }
@@ -9378,28 +9810,43 @@ class PokemonBattleManager {
     const midX = (firstSlot.x + secondSlot.x) * 0.5 + randomRange(-18, 18);
     const midY = (firstSlot.y + secondSlot.y) * 0.5 + randomRange(-24, 24);
 
-    this.hitEffects.push({
-      kind: "teleport_trail",
-      x: firstSlot.x,
-      y: firstSlot.y - firstSlot.size * 0.08,
-      toX: secondSlot.x,
-      toY: secondSlot.y - secondSlot.size * 0.08,
-      ctrlX: midX,
-      ctrlY: midY,
-      lifeMs: 170,
-      maxLifeMs: 170,
-      lineWidth: Math.max(2.2, Math.min(firstSlot.size, secondSlot.size) * 0.075),
-      color: psychicColor,
-    });
+    this.hitEffects.push(
+      {
+        kind: "teleport_trail",
+        x: firstSlot.x,
+        y: firstSlot.y - firstSlot.size * 0.08,
+        toX: secondSlot.x,
+        toY: secondSlot.y - secondSlot.size * 0.08,
+        ctrlX: midX,
+        ctrlY: midY,
+        lifeMs: 220,
+        maxLifeMs: 220,
+        lineWidth: Math.max(2.2, Math.min(firstSlot.size, secondSlot.size) * 0.075),
+        color: psychicColor,
+      },
+      {
+        kind: "teleport_trail",
+        x: secondSlot.x,
+        y: secondSlot.y - secondSlot.size * 0.08,
+        toX: firstSlot.x,
+        toY: firstSlot.y - firstSlot.size * 0.08,
+        ctrlX: midX + randomRange(-18, 18),
+        ctrlY: midY + randomRange(-18, 18),
+        lifeMs: 190,
+        maxLifeMs: 190,
+        lineWidth: Math.max(1.8, Math.min(firstSlot.size, secondSlot.size) * 0.052),
+        color: psychicColor,
+      },
+    );
 
     this.hitEffects.push({
       kind: "ring",
       x: firstSlot.x,
       y: firstSlot.y,
       radius: 5,
-      expandSpeed: 240,
-      lifeMs: 140,
-      maxLifeMs: 140,
+      expandSpeed: 275,
+      lifeMs: 180,
+      maxLifeMs: 180,
       lineWidth: 2.1,
       color: psychicColor,
     });
@@ -9408,14 +9855,45 @@ class PokemonBattleManager {
       x: secondSlot.x,
       y: secondSlot.y,
       radius: 5,
-      expandSpeed: 240,
-      lifeMs: 140,
-      maxLifeMs: 140,
+      expandSpeed: 275,
+      lifeMs: 180,
+      maxLifeMs: 180,
       lineWidth: 2.1,
       color: psychicColor,
     });
+    this.hitEffects.push({
+      kind: "teleport_flash",
+      x: firstSlot.x,
+      y: firstSlot.y,
+      radius: firstSlot.size * 0.16,
+      expandSpeed: 190,
+      lifeMs: 160,
+      maxLifeMs: 160,
+      color: psychicColor,
+    });
+    this.hitEffects.push({
+      kind: "teleport_flash",
+      x: secondSlot.x,
+      y: secondSlot.y,
+      radius: secondSlot.size * 0.16,
+      expandSpeed: 190,
+      lifeMs: 160,
+      maxLifeMs: 160,
+      color: psychicColor,
+    });
+    this.hitEffects.push({
+      kind: "ring",
+      x: (firstSlot.x + secondSlot.x) * 0.5,
+      y: (firstSlot.y + secondSlot.y) * 0.5,
+      radius: Math.max(8, Math.min(firstSlot.size, secondSlot.size) * 0.2),
+      expandSpeed: 180,
+      lifeMs: 150,
+      maxLifeMs: 150,
+      lineWidth: 1.9,
+      color: psychicColor,
+    });
 
-    const sparkCount = shouldRenderCelebrationParticles() ? 10 : 0;
+    const sparkCount = shouldRenderCelebrationParticles() ? 14 : 8;
     for (let i = 0; i < sparkCount; i += 1) {
       const angle = (Math.PI * 2 * i) / Math.max(1, sparkCount) + Math.random() * 0.4;
       const speed = 70 + Math.random() * 130;
@@ -9435,25 +9913,64 @@ class PokemonBattleManager {
       });
     }
 
+    const boostedSlotIndex = clamp(toSafeInt(options?.boostedSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    const boostedSlot = layout?.teamSlots?.[boostedSlotIndex];
+    if (boostedSlot) {
+      this.hitEffects.push({
+        kind: "teleport_flash",
+        x: boostedSlot.x,
+        y: boostedSlot.y,
+        radius: boostedSlot.size * 0.22,
+        expandSpeed: 210,
+        lifeMs: 240,
+        maxLifeMs: 240,
+        color: psychicColor,
+      });
+      this.hitEffects.push({
+        kind: "ring",
+        x: boostedSlot.x,
+        y: boostedSlot.y,
+        radius: Math.max(8, boostedSlot.size * 0.2),
+        expandSpeed: 240,
+        lifeMs: 230,
+        maxLifeMs: 230,
+        lineWidth: 2.4,
+        color: psychicColor,
+      });
+    }
+
     this.triggerSlotTeleportScale(firstSlotIndex);
     this.triggerSlotTeleportScale(secondSlotIndex);
   }
 
-  tryApplyTeleportSwap(attackerIndex, attacker, decision, layout, options = {}) {
+  buildTeleportSwapPlan(attackerIndex, attacker, decision) {
     if (!attacker || decision?.action !== TURN_ACTION_ATTACK) {
-      return { swapped: false };
+      return null;
     }
     const swapChance = getTalentTeleportSwapChance(attacker?.talent, attacker?.id);
     if (swapChance <= 0 || Math.random() >= swapChance) {
-      return { swapped: false };
+      return null;
     }
 
     const allySlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: false });
     if (allySlotIndex < 0) {
-      return { swapped: false };
+      return null;
     }
     const attackerSlotIndex = clamp(toSafeInt(attackerIndex, -1), -1, MAX_TEAM_SIZE - 1);
     if (attackerSlotIndex < 0 || attackerSlotIndex === allySlotIndex) {
+      return null;
+    }
+    return {
+      attackerSlotIndex,
+      allySlotIndex,
+      teleportPlusPlus: isTeleportPlusPlusTalent(attacker?.talent, attacker?.id),
+    };
+  }
+
+  applyTeleportSwapPlan(plan, layout, options = {}) {
+    const attackerSlotIndex = clamp(toSafeInt(plan?.attackerSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    const allySlotIndex = clamp(toSafeInt(plan?.allySlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (attackerSlotIndex < 0 || allySlotIndex < 0 || attackerSlotIndex === allySlotIndex) {
       return { swapped: false };
     }
 
@@ -9466,13 +9983,14 @@ class PokemonBattleManager {
     }
 
     let boostedSlotIndex = -1;
-    if (isTeleportPlusPlusTalent(attacker?.talent, attacker?.id) && allyBeforeSwap) {
+    if (Boolean(plan?.teleportPlusPlus) && allyBeforeSwap) {
       boostedSlotIndex = this.team.indexOf(allyBeforeSwap);
       if (boostedSlotIndex >= 0) {
         this.teleportDamageBoostBySlot[boostedSlotIndex] = Math.max(
           TALENT_TELEPORT_PLUS_PLUS_DAMAGE_MULTIPLIER,
           Number(this.teleportDamageBoostBySlot[boostedSlotIndex] || 1),
         );
+        this.teleportBoostVisualBySlot[boostedSlotIndex] = 1;
       }
     }
 
@@ -9484,7 +10002,8 @@ class PokemonBattleManager {
     }
 
     if (!options.idleMode) {
-      this.addTeleportSwapEffects(attackerSlotIndex, allySlotIndex, layout);
+      const effectLayout = this.resolveTeleportEffectLayout(layout);
+      this.addTeleportSwapEffects(attackerSlotIndex, allySlotIndex, effectLayout, { boostedSlotIndex });
     }
     return {
       swapped: true,
@@ -9492,6 +10011,27 @@ class PokemonBattleManager {
       toSlotIndex: allySlotIndex,
       boostedSlotIndex,
     };
+  }
+
+  queueTeleportSwapAfterRespawn(plan) {
+    this.pendingTeleportSwapAfterRespawn = plan ? { ...plan } : null;
+  }
+
+  applyPendingTeleportSwapAfterRespawn(layout, options = {}) {
+    const plan = this.pendingTeleportSwapAfterRespawn;
+    if (!plan) {
+      return { swapped: false };
+    }
+    this.pendingTeleportSwapAfterRespawn = null;
+    return this.applyTeleportSwapPlan(plan, layout, options);
+  }
+
+  tryApplyTeleportSwap(attackerIndex, attacker, decision, layout, options = {}) {
+    const plan = this.buildTeleportSwapPlan(attackerIndex, attacker, decision);
+    if (!plan) {
+      return { swapped: false };
+    }
+    return this.applyTeleportSwapPlan(plan, layout, options);
   }
 
   getEnemyDamageFlashBlend() {
@@ -9660,6 +10200,7 @@ class PokemonBattleManager {
     this.updateSlotRecoil(deltaMs);
     this.updateSlotAttackFlash(deltaMs);
     this.updateSlotTeleportScale(deltaMs);
+    this.updateTeleportBoostVisuals(deltaMs);
     if (!layout) {
       return;
     }
@@ -9838,6 +10379,8 @@ class PokemonBattleManager {
         effect.vy = effect.vy * drag + 24 * dt;
       } else if (effect.kind === "ring") {
         effect.radius += effect.expandSpeed * dt;
+      } else if (effect.kind === "teleport_flash") {
+        effect.radius += (Number(effect.expandSpeed) || 180) * dt;
       }
       survivors.push(effect);
     }
@@ -9865,6 +10408,13 @@ class PokemonBattleManager {
     const targetX = impactPoint.x + targetOffsetX;
     const targetY = impactPoint.y + targetOffsetY;
     const precomputedHit = this.buildPrecomputedHitOutcome(attackerIndex, attacker, attackType);
+    const rawTurnDecision = options?.turnDecision && typeof options.turnDecision === "object"
+      ? options.turnDecision
+      : this.resolveTurnDecisionForSlot(attackerIndex, attacker);
+    const turnDecision = {
+      ...rawTurnDecision,
+      action: TURN_ACTION_ATTACK,
+    };
     const plannedDamage = Math.max(0, Number(precomputedHit.damage) || 0);
     const projectedHpAfter = Math.max(
       0,
@@ -9895,6 +10445,14 @@ class PokemonBattleManager {
       attackType,
       attackerIndex,
       attackerNameFr: attacker.nameFr,
+      attackerSnapshot: {
+        id: Number(attacker.id || 0),
+        nameFr: String(attacker.nameFr || ""),
+        talent: attacker.talent || null,
+        offensiveType: attacker.offensiveType || null,
+        defensiveTypes: Array.isArray(attacker.defensiveTypes) ? [...attacker.defensiveTypes] : [],
+      },
+      turnDecision,
       spinPhase: Math.random() * Math.PI * 2,
       spinVelocity: (1.8 + Math.random() * 2.2) * (Math.random() < 0.5 ? -1 : 1),
       rotation: 0,
@@ -9923,7 +10481,7 @@ class PokemonBattleManager {
       return;
     }
 
-    const mainProjectile = this.enqueueAttackProjectile(layout, attackerIndex, attacker);
+    const mainProjectile = this.enqueueAttackProjectile(layout, attackerIndex, attacker, { turnDecision: decision });
     if (!mainProjectile) {
       return;
     }
@@ -9932,9 +10490,11 @@ class PokemonBattleManager {
       const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
       const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
       if (supportAttacker) {
+        const supportDecision = this.resolveTurnDecisionForSlot(supportSlotIndex, supportAttacker);
         this.enqueueAttackProjectile(layout, supportSlotIndex, supportAttacker, {
           targetOffsetX: randomRange(-7, 7),
           targetOffsetY: randomRange(-5, 5),
+          turnDecision: supportDecision,
         });
       }
     }
@@ -10148,11 +10708,17 @@ class PokemonBattleManager {
       return;
     }
 
-    const attacker = this.team[projectile.attackerIndex];
+    const attackerSnapshot = projectile?.attackerSnapshot && typeof projectile.attackerSnapshot === "object"
+      ? projectile.attackerSnapshot
+      : null;
+    const attacker = attackerSnapshot || this.team[projectile.attackerIndex];
     if (!attacker) {
       this.consumeQueuedProjectileDamage(projectile);
       return;
     }
+    const decision = projectile?.turnDecision && typeof projectile.turnDecision === "object"
+      ? projectile.turnDecision
+      : this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
 
     const precomputedHit = projectile?.precomputedHit && typeof projectile.precomputedHit === "object"
       ? projectile.precomputedHit
@@ -10169,7 +10735,6 @@ class PokemonBattleManager {
       : (!hasAlwaysHitTalent(attacker?.talent, attacker?.id) && Math.random() < ATTACK_MISS_CHANCE);
     if (missed) {
       this.consumeQueuedProjectileDamage(projectile);
-      const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
       this.lastImpact = {
         attackerNameFr: attacker.nameFr,
         attackType,
@@ -10206,7 +10771,10 @@ class PokemonBattleManager {
       const teleportSwapResult = this.tryApplyTeleportSwap(
         projectile.attackerIndex,
         attacker,
-        decision,
+        {
+          ...decision,
+          action: TURN_ACTION_ATTACK,
+        },
         options.layout,
         { idleMode },
       );
@@ -10258,7 +10826,6 @@ class PokemonBattleManager {
       isCritical: isCriticalHit,
       missed: false,
     };
-    const decision = this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
     if (!suppressTurnEvent) {
       this.recordTurnEvent(projectile.attackerIndex, attacker, {
         action: TURN_ACTION_ATTACK,
@@ -10292,18 +10859,45 @@ class PokemonBattleManager {
         targetY: projectile.targetY,
       });
     }
-    const teleportSwapResult = this.tryApplyTeleportSwap(
-      projectile.attackerIndex,
-      attacker,
-      decision,
-      options.layout,
-      { idleMode },
-    );
-    if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
-      this.lastTurnEvent.teleport_swap = true;
-      this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
-      this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
-      this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
+    const enemyDefeatedByThisHit = Boolean(this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning());
+    if (enemyDefeatedByThisHit) {
+      const deferredTeleportPlan = this.buildTeleportSwapPlan(
+        projectile.attackerIndex,
+        attacker,
+        {
+          ...decision,
+          action: TURN_ACTION_ATTACK,
+        },
+      );
+      if (deferredTeleportPlan) {
+        this.queueTeleportSwapAfterRespawn(deferredTeleportPlan);
+        if (!suppressTurnEvent && this.lastTurnEvent) {
+          this.lastTurnEvent.teleport_swap = true;
+          this.lastTurnEvent.teleport_swap_from_slot = deferredTeleportPlan.attackerSlotIndex;
+          this.lastTurnEvent.teleport_swap_to_slot = deferredTeleportPlan.allySlotIndex;
+          this.lastTurnEvent.teleport_boosted_slot = deferredTeleportPlan.teleportPlusPlus
+            ? deferredTeleportPlan.attackerSlotIndex
+            : -1;
+          this.lastTurnEvent.teleport_swap_deferred_until_next_spawn = true;
+        }
+      }
+    } else {
+      const teleportSwapResult = this.tryApplyTeleportSwap(
+        projectile.attackerIndex,
+        attacker,
+        {
+          ...decision,
+          action: TURN_ACTION_ATTACK,
+        },
+        options.layout,
+        { idleMode },
+      );
+      if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
+        this.lastTurnEvent.teleport_swap = true;
+        this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
+        this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
+        this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
+      }
     }
 
     if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
@@ -10394,6 +10988,7 @@ class PokemonBattleManager {
     this.defeatedEnemyName = null;
     this.captureSequence = null;
     this.lastTurnEvent = null;
+    const deferredSwapResult = this.applyPendingTeleportSwapAfterRespawn(state.layout, { idleMode: false });
     this.resetEnemyTimer();
     this.onEnemySpawn(this.enemy);
   }
@@ -10573,6 +11168,53 @@ function buildTeamMemberFromSaveEntry(entry) {
   };
 }
 
+function resolveMorphingBaseProfile(member) {
+  const pokemonId = Number(member?.id || 0);
+  const def = state.pokemonDefsById.get(pokemonId) || null;
+  const record = getPokemonEntityRecord(pokemonId);
+  const forceUltraShiny = shouldForceUltraShinyAllPokemon();
+  const appearance = pokemonId > 0
+    ? resolveSpriteAppearanceForEntity(pokemonId, { forceUltraShiny })
+    : null;
+  const resolvedBaseStats = normalizeStatsPayload(record?.base_stats || def?.stats || member?.baseStats || member?.stats || {});
+  const defaultDefensiveTypes = Array.isArray(def?.defensiveTypes) && def.defensiveTypes.length > 0
+    ? def.defensiveTypes.slice(0, 2)
+    : Array.isArray(member?.defensiveTypes)
+      ? member.defensiveTypes.slice(0, 2)
+      : ["normal"];
+  return {
+    pokemonId,
+    baseStats: resolvedBaseStats,
+    defensiveTypes: defaultDefensiveTypes,
+    offensiveType: normalizeType(def?.offensiveType || member?.offensiveType || "normal"),
+    spritePath: appearance?.spritePath || def?.spritePath || member?.spritePath || "",
+    spriteImage: appearance?.spriteImage || def?.spriteImage || member?.spriteImage || null,
+    spriteVariantId: appearance?.variant?.id || member?.spriteVariantId || (def ? getDefaultSpriteVariantId(def) : null),
+    spriteAnimated: Boolean(appearance?.animated),
+  };
+}
+
+function restoreMorphingMemberBaseState(member) {
+  if (!member) {
+    return;
+  }
+  const baseProfile = resolveMorphingBaseProfile(member);
+  const level = clamp(toSafeInt(member.level, 1), 1, MAX_LEVEL);
+  const hpRatio = member.hpMax > 0 ? clamp(member.hpCurrent / member.hpMax, 0, 1) : 1;
+  const restoredStats = computeStatsAtLevel(baseProfile.baseStats, level);
+  const restoredHpMax = computeBattleHpMax(restoredStats, level, false);
+  member.baseStats = normalizeStatsPayload(baseProfile.baseStats);
+  member.stats = restoredStats;
+  member.hpMax = restoredHpMax;
+  member.hpCurrent = Math.max(1, Math.round(restoredHpMax * hpRatio));
+  member.defensiveTypes = Array.isArray(baseProfile.defensiveTypes) ? baseProfile.defensiveTypes.slice(0, 2) : ["normal"];
+  member.offensiveType = normalizeType(baseProfile.offensiveType || "normal");
+  member.spritePath = baseProfile.spritePath || member.spritePath;
+  member.spriteImage = baseProfile.spriteImage || member.spriteImage;
+  member.spriteVariantId = baseProfile.spriteVariantId || member.spriteVariantId;
+  member.spriteAnimated = Boolean(baseProfile.spriteAnimated);
+}
+
 function applyTeamTalentOverrides(teamMembers) {
   if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
     return teamMembers;
@@ -10584,6 +11226,7 @@ function applyTeamTalentOverrides(teamMembers) {
       continue;
     }
 
+    restoreMorphingMemberBaseState(member);
     const source = index > 0 ? teamMembers[index - 1] : null;
     member.morphingSourceId = Number(source?.id || 0) > 0 ? Number(source.id) : null;
     member.spriteShader = source ? MORPHING_SHADER_CONFIG : null;
@@ -11383,6 +12026,7 @@ function updateHud() {
     refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
     updateSaveBackendIndicator();
     refreshRouteUi();
+    renderGachaModal();
     state.lastHudAutoUpdateMs = nowMs;
     return;
   }
@@ -11409,6 +12053,7 @@ function updateHud() {
   refreshShopWalletPanel(state.ui.shopTab || SHOP_TAB_POKEBALLS);
   updateSaveBackendIndicator();
   refreshRouteUi();
+  renderGachaModal();
   state.lastHudAutoUpdateMs = nowMs;
 }
 
@@ -11975,6 +12620,7 @@ function setShopOpen(open) {
   }
   if (state.ui.shopOpen) {
     setMapOpen(false);
+    closeGachaModal({ force: true });
     closeTeamContextMenu();
     clearCanvasHoverState();
     closeRenameModal();
@@ -12085,6 +12731,7 @@ function setMapOpen(open) {
   }
   if (state.ui.mapOpen) {
     closeTeamContextMenu();
+    closeGachaModal({ force: true });
     clearCanvasHoverState();
     closeRenameModal();
     closeBoxesModal();
@@ -12105,6 +12752,474 @@ function setMapOpen(open) {
   } else {
     mapModalEl.classList.add("hidden");
   }
+}
+
+function clearGachaSuspenseTimers() {
+  if (!Array.isArray(state.gacha?.suspenseTimerIds) || state.gacha.suspenseTimerIds.length <= 0) {
+    state.gacha.suspenseTimerIds = [];
+    return;
+  }
+  for (const timerId of state.gacha.suspenseTimerIds) {
+    window.clearTimeout(timerId);
+  }
+  state.gacha.suspenseTimerIds = [];
+}
+
+function setGachaStatusText(text) {
+  if (!gachaStatusEl) {
+    return;
+  }
+  gachaStatusEl.textContent = String(text || "");
+}
+
+function clearGachaResultPanel() {
+  state.gacha.lastReward = null;
+  if (gachaResultEl) {
+    gachaResultEl.classList.add("hidden");
+  }
+  if (gachaResultNameEl) {
+    gachaResultNameEl.textContent = "-";
+  }
+  if (gachaResultSkinEl) {
+    gachaResultSkinEl.textContent = "-";
+  }
+  if (gachaResultPreviewEl) {
+    gachaResultPreviewEl.innerHTML = "";
+  }
+}
+
+function renderGachaResultPanel(reward) {
+  if (!reward || !gachaResultEl || !gachaResultNameEl || !gachaResultSkinEl || !gachaResultPreviewEl) {
+    return;
+  }
+  gachaResultEl.classList.remove("hidden");
+  gachaResultNameEl.textContent = reward.pokemonNameFr;
+  gachaResultSkinEl.textContent = `Skin: ${reward.variantLabel}`;
+  gachaResultPreviewEl.innerHTML = "";
+  if (reward.spritePath) {
+    const image = document.createElement("img");
+    image.src = reward.spritePath;
+    image.alt = `${reward.pokemonNameFr} ${reward.variantLabel}`;
+    gachaResultPreviewEl.appendChild(image);
+  }
+}
+
+function getUnlockedVariantIdSetForGacha(def, record) {
+  const variants = getSpriteVariantsForDef(def);
+  const validIds = new Set(variants.map((variant) => variant.id));
+  const unlockedIds = new Set();
+  const defaultVariantId = getDefaultSpriteVariantId(def);
+  if (defaultVariantId && validIds.has(defaultVariantId)) {
+    unlockedIds.add(defaultVariantId);
+  }
+  if (!record) {
+    return unlockedIds;
+  }
+  for (const variantId of normalizeSpriteVariantIdList(record.appearance_owned_variants)) {
+    if (validIds.has(variantId)) {
+      unlockedIds.add(variantId);
+    }
+  }
+  return unlockedIds;
+}
+
+function getGachaSkinCandidates() {
+  const candidates = [];
+  if (!state.pokemonDefsById?.size) {
+    return candidates;
+  }
+  const speciesEntries = Array.from(state.pokemonDefsById.entries())
+    .map(([id, def]) => ({ id: Number(id || 0), def }))
+    .filter((entry) => entry.id > 0 && entry.id <= GACHA_MAX_POKEMON_ID)
+    .sort((a, b) => a.id - b.id);
+
+  for (const { id, def } of speciesEntries) {
+    const variants = getSpriteVariantsForDef(def);
+    if (variants.length <= 0) {
+      continue;
+    }
+    const record = getPokemonEntityRecord(id);
+    const unlockedIds = getUnlockedVariantIdSetForGacha(def, record);
+    for (const variant of variants) {
+      if (unlockedIds.has(variant.id)) {
+        continue;
+      }
+      candidates.push({
+        pokemonId: id,
+        pokemonNameFr: String(def?.nameFr || def?.nameEn || `Pokemon #${id}`),
+        variantId: variant.id,
+        variantLabel: getSpriteVariantDisplayLabel(variant),
+        spritePath: String(variant.frontPath || def?.spritePath || ""),
+      });
+    }
+  }
+  return candidates;
+}
+
+function pickRandomGachaSkinCandidate(candidates) {
+  if (!Array.isArray(candidates) || candidates.length <= 0) {
+    return null;
+  }
+  const index = randomInt(0, candidates.length - 1);
+  return candidates[index] || null;
+}
+
+function renderGachaReelItems(items, rewardIndex = -1) {
+  if (!gachaReelTrackEl) {
+    return;
+  }
+  gachaReelTrackEl.innerHTML = "";
+  const safeItems = Array.isArray(items) ? items : [];
+  for (let i = 0; i < safeItems.length; i += 1) {
+    const entry = safeItems[i];
+    const item = document.createElement("div");
+    item.className = "gacha-reel-item";
+    if (i === rewardIndex) {
+      item.classList.add("is-reward");
+    }
+
+    const media = document.createElement("div");
+    media.className = "gacha-reel-item-media";
+    if (entry?.spritePath) {
+      const image = document.createElement("img");
+      image.src = entry.spritePath;
+      image.alt = "Silhouette mystere";
+      image.classList.add("is-silhouette");
+      media.appendChild(image);
+    } else {
+      const fallback = document.createElement("span");
+      fallback.textContent = "?";
+      media.appendChild(fallback);
+    }
+    item.appendChild(media);
+
+    const name = document.createElement("div");
+    name.className = "gacha-reel-item-name";
+    name.textContent = "???";
+    item.appendChild(name);
+
+    const skin = document.createElement("div");
+    skin.className = "gacha-reel-item-skin";
+    skin.textContent = "Skin mystere";
+    item.appendChild(skin);
+
+    gachaReelTrackEl.appendChild(item);
+  }
+}
+
+function getGachaRewardTargetOffsetPx(rewardIndex) {
+  if (!gachaReelTrackEl || !gachaReelWindowEl || rewardIndex < 0) {
+    return 0;
+  }
+  const rewardElement = gachaReelTrackEl.children[rewardIndex];
+  if (!(rewardElement instanceof HTMLElement)) {
+    return 0;
+  }
+  const rewardCenter = rewardElement.offsetLeft + rewardElement.offsetWidth * 0.5;
+  const windowCenter = gachaReelWindowEl.clientWidth * 0.5;
+  return Math.max(0, rewardCenter - windowCenter);
+}
+
+function populateGachaPreviewReel(candidates, options = {}) {
+  if (!gachaReelTrackEl || state.gacha.spinning || state.gacha.lastReward) {
+    return;
+  }
+  const safeCandidates = Array.isArray(candidates) ? candidates : [];
+  const previewCount = Math.min(10, Math.max(0, safeCandidates.length));
+  const forceRefresh = options?.forceRefresh === true;
+  const shouldPopulatePreview = previewCount > 0
+    && (
+      forceRefresh
+      || state.gacha.reelItems.length !== previewCount
+      || state.gacha.reelRewardIndex >= 0
+      || gachaReelTrackEl.childElementCount <= 0
+    );
+  if (shouldPopulatePreview) {
+    const previewItems = [];
+    for (let i = 0; i < previewCount; i += 1) {
+      previewItems.push(safeCandidates[randomInt(0, safeCandidates.length - 1)]);
+    }
+    state.gacha.reelItems = previewItems.slice();
+    state.gacha.reelRewardIndex = -1;
+    state.gacha.reelOffsetPx = 0;
+    renderGachaReelItems(previewItems, -1);
+  } else if (previewCount <= 0 && (state.gacha.reelItems.length > 0 || gachaReelTrackEl.childElementCount > 0)) {
+    state.gacha.reelItems = [];
+    state.gacha.reelRewardIndex = -1;
+    state.gacha.reelOffsetPx = 0;
+    gachaReelTrackEl.innerHTML = "";
+  }
+  gachaReelTrackEl.style.transition = "none";
+  gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
+}
+
+function resetGachaUiState() {
+  clearGachaSuspenseTimers();
+  state.gacha.spinning = false;
+  state.gacha.reelItems = [];
+  state.gacha.reelRewardIndex = -1;
+  state.gacha.reelOffsetPx = 0;
+  if (gachaMachineEl) {
+    gachaMachineEl.classList.remove("is-spinning");
+  }
+  if (gachaSpinButtonEl) {
+    gachaSpinButtonEl.disabled = false;
+  }
+  if (gachaReelTrackEl) {
+    gachaReelTrackEl.style.transition = "none";
+    gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
+    gachaReelTrackEl.innerHTML = "";
+  }
+}
+
+function closeGachaModal(options = {}) {
+  const force = options?.force === true;
+  if (state.gacha.spinning && !force) {
+    setTopMessage("Tirage en cours. Attends la fin du reel.", 1300);
+    return false;
+  }
+  state.ui.gachaOpen = false;
+  if (gachaModalEl) {
+    gachaModalEl.classList.add("hidden");
+  }
+  resetGachaUiState();
+  clearGachaResultPanel();
+  setGachaStatusText("Pret a tenter ta chance.");
+  return true;
+}
+
+function renderGachaModal() {
+  if (!state.ui.gachaOpen || !gachaModalEl) {
+    return;
+  }
+  const candidates = getGachaSkinCandidates();
+  const candidateCount = candidates.length;
+  const coins = Math.max(0, toSafeInt(state.saveData?.coins, 0));
+  const canPay = coins >= GACHA_SPIN_COST_COINS;
+  const canSpin = candidateCount > 0 && canPay && !state.gacha.spinning;
+
+  if (gachaWalletCoinsEl) {
+    gachaWalletCoinsEl.textContent = formatPokeDollarValue(coins);
+  }
+  if (gachaWalletCostEl) {
+    gachaWalletCostEl.textContent = `${GACHA_SPIN_COST_COINS} Coins`;
+  }
+  if (gachaWalletRemainingEl) {
+    gachaWalletRemainingEl.textContent = formatPokeDollarValue(candidateCount);
+  }
+  if (gachaSubtitleEl) {
+    gachaSubtitleEl.textContent = "Capsules en silhouettes noires. Le skin obtenu est revele uniquement a la fin du tirage.";
+  }
+  populateGachaPreviewReel(candidates);
+  if (gachaSpinButtonEl) {
+    gachaSpinButtonEl.disabled = !canSpin;
+    if (state.gacha.spinning) {
+      gachaSpinButtonEl.textContent = "Tirage en cours...";
+    } else if (!canPay) {
+      gachaSpinButtonEl.textContent = `${GACHA_SPIN_COST_COINS} Coins requis`;
+    } else if (candidateCount <= 0) {
+      gachaSpinButtonEl.textContent = "Tous les skins Kanto sont debloques";
+    } else {
+      gachaSpinButtonEl.textContent = `Obtenir 1 skin aleatoire (${GACHA_SPIN_COST_COINS} Coins)`;
+    }
+  }
+  if (!state.gacha.spinning && !state.gacha.lastReward) {
+    setGachaStatusText(candidateCount > 0 ? "Pret a tenter ta chance." : "Aucun skin restant sur Kanto #001-151.");
+  }
+  if (state.gacha.lastReward) {
+    renderGachaResultPanel(state.gacha.lastReward);
+  } else if (!state.gacha.spinning && gachaResultEl) {
+    gachaResultEl.classList.add("hidden");
+  }
+}
+
+function setGachaOpen(open) {
+  if (open && state.ui.tutorialOpen) {
+    return;
+  }
+  if (!gachaModalEl) {
+    state.ui.gachaOpen = false;
+    return;
+  }
+  if (open) {
+    closeTeamContextMenu();
+    closeBallCaptureMenu();
+    clearCanvasHoverState();
+    closeRenameModal();
+    closeBoxesModal();
+    closeAppearanceModal();
+    closeEvolutionItemChoiceModal(null);
+    setMapOpen(false);
+    setShopOpen(false);
+    state.ui.gachaOpen = true;
+    gachaModalEl.classList.remove("hidden");
+    populateGachaPreviewReel(getGachaSkinCandidates(), { forceRefresh: true });
+    renderGachaModal();
+    return;
+  }
+  closeGachaModal({ force: true });
+}
+
+function getOrCreatePokemonEntityRecordForGacha(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0 || !state.saveData?.pokemon_entities) {
+    return null;
+  }
+  const key = String(id);
+  let record = state.saveData.pokemon_entities[key] || null;
+  if (!record) {
+    record = createPokemonEntityRecord(id, 1);
+    state.saveData.pokemon_entities[key] = record;
+  }
+  reconcileAppearanceForEntityRecord(record, id);
+  return record;
+}
+
+async function unlockGachaRewardSkin(reward) {
+  const pokemonId = Number(reward?.pokemonId || 0);
+  const variantId = normalizeSpriteVariantId(reward?.variantId);
+  const def = state.pokemonDefsById.get(pokemonId);
+  if (!def || !variantId) {
+    return null;
+  }
+  const variant = getSpriteVariantById(def, variantId);
+  if (!variant) {
+    return null;
+  }
+  const record = getOrCreatePokemonEntityRecordForGacha(pokemonId);
+  if (!record) {
+    return null;
+  }
+
+  const variants = getSpriteVariantsForDef(def);
+  const validIds = new Set(variants.map((entry) => entry.id));
+  const defaultVariantId = getDefaultSpriteVariantId(def);
+  const ownedIds = new Set(normalizeSpriteVariantIdList(record.appearance_owned_variants).filter((id) => validIds.has(id)));
+  if (defaultVariantId && validIds.has(defaultVariantId)) {
+    ownedIds.add(defaultVariantId);
+  }
+  ownedIds.add(variant.id);
+
+  record.appearance_owned_variants = variants.map((entry) => entry.id).filter((id) => ownedIds.has(id));
+  if (!record.appearance_selected_variant) {
+    record.appearance_selected_variant = defaultVariantId || variant.id;
+  }
+  reconcileAppearanceForEntityRecord(record, pokemonId);
+  await ensureVariantAppearanceAssetsLoaded(def, variant, {
+    includeShiny: false,
+  });
+  return {
+    pokemonId,
+    pokemonNameFr: String(def.nameFr || def.nameEn || `Pokemon #${pokemonId}`),
+    variantId: variant.id,
+    variantLabel: getSpriteVariantDisplayLabel(variant),
+    spritePath: String(variant.frontPath || def.spritePath || ""),
+  };
+}
+
+async function startGachaSpin() {
+  if (!state.saveData || !state.ui.gachaOpen || state.gacha.spinning) {
+    return;
+  }
+
+  const candidates = getGachaSkinCandidates();
+  if (candidates.length <= 0) {
+    setTopMessage("Tous les skins Kanto #001-151 sont deja debloques.", 1700);
+    renderGachaModal();
+    return;
+  }
+  if (!spendCoins(GACHA_SPIN_COST_COINS)) {
+    setTopMessage(`Pas assez de Coins (cout: ${GACHA_SPIN_COST_COINS}).`, 1500);
+    renderGachaModal();
+    return;
+  }
+
+  const reward = pickRandomGachaSkinCandidate(candidates);
+  if (!reward) {
+    renderGachaModal();
+    return;
+  }
+
+  state.gacha.spinning = true;
+  clearGachaSuspenseTimers();
+  clearGachaResultPanel();
+  setGachaStatusText("La machine se lance...");
+  if (gachaMachineEl) {
+    gachaMachineEl.classList.add("is-spinning");
+  }
+  if (gachaSpinButtonEl) {
+    gachaSpinButtonEl.disabled = true;
+    gachaSpinButtonEl.textContent = "Tirage en cours...";
+  }
+
+  const reelItems = [];
+  for (let i = 0; i < GACHA_REEL_TOTAL_ITEMS; i += 1) {
+    if (i === GACHA_REEL_REWARD_INDEX) {
+      reelItems.push(reward);
+      continue;
+    }
+    reelItems.push(candidates[randomInt(0, candidates.length - 1)] || reward);
+  }
+  state.gacha.reelItems = reelItems.slice();
+  state.gacha.reelRewardIndex = GACHA_REEL_REWARD_INDEX;
+
+  renderGachaReelItems(reelItems, GACHA_REEL_REWARD_INDEX);
+  if (gachaReelTrackEl) {
+    gachaReelTrackEl.style.transition = "none";
+    gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
+    gachaReelTrackEl.style.setProperty("--gacha-spin-ms", `${GACHA_SPIN_DURATION_MS}ms`);
+  }
+
+  updateHud();
+  persistSaveData();
+
+  await new Promise((resolve) => window.requestAnimationFrame(resolve));
+  const targetOffsetPx = getGachaRewardTargetOffsetPx(GACHA_REEL_REWARD_INDEX);
+  state.gacha.reelOffsetPx = targetOffsetPx;
+  if (gachaReelTrackEl) {
+    void gachaReelTrackEl.offsetWidth;
+    gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_DURATION_MS}ms cubic-bezier(0.08, 0.7, 0.14, 1)`;
+    gachaReelTrackEl.style.transform = `translate3d(${-targetOffsetPx}px, 0px, 0px)`;
+  }
+
+  const suspenseAccelerationDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.18);
+  const suspenseSlowdownDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.56);
+  const suspenseFinalDelayMs = Math.round(GACHA_SPIN_DURATION_MS * 0.82);
+  state.gacha.suspenseTimerIds.push(
+    window.setTimeout(() => setGachaStatusText("Le reel accelere..."), suspenseAccelerationDelayMs),
+    window.setTimeout(() => setGachaStatusText("Ca ralentit... suspense..."), suspenseSlowdownDelayMs),
+    window.setTimeout(() => setGachaStatusText("Encore un instant..."), suspenseFinalDelayMs),
+  );
+
+  await new Promise((resolve) => window.setTimeout(resolve, GACHA_SPIN_DURATION_MS + 120));
+  clearGachaSuspenseTimers();
+
+  const unlockedReward = await unlockGachaRewardSkin(reward);
+  if (unlockedReward) {
+    state.gacha.lastReward = unlockedReward;
+    renderGachaResultPanel(unlockedReward);
+    setGachaStatusText("Incroyable tirage. Nouveau skin debloque.");
+    setTopMessage(
+      `Gacha: ${unlockedReward.pokemonNameFr} | skin ${unlockedReward.variantLabel} debloque.`,
+      2300,
+    );
+  } else {
+    setGachaStatusText("Le tirage est termine.");
+  }
+
+  state.gacha.spinning = false;
+  if (gachaMachineEl) {
+    gachaMachineEl.classList.remove("is-spinning");
+  }
+
+  rebuildTeamAndSyncBattle();
+  persistSaveData();
+  updateHud();
+  if (state.ui.appearanceOpen) {
+    renderAppearanceModal();
+  }
+  renderGachaModal();
+  render();
 }
 
 function isCoarsePointerDevice() {
@@ -12768,45 +13883,74 @@ function drawTeamAuraIndicator(slot, member, stackedBonus = 0) {
   ctx.restore();
 }
 
-function drawTeamTeleportBoostIndicator(slot, boostMultiplier = 1) {
+function drawTeamTeleportBoostIndicator(slot, boostMultiplier = 1, visualIntensity = 0) {
   if (!slot) {
     return;
   }
   const boost = Math.max(1, Number(boostMultiplier || 1));
-  if (boost <= 1.001) {
+  const extraIntensity = clamp(Number(visualIntensity) || 0, 0, 1);
+  if (boost <= 1.001 && extraIntensity <= 0.001) {
     return;
   }
 
   const [r, g, b] = getTypeColor("psychic");
+  const centerX = slot.x;
   const centerY = slot.y + slot.size * 0.02;
   const pulse = 0.5 + Math.sin(state.timeMs * 0.008 + slot.x * 0.014 + slot.y * 0.017) * 0.5;
-  const ringRadiusX = slot.size * (0.46 + pulse * 0.05);
-  const ringRadiusY = slot.size * (0.33 + pulse * 0.05);
-  const alphaBase = clamp(0.18 + (boost - 1) * 0.34, 0.16, 0.48);
-  const glowRadius = slot.size * (0.57 + pulse * 0.08);
+  const boostPower = clamp((boost - 1) / 0.5, 0, 1);
+  const power = clamp(Math.max(extraIntensity, boostPower), 0, 1);
+  const ringRadiusX = slot.size * (0.44 + pulse * 0.06 + power * 0.07);
+  const ringRadiusY = slot.size * (0.31 + pulse * 0.05 + power * 0.05);
+  const alphaBase = clamp(0.2 + power * 0.34, 0.16, 0.58);
+  const glowRadius = slot.size * (0.6 + pulse * 0.08 + power * 0.08);
 
   ctx.save();
   ctx.globalCompositeOperation = "screen";
-  const glow = ctx.createRadialGradient(slot.x, centerY, ringRadiusY * 0.2, slot.x, centerY, glowRadius);
+  const glow = ctx.createRadialGradient(centerX, centerY, ringRadiusY * 0.2, centerX, centerY, glowRadius);
   glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);
   glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.ellipse(slot.x, centerY, glowRadius * 0.96, glowRadius * 0.68, 0, 0, Math.PI * 2);
+  ctx.ellipse(centerX, centerY, glowRadius * 0.96, glowRadius * 0.68, 0, 0, Math.PI * 2);
   ctx.fill();
+
+  const lift = slot.size * (0.22 + power * 0.04);
+  const beam = ctx.createLinearGradient(centerX, centerY + lift, centerX, centerY - lift);
+  beam.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+  beam.addColorStop(0.25, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);
+  beam.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);
+  beam.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.strokeStyle = beam;
+  ctx.lineWidth = Math.max(2.2, slot.size * (0.032 + power * 0.012));
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY + lift);
+  ctx.lineTo(centerX, centerY - lift);
+  ctx.stroke();
 
   ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.16).toFixed(3)})`;
   ctx.lineWidth = Math.max(1.8, slot.size * 0.028);
   ctx.beginPath();
-  ctx.ellipse(slot.x, centerY, ringRadiusX, ringRadiusY, 0, 0, Math.PI * 2);
+  ctx.ellipse(centerX, centerY, ringRadiusX, ringRadiusY, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  const sparkCount = 4;
+  const spinA = state.timeMs * 0.0075;
+  const spinB = -state.timeMs * 0.0063;
+  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.32 + power * 0.2).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.1, slot.size * 0.018);
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, ringRadiusX * 0.78, ringRadiusY * 0.68, spinA, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, ringRadiusX * 0.62, ringRadiusY * 0.52, spinB, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const sparkCount = 6;
   for (let i = 0; i < sparkCount; i += 1) {
     const angle = state.timeMs * 0.01 + i * ((Math.PI * 2) / sparkCount);
-    const px = slot.x + Math.cos(angle) * ringRadiusX * 0.92;
+    const px = centerX + Math.cos(angle) * ringRadiusX * 0.92;
     const py = centerY + Math.sin(angle * 1.25) * ringRadiusY * 0.85;
-    const sparkRadius = slot.size * 0.032;
+    const sparkRadius = slot.size * (0.028 + power * 0.008);
     const sparkGlow = ctx.createRadialGradient(px, py, 0, px, py, sparkRadius * 2.8);
     sparkGlow.addColorStop(0, "rgba(255, 255, 255, 0.92)");
     sparkGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.78)`);
@@ -14353,6 +15497,18 @@ function drawEnemyHitEffects(hitEffects) {
         ctx.lineTo(toX, toY);
       }
       ctx.stroke();
+    } else if (effect.kind === "teleport_flash") {
+      const radius = Math.max(2, Number(effect.radius) || 2);
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = clamp(lifeRatio * 1.15, 0, 1);
+      const glow = ctx.createRadialGradient(effect.x, effect.y, radius * 0.08, effect.x, effect.y, radius * 1.65);
+      glow.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      glow.addColorStop(0.35, rgba(rgb, 0.74));
+      glow.addColorStop(1, rgba(rgb, 0));
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius * 1.65, 0, Math.PI * 2);
+      ctx.fill();
     } else if (effect.kind === "ring") {
       ctx.globalAlpha = lifeRatio * 0.9;
       ctx.strokeStyle = rgba(rgb, 0.95);
@@ -15301,6 +16457,217 @@ function drawStormLightningOverlay(width, height, intensity) {
   ctx.restore();
 }
 
+function getScreenPerimeterPoint(width, height, loopRatio, margin = 0) {
+  const safeMargin = Math.max(0, Number(margin) || 0);
+  const safeWidth = Math.max(1, width - safeMargin * 2);
+  const safeHeight = Math.max(1, height - safeMargin * 2);
+  const perimeter = safeWidth * 2 + safeHeight * 2;
+  if (perimeter <= 0) {
+    return {
+      x: width * 0.5,
+      y: height * 0.5,
+      nx: 0,
+      ny: 0,
+    };
+  }
+  let distance = (((Number(loopRatio) || 0) % 1) + 1) % 1;
+  distance *= perimeter;
+  if (distance <= safeWidth) {
+    return {
+      x: safeMargin + distance,
+      y: safeMargin,
+      nx: 0,
+      ny: 1,
+    };
+  }
+  distance -= safeWidth;
+  if (distance <= safeHeight) {
+    return {
+      x: safeMargin + safeWidth,
+      y: safeMargin + distance,
+      nx: -1,
+      ny: 0,
+    };
+  }
+  distance -= safeHeight;
+  if (distance <= safeWidth) {
+    return {
+      x: safeMargin + safeWidth - distance,
+      y: safeMargin + safeHeight,
+      nx: 0,
+      ny: -1,
+    };
+  }
+  distance -= safeWidth;
+  return {
+    x: safeMargin,
+    y: safeMargin + safeHeight - distance,
+    nx: 1,
+    ny: 0,
+  };
+}
+
+function drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulseScale = 1) {
+  const edgeThickness = Math.max(14, Math.round(Math.min(width, height) * 0.065));
+  const alpha = clamp(Number(theme?.edgeAlpha || 0) * Math.max(0.6, Number(pulseScale) || 1) * intensity, 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  const topGradient = ctx.createLinearGradient(0, 0, 0, edgeThickness);
+  topGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.2).toFixed(3)));
+  topGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = topGradient;
+  ctx.fillRect(0, 0, width, edgeThickness);
+
+  const bottomGradient = ctx.createLinearGradient(0, height, 0, height - edgeThickness);
+  bottomGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.18).toFixed(3)));
+  bottomGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = bottomGradient;
+  ctx.fillRect(0, height - edgeThickness, width, edgeThickness);
+
+  const leftGradient = ctx.createLinearGradient(0, 0, edgeThickness, 0);
+  leftGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));
+  leftGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = leftGradient;
+  ctx.fillRect(0, 0, edgeThickness, height);
+
+  const rightGradient = ctx.createLinearGradient(width, 0, width - edgeThickness, 0);
+  rightGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));
+  rightGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = rightGradient;
+  ctx.fillRect(width - edgeThickness, 0, edgeThickness, height);
+  ctx.restore();
+}
+
+function drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale) {
+  const density = Math.max(0.05, Number(particleScale) || 0);
+  const particleCount = Math.round((16 + (width + height) / 120) * intensity * density);
+  if (particleCount <= 0) {
+    return;
+  }
+  const margin = Math.max(5, Math.round(Math.min(width, height) * 0.01));
+  const time = state.timeMs * 0.00058;
+  const color = Array.isArray(theme?.particleColor) ? theme.particleColor : [218, 240, 255];
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+
+  for (let i = 0; i < particleCount; i += 1) {
+    const seed = i * 17.73 + intensity * 37.1 + color[0] * 0.071;
+    const speed = 0.06 + pseudoRandomUnit(seed * 1.73) * 0.16;
+    const loopRatio = (pseudoRandomUnit(seed * 2.19) + time * speed) % 1;
+    const edgePoint = getScreenPerimeterPoint(width, height, loopRatio, margin);
+    const inward = 4 + pseudoRandomUnit(seed * 3.11) * 15;
+    const x = edgePoint.x + edgePoint.nx * inward;
+    const y = edgePoint.y + edgePoint.ny * inward;
+    const phase = state.timeMs * (0.0034 + pseudoRandomUnit(seed * 4.67) * 0.0026) + seed;
+    const alpha = (0.22 + pseudoRandomUnit(seed * 5.93) * 0.46) * intensity;
+
+    if (theme?.key === "electric") {
+      const length = 4 + pseudoRandomUnit(seed * 7.41) * 8;
+      const jitterX = Math.sin(phase * 1.7) * 3.2;
+      const jitterY = Math.cos(phase * 1.4) * 2.8;
+      ctx.strokeStyle = rgba(color, alpha.toFixed(3));
+      ctx.lineWidth = 1 + pseudoRandomUnit(seed * 8.27) * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x + jitterX, y + jitterY);
+      ctx.lineTo(x + jitterX + edgePoint.nx * length, y + jitterY + edgePoint.ny * length);
+      ctx.stroke();
+      continue;
+    }
+
+    if (theme?.key === "ardent") {
+      const radius = 1.4 + pseudoRandomUnit(seed * 6.37) * 2.6;
+      const driftX = Math.sin(phase) * 2.4;
+      const driftY = Math.cos(phase * 0.8) * 1.9;
+      ctx.fillStyle = rgba(color, (alpha * 0.82).toFixed(3));
+      ctx.beginPath();
+      ctx.arc(x + driftX, y + driftY, radius * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = rgba(theme.pulseColor, clamp(alpha * 1.08, 0, 1).toFixed(3));
+      ctx.beginPath();
+      ctx.arc(x + driftX, y + driftY, radius * 0.78, 0, Math.PI * 2);
+      ctx.fill();
+      continue;
+    }
+
+    const radius = 1.1 + pseudoRandomUnit(seed * 6.91) * 2;
+    const driftX = Math.sin(phase * 0.85) * 1.4;
+    const driftY = Math.cos(phase * 0.9) * 1.4;
+    ctx.fillStyle = rgba(color, alpha.toFixed(3));
+    ctx.beginPath();
+    ctx.moveTo(x + driftX, y + driftY - radius);
+    ctx.lineTo(x + driftX + radius, y + driftY);
+    ctx.lineTo(x + driftX, y + driftY + radius);
+    ctx.lineTo(x + driftX - radius, y + driftY);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLegendaryFieldTrinityPulse(width, height, intensity) {
+  const pulse = 0.52 + Math.sin(state.timeMs * 0.0023) * 0.48;
+  const alpha = clamp((0.07 + pulse * 0.06) * intensity, 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+  const centerX = width * 0.5;
+  const centerY = height * 0.48;
+  const radius = Math.max(width, height) * (0.55 + pulse * 0.08);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(centerX, centerY, radius * 0.26, centerX, centerY, radius);
+  glow.addColorStop(0, rgba([246, 251, 255], (alpha * 0.64).toFixed(3)));
+  glow.addColorStop(0.6, rgba([213, 236, 255], (alpha * 0.28).toFixed(3)));
+  glow.addColorStop(1, "rgba(213, 236, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+
+  const borderAlpha = clamp(alpha * 0.42, 0, 1);
+  ctx.strokeStyle = rgba([212, 240, 255], borderAlpha.toFixed(3));
+  ctx.lineWidth = Math.max(2, Math.round(Math.min(width, height) * 0.0034));
+  ctx.strokeRect(1, 1, width - 2, height - 2);
+  ctx.restore();
+}
+
+function drawLegendaryFieldScreenVfx(width, height, teamMembers) {
+  const fields = getLegendaryFieldPresence(teamMembers);
+  if (!fields.electric && !fields.ardent && !fields.arctic) {
+    return;
+  }
+  const quality = getRenderQualitySettings();
+  const qualityParticleScale = clamp(Number(quality.environmentParticleScale) || 0, 0, 1.5);
+  const particleScale = 0.45 + qualityParticleScale * 1.7;
+  const activeThemes = [];
+  if (fields.electric) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.electric);
+  }
+  if (fields.ardent) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.ardent);
+  }
+  if (fields.arctic) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.arctic);
+  }
+
+  const fieldIntensity = clamp(activeThemes.length / 3, 0.45, 1);
+  for (let i = 0; i < activeThemes.length; i += 1) {
+    const theme = activeThemes[i];
+    const pulse = 0.72 + Math.sin(state.timeMs * 0.0022 + i * 1.48) * 0.28;
+    const intensity = clamp((0.55 + fieldIntensity * 0.45) * pulse, 0.22, 1);
+    drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulse);
+    drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale);
+  }
+
+  if (fields.trinityActive) {
+    drawLegendaryFieldTrinityPulse(width, height, fieldIntensity);
+  }
+}
+
 function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
     return;
@@ -16050,14 +17417,17 @@ function render() {
       const spriteSize = slot.size * TEAM_SPRITE_SCALE;
       const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));
       const teleportBoostMultiplier = state.battle ? state.battle.getTeleportDamageBoostForSlot(i) : 1;
+      const teleportBoostVisualIntensity = state.battle
+        ? state.battle.getTeleportBoostVisualIntensityForSlot(i)
+        : 0;
       drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {
         alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11 + chargeGlow * 0.14,
       });
       if (auraBonus > 0.001) {
         drawTeamAuraIndicator(slot, member, auraBonus);
       }
-      if (teleportBoostMultiplier > 1.001) {
-        drawTeamTeleportBoostIndicator(slot, teleportBoostMultiplier);
+      if (teleportBoostMultiplier > 1.001 || teleportBoostVisualIntensity > 0.001) {
+        drawTeamTeleportBoostIndicator(slot, teleportBoostMultiplier, teleportBoostVisualIntensity);
       }
       if (chargeGlow > 0.001) {
         drawTeamAttackChargeGlow(slot, member, i, chargeGlow);
@@ -16132,6 +17502,7 @@ function render() {
     drawNonCombatZoneOverlay(layout);
   }
   drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
+  drawLegendaryFieldScreenVfx(width, height, state.team);
   drawRouteDefeatTimerBar(routeDefeatTimer, layout);
   drawEvolutionAnimationOverlay(layout);
   drawBallInventoryOverlay(layout);
@@ -16149,6 +17520,9 @@ function update(deltaMs, options = {}) {
   updateMoneyHudAnimation(deltaMs);
   updateTeamLevelUpEffects(deltaMs);
   updateTeamXpGainEffects(deltaMs);
+  if (state.ui.gachaOpen) {
+    renderGachaModal();
+  }
   const layout = computeLayout();
   state.layout = layout;
   updateEvolutionAnimation(deltaMs);
@@ -16240,6 +17614,7 @@ function isCanvasBattleInteractionBlocked() {
     || state.ui.tutorialOpen
     || state.ui.mapOpen
     || state.ui.shopOpen
+    || state.ui.gachaOpen
     || state.evolutionAnimation.current,
   );
 }
@@ -17229,7 +18604,6 @@ function renderAppearanceModal() {
   for (const variant of variants) {
     const owned = ownedSet.has(variant.id);
     const selected = selectedVariant?.id === variant.id;
-    const price = getSpriteVariantPurchasePrice(def, variant.id);
 
     const card = document.createElement("button");
     card.type = "button";
@@ -17251,16 +18625,24 @@ function renderAppearanceModal() {
       image.src = variant.frontPath;
       preview.appendChild(image);
     } else {
-      const lockMark = document.createElement("span");
-      lockMark.className = "appearance-lock-mark";
-      lockMark.textContent = "?";
-      preview.appendChild(lockMark);
+      if (variant.frontPath) {
+        const silhouetteImage = document.createElement("img");
+        silhouetteImage.alt = "Silhouette mystere";
+        silhouetteImage.src = variant.frontPath;
+        silhouetteImage.classList.add("is-silhouette");
+        preview.appendChild(silhouetteImage);
+      } else {
+        const lockMark = document.createElement("span");
+        lockMark.className = "appearance-lock-mark";
+        lockMark.textContent = "?";
+        preview.appendChild(lockMark);
+      }
     }
     card.appendChild(preview);
 
     const name = document.createElement("span");
     name.className = "appearance-variant-name";
-    name.textContent = getSpriteVariantDisplayLabel(variant);
+    name.textContent = owned ? getSpriteVariantDisplayLabel(variant) : "Skin mystere";
     card.appendChild(name);
 
     const action = document.createElement("span");
@@ -17268,7 +18650,7 @@ function renderAppearanceModal() {
     if (owned) {
       action.textContent = selected ? "Equipe" : "Utiliser";
     } else {
-      action.textContent = `Acheter ${price} Poke$`;
+      action.textContent = "Verrouille (Gacha)";
     }
     card.appendChild(action);
 
@@ -17282,30 +18664,7 @@ function renderAppearanceModal() {
       );
 
       if (!owned) {
-        if (price <= 0) {
-          return;
-        }
-        if (!spendMoney(price)) {
-          setTopMessage(`Pas assez d'argent pour ${variant.labelFr}.`, 1500);
-          updateHud();
-          return;
-        }
-        const ownedIds = normalizeSpriteVariantIdList(record.appearance_owned_variants);
-        ownedIds.push(variant.id);
-        record.appearance_owned_variants = ownedIds;
-        record.appearance_selected_variant = variant.id;
-        reconcileAppearanceForEntityRecord(record, pokemonId);
-        renderAppearanceModal();
-        await ensureVariantAppearanceAssetsLoaded(def, variant, { includeShiny: shouldLoadShinyAppearance });
-        rebuildTeamAndSyncBattle();
-        persistSaveData();
-        updateHud();
-        if (state.ui.boxesOpen) {
-          renderBoxesGrid();
-        }
-        renderAppearanceModal();
-        render();
-        setTopMessage(`${def.nameFr}: sprite ${variant.labelFr} debloque.`, 1600);
+        setTopMessage(`Skin verrouille. Utilise Machine Gacha (${GACHA_SPIN_COST_COINS} Coins).`, 1700);
         return;
       }
 
@@ -17556,6 +18915,9 @@ function exportTextState() {
   const appearancePokemonId = Number(state.ui.appearancePokemonId || 0);
   const appearanceRecord = appearancePokemonId > 0 ? getPokemonEntityRecord(appearancePokemonId) : null;
   const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);
+  const gachaCandidateCount = getGachaSkinCandidates().length;
+  const legendaryFieldPresence = getLegendaryFieldPresence(state.team);
+  const legendaryFieldAttackIntervalMultiplier = getLegendaryFieldAttackIntervalMultiplier(state.team);
 
   const team = state.team.map((member, index) => {
     const slot = layout.teamSlots[index];
@@ -17563,6 +18925,12 @@ function exportTextState() {
     const enemyDefensiveTypes = Array.isArray(state.enemy?.defensiveTypes) ? state.enemy.defensiveTypes : [];
     const talent = resolveTalentDefinition(member?.talent, member?.id);
     const passiveBehaviorId = getPassiveBehaviorIdForTalentId(talent.id);
+    const teleportBoostMultiplier = battle
+      ? Math.max(1, Number(battle.getTeleportDamageBoostForSlot(index) || 1))
+      : 1;
+    const teleportBoostVisualIntensity = battle
+      ? clamp(Number(battle.getTeleportBoostVisualIntensityForSlot(index) || 0), 0, 1)
+      : 0;
     return {
       id: member.id,
       name_fr: member.nameFr,
@@ -17584,6 +18952,9 @@ function exportTextState() {
       talent_description_fr: talent.descriptionFr,
       passive_behavior_id: passiveBehaviorId,
       team_aura_attack_bonus_pct: Math.round(Math.max(0, Number(teamAuraAttackBonusBySlot[index] || 0)) * 10000) / 100,
+      teleport_damage_boost_multiplier: Math.round(teleportBoostMultiplier * 1000) / 1000,
+      teleport_damage_boost_active: teleportBoostMultiplier > 1.001,
+      teleport_boost_visual_intensity: Math.round(teleportBoostVisualIntensity * 1000) / 1000,
       type_multiplier_vs_enemy:
         enemyDefensiveTypes.length > 0 ? Math.round(getTypeMultiplier(offensiveType, enemyDefensiveTypes) * 100) / 100 : null,
       x: slot ? Math.round(slot.x) : null,
@@ -17615,6 +18986,14 @@ function exportTextState() {
     render_fps_estimate:
       Math.round((1000 / Math.max(1, Number(state.performance?.renderFrameMsEma) || TARGET_FRAME_MS)) * 10) / 10,
     attack_interval_ms: getCurrentAttackIntervalMs(),
+    legendary_field_attack_interval_multiplier:
+      Math.round(clamp(Number(legendaryFieldAttackIntervalMultiplier) || 1, 0.05, 20) * 1000) / 1000,
+    legendary_fields_active: {
+      electric: Boolean(legendaryFieldPresence.electric),
+      ardent: Boolean(legendaryFieldPresence.ardent),
+      arctic: Boolean(legendaryFieldPresence.arctic),
+      trinity: Boolean(legendaryFieldPresence.trinityActive),
+    },
     attack_timer_ms: battle ? Math.round(Math.max(0, Number(battle.attackTimerMs) || 0)) : null,
     attack_boost_remaining_ms: getAttackBoostRemainingMs(),
     attack_slots_total: MAX_TEAM_SIZE,
@@ -17714,6 +19093,17 @@ function exportTextState() {
     save_backend: "browser_storage",
     shop_open: Boolean(state.ui.shopOpen),
     map_open: Boolean(state.ui.mapOpen),
+    gacha_open: Boolean(state.ui.gachaOpen),
+    gacha_spinning: Boolean(state.gacha.spinning),
+    gacha_remaining_candidates_151: Math.max(0, toSafeInt(gachaCandidateCount, 0)),
+    gacha_last_reward: state.gacha.lastReward
+      ? {
+          pokemon_id: Number(state.gacha.lastReward.pokemonId || 0),
+          pokemon_name_fr: String(state.gacha.lastReward.pokemonNameFr || ""),
+          variant_id: String(state.gacha.lastReward.variantId || ""),
+          variant_label: String(state.gacha.lastReward.variantLabel || ""),
+        }
+      : null,
     shop_tab: String(state.ui.shopTab || SHOP_TAB_POKEBALLS),
     shop_ball_purchase_mode: normalizeShopQuantityMode(state.ui.shopQuantityMode),
     shop_ball_purchase_qty:
@@ -17927,10 +19317,7 @@ async function loadPokemonTalentCsv(csvPath = POKEMON_TALENTS_CSV_PATH) {
     }
     talentsByPokemonId.set(normalized.pokemonId, normalized.talent);
 
-    if (
-      normalized.talent.id !== TALENT_NONE_ID &&
-      getPassiveBehaviorIdForTalentId(normalized.talent.id) === TALENT_NONE_ID
-    ) {
+    if (!hasImplementedTalentEffect(normalized.talent.id)) {
       unresolvedTalentIds.add(normalized.talent.id);
     }
   }
@@ -18677,6 +20064,7 @@ async function initializeScene() {
   closeRenameModal();
   closeBoxesModal();
   closeAppearanceModal();
+  closeGachaModal({ force: true });
   setMapOpen(false);
   setShopOpen(false);
   try {
@@ -18869,6 +20257,7 @@ async function resetSaveAndRestart() {
   stopBackgroundTicker();
   setMapOpen(false);
   setShopOpen(false);
+  closeGachaModal({ force: true });
   closeRenameModal();
   closeBoxesModal();
   closeAppearanceModal();
@@ -18924,6 +20313,11 @@ document.addEventListener("keydown", (event) => {
   if (key === "escape" && state.ui.shopOpen) {
     event.preventDefault();
     setShopOpen(false);
+    return;
+  }
+  if (key === "escape" && state.ui.gachaOpen) {
+    event.preventDefault();
+    closeGachaModal();
     return;
   }
   if (key === "escape" && state.ui.appearanceOpen) {
@@ -19027,6 +20421,11 @@ if (shopButtonEl) {
     toggleShopPanel();
   });
 }
+if (gachaButtonEl) {
+  gachaButtonEl.addEventListener("click", () => {
+    setGachaOpen(!state.ui.gachaOpen);
+  });
+}
 if (windowsNotificationButtonEl) {
   windowsNotificationButtonEl.addEventListener("click", () => {
     void toggleWindowsNotificationSystemFromButton();
@@ -19045,6 +20444,16 @@ if (routeNextButtonEl) {
 if (closeShopButtonEl) {
   closeShopButtonEl.addEventListener("click", () => {
     setShopOpen(false);
+  });
+}
+if (gachaCloseButtonEl) {
+  gachaCloseButtonEl.addEventListener("click", () => {
+    closeGachaModal();
+  });
+}
+if (gachaSpinButtonEl) {
+  gachaSpinButtonEl.addEventListener("click", () => {
+    void startGachaSpin();
   });
 }
 if (evolutionItemCloseButtonEl) {
@@ -19214,6 +20623,13 @@ if (shopModalEl) {
     }
   });
 }
+if (gachaModalEl) {
+  gachaModalEl.addEventListener("click", (event) => {
+    if (event.target === gachaModalEl) {
+      closeGachaModal();
+    }
+  });
+}
 if (evolutionItemModalEl) {
   evolutionItemModalEl.addEventListener("click", (event) => {
     if (event.target === evolutionItemModalEl) {
@@ -19246,6 +20662,8 @@ window.addEventListener("beforeunload", handlePageLifecyclePersist);
 applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
-initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
+if (isProductionGithubPagesLocation(window.location)) {
+  initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
+}
 initializeScene();
 window.requestAnimationFrame(gameLoop);

@@ -30,7 +30,7 @@
   },
   "sprites": {
     "front": "sprites/422_shellos_heartgold_soulsilver_front.png",
-    "front_shiny": "sprites/422_shellos_heartgold_soulsilver_front_shiny.png"
+    "front_shiny": "sprites/422_shellos_heartgold_soulsilver_front.png"
   },
   "sprite_variants": [
     {
@@ -47,7 +47,7 @@
       "generation": 4,
       "game_key": "heartgold-soulsilver",
       "front": "sprites/422_shellos_heartgold_soulsilver_front.png",
-      "front_shiny": "sprites/422_shellos_heartgold_soulsilver_front_shiny.png"
+      "front_shiny": "sprites/422_shellos_heartgold_soulsilver_front.png"
     },
     {
       "id": "platinum",
@@ -63,7 +63,7 @@
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/422_shellos_diamond_pearl_front.png",
-      "front_shiny": "sprites/422_shellos_diamond_pearl_front_shiny.png"
+      "front_shiny": "sprites/422_shellos_diamond_pearl_front.png"
     },
     {
       "id": "black_white",

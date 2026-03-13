@@ -3493,3 +3493,319 @@ Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. 
   - `run_playwright_check.ps1`: PASS (no blocking runtime failure).
   - Custom starter->Route1 run (`output/hpbar-fix-check/shot-0.png`) reviewed visually: enemy HP HUD renders correctly with fixed track region.
 - Note: Playwright console reported an existing `403` resource error during custom run (`errors-0.json`).
+
+## Additional progress (2026-03-13, redo Peau Metal shop item after discard)
+- Re-added `metal_coat` entry in `item_data/shop_items.csv` with:
+  - `name_fr`: `Peau Metal`
+  - `item_type`: `stone`
+  - `price`: `100000`
+  - `sprite_path`: `assets/items/metal_coat.png`
+  - `method_item`: `metal-coat`
+  - `sort_order`: `100`
+- Re-added `assets/items/metal_coat.png` sprite.
+- Re-added fallback config in `game.js`:
+  - `createDefaultEvolutionStoneConfigByType()` includes `metal_coat`.
+  - `createDefaultExtraShopItemConfigById(...)` includes `metal_coat` in evolutions.
+- Validation:
+  - `node --check game.js`: PASS.
+  - Runtime state (`output/metal-coat-redo/state-1.json`) includes `shop_items.metal_coat` and `shop_item_configs` entry for `metal_coat`.
+  - Data check confirms Onix and Scyther evolve with `trigger=trade` and `held_item=metal-coat`.
+
+## Additional progress (2026-03-13, reapply update system after discard)
+- Reapplied the local/dev guard in game bootstrap:
+  - update checker now runs only when isProductionGithubPagesLocation(window.location) is true.
+- Hardened GitHub version source fallback in lib/github-update-checker.js:
+  - if remote version.js request fails, checker now continues to package.json fallback.
+- Validation results:
+  - node --check game.js: PASS
+  - node --check lib/github-update-checker.js: PASS
+  - npm run test:save: PASS
+  - run_playwright_check.ps1: PASS
+  - Local server check: modal not shown, UI not locked.
+  - Production simulation check: modal shown, UI locked, outside interactions blocked, fallback chain confirmed.
+## Additional progress (2026-03-13, fallback evolution items parity)
+- Extended fallback evolution shop config in `game.js` so it matches CSV-level evolution items even when `shop_items.csv` fails to load.
+- Added fallback entries for:
+  - `galarica_wreath`, `ice_stone`, `moon_stone`, `sun_stone`, `thunder_stone`, `cable_link`
+  - (existing fallback already had `water_stone`, `fire_stone`, `leaf_stone`, `metal_coat`)
+- Validation:
+  - `node --check game.js`: PASS.
+  - Runtime fallback probe (`output/evo-fallback-full/state-1.json`) confirms all evolution shop items are present while `shop_items_csv_loaded: false`.
+
+## Additional progress (2026-03-13, gacha redo after discard + button wording clarity)
+- Revalidated and finalized the full Gacha skin unlock flow after discard/pull-main sync:
+  - skin purchases removed from appearance UI (locked skins now show `Verrouille (Gacha)` only).
+  - locked skin previews are rendered as black silhouettes (`.is-silhouette`) until unlock/reveal.
+  - Gacha remains coin-based (`10 Coins`) and unlocks one random locked skin from Pokemon ids `1..151` only.
+- Clarified user-facing wording in UI:
+  - action dock button label updated to `Machine Gacha`.
+  - spin CTA updated to `Obtenir 1 skin aleatoire (10 Coins)`.
+  - locked appearance hint now says `Utilise Machine Gacha (10 Coins)`.
+  - subtitle wording corrected to `Le skin obtenu est revele uniquement a la fin du tirage`.
+
+## Validation (gacha redo + UI wording)
+- `node --check game.js`: PASS.
+- `./run_playwright_check.ps1`: PASS.
+- Targeted seeded Gacha E2E run (`tmp/pw_gacha_e2e_validate.cjs`): PASS.
+  - Artifacts: `output/web-game-gacha-e2e/before-spin.png`, `after-spin.png`, `state-summary.json`.
+  - Assertions confirmed:
+    - coins decreased exactly by 10 (`66 -> 56`)
+    - remaining Kanto candidates decreased by 1 (`1512 -> 1511`)
+    - reward present and persisted in save (`reward_owned_in_save: true`)
+    - spin ends cleanly (`gacha_spinning: false`) and modal stays open.
+- Visual checks:
+  - before-spin screenshot: reel entries are black silhouettes with mystery labels.
+  - after-spin screenshot: final reward panel reveals the obtained skin with full sprite preview.
+
+## Additional progress (2026-03-13, full redo validation: Teleport swap + Legendary Fields)
+- Re-validated after discard/pull-main sync that requested systems are present in runtime code:
+  - Abra family teleport real slot swap (`swapTeamSlots`) now swaps runtime team + mirrored `state.team` + persisted `state.saveData.team`.
+  - Legendary field talents are active in runtime:
+    - `ELECTRIC_FIELD` (Électhor), `ARDENT_FIELD` (Sulfura), `ARCTIC_FIELD` (Artikodin)
+    - team aura bonus +35% for matching offensive type including the caster (`includeSelf: true`)
+    - trio synergy applies team attack interval multiplier `0.8` (non-stackable)
+    - screen-edge type VFX + trinity pulse are rendered in combat.
+  - `lib/combat-passives.js` aliases include the 3 field talents (EN/FR variants).
+  - `pokemon_data/pokemon_talents.csv` entries 144/145/146 point to field talents with updated FR/EN labels/descriptions.
+
+### Validation runs
+- Syntax:
+  - `node --check game.js`: PASS
+  - `node --check lib/combat-passives.js`: PASS
+- Talent CSV audit:
+  - `node C:/Users/esibe/.codex/skills/pokemon-talents-maintainer/scripts/audit_talents_csv.mjs --repo D:/Projects/web/pokeidle_html_codex`: PASS
+  - confirmed IDs present: `ELECTRIC_FIELD`, `ARDENT_FIELD`, `ARCTIC_FIELD`
+- Smoke:
+  - `./run_playwright_check.ps1`: PASS (no fresh error file in latest run)
+
+### Targeted behavior proofs
+- Teleport swap scenarios (seeded):
+  - Abra scenario: swap events observed and verified as real slot exchanges (`realSwap = 4 / 4`).
+  - Alakazam scenario: swap events observed and verified as real slot exchanges (`realSwap = 6 / 6`).
+  - Kadabra deep validation (2400 deterministic steps):
+    - `kadabraAttackCount = 536`
+    - `swapCount = 21`
+    - first swap observed at step 330 (`from 0 -> to 2`).
+- Alakazam boost secondary effect deep validation (2400 deterministic steps):
+  - `swapCount = 34`
+  - `boostConsumedCount = 2`
+  - boosted non-Alakazam ally hits observed with `teleport_damage_boost_pct = 50`.
+- Legendary trio field validation (Électhor + Sulfura + Artikodin seed):
+  - `legendary_fields_active = { electric: true, ardent: true, arctic: true, trinity: true }` across run
+  - `legendary_field_attack_interval_multiplier = 0.8`
+  - `attack_interval_ms = 336` (base 420 * 0.8)
+  - turn events include `team_aura_attack_bonus_pct = 35` for matching attackers.
+  - visual capture checked: `output/web-game-legendary-trio-visual/shot-0.png` (combat visible with screen-edge field glow).
+
+### Notes
+- Some temporary validation helpers were used in `tmp/` for deterministic long-run checks.
+
+## Additional progress (2026-03-13, gacha speed-up + anti-stretch sprites)
+- Gacha reel speed substantially increased:
+  - `GACHA_REEL_TOTAL_ITEMS`: `64`
+  - `GACHA_REEL_REWARD_INDEX`: `44` (target reveal appears after ~44 mystery skins pass)
+  - `GACHA_SPIN_DURATION_MS`: `2400` (down from 5200ms)
+- Suspense status timings are now computed from spin duration ratio (no hardcoded long delays), keeping text pacing coherent when spin speed changes.
+- Anti-stretch pass for sprite thumbnails/previews (including animated assets):
+  - `.appearance-preview img`: switched to `width/height: auto`, `max-width/max-height`, `object-fit: contain`.
+  - `.gacha-reel-item-media img`: same ratio-safe rules.
+  - `.gacha-result-preview img`: same ratio-safe rules.
+  - Mobile overrides now use `max-width/max-height` (no forced fixed width/height for those images).
+
+## Validation (gacha speed-up + anti-stretch)
+- `node --check game.js`: PASS.
+- Seeded Gacha E2E: PASS (`tmp/pw_gacha_e2e_validate.cjs`).
+  - Coins: `66 -> 56`.
+  - Remaining candidates: `1512 -> 1511`.
+  - Reward persisted in save: `reward_owned_in_save: true`.
+- Measured spin elapsed (seeded probe): `~2614ms` end-to-end until `gacha_spinning=false` + reward revealed.
+- Visual checks on latest `output/web-game-gacha-e2e/before-spin.png` and `after-spin.png`: silhouettes + reveal flow intact, no visible stretch in reel/result previews.
+
+## Additional progress (2026-03-13, dev debug unlock Alakazam)
+- Added a dev-only debug unlock flow for Alakazam (id 65):
+  - auto-loads Alakazam definition in non-production runtime if missing;
+  - auto-unlocks Alakazam at level 30 in dev mode during scene init.
+- Production guard:
+  - only active when `isProductionGithubPagesLocation(window.location)` is false.
+- Persistence:
+  - unlock changes are persisted through the existing save write path.
+- UX:
+  - shows top message once when the dev unlock is newly applied.
+
+### Validation
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Runtime text-state check (`output/web-game-poke/state-0.json`):
+  - `app_version` includes `dev-mode`
+  - `save_team_size = 1`
+  - team contains Alakazam (`id: 65`, `talent_id: TELEPORT_PLUS_PLUS`).
+
+## Additional progress (2026-03-13, gacha reopen reset)
+- Updated Gacha close behavior so the modal always resets visual state when closing (not only on `force` close).
+  - On close: reel state reset, last reward cleared, status text reset.
+  - Result: reopening Gacha starts from clean pre-spin UI without showing previous unlock panel.
+
+## Validation (gacha reopen reset)
+- `node --check game.js`: PASS.
+- Targeted Playwright scenario (spin -> close -> reopen): PASS.
+  - `resultVisible: false`
+  - `resultName: "-"`
+  - `resultSkin: "-"`
+  - `statusText: "Pret a tenter ta chance."`
+  - `gachaLastRewardInTextState: null`
+  - artifact folder: `output/web-game-gacha-reopen-reset/`
+
+## Additional progress (2026-03-13, randomize mystery reel on every open)
+- Added `populateGachaPreviewReel(candidates, { forceRefresh })` to centralize mystery-reel preview generation.
+- `setGachaOpen(true)` now explicitly calls preview generation with `forceRefresh: true`.
+  - This guarantees a new randomized set of mystery skins every time the Gacha modal is opened.
+- `renderGachaModal()` now reuses the same helper for normal preview sync.
+
+## Validation (randomize on open)
+- `node --check game.js`: PASS.
+- Targeted Playwright test (open -> close -> open and compare 10 displayed mystery sprites): PASS.
+  - first_count: 10, second_count: 10
+  - same_slots: 0 / 10
+  - changed: true
+  - artifacts: `output/web-game-gacha-randomize-open/compare.json`, `after-second-open.png`
+
+## Additional progress (CSV mixed line endings + AudioContext warning cleanup)
+- Investigated console warnings shown in browser devtools:
+  - `item_data/pokeballs.csv` and `item_data/shop_items.csv` were present on disk (not missing).
+  - Reproduced PapaParse failures locally with exact errors:
+    - `Too many fields: expected 8 fields but parsed 15` (pokeballs)
+    - `Too many fields: expected 13 fields but parsed 25` (shop items)
+  - Root cause: mixed line endings inside CSV files (`CRLF` + `LF`) while PapaParse auto-detected `\r\n`, causing some rows to be merged.
+- Hardened CSV parsing in `lib/runtime-data.js`:
+  - Added `normalizeCsvInput(rawCsv)` to normalize all line endings to `\n` before parsing.
+  - Applied normalization to both `parseCsvRows` and `parseCsvObjects`.
+- Reduced autoplay policy warning noise (`AudioContext`) in `game.js`:
+  - Replaced eager audio manager construction at boot with lazy initialization.
+  - Audio manager now initializes on first user gesture (`pointerdown` / `keydown`) and is still exposed via `window.POKEIDLE_AUDIO` through a proxy.
+
+## Validation runs (this turn)
+- `node --check lib/runtime-data.js`: PASS.
+- `node --check game.js`: PASS.
+- Runtime CSV parse probe using `parseCsvObjects`:
+  - `item_data/pokeballs.csv`: PASS (3 rows, 0 parse errors).
+  - `item_data/shop_items.csv`: PASS (11 rows, 0 parse errors).
+- `run_playwright_check.ps1`: PASS.
+  - Fresh `output/web-game-poke/state-0.json` shows:
+    - `ball_csv_loaded: true`
+    - `shop_items_csv_loaded: true`
+    - `zone_csv_loaded: true`
+    - `talents_csv_loaded: true`
+- Extra Playwright console capture on page load: PASS.
+  - No CSV warnings.
+  - No `AudioContext` warning.
+
+## Validation complémentaire (2026-03-13, TP famille Abra + KO->spawn)
+- Vérification data talents dans `pokemon_data/pokemon_talents.csv`:
+  - Abra (63): `TELEPORT`
+  - Kadabra (64): `TELEPORT_PLUS`
+  - Alakazam (65): `TELEPORT_PLUS_PLUS`
+- Vérification logique runtime `game.js`:
+  - même pipeline de swap pour les 3 talents (`buildTeleportSwapPlan` -> `applyTeleportSwapPlan`), seules les chances/effets secondaires diffèrent.
+  - cas KO: le swap est bien différé (`teleport_swap_deferred_until_next_spawn`) puis appliqué dans `spawnEnemy()` via `applyPendingTeleportSwapAfterRespawn(...)`.
+- Validation exécution:
+  - `node --check game.js`: PASS.
+  - `tmp/teleport_deferred_spawn_check.cjs`: PASS (`verifiedAppliedOnSpawn: true`, swap appliqué au respawn).
+  - `run_playwright_check.ps1`: PASS.
+- Note: le script `tmp/run_teleport_tiers_validation.ps1` dépend d'un client absent (`~/.codex/skills/develop-web-game/scripts/talent_validate.mjs`) dans cet environnement.
+
+## Additional progress (2026-03-13, teleport VFX always + Alakazam buff contract)
+- Reworked teleport swap VFX reliability in `game.js`:
+  - Added fallback layout resolution for teleport effects (`resolveTeleportEffectLayout`) so swap VFX still render even if caller layout is missing/stale.
+  - Expanded swap visuals (`addTeleportSwapEffects`) with:
+    - dual-direction psychic trails,
+    - stronger rings,
+    - mid-wave pulse,
+    - `teleport_flash` burst at both swap slots,
+    - extra boosted-slot burst when Alakazam buff applies.
+- Improved long-lived Alakazam boost visuals on the teleported ally:
+  - Added per-slot `teleportBoostVisualBySlot` state.
+  - Added `updateTeleportBoostVisuals(...)` + getter `getTeleportBoostVisualIntensityForSlot(...)`.
+  - Boost visual is set to full intensity on apply, persists while boost multiplier is active, and fades after consumption.
+  - `drawTeamTeleportBoostIndicator(...)` now renders richer psychic VFX (stronger glow, beam, rotating rings, extra orbit sparks).
+- Hardened projectile hit ownership to avoid slot-mismatch side effects:
+  - Projectiles now store `attackerSnapshot` + `turnDecision` at launch.
+  - `applyHit(...)` now uses snapshot decision/identity first, preventing slot swaps during projectile travel from attributing hit events/teleport logic to the wrong Pokemon.
+- Added text-state debug fields per team member for deterministic validation:
+  - `teleport_damage_boost_multiplier`
+  - `teleport_damage_boost_active`
+  - `teleport_boost_visual_intensity`
+
+### Validation
+- `node --check game.js`: PASS.
+- `tmp/teleport_deferred_spawn_check.cjs`: PASS (`verifiedAppliedOnSpawn: true`).
+- `tmp/teleport_boost_contract_check.cjs`: PASS (boost active on teleported ally, consumed on ally hit, cleared right after).
+- `tmp/alakazam_boost_validate.cjs`: PASS aggregate behavior (`boostConsumedCount` fully on non-Alakazam attackers in latest run).
+- `run_playwright_check.ps1`: PASS.
+- Visual capture (tutorial hidden in script) reviewed:
+  - `output/teleport-vfx-check/swap.png`
+  - `output/teleport-vfx-check/boost-active.png`
+  - `output/teleport-vfx-check/info.json` confirms boosted ally has `teleport_damage_boost_multiplier: 1.5` and `teleport_boost_visual_intensity: 1`.
+
+## Additional progress (2026-03-13, teleport buff persistence across enemy KO)
+- Fixed teleport boost persistence in `PokemonBattleManager.syncTeam(...)`:
+  - Previous behavior reset `teleportDamageBoostBySlot` to `1` on every team resync.
+  - New behavior preserves teleport boost (and boost visual intensity) across resync by remapping from previous team to new team by `pokemon.id`.
+  - Result: a buffed swapped ally no longer loses its teleport buff when current enemy is defeated and battle state rebuilds.
+
+### Validation
+- Syntax:
+  - `node --check game.js`: PASS.
+- Targeted persistence scan (`tmp/teleport_boost_defeat_persistence_scan.cjs`): PASS.
+  - Found real case where enemy defeat happened while Roucool had teleport buff x1.5.
+  - Buff remained x1.5 after defeat (`prevDefeats: 2 -> currDefeats: 3`) and attacker was another Pokemon (Rattata).
+- Targeted consumption contract (`tmp/teleport_boost_contract_check.cjs`): PASS.
+  - Buff consumed only when buff holder attacks; boost then clears.
+- Smoke:
+  - `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, rollback dev-only teleport/alakazam debug)
+- Restored Teleport++ to non-dev behavior:
+  - Removed dev override that forced teleport swap chance to 100%.
+  - `getTalentTeleportSwapChance(...)` now returns CSV/runtime base values only (Alakazam remains 30%).
+- Removed dev-only forced Alakazam debug unlock flow:
+  - Removed constants and helper functions that loaded/unlocked Alakazam automatically in dev mode.
+  - Removed scene-init calls and related top-message branch (`devDebugUnlockApplied`).
+- Removed dev teleport debug notification calls tied to swap events.
+
+### Validation
+- `node --check game.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+- Code search confirms no remaining references to removed debug hooks (`DEV_DEBUG_FORCE_TELEPORT_SWAP_CHANCE`, forced Alakazam unlock helpers/calls).
+
+## Additional progress (2026-03-13, teleport + placement-dependent talents / Morphing)
+- Fixed placement-dependent talent refresh after slot changes caused by teleport:
+  - Added `PokemonBattleManager.refreshPlacementDependentTalentOverrides()`.
+  - Called after `swapTeamSlots(...)` and after `syncTeam(...)`.
+- Hardened Morphing recalculation for Metamorph:
+  - Added `resolveMorphingBaseProfile(member)` and `restoreMorphingMemberBaseState(member)`.
+  - `applyTeamTalentOverrides(...)` now restores Metamorph to its own base profile first, then re-applies morph from current previous slot.
+  - Prevents stale morph state when Metamorph moves (or loses source in slot 0).
+
+### Validation
+- `node --check game.js`: PASS.
+- Targeted teleport+morphing runtime test (`tmp/teleport_morphing_alignment_check.cjs`): PASS.
+  - Observed 3 teleport swaps and 2 source changes for Metamorph.
+  - At every step checked: `metamorph.offensive_type === previous_slot.offensive_type` (or `normal` when Metamorph is slot 0).
+- `powershell -ExecutionPolicy Bypass -File .\run_playwright_check.ps1`: PASS.
+
+## Additional progress (2026-03-13, release validation pass)
+- Release-oriented validation executed on current working tree:
+  - Syntax checks: `game.js`, `lib/combat-passives.js`, `lib/github-update-checker.js`, `lib/runtime-data.js`.
+  - Unit tests: `npm run test:save` (10/10 PASS).
+  - Playwright smoke: `run_playwright_check.ps1` PASS.
+  - Playwright long run: `run_playwright_long.ps1` PASS.
+- Critical talent behavior checks PASS:
+  - teleport deferred swap on KO->spawn (`tmp/teleport_deferred_spawn_check.cjs`)
+  - Alakazam boost apply/consume contract (`tmp/teleport_boost_contract_check.cjs`)
+  - boost persistence across enemy defeat (`tmp/teleport_boost_defeat_persistence_scan.cjs`)
+  - teleport + Metamorph placement adaptation (`tmp/teleport_morphing_alignment_check.cjs`)
+  - aggregate Alakazam boost observations (`tmp/alakazam_boost_validate.cjs`)
+  - lethal-hit teleport flag coverage (`tmp/teleport_kill_check.cjs`)
+  - legendary field trio + 0.8 attack interval (`tmp/legendary_fields_quick_check.cjs`)
+- Asset risk sanity check PASS:
+  - scanned all `pokemon_data/*_data.json` for referenced local sprite paths under `pokemon_data/...` and found no missing files.

@@ -29,7 +29,7 @@
   },
   "sprites": {
     "front": "sprites/423_gastrodon_heartgold_soulsilver_front.png",
-    "front_shiny": "sprites/423_gastrodon_heartgold_soulsilver_front_shiny.png"
+    "front_shiny": "sprites/423_gastrodon_heartgold_soulsilver_front.png"
   },
   "sprite_variants": [
     {
@@ -46,7 +46,7 @@
       "generation": 4,
       "game_key": "heartgold-soulsilver",
       "front": "sprites/423_gastrodon_heartgold_soulsilver_front.png",
-      "front_shiny": "sprites/423_gastrodon_heartgold_soulsilver_front_shiny.png"
+      "front_shiny": "sprites/423_gastrodon_heartgold_soulsilver_front.png"
     },
     {
       "id": "platinum",
@@ -62,7 +62,7 @@
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/423_gastrodon_diamond_pearl_front.png",
-      "front_shiny": "sprites/423_gastrodon_diamond_pearl_front_shiny.png"
+      "front_shiny": "sprites/423_gastrodon_diamond_pearl_front.png"
     },
     {
       "id": "black_white",

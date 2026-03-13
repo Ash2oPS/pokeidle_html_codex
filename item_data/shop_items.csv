@@ -9,3 +9,4 @@ moon_stone,Pierre Lune,evolutions,stone,100000,evolution_condition,,0,true,Perme
 sun_stone,Pierre Soleil,evolutions,stone,100000,evolution_condition,,0,true,Permet de faire evoluer certains Pokemon.,assets/items/sun_stone.png,sun-stone,70
 thunder_stone,Pierre Foudre,evolutions,stone,100000,evolution_condition,,0,true,Permet de faire evoluer certains Pokemon.,assets/items/thunder_stone.png,thunder-stone,80
 cable_link,Cable Link,evolutions,stone,100000,evolution_condition,,0,true,Permet de faire evoluer certains Pokemon.,assets/items/cable_link.png,cable-link,90
+metal_coat,Peau Metal,evolutions,stone,100000,evolution_condition,,0,true,Permet de faire evoluer certains Pokemon.,assets/items/metal_coat.png,metal-coat,100
