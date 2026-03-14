@@ -140,11 +140,22 @@
       "front": "sprites/1_bulbasaur_black_white_front.gif",
       "front_shiny": "sprites/1_bulbasaur_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_1",
+      "label_fr": "Custom (1)",
+      "generation": 0,
+      "game_key": "custom-1",
+      "front": "sprites/1_bulbasaur_custom_1.png",
+      "front_shiny": null,
+      "author": "xillo",
+      "source_url": "https://cdn.fusiondex.org/WCWUZ0xv-CrHQae99VJaDzfb/dn/pif/1.png",
+      "added_at": "2026-03-14T10:45:11.290Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 7,
-  "size": 0.0,
+  "size": 0,
   "base_experience": 64,
   "weight": 69,
   "abilities": [

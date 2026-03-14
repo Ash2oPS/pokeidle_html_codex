@@ -4705,3 +4705,47 @@ Validation:
 - Mobile viewport (390x844) combat captures:
   - no normal-effectiveness label + compact number: `output/manual-damagefx-mobile-canvas.png`, `output/manual-damagefx-mobile-state.json`.
   - not-very-effective case in mobile viewport: `output/manual-damagefx-mobile-resist-canvas.png`, `output/manual-damagefx-mobile-resist-state.json`.
+
+## Additional progress (Electron desktop shell + local JSON save bridge)
+- Added Electron desktop runtime:
+  - `electron/main.mjs` with secure BrowserWindow wrapper for GitHub Pages URL.
+  - `electron/preload.mjs` exposing a restricted `window.pokeidleDesktop` bridge (`readSave`, `writeSave`, `deleteSave`, `notify`, `getMeta`).
+- Added desktop save source priority in `lib/browser-save-utils.js` and test coverage in `tests/browser-save-utils.test.mjs`.
+- Extended `game.js` save backend:
+  - desktop save read candidate included at load time,
+  - async queued desktop write pipeline + retries,
+  - desktop+browser fallback status indicator (`Sauvegarde locale (Desktop)` / browser / unavailable),
+  - desktop delete integrated into reset flow.
+- Extended notification flow in `game.js` to use desktop bridge notifications when available.
+- Updated project config:
+  - `package.json` scripts: `desktop:start`, `desktop:build`,
+  - electron-builder config for Windows NSIS output in `output/electron-dist`,
+  - disabled auto code-sign discovery in build script to avoid local privilege blockers.
+- Updated `README.md` with desktop launch, URL override, and `.exe` build instructions.
+
+## Validation
+- `npm run test:save`: PASS.
+- `node --check electron/main.mjs`: PASS.
+- `node --check electron/preload.mjs`: PASS.
+- `node --check game.js`: PASS.
+- `npm run desktop:build`: PASS.
+  - generated installer: `output/electron-dist/PokeIdle-Setup-0.1.14.exe`.
+- Desktop runtime screenshot:
+  - `output/electron-dist/desktop-screenshot-pokeidle.png`.
+
+## Additional progress (2026-03-14, fix starter modal invisible after reset/new game)
+- Fixed starter modal visibility regression in `game.js`:
+  - Replaced starter modal show/hide tween calls with immediate open/close behavior (`showStarterModal` / `hideStarterModal`).
+  - Added explicit tween stop + inline style cleanup for starter modal and panel (`opacity/transform/filter/pointer-events`) before toggling `hidden`.
+- Root cause found during repro:
+  - When team is empty (`!state.team.length`), simulation updates are skipped, so UI tweens do not advance.
+  - Starter modal entered `showModalWithTween` at opacity 0 and stayed visually invisible despite `starter_modal_visible: true`.
+
+### Validation (this turn)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted reset/new-game repro:
+  - `output/reset-repro-afterfix-check.json` confirms after reset: `starter_modal_visible: true`.
+  - DOM style probe confirms visible modal values after reset: modal/panel computed opacity = `1`.
+- Visual artifact (starter modal visible):
+  - `output/starter-modal-dom-afterfix.png`.

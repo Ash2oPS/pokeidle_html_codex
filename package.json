@@ -3,8 +3,12 @@
   "private": true,
   "version": "0.1.14",
   "type": "module",
+  "main": "electron/main.mjs",
   "scripts": {
     "build:vendors": "node scripts/build-browser-vendors.mjs",
+    "tool:custom-skins": "node scripts/custom-skin-tool-server.mjs",
+    "desktop:start": "electron .",
+    "desktop:build": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win nsis --x64",
     "test:save": "node --test tests/*.mjs",
     "zone:csv:export": "node scripts_export_zone_encounters_csv.mjs",
     "zone:editor:build": "node scripts/generate_zone_encounters_workbook.mjs",
@@ -17,8 +21,37 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "electron": "^35.7.2",
+    "electron-builder": "^26.0.12",
     "exceljs": "^4.4.0",
     "jsdom": "^28.1.0",
     "playwright": "^1.58.2"
+  },
+  "build": {
+    "appId": "com.ash2ops.pokeidle",
+    "productName": "PokeIdle",
+    "directories": {
+      "output": "output/electron-dist"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

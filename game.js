@@ -29,6 +29,7 @@ import {
 import { normalizeUiDisplayText } from "./lib/text-normalization.js";
 import {
   pickPreferredSaveCandidate,
+  SAVE_SOURCE_DESKTOP,
   SAVE_SOURCE_INDEXED_DB,
   SAVE_SOURCE_LOCAL_STORAGE,
   SAVE_SOURCE_SESSION_STORAGE,
@@ -202,6 +203,12 @@ const SAVE_INDEXED_DB_STORE_NAME = "save_payloads";
 const SAVE_INDEXED_DB_RECORD_KEY = "main";
 const DEV_SEED_SAVE_QUERY_PARAM = "dev_seed_save";
 const WINDOWS_NOTIFICATION_PREF_KEY = "pokeidle_windows_notifications_enabled_v1";
+const SAVE_BACKEND_LABEL_BROWSER = "Sauvegarde navigateur";
+const SAVE_BACKEND_LABEL_DESKTOP = "Sauvegarde locale (Desktop)";
+const SAVE_BACKEND_LABEL_UNAVAILABLE = "Sauvegarde indisponible";
+const RUNTIME_CLIENT_BROWSER_PC = "browser_pc";
+const RUNTIME_CLIENT_BROWSER_SMARTPHONE = "browser_smartphone";
+const RUNTIME_CLIENT_DESKTOP_EXE_PC = "desktop_exe_pc";
 const SHINY_ODDS = 2048;
 const ULTRA_SHINY_ODDS = 8196;
 const NON_ULTRA_SHINY_ODDS_NUMERATOR = ULTRA_SHINY_ODDS - SHINY_ODDS;
@@ -1996,12 +2003,75 @@ const state = {
     indexedDbWriteInFlight: false,
     pendingSerializedSave: null,
     retryTimerId: 0,
+    browserLastPersistSucceeded: true,
+    desktopBridgeAvailable: null,
+    desktopWriteInFlight: false,
+    pendingDesktopSerializedSave: null,
+    desktopRetryTimerId: 0,
+    desktopLastPersistSucceeded: null,
     lastPersistSucceeded: true,
   },
 };
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getDesktopBridge() {
+  try {
+    const bridge = window?.pokeidleDesktop;
+    return bridge && typeof bridge === "object" ? bridge : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasDesktopSaveBridge() {
+  const bridge = getDesktopBridge();
+  return Boolean(
+    bridge
+    && typeof bridge.readSave === "function"
+    && typeof bridge.writeSave === "function"
+    && typeof bridge.deleteSave === "function",
+  );
+}
+
+function hasDesktopNotificationBridge() {
+  const bridge = getDesktopBridge();
+  return Boolean(bridge && typeof bridge.notify === "function");
+}
+
+function isLikelySmartphoneBrowser() {
+  if (hasDesktopSaveBridge()) {
+    return false;
+  }
+
+  const userAgent = String(window?.navigator?.userAgent || "").toLowerCase();
+  const mobileUserAgentMatch = /(iphone|ipod|android.*mobile|windows phone|mobile|blackberry|opera mini)/.test(userAgent);
+
+  const mobileHint = Boolean(window?.navigator?.userAgentData?.mobile);
+  const touchPoints = Math.max(0, toSafeInt(window?.navigator?.maxTouchPoints, 0));
+  const width = Math.max(0, toSafeInt(window?.innerWidth, 0));
+  const narrowViewport = width > 0 && width <= 900;
+
+  let coarsePointer = false;
+  try {
+    coarsePointer = typeof window?.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    coarsePointer = false;
+  }
+
+  return Boolean(mobileHint || mobileUserAgentMatch || (coarsePointer && touchPoints > 0 && narrowViewport));
+}
+
+function getRuntimeClientType() {
+  if (hasDesktopSaveBridge()) {
+    return RUNTIME_CLIENT_DESKTOP_EXE_PC;
+  }
+  if (isLikelySmartphoneBrowser()) {
+    return RUNTIME_CLIENT_BROWSER_SMARTPHONE;
+  }
+  return RUNTIME_CLIENT_BROWSER_PC;
 }
 
 function getUiAnimationState(element) {
@@ -3066,6 +3136,9 @@ function updateMoneyHudAnimation(deltaMs) {
 }
 
 function supportsWindowsSystemNotifications() {
+  if (hasDesktopNotificationBridge()) {
+    return true;
+  }
   return typeof window !== "undefined" && typeof Notification !== "undefined";
 }
 
@@ -3080,6 +3153,9 @@ function normalizeNotificationPermission(permissionRaw) {
 function getCurrentNotificationPermission() {
   if (!supportsWindowsSystemNotifications()) {
     return "unsupported";
+  }
+  if (hasDesktopNotificationBridge()) {
+    return "granted";
   }
   return normalizeNotificationPermission(Notification.permission);
 }
@@ -3116,20 +3192,31 @@ function refreshWindowsNotificationButtonUi() {
   const permission = String(state.windowsNotifications?.permission || "default");
   const enabled = Boolean(state.windowsNotifications?.enabled);
 
-  let label = "Notifs Windows";
-  let title = "Notifs système Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+  const viaDesktop = hasDesktopNotificationBridge();
+  let label = viaDesktop ? "Notifs Desktop" : "Notifs Windows";
+  let title = viaDesktop
+    ? "Notifications desktop actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
+    : "Notifs système Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   if (!supported) {
     label = "Notifs non supportées";
-    title = "Ce navigateur ne supporte pas l'API Notification.";
+    title = viaDesktop
+      ? "Le bridge desktop ne supporte pas les notifications."
+      : "Ce navigateur ne supporte pas l'API Notification.";
   } else if (permission === "denied") {
     label = "Notifs bloquées";
-    title = "Autorise les notifications dans les réglages du navigateur.";
+    title = viaDesktop
+      ? "Les notifications desktop sont bloquees."
+      : "Autorise les notifications dans les réglages du navigateur.";
   } else if (enabled) {
-    label = "Notifs Windows ON";
-    title = "Notifications système actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+    label = viaDesktop ? "Notifs Desktop ON" : "Notifs Windows ON";
+    title = viaDesktop
+      ? "Notifications desktop actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
+      : "Notifications système actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   } else {
     label = "Activer notifs";
-    title = "Clique pour activer les notifications système hors premier plan.";
+    title = viaDesktop
+      ? "Clique pour activer les notifications desktop hors premier plan."
+      : "Clique pour activer les notifications système hors premier plan.";
   }
 
   windowsNotificationButtonEl.setAttribute("aria-pressed", enabled ? "true" : "false");
@@ -3162,6 +3249,9 @@ function initializeWindowsNotificationSystem() {
 async function requestWindowsNotificationPermission() {
   if (!supportsWindowsSystemNotifications()) {
     return "unsupported";
+  }
+  if (hasDesktopNotificationBridge()) {
+    return "granted";
   }
   const permissionBefore = getCurrentNotificationPermission();
   if (permissionBefore !== "default") {
@@ -3247,6 +3337,20 @@ function sendWindowsSystemNotification(title, body, options = {}) {
   }
   const safeBody = normalizeUiDisplayText(body || "", { frenchTypography: true }).trim();
   const autoCloseMs = Math.max(0, toSafeInt(options.autoCloseMs, 9000));
+  if (hasDesktopNotificationBridge()) {
+    const bridge = getDesktopBridge();
+    try {
+      void bridge.notify({
+        title: safeTitle,
+        body: safeBody,
+        silent: Boolean(options.silent),
+        tag: options.tag ? String(options.tag) : undefined,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
   try {
     const notification = new Notification(safeTitle, {
       body: safeBody,
@@ -6513,6 +6617,70 @@ function readSaveDataFromSessionStorage() {
   return readSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY, "sessionStorage save");
 }
 
+async function readSaveDataFromDesktopBridge() {
+  if (!hasDesktopSaveBridge()) {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return null;
+  }
+  try {
+    const bridge = getDesktopBridge();
+    const payload = await bridge.readSave();
+    if (!payload?.ok) {
+      state.saveBackend.desktopBridgeAvailable = true;
+      return null;
+    }
+    const saveRaw = payload?.save;
+    if (!saveRaw || typeof saveRaw !== "object") {
+      state.saveBackend.desktopBridgeAvailable = true;
+      return null;
+    }
+    if (!isRawSaveSupported(saveRaw)) {
+      await deleteSaveDataFromDesktopBridge();
+      return null;
+    }
+    state.saveBackend.desktopBridgeAvailable = true;
+    return normalizeSave(saveRaw);
+  } catch {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return null;
+  }
+}
+
+async function writeSerializedSaveToDesktopBridge(serializedSave) {
+  if (!hasDesktopSaveBridge()) {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return false;
+  }
+  try {
+    const bridge = getDesktopBridge();
+    const parsedSave = parseSerializedSave(serializedSave, "desktop save");
+    const payload = await bridge.writeSave(parsedSave);
+    const ok = Boolean(payload?.ok);
+    state.saveBackend.desktopBridgeAvailable = true;
+    return ok;
+  } catch {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return false;
+  }
+}
+
+async function deleteSaveDataFromDesktopBridge() {
+  if (!hasDesktopSaveBridge()) {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return true;
+  }
+  try {
+    const bridge = getDesktopBridge();
+    const payload = await bridge.deleteSave();
+    const ok = Boolean(payload?.ok);
+    state.saveBackend.desktopBridgeAvailable = true;
+    return ok;
+  } catch {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return false;
+  }
+}
+
 function hasIndexedDbSaveSupport() {
   return typeof window !== "undefined" && "indexedDB" in window;
 }
@@ -6724,6 +6892,37 @@ function scheduleBrowserSaveRetry() {
   }, 900);
 }
 
+function clearDesktopSaveRetry() {
+  if (!state.saveBackend.desktopRetryTimerId) {
+    return;
+  }
+  window.clearTimeout(state.saveBackend.desktopRetryTimerId);
+  state.saveBackend.desktopRetryTimerId = 0;
+}
+
+function scheduleDesktopSaveRetry() {
+  if (state.saveBackend.desktopRetryTimerId || !hasDesktopSaveBridge()) {
+    return;
+  }
+  state.saveBackend.desktopRetryTimerId = window.setTimeout(() => {
+    state.saveBackend.desktopRetryTimerId = 0;
+    void drainPendingDesktopSaveWrites();
+  }, 1300);
+}
+
+function refreshSaveBackendStatus() {
+  const browserOk = Boolean(state.saveBackend.syncStorageAvailable) || hasIndexedDbSaveSupport();
+  state.saveBackend.browserLastPersistSucceeded = browserOk;
+
+  if (hasDesktopSaveBridge()) {
+    const desktopOk = state.saveBackend.desktopLastPersistSucceeded;
+    state.saveBackend.lastPersistSucceeded = desktopOk == null ? browserOk : Boolean(desktopOk) || browserOk;
+    return;
+  }
+
+  state.saveBackend.lastPersistSucceeded = browserOk;
+}
+
 async function drainPendingBrowserSaveWrites() {
   if (state.saveBackend.indexedDbWriteInFlight || !state.saveBackend.pendingSerializedSave) {
     return;
@@ -6738,19 +6937,16 @@ async function drainPendingBrowserSaveWrites() {
       if (!ok) {
         if (state.saveBackend.indexedDbAvailable === false) {
           state.saveBackend.pendingSerializedSave = null;
-          if (!state.saveBackend.syncStorageAvailable) {
-            state.saveBackend.lastPersistSucceeded = false;
-          }
         }
         break;
       }
       if (state.saveBackend.pendingSerializedSave === serializedSave) {
         state.saveBackend.pendingSerializedSave = null;
       }
-      state.saveBackend.lastPersistSucceeded = true;
     }
   } finally {
     state.saveBackend.indexedDbWriteInFlight = false;
+    refreshSaveBackendStatus();
     updateSaveBackendIndicator();
     if (state.saveBackend.pendingSerializedSave && state.saveBackend.indexedDbAvailable !== false) {
       scheduleBrowserSaveRetry();
@@ -6769,12 +6965,57 @@ function queueBrowserSaveWrite(serializedSave) {
   }
 }
 
+async function drainPendingDesktopSaveWrites() {
+  if (state.saveBackend.desktopWriteInFlight || !state.saveBackend.pendingDesktopSerializedSave) {
+    return;
+  }
+
+  clearDesktopSaveRetry();
+  state.saveBackend.desktopWriteInFlight = true;
+  try {
+    while (state.saveBackend.pendingDesktopSerializedSave) {
+      const serializedSave = state.saveBackend.pendingDesktopSerializedSave;
+      const ok = await writeSerializedSaveToDesktopBridge(serializedSave);
+      if (!ok) {
+        state.saveBackend.desktopLastPersistSucceeded = false;
+        if (state.saveBackend.desktopBridgeAvailable === false) {
+          state.saveBackend.pendingDesktopSerializedSave = null;
+        }
+        break;
+      }
+      if (state.saveBackend.pendingDesktopSerializedSave === serializedSave) {
+        state.saveBackend.pendingDesktopSerializedSave = null;
+      }
+      state.saveBackend.desktopLastPersistSucceeded = true;
+    }
+  } finally {
+    state.saveBackend.desktopWriteInFlight = false;
+    refreshSaveBackendStatus();
+    updateSaveBackendIndicator();
+    if (state.saveBackend.pendingDesktopSerializedSave && state.saveBackend.desktopBridgeAvailable !== false) {
+      scheduleDesktopSaveRetry();
+    }
+  }
+}
+
+function queueDesktopSaveWrite(serializedSave) {
+  if (!hasDesktopSaveBridge()) {
+    state.saveBackend.desktopBridgeAvailable = false;
+    return;
+  }
+  state.saveBackend.pendingDesktopSerializedSave = serializedSave;
+  if (!state.saveBackend.desktopWriteInFlight) {
+    void drainPendingDesktopSaveWrites();
+  }
+}
+
 function syncSerializedSaveToBrowserStorage(serializedSave) {
   const localStorageOk = writeSerializedSaveToStorageKey("localStorage", SAVE_KEY, serializedSave);
   const sessionStorageOk = writeSerializedSaveToStorageKey("sessionStorage", SAVE_SESSION_KEY, serializedSave);
   state.saveBackend.syncStorageAvailable = localStorageOk || sessionStorageOk;
-  state.saveBackend.lastPersistSucceeded = state.saveBackend.syncStorageAvailable || hasIndexedDbSaveSupport();
   queueBrowserSaveWrite(serializedSave);
+  queueDesktopSaveWrite(serializedSave);
+  refreshSaveBackendStatus();
   updateSaveBackendIndicator();
   return state.saveBackend.lastPersistSucceeded;
 }
@@ -6783,12 +7024,22 @@ function updateSaveBackendIndicator() {
   if (!saveBackendValueEl) {
     return;
   }
-  const nextLabel = state.saveBackend.lastPersistSucceeded
-    ? "Sauvegarde navigateur"
-    : "Sauvegarde indisponible";
+  const desktopReady = hasDesktopSaveBridge()
+    && state.saveBackend.desktopBridgeAvailable !== false
+    && state.saveBackend.desktopLastPersistSucceeded !== false;
+  const nextLabel = desktopReady
+    ? SAVE_BACKEND_LABEL_DESKTOP
+    : state.saveBackend.lastPersistSucceeded
+      ? SAVE_BACKEND_LABEL_BROWSER
+      : SAVE_BACKEND_LABEL_UNAVAILABLE;
   if (saveBackendValueEl.textContent !== nextLabel) {
     saveBackendValueEl.textContent = nextLabel;
   }
+}
+
+function getSaveBackendTelemetryValue() {
+  const hasDesktop = hasDesktopSaveBridge() && state.saveBackend.desktopBridgeAvailable !== false;
+  return hasDesktop ? "desktop_bridge" : "browser_storage";
 }
 
 function getSaveTickEpochMs(savePayload) {
@@ -6799,6 +7050,14 @@ async function loadSaveData() {
   let selected = await readSeededDevSaveData();
   if (!selected) {
     const candidates = [];
+    const desktopSave = await readSaveDataFromDesktopBridge();
+    if (desktopSave) {
+      candidates.push({
+        source: SAVE_SOURCE_DESKTOP,
+        saveData: desktopSave,
+      });
+    }
+
     const localStorageSave = readSaveDataFromLocalStorage();
     if (localStorageSave) {
       candidates.push({
@@ -12605,11 +12864,35 @@ async function loadPokemonEntity(jsonPath) {
 }
 
 function hideStarterModal() {
-  hideModalWithTween(starterModalEl);
+  if (!starterModalEl) {
+    return;
+  }
+  stopUiElementTweens(starterModalEl);
+  const panelEl = resolveModalPanelElement(starterModalEl);
+  if (panelEl) {
+    stopUiElementTweens(panelEl);
+  }
+  starterModalEl.classList.add("hidden");
+  clearUiTweenStyles(starterModalEl);
+  if (panelEl) {
+    clearUiTweenStyles(panelEl);
+  }
 }
 
 function showStarterModal() {
-  showModalWithTween(starterModalEl);
+  if (!starterModalEl) {
+    return;
+  }
+  stopUiElementTweens(starterModalEl);
+  const panelEl = resolveModalPanelElement(starterModalEl);
+  if (panelEl) {
+    stopUiElementTweens(panelEl);
+  }
+  starterModalEl.classList.remove("hidden");
+  clearUiTweenStyles(starterModalEl);
+  if (panelEl) {
+    clearUiTweenStyles(panelEl);
+  }
 }
 
 function renderStarterChoices() {
@@ -22297,6 +22580,7 @@ function exportTextState() {
   const turnIndicator = battle ? battle.getTurnIndicator(layout) : null;
   const nextTurnPreview = battle ? battle.getNextTurnPreview() : null;
   const environmentSnapshot = getEnvironmentSnapshotForRender();
+  const runtimeClientType = getRuntimeClientType();
 
   const enemy = state.enemy
     ? (() => {
@@ -22388,6 +22672,10 @@ function exportTextState() {
   });
 
   const payload = {
+    runtime_client: runtimeClientType,
+    runtime_is_browser_pc: runtimeClientType === RUNTIME_CLIENT_BROWSER_PC,
+    runtime_is_browser_smartphone: runtimeClientType === RUNTIME_CLIENT_BROWSER_SMARTPHONE,
+    runtime_is_desktop_exe_pc: runtimeClientType === RUNTIME_CLIENT_DESKTOP_EXE_PC,
     app_version: DISPLAY_APP_VERSION,
     app_build_version: APP_VERSION,
     mode: state.mode,
@@ -22519,7 +22807,7 @@ function exportTextState() {
         effect_duration_ms: Math.max(0, toSafeInt(item.effectDurationMs, 0)),
         stock_tracked: Boolean(item.stockTracked),
       })),
-    save_backend: "browser_storage",
+    save_backend: getSaveBackendTelemetryValue(),
     shop_open: Boolean(state.ui.shopOpen),
     map_open: Boolean(state.ui.mapOpen),
     gacha_open: Boolean(state.ui.gachaOpen),
@@ -22626,6 +22914,7 @@ function exportTextState() {
 }
 
 window.render_game_to_text = exportTextState;
+window.get_runtime_client_type = () => getRuntimeClientType();
 window.advanceTime = (ms) => {
   const totalMs = Number.isFinite(ms) ? Math.max(0, Number(ms)) : 0;
   const steps = Math.max(1, Math.round(totalMs / BASE_STEP_MS));
@@ -23693,12 +23982,15 @@ async function resetSaveAndRestart() {
   }
 
   state.saveBackend.pendingSerializedSave = null;
+  state.saveBackend.pendingDesktopSerializedSave = null;
   clearBrowserSaveRetry();
+  clearDesktopSaveRetry();
   const removedLocalStorage = removeSaveDataFromStorageKey("localStorage", SAVE_KEY);
   const removedSessionStorage = removeSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY);
   const removedIndexedDb = await deleteSaveDataFromIndexedDb();
-  if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb) {
-    window.alert("Impossible de supprimer la sauvegarde navigateur.");
+  const removedDesktopSave = await deleteSaveDataFromDesktopBridge();
+  if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb && !removedDesktopSave) {
+    window.alert("Impossible de supprimer la sauvegarde locale.");
     updateSaveBackendIndicator();
     return;
   }

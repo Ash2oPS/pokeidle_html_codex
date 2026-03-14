@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokeIdle - Custom Skin Tool</title>
+    <style>
+      :root {
+        --bg-top: #fff7e1;
+        --bg-bottom: #e9f5ec;
+        --ink: #182028;
+        --muted: #5f6f7c;
+        --card: #ffffff;
+        --line: #d8e1e8;
+        --accent: #1f8f63;
+        --accent-strong: #0f6e49;
+        --danger: #c0392b;
+        --danger-strong: #992d22;
+        --radius: 14px;
+        --shadow: 0 10px 28px rgba(24, 32, 40, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+        min-height: 100vh;
+      }
+
+      .layout {
+        width: min(1200px, 96%);
+        margin: 20px auto 40px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 8px 0;
+      }
+
+      h1 {
+        font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+      }
+
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .row + .row {
+        margin-top: 10px;
+      }
+
+      label {
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      input[type="number"],
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font: inherit;
+        color: var(--ink);
+        background: #fbfdff;
+      }
+
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .id-wrap {
+        width: 220px;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 11px;
+        padding: 10px 14px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        color: white;
+        background: var(--accent);
+      }
+
+      .btn:hover {
+        background: var(--accent-strong);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+      }
+
+      .btn-danger:hover {
+        background: var(--danger-strong);
+      }
+
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .pokemon-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .meta-pill {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fafcff;
+      }
+
+      .meta-key {
+        display: block;
+        color: var(--muted);
+        font-size: 0.78rem;
+        margin-bottom: 2px;
+      }
+
+      .meta-value {
+        font-weight: 700;
+      }
+
+      .status {
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.92rem;
+        border: 1px solid transparent;
+      }
+
+      .status.ok {
+        border-color: #9ed7bd;
+        background: #effbf4;
+        color: #185a3f;
+      }
+
+      .status.err {
+        border-color: #f0b2a9;
+        background: #fff3f2;
+        color: #7e2a20;
+      }
+
+      .status.info {
+        border-color: #b7d5ff;
+        background: #f2f8ff;
+        color: #1b4d91;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 10px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fcfeff;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .badge {
+        display: inline-block;
+        width: fit-content;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        padding: 4px 8px;
+        border: 1px solid transparent;
+      }
+
+      .badge-custom {
+        color: #0f5a3e;
+        background: #e8f8ef;
+        border-color: #9fd6bb;
+      }
+
+      .badge-official {
+        color: #224e83;
+        background: #edf4ff;
+        border-color: #b8cff5;
+      }
+
+      .preview {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
+        background: #0e1117;
+        border: 1px solid #2b3140;
+        object-fit: contain;
+        image-rendering: pixelated;
+      }
+
+      .line {
+        font-size: 0.85rem;
+        word-break: break-word;
+      }
+
+      .line strong {
+        color: #2b3b49;
+      }
+
+      .line a {
+        color: #2456aa;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .summary-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #22384f;
+        font-size: 0.88rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel">
+        <h1>Custom Skin Tool</h1>
+        <p class="sub">
+          Ajoute des skins custom via URLs, affiche tous les skins (officiels + custom), et supprime les variantes du Pokemon.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>1) Charger un Pokémon</h2>
+        <div class="row">
+          <div class="id-wrap">
+            <label for="pokemon-id-input">Pokédex ID</label>
+            <input id="pokemon-id-input" type="number" min="1" placeholder="ex: 1" />
+          </div>
+          <button id="load-btn" class="btn" type="button">Charger</button>
+          <button id="refresh-btn" class="btn" type="button" disabled>Rafraîchir</button>
+        </div>
+        <div id="pokemon-meta" class="pokemon-meta"></div>
+      </section>
+
+      <section class="panel">
+        <h2>2) Ajouter des custom sprites</h2>
+        <label for="urls-input">URLs (une par ligne)</label>
+        <textarea id="urls-input" placeholder="https://cdn.fusiondex.org/.../dn/pif/1t.png"></textarea>
+        <div class="row">
+          <button id="add-btn" class="btn" type="button" disabled>Ajouter les URLs</button>
+        </div>
+        <div id="add-summary" class="row"></div>
+      </section>
+
+      <section class="panel">
+        <h2>3) Skins configures (officiels + custom)</h2>
+        <div id="status" class="status info">Charge d'abord un Pokémon.</div>
+        <div id="custom-grid" class="grid"></div>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        pokemonId: null,
+      };
+
+      const nodes = {
+        pokemonIdInput: document.getElementById("pokemon-id-input"),
+        loadBtn: document.getElementById("load-btn"),
+        refreshBtn: document.getElementById("refresh-btn"),
+        addBtn: document.getElementById("add-btn"),
+        urlsInput: document.getElementById("urls-input"),
+        status: document.getElementById("status"),
+        meta: document.getElementById("pokemon-meta"),
+        grid: document.getElementById("custom-grid"),
+        addSummary: document.getElementById("add-summary"),
+      };
+
+      function setStatus(kind, message) {
+        nodes.status.className = `status ${kind}`;
+        nodes.status.textContent = message;
+      }
+
+      function setBusy(isBusy) {
+        nodes.loadBtn.disabled = isBusy;
+        nodes.refreshBtn.disabled = isBusy || !state.pokemonId;
+        nodes.addBtn.disabled = isBusy || !state.pokemonId;
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const payload = contentType.includes("application/json") ? await response.json() : await response.text();
+        if (!response.ok) {
+          const message =
+            typeof payload === "string"
+              ? payload
+              : payload?.error || `${response.status} ${response.statusText}`;
+          throw new Error(message);
+        }
+        return payload;
+      }
+
+      function renderPokemonMeta(pokemon) {
+        if (!pokemon) {
+          nodes.meta.innerHTML = "";
+          return;
+        }
+        nodes.meta.innerHTML = `
+          <article class="meta-pill"><span class="meta-key">ID</span><span class="meta-value">#${pokemon.id}</span></article>
+          <article class="meta-pill"><span class="meta-key">Nom FR</span><span class="meta-value">${pokemon.name_fr || "-"}</span></article>
+          <article class="meta-pill"><span class="meta-key">Nom EN</span><span class="meta-value">${pokemon.name_en || "-"}</span></article>
+          <article class="meta-pill"><span class="meta-key">Dossier</span><span class="meta-value">${pokemon.folder || "-"}</span></article>
+          <article class="meta-pill"><span class="meta-key">Variants total</span><span class="meta-value">${
+            pokemon.sprite_variant_count ?? "-"
+          }</span></article>
+          <article class="meta-pill"><span class="meta-key">Custom count</span><span class="meta-value">${
+            pokemon.custom_sprite_count ?? "-"
+          }</span></article>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function renderCustomGrid(items) {
+        if (!Array.isArray(items) || items.length <= 0) {
+          nodes.grid.innerHTML = `<p class="empty">Aucun skin variant configure pour ce Pokemon.</p>`;
+          return;
+        }
+        nodes.grid.innerHTML = items
+          .map((item) => {
+            const deleteKey = String(item.delete_key || "");
+            const safeDeleteKey = encodeURIComponent(deleteKey);
+            const sourceUrl = item.source_url
+              ? `<a href="${escapeHtml(item.source_url)}" target="_blank" rel="noreferrer noopener">source</a>`
+              : "-";
+            const badgeClass = item.custom ? "badge badge-custom" : "badge badge-official";
+            const badgeLabel = item.custom ? "Custom" : "Officiel";
+            const canDelete = Boolean(deleteKey);
+            return `
+              <article class="card">
+                <img class="preview" src="${escapeHtml(item.front_url)}" alt="${escapeHtml(item.id)}" loading="lazy" />
+                <span class="${badgeClass}">${badgeLabel}</span>
+                <div class="line"><strong>ID:</strong> ${escapeHtml(item.id)}</div>
+                <div class="line"><strong>Label:</strong> ${escapeHtml(item.label_fr || "-")}</div>
+                <div class="line"><strong>Auteur:</strong> ${escapeHtml(item.author || "unknown")}</div>
+                <div class="line"><strong>Source:</strong> ${sourceUrl}</div>
+                <div class="line"><strong>Front:</strong> ${escapeHtml(item.front || "-")}</div>
+                <button class="btn btn-danger" type="button" data-delete-id="${safeDeleteKey}" ${
+                  canDelete ? "" : "disabled"
+                }>Supprimer</button>
+              </article>
+            `;
+          })
+          .join("");
+
+        for (const button of nodes.grid.querySelectorAll("[data-delete-id]")) {
+          button.addEventListener("click", async () => {
+            const variantId = decodeURIComponent(button.dataset.deleteId || "");
+            await deleteVariant(variantId);
+          });
+        }
+      }
+
+      function renderAddSummary(result) {
+        if (!result) {
+          nodes.addSummary.innerHTML = "";
+          return;
+        }
+        const added = Array.isArray(result.added) ? result.added.length : 0;
+        const skipped = Array.isArray(result.skipped) ? result.skipped.length : 0;
+        const errors = Array.isArray(result.errors) ? result.errors.length : 0;
+        nodes.addSummary.innerHTML = `
+          <div class="status info">
+            <strong>Ajout terminé:</strong>
+            <ul class="summary-list">
+              <li>Ajoutés: ${added}</li>
+              <li>Skippés: ${skipped}</li>
+              <li>Erreurs: ${errors}</li>
+            </ul>
+          </div>
+        `;
+      }
+
+      async function loadPokemon() {
+        const id = Number.parseInt(nodes.pokemonIdInput.value, 10);
+        if (!Number.isInteger(id) || id <= 0) {
+          setStatus("err", "Pokédex ID invalide.");
+          return;
+        }
+
+        setBusy(true);
+        setStatus("info", `Chargement Pokémon #${id}...`);
+        try {
+          const payload = await api(`/api/pokemon/${id}`);
+          state.pokemonId = id;
+          renderPokemonMeta(payload.pokemon);
+          renderCustomGrid(payload.sprite_variants);
+          renderAddSummary(null);
+          setStatus("ok", `Pokémon #${id} chargé.`);
+          nodes.refreshBtn.disabled = false;
+          nodes.addBtn.disabled = false;
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+          state.pokemonId = null;
+          nodes.refreshBtn.disabled = true;
+          nodes.addBtn.disabled = true;
+          nodes.meta.innerHTML = "";
+          nodes.grid.innerHTML = "";
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function refreshPokemon() {
+        if (!state.pokemonId) {
+          return;
+        }
+        nodes.pokemonIdInput.value = String(state.pokemonId);
+        await loadPokemon();
+      }
+
+      async function addSprites() {
+        if (!state.pokemonId) {
+          setStatus("err", "Charge d'abord un Pokémon.");
+          return;
+        }
+        const urls = nodes.urlsInput.value
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        if (urls.length <= 0) {
+          setStatus("err", "Aucune URL fournie.");
+          return;
+        }
+
+        setBusy(true);
+        setStatus("info", `Ajout de ${urls.length} URL(s) en cours...`);
+        try {
+          const payload = await api(`/api/pokemon/${state.pokemonId}/custom-sprites`, {
+            method: "POST",
+            body: JSON.stringify({ urls }),
+          });
+          renderPokemonMeta(payload.pokemon);
+          renderCustomGrid(payload.sprite_variants);
+          renderAddSummary(payload.result);
+          nodes.urlsInput.value = "";
+          setStatus("ok", "Ajout terminé.");
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function deleteVariant(variantId) {
+        if (!state.pokemonId) {
+          return;
+        }
+        setBusy(true);
+        setStatus("info", `Suppression de ${variantId}...`);
+        try {
+          const payload = await api(
+            `/api/pokemon/${state.pokemonId}/sprite-variants/${encodeURIComponent(variantId)}`,
+            { method: "DELETE" }
+          );
+          renderPokemonMeta(payload.pokemon);
+          renderCustomGrid(payload.sprite_variants);
+          setStatus("ok", `${variantId} supprimé.`);
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      nodes.loadBtn.addEventListener("click", loadPokemon);
+      nodes.refreshBtn.addEventListener("click", refreshPokemon);
+      nodes.addBtn.addEventListener("click", addSprites);
+      nodes.pokemonIdInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          loadPokemon();
+        }
+      });
+    </script>
+  </body>
+</html>

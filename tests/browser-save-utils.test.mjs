@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   pickPreferredSaveCandidate,
+  SAVE_SOURCE_DESKTOP,
   SAVE_SOURCE_INDEXED_DB,
   SAVE_SOURCE_LOCAL_STORAGE,
   SAVE_SOURCE_SESSION_STORAGE,
@@ -56,4 +57,19 @@ test("pickPreferredSaveCandidate ignores invalid candidates", () => {
   ]);
 
   assert.equal(selected?.source, SAVE_SOURCE_LOCAL_STORAGE);
+});
+
+test("pickPreferredSaveCandidate prefers desktop on equal timestamps", () => {
+  const selected = pickPreferredSaveCandidate([
+    {
+      source: SAVE_SOURCE_LOCAL_STORAGE,
+      saveData: { last_tick_epoch_ms: 1200 },
+    },
+    {
+      source: SAVE_SOURCE_DESKTOP,
+      saveData: { last_tick_epoch_ms: 1200 },
+    },
+  ]);
+
+  assert.equal(selected?.source, SAVE_SOURCE_DESKTOP);
 });
