@@ -46,10 +46,9 @@
       "name_en": "espeon",
       "evolution_methods": [
         {
-          "evolution_type": "happiness",
-          "trigger": "level-up",
-          "min_happiness": 160,
-          "time_of_day": "day"
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "sun-stone"
         }
       ]
     },
@@ -58,10 +57,9 @@
       "name_en": "umbreon",
       "evolution_methods": [
         {
-          "evolution_type": "happiness",
-          "trigger": "level-up",
-          "min_happiness": 160,
-          "time_of_day": "night"
+          "evolution_type": "item",
+          "trigger": "use-item",
+          "item": "moon-stone"
         }
       ]
     },
@@ -69,21 +67,6 @@
       "id": 470,
       "name_en": "leafeon",
       "evolution_methods": [
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "eterna-forest"
-        },
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "pinwheel-forest"
-        },
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "kalos-route-20"
-        },
         {
           "evolution_type": "item",
           "trigger": "use-item",
@@ -95,21 +78,6 @@
       "id": 471,
       "name_en": "glaceon",
       "evolution_methods": [
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "sinnoh-route-217"
-        },
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "twist-mountain"
-        },
-        {
-          "evolution_type": "level-up",
-          "trigger": "level-up",
-          "location": "frost-cavern"
-        },
         {
           "evolution_type": "item",
           "trigger": "use-item",

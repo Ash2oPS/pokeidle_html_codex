@@ -11,10 +11,9 @@
     "name_en": "eevee",
     "evolution_methods": [
       {
-        "evolution_type": "happiness",
-        "trigger": "level-up",
-        "min_happiness": 160,
-        "time_of_day": "night"
+        "evolution_type": "item",
+        "trigger": "use-item",
+        "item": "moon-stone"
       }
     ]
   },

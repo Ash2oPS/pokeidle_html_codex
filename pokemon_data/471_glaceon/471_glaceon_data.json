@@ -11,21 +11,6 @@
     "name_en": "eevee",
     "evolution_methods": [
       {
-        "evolution_type": "level-up",
-        "trigger": "level-up",
-        "location": "sinnoh-route-217"
-      },
-      {
-        "evolution_type": "level-up",
-        "trigger": "level-up",
-        "location": "twist-mountain"
-      },
-      {
-        "evolution_type": "level-up",
-        "trigger": "level-up",
-        "location": "frost-cavern"
-      },
-      {
         "evolution_type": "item",
         "trigger": "use-item",
         "item": "ice-stone"
