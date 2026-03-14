@@ -60,14 +60,6 @@
       "front_shiny": "sprites/8_wartortle_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/8_wartortle_emerald_front.png",
-      "front_shiny": "sprites/8_wartortle_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -98,15 +90,6 @@
       "game_key": "diamond-pearl",
       "front": "sprites/8_wartortle_diamond_pearl_front.png",
       "front_shiny": "sprites/8_wartortle_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/8_wartortle_crystal_front.png",
-      "front_shiny": "sprites/8_wartortle_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -148,11 +131,83 @@
       "front": "sprites/8_wartortle_black_white_front.gif",
       "front_shiny": "sprites/8_wartortle_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_8",
+      "label_fr": "Custom (8)",
+      "generation": 0,
+      "game_key": "custom-8",
+      "front": "sprites/8_wartortle_custom_8.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8/",
+      "source_image_url": "https://cdn.fusiondex.org/X8TO1cjC2wLjwBJCnQtNWxs1/dn/pif/8.png",
+      "added_at": "2026-03-14T12:00:19.623Z"
+    },
+    {
+      "id": "custom_8a",
+      "label_fr": "Custom (8a)",
+      "generation": 0,
+      "game_key": "custom-8a",
+      "front": "sprites/8_wartortle_custom_8a.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8a/",
+      "source_image_url": "https://cdn.fusiondex.org/ZyQT-lY0ZXlREkXJbCca_yNm/dn/pif/8a.png",
+      "added_at": "2026-03-14T12:00:19.647Z"
+    },
+    {
+      "id": "custom_8c",
+      "label_fr": "Custom (8c)",
+      "generation": 0,
+      "game_key": "custom-8c",
+      "front": "sprites/8_wartortle_custom_8c.png",
+      "front_shiny": null,
+      "author": "game freak and peegeray",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8c/",
+      "source_image_url": "https://cdn.fusiondex.org/9llLvzmtPeSF4OcIiOTwyRff/dn/pif/8c.png",
+      "added_at": "2026-03-14T12:00:19.704Z"
+    },
+    {
+      "id": "custom_8f",
+      "label_fr": "Custom (8f)",
+      "generation": 0,
+      "game_key": "custom-8f",
+      "front": "sprites/8_wartortle_custom_8f.png",
+      "front_shiny": null,
+      "author": "gotlungs",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8f/",
+      "source_image_url": "https://cdn.fusiondex.org/lKnyUjt8pJI6gVkkAUKnsOhl/dn/pif/8f.png",
+      "added_at": "2026-03-14T12:00:19.777Z"
+    },
+    {
+      "id": "custom_8g",
+      "label_fr": "Custom (8g)",
+      "generation": 0,
+      "game_key": "custom-8g",
+      "front": "sprites/8_wartortle_custom_8g.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8g/",
+      "source_image_url": "https://cdn.fusiondex.org/U8L5BKfQA8626nL2U3cxjMFM/dn/pif/8g.png",
+      "added_at": "2026-03-14T12:00:19.802Z"
+    },
+    {
+      "id": "custom_8i",
+      "label_fr": "Custom (8i)",
+      "generation": 0,
+      "game_key": "custom-8i",
+      "front": "sprites/8_wartortle_custom_8i.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/8i/",
+      "source_image_url": "https://cdn.fusiondex.org/7TUTfM77IBghOVjkv5HHynTM/dn/pif/8i.png",
+      "added_at": "2026-03-14T12:00:19.867Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 10,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 45,
   "base_experience": 142,
   "weight": 225,

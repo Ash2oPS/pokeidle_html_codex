@@ -40,8 +40,8 @@
     "speed": 32
   },
   "sprites": {
-    "front": "sprites/366_clamperl_emerald_front.png",
-    "front_shiny": "sprites/366_clamperl_emerald_front_shiny.png"
+    "front": "sprites/366_clamperl_ruby_sapphire_front.png",
+    "front_shiny": "sprites/366_clamperl_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -51,14 +51,6 @@
       "game_key": "home",
       "front": "sprites/366_clamperl_transparent_front.png",
       "front_shiny": "sprites/366_clamperl_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/366_clamperl_emerald_front.png",
-      "front_shiny": "sprites/366_clamperl_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -102,9 +94,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 4,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 255,
   "base_experience": 69,
   "weight": 525,

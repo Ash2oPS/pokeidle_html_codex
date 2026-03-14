@@ -50,14 +50,6 @@
       "front_shiny": "sprites/216_teddiursa_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/216_teddiursa_emerald_front.png",
-      "front_shiny": "sprites/216_teddiursa_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -90,15 +82,6 @@
       "front_shiny": "sprites/216_teddiursa_diamond_pearl_front_shiny.png"
     },
     {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/216_teddiursa_crystal_front.png",
-      "front_shiny": "sprites/216_teddiursa_crystal_front_shiny.png",
-      "animated": true
-    },
-    {
       "id": "gold_silver",
       "label_fr": "Or / Argent",
       "generation": 2,
@@ -118,7 +101,7 @@
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 6,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 120,
   "base_experience": 66,
   "weight": 88,

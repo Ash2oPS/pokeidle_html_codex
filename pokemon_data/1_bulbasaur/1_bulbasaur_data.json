@@ -52,14 +52,6 @@
       "front_shiny": "sprites/1_bulbasaur_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/1_bulbasaur_emerald_front.png",
-      "front_shiny": "sprites/1_bulbasaur_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -90,15 +82,6 @@
       "game_key": "diamond-pearl",
       "front": "sprites/1_bulbasaur_diamond_pearl_front.png",
       "front_shiny": "sprites/1_bulbasaur_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/1_bulbasaur_crystal_front.png",
-      "front_shiny": "sprites/1_bulbasaur_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -134,7 +117,7 @@
     },
     {
       "id": "black_white",
-      "label_fr": "Noir / Blanc (animé)",
+      "label_fr": "Noir / Blanc (anime)",
       "generation": 5,
       "game_key": "black-white",
       "front": "sprites/1_bulbasaur_black_white_front.gif",
@@ -151,6 +134,102 @@
       "author": "xillo",
       "source_url": "https://cdn.fusiondex.org/WCWUZ0xv-CrHQae99VJaDzfb/dn/pif/1.png",
       "added_at": "2026-03-14T10:45:11.290Z"
+    },
+    {
+      "id": "custom_1aa_2",
+      "label_fr": "Custom (1aa_2)",
+      "generation": 0,
+      "game_key": "custom-1aa-2",
+      "front": "sprites/1_bulbasaur_custom_1aa_2.png",
+      "front_shiny": null,
+      "author": "rayslithew_snake3000",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1aa/",
+      "source_image_url": "https://cdn.fusiondex.org/f4pVDdWLfZRLv7MjX1DSPCq_/dn/pif/1aa.png",
+      "added_at": "2026-03-14T11:06:23.239Z"
+    },
+    {
+      "id": "custom_1t",
+      "label_fr": "Custom (1t)",
+      "generation": 0,
+      "game_key": "custom-1t",
+      "front": "sprites/1_bulbasaur_custom_1t.png",
+      "front_shiny": null,
+      "author": "the pokémon company and scarletio",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1t/",
+      "source_image_url": "https://cdn.fusiondex.org/MtOg2jyQ3XjQyGJqlKs_hp3z/dn/pif/1t.png",
+      "added_at": "2026-03-14T11:13:50.854Z"
+    },
+    {
+      "id": "custom_1a",
+      "label_fr": "Custom (1a)",
+      "generation": 0,
+      "game_key": "custom-1a",
+      "front": "sprites/1_bulbasaur_custom_1a.png",
+      "front_shiny": null,
+      "author": "game freak and calicorn",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1a/",
+      "source_image_url": "https://cdn.fusiondex.org/b5GHrcqhPcv1LDlpKVPGsNpA/dn/pif/1a.png",
+      "added_at": "2026-03-14T11:14:39.702Z"
+    },
+    {
+      "id": "custom_1u",
+      "label_fr": "Custom (1u)",
+      "generation": 0,
+      "game_key": "custom-1u",
+      "front": "sprites/1_bulbasaur_custom_1u.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1u/",
+      "source_image_url": "https://cdn.fusiondex.org/9Yn3kcSWxKcNo4UwTEa5-Mrc/dn/pif/1u.png",
+      "added_at": "2026-03-14T11:25:38.690Z"
+    },
+    {
+      "id": "custom_1v",
+      "label_fr": "Custom (1v)",
+      "generation": 0,
+      "game_key": "custom-1v",
+      "front": "sprites/1_bulbasaur_custom_1v.png",
+      "front_shiny": null,
+      "author": "the pokémon company and scarletio",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1v/",
+      "source_image_url": "https://cdn.fusiondex.org/RQPRX634CgNmEqMM-UWEM750/dn/pif/1v.png",
+      "added_at": "2026-03-14T11:25:39.085Z"
+    },
+    {
+      "id": "custom_1ad",
+      "label_fr": "Custom (1ad)",
+      "generation": 0,
+      "game_key": "custom-1ad",
+      "front": "sprites/1_bulbasaur_custom_1ad.png",
+      "front_shiny": null,
+      "author": "scarletio",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1ad/",
+      "source_image_url": "https://cdn.fusiondex.org/mv3MoRnV-Jf-xS8-6iLyoexd/dn/pif/1ad.png",
+      "added_at": "2026-03-14T11:25:39.486Z"
+    },
+    {
+      "id": "custom_1n",
+      "label_fr": "Custom (1n)",
+      "generation": 0,
+      "game_key": "custom-1n",
+      "front": "sprites/1_bulbasaur_custom_1n.png",
+      "front_shiny": null,
+      "author": "the pokémon company and puppygirl2002",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1n/",
+      "source_image_url": "https://cdn.fusiondex.org/TR05jjMYK5AsPZr9_e8z6ZHD/dn/pif/1n.png",
+      "added_at": "2026-03-14T11:25:39.905Z"
+    },
+    {
+      "id": "custom_1g",
+      "label_fr": "Custom (1g)",
+      "generation": 0,
+      "game_key": "custom-1g",
+      "front": "sprites/1_bulbasaur_custom_1g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and hubercioch",
+      "source_url": "https://www.fusiondex.org/sprite/pif/1g/",
+      "source_image_url": "https://cdn.fusiondex.org/Eyx2cA_F5rTcxtQza_H6bL1_/dn/pif/1g.png",
+      "added_at": "2026-03-14T11:25:40.309Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

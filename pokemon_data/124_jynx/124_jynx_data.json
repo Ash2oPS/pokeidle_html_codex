@@ -49,14 +49,6 @@
       "front_shiny": "sprites/124_jynx_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/124_jynx_emerald_front.png",
-      "front_shiny": "sprites/124_jynx_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -87,15 +79,6 @@
       "game_key": "diamond-pearl",
       "front": "sprites/124_jynx_diamond_pearl_front.png",
       "front_shiny": "sprites/124_jynx_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/124_jynx_crystal_front.png",
-      "front_shiny": "sprites/124_jynx_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",

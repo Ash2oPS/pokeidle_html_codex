@@ -33,8 +33,8 @@
     "speed": 30
   },
   "sprites": {
-    "front": "sprites/199_slowking_emerald_front.png",
-    "front_shiny": "sprites/199_slowking_emerald_front_shiny.png"
+    "front": "sprites/199_slowking_ruby_sapphire_front.png",
+    "front_shiny": "sprites/199_slowking_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -44,14 +44,6 @@
       "game_key": "home",
       "front": "sprites/199_slowking_transparent_front.png",
       "front_shiny": "sprites/199_slowking_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/199_slowking_emerald_front.png",
-      "front_shiny": "sprites/199_slowking_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -86,15 +78,6 @@
       "front_shiny": "sprites/199_slowking_diamond_pearl_front_shiny.png"
     },
     {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/199_slowking_crystal_front.png",
-      "front_shiny": "sprites/199_slowking_crystal_front_shiny.png",
-      "animated": true
-    },
-    {
       "id": "gold_silver",
       "label_fr": "Or / Argent",
       "generation": 2,
@@ -112,7 +95,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 20,
   "size": 0.1111,
   "catch_rate": 70,

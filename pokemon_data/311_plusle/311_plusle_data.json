@@ -17,8 +17,8 @@
     "speed": 95
   },
   "sprites": {
-    "front": "sprites/311_plusle_emerald_front.png",
-    "front_shiny": "sprites/311_plusle_emerald_front_shiny.png"
+    "front": "sprites/311_plusle_ruby_sapphire_front.png",
+    "front_shiny": "sprites/311_plusle_ruby_sapphire_front_shiny.png"
   },
   "catch_rate": 200,
   "sprite_variants": [
@@ -29,14 +29,6 @@
       "game_key": "home",
       "front": "sprites/311_plusle_transparent_front.png",
       "front_shiny": "sprites/311_plusle_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/311_plusle_emerald_front.png",
-      "front_shiny": "sprites/311_plusle_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -80,9 +72,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 4,
-  "size": 0.0,
+  "size": 0,
   "base_experience": 142,
   "weight": 42,
   "abilities": [

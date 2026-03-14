@@ -51,14 +51,6 @@
       "front_shiny": "sprites/4_charmander_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/4_charmander_emerald_front.png",
-      "front_shiny": "sprites/4_charmander_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -75,29 +67,12 @@
       "front_shiny": "sprites/4_charmander_heartgold_soulsilver_front_shiny.png"
     },
     {
-      "id": "platinum",
-      "label_fr": "Platine",
-      "generation": 4,
-      "game_key": "platinum",
-      "front": "sprites/4_charmander_platinum_front.png",
-      "front_shiny": "sprites/4_charmander_platinum_front_shiny.png"
-    },
-    {
       "id": "diamond_pearl",
       "label_fr": "Diamant / Perle",
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/4_charmander_diamond_pearl_front.png",
       "front_shiny": "sprites/4_charmander_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/4_charmander_crystal_front.png",
-      "front_shiny": "sprites/4_charmander_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -139,11 +114,119 @@
       "front": "sprites/4_charmander_black_white_front.gif",
       "front_shiny": "sprites/4_charmander_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_4",
+      "label_fr": "Custom (4)",
+      "generation": 0,
+      "game_key": "custom-4",
+      "front": "sprites/4_charmander_custom_4.png",
+      "front_shiny": null,
+      "author": "xillo",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4/",
+      "source_image_url": "https://cdn.fusiondex.org/01dn46fu1AVEx5foXIO4cgzQ/dn/pif/4.png",
+      "added_at": "2026-03-14T11:32:27.596Z"
+    },
+    {
+      "id": "custom_4a",
+      "label_fr": "Custom (4a)",
+      "generation": 0,
+      "game_key": "custom-4a",
+      "front": "sprites/4_charmander_custom_4a.png",
+      "front_shiny": null,
+      "author": "fullmetalheichou",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4a/",
+      "source_image_url": "https://cdn.fusiondex.org/Wd2nMwLpGgkSTGurmHTcI2K1/dn/pif/4a.png",
+      "added_at": "2026-03-14T11:32:28.009Z"
+    },
+    {
+      "id": "custom_4ac",
+      "label_fr": "Custom (4ac)",
+      "generation": 0,
+      "game_key": "custom-4ac",
+      "front": "sprites/4_charmander_custom_4ac.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and neckflame",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4ac/",
+      "source_image_url": "https://cdn.fusiondex.org/GSu2DVbwlzXjOicBbLfvz5MF/dn/pif/4ac.png",
+      "added_at": "2026-03-14T11:32:28.398Z"
+    },
+    {
+      "id": "custom_4c",
+      "label_fr": "Custom (4c)",
+      "generation": 0,
+      "game_key": "custom-4c",
+      "front": "sprites/4_charmander_custom_4c.png",
+      "front_shiny": null,
+      "author": "game freak and xyloldi",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4c/",
+      "source_image_url": "https://cdn.fusiondex.org/eBKKvL0MvbX0vnk_LnoVDz4W/dn/pif/4c.png",
+      "added_at": "2026-03-14T11:32:28.820Z"
+    },
+    {
+      "id": "custom_4l",
+      "label_fr": "Custom (4l)",
+      "generation": 0,
+      "game_key": "custom-4l",
+      "front": "sprites/4_charmander_custom_4l.png",
+      "front_shiny": null,
+      "author": "game freak and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4l/",
+      "source_image_url": "https://cdn.fusiondex.org/egH9UKp5BujBwbwog-1JUiTN/dn/pif/4l.png",
+      "added_at": "2026-03-14T11:32:29.203Z"
+    },
+    {
+      "id": "custom_4r",
+      "label_fr": "Custom (4r)",
+      "generation": 0,
+      "game_key": "custom-4r",
+      "front": "sprites/4_charmander_custom_4r.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4r/",
+      "source_image_url": "https://cdn.fusiondex.org/6XZKBKk5Hyc0MbQkAUEF-upd/dn/pif/4r.png",
+      "added_at": "2026-03-14T11:32:29.641Z"
+    },
+    {
+      "id": "custom_4z",
+      "label_fr": "Custom (4z)",
+      "generation": 0,
+      "game_key": "custom-4z",
+      "front": "sprites/4_charmander_custom_4z.png",
+      "front_shiny": null,
+      "author": "game freak and .rayzard",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4z/",
+      "source_image_url": "https://cdn.fusiondex.org/UOqrLnzhq5SRe04XK-57Vji0/dn/pif/4z.png",
+      "added_at": "2026-03-14T11:32:30.044Z"
+    },
+    {
+      "id": "custom_4v",
+      "label_fr": "Custom (4v)",
+      "generation": 0,
+      "game_key": "custom-4v",
+      "front": "sprites/4_charmander_custom_4v.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and krsgaming",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4v/",
+      "source_image_url": "https://cdn.fusiondex.org/ffOayv_9UDNCXdYU6TVbYXFh/dn/pif/4v.png",
+      "added_at": "2026-03-14T11:32:30.439Z"
+    },
+    {
+      "id": "custom_4s",
+      "label_fr": "Custom (4s)",
+      "generation": 0,
+      "game_key": "custom-4s",
+      "front": "sprites/4_charmander_custom_4s.png",
+      "front_shiny": null,
+      "author": "snolls2",
+      "source_url": "https://www.fusiondex.org/sprite/pif/4s/",
+      "source_image_url": "https://cdn.fusiondex.org/NIQaO_G8jsqiAdd6SvBT28CG/dn/pif/4s.png",
+      "added_at": "2026-03-14T11:32:30.839Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 6,
-  "size": 0.0,
+  "size": 0,
   "base_experience": 62,
   "weight": 85,
   "abilities": [

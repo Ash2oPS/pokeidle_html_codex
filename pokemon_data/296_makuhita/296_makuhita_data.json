@@ -29,8 +29,8 @@
     "speed": 25
   },
   "sprites": {
-    "front": "sprites/296_makuhita_emerald_front.png",
-    "front_shiny": "sprites/296_makuhita_emerald_front_shiny.png"
+    "front": "sprites/296_makuhita_ruby_sapphire_front.png",
+    "front_shiny": "sprites/296_makuhita_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -40,14 +40,6 @@
       "game_key": "home",
       "front": "sprites/296_makuhita_transparent_front.png",
       "front_shiny": "sprites/296_makuhita_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/296_makuhita_emerald_front.png",
-      "front_shiny": "sprites/296_makuhita_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -91,9 +83,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 10,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 180,
   "base_experience": 47,
   "weight": 864,

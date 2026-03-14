@@ -17,8 +17,8 @@
     "speed": 60
   },
   "sprites": {
-    "front": "sprites/327_spinda_emerald_front.png",
-    "front_shiny": "sprites/327_spinda_emerald_front_shiny.png"
+    "front": "sprites/327_spinda_heartgold_soulsilver_front.png",
+    "front_shiny": "sprites/327_spinda_heartgold_soulsilver_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -28,14 +28,6 @@
       "game_key": "home",
       "front": "sprites/327_spinda_transparent_front.png",
       "front_shiny": "sprites/327_spinda_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/327_spinda_emerald_front.png",
-      "front_shiny": "sprites/327_spinda_emerald_front_shiny.png"
     },
     {
       "id": "heartgold_soulsilver",
@@ -71,7 +63,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "heartgold_soulsilver",
   "height": 11,
   "size": 0.0111,
   "catch_rate": 255,

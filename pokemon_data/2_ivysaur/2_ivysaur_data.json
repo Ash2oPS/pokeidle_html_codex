@@ -61,14 +61,6 @@
       "front_shiny": "sprites/2_ivysaur_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/2_ivysaur_emerald_front.png",
-      "front_shiny": "sprites/2_ivysaur_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -85,29 +77,12 @@
       "front_shiny": "sprites/2_ivysaur_heartgold_soulsilver_front_shiny.png"
     },
     {
-      "id": "platinum",
-      "label_fr": "Platine",
-      "generation": 4,
-      "game_key": "platinum",
-      "front": "sprites/2_ivysaur_platinum_front.png",
-      "front_shiny": "sprites/2_ivysaur_platinum_front_shiny.png"
-    },
-    {
       "id": "diamond_pearl",
       "label_fr": "Diamant / Perle",
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/2_ivysaur_diamond_pearl_front.png",
       "front_shiny": "sprites/2_ivysaur_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/2_ivysaur_crystal_front.png",
-      "front_shiny": "sprites/2_ivysaur_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -149,11 +124,107 @@
       "front": "sprites/2_ivysaur_black_white_front.gif",
       "front_shiny": "sprites/2_ivysaur_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_2",
+      "label_fr": "Custom (2)",
+      "generation": 0,
+      "game_key": "custom-2",
+      "front": "sprites/2_ivysaur_custom_2.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2/",
+      "source_image_url": "https://cdn.fusiondex.org/EV0noxzEyvH4KJNS3f-_nxc-/dn/pif/2.png",
+      "added_at": "2026-03-14T11:28:02.596Z"
+    },
+    {
+      "id": "custom_2a",
+      "label_fr": "Custom (2a)",
+      "generation": 0,
+      "game_key": "custom-2a",
+      "front": "sprites/2_ivysaur_custom_2a.png",
+      "front_shiny": null,
+      "author": "game freak and peegeray",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2a/",
+      "source_image_url": "https://cdn.fusiondex.org/LKeDPoXLZ4_OTEOzmX8FWbpb/dn/pif/2a.png",
+      "added_at": "2026-03-14T11:28:02.993Z"
+    },
+    {
+      "id": "custom_2c",
+      "label_fr": "Custom (2c)",
+      "generation": 0,
+      "game_key": "custom-2c",
+      "front": "sprites/2_ivysaur_custom_2c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and itsmebrewsky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2c/",
+      "source_image_url": "https://cdn.fusiondex.org/-LoKh9Ak4GoA-VqCW_Hy1Jn4/dn/pif/2c.png",
+      "added_at": "2026-03-14T11:28:03.395Z"
+    },
+    {
+      "id": "custom_2g",
+      "label_fr": "Custom (2g)",
+      "generation": 0,
+      "game_key": "custom-2g",
+      "front": "sprites/2_ivysaur_custom_2g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2g/",
+      "source_image_url": "https://cdn.fusiondex.org/8mKX_44lMPuGVJFR7hwcTf6T/dn/pif/2g.png",
+      "added_at": "2026-03-14T11:28:03.773Z"
+    },
+    {
+      "id": "custom_2j",
+      "label_fr": "Custom (2j)",
+      "generation": 0,
+      "game_key": "custom-2j",
+      "front": "sprites/2_ivysaur_custom_2j.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2j/",
+      "source_image_url": "https://cdn.fusiondex.org/kWQL_DLZ6sdYNQLigGxACHtT/dn/pif/2j.png",
+      "added_at": "2026-03-14T11:28:04.142Z"
+    },
+    {
+      "id": "custom_2o",
+      "label_fr": "Custom (2o)",
+      "generation": 0,
+      "game_key": "custom-2o",
+      "front": "sprites/2_ivysaur_custom_2o.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and lavendervoid",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2o/",
+      "source_image_url": "https://cdn.fusiondex.org/d0mzEVdloddGvxe_WsKP_JLL/dn/pif/2o.png",
+      "added_at": "2026-03-14T11:28:04.559Z"
+    },
+    {
+      "id": "custom_2p",
+      "label_fr": "Custom (2p)",
+      "generation": 0,
+      "game_key": "custom-2p",
+      "front": "sprites/2_ivysaur_custom_2p.png",
+      "front_shiny": null,
+      "author": "jackster",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2p/",
+      "source_image_url": "https://cdn.fusiondex.org/JLoEoUkM8KU6IVACoFHSXWwF/dn/pif/2p.png",
+      "added_at": "2026-03-14T11:28:04.959Z"
+    },
+    {
+      "id": "custom_2x",
+      "label_fr": "Custom (2x)",
+      "generation": 0,
+      "game_key": "custom-2x",
+      "front": "sprites/2_ivysaur_custom_2x.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and urya.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/2x/",
+      "source_image_url": "https://cdn.fusiondex.org/59STHn6BJGFpgmjc7CwkuWGl/dn/pif/2x.png",
+      "added_at": "2026-03-14T11:28:05.352Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 10,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 45,
   "base_experience": 142,
   "weight": 130,

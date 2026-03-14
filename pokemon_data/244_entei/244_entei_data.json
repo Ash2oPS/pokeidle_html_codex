@@ -17,8 +17,8 @@
     "speed": 100
   },
   "sprites": {
-    "front": "sprites/244_entei_emerald_front.png",
-    "front_shiny": "sprites/244_entei_emerald_front_shiny.png"
+    "front": "sprites/244_entei_ruby_sapphire_front.png",
+    "front_shiny": "sprites/244_entei_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -28,14 +28,6 @@
       "game_key": "home",
       "front": "sprites/244_entei_transparent_front.png",
       "front_shiny": "sprites/244_entei_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/244_entei_emerald_front.png",
-      "front_shiny": "sprites/244_entei_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -70,15 +62,6 @@
       "front_shiny": "sprites/244_entei_diamond_pearl_front_shiny.png"
     },
     {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/244_entei_crystal_front.png",
-      "front_shiny": "sprites/244_entei_crystal_front_shiny.png",
-      "animated": true
-    },
-    {
       "id": "gold_silver",
       "label_fr": "Or / Argent",
       "generation": 2,
@@ -96,7 +79,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 21,
   "size": 0.1222,
   "catch_rate": 3,

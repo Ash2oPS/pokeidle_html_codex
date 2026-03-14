@@ -17,8 +17,8 @@
     "speed": 70
   },
   "sprites": {
-    "front": "sprites/351_castform_emerald_front.png",
-    "front_shiny": "sprites/351_castform_emerald_front_shiny.png"
+    "front": "sprites/351_castform_ruby_sapphire_front.png",
+    "front_shiny": "sprites/351_castform_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -30,20 +30,12 @@
       "front_shiny": "sprites/351_castform_transparent_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/351_castform_emerald_front.png",
-      "front_shiny": "sprites/351_castform_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
       "game_key": "ruby-sapphire",
-      "front": "sprites/351_castform_emerald_front.png",
-      "front_shiny": "sprites/351_castform_emerald_front.png"
+      "front": "sprites/351_castform_ruby_sapphire_front.png",
+      "front_shiny": "sprites/351_castform_ruby_sapphire_front_shiny.png"
     },
     {
       "id": "heartgold_soulsilver",
@@ -71,7 +63,7 @@
     },
     {
       "id": "black_white",
-      "label_fr": "Noir / Blanc (animé)",
+      "label_fr": "Noir / Blanc (anime)",
       "generation": 5,
       "game_key": "black-white",
       "front": "sprites/351_castform_black_white_front.gif",
@@ -79,9 +71,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 3,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 45,
   "base_experience": 147,
   "weight": 8,

@@ -51,14 +51,6 @@
       "front_shiny": "sprites/7_squirtle_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/7_squirtle_emerald_front.png",
-      "front_shiny": "sprites/7_squirtle_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -89,15 +81,6 @@
       "game_key": "diamond-pearl",
       "front": "sprites/7_squirtle_diamond_pearl_front.png",
       "front_shiny": "sprites/7_squirtle_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/7_squirtle_crystal_front.png",
-      "front_shiny": "sprites/7_squirtle_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -139,11 +122,143 @@
       "front": "sprites/7_squirtle_black_white_front.gif",
       "front_shiny": "sprites/7_squirtle_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_7",
+      "label_fr": "Custom (7)",
+      "generation": 0,
+      "game_key": "custom-7",
+      "front": "sprites/7_squirtle_custom_7.png",
+      "front_shiny": null,
+      "author": "xillo",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7/",
+      "source_image_url": "https://cdn.fusiondex.org/OlLnR6F7yQoBUvUgHTcjKqyh/dn/pif/7.png",
+      "added_at": "2026-03-14T11:59:06.323Z"
+    },
+    {
+      "id": "custom_7a",
+      "label_fr": "Custom (7a)",
+      "generation": 0,
+      "game_key": "custom-7a",
+      "front": "sprites/7_squirtle_custom_7a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and budailya",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7a/",
+      "source_image_url": "https://cdn.fusiondex.org/zvlDJkWG7e9rJfZ_wmdihTuN/dn/pif/7a.png",
+      "added_at": "2026-03-14T11:59:06.345Z"
+    },
+    {
+      "id": "custom_7f",
+      "label_fr": "Custom (7f)",
+      "generation": 0,
+      "game_key": "custom-7f",
+      "front": "sprites/7_squirtle_custom_7f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7f/",
+      "source_image_url": "https://cdn.fusiondex.org/gxV0lwjkW5EFFPw_tBdnOT7c/dn/pif/7f.png",
+      "added_at": "2026-03-14T11:59:06.461Z"
+    },
+    {
+      "id": "custom_7h",
+      "label_fr": "Custom (7h)",
+      "generation": 0,
+      "game_key": "custom-7h",
+      "front": "sprites/7_squirtle_custom_7h.png",
+      "front_shiny": null,
+      "author": "game freak and peegeray",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7h/",
+      "source_image_url": "https://cdn.fusiondex.org/F9DqafYVOKGjY1Oogvo-dxi6/dn/pif/7h.png",
+      "added_at": "2026-03-14T11:59:06.519Z"
+    },
+    {
+      "id": "custom_7i",
+      "label_fr": "Custom (7i)",
+      "generation": 0,
+      "game_key": "custom-7i",
+      "front": "sprites/7_squirtle_custom_7i.png",
+      "front_shiny": null,
+      "author": "gotlungs",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7i/",
+      "source_image_url": "https://cdn.fusiondex.org/Bh1TcUbzRNi3agPJPWfAZp3v/dn/pif/7i.png",
+      "added_at": "2026-03-14T11:59:06.541Z"
+    },
+    {
+      "id": "custom_7m",
+      "label_fr": "Custom (7m)",
+      "generation": 0,
+      "game_key": "custom-7m",
+      "front": "sprites/7_squirtle_custom_7m.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7m/",
+      "source_image_url": "https://cdn.fusiondex.org/23sFfNaRiI33tSSkhr-Vov4k/dn/pif/7m.png",
+      "added_at": "2026-03-14T11:59:06.633Z"
+    },
+    {
+      "id": "custom_7n",
+      "label_fr": "Custom (7n)",
+      "generation": 0,
+      "game_key": "custom-7n",
+      "front": "sprites/7_squirtle_custom_7n.png",
+      "front_shiny": null,
+      "author": "larokin",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7n/",
+      "source_image_url": "https://cdn.fusiondex.org/HLC-0z08GNJyJIa3eB8HxK4j/dn/pif/7n.png",
+      "added_at": "2026-03-14T11:59:06.656Z"
+    },
+    {
+      "id": "custom_7o",
+      "label_fr": "Custom (7o)",
+      "generation": 0,
+      "game_key": "custom-7o",
+      "front": "sprites/7_squirtle_custom_7o.png",
+      "front_shiny": null,
+      "author": "budailya",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7o/",
+      "source_image_url": "https://cdn.fusiondex.org/uZa3kM9lortyiaNzZyRXJQHc/dn/pif/7o.png",
+      "added_at": "2026-03-14T11:59:06.680Z"
+    },
+    {
+      "id": "custom_7r",
+      "label_fr": "Custom (7r)",
+      "generation": 0,
+      "game_key": "custom-7r",
+      "front": "sprites/7_squirtle_custom_7r.png",
+      "front_shiny": null,
+      "author": "game freak",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7r/",
+      "source_image_url": "https://cdn.fusiondex.org/9lMF7B-5XZGWMw-9gXDs_Qdj/dn/pif/7r.png",
+      "added_at": "2026-03-14T11:59:06.769Z"
+    },
+    {
+      "id": "custom_7t",
+      "label_fr": "Custom (7t)",
+      "generation": 0,
+      "game_key": "custom-7t",
+      "front": "sprites/7_squirtle_custom_7t.png",
+      "front_shiny": null,
+      "author": "game freak and aristhemage",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7t/",
+      "source_image_url": "https://cdn.fusiondex.org/Sfq-So9ZSDbBEP9YqTpMcEW-/dn/pif/7t.png",
+      "added_at": "2026-03-14T11:59:06.815Z"
+    },
+    {
+      "id": "custom_7u",
+      "label_fr": "Custom (7u)",
+      "generation": 0,
+      "game_key": "custom-7u",
+      "front": "sprites/7_squirtle_custom_7u.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and derpyhooves",
+      "source_url": "https://www.fusiondex.org/sprite/pif/7u/",
+      "source_image_url": "https://cdn.fusiondex.org/XAqbcUC18cjv2I_dU2vnJ6Ii/dn/pif/7u.png",
+      "added_at": "2026-03-14T11:59:06.838Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",
   "height": 5,
-  "size": 0.0,
+  "size": 0,
   "base_experience": 63,
   "weight": 90,
   "abilities": [

@@ -29,8 +29,8 @@
     "speed": 30
   },
   "sprites": {
-    "front": "sprites/209_snubbull_emerald_front.png",
-    "front_shiny": "sprites/209_snubbull_emerald_front_shiny.png"
+    "front": "sprites/209_snubbull_ruby_sapphire_front.png",
+    "front_shiny": "sprites/209_snubbull_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -40,14 +40,6 @@
       "game_key": "home",
       "front": "sprites/209_snubbull_transparent_front.png",
       "front_shiny": "sprites/209_snubbull_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/209_snubbull_emerald_front.png",
-      "front_shiny": "sprites/209_snubbull_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -82,15 +74,6 @@
       "front_shiny": "sprites/209_snubbull_diamond_pearl_front_shiny.png"
     },
     {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/209_snubbull_crystal_front.png",
-      "front_shiny": "sprites/209_snubbull_crystal_front_shiny.png",
-      "animated": true
-    },
-    {
       "id": "gold_silver",
       "label_fr": "Or / Argent",
       "generation": 2,
@@ -108,9 +91,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 6,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 190,
   "base_experience": 60,
   "weight": 78,

@@ -738,7 +738,8 @@ const TUTORIAL_FLOW_DEFINITIONS = Object.freeze({
       Object.freeze({
         title: "Skins et apparence",
         lines: Object.freeze([
-          "Des qu'un Pokemon de ton equipe atteint le niveau 10, l'editeur d'apparence se debloque.",
+          "Le changement d'apparence est disponible des le debut.",
+          "Des qu'un Pokemon de ton equipe atteint le niveau 10, ce tuto apparait une premiere fois.",
           "Fais clic droit sur un Pokemon de ta team pour ouvrir ses skins.",
           "Les skins se debloquent avec la machine Gacha. Ici, tu equipes seulement ceux deja debloques.",
         ]),
@@ -5811,7 +5812,7 @@ function createDefaultTutorialProgress() {
     route1_intro_seen: false,
     evolution_intro_seen: false,
     appearance_intro_seen: false,
-    appearance_editor_unlocked: false,
+    appearance_editor_unlocked: true,
   };
 }
 
@@ -5843,7 +5844,7 @@ function normalizeTutorialProgress(rawTutorials, rawEntities = null) {
   normalized.route1_intro_seen = Boolean(source.route1_intro_seen);
   normalized.evolution_intro_seen = Boolean(source.evolution_intro_seen);
   normalized.appearance_intro_seen = Boolean(source.appearance_intro_seen);
-  normalized.appearance_editor_unlocked = Boolean(source.appearance_editor_unlocked);
+  normalized.appearance_editor_unlocked = true;
 
   if (hasUnlockedEntityAtLeastLevelFromRecords(rawEntities, APPEARANCE_UNLOCK_LEVEL)) {
     normalized.appearance_editor_unlocked = true;
@@ -6527,7 +6528,7 @@ function queueEvolutionTutorialIfNeeded() {
 }
 
 function queueAppearanceTutorialIfNeeded() {
-  if (!state.saveData || !isAppearanceEditorUnlocked()) {
+  if (!state.saveData || !hasUnlockedEntityAtLeastLevel(APPEARANCE_UNLOCK_LEVEL)) {
     return false;
   }
   const queued = enqueueTutorialFlow(TUTORIAL_FLOW_APPEARANCE);

@@ -48,14 +48,6 @@
       "front_shiny": "sprites/9_blastoise_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/9_blastoise_emerald_front.png",
-      "front_shiny": "sprites/9_blastoise_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -86,15 +78,6 @@
       "game_key": "diamond-pearl",
       "front": "sprites/9_blastoise_diamond_pearl_front.png",
       "front_shiny": "sprites/9_blastoise_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/9_blastoise_crystal_front.png",
-      "front_shiny": "sprites/9_blastoise_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -136,6 +119,186 @@
       "front": "sprites/9_blastoise_black_white_front.gif",
       "front_shiny": "sprites/9_blastoise_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_9",
+      "label_fr": "Custom (9)",
+      "generation": 0,
+      "game_key": "custom-9",
+      "front": "sprites/9_blastoise_custom_9.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and ozaiko",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9/",
+      "source_image_url": "https://cdn.fusiondex.org/eFkKaU7gNlbnkuIq0YFvV7uw/dn/pif/9.png",
+      "added_at": "2026-03-14T12:02:48.521Z"
+    },
+    {
+      "id": "custom_9a",
+      "label_fr": "Custom (9a)",
+      "generation": 0,
+      "game_key": "custom-9a",
+      "front": "sprites/9_blastoise_custom_9a.png",
+      "front_shiny": null,
+      "author": "game freak and emisys",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9a/",
+      "source_image_url": "https://cdn.fusiondex.org/9YzMUrWaUFy3J_Hv67kStG_e/dn/pif/9a.png",
+      "added_at": "2026-03-14T12:02:48.544Z"
+    },
+    {
+      "id": "custom_9b",
+      "label_fr": "Custom (9b)",
+      "generation": 0,
+      "game_key": "custom-9b",
+      "front": "sprites/9_blastoise_custom_9b.png",
+      "front_shiny": null,
+      "author": "the pokémon company and fizito",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9b/",
+      "source_image_url": "https://cdn.fusiondex.org/SBAG7aDhLyAh959dJMfskMAb/dn/pif/9b.png",
+      "added_at": "2026-03-14T12:02:48.566Z"
+    },
+    {
+      "id": "custom_9c",
+      "label_fr": "Custom (9c)",
+      "generation": 0,
+      "game_key": "custom-9c",
+      "front": "sprites/9_blastoise_custom_9c.png",
+      "front_shiny": null,
+      "author": "game freak and terminaut",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9c/",
+      "source_image_url": "https://cdn.fusiondex.org/CuJJOn9LmgKEVQVEVdiYpHKn/dn/pif/9c.png",
+      "added_at": "2026-03-14T12:02:48.590Z"
+    },
+    {
+      "id": "custom_9e",
+      "label_fr": "Custom (9e)",
+      "generation": 0,
+      "game_key": "custom-9e",
+      "front": "sprites/9_blastoise_custom_9e.png",
+      "front_shiny": null,
+      "author": "game freak",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9e/",
+      "source_image_url": "https://cdn.fusiondex.org/DBzCc61z0HX9cfqXMo4Q-IoY/dn/pif/9e.png",
+      "added_at": "2026-03-14T12:02:48.635Z"
+    },
+    {
+      "id": "custom_9f",
+      "label_fr": "Custom (9f)",
+      "generation": 0,
+      "game_key": "custom-9f",
+      "front": "sprites/9_blastoise_custom_9f.png",
+      "front_shiny": null,
+      "author": "the pokémon company and kattenkg",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9f/",
+      "source_image_url": "https://cdn.fusiondex.org/k5z9md-sLrmkeJPMcrbsTRK3/dn/pif/9f.png",
+      "added_at": "2026-03-14T12:02:48.658Z"
+    },
+    {
+      "id": "custom_9g",
+      "label_fr": "Custom (9g)",
+      "generation": 0,
+      "game_key": "custom-9g",
+      "front": "sprites/9_blastoise_custom_9g.png",
+      "front_shiny": null,
+      "author": "game freak and fciv",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9g/",
+      "source_image_url": "https://cdn.fusiondex.org/uGRSbxRvpOpr0IulYSYbTF-f/dn/pif/9g.png",
+      "added_at": "2026-03-14T12:02:48.681Z"
+    },
+    {
+      "id": "custom_9i",
+      "label_fr": "Custom (9i)",
+      "generation": 0,
+      "game_key": "custom-9i",
+      "front": "sprites/9_blastoise_custom_9i.png",
+      "front_shiny": null,
+      "author": "game freak and xscaper",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9i/",
+      "source_image_url": "https://cdn.fusiondex.org/SyQymBIcD0DMRuiYCUGDjZJj/dn/pif/9i.png",
+      "added_at": "2026-03-14T12:02:48.728Z"
+    },
+    {
+      "id": "custom_9k",
+      "label_fr": "Custom (9k)",
+      "generation": 0,
+      "game_key": "custom-9k",
+      "front": "sprites/9_blastoise_custom_9k.png",
+      "front_shiny": null,
+      "author": "game freak and its.emily",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9k/",
+      "source_image_url": "https://cdn.fusiondex.org/YKG3vekjGASJt0NED2Xh0nSE/dn/pif/9k.png",
+      "added_at": "2026-03-14T12:02:48.775Z"
+    },
+    {
+      "id": "custom_9m",
+      "label_fr": "Custom (9m)",
+      "generation": 0,
+      "game_key": "custom-9m",
+      "front": "sprites/9_blastoise_custom_9m.png",
+      "front_shiny": null,
+      "author": "game freak and luxio.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9m/",
+      "source_image_url": "https://cdn.fusiondex.org/LNkOdn7olLjrmOLlDovXw6zp/dn/pif/9m.png",
+      "added_at": "2026-03-14T12:02:48.822Z"
+    },
+    {
+      "id": "custom_9n",
+      "label_fr": "Custom (9n)",
+      "generation": 0,
+      "game_key": "custom-9n",
+      "front": "sprites/9_blastoise_custom_9n.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9n/",
+      "source_image_url": "https://cdn.fusiondex.org/dOgWdIKAvphFiLsqvxsNLB6U/dn/pif/9n.png",
+      "added_at": "2026-03-14T12:02:48.845Z"
+    },
+    {
+      "id": "custom_9p",
+      "label_fr": "Custom (9p)",
+      "generation": 0,
+      "game_key": "custom-9p",
+      "front": "sprites/9_blastoise_custom_9p.png",
+      "front_shiny": null,
+      "author": "game freak and mochauspocus",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9p/",
+      "source_image_url": "https://cdn.fusiondex.org/65bp59qk4QEg8FV5fZKSkZFF/dn/pif/9p.png",
+      "added_at": "2026-03-14T12:02:48.890Z"
+    },
+    {
+      "id": "custom_9q",
+      "label_fr": "Custom (9q)",
+      "generation": 0,
+      "game_key": "custom-9q",
+      "front": "sprites/9_blastoise_custom_9q.png",
+      "front_shiny": null,
+      "author": "thealangator",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9q/",
+      "source_image_url": "https://cdn.fusiondex.org/N_atO0v964xLguTax_3C3vDw/dn/pif/9q.png",
+      "added_at": "2026-03-14T12:02:48.913Z"
+    },
+    {
+      "id": "custom_9r",
+      "label_fr": "Custom (9r)",
+      "generation": 0,
+      "game_key": "custom-9r",
+      "front": "sprites/9_blastoise_custom_9r.png",
+      "front_shiny": null,
+      "author": "game freak",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9r/",
+      "source_image_url": "https://cdn.fusiondex.org/eulI0sqsLs7v_N28nER8xC1v/dn/pif/9r.png",
+      "added_at": "2026-03-14T12:02:48.939Z"
+    },
+    {
+      "id": "custom_9s",
+      "label_fr": "Custom (9s)",
+      "generation": 0,
+      "game_key": "custom-9s",
+      "front": "sprites/9_blastoise_custom_9s.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/9s/",
+      "source_image_url": "https://cdn.fusiondex.org/WzJ7NSZ3Ru9m5HCb9E5FcRdO/dn/pif/9s.png",
+      "added_at": "2026-03-14T12:02:48.962Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

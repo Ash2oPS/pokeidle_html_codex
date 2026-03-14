@@ -60,14 +60,6 @@
       "front_shiny": "sprites/5_charmeleon_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/5_charmeleon_emerald_front.png",
-      "front_shiny": "sprites/5_charmeleon_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -84,29 +76,12 @@
       "front_shiny": "sprites/5_charmeleon_heartgold_soulsilver_front_shiny.png"
     },
     {
-      "id": "platinum",
-      "label_fr": "Platine",
-      "generation": 4,
-      "game_key": "platinum",
-      "front": "sprites/5_charmeleon_platinum_front.png",
-      "front_shiny": "sprites/5_charmeleon_platinum_front_shiny.png"
-    },
-    {
       "id": "diamond_pearl",
       "label_fr": "Diamant / Perle",
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/5_charmeleon_diamond_pearl_front.png",
       "front_shiny": "sprites/5_charmeleon_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/5_charmeleon_crystal_front.png",
-      "front_shiny": "sprites/5_charmeleon_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -148,6 +123,90 @@
       "front": "sprites/5_charmeleon_black_white_front.gif",
       "front_shiny": "sprites/5_charmeleon_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_5",
+      "label_fr": "Custom (5)",
+      "generation": 0,
+      "game_key": "custom-5",
+      "front": "sprites/5_charmeleon_custom_5.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5/",
+      "source_image_url": "https://cdn.fusiondex.org/-aXeoO-PDmiyQO3CxWzlpeJE/dn/pif/5.png",
+      "added_at": "2026-03-14T11:34:21.438Z"
+    },
+    {
+      "id": "custom_5e",
+      "label_fr": "Custom (5e)",
+      "generation": 0,
+      "game_key": "custom-5e",
+      "front": "sprites/5_charmeleon_custom_5e.png",
+      "front_shiny": null,
+      "author": "game freak and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5e/",
+      "source_image_url": "https://cdn.fusiondex.org/ZzXwjmreL8thncI2cU0c0id0/dn/pif/5e.png",
+      "added_at": "2026-03-14T11:34:21.830Z"
+    },
+    {
+      "id": "custom_5f",
+      "label_fr": "Custom (5f)",
+      "generation": 0,
+      "game_key": "custom-5f",
+      "front": "sprites/5_charmeleon_custom_5f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and hero.drawing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5f/",
+      "source_image_url": "https://cdn.fusiondex.org/lgVz5ig0FyuGXIrhWq2UQH0c/dn/pif/5f.png",
+      "added_at": "2026-03-14T11:34:22.228Z"
+    },
+    {
+      "id": "custom_5l",
+      "label_fr": "Custom (5l)",
+      "generation": 0,
+      "game_key": "custom-5l",
+      "front": "sprites/5_charmeleon_custom_5l.png",
+      "front_shiny": null,
+      "author": "game freak and luxio.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5l/",
+      "source_image_url": "https://cdn.fusiondex.org/hOjHXNmm8QvyqQ-8T4LTMOA7/dn/pif/5l.png",
+      "added_at": "2026-03-14T11:34:22.626Z"
+    },
+    {
+      "id": "custom_5n",
+      "label_fr": "Custom (5n)",
+      "generation": 0,
+      "game_key": "custom-5n",
+      "front": "sprites/5_charmeleon_custom_5n.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5n/",
+      "source_image_url": "https://cdn.fusiondex.org/FzAiOmlgPm-yd3yQbga4KFUQ/dn/pif/5n.png",
+      "added_at": "2026-03-14T11:34:23.020Z"
+    },
+    {
+      "id": "custom_5v",
+      "label_fr": "Custom (5v)",
+      "generation": 0,
+      "game_key": "custom-5v",
+      "front": "sprites/5_charmeleon_custom_5v.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and donutsbg",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5v/",
+      "source_image_url": "https://cdn.fusiondex.org/OqGII_xVI-THeGxtQQ9MA3ND/dn/pif/5v.png",
+      "added_at": "2026-03-14T11:34:23.415Z"
+    },
+    {
+      "id": "custom_5o",
+      "label_fr": "Custom (5o)",
+      "generation": 0,
+      "game_key": "custom-5o",
+      "front": "sprites/5_charmeleon_custom_5o.png",
+      "front_shiny": null,
+      "author": "game freak and .realthree",
+      "source_url": "https://www.fusiondex.org/sprite/pif/5o/",
+      "source_image_url": "https://cdn.fusiondex.org/xSwQip937r0ByKEFmzeRH_a0/dn/pif/5o.png",
+      "added_at": "2026-03-14T11:34:39.596Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

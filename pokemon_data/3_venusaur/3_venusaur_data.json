@@ -49,14 +49,6 @@
       "front_shiny": "sprites/3_venusaur_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/3_venusaur_emerald_front.png",
-      "front_shiny": "sprites/3_venusaur_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -73,29 +65,12 @@
       "front_shiny": "sprites/3_venusaur_heartgold_soulsilver_front_shiny.png"
     },
     {
-      "id": "platinum",
-      "label_fr": "Platine",
-      "generation": 4,
-      "game_key": "platinum",
-      "front": "sprites/3_venusaur_platinum_front.png",
-      "front_shiny": "sprites/3_venusaur_platinum_front_shiny.png"
-    },
-    {
       "id": "diamond_pearl",
       "label_fr": "Diamant / Perle",
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/3_venusaur_diamond_pearl_front.png",
       "front_shiny": "sprites/3_venusaur_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/3_venusaur_crystal_front.png",
-      "front_shiny": "sprites/3_venusaur_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -137,6 +112,90 @@
       "front": "sprites/3_venusaur_black_white_front.gif",
       "front_shiny": "sprites/3_venusaur_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_3p",
+      "label_fr": "Custom (3p)",
+      "generation": 0,
+      "game_key": "custom-3p",
+      "front": "sprites/3_venusaur_custom_3p.png",
+      "front_shiny": null,
+      "author": "rayslithew_snake3000",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3p/",
+      "source_image_url": "https://cdn.fusiondex.org/sDZW7XGB64TCakMG3q_F_UCc/dn/pif/3p.png",
+      "added_at": "2026-03-14T11:30:38.215Z"
+    },
+    {
+      "id": "custom_3o",
+      "label_fr": "Custom (3o)",
+      "generation": 0,
+      "game_key": "custom-3o",
+      "front": "sprites/3_venusaur_custom_3o.png",
+      "front_shiny": null,
+      "author": "the pokémon company and donutsbg",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3o/",
+      "source_image_url": "https://cdn.fusiondex.org/sww6AhDfbeB5gme1Cyd_B_vx/dn/pif/3o.png",
+      "added_at": "2026-03-14T11:30:38.602Z"
+    },
+    {
+      "id": "custom_3k",
+      "label_fr": "Custom (3k)",
+      "generation": 0,
+      "game_key": "custom-3k",
+      "front": "sprites/3_venusaur_custom_3k.png",
+      "front_shiny": null,
+      "author": "game freak and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3k/",
+      "source_image_url": "https://cdn.fusiondex.org/YiafdspZxZ_w2a2Mz4jyd4uz/dn/pif/3k.png",
+      "added_at": "2026-03-14T11:30:38.997Z"
+    },
+    {
+      "id": "custom_3",
+      "label_fr": "Custom (3)",
+      "generation": 0,
+      "game_key": "custom-3",
+      "front": "sprites/3_venusaur_custom_3.png",
+      "front_shiny": null,
+      "author": "the pokémon company and blaquaza",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3/",
+      "source_image_url": "https://cdn.fusiondex.org/vECAgNh7Uw28wP461hcwo9Ab/dn/pif/3.png",
+      "added_at": "2026-03-14T11:30:39.387Z"
+    },
+    {
+      "id": "custom_3f",
+      "label_fr": "Custom (3f)",
+      "generation": 0,
+      "game_key": "custom-3f",
+      "front": "sprites/3_venusaur_custom_3f.png",
+      "front_shiny": null,
+      "author": "game freak and 0003venusaur",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3f/",
+      "source_image_url": "https://cdn.fusiondex.org/rEKV9Iu_UTl50vfwuQDJvDrH/dn/pif/3f.png",
+      "added_at": "2026-03-14T11:30:39.820Z"
+    },
+    {
+      "id": "custom_3s",
+      "label_fr": "Custom (3s)",
+      "generation": 0,
+      "game_key": "custom-3s",
+      "front": "sprites/3_venusaur_custom_3s.png",
+      "front_shiny": null,
+      "author": "jackster",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3s/",
+      "source_image_url": "https://cdn.fusiondex.org/pRRH_PWYvocwTiME9aEJ0Kce/dn/pif/3s.png",
+      "added_at": "2026-03-14T11:30:40.221Z"
+    },
+    {
+      "id": "custom_3u",
+      "label_fr": "Custom (3u)",
+      "generation": 0,
+      "game_key": "custom-3u",
+      "front": "sprites/3_venusaur_custom_3u.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/3u/",
+      "source_image_url": "https://cdn.fusiondex.org/GRh2A1_1PWZilvvjhmd5pc5T/dn/pif/3u.png",
+      "added_at": "2026-03-14T11:30:40.617Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

@@ -40,8 +40,8 @@
     "speed": 50
   },
   "sprites": {
-    "front": "sprites/271_lombre_emerald_front.png",
-    "front_shiny": "sprites/271_lombre_emerald_front_shiny.png"
+    "front": "sprites/271_lombre_ruby_sapphire_front.png",
+    "front_shiny": "sprites/271_lombre_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -51,14 +51,6 @@
       "game_key": "home",
       "front": "sprites/271_lombre_transparent_front.png",
       "front_shiny": "sprites/271_lombre_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/271_lombre_emerald_front.png",
-      "front_shiny": "sprites/271_lombre_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -102,7 +94,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 12,
   "size": 0.0222,
   "catch_rate": 120,

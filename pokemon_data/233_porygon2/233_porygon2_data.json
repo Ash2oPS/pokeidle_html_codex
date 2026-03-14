@@ -39,8 +39,8 @@
     "speed": 60
   },
   "sprites": {
-    "front": "sprites/233_porygon2_emerald_front.png",
-    "front_shiny": "sprites/233_porygon2_emerald_front_shiny.png"
+    "front": "sprites/233_porygon2_ruby_sapphire_front.png",
+    "front_shiny": "sprites/233_porygon2_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -50,14 +50,6 @@
       "game_key": "home",
       "front": "sprites/233_porygon2_transparent_front.png",
       "front_shiny": "sprites/233_porygon2_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/233_porygon2_emerald_front.png",
-      "front_shiny": "sprites/233_porygon2_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -92,15 +84,6 @@
       "front_shiny": "sprites/233_porygon2_diamond_pearl_front_shiny.png"
     },
     {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/233_porygon2_crystal_front.png",
-      "front_shiny": "sprites/233_porygon2_crystal_front_shiny.png",
-      "animated": true
-    },
-    {
       "id": "gold_silver",
       "label_fr": "Or / Argent",
       "generation": 2,
@@ -118,9 +101,9 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 6,
-  "size": 0.0,
+  "size": 0,
   "catch_rate": 45,
   "base_experience": 180,
   "weight": 325,

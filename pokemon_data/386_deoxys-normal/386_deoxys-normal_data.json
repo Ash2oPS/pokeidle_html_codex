@@ -38,14 +38,6 @@
       "front_shiny": "sprites/386_deoxys-normal_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/386_deoxys-normal_emerald_front.png",
-      "front_shiny": "sprites/386_deoxys-normal_emerald_front_shiny.png"
-    },
-    {
       "id": "heartgold_soulsilver",
       "label_fr": "HeartGold / SoulSilver",
       "generation": 4,

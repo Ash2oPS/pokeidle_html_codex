@@ -27,8 +27,8 @@
     "speed": 80
   },
   "sprites": {
-    "front": "sprites/362_glalie_emerald_front.png",
-    "front_shiny": "sprites/362_glalie_emerald_front_shiny.png"
+    "front": "sprites/362_glalie_ruby_sapphire_front.png",
+    "front_shiny": "sprites/362_glalie_ruby_sapphire_front_shiny.png"
   },
   "sprite_variants": [
     {
@@ -38,14 +38,6 @@
       "game_key": "home",
       "front": "sprites/362_glalie_transparent_front.png",
       "front_shiny": "sprites/362_glalie_transparent_front_shiny.png"
-    },
-    {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/362_glalie_emerald_front.png",
-      "front_shiny": "sprites/362_glalie_emerald_front_shiny.png"
     },
     {
       "id": "ruby_sapphire",
@@ -89,7 +81,7 @@
       "animated": true
     }
   ],
-  "default_sprite_variant_id": "emerald",
+  "default_sprite_variant_id": "ruby_sapphire",
   "height": 15,
   "size": 0.0556,
   "catch_rate": 75,

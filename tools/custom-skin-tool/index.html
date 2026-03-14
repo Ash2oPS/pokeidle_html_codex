@@ -179,27 +179,27 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 6px;
       }
 
       .card {
         border: 1px solid var(--line);
-        border-radius: 12px;
+        border-radius: 10px;
         background: #fcfeff;
-        padding: 10px;
+        padding: 6px;
         display: grid;
-        gap: 8px;
+        gap: 4px;
       }
 
       .badge {
         display: inline-block;
         width: fit-content;
         border-radius: 999px;
-        font-size: 0.72rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        letter-spacing: 0.02em;
-        padding: 4px 8px;
+        letter-spacing: 0.015em;
+        padding: 3px 7px;
         border: 1px solid transparent;
       }
 
@@ -218,16 +218,24 @@
       .preview {
         width: 100%;
         aspect-ratio: 1 / 1;
-        border-radius: 10px;
-        background: #0e1117;
-        border: 1px solid #2b3140;
+        border-radius: 7px;
+        background-color: #edf1f5;
+        background-image:
+          linear-gradient(45deg, #d4dce5 25%, transparent 25%),
+          linear-gradient(-45deg, #d4dce5 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #d4dce5 75%),
+          linear-gradient(-45deg, transparent 75%, #d4dce5 75%);
+        background-size: 16px 16px;
+        background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+        border: 1px solid #9ba8b8;
         object-fit: contain;
         image-rendering: pixelated;
       }
 
       .line {
-        font-size: 0.85rem;
+        font-size: 0.72rem;
         word-break: break-word;
+        line-height: 1.2;
       }
 
       .line strong {
@@ -249,6 +257,30 @@
         color: #22384f;
         font-size: 0.88rem;
       }
+
+      .variants-panels {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .variants-panel {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fafcff;
+        padding: 8px;
+      }
+
+      .variants-title {
+        margin: 0 0 6px 0;
+        font-size: 0.95rem;
+      }
+
+      .card .btn {
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 0.82rem;
+      }
     </style>
   </head>
   <body>
@@ -269,6 +301,7 @@
           </div>
           <button id="load-btn" class="btn" type="button">Charger</button>
           <button id="refresh-btn" class="btn" type="button" disabled>Rafraîchir</button>
+          <button id="reinstall-official-btn" class="btn" type="button" disabled>Retelecharger officiels</button>
         </div>
         <div id="pokemon-meta" class="pokemon-meta"></div>
       </section>
@@ -279,6 +312,7 @@
         <textarea id="urls-input" placeholder="https://cdn.fusiondex.org/.../dn/pif/1t.png"></textarea>
         <div class="row">
           <button id="add-btn" class="btn" type="button" disabled>Ajouter les URLs</button>
+          <button id="add-all-custom-btn" class="btn" type="button" disabled>Installer tous les customs</button>
         </div>
         <div id="add-summary" class="row"></div>
       </section>
@@ -286,7 +320,16 @@
       <section class="panel">
         <h2>3) Skins configures (officiels + custom)</h2>
         <div id="status" class="status info">Charge d'abord un Pokémon.</div>
-        <div id="custom-grid" class="grid"></div>
+        <div class="variants-panels">
+          <section class="variants-panel">
+            <h3 class="variants-title">Custom</h3>
+            <div id="custom-grid" class="grid"></div>
+          </section>
+          <section class="variants-panel">
+            <h3 class="variants-title">Officiels</h3>
+            <div id="official-grid" class="grid"></div>
+          </section>
+        </div>
       </section>
     </main>
 
@@ -299,11 +342,14 @@
         pokemonIdInput: document.getElementById("pokemon-id-input"),
         loadBtn: document.getElementById("load-btn"),
         refreshBtn: document.getElementById("refresh-btn"),
+        reinstallOfficialBtn: document.getElementById("reinstall-official-btn"),
         addBtn: document.getElementById("add-btn"),
+        addAllCustomBtn: document.getElementById("add-all-custom-btn"),
         urlsInput: document.getElementById("urls-input"),
         status: document.getElementById("status"),
         meta: document.getElementById("pokemon-meta"),
-        grid: document.getElementById("custom-grid"),
+        customGrid: document.getElementById("custom-grid"),
+        officialGrid: document.getElementById("official-grid"),
         addSummary: document.getElementById("add-summary"),
       };
 
@@ -315,7 +361,9 @@
       function setBusy(isBusy) {
         nodes.loadBtn.disabled = isBusy;
         nodes.refreshBtn.disabled = isBusy || !state.pokemonId;
+        nodes.reinstallOfficialBtn.disabled = isBusy || !state.pokemonId;
         nodes.addBtn.disabled = isBusy || !state.pokemonId;
+        nodes.addAllCustomBtn.disabled = isBusy || !state.pokemonId;
       }
 
       async function api(path, options = {}) {
@@ -366,30 +414,32 @@
           .replaceAll("'", "&#39;");
       }
 
-      function renderCustomGrid(items) {
-        if (!Array.isArray(items) || items.length <= 0) {
-          nodes.grid.innerHTML = `<p class="empty">Aucun skin variant configure pour ce Pokemon.</p>`;
-          return;
-        }
-        nodes.grid.innerHTML = items
+      function renderVariantCards(items) {
+        return items
           .map((item) => {
             const deleteKey = String(item.delete_key || "");
             const safeDeleteKey = encodeURIComponent(deleteKey);
-            const sourceUrl = item.source_url
-              ? `<a href="${escapeHtml(item.source_url)}" target="_blank" rel="noreferrer noopener">source</a>`
-              : "-";
+            const hasSource = Boolean(item.source_url);
+            const sourceUrl = hasSource
+              ? `<a href="${escapeHtml(item.source_url)}" target="_blank" rel="noreferrer noopener">lien</a>`
+              : "";
             const badgeClass = item.custom ? "badge badge-custom" : "badge badge-official";
             const badgeLabel = item.custom ? "Custom" : "Officiel";
             const canDelete = Boolean(deleteKey);
+            const labelLine = item.label_fr ? `<div class="line"><strong>Label:</strong> ${escapeHtml(item.label_fr)}</div>` : "";
+            const authorLine =
+              item.author && item.author !== "unknown"
+                ? `<div class="line"><strong>Auteur:</strong> ${escapeHtml(item.author)}</div>`
+                : "";
+            const sourceLine = hasSource ? `<div class="line"><strong>Source:</strong> ${sourceUrl}</div>` : "";
             return `
               <article class="card">
                 <img class="preview" src="${escapeHtml(item.front_url)}" alt="${escapeHtml(item.id)}" loading="lazy" />
                 <span class="${badgeClass}">${badgeLabel}</span>
                 <div class="line"><strong>ID:</strong> ${escapeHtml(item.id)}</div>
-                <div class="line"><strong>Label:</strong> ${escapeHtml(item.label_fr || "-")}</div>
-                <div class="line"><strong>Auteur:</strong> ${escapeHtml(item.author || "unknown")}</div>
-                <div class="line"><strong>Source:</strong> ${sourceUrl}</div>
-                <div class="line"><strong>Front:</strong> ${escapeHtml(item.front || "-")}</div>
+                ${labelLine}
+                ${authorLine}
+                ${sourceLine}
                 <button class="btn btn-danger" type="button" data-delete-id="${safeDeleteKey}" ${
                   canDelete ? "" : "disabled"
                 }>Supprimer</button>
@@ -397,13 +447,34 @@
             `;
           })
           .join("");
+      }
 
-        for (const button of nodes.grid.querySelectorAll("[data-delete-id]")) {
+      function bindDeleteButtons(container) {
+        for (const button of container.querySelectorAll("[data-delete-id]")) {
           button.addEventListener("click", async () => {
             const variantId = decodeURIComponent(button.dataset.deleteId || "");
             await deleteVariant(variantId);
           });
         }
+      }
+
+      function renderCustomGrid(items) {
+        if (!Array.isArray(items) || items.length <= 0) {
+          nodes.customGrid.innerHTML = `<p class="empty">Aucun skin custom.</p>`;
+          nodes.officialGrid.innerHTML = `<p class="empty">Aucun skin officiel.</p>`;
+          return;
+        }
+
+        const customs = items.filter((item) => item && item.custom);
+        const officials = items.filter((item) => item && !item.custom);
+
+        nodes.customGrid.innerHTML =
+          customs.length > 0 ? renderVariantCards(customs) : `<p class="empty">Aucun skin custom.</p>`;
+        nodes.officialGrid.innerHTML =
+          officials.length > 0 ? renderVariantCards(officials) : `<p class="empty">Aucun skin officiel.</p>`;
+
+        bindDeleteButtons(nodes.customGrid);
+        bindDeleteButtons(nodes.officialGrid);
       }
 
       function renderAddSummary(result) {
@@ -426,6 +497,63 @@
         `;
       }
 
+      function extractUrlsFromInput(rawText) {
+        const text = String(rawText || "");
+        const urls = [];
+        const regex = /https?:\/\/[^\s]*?(?=https?:\/\/|\s|$)/gi;
+        for (const match of text.match(regex) || []) {
+          const candidate = String(match || "")
+            .trim()
+            .replace(/[)\],;]+$/g, "");
+          if (!candidate) {
+            continue;
+          }
+          try {
+            const parsed = new URL(candidate);
+            if (!["http:", "https:"].includes(parsed.protocol)) {
+              continue;
+            }
+            urls.push(parsed.toString());
+          } catch {
+            // ignore invalid candidate
+          }
+        }
+        return urls;
+      }
+
+      function isTypingTarget(target) {
+        if (!target || typeof target !== "object") {
+          return false;
+        }
+        const tagName = String(target.tagName || "").toUpperCase();
+        if (tagName === "TEXTAREA") {
+          return true;
+        }
+        if (tagName === "INPUT") {
+          const type = String(target.type || "").toLowerCase();
+          return !["button", "submit", "reset", "checkbox", "radio", "range"].includes(type);
+        }
+        return Boolean(target.isContentEditable);
+      }
+
+      async function loadRelativePokemon(offset) {
+        if (nodes.loadBtn.disabled) {
+          return;
+        }
+        const currentFromState = Number.parseInt(String(state.pokemonId || ""), 10);
+        const currentFromInput = Number.parseInt(nodes.pokemonIdInput.value, 10);
+        const currentId = Number.isInteger(currentFromState) && currentFromState > 0
+          ? currentFromState
+          : currentFromInput;
+        if (!Number.isInteger(currentId) || currentId <= 0) {
+          setStatus("err", "Charge d'abord un Pokémon.");
+          return;
+        }
+        const nextId = Math.max(1, currentId + offset);
+        nodes.pokemonIdInput.value = String(nextId);
+        await loadPokemon();
+      }
+
       async function loadPokemon() {
         const id = Number.parseInt(nodes.pokemonIdInput.value, 10);
         if (!Number.isInteger(id) || id <= 0) {
@@ -437,20 +565,30 @@
         setStatus("info", `Chargement Pokémon #${id}...`);
         try {
           const payload = await api(`/api/pokemon/${id}`);
+          const variants = Array.isArray(payload.sprite_variants)
+            ? payload.sprite_variants
+            : Array.isArray(payload.custom_sprites)
+              ? payload.custom_sprites
+              : [];
           state.pokemonId = id;
           renderPokemonMeta(payload.pokemon);
-          renderCustomGrid(payload.sprite_variants);
+          renderCustomGrid(variants);
           renderAddSummary(null);
           setStatus("ok", `Pokémon #${id} chargé.`);
           nodes.refreshBtn.disabled = false;
+          nodes.reinstallOfficialBtn.disabled = false;
           nodes.addBtn.disabled = false;
+          nodes.addAllCustomBtn.disabled = false;
         } catch (error) {
           setStatus("err", `Erreur: ${error.message}`);
           state.pokemonId = null;
           nodes.refreshBtn.disabled = true;
+          nodes.reinstallOfficialBtn.disabled = true;
           nodes.addBtn.disabled = true;
+          nodes.addAllCustomBtn.disabled = true;
           nodes.meta.innerHTML = "";
-          nodes.grid.innerHTML = "";
+          nodes.customGrid.innerHTML = "";
+          nodes.officialGrid.innerHTML = "";
         } finally {
           setBusy(false);
         }
@@ -469,10 +607,7 @@
           setStatus("err", "Charge d'abord un Pokémon.");
           return;
         }
-        const urls = nodes.urlsInput.value
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter(Boolean);
+        const urls = extractUrlsFromInput(nodes.urlsInput.value);
         if (urls.length <= 0) {
           setStatus("err", "Aucune URL fournie.");
           return;
@@ -485,11 +620,89 @@
             method: "POST",
             body: JSON.stringify({ urls }),
           });
+          const variants = Array.isArray(payload.sprite_variants)
+            ? payload.sprite_variants
+            : Array.isArray(payload.custom_sprites)
+              ? payload.custom_sprites
+              : [];
           renderPokemonMeta(payload.pokemon);
-          renderCustomGrid(payload.sprite_variants);
+          renderCustomGrid(variants);
           renderAddSummary(payload.result);
           nodes.urlsInput.value = "";
           setStatus("ok", "Ajout terminé.");
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function reinstallOfficialSprites() {
+        if (!state.pokemonId) {
+          setStatus("err", "Charge d'abord un Pokémon.");
+          return;
+        }
+
+        setBusy(true);
+        setStatus("info", "Reinstallation des sprites officiels en cours...");
+        try {
+          const payload = await api(`/api/pokemon/${state.pokemonId}/reinstall-official-sprites`, {
+            method: "POST",
+          });
+          const variants = Array.isArray(payload.sprite_variants)
+            ? payload.sprite_variants
+            : Array.isArray(payload.custom_sprites)
+              ? payload.custom_sprites
+              : [];
+          renderPokemonMeta(payload.pokemon);
+          renderCustomGrid(variants);
+          const result = payload.result || {};
+          const officialCount = Number(result.official_variants || 0);
+          const downloadedCount = Array.isArray(result.downloaded_files) ? result.downloaded_files.length : 0;
+          const errorCount = Array.isArray(result.errors) ? result.errors.length : 0;
+          setStatus(
+            "ok",
+            `Officiels reinstalles: ${officialCount} variante(s), ${downloadedCount} fichier(s), erreurs: ${errorCount}.`
+          );
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function addAllCustomSprites() {
+        if (!state.pokemonId) {
+          setStatus("err", "Charge d'abord un Pokémon.");
+          return;
+        }
+
+        setBusy(true);
+        setStatus("info", "Import de tous les customs FusionDex en cours...");
+        try {
+          const payload = await api(`/api/pokemon/${state.pokemonId}/custom-sprites/all`, {
+            method: "POST",
+            body: JSON.stringify({}),
+          });
+          const variants = Array.isArray(payload.sprite_variants)
+            ? payload.sprite_variants
+            : Array.isArray(payload.custom_sprites)
+              ? payload.custom_sprites
+              : [];
+          renderPokemonMeta(payload.pokemon);
+          renderCustomGrid(variants);
+          renderAddSummary(payload.result);
+          const result = payload.result || {};
+          const addedCount = Array.isArray(result.added) ? result.added.length : 0;
+          const skippedCount = Array.isArray(result.skipped) ? result.skipped.length : 0;
+          const errorCount = Array.isArray(result.errors) ? result.errors.length : 0;
+          const excludedCount = Number(result.excluded_count || 0);
+          const totalFound = Number(result.total_found || 0);
+          const totalAvailable = Number(result.total_available || 0);
+          setStatus(
+            "ok",
+            `Import termine: ajoutes ${addedCount}, skippes ${skippedCount}, exclus ${excludedCount}, erreurs ${errorCount} (FusionDex trouves: ${totalFound}, eligibles: ${totalAvailable}).`
+          );
         } catch (error) {
           setStatus("err", `Erreur: ${error.message}`);
         } finally {
@@ -508,8 +721,13 @@
             `/api/pokemon/${state.pokemonId}/sprite-variants/${encodeURIComponent(variantId)}`,
             { method: "DELETE" }
           );
+          const variants = Array.isArray(payload.sprite_variants)
+            ? payload.sprite_variants
+            : Array.isArray(payload.custom_sprites)
+              ? payload.custom_sprites
+              : [];
           renderPokemonMeta(payload.pokemon);
-          renderCustomGrid(payload.sprite_variants);
+          renderCustomGrid(variants);
           setStatus("ok", `${variantId} supprimé.`);
         } catch (error) {
           setStatus("err", `Erreur: ${error.message}`);
@@ -520,7 +738,24 @@
 
       nodes.loadBtn.addEventListener("click", loadPokemon);
       nodes.refreshBtn.addEventListener("click", refreshPokemon);
+      nodes.reinstallOfficialBtn.addEventListener("click", reinstallOfficialSprites);
       nodes.addBtn.addEventListener("click", addSprites);
+      nodes.addAllCustomBtn.addEventListener("click", addAllCustomSprites);
+      window.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+          return;
+        }
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+          return;
+        }
+        const activeElement = document.activeElement;
+        if (isTypingTarget(activeElement) && activeElement !== nodes.pokemonIdInput) {
+          return;
+        }
+        event.preventDefault();
+        const offset = event.key === "ArrowLeft" ? -1 : 1;
+        void loadRelativePokemon(offset);
+      });
       nodes.pokemonIdInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();

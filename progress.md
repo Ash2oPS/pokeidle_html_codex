@@ -4749,3 +4749,25 @@ Validation:
   - DOM style probe confirms visible modal values after reset: modal/panel computed opacity = `1`.
 - Visual artifact (starter modal visible):
   - `output/starter-modal-dom-afterfix.png`.
+
+## Additional progress (appearance unlock default + level 10 tutorial trigger)
+- Updated appearance access behavior so the appearance editor is unlocked by default for all saves:
+  - `createDefaultTutorialProgress().appearance_editor_unlocked` now defaults to `true`.
+  - `normalizeTutorialProgress()` now forces `appearance_editor_unlocked` to `true` to migrate older saves.
+- Kept the appearance tutorial trigger tied to progression instead of lock state:
+  - `queueAppearanceTutorialIfNeeded()` now requires at least one unlocked Pokemon at level >= 10.
+  - This prevents tutorial popup at startup when no Pokemon has reached level 10 yet.
+  - Tutorial still queues once a Pokemon reaches (or already exceeds) level 10 and was not seen before.
+- Updated the appearance tutorial text to match new behavior:
+  - Appearance is available from start.
+  - Tutorial appears first time a team Pokemon reaches level 10.
+
+## Validation runs
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- `output/web-game-poke/state-2.json` confirms `appearance_editor_unlocked: true` on fresh start.
+- Screenshot reviewed: `output/web-game-poke/shot-2.png` (starter scene renders correctly, no modal regression).
+- Additional Playwright seeded-save validation: PASS.
+  - Forced a save snapshot with one team Pokemon level 10 and `appearance_intro_seen=false`.
+  - Confirmed runtime state opened tutorial flow: `tutorial_open=true`, `tutorial_flow_id="appearance_intro"`.
+  - Screenshot reviewed: `output/web-game-poke/appearance-level10-tutorial.png`.

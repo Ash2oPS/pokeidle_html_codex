@@ -50,14 +50,6 @@
       "front_shiny": "sprites/6_charizard_firered_leafgreen_front_shiny.png"
     },
     {
-      "id": "emerald",
-      "label_fr": "Emeraude",
-      "generation": 3,
-      "game_key": "emerald",
-      "front": "sprites/6_charizard_emerald_front.png",
-      "front_shiny": "sprites/6_charizard_emerald_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,
@@ -74,29 +66,12 @@
       "front_shiny": "sprites/6_charizard_heartgold_soulsilver_front_shiny.png"
     },
     {
-      "id": "platinum",
-      "label_fr": "Platine",
-      "generation": 4,
-      "game_key": "platinum",
-      "front": "sprites/6_charizard_platinum_front.png",
-      "front_shiny": "sprites/6_charizard_platinum_front_shiny.png"
-    },
-    {
       "id": "diamond_pearl",
       "label_fr": "Diamant / Perle",
       "generation": 4,
       "game_key": "diamond-pearl",
       "front": "sprites/6_charizard_diamond_pearl_front.png",
       "front_shiny": "sprites/6_charizard_diamond_pearl_front_shiny.png"
-    },
-    {
-      "id": "crystal",
-      "label_fr": "Cristal",
-      "generation": 2,
-      "game_key": "crystal",
-      "front": "sprites/6_charizard_crystal_front.png",
-      "front_shiny": "sprites/6_charizard_crystal_front_shiny.png",
-      "animated": true
     },
     {
       "id": "gold_silver",
@@ -132,12 +107,108 @@
     },
     {
       "id": "black_white",
-      "label_fr": "Noir / Blanc (animé)",
+      "label_fr": "Noir / Blanc (anime)",
       "generation": 5,
       "game_key": "black-white",
       "front": "sprites/6_charizard_black_white_front.gif",
       "front_shiny": "sprites/6_charizard_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_6",
+      "label_fr": "Custom (6)",
+      "generation": 0,
+      "game_key": "custom-6",
+      "front": "sprites/6_charizard_custom_6.png",
+      "front_shiny": null,
+      "author": "the pokémon company and howlingstarr",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6/",
+      "source_image_url": "https://cdn.fusiondex.org/9EtXIkvcMSAE6E1lCE97n83H/dn/pif/6.png",
+      "added_at": "2026-03-14T11:58:56.105Z"
+    },
+    {
+      "id": "custom_6a",
+      "label_fr": "Custom (6a)",
+      "generation": 0,
+      "game_key": "custom-6a",
+      "front": "sprites/6_charizard_custom_6a.png",
+      "front_shiny": null,
+      "author": "game freak and superluigi901",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6a/",
+      "source_image_url": "https://cdn.fusiondex.org/XO4_UuK-XSudXxRM8xRF4tz6/dn/pif/6a.png",
+      "added_at": "2026-03-14T11:58:56.130Z"
+    },
+    {
+      "id": "custom_6ab",
+      "label_fr": "Custom (6ab)",
+      "generation": 0,
+      "game_key": "custom-6ab",
+      "front": "sprites/6_charizard_custom_6ab.png",
+      "front_shiny": null,
+      "author": "the pokémon company and krigsvroul",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6ab/",
+      "source_image_url": "https://cdn.fusiondex.org/XbBQhmqrYJfhcGbN0-w48K0C/dn/pif/6ab.png",
+      "added_at": "2026-03-14T11:58:56.154Z"
+    },
+    {
+      "id": "custom_6ae",
+      "label_fr": "Custom (6ae)",
+      "generation": 0,
+      "game_key": "custom-6ae",
+      "front": "sprites/6_charizard_custom_6ae.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and bigbabybird",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6ae/",
+      "source_image_url": "https://cdn.fusiondex.org/isXz_sN6iolWMzRNV5uNeJMJ/dn/pif/6ae.png",
+      "added_at": "2026-03-14T11:58:56.176Z"
+    },
+    {
+      "id": "custom_6ag",
+      "label_fr": "Custom (6ag)",
+      "generation": 0,
+      "game_key": "custom-6ag",
+      "front": "sprites/6_charizard_custom_6ag.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and bigbabybird",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6ag/",
+      "source_image_url": "https://cdn.fusiondex.org/XkqEzh6T-EHsuf-NdJF9XgNf/dn/pif/6ag.png",
+      "added_at": "2026-03-14T11:58:56.200Z"
+    },
+    {
+      "id": "custom_6ar",
+      "label_fr": "Custom (6ar)",
+      "generation": 0,
+      "game_key": "custom-6ar",
+      "front": "sprites/6_charizard_custom_6ar.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and wilting_aspen",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6ar/",
+      "source_image_url": "https://cdn.fusiondex.org/StamPYTS12eCkprkfIfrWajg/dn/pif/6ar.png",
+      "added_at": "2026-03-14T11:58:56.222Z"
+    },
+    {
+      "id": "custom_6j",
+      "label_fr": "Custom (6j)",
+      "generation": 0,
+      "game_key": "custom-6j",
+      "front": "sprites/6_charizard_custom_6j.png",
+      "front_shiny": null,
+      "author": "the pokémon company and arinna",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6j/",
+      "source_image_url": "https://cdn.fusiondex.org/lzC88E5I1qgOrCD4bxPlEvHH/dn/pif/6j.png",
+      "added_at": "2026-03-14T11:58:56.247Z"
+    },
+    {
+      "id": "custom_6z",
+      "label_fr": "Custom (6z)",
+      "generation": 0,
+      "game_key": "custom-6z",
+      "front": "sprites/6_charizard_custom_6z.png",
+      "front_shiny": null,
+      "author": "the pokémon company and krigsvroul",
+      "source_url": "https://www.fusiondex.org/sprite/pif/6z/",
+      "source_image_url": "https://cdn.fusiondex.org/gypg0XspNxe1bPRe2XFAI2kh/dn/pif/6z.png",
+      "added_at": "2026-03-14T11:58:56.270Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

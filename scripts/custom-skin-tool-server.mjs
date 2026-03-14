@@ -17,6 +17,121 @@ const SPRITE_EXTENSIONS = new Set([".png", ".gif", ".webp", ".jpg", ".jpeg"]);
 const FUSIONDEX_CDN_HOST = "cdn.fusiondex.org";
 const FUSIONDEX_SITE_HOSTS = new Set(["fusiondex.org", "www.fusiondex.org"]);
 const fusionDexAuthorCache = new Map();
+const POKEAPI_BASE = "https://pokeapi.co/api/v2";
+const BULBAGARDEN_REDIRECT_BASE = "https://archives.bulbagarden.net/wiki/Special:Redirect/file";
+const OFFICIAL_VARIANT_DEFINITIONS = [
+  {
+    id: "firered_leafgreen",
+    generation_key: "generation-iii",
+    game_key: "firered-leafgreen",
+    label_fr: "Rouge Feu / Vert Feuille",
+    generation: 3,
+  },
+  {
+    id: "ruby_sapphire",
+    generation_key: "generation-iii",
+    game_key: "ruby-sapphire",
+    label_fr: "Rubis / Saphir",
+    generation: 3,
+  },
+  {
+    id: "heartgold_soulsilver",
+    generation_key: "generation-iv",
+    game_key: "heartgold-soulsilver",
+    label_fr: "HeartGold / SoulSilver",
+    generation: 4,
+  },
+  {
+    id: "platinum",
+    generation_key: "generation-iv",
+    game_key: "platinum",
+    label_fr: "Platine",
+    generation: 4,
+  },
+  {
+    id: "diamond_pearl",
+    generation_key: "generation-iv",
+    game_key: "diamond-pearl",
+    label_fr: "Diamant / Perle",
+    generation: 4,
+  },
+  {
+    id: "gold_silver",
+    source: "bulbagarden",
+    bulbagarden_code: "2g",
+    game_key: "gold",
+    label_fr: "Or / Argent",
+    generation: 2,
+    max_pokedex_id: 251,
+    supports_shiny: true,
+  },
+  {
+    id: "yellow",
+    source: "bulbagarden",
+    bulbagarden_code: "1y",
+    label_fr: "Jaune",
+    generation: 1,
+    max_pokedex_id: 151,
+    supports_shiny: false,
+  },
+  {
+    id: "green",
+    source: "bulbagarden",
+    bulbagarden_code: "1g",
+    label_fr: "Vert",
+    generation: 1,
+    max_pokedex_id: 151,
+    supports_shiny: false,
+  },
+  {
+    id: "red_blue",
+    source: "bulbagarden",
+    bulbagarden_code: "1b",
+    game_key: "red-blue",
+    label_fr: "Rouge / Bleu",
+    generation: 1,
+    max_pokedex_id: 151,
+    supports_shiny: false,
+  },
+  {
+    id: "black_white",
+    generation_key: "generation-v",
+    game_key: "black-white",
+    label_fr: "Noir / Blanc (anime)",
+    generation: 5,
+    animated: true,
+  },
+];
+const TRANSPARENT_SPRITE_CANDIDATES = [
+  {
+    other_key: "home",
+    game_key: "home",
+    label_fr: "Home",
+  },
+  {
+    other_key: "official-artwork",
+    game_key: "official-artwork",
+    label_fr: "Artwork officiel transparent",
+  },
+];
+const DEFAULT_OFFICIAL_VARIANT_PREFERENCE = [
+  "firered_leafgreen",
+  "ruby_sapphire",
+  "heartgold_soulsilver",
+  "platinum",
+  "diamond_pearl",
+  "gold_silver",
+  "yellow",
+  "green",
+  "red_blue",
+  "transparent",
+];
+const BULK_CUSTOM_EXCLUDED_AUTHORS = new Set([
+  "the ds-style 64x64",
+  "the ds-style 64x64 pokémon sprite resource",
+  "the ds-style 64x64 pokemon sprite resource",
+  "game freak",
+]);
 
 function sendJson(response, statusCode, payload) {
   const serialized = JSON.stringify(payload, null, 2);
@@ -55,6 +170,13 @@ function normalizeVariantId(rawValue) {
     .toLowerCase()
     .replaceAll("-", "_")
     .replaceAll(" ", "_");
+}
+
+function normalizeAuthorLabel(rawValue) {
+  return String(rawValue || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }
 
 function isCustomVariant(variant) {
@@ -103,6 +225,327 @@ function inferExtensionFromUrl(urlString) {
   }
 }
 
+function toErrorReason(error) {
+  return error instanceof Error ? error.message : "erreur_inconnue";
+}
+
+function formatBulbagardenSpriteFileName(code, pokedexId, shiny = false) {
+  const suffix = shiny ? "_s" : "";
+  return `Spr_${code}_${String(pokedexId).padStart(3, "0")}${suffix}.png`;
+}
+
+function buildBulbagardenSpriteUrl(code, pokedexId, shiny = false) {
+  const fileName = formatBulbagardenSpriteFileName(code, pokedexId, shiny);
+  return `${BULBAGARDEN_REDIRECT_BASE}/${encodeURIComponent(fileName)}`;
+}
+
+function getBulbagardenVariantSpriteUrls(pokedexId, variantDef) {
+  const maxPokedexId = Number.parseInt(String(variantDef.max_pokedex_id || "0"), 10);
+  if (Number.isFinite(maxPokedexId) && maxPokedexId > 0 && pokedexId > maxPokedexId) {
+    return [null, null];
+  }
+  const code = String(variantDef.bulbagarden_code || "")
+    .trim()
+    .toLowerCase();
+  if (!code) {
+    return [null, null];
+  }
+  const frontDefault = buildBulbagardenSpriteUrl(code, pokedexId, false);
+  const frontShiny = variantDef.supports_shiny ? buildBulbagardenSpriteUrl(code, pokedexId, true) : null;
+  return [frontDefault, frontShiny];
+}
+
+function getVariantSpriteUrlsFromPokeApi(pokeApiPokemonPayload, variantDef, pokedexId) {
+  if (variantDef.source === "bulbagarden") {
+    return getBulbagardenVariantSpriteUrls(pokedexId, variantDef);
+  }
+  const versions = pokeApiPokemonPayload?.sprites?.versions;
+  const generationPayload =
+    versions && typeof versions === "object" ? versions[variantDef.generation_key] || {} : {};
+  let gamePayload =
+    generationPayload && typeof generationPayload === "object" ? generationPayload[variantDef.game_key] || {} : {};
+  if (variantDef.animated && gamePayload && typeof gamePayload.animated === "object") {
+    gamePayload = gamePayload.animated;
+  }
+  const frontDefault = gamePayload?.front_transparent || gamePayload?.front_default || null;
+  const frontShiny = gamePayload?.front_shiny_transparent || gamePayload?.front_shiny || null;
+  return [frontDefault, frontShiny];
+}
+
+function getTransparentVariantCandidateFromPokeApi(pokeApiPokemonPayload) {
+  const otherPayload = pokeApiPokemonPayload?.sprites?.other;
+  if (!otherPayload || typeof otherPayload !== "object") {
+    return null;
+  }
+  for (const candidate of TRANSPARENT_SPRITE_CANDIDATES) {
+    const sourcePayload = otherPayload[candidate.other_key];
+    if (!sourcePayload || typeof sourcePayload !== "object") {
+      continue;
+    }
+    const frontDefault = sourcePayload.front_default || null;
+    const frontShiny = sourcePayload.front_shiny || null;
+    if (frontDefault || frontShiny) {
+      return {
+        variantDef: {
+          id: "transparent",
+          label_fr: candidate.label_fr,
+          generation: 0,
+          game_key: candidate.game_key,
+        },
+        frontDefault,
+        frontShiny,
+      };
+    }
+  }
+  return null;
+}
+
+async function fetchWithRetry(url, options = {}, maxAttempts = 3) {
+  const attempts = Math.max(1, Number.parseInt(String(maxAttempts), 10) || 1);
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts) {
+        break;
+      }
+      const waitMs = Math.min(2000, 250 * 2 ** (attempt - 1));
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
+  throw lastError || new Error("fetch_failed");
+}
+
+async function fetchPokeApiPokemonPayload(pokedexId) {
+  const response = await fetchWithRetry(`${POKEAPI_BASE}/pokemon/${encodeURIComponent(String(pokedexId))}`, {
+    headers: {
+      "user-agent": "pokeidle-custom-skin-tool/1.0",
+      accept: "application/json,*/*",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`pokeapi_http_${response.status}`);
+  }
+  return await response.json();
+}
+
+function cleanupRemovedSpriteFileCandidates(folderPath, refsBefore, refsAfter) {
+  const toDelete = [];
+  for (const relPath of refsBefore) {
+    if (!relPath || /^https?:\/\//i.test(relPath) || refsAfter.has(relPath)) {
+      continue;
+    }
+    const absPath = path.resolve(folderPath, relPath);
+    if (!absPath.startsWith(path.resolve(folderPath))) {
+      continue;
+    }
+    toDelete.push(absPath);
+  }
+  return toDelete;
+}
+
+function buildDefaultVariantId(variants, previousDefaultId = "") {
+  for (const preferredId of DEFAULT_OFFICIAL_VARIANT_PREFERENCE) {
+    const match = variants.find(
+      (variant) => normalizeVariantId(variant?.id || variant?.game_key || "") === normalizeVariantId(preferredId)
+    );
+    if (match) {
+      return String(match.id || match.game_key || "");
+    }
+  }
+  const previousMatch = variants.find(
+    (variant) =>
+      normalizeVariantId(variant?.id || variant?.game_key || "") === normalizeVariantId(previousDefaultId || "")
+  );
+  if (previousMatch) {
+    return String(previousMatch.id || previousMatch.game_key || "");
+  }
+  const first = variants.find((variant) => normalizeVariantId(variant?.id || variant?.game_key || ""));
+  return first ? String(first.id || first.game_key || "") : "";
+}
+
+async function downloadSpriteFile(spriteUrl, destinationWithoutExt) {
+  if (!spriteUrl) {
+    return null;
+  }
+  const response = await fetchWithRetry(spriteUrl, {
+    headers: {
+      "user-agent": "pokeidle-custom-skin-tool/1.0",
+      accept: "image/*,*/*",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`http_${response.status}`);
+  }
+  const contentType = String(response.headers.get("content-type") || "");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.byteLength <= 0) {
+    throw new Error("fichier_vide");
+  }
+  const ext = inferExtensionFromContentType(contentType) || inferExtensionFromUrl(spriteUrl) || ".png";
+  const targetPath = `${destinationWithoutExt}${ext}`;
+  await fsp.mkdir(path.dirname(targetPath), { recursive: true });
+  await fsp.writeFile(targetPath, buffer);
+  return path.basename(targetPath);
+}
+
+async function buildOfficialVariantOutput(pokemon, variantDef, frontDefaultUrl, frontShinyUrl, resultTracker) {
+  if (!frontDefaultUrl && !frontShinyUrl) {
+    return null;
+  }
+
+  const variantToken = sanitizeToken(variantDef.id, "variant");
+  let frontFileName = null;
+  let shinyFileName = null;
+
+  if (frontDefaultUrl) {
+    try {
+      frontFileName = await downloadSpriteFile(
+        frontDefaultUrl,
+        path.join(pokemon.spriteDir, `${pokemon.folderName}_${variantToken}_front`)
+      );
+      if (frontFileName) {
+        resultTracker.downloaded_files.push(path.join("sprites", frontFileName).replaceAll("\\", "/"));
+      }
+    } catch (error) {
+      resultTracker.errors.push({
+        variant_id: String(variantDef.id || ""),
+        field: "front",
+        reason: toErrorReason(error),
+      });
+    }
+  }
+
+  if (frontShinyUrl) {
+    try {
+      shinyFileName = await downloadSpriteFile(
+        frontShinyUrl,
+        path.join(pokemon.spriteDir, `${pokemon.folderName}_${variantToken}_front_shiny`)
+      );
+      if (shinyFileName) {
+        resultTracker.downloaded_files.push(path.join("sprites", shinyFileName).replaceAll("\\", "/"));
+      }
+    } catch (error) {
+      resultTracker.errors.push({
+        variant_id: String(variantDef.id || ""),
+        field: "front_shiny",
+        reason: toErrorReason(error),
+      });
+    }
+  }
+
+  if (!frontFileName && !shinyFileName) {
+    return null;
+  }
+
+  const output = {
+    id: String(variantDef.id || ""),
+    label_fr: String(variantDef.label_fr || ""),
+    generation: Number.parseInt(String(variantDef.generation || "0"), 10) || 0,
+    game_key: String(variantDef.game_key || variantDef.id || ""),
+    front: frontFileName ? path.join("sprites", frontFileName).replaceAll("\\", "/") : null,
+    front_shiny: shinyFileName ? path.join("sprites", shinyFileName).replaceAll("\\", "/") : null,
+  };
+  if (variantDef.animated) {
+    output.animated = true;
+  }
+  return output;
+}
+
+async function buildOfficialVariantsFromPokeApi(pokemon, pokeApiPokemonPayload, resultTracker) {
+  const outputs = [];
+  const transparentCandidate = getTransparentVariantCandidateFromPokeApi(pokeApiPokemonPayload);
+  if (transparentCandidate) {
+    const output = await buildOfficialVariantOutput(
+      pokemon,
+      transparentCandidate.variantDef,
+      transparentCandidate.frontDefault,
+      transparentCandidate.frontShiny,
+      resultTracker
+    );
+    if (output) {
+      outputs.push(output);
+    }
+  }
+
+  for (const variantDef of OFFICIAL_VARIANT_DEFINITIONS) {
+    const [frontDefaultUrl, frontShinyUrl] = getVariantSpriteUrlsFromPokeApi(
+      pokeApiPokemonPayload,
+      variantDef,
+      pokemon.pokemonId
+    );
+    const output = await buildOfficialVariantOutput(
+      pokemon,
+      variantDef,
+      frontDefaultUrl,
+      frontShinyUrl,
+      resultTracker
+    );
+    if (output) {
+      outputs.push(output);
+    }
+  }
+
+  return outputs;
+}
+
+async function reinstallOfficialSprites(pokemon) {
+  await fsp.mkdir(pokemon.spriteDir, { recursive: true });
+
+  const previousVariants = Array.isArray(pokemon.payload.sprite_variants) ? pokemon.payload.sprite_variants : [];
+  const customVariants = previousVariants.filter((variant) => isCustomVariant(variant));
+  const previousDefaultVariantId = String(pokemon.payload.default_sprite_variant_id || "");
+  const refsBefore = getAllReferencedSpritePaths(pokemon.payload);
+  const result = {
+    downloaded_files: [],
+    deleted_files: [],
+    errors: [],
+    official_variants: 0,
+    custom_preserved: customVariants.length,
+    default_variant_id: "",
+  };
+
+  const pokeApiPokemonPayload = await fetchPokeApiPokemonPayload(pokemon.pokemonId);
+  const officialVariants = await buildOfficialVariantsFromPokeApi(pokemon, pokeApiPokemonPayload, result);
+  if (officialVariants.length <= 0) {
+    throw new Error("Aucun sprite officiel telecharge. Reinstallation annulee.");
+  }
+
+  pokemon.payload.sprite_variants = [...officialVariants, ...customVariants];
+  if (!pokemon.payload.sprites || typeof pokemon.payload.sprites !== "object") {
+    pokemon.payload.sprites = {};
+  }
+
+  const defaultVariantId = buildDefaultVariantId(pokemon.payload.sprite_variants, previousDefaultVariantId);
+  result.default_variant_id = defaultVariantId;
+  pokemon.payload.default_sprite_variant_id = defaultVariantId;
+  const defaultVariant = pokemon.payload.sprite_variants.find(
+    (variant) =>
+      normalizeVariantId(variant?.id || variant?.game_key || "") === normalizeVariantId(defaultVariantId || "")
+  );
+  if (defaultVariant) {
+    pokemon.payload.sprites.front = defaultVariant.front || pokemon.payload.sprites.front || "";
+    pokemon.payload.sprites.front_shiny = defaultVariant.front_shiny || pokemon.payload.sprites.front_shiny || null;
+  }
+
+  const refsAfter = getAllReferencedSpritePaths(pokemon.payload);
+  const deleteCandidates = cleanupRemovedSpriteFileCandidates(pokemon.folderPath, refsBefore, refsAfter);
+  for (const absPath of deleteCandidates) {
+    try {
+      await fsp.unlink(absPath);
+      result.deleted_files.push(absPath);
+    } catch {
+      // ignore missing files on cleanup
+    }
+  }
+
+  await writeJsonFile(pokemon.jsonPath, pokemon.payload);
+  result.official_variants = officialVariants.length;
+  return result;
+}
+
 function sha256Hex(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("hex");
 }
@@ -144,6 +587,30 @@ function normalizeSourceUrl(rawValue) {
   }
 }
 
+function extractHttpUrls(rawValue) {
+  const text = String(rawValue || "");
+  const out = [];
+  const regex = /https?:\/\/[^\s]*?(?=https?:\/\/|\s|$)/gi;
+  for (const match of text.match(regex) || []) {
+    const candidate = String(match || "")
+      .trim()
+      .replace(/[)\],;]+$/g, "");
+    if (!candidate) {
+      continue;
+    }
+    try {
+      const parsed = new URL(candidate);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        continue;
+      }
+      out.push(parsed.toString());
+    } catch {
+      // ignore invalid candidate
+    }
+  }
+  return out;
+}
+
 function extractFusionDexCode(rawUrl) {
   try {
     const parsed = new URL(rawUrl);
@@ -174,6 +641,10 @@ function extractFusionDexSpritePageCode(rawUrl) {
 }
 
 function parseArtistsLabel(artistsHtml) {
+  const plain = stripHtmlTags(artistsHtml).trim().replace(/\s+/g, " ");
+  if (plain) {
+    return plain;
+  }
   const names = [];
   for (const anchorMatch of String(artistsHtml || "").matchAll(/<a[^>]*>([\s\S]*?)<\/a>/gi)) {
     const name = stripHtmlTags(anchorMatch[1]).trim();
@@ -182,18 +653,44 @@ function parseArtistsLabel(artistsHtml) {
     }
   }
   if (names.length > 0) {
-    return names.join(", ");
+    return names.join(" and ");
   }
   const fallback = stripHtmlTags(artistsHtml).trim().replace(/\s+/g, " ");
   return fallback || "unknown";
 }
 
-function parseFusionDexSpritePageDetails(pageHtml, pageUrl) {
+function findFusionDexSpriteArticleByCode(pageHtml, spriteCode) {
+  const target = String(spriteCode || "").trim().toLowerCase();
+  if (!target) {
+    return "";
+  }
+  const articleRegex = /<article class="sprite-preview[\s\S]*?<\/article>/gi;
+  for (const article of pageHtml.match(articleRegex) || []) {
+    const spriteIdMatch = article.match(/<span class=["']sprite-id["']>\s*#([^<]+)<\/span>/i);
+    if (!spriteIdMatch) {
+      continue;
+    }
+    const currentCode = String(spriteIdMatch[1] || "").trim().toLowerCase();
+    if (currentCode === target) {
+      return article;
+    }
+  }
+  return "";
+}
+
+function parseFusionDexSpritePageDetails(pageHtml, pageUrl, spriteCode = "") {
+  const articleForCode = findFusionDexSpriteArticleByCode(pageHtml, spriteCode);
   let imageUrl = "";
+  if (articleForCode) {
+    const imageMatch = articleForCode.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+    if (imageMatch) {
+      imageUrl = String(imageMatch[1] || "").trim();
+    }
+  }
   const metaImageMatch = pageHtml.match(
     /<meta[^>]+(?:name|property)=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i
   );
-  if (metaImageMatch) {
+  if (!imageUrl && metaImageMatch) {
     imageUrl = String(metaImageMatch[1] || "").trim();
   }
   if (!imageUrl) {
@@ -221,7 +718,9 @@ function parseFusionDexSpritePageDetails(pageHtml, pageUrl) {
   }
 
   let author = "unknown";
-  const artistsMatch = pageHtml.match(/<span class=["']artists["']>([\s\S]*?)<\/span>/i);
+  const artistsMatch = articleForCode
+    ? articleForCode.match(/<span class=["']artists["']>([\s\S]*?)<\/span>/i)
+    : pageHtml.match(/<span class=["']artists["']>([\s\S]*?)<\/span>/i);
   if (artistsMatch) {
     author = parseArtistsLabel(artistsMatch[1]);
   } else {
@@ -258,7 +757,7 @@ async function resolveSpriteInput(rawUrl) {
       throw new Error(`sprite_page_http_${response.status}`);
     }
     const html = await response.text();
-    const details = parseFusionDexSpritePageDetails(html, parsed.toString());
+    const details = parseFusionDexSpritePageDetails(html, parsed.toString(), spritePageCode);
     if (!details.imageUrl) {
       throw new Error("sprite_page_image_introuvable");
     }
@@ -278,33 +777,58 @@ async function resolveSpriteInput(rawUrl) {
   };
 }
 
-function parseFusionDexAuthorMap(pageHtml) {
+function parseFusionDexAuthorMap(pageHtml, pageUrl = "") {
   const byUrl = new Map();
   const byCode = new Map();
+  const entries = [];
   const articleRegex = /<article class="sprite-preview[\s\S]*?<\/article>/gi;
   for (const article of pageHtml.match(articleRegex) || []) {
     const imageMatch = article.match(/<img[^>]+src="([^"]+)"[^>]*>/i);
     const artistsMatch = article.match(/<span class="artists">([\s\S]*?)<\/span>/i);
-    if (!imageMatch || !artistsMatch) {
-      continue;
-    }
-
-    const authorLabel = parseArtistsLabel(artistsMatch[1]);
-    if (!authorLabel || authorLabel === "unknown") {
-      continue;
-    }
-    const normalizedUrl = normalizeSourceUrl(imageMatch[1]);
-    byUrl.set(normalizedUrl, authorLabel);
-
     const spriteIdMatch = article.match(/<span class="sprite-id">\s*#([^<]+)<\/span>/i);
+    if (!imageMatch) {
+      continue;
+    }
+
+    const rawImageUrl = String(imageMatch[1] || "").trim();
+    if (!rawImageUrl) {
+      continue;
+    }
+
+    let absoluteImageUrl = rawImageUrl;
+    try {
+      absoluteImageUrl = new URL(rawImageUrl, pageUrl || undefined).toString();
+    } catch {
+      absoluteImageUrl = rawImageUrl;
+    }
+    const normalizedUrl = normalizeSourceUrl(absoluteImageUrl);
+    const authorLabel = artistsMatch ? parseArtistsLabel(artistsMatch[1]) : "unknown";
+    if (authorLabel && authorLabel !== "unknown") {
+      byUrl.set(normalizedUrl, authorLabel);
+    }
+
+    let spriteCode = "";
     if (spriteIdMatch) {
-      const spriteCode = String(spriteIdMatch[1] || "").trim().toLowerCase();
-      if (spriteCode) {
+      spriteCode = String(spriteIdMatch[1] || "")
+        .trim()
+        .toLowerCase();
+    }
+    if (!spriteCode) {
+      spriteCode = extractFusionDexCode(normalizedUrl);
+    }
+    if (spriteCode) {
+      if (authorLabel && authorLabel !== "unknown") {
         byCode.set(spriteCode, authorLabel);
       }
+      entries.push({
+        code: spriteCode,
+        author: authorLabel || "unknown",
+        source_url: normalizeSourceUrl(`https://www.fusiondex.org/sprite/pif/${encodeURIComponent(spriteCode)}/`),
+        download_url: normalizedUrl,
+      });
     }
   }
-  return { byUrl, byCode };
+  return { byUrl, byCode, entries };
 }
 
 async function resolveSpriteAuthor(rawUrl, pokemonNameEn) {
@@ -317,9 +841,22 @@ async function resolveSpriteAuthor(rawUrl, pokemonNameEn) {
   if (parsedUrl.hostname !== FUSIONDEX_CDN_HOST) {
     return "unknown";
   }
+  const normalizedUrl = normalizeSourceUrl(rawUrl);
+  const spriteCode = extractFusionDexCode(rawUrl);
+  const authorMap = await ensureFusionDexAuthorMap(pokemonNameEn);
+  if (authorMap?.byUrl.has(normalizedUrl)) {
+    return authorMap.byUrl.get(normalizedUrl);
+  }
+  if (spriteCode && authorMap?.byCode.has(spriteCode)) {
+    return authorMap.byCode.get(spriteCode);
+  }
+  return "unknown";
+}
+
+async function ensureFusionDexAuthorMap(pokemonNameEn) {
   const normalizedPokemonName = sanitizeToken(pokemonNameEn, "");
   if (!normalizedPokemonName) {
-    return "unknown";
+    return { byUrl: new Map(), byCode: new Map(), entries: [] };
   }
 
   if (!fusionDexAuthorCache.has(normalizedPokemonName)) {
@@ -331,23 +868,60 @@ async function resolveSpriteAuthor(rawUrl, pokemonNameEn) {
       },
     });
     if (!response.ok) {
-      fusionDexAuthorCache.set(normalizedPokemonName, { byUrl: new Map(), byCode: new Map() });
+      fusionDexAuthorCache.set(normalizedPokemonName, { byUrl: new Map(), byCode: new Map(), entries: [] });
     } else {
       const html = await response.text();
-      fusionDexAuthorCache.set(normalizedPokemonName, parseFusionDexAuthorMap(html));
+      fusionDexAuthorCache.set(normalizedPokemonName, parseFusionDexAuthorMap(html, pageUrl));
+    }
+  }
+  return fusionDexAuthorCache.get(normalizedPokemonName) || { byUrl: new Map(), byCode: new Map(), entries: [] };
+}
+
+async function resolveFusionDexAuthorByCode(pokemonNameEn, spriteCode) {
+  const normalizedCode = String(spriteCode || "").trim().toLowerCase();
+  if (!normalizedCode) {
+    return "unknown";
+  }
+  const authorMap = await ensureFusionDexAuthorMap(pokemonNameEn);
+  return authorMap?.byCode.get(normalizedCode) || "unknown";
+}
+
+async function refreshStoredFusionDexAuthors(pokemon) {
+  const variants = Array.isArray(pokemon?.payload?.sprite_variants) ? pokemon.payload.sprite_variants : [];
+  if (variants.length <= 0) {
+    return false;
+  }
+
+  let changed = false;
+  const pokemonNameEn = String(pokemon?.payload?.name_en || "");
+  for (const variant of variants) {
+    if (!variant || typeof variant !== "object") {
+      continue;
+    }
+    const sourceUrl = String(variant.source_url || "").trim();
+    const spriteCode = extractFusionDexSpritePageCode(sourceUrl);
+    if (!spriteCode) {
+      continue;
+    }
+    try {
+      const expectedAuthor = await resolveFusionDexAuthorByCode(pokemonNameEn, spriteCode);
+      if (!expectedAuthor || expectedAuthor === "unknown") {
+        continue;
+      }
+      const currentAuthor = String(variant.author || "").trim();
+      if (currentAuthor !== expectedAuthor) {
+        variant.author = expectedAuthor;
+        changed = true;
+      }
+    } catch {
+      // ignore remote resolution failures
     }
   }
 
-  const authorMap = fusionDexAuthorCache.get(normalizedPokemonName);
-  const normalizedUrl = normalizeSourceUrl(rawUrl);
-  if (authorMap?.byUrl.has(normalizedUrl)) {
-    return authorMap.byUrl.get(normalizedUrl);
+  if (changed) {
+    await writeJsonFile(pokemon.jsonPath, pokemon.payload);
   }
-  const spriteCode = extractFusionDexCode(rawUrl);
-  if (spriteCode && authorMap?.byCode.has(spriteCode)) {
-    return authorMap.byCode.get(spriteCode);
-  }
-  return "unknown";
+  return changed;
 }
 
 async function readJsonFile(jsonPath) {
@@ -489,37 +1063,71 @@ function listSpriteVariantsForUi(pokemon) {
     });
 }
 
-async function addCustomSprites(pokemon, urls) {
+function normalizeResolvedCustomSpriteInput(rawInput) {
+  const sourceUrl = normalizeSourceUrl(rawInput?.source_url || rawInput?.download_url || "");
+  const downloadUrl = normalizeSourceUrl(rawInput?.download_url || "");
+  const authorHint = String(rawInput?.author_hint || "").trim();
+  const fusionDexCode = String(
+    rawInput?.fusiondex_code || extractFusionDexCode(downloadUrl) || extractFusionDexSpritePageCode(sourceUrl) || ""
+  )
+    .trim()
+    .toLowerCase();
+  return {
+    source_url: sourceUrl || downloadUrl,
+    download_url: downloadUrl,
+    author_hint: authorHint,
+    fusiondex_code: fusionDexCode,
+  };
+}
+
+function dedupeResolvedCustomSpriteInputs(resolvedInputs) {
+  const deduped = [];
+  const seen = new Set();
+  for (const rawInput of resolvedInputs || []) {
+    const normalized = normalizeResolvedCustomSpriteInput(rawInput);
+    const key = normalizeSourceUrl(normalized.source_url || normalized.download_url || "");
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push(normalized);
+  }
+  return deduped;
+}
+
+async function addCustomSpritesFromResolvedInputs(pokemon, resolvedInputs) {
   await fsp.mkdir(pokemon.spriteDir, { recursive: true });
 
-  const urlQueue = [];
-  const seenUrls = new Set();
-  for (const rawLine of urls) {
-    const trimmed = String(rawLine || "").trim();
-    if (!trimmed) {
-      continue;
-    }
-    const normalized = normalizeSourceUrl(trimmed);
-    if (seenUrls.has(normalized)) {
-      continue;
-    }
-    seenUrls.add(normalized);
-    urlQueue.push(trimmed);
-  }
-
+  const queue = dedupeResolvedCustomSpriteInputs(resolvedInputs);
   const existingHashes = await collectSpriteHashes(pokemon.spriteDir);
   const variants = Array.isArray(pokemon.payload.sprite_variants) ? pokemon.payload.sprite_variants : [];
   const existingIds = new Set(variants.map((variant) => normalizeVariantId(variant?.id || variant?.game_key || "")));
+  const existingSourceUrls = new Set(
+    variants.map((variant) => normalizeSourceUrl(variant?.source_url || "")).filter((value) => Boolean(value))
+  );
 
   const added = [];
   const skipped = [];
   const errors = [];
 
-  for (const rawUrl of urlQueue) {
+  for (const resolvedInput of queue) {
+    const sourceUrl = normalizeSourceUrl(resolvedInput.source_url || resolvedInput.download_url || "");
+    const downloadUrl = normalizeSourceUrl(resolvedInput.download_url || "");
+    const reportUrl = sourceUrl || downloadUrl || "";
+
     try {
-      const resolvedInput = await resolveSpriteInput(rawUrl);
-      const downloadUrl = resolvedInput.download_url;
-      const sourceUrl = resolvedInput.source_url;
+      if (!downloadUrl) {
+        errors.push({ url: reportUrl, reason: "download_url_invalide" });
+        continue;
+      }
+      if (sourceUrl && existingSourceUrls.has(sourceUrl)) {
+        skipped.push({
+          url: sourceUrl,
+          reason: "source_deja_presente",
+        });
+        continue;
+      }
+
       const parsed = new URL(downloadUrl);
 
       const response = await fetch(parsed.toString(), {
@@ -583,6 +1191,9 @@ async function addCustomSprites(pokemon, urls) {
         added_at: new Date().toISOString(),
       };
       variants.push(variant);
+      if (sourceUrl) {
+        existingSourceUrls.add(sourceUrl);
+      }
 
       added.push({
         id: variant.id,
@@ -591,7 +1202,7 @@ async function addCustomSprites(pokemon, urls) {
         source_url: variant.source_url,
       });
     } catch (error) {
-      errors.push({ url: rawUrl, reason: error instanceof Error ? error.message : "erreur_inconnue" });
+      errors.push({ url: reportUrl, reason: toErrorReason(error) });
     }
   }
 
@@ -601,6 +1212,99 @@ async function addCustomSprites(pokemon, urls) {
   }
 
   return { added, skipped, errors };
+}
+
+async function addCustomSprites(pokemon, urls) {
+  const urlQueue = [];
+  const seenUrls = new Set();
+  for (const rawChunk of urls) {
+    for (const extractedUrl of extractHttpUrls(rawChunk)) {
+      const normalized = normalizeSourceUrl(extractedUrl);
+      if (seenUrls.has(normalized)) {
+        continue;
+      }
+      seenUrls.add(normalized);
+      urlQueue.push(extractedUrl);
+    }
+  }
+
+  const resolvedInputs = [];
+  const resolutionErrors = [];
+  for (const rawUrl of urlQueue) {
+    try {
+      resolvedInputs.push(await resolveSpriteInput(rawUrl));
+    } catch (error) {
+      resolutionErrors.push({ url: rawUrl, reason: toErrorReason(error) });
+    }
+  }
+
+  const result = await addCustomSpritesFromResolvedInputs(pokemon, resolvedInputs);
+  return {
+    ...result,
+    errors: [...resolutionErrors, ...result.errors],
+  };
+}
+
+async function addAllFusionDexCustomSprites(pokemon, options = {}) {
+  const pokemonNameEn = String(pokemon?.payload?.name_en || pokemon?.folderName || "");
+  const authorMap = await ensureFusionDexAuthorMap(pokemonNameEn);
+  const entries = Array.isArray(authorMap?.entries) ? authorMap.entries : [];
+
+  const resolvedInputs = [];
+  const excluded = [];
+  const seenSources = new Set();
+  for (const entry of entries) {
+    const code = String(entry?.code || "")
+      .trim()
+      .toLowerCase();
+    const sourceUrl = normalizeSourceUrl(
+      entry?.source_url || (code ? `https://www.fusiondex.org/sprite/pif/${encodeURIComponent(code)}/` : "")
+    );
+    const downloadUrl = normalizeSourceUrl(entry?.download_url || "");
+    if (!downloadUrl) {
+      continue;
+    }
+    const uniqueKey = sourceUrl || downloadUrl;
+    if (!uniqueKey || seenSources.has(uniqueKey)) {
+      continue;
+    }
+
+    const authorLabel = String(entry?.author || "unknown");
+    const normalizedAuthorLabel = normalizeAuthorLabel(authorLabel);
+    if (BULK_CUSTOM_EXCLUDED_AUTHORS.has(normalizedAuthorLabel)) {
+      excluded.push({
+        code,
+        author: authorLabel,
+        source_url: sourceUrl || downloadUrl,
+      });
+      continue;
+    }
+
+    seenSources.add(uniqueKey);
+    resolvedInputs.push({
+      source_url: sourceUrl || downloadUrl,
+      download_url: downloadUrl,
+      author_hint: authorLabel,
+      fusiondex_code: code || extractFusionDexCode(downloadUrl),
+    });
+  }
+
+  const parsedLimit = Number.parseInt(String(options?.limit ?? ""), 10);
+  const queue =
+    Number.isInteger(parsedLimit) && parsedLimit > 0 ? resolvedInputs.slice(0, parsedLimit) : resolvedInputs;
+  if (queue.length <= 0) {
+    throw new Error("Aucun custom FusionDex trouve pour ce Pokemon.");
+  }
+
+  const result = await addCustomSpritesFromResolvedInputs(pokemon, queue);
+  return {
+    ...result,
+    total_found: entries.length,
+    total_available: resolvedInputs.length,
+    attempted: queue.length,
+    excluded_count: excluded.length,
+    excluded,
+  };
 }
 
 async function deleteCustomSprite(pokemon, rawVariantId) {
@@ -729,6 +1433,7 @@ const server = http.createServer(async (request, response) => {
     const getPokemonMatch = pathname.match(/^\/api\/pokemon\/(\d+)$/);
     if (method === "GET" && getPokemonMatch) {
       const pokemon = await resolvePokemonById(getPokemonMatch[1]);
+      await refreshStoredFusionDexAuthors(pokemon);
       const spriteVariants = listSpriteVariantsForUi(pokemon);
       sendJson(response, 200, {
         pokemon: {
@@ -764,6 +1469,51 @@ const server = http.createServer(async (request, response) => {
           name_fr: String(pokemon.payload.name_fr || ""),
           name_en: String(pokemon.payload.name_en || ""),
           folder: pokemon.folderName,
+        },
+        result,
+        sprite_variants: spriteVariants,
+        custom_sprites: spriteVariants.filter((variant) => variant.custom),
+      });
+      return;
+    }
+
+    const addAllCustomMatch = pathname.match(/^\/api\/pokemon\/(\d+)\/custom-sprites\/all$/);
+    if (method === "POST" && addAllCustomMatch) {
+      const body = await parseJsonBody(request);
+      const pokemon = await resolvePokemonById(addAllCustomMatch[1]);
+      const result = await addAllFusionDexCustomSprites(pokemon, {
+        limit: body?.limit,
+      });
+      const spriteVariants = listSpriteVariantsForUi(pokemon);
+      sendJson(response, 200, {
+        pokemon: {
+          id: pokemon.pokemonId,
+          name_fr: String(pokemon.payload.name_fr || ""),
+          name_en: String(pokemon.payload.name_en || ""),
+          folder: pokemon.folderName,
+          sprite_variant_count: spriteVariants.length,
+          custom_sprite_count: spriteVariants.filter((variant) => variant.custom).length,
+        },
+        result,
+        sprite_variants: spriteVariants,
+        custom_sprites: spriteVariants.filter((variant) => variant.custom),
+      });
+      return;
+    }
+
+    const reinstallOfficialMatch = pathname.match(/^\/api\/pokemon\/(\d+)\/reinstall-official-sprites$/);
+    if (method === "POST" && reinstallOfficialMatch) {
+      const pokemon = await resolvePokemonById(reinstallOfficialMatch[1]);
+      const result = await reinstallOfficialSprites(pokemon);
+      const spriteVariants = listSpriteVariantsForUi(pokemon);
+      sendJson(response, 200, {
+        pokemon: {
+          id: pokemon.pokemonId,
+          name_fr: String(pokemon.payload.name_fr || ""),
+          name_en: String(pokemon.payload.name_en || ""),
+          folder: pokemon.folderName,
+          sprite_variant_count: spriteVariants.length,
+          custom_sprite_count: spriteVariants.filter((variant) => variant.custom).length,
         },
         result,
         sprite_variants: spriteVariants,
