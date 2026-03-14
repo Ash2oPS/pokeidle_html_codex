@@ -23,6 +23,9 @@ dist/
 build/
 coverage/
 .cache/
+.parcel-cache/
+.turbo/
+.vite/
 *.tsbuildinfo
 
 # Python
@@ -34,6 +37,9 @@ __pycache__/
 venv/
 env/
 .python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Local env / secrets
 .env
@@ -41,10 +47,20 @@ env/
 
 # Test and local run artifacts
 output/
+output/electron-dist/
+output/web-game-*/
 playwright-report/
 test-results/
+tmp/pokeidle-test-appdata/
 
 # Local debug/scratch workspace
 tmp/
 !tmp/.gitkeep
 !tmp/talent_validate.mjs
+
+# Build / runtime artifacts
+*.pid
+*.pid.lock
+*.seed
+*.tmp
+*.bak

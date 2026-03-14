@@ -9,8 +9,13 @@
     "tool:custom-skins": "node scripts/custom-skin-tool-server.mjs",
     "desktop:start": "electron .",
     "desktop:build": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win nsis --x64",
-    "test:save": "node --test tests/*.mjs",
-    "zone:csv:export": "node scripts_export_zone_encounters_csv.mjs",
+    "test": "npm run test:node && npm run test:vitest",
+    "test:node": "node --test tests/*.mjs",
+    "test:save": "npm run test:node",
+    "test:vitest": "vitest run",
+    "zone:csv:export": "node scripts/map/export-zone-encounters-csv.mjs",
+    "zone:routes:generate": "node scripts/map/generate-kanto-routes-frlg.mjs",
+    "zone:zones:generate": "node scripts/map/generate-kanto-zones-frlg.mjs",
     "zone:editor:build": "node scripts/generate_zone_encounters_workbook.mjs",
     "zone:editor:export": "node scripts/export_zone_encounters_from_workbook.mjs"
   },
@@ -25,7 +30,8 @@
     "electron-builder": "^26.0.12",
     "exceljs": "^4.4.0",
     "jsdom": "^28.1.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "vitest": "^3.2.4"
   },
   "build": {
     "appId": "com.ash2ops.pokeidle",

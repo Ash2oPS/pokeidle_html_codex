@@ -54,11 +54,16 @@ const STARTER_CHOICES = [
 ];
 
 const DEFAULT_ROUTE_ID = "kanto_city_pallet_town";
+const UNKNOWN_CAVE_ROUTE_ID = "kanto_dungeon_cerulean_cave";
 const ROUTE_DATA_DIR = "map_data";
 const ROUTE_ENCOUNTERS_CSV_PATH = "map_data/kanto_zone_encounters.csv";
+const ROUTE_ENCOUNTERS_POST_UNKNOWN_CAVE_CSV_PATH = "map_data/kanto_zone_encounters_post_unknown_cave.csv";
 const BALL_CONFIG_CSV_PATH = "item_data/pokeballs.csv";
 const SHOP_ITEMS_CSV_PATH = "item_data/shop_items.csv";
 const POKEMON_TALENTS_CSV_PATH = "pokemon_data/pokemon_talents.csv";
+const POST_UNKNOWN_CAVE_MAPPING_POPUP_MESSAGE =
+  "De nouveaux Pokémon sont apparus :)\n" +
+  "(c'est très beta, y a ptet des trucs buggés, mal placés, pas équilibrés dessus, mais au moins y a des nouveaux pokémon)";
 const ROUTE_ID_ORDER = [
   "kanto_city_pallet_town",
   "kanto_route_1",
@@ -267,6 +272,8 @@ const POKEDEX_VARIANT_PREFERENCE_GEN_4 = Object.freeze([
   "default",
 ]);
 const POKEDEX_FRLG_AVAILABLE_POST_KANTO_IDS = new Set([216, 386]);
+const POKEDEX_BASE_MAX_POKEMON_ID = 151;
+const POKEDEX_EXTENDED_MAX_POKEMON_ID = 493;
 const POKEDEX_VIRTUAL_CARD_MIN_WIDTH_PX = 112;
 const POKEDEX_VIRTUAL_CARD_HEIGHT_PX = 150;
 const POKEDEX_VIRTUAL_GAP_PX = 9;
@@ -609,7 +616,8 @@ const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
 const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const GACHA_SPIN_COST_COINS = 10;
-const GACHA_MAX_POKEMON_ID = 151;
+const GACHA_BASE_MAX_POKEMON_ID = 151;
+const GACHA_EXTENDED_MAX_POKEMON_ID = 493;
 const GACHA_REEL_TOTAL_ITEMS = 64;
 const GACHA_REEL_REWARD_INDEX = 44;
 const GACHA_SPIN_DURATION_MS = 2400;
@@ -1747,6 +1755,7 @@ const morphingPaletteTextureCache = new Map();
 const MORPHING_PALETTE_TEXTURE_CACHE_MAX_ENTRIES = 180;
 const pendingRouteDefinitionLoads = new Map();
 const pendingRouteBackgroundLoads = new Map();
+let pendingExtendedPokedexAndGachaWarmup = null;
 let pokedexRenderRafHandle = 0;
 let pokedexViewportRenderRafHandle = 0;
 let pokedexEntriesCacheDirty = true;
@@ -1840,6 +1849,10 @@ const state = {
   zoneEncounterCsvByRouteId: new Map(),
   zoneEncounterCsvRouteIds: new Set(),
   zoneEncounterCsvLoaded: false,
+  postUnknownCaveEncounterCsvByRouteId: new Map(),
+  postUnknownCaveEncounterCsvRouteIds: new Set(),
+  postUnknownCaveEncounterCsvLoaded: false,
+  postUnknownCaveMappingActive: false,
   pokemonTalentCsvByPokemonId: new Map(),
   pokedexSpeciesCsvByPokemonId: new Map(),
   pokemonTalentCsvLoaded: false,
@@ -5870,6 +5883,7 @@ function createEmptySave() {
     coins: 0,
     first_free_pokeball_claimed: false,
     first_free_pokeball_guaranteed_capture_pending: false,
+    post_unknown_cave_mapping_notice_seen: false,
     ball_inventory: createDefaultBallInventory(),
     ball_inventory_seen: createDefaultBallInventorySeen(),
     ball_capture_rules: createDefaultBallCaptureRulesByType(),
@@ -6282,6 +6296,7 @@ function normalizeSave(rawSave) {
     coins: Math.max(0, toSafeInt(rawSave.coins, 0)),
     first_free_pokeball_claimed: firstFreePokeballClaimed,
     first_free_pokeball_guaranteed_capture_pending: firstFreePokeballGuaranteedCapturePending,
+    post_unknown_cave_mapping_notice_seen: Boolean(rawSave.post_unknown_cave_mapping_notice_seen),
     ball_inventory: ballInventory,
     ball_inventory_seen: ballInventorySeen,
     ball_capture_rules: ballCaptureRules,
@@ -14603,14 +14618,97 @@ function getUnlockedVariantIdSetForGacha(def, record) {
   return unlockedIds;
 }
 
+function getExtendedSpeciesLoadTargetsForRange(maxPokemonId = POKEDEX_BASE_MAX_POKEMON_ID) {
+  const targets = [];
+  const maxId = clamp(toSafeInt(maxPokemonId, POKEDEX_BASE_MAX_POKEMON_ID), 1, POKEDEX_EXTENDED_MAX_POKEMON_ID);
+  if (!(state.pokedexSpeciesCsvByPokemonId instanceof Map) || state.pokedexSpeciesCsvByPokemonId.size <= 0) {
+    return targets;
+  }
+  for (const [rawPokemonId, rawSpecies] of state.pokedexSpeciesCsvByPokemonId.entries()) {
+    const pokemonId = Number(rawPokemonId || rawSpecies?.id || 0);
+    if (pokemonId <= 0 || pokemonId > maxId || state.pokemonDefsById.has(pokemonId)) {
+      continue;
+    }
+    const nameEn = normalizePokedexSpeciesNameEn(rawSpecies?.nameEn || "");
+    if (!nameEn) {
+      continue;
+    }
+    targets.push({
+      id: pokemonId,
+      nameEn,
+    });
+  }
+  targets.sort((a, b) => a.id - b.id);
+  return targets;
+}
+
+async function warmupDefinitionsForCurrentExtendedRange() {
+  const maxPokemonId = getCurrentPokedexMaxPokemonId();
+  if (maxPokemonId <= POKEDEX_BASE_MAX_POKEMON_ID) {
+    return;
+  }
+  if (pendingExtendedPokedexAndGachaWarmup) {
+    return pendingExtendedPokedexAndGachaWarmup;
+  }
+
+  const task = (async () => {
+    const pendingTargets = getExtendedSpeciesLoadTargetsForRange(maxPokemonId);
+    if (pendingTargets.length <= 0) {
+      return;
+    }
+    const defsById = new Map(state.pokemonDefsById);
+    const BATCH_SIZE = 20;
+    for (let offset = 0; offset < pendingTargets.length; offset += BATCH_SIZE) {
+      const batch = pendingTargets.slice(offset, offset + BATCH_SIZE);
+      const loadedBatch = await Promise.all(
+        batch.map(async (entry) => {
+          try {
+            return await loadPokemonEntity(buildPokemonJsonPath(entry.id, entry.nameEn));
+          } catch {
+            return null;
+          }
+        }),
+      );
+      for (const def of loadedBatch) {
+        if (!def || defsById.has(def.id)) {
+          continue;
+        }
+        defsById.set(def.id, def);
+      }
+    }
+    applyPokemonTalentCsvToDefinitions(defsById);
+    state.pokemonDefsById = defsById;
+    invalidatePokedexEntriesCache({ resetSlice: true });
+    if (state.ui.pokedexOpen) {
+      queuePokedexGridRender();
+    }
+    if (state.ui.gachaOpen) {
+      renderGachaModal();
+    }
+  })()
+    .catch((error) => {
+      console.warn(
+        "Impossible de precharger les definitions Pokédex/Gacha etendu:",
+        error instanceof Error ? error.message : String(error || ""),
+      );
+    })
+    .finally(() => {
+      pendingExtendedPokedexAndGachaWarmup = null;
+    });
+
+  pendingExtendedPokedexAndGachaWarmup = task;
+  return task;
+}
+
 function getGachaSkinCandidates() {
   const candidates = [];
   if (!state.pokemonDefsById?.size) {
     return candidates;
   }
+  const maxPokemonId = getCurrentGachaMaxPokemonId();
   const speciesEntries = Array.from(state.pokemonDefsById.entries())
     .map(([id, def]) => ({ id: Number(id || 0), def }))
-    .filter((entry) => entry.id > 0 && entry.id <= GACHA_MAX_POKEMON_ID)
+    .filter((entry) => entry.id > 0 && entry.id <= maxPokemonId)
     .sort((a, b) => a.id - b.id);
 
   for (const { id, def } of speciesEntries) {
@@ -14781,6 +14879,7 @@ function renderGachaModal() {
   }
   const candidates = getGachaSkinCandidates();
   const candidateCount = candidates.length;
+  const gachaRangeLabel = getCurrentGachaPokemonRangeLabel();
   const coins = Math.max(0, toSafeInt(state.saveData?.coins, 0));
   const canPay = coins >= GACHA_SPIN_COST_COINS;
   const canSpin = candidateCount > 0 && canPay && !state.gacha.spinning;
@@ -14805,13 +14904,13 @@ function renderGachaModal() {
     } else if (!canPay) {
       gachaSpinButtonEl.textContent = `${GACHA_SPIN_COST_COINS} Coins requis`;
     } else if (candidateCount <= 0) {
-      gachaSpinButtonEl.textContent = "Tous les skins Kanto sont debloques";
+      gachaSpinButtonEl.textContent = `Tous les skins Kanto ${gachaRangeLabel} sont debloques`;
     } else {
       gachaSpinButtonEl.textContent = `Obtenir 1 skin aleatoire (${GACHA_SPIN_COST_COINS} Coins)`;
     }
   }
   if (!state.gacha.spinning && !state.gacha.lastReward) {
-    setGachaStatusText(candidateCount > 0 ? "Pret a tenter ta chance." : "Aucun skin restant sur Kanto #001-151.");
+    setGachaStatusText(candidateCount > 0 ? "Pret a tenter ta chance." : `Aucun skin restant sur Kanto ${gachaRangeLabel}.`);
   }
   if (state.gacha.lastReward) {
     renderGachaResultPanel(state.gacha.lastReward);
@@ -14841,6 +14940,7 @@ function setGachaOpen(open) {
     setShopOpen(false);
     state.ui.gachaOpen = true;
     showModalWithTween(gachaModalEl);
+    void warmupDefinitionsForCurrentExtendedRange();
     populateGachaPreviewReel(getGachaSkinCandidates(), { forceRefresh: true });
     renderGachaModal();
     return;
@@ -14914,7 +15014,7 @@ async function startGachaSpin() {
 
   const candidates = getGachaSkinCandidates();
   if (candidates.length <= 0) {
-    setTopMessage("Tous les skins Kanto #001-151 sont deja debloques.", 1700);
+    setTopMessage(`Tous les skins Kanto ${getCurrentGachaPokemonRangeLabel()} sont deja debloques.`, 1700);
     renderGachaModal();
     return;
   }
@@ -20961,10 +21061,11 @@ function resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def = null) {
 
 function getPokedexSpeciesCatalogByPokemonId() {
   const speciesById = new Map();
+  const maxPokemonId = getCurrentPokedexMaxPokemonId();
   if (state.pokedexSpeciesCsvByPokemonId instanceof Map && state.pokedexSpeciesCsvByPokemonId.size > 0) {
     for (const [rawPokemonId, rawSpecies] of state.pokedexSpeciesCsvByPokemonId.entries()) {
       const pokemonId = Number(rawPokemonId || rawSpecies?.id || 0);
-      if (pokemonId <= 0) {
+      if (pokemonId <= 0 || pokemonId > maxPokemonId) {
         continue;
       }
       const def = state.pokemonDefsById.get(pokemonId) || null;
@@ -20988,6 +21089,9 @@ function getPokedexSpeciesCatalogByPokemonId() {
 
   const hintsById = buildPokedexSpeciesHintMap();
   for (const [pokemonId, hint] of hintsById.entries()) {
+    if (pokemonId <= 0 || pokemonId > maxPokemonId) {
+      continue;
+    }
     const def = state.pokemonDefsById.get(pokemonId) || null;
     const nameEn = normalizePokedexSpeciesNameEn(hint?.nameEn || def?.nameEn);
     const fallbackNameEn = String(nameEn || "").replace(/[_-]+/g, " ").trim();
@@ -22782,6 +22886,8 @@ function exportTextState() {
     map_open: Boolean(state.ui.mapOpen),
     gacha_open: Boolean(state.ui.gachaOpen),
     gacha_spinning: Boolean(state.gacha.spinning),
+    gacha_pool_max_pokemon_id: getCurrentGachaMaxPokemonId(),
+    gacha_remaining_candidates_current_pool: Math.max(0, toSafeInt(gachaCandidateCount, 0)),
     gacha_remaining_candidates_151: Math.max(0, toSafeInt(gachaCandidateCount, 0)),
     gacha_last_reward: state.gacha.lastReward
       ? {
@@ -22803,6 +22909,7 @@ function exportTextState() {
     boxes_shiny_capture_total: state.saveData ? getTotalShinyCapturesGlobal() : 0,
     pokedex_open: Boolean(state.ui.pokedexOpen),
     pokedex_hover_pokemon_id: Number(state.ui.pokedexHoverPokemonId || 0) || null,
+    pokedex_max_pokemon_id: getCurrentPokedexMaxPokemonId(),
     pokedex_species_count: state.saveData ? getPokedexEntries().length : 0,
     appearance_editor_unlocked: isAppearanceEditorUnlocked(),
     appearance_open: Boolean(state.ui.appearanceOpen),
@@ -23315,13 +23422,72 @@ function setZoneEncounterCsvState(payload) {
   state.zoneEncounterCsvLoaded = state.zoneEncounterCsvRouteIds.size > 0;
 }
 
+function setPostUnknownCaveEncounterCsvState(payload) {
+  state.postUnknownCaveEncounterCsvByRouteId =
+    payload?.encountersByRouteId instanceof Map ? payload.encountersByRouteId : new Map();
+  state.postUnknownCaveEncounterCsvRouteIds = payload?.routeIds instanceof Set ? payload.routeIds : new Set();
+  state.postUnknownCaveEncounterCsvLoaded = state.postUnknownCaveEncounterCsvRouteIds.size > 0;
+}
+
+function hasRouteUnlockedInSaveData(routeId, saveData = state.saveData) {
+  const id = String(routeId || "");
+  if (!id) {
+    return false;
+  }
+  const unlocked = Array.isArray(saveData?.unlocked_route_ids) ? saveData.unlocked_route_ids : [];
+  return unlocked.includes(id);
+}
+
+function hasUnknownCaveUnlockedInSave(saveData = state.saveData) {
+  return hasRouteUnlockedInSaveData(UNKNOWN_CAVE_ROUTE_ID, saveData);
+}
+
+function shouldUsePostUnknownCaveEncounterMapping(saveData = state.saveData) {
+  return Boolean(hasUnknownCaveUnlockedInSave(saveData) && state.postUnknownCaveEncounterCsvLoaded);
+}
+
+function isPostUnknownCaveContentUnlocked(saveData = state.saveData) {
+  return hasUnknownCaveUnlockedInSave(saveData);
+}
+
+function getCurrentPokedexMaxPokemonId(saveData = state.saveData) {
+  return isPostUnknownCaveContentUnlocked(saveData) ? POKEDEX_EXTENDED_MAX_POKEMON_ID : POKEDEX_BASE_MAX_POKEMON_ID;
+}
+
+function getCurrentGachaMaxPokemonId(saveData = state.saveData) {
+  return isPostUnknownCaveContentUnlocked(saveData) ? GACHA_EXTENDED_MAX_POKEMON_ID : GACHA_BASE_MAX_POKEMON_ID;
+}
+
+function formatPokemonRangeLabel(maxPokemonId) {
+  const maxId = clamp(toSafeInt(maxPokemonId, POKEDEX_BASE_MAX_POKEMON_ID), 1, POKEDEX_EXTENDED_MAX_POKEMON_ID);
+  return `#001-${String(maxId).padStart(3, "0")}`;
+}
+
+function getCurrentGachaPokemonRangeLabel(saveData = state.saveData) {
+  return formatPokemonRangeLabel(getCurrentGachaMaxPokemonId(saveData));
+}
+
 function getZoneEncounterCsvForRoute(routeId) {
   const id = String(routeId || "");
-  if (!id || !state.zoneEncounterCsvRouteIds.has(id)) {
+  if (!id) {
+    return null;
+  }
+  if (shouldUsePostUnknownCaveEncounterMapping() && state.postUnknownCaveEncounterCsvRouteIds.has(id)) {
+    const postList = state.postUnknownCaveEncounterCsvByRouteId.get(id);
+    return Array.isArray(postList) ? postList : [];
+  }
+  if (!state.zoneEncounterCsvRouteIds.has(id)) {
     return null;
   }
   const list = state.zoneEncounterCsvByRouteId.get(id);
   return Array.isArray(list) ? list : [];
+}
+
+function getRouteEncounterSourceLabel(routeId) {
+  if (shouldUsePostUnknownCaveEncounterMapping() && state.postUnknownCaveEncounterCsvRouteIds.has(String(routeId || ""))) {
+    return "csv_post_unknown_cave";
+  }
+  return "csv";
 }
 
 function mergeRouteEncountersFromCsv(routeData, csvEntries) {
@@ -23374,6 +23540,60 @@ function mergeRouteEncountersFromCsv(routeData, csvEntries) {
   return merged;
 }
 
+function cloneEncounterEntries(entries) {
+  const sourceEntries = Array.isArray(entries) ? entries : [];
+  return sourceEntries.map((entry) => ({
+    ...entry,
+    methods: Array.isArray(entry?.methods) ? entry.methods.slice() : [],
+  }));
+}
+
+function getRouteBaseEncounterEntries(routeData) {
+  if (!routeData || typeof routeData !== "object") {
+    return [];
+  }
+  if (!Array.isArray(routeData.encounters_json_base)) {
+    routeData.encounters_json_base = cloneEncounterEntries(routeData.encounters);
+  }
+  return routeData.encounters_json_base;
+}
+
+function applyEncounterMappingToRouteData(routeData) {
+  if (!routeData || typeof routeData !== "object") {
+    return routeData;
+  }
+  const baseEncounters = getRouteBaseEncounterEntries(routeData);
+  const csvEncounters = getZoneEncounterCsvForRoute(routeData?.route_id || "");
+  if (csvEncounters !== null) {
+    routeData.encounters = mergeRouteEncountersFromCsv({ encounters: baseEncounters }, csvEncounters);
+    routeData.encounters_source = getRouteEncounterSourceLabel(routeData?.route_id || "");
+  } else {
+    routeData.encounters = cloneEncounterEntries(baseEncounters);
+    routeData.encounters_source = "json";
+  }
+  return routeData;
+}
+
+function refreshRouteCatalogEncounterMapping() {
+  if (!(state.routeCatalog instanceof Map) || state.routeCatalog.size <= 0) {
+    return;
+  }
+  for (const routeData of state.routeCatalog.values()) {
+    applyEncounterMappingToRouteData(routeData);
+  }
+  const activeRouteId = String(state.routeData?.route_id || state.saveData?.current_route_id || "");
+  if (!activeRouteId) {
+    return;
+  }
+  const refreshedRoute = state.routeCatalog.get(activeRouteId) || null;
+  if (!refreshedRoute) {
+    return;
+  }
+  state.routeData = refreshedRoute;
+  resetOnlyOneEncounterCycle(activeRouteId);
+  ensureRouteDefinitionsLoaded(refreshedRoute);
+}
+
 function buildRouteDataPath(routeId) {
   return ROUTE_DATA_DIR + "/" + routeId + ".json";
 }
@@ -23388,13 +23608,8 @@ async function loadRouteData(routeId = DEFAULT_ROUTE_ID) {
   if (!Array.isArray(routeData?.encounters)) {
     throw new Error("Aucune liste d'encounters configuree pour " + routeId);
   }
-  const csvEncounters = getZoneEncounterCsvForRoute(routeData?.route_id || routeId);
-  if (csvEncounters !== null) {
-    routeData.encounters = mergeRouteEncountersFromCsv(routeData, csvEncounters);
-    routeData.encounters_source = "csv";
-  } else {
-    routeData.encounters_source = "json";
-  }
+  routeData.encounters_json_base = cloneEncounterEntries(routeData.encounters);
+  applyEncounterMappingToRouteData(routeData);
   const combatEnabled = routeData?.combat_enabled !== false;
   if (combatEnabled && routeData.encounters.length === 0) {
     throw new Error("Aucun Pokemon configure pour " + routeId);
@@ -23624,6 +23839,61 @@ function ensureUnlockedRoutesForCurrentCatalog() {
   return normalizedUnlocked;
 }
 
+function showPostUnknownCaveMappingPopup() {
+  const message = POST_UNKNOWN_CAVE_MAPPING_POPUP_MESSAGE;
+  pushTemporaryNotification(message, 14000, {
+    tone: "first",
+    title: "Nouveaux Pokémon",
+  });
+  if (typeof window !== "undefined" && typeof window.alert === "function") {
+    window.alert(message);
+  }
+}
+
+function syncPostUnknownCaveMappingState() {
+  const shouldBeActive = shouldUsePostUnknownCaveEncounterMapping();
+  if (state.postUnknownCaveMappingActive === shouldBeActive) {
+    if (shouldBeActive && state.mode === "ready") {
+      void warmupDefinitionsForCurrentExtendedRange();
+    }
+    return shouldBeActive;
+  }
+  state.postUnknownCaveMappingActive = shouldBeActive;
+  refreshRouteCatalogEncounterMapping();
+  invalidatePokedexEntriesCache({ resetSlice: true });
+  if (state.ui.pokedexOpen) {
+    queuePokedexGridRender();
+  }
+  if (state.ui.gachaOpen) {
+    renderGachaModal();
+  }
+  if (shouldBeActive && state.mode === "ready") {
+    void warmupDefinitionsForCurrentExtendedRange();
+  }
+  return shouldBeActive;
+}
+
+function maybeActivatePostUnknownCaveMapping(options = {}) {
+  const shouldAnnounce = options?.announce === true;
+  if (!state.saveData) {
+    return false;
+  }
+  const active = syncPostUnknownCaveMappingState();
+  if (!active) {
+    return false;
+  }
+  if (state.saveData.post_unknown_cave_mapping_notice_seen) {
+    return false;
+  }
+  if (!shouldAnnounce) {
+    return true;
+  }
+  state.saveData.post_unknown_cave_mapping_notice_seen = true;
+  showPostUnknownCaveMappingPopup();
+  persistSaveData();
+  return true;
+}
+
 function setActiveRoute(routeId, options = {}) {
   const announceUnlock = options?.announceUnlock === true;
   const desiredRouteId = String(routeId || DEFAULT_ROUTE_ID);
@@ -23685,6 +23955,7 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
 
   const nextUnlocked = normalizeUnlockedRouteIds([...unlockedRouteIds, nextRouteId], orderedRouteIds);
   state.saveData.unlocked_route_ids = nextUnlocked;
+  maybeActivatePostUnknownCaveMapping({ announce: true });
 
   return {
     unlocked: true,
@@ -23785,6 +24056,8 @@ async function initializeScene() {
   setBallConfigState(null);
   setShopItemConfigState(null);
   setZoneEncounterCsvState(null);
+  setPostUnknownCaveEncounterCsvState(null);
+  state.postUnknownCaveMappingActive = false;
   setPokemonTalentCsvState(null);
   stopBackgroundTicker();
   clearTeamDragState();
@@ -23799,12 +24072,14 @@ async function initializeScene() {
   setShopOpen(false);
   try {
     let offlineCatchupMs = 0;
-    const [ballCsvResult, shopItemCsvResult, zoneCsvResult, talentCsvResult] = await Promise.allSettled([
-      loadBallConfigCsv(BALL_CONFIG_CSV_PATH),
-      loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),
-      loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),
-      loadPokemonTalentCsv(POKEMON_TALENTS_CSV_PATH),
-    ]);
+    const [ballCsvResult, shopItemCsvResult, zoneCsvResult, postUnknownCaveZoneCsvResult, talentCsvResult] =
+      await Promise.allSettled([
+        loadBallConfigCsv(BALL_CONFIG_CSV_PATH),
+        loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),
+        loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),
+        loadZoneEncounterCsv(ROUTE_ENCOUNTERS_POST_UNKNOWN_CAVE_CSV_PATH),
+        loadPokemonTalentCsv(POKEMON_TALENTS_CSV_PATH),
+      ]);
 
     if (ballCsvResult.status === "fulfilled") {
       setBallConfigState(ballCsvResult.value);
@@ -23830,6 +24105,16 @@ async function initializeScene() {
       console.warn("Zone CSV indisponible, fallback JSON:", zoneCsvResult.reason?.message || zoneCsvResult.reason);
     }
 
+    if (postUnknownCaveZoneCsvResult.status === "fulfilled") {
+      setPostUnknownCaveEncounterCsvState(postUnknownCaveZoneCsvResult.value);
+    } else {
+      setPostUnknownCaveEncounterCsvState(null);
+      console.warn(
+        "Zone CSV post-grotte indisponible, fallback mapping principal:",
+        postUnknownCaveZoneCsvResult.reason?.message || postUnknownCaveZoneCsvResult.reason,
+      );
+    }
+
     if (talentCsvResult.status === "fulfilled") {
       setPokemonTalentCsvState(talentCsvResult.value);
       if (Array.isArray(talentCsvResult.value?.unresolvedTalentIds) && talentCsvResult.value.unresolvedTalentIds.length > 0) {
@@ -23844,6 +24129,7 @@ async function initializeScene() {
     }
     state.saveData = await loadSaveData();
     state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
+    syncPostUnknownCaveMappingState();
     refreshOrderedCatalogRouteIds();
     const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();
     const preferredRouteId = typeof state.saveData.current_route_id === "string" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;
@@ -23924,6 +24210,7 @@ async function initializeScene() {
 
     state.mode = "ready";
     hideLoadingScreen();
+    maybeActivatePostUnknownCaveMapping({ announce: true });
     queueDeferredRouteAssetWarmup(initialAssetRouteIds);
     queueAppearanceTutorialIfNeeded();
     tryOpenPendingTutorialFlow();

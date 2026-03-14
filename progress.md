@@ -4771,3 +4771,90 @@ Validation:
   - Forced a save snapshot with one team Pokemon level 10 and `appearance_intro_seen=false`.
   - Confirmed runtime state opened tutorial flow: `tutorial_open=true`, `tutorial_flow_id="appearance_intro"`.
   - Screenshot reviewed: `output/web-game-poke/appearance-level10-tutorial.png`.
+
+## Additional progress (architecture + toolchain cleanup, 2026-03-14)
+- Reorganized maintenance scripts by domain while keeping root compatibility wrappers:
+  - Added `scripts/map/` and moved:
+    - `scripts_generate_kanto_routes_frlg.mjs` -> `scripts/map/generate-kanto-routes-frlg.mjs`
+    - `scripts_generate_kanto_zones_frlg.mjs` -> `scripts/map/generate-kanto-zones-frlg.mjs`
+    - `scripts_export_zone_encounters_csv.mjs` -> `scripts/map/export-zone-encounters-csv.mjs`
+  - Added `scripts/data/pokemon/` and moved:
+    - `download_pokemon_data.py`
+    - `scripts_download_gen1_4_sprites.py`
+    - `scripts_download_pokemon_catch_rates.py`
+    - `scripts_download_pokemon_heights.py`
+    - `scripts_enrich_pokemon_data_missing.py`
+  - Added `scripts/testing/playwright/` and moved Playwright scenario scripts.
+- Added root wrappers (same old filenames/entrypoints) to preserve existing workflows and manual commands.
+- Introduced a shared Playwright scenario runner:
+  - `scripts/testing/playwright/invoke-web-game-playwright.ps1`
+  - Refactored scenario scripts (`check`, `long`, `ko`, `projectile`, `capturechance`) to reuse it.
+- Added a shared Python helper module for Pokemon data tooling:
+  - `scripts/data/pokemon/common.py`
+  - Refactored catch-rate/height/enrichment scripts to remove duplicated networking/retry/path logic.
+- Added shared JS numeric utilities:
+  - `lib/number-utils.js` with `clamp` + `toSafeInt`.
+  - Reused in `lib/audio-manager.js`, `lib/browser-save-utils.js`, and `lib/save-consistency.js`.
+- Fixed runtime parsing API gap:
+  - Added `parseSaveBridgePayload` export in `lib/runtime-data.js`.
+- Improved test architecture:
+  - Added `vitest` dev dependency.
+  - Added `vitest.config.mjs` to isolate Vitest suite to `tests/**/*.test.js` and enable globals.
+  - Updated npm scripts:
+    - `test`, `test:node`, `test:vitest` (+ kept `test:save` alias).
+- Added new unit tests:
+  - `tests/number-utils.test.mjs`.
+- Improved repository hygiene:
+  - Updated `.gitignore` (tool caches and runtime artifacts).
+  - Added architecture doc: `docs/ARCHITECTURE.md`.
+  - Updated README with test commands and new script architecture.
+
+### Validation runs
+- `node --check` on moved/root JS script entrypoints: PASS.
+- `py -3 -m py_compile` on moved/root Python script entrypoints and shared module: PASS.
+- `npm run test:node`: PASS (19 tests).
+- `npm run test:vitest`: PASS (8 tests).
+- `npm test`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- `run_playwright_projectile.ps1`: PASS.
+
+### TODO / Next
+- Optionally add dedicated CI workflow to run `npm test` on push/PR.
+- Consider incrementally extracting subsystems from `game.js` monolith into modular runtime files.
+
+## Additional progress (post-unknown-cave encounters refresh)
+- Added a new generated encounters dataset: `map_data/kanto_zone_encounters_post_unknown_cave.csv`.
+  - 47 zones covered, balanced per zone (9 to 18 species each).
+  - 644 encounter rows total.
+  - 458 unique species from #001-493 (all non-legendary/non-mythical Gen 1-4 species).
+  - All 12 Gen 1-4 starters included with `spawn_weight = 1` (rare).
+  - No `only-one` entries in this post-unlock mapping.
+- Added generation script: `scripts/map/generate-post-unknown-cave-encounters.mjs`.
+  - Builds a coherent biome-based mapping by route/dungeon/town tags.
+  - Applies rarity scaling via stats/stage/catch-rate.
+  - Enforces exclusions for legendary + mythical IDs.
+  - Validates coverage + constraints before writing CSV.
+- Wired runtime activation in `game.js`:
+  - New post-unlock CSV path constant.
+  - Loads both base and post-unknown-cave CSVs at startup.
+  - Switches encounter source automatically when `kanto_dungeon_cerulean_cave` is unlocked.
+  - Refreshes catalog encounter tables live when mapping activates.
+- Added one-shot popup announcement when the new mapping activates:
+  - Message exactly as requested.
+  - Persisted flag in save: `post_unknown_cave_mapping_notice_seen`.
+  - Works for old saves already beyond Unknown Cave (popup shown once on load).
+- Save model updates:
+  - `createEmptySave()` and `normalizeSave()` now include `post_unknown_cave_mapping_notice_seen`.
+- Added regression test: `tests/post-unknown-cave-encounters.test.mjs`.
+  - Verifies no legendary/mythical IDs in post mapping.
+  - Verifies starters remain at weight 1.
+  - Verifies full 458-species coverage and balanced route counts.
+- Validation performed:
+  - `node --check game.js` passed.
+  - `npm test -- --runInBand` passed.
+  - Playwright smoke run via `run_playwright_check.ps1` passed; fresh screenshots generated in `output/web-game-poke/`.
+
+## TODO / Next suggestions
+- Add a small dev/debug command to force-enable post-unknown-cave mapping for QA without full progression.
+- Consider a second balancing pass from real capture telemetry (too many/too few seen species per zone over time).
+- If needed, expose a CSV diff report (base vs post-unknown-cave) for easier balancing reviews.

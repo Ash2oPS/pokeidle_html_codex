@@ -1,0 +1,645 @@
+﻿route_id,route_name_fr,zone_type,combat_enabled,pokemon_id,pokemon_name_en,pokemon_name_fr,spawn_weight,min_level,max_level,methods
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,19,rattata,Rattata,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,21,spearow,Piafabec,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,174,igglybuff,Toudoudou,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,175,togepi,Togepi,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,263,zigzagoon,Zigzaton,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,300,skitty,Skitty,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,399,bidoof,Keunotor,16,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,235,smeargle,Queulorior,14,1,10,walk
+kanto_city_pallet_town,Bourg Palette (Kanto),town,false,203,girafarig,Girafarig,5,4,13,walk
+kanto_route_1,Route 1 (Kanto),route,true,16,pidgey,Roucool,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,21,spearow,Piafabec,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,41,zubat,Nosferapti,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,161,sentret,Fouinette,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,163,hoothoot,Hoothoot,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,173,cleffa,Mélo,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,187,hoppip,Granivol,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,276,taillow,Nirondelle,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,287,slakoth,Parecool,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,396,starly,Étourmi,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,399,bidoof,Keunotor,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,401,kricketot,Crikzik,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,440,happiny,Ptiravi,16,1,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,292,shedinja,Munja,12,3,7,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,23,ekans,Abo,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,29,nidoran-f,Nidoran♀,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,32,nidoran-m,Nidoran♂,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,287,slakoth,Parecool,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,293,whismur,Chuchmur,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,298,azurill,Azurill,16,2,11,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,300,skitty,Skitty,16,3,12,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,453,croagunk,Cradopaud,16,4,13,walk
+kanto_city_viridian_city,Jadielle (Kanto),town,false,203,girafarig,Girafarig,5,6,15,walk
+kanto_route_2,Route 2 (Kanto),route,true,16,pidgey,Roucool,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,21,spearow,Piafabec,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,52,meowth,Miaouss,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,84,doduo,Doduo,16,2,5,walk
+kanto_route_2,Route 2 (Kanto),route,true,163,hoothoot,Hoothoot,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,167,spinarak,Mimigal,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,276,taillow,Nirondelle,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,296,makuhita,Makuhita,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,307,meditite,Méditikka,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,333,swablu,Tylton,16,2,5,walk
+kanto_route_2,Route 2 (Kanto),route,true,343,baltoy,Balbuto,16,2,5,walk
+kanto_route_2,Route 2 (Kanto),route,true,396,starly,Étourmi,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,406,budew,Rozbouton,16,1,4,walk
+kanto_route_2,Route 2 (Kanto),route,true,447,riolu,Riolu,15,1,4,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,10,caterpie,Chenipan,16,1,4,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,13,weedle,Aspicot,16,1,4,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,43,oddish,Mystherbe,16,3,6,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,46,paras,Paras,16,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,69,bellsprout,Chétiflor,16,3,6,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,167,spinarak,Mimigal,16,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,204,pineco,Pomdepik,16,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,265,wurmple,Chenipotte,16,1,4,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,406,budew,Rozbouton,16,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,412,burmy,Cheniti,16,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,11,metapod,Chrysacier,15,3,7,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,261,poochyena,Medhyèna,15,2,5,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,266,silcoon,Armulys,15,3,7,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,268,cascoon,Blindalys,15,3,7,walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,436,bronzor,Archéomire,15,3,6,rock-smash|walk
+kanto_dungeon_viridian_forest,Foret de Jade (Kanto),dungeon,true,402,kricketune,Mélokrik,10,6,10,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,209,snubbull,Snubbull,16,8,17,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,307,meditite,Méditikka,16,7,16,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,316,gulpin,Gloupti,16,8,17,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,436,bronzor,Archéomire,15,8,17,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,109,koffing,Smogo,13,8,17,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,374,beldum,Terhal,13,8,17,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,308,medicham,Charmina,9,11,21,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,203,girafarig,Girafarig,5,10,19,walk
+kanto_city_pewter_city,Argenta (Kanto),town,false,454,toxicroak,Coatox,4,12,22,walk
+kanto_route_3,Route 3 (Kanto),route,true,21,spearow,Piafabec,16,2,6,walk
+kanto_route_3,Route 3 (Kanto),route,true,48,venonat,Mimitoss,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,69,bellsprout,Chétiflor,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,84,doduo,Doduo,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,163,hoothoot,Hoothoot,16,2,6,walk
+kanto_route_3,Route 3 (Kanto),route,true,216,teddiursa,Teddiursa,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,276,taillow,Nirondelle,16,2,6,walk
+kanto_route_3,Route 3 (Kanto),route,true,333,swablu,Tylton,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,396,starly,Étourmi,16,2,6,walk
+kanto_route_3,Route 3 (Kanto),route,true,451,skorupi,Rapion,16,3,7,walk
+kanto_route_3,Route 3 (Kanto),route,true,39,jigglypuff,Rondoudou,15,4,9,walk
+kanto_route_3,Route 3 (Kanto),route,true,236,tyrogue,Debugant,15,1,5,walk
+kanto_route_3,Route 3 (Kanto),route,true,132,ditto,Métamorph,14,2,6,walk
+kanto_route_3,Route 3 (Kanto),route,true,1,bulbasaur,Bulbizarre,1,3,7,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,37,vulpix,Goupix,16,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,74,geodude,Racaillou,16,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,88,grimer,Tadmorv,16,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,218,slugma,Limagma,16,4,9,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,438,bonsly,Manzaï,16,4,9,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,449,hippopotas,Hippopotas,16,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,81,magnemite,Magnéti,15,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,92,gastly,Fantominus,15,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,304,aron,Galekid,15,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,434,stunky,Moufouette,15,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,246,larvitar,Embrylex,14,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,111,rhyhorn,Rhinocorne,13,5,10,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,147,dratini,Minidraco,13,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,371,bagon,Draby,13,5,10,walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,75,graveler,Gravalanch,12,8,14,rock-smash|walk
+kanto_dungeon_mt_moon,Mont Selenite (Kanto),dungeon,true,95,onix,Onix,11,6,11,rock-smash|walk
+kanto_route_4,Route 4 (Kanto),route,true,13,weedle,Aspicot,16,3,29,walk
+kanto_route_4,Route 4 (Kanto),route,true,16,pidgey,Roucool,16,4,30,walk
+kanto_route_4,Route 4 (Kanto),route,true,43,oddish,Mystherbe,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,56,mankey,Férosinge,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,66,machop,Machoc,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,84,doduo,Doduo,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,102,exeggcute,Noeunoeuf,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,177,natu,Natu,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,276,taillow,Nirondelle,16,4,30,walk
+kanto_route_4,Route 4 (Kanto),route,true,333,swablu,Tylton,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,431,glameow,Chaglam,16,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,14,kakuna,Coconfort,15,5,32,walk
+kanto_route_4,Route 4 (Kanto),route,true,133,eevee,Évoli,14,5,31,walk
+kanto_route_4,Route 4 (Kanto),route,true,274,nuzleaf,Pifeuil,11,7,34,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,100,voltorb,Voltorbe,16,14,23,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,170,chinchou,Loupio,16,14,23,old-rod|good-rod|surf
+kanto_city_cerulean_city,Azuria (Kanto),town,false,179,mareep,Wattouat,16,13,22,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,309,electrike,Dynavolt,16,14,23,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,403,shinx,Lixy,16,13,22,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,25,pikachu,Pikachu,15,16,26,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,72,tentacool,Tentacool,13,14,23,old-rod|good-rod|surf
+kanto_city_cerulean_city,Azuria (Kanto),town,false,238,smoochum,Lippouti,13,14,23,walk
+kanto_city_cerulean_city,Azuria (Kanto),town,false,171,lanturn,Lanturn,4,18,28,good-rod|surf
+kanto_route_24,Route 24 (Kanto),route,true,46,paras,Paras,16,4,30,walk
+kanto_route_24,Route 24 (Kanto),route,true,191,sunkern,Tournegrin,16,3,29,walk
+kanto_route_24,Route 24 (Kanto),route,true,273,seedot,Grainipiot,16,4,30,walk
+kanto_route_24,Route 24 (Kanto),route,true,285,shroomish,Balignon,16,5,31,walk
+kanto_route_24,Route 24 (Kanto),route,true,420,cherubi,Ceribou,16,4,30,walk
+kanto_route_24,Route 24 (Kanto),route,true,331,cacnea,Cacnea,13,5,31,walk
+kanto_route_24,Route 24 (Kanto),route,true,193,yanma,Yanma,12,6,32,walk
+kanto_route_24,Route 24 (Kanto),route,true,313,volbeat,Muciole,10,6,32,walk
+kanto_route_24,Route 24 (Kanto),route,true,47,parasect,Parasect,8,8,35,walk
+kanto_route_24,Route 24 (Kanto),route,true,413,wormadam-plant,Cheniselle,7,8,35,walk
+kanto_route_24,Route 24 (Kanto),route,true,455,carnivine,Vortente,6,7,33,walk
+kanto_route_24,Route 24 (Kanto),route,true,182,bellossom,Joliflor,2,11,39,walk
+kanto_route_24,Route 24 (Kanto),route,true,152,chikorita,Germignon,1,5,31,walk
+kanto_route_24,Route 24 (Kanto),route,true,252,treecko,Arcko,1,5,31,walk
+kanto_route_24,Route 24 (Kanto),route,true,387,turtwig,Tortipouss,1,5,31,walk
+kanto_route_25,Route 25 (Kanto),route,true,46,paras,Paras,16,4,30,walk
+kanto_route_25,Route 25 (Kanto),route,true,165,ledyba,Coxy,16,4,30,walk
+kanto_route_25,Route 25 (Kanto),route,true,166,ledian,Coxyclaque,12,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,188,skiploom,Floravol,12,7,34,walk
+kanto_route_25,Route 25 (Kanto),route,true,314,illumise,Lumivole,10,6,32,walk
+kanto_route_25,Route 25 (Kanto),route,true,192,sunflora,Héliatronc,9,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,47,parasect,Parasect,8,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,114,tangela,Saquedeneu,8,6,32,walk
+kanto_route_25,Route 25 (Kanto),route,true,421,cherrim,Ceriflor,8,9,36,walk
+kanto_route_25,Route 25 (Kanto),route,true,153,bayleef,Macronium,7,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,253,grovyle,Massko,7,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,388,grotle,Boskara,7,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,413,wormadam-plant,Cheniselle,7,8,35,walk
+kanto_route_25,Route 25 (Kanto),route,true,127,pinsir,Scarabrute,4,7,33,walk
+kanto_route_25,Route 25 (Kanto),route,true,470,leafeon,Phyllali,1,10,37,walk
+kanto_route_5,Route 5 (Kanto),route,true,84,doduo,Doduo,16,10,15,walk
+kanto_route_5,Route 5 (Kanto),route,true,333,swablu,Tylton,16,10,15,walk
+kanto_route_5,Route 5 (Kanto),route,true,17,pidgeotto,Roucoups,12,12,18,walk
+kanto_route_5,Route 5 (Kanto),route,true,70,weepinbell,Boustiflor,12,13,19,walk
+kanto_route_5,Route 5 (Kanto),route,true,425,drifloon,Baudrive,12,10,15,walk
+kanto_route_5,Route 5 (Kanto),route,true,83,farfetchd,Canarticho,11,11,16,walk
+kanto_route_5,Route 5 (Kanto),route,true,190,aipom,Capumain,11,10,15,walk
+kanto_route_5,Route 5 (Kanto),route,true,347,anorith,Anorith,11,10,15,walk
+kanto_route_5,Route 5 (Kanto),route,true,44,gloom,Ortide,9,13,19,walk
+kanto_route_5,Route 5 (Kanto),route,true,269,dustox,Papinox,9,15,22,walk
+kanto_route_5,Route 5 (Kanto),route,true,315,roselia,Rosélia,9,13,19,walk
+kanto_route_5,Route 5 (Kanto),route,true,198,murkrow,Cornèbre,7,11,16,walk
+kanto_route_5,Route 5 (Kanto),route,true,256,combusken,Galifeu,7,13,19,walk
+kanto_route_5,Route 5 (Kanto),route,true,107,hitmonchan,Tygnon,3,14,20,walk
+kanto_route_6,Route 6 (Kanto),route,true,35,clefairy,Mélofée,15,7,34,walk
+kanto_route_6,Route 6 (Kanto),route,true,327,spinda,Spinda,13,5,31,walk
+kanto_route_6,Route 6 (Kanto),route,true,427,buneary,Laporeille,13,5,31,walk
+kanto_route_6,Route 6 (Kanto),route,true,17,pidgeotto,Roucoups,12,7,34,walk
+kanto_route_6,Route 6 (Kanto),route,true,397,staravia,Étourvol,12,7,34,walk
+kanto_route_6,Route 6 (Kanto),route,true,83,farfetchd,Canarticho,11,6,32,walk
+kanto_route_6,Route 6 (Kanto),route,true,67,machoke,Machopeur,9,8,35,walk
+kanto_route_6,Route 6 (Kanto),route,true,168,ariados,Migalos,9,8,35,walk
+kanto_route_6,Route 6 (Kanto),route,true,49,venomoth,Aéromite,8,9,36,walk
+kanto_route_6,Route 6 (Kanto),route,true,441,chatot,Pijako,8,6,32,walk
+kanto_route_6,Route 6 (Kanto),route,true,2,ivysaur,Herbizarre,7,8,35,walk
+kanto_route_6,Route 6 (Kanto),route,true,391,monferno,Chimpenfeu,7,8,35,walk
+kanto_route_6,Route 6 (Kanto),route,true,15,beedrill,Dardargnan,6,10,38,walk
+kanto_route_6,Route 6 (Kanto),route,true,237,hitmontop,Kapoera,3,9,36,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,170,chinchou,Loupio,16,20,29,old-rod|good-rod|surf
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,72,tentacool,Tentacool,13,20,29,old-rod|good-rod|surf
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,180,flaaffy,Lainergie,12,22,32,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,404,luxio,Luxio,12,22,32,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,239,elekid,Élekid,11,20,29,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,311,plusle,Posipi,10,21,30,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,312,minun,Négapi,10,21,30,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,417,pachirisu,Pachirisu,10,21,30,walk
+kanto_city_vermilion_city,Carmin-sur-Mer (Kanto),town,false,171,lanturn,Lanturn,4,24,34,good-rod|surf
+kanto_route_11,Route 11 (Kanto),route,true,17,pidgeotto,Roucoups,12,7,34,walk
+kanto_route_11,Route 11 (Kanto),route,true,397,staravia,Étourvol,12,7,34,walk
+kanto_route_11,Route 11 (Kanto),route,true,83,farfetchd,Canarticho,11,6,32,walk
+kanto_route_11,Route 11 (Kanto),route,true,108,lickitung,Excelangue,11,6,32,walk
+kanto_route_11,Route 11 (Kanto),route,true,206,dunsparce,Insolourdo,10,6,32,walk
+kanto_route_11,Route 11 (Kanto),route,true,441,chatot,Pijako,8,6,32,walk
+kanto_route_11,Route 11 (Kanto),route,true,42,golbat,Nosferalto,5,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,297,hariyama,Hariyama,5,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,57,primeape,Colossinge,4,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,85,dodrio,Dodrio,3,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,106,hitmonlee,Kicklee,3,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,227,skarmory,Airmure,3,7,33,walk
+kanto_route_11,Route 11 (Kanto),route,true,277,swellow,Hélédelle,3,9,36,walk
+kanto_route_11,Route 11 (Kanto),route,true,275,shiftry,Tengalice,1,11,39,walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,74,geodude,Racaillou,16,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,231,phanpy,Phanpy,16,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,228,houndour,Malosse,15,15,27,walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,246,larvitar,Embrylex,14,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,111,rhyhorn,Rhinocorne,13,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,299,nosepass,Tarinor,13,16,28,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,33,nidorino,Nidorino,12,17,30,walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,75,graveler,Gravalanch,12,18,31,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,95,onix,Onix,11,16,28,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,329,vibrava,Vibraninf,11,17,30,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,408,cranidos,Kranidos,11,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,302,sableye,Ténéfix,10,16,28,walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,303,mawile,Mysdibule,10,16,28,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,410,shieldon,Dinoclier,10,15,27,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,105,marowak,Ossatueur,8,18,31,rock-smash|walk
+kanto_dungeon_digletts_cave,Cave Taupiqueur (Kanto),dungeon,true,444,gabite,Carmache,6,18,31,rock-smash|walk
+kanto_route_9,Route 9 (Kanto),route,true,294,loudred,Ramboum,12,13,19,walk
+kanto_route_9,Route 9 (Kanto),route,true,397,staravia,Étourvol,12,13,19,walk
+kanto_route_9,Route 9 (Kanto),route,true,446,munchlax,Goinfrex,12,12,17,walk
+kanto_route_9,Route 9 (Kanto),route,true,83,farfetchd,Canarticho,11,12,17,walk
+kanto_route_9,Route 9 (Kanto),route,true,22,fearow,Rapasdepic,9,14,20,walk
+kanto_route_9,Route 9 (Kanto),route,true,441,chatot,Pijako,8,12,17,walk
+kanto_route_9,Route 9 (Kanto),route,true,164,noctowl,Noarfang,5,15,21,walk
+kanto_route_9,Route 9 (Kanto),route,true,286,breloom,Chapignon,5,15,21,walk
+kanto_route_9,Route 9 (Kanto),route,true,344,claydol,Kaorine,5,15,21,walk
+kanto_route_9,Route 9 (Kanto),route,true,205,forretress,Foretress,3,15,21,walk
+kanto_route_9,Route 9 (Kanto),route,true,34,nidoking,Nidoking,2,17,24,walk
+kanto_route_9,Route 9 (Kanto),route,true,68,machamp,Mackogneur,2,17,24,walk
+kanto_route_9,Route 9 (Kanto),route,true,212,scizor,Cizayox,2,15,21,walk
+kanto_route_9,Route 9 (Kanto),route,true,430,honchkrow,Corboss,2,15,21,walk
+kanto_route_10,Route 10 (Kanto),route,true,17,pidgeotto,Roucoups,12,7,34,walk
+kanto_route_10,Route 10 (Kanto),route,true,352,kecleon,Kecleon,10,6,32,walk
+kanto_route_10,Route 10 (Kanto),route,true,22,fearow,Rapasdepic,9,8,35,walk
+kanto_route_10,Route 10 (Kanto),route,true,137,porygon,Porygon,8,6,32,walk
+kanto_route_10,Route 10 (Kanto),route,true,441,chatot,Pijako,8,6,32,walk
+kanto_route_10,Route 10 (Kanto),route,true,214,heracross,Scarhino,4,7,33,walk
+kanto_route_10,Route 10 (Kanto),route,true,277,swellow,Hélédelle,3,9,36,walk
+kanto_route_10,Route 10 (Kanto),route,true,332,cacturne,Cacturne,3,9,36,walk
+kanto_route_10,Route 10 (Kanto),route,true,18,pidgeot,Roucarnage,2,11,39,walk
+kanto_route_10,Route 10 (Kanto),route,true,31,nidoqueen,Nidoqueen,2,11,39,walk
+kanto_route_10,Route 10 (Kanto),route,true,45,vileplume,Rafflesia,2,11,39,walk
+kanto_route_10,Route 10 (Kanto),route,true,62,poliwrath,Tartard,2,11,39,walk
+kanto_route_10,Route 10 (Kanto),route,true,71,victreebel,Empiflor,2,11,39,walk
+kanto_route_10,Route 10 (Kanto),route,true,208,steelix,Steelix,2,9,36,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,81,magnemite,Magnéti,15,22,43,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,410,shieldon,Dinoclier,10,22,43,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,305,lairon,Galegon,8,25,47,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,375,metang,Métang,6,25,47,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,101,electrode,Électrode,4,26,48,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,437,bronzong,Archéodong,4,26,48,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,26,raichu,Raichu,3,28,51,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,82,magneton,Magnéton,3,26,48,rock-smash|walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,125,electabuzz,Élektek,3,26,48,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,310,manectric,Élecsprint,3,26,48,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,181,ampharos,Pharamp,2,28,51,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,135,jolteon,Voltali,1,27,49,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,405,luxray,Luxray,1,29,52,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,466,electivire,Élekable,1,29,52,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,74,geodude,Racaillou,16,5,31,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,111,rhyhorn,Rhinocorne,13,5,31,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,75,graveler,Gravalanch,12,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,95,onix,Onix,11,6,32,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,28,sandslash,Sablaireau,9,9,36,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,51,dugtrio,Triopikeur,8,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,93,haunter,Spectrum,8,8,35,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,185,sudowoodo,Simularbre,8,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,215,sneasel,Farfuret,8,6,32,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,219,magcargo,Volcaropod,8,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,262,mightyena,Grahyèna,8,8,35,walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,305,lairon,Galegon,8,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,247,pupitar,Ymphect,7,8,35,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,232,donphan,Donphan,4,9,36,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,337,lunatone,Séléroc,4,7,33,rock-smash|walk
+kanto_dungeon_rock_tunnel,Tunnel Roche (Kanto),dungeon,true,338,solrock,Solaroc,4,7,33,rock-smash|walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,302,sableye,Ténéfix,10,31,40,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,64,kadabra,Kadabra,9,33,43,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,202,wobbuffet,Qulbutoké,7,33,43,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,442,spiritomb,Spiritomb,5,32,41,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,97,hypno,Hypnomade,4,34,44,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,326,grumpig,Groret,4,34,44,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,122,mr-mime,M. Mime,3,34,44,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,358,chimecho,Éoko,3,34,44,walk
+kanto_city_lavender_town,Lavanville (Kanto),town,false,435,skuntank,Moufflair,3,34,44,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,92,gastly,Fantominus,15,13,22,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,353,shuppet,Polichombr,15,13,22,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,355,duskull,Skelénox,15,13,22,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,302,sableye,Ténéfix,10,14,23,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,93,haunter,Spectrum,8,16,26,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,200,misdreavus,Feuforêve,7,14,23,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,442,spiritomb,Spiritomb,5,15,24,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,356,dusclops,Téraclope,4,17,27,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,354,banette,Branette,2,17,27,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,429,mismagius,Magirêve,2,17,27,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,94,gengar,Ectoplasma,1,19,30,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,197,umbreon,Noctali,1,18,28,walk
+kanto_dungeon_pokemon_tower,Tour Pokemon (Kanto),dungeon,true,477,dusknoir,Noctunoir,1,20,31,walk
+kanto_route_8,Route 8 (Kanto),route,true,397,staravia,Étourvol,12,17,22,walk
+kanto_route_8,Route 8 (Kanto),route,true,20,raticate,Rattatac,9,18,23,walk
+kanto_route_8,Route 8 (Kanto),route,true,22,fearow,Rapasdepic,9,18,23,walk
+kanto_route_8,Route 8 (Kanto),route,true,264,linoone,Linéon,9,18,23,walk
+kanto_route_8,Route 8 (Kanto),route,true,400,bibarel,Castorno,9,18,23,walk
+kanto_route_8,Route 8 (Kanto),route,true,301,delcatty,Delcatty,8,18,23,walk
+kanto_route_8,Route 8 (Kanto),route,true,351,castform,Morphéo,8,16,20,walk
+kanto_route_8,Route 8 (Kanto),route,true,335,zangoose,Mangriff,6,17,21,walk
+kanto_route_8,Route 8 (Kanto),route,true,164,noctowl,Noarfang,5,19,24,walk
+kanto_route_8,Route 8 (Kanto),route,true,85,dodrio,Dodrio,3,19,24,walk
+kanto_route_8,Route 8 (Kanto),route,true,277,swellow,Hélédelle,3,19,24,walk
+kanto_route_8,Route 8 (Kanto),route,true,18,pidgeot,Roucarnage,2,21,27,walk
+kanto_route_8,Route 8 (Kanto),route,true,169,crobat,Nostenfer,2,22,28,walk
+kanto_route_8,Route 8 (Kanto),route,true,398,staraptor,Étouraptor,2,21,27,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,30,nidorina,Nidorina,12,36,46,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,20,raticate,Rattatac,9,37,47,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,53,persian,Persian,9,37,47,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,162,furret,Fouinar,9,37,47,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,288,vigoroth,Vigoroth,9,37,47,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,113,chansey,Leveinard,7,38,48,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,479,rotom,Motisma,7,35,44,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,203,girafarig,Girafarig,5,36,45,walk
+kanto_city_saffron_city,Safrania (Kanto),town,false,407,roserade,Roserade,1,40,51,walk
+kanto_route_7,Route 7 (Kanto),route,true,22,fearow,Rapasdepic,9,20,25,walk
+kanto_route_7,Route 7 (Kanto),route,true,288,vigoroth,Vigoroth,9,20,25,walk
+kanto_route_7,Route 7 (Kanto),route,true,40,wigglytuff,Grodoudou,7,22,28,walk
+kanto_route_7,Route 7 (Kanto),route,true,164,noctowl,Noarfang,5,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,291,ninjask,Ninjask,5,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,115,kangaskhan,Kangourex,4,19,23,walk
+kanto_route_7,Route 7 (Kanto),route,true,178,xatu,Xatu,4,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,234,stantler,Cerfrousse,4,19,23,walk
+kanto_route_7,Route 7 (Kanto),route,true,432,purugly,Chaffreux,4,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,85,dodrio,Dodrio,3,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,277,swellow,Hélédelle,3,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,426,drifblim,Grodrive,3,21,26,walk
+kanto_route_7,Route 7 (Kanto),route,true,18,pidgeot,Roucarnage,2,23,29,walk
+kanto_route_7,Route 7 (Kanto),route,true,398,staraptor,Étouraptor,2,23,29,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,162,furret,Fouinar,9,40,50,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,308,medicham,Charmina,9,40,50,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,335,zangoose,Mangriff,6,39,48,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,336,seviper,Séviper,6,39,48,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,203,girafarig,Girafarig,5,39,48,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,241,miltank,Écrémeuh,4,39,48,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,428,lopunny,Lockpin,4,41,51,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,82,magneton,Magnéton,3,41,51,walk
+kanto_city_celadon_city,Celadopole (Kanto),town,false,424,ambipom,Capidextre,3,41,51,walk
+kanto_route_16,Route 16 (Kanto),route,true,27,sandshrew,Sabelette,16,18,27,walk
+kanto_route_16,Route 16 (Kanto),route,true,187,hoppip,Granivol,16,17,26,walk
+kanto_route_16,Route 16 (Kanto),route,true,246,larvitar,Embrylex,14,18,27,walk
+kanto_route_16,Route 16 (Kanto),route,true,75,graveler,Gravalanch,12,21,31,walk
+kanto_route_16,Route 16 (Kanto),route,true,95,onix,Onix,11,19,28,walk
+kanto_route_16,Route 16 (Kanto),route,true,345,lileep,Lilia,11,18,27,walk
+kanto_route_16,Route 16 (Kanto),route,true,207,gligar,Scorplane,9,19,28,walk
+kanto_route_16,Route 16 (Kanto),route,true,247,pupitar,Ymphect,7,21,31,walk
+kanto_route_16,Route 16 (Kanto),route,true,148,dragonair,Draco,6,21,31,walk
+kanto_route_16,Route 16 (Kanto),route,true,357,tropius,Tropius,6,20,29,walk
+kanto_route_16,Route 16 (Kanto),route,true,372,shelgon,Drackhaus,6,21,31,walk
+kanto_route_16,Route 16 (Kanto),route,true,472,gliscor,Scorvol,3,22,32,walk
+kanto_route_16,Route 16 (Kanto),route,true,76,golem,Grolem,2,24,35,walk
+kanto_route_16,Route 16 (Kanto),route,true,334,altaria,Altaria,2,22,32,walk
+kanto_route_17,Route 17 (Kanto),route,true,50,diglett,Taupiqueur,16,19,26,walk
+kanto_route_17,Route 17 (Kanto),route,true,104,cubone,Osselait,16,20,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,322,numel,Chamallot,16,20,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,328,trapinch,Kraknoix,16,19,26,walk
+kanto_route_17,Route 17 (Kanto),route,true,111,rhyhorn,Rhinocorne,13,20,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,443,gible,Griknot,13,20,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,75,graveler,Gravalanch,12,23,31,walk
+kanto_route_17,Route 17 (Kanto),route,true,188,skiploom,Floravol,12,22,30,walk
+kanto_route_17,Route 17 (Kanto),route,true,207,gligar,Scorplane,9,21,28,walk
+kanto_route_17,Route 17 (Kanto),route,true,176,togetic,Togetic,8,23,31,walk
+kanto_route_17,Route 17 (Kanto),route,true,247,pupitar,Ymphect,7,23,31,walk
+kanto_route_17,Route 17 (Kanto),route,true,323,camerupt,Camérupt,5,24,32,walk
+kanto_route_17,Route 17 (Kanto),route,true,112,rhydon,Rhinoféros,4,24,32,walk
+kanto_route_17,Route 17 (Kanto),route,true,472,gliscor,Scorvol,3,24,32,walk
+kanto_route_18,Route 18 (Kanto),route,true,270,lotad,Nénupiot,16,19,26,old-rod|good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,278,wingull,Goélise,16,19,26,old-rod|good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,318,carvanha,Carvanha,15,20,27,old-rod|good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,72,tentacool,Tentacool,13,20,27,old-rod|good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,271,lombre,Lombre,12,22,30,good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,459,snover,Blizzi,12,20,27,walk
+kanto_route_18,Route 18 (Kanto),route,true,24,arbok,Arbok,9,24,32,walk
+kanto_route_18,Route 18 (Kanto),route,true,210,granbull,Granbull,8,24,32,walk
+kanto_route_18,Route 18 (Kanto),route,true,279,pelipper,Bekipan,7,23,31,good-rod|surf
+kanto_route_18,Route 18 (Kanto),route,true,267,beautifly,Charmillon,6,25,34,walk
+kanto_route_18,Route 18 (Kanto),route,true,291,ninjask,Ninjask,5,24,32,walk
+kanto_route_18,Route 18 (Kanto),route,true,123,scyther,Insécateur,4,22,29,walk
+kanto_route_18,Route 18 (Kanto),route,true,284,masquerain,Maskadra,4,24,32,walk
+kanto_route_18,Route 18 (Kanto),route,true,319,sharpedo,Sharpedo,3,24,32,good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,79,slowpoke,Ramoloss,16,42,51,old-rod|good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,170,chinchou,Loupio,16,42,51,old-rod|good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,172,pichu,Pichu,16,40,49,walk
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,400,bibarel,Castorno,9,45,55,good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,211,qwilfish,Qwilfish,8,43,52,good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,171,lanturn,Lanturn,4,46,56,good-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,73,tentacruel,Tentacruel,2,46,56,super-rod|surf
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,124,jynx,Lippoutou,2,46,56,walk
+kanto_city_fuchsia_city,Parmanie (Kanto),town,false,462,magnezone,Magnézone,1,49,60,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,138,omanyte,Amonita,11,5,31,old-rod|good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,140,kabuto,Kabuto,11,5,31,old-rod|good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,222,corsola,Corayon,9,6,32,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,49,venomoth,Aéromite,8,9,36,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,15,beedrill,Dardargnan,6,10,38,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,80,slowbro,Flagadoss,4,9,36,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,199,slowking,Roigada,4,9,36,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,369,relicanth,Relicanth,4,7,33,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,139,omastar,Amonistar,3,9,36,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,141,kabutops,Kabutops,3,9,36,good-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,359,absol,Absol,3,7,33,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,478,froslass,Momartik,3,9,36,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,45,vileplume,Rafflesia,2,11,39,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,71,victreebel,Empiflor,2,11,39,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,121,starmie,Staross,2,10,37,super-rod|surf
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,154,meganium,Méganium,1,12,40,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,254,sceptile,Jungko,1,12,40,walk
+kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,465,tangrowth,Bouldeneu,1,10,37,walk
+kanto_route_15,Route 15 (Kanto),route,true,165,ledyba,Coxy,16,21,27,walk
+kanto_route_15,Route 15 (Kanto),route,true,283,surskit,Arakdo,16,21,27,old-rod|good-rod|surf
+kanto_route_15,Route 15 (Kanto),route,true,166,ledian,Coxyclaque,12,25,32,walk
+kanto_route_15,Route 15 (Kanto),route,true,193,yanma,Yanma,12,23,29,walk
+kanto_route_15,Route 15 (Kanto),route,true,458,mantyke,Babimanta,11,22,28,old-rod|good-rod|surf
+kanto_route_15,Route 15 (Kanto),route,true,211,qwilfish,Qwilfish,8,23,29,good-rod|surf
+kanto_route_15,Route 15 (Kanto),route,true,414,mothim,Papilord,7,25,32,walk
+kanto_route_15,Route 15 (Kanto),route,true,12,butterfree,Papilusion,6,27,35,walk
+kanto_route_15,Route 15 (Kanto),route,true,267,beautifly,Charmillon,6,27,35,walk
+kanto_route_15,Route 15 (Kanto),route,true,123,scyther,Insécateur,4,24,30,walk
+kanto_route_15,Route 15 (Kanto),route,true,284,masquerain,Maskadra,4,26,33,walk
+kanto_route_15,Route 15 (Kanto),route,true,342,crawdaunt,Colhomard,4,26,33,good-rod|surf
+kanto_route_15,Route 15 (Kanto),route,true,226,mantine,Démanta,3,26,33,good-rod|surf
+kanto_route_15,Route 15 (Kanto),route,true,416,vespiquen,Apireine,3,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,194,wooper,Axoloto,16,20,26,old-rod|good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,339,barboach,Barloche,16,21,27,old-rod|good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,195,quagsire,Maraiste,9,25,32,good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,279,pelipper,Bekipan,7,25,32,good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,12,butterfree,Papilusion,6,27,35,walk
+kanto_route_14,Route 14 (Kanto),route,true,123,scyther,Insécateur,4,24,30,walk
+kanto_route_14,Route 14 (Kanto),route,true,217,ursaring,Ursaring,4,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,284,masquerain,Maskadra,4,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,317,swalot,Avaltout,4,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,340,whiscash,Barbicha,4,26,33,good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,226,mantine,Démanta,3,26,33,good-rod|surf
+kanto_route_14,Route 14 (Kanto),route,true,416,vespiquen,Apireine,3,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,460,abomasnow,Blizzaroi,3,26,33,walk
+kanto_route_14,Route 14 (Kanto),route,true,130,gyarados,Léviator,1,27,34,super-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,278,wingull,Goélise,16,4,30,old-rod|good-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,415,combee,Apitrini,16,4,30,walk
+kanto_route_13,Route 13 (Kanto),route,true,458,mantyke,Babimanta,11,5,31,old-rod|good-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,279,pelipper,Bekipan,7,8,35,good-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,128,tauros,Tauros,4,7,33,walk
+kanto_route_13,Route 13 (Kanto),route,true,226,mantine,Démanta,3,9,36,good-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,73,tentacruel,Tentacruel,2,9,36,super-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,272,ludicolo,Ludicolo,2,11,39,super-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,295,exploud,Brouhabam,2,11,39,walk
+kanto_route_13,Route 13 (Kanto),route,true,398,staraptor,Étouraptor,2,11,39,walk
+kanto_route_13,Route 13 (Kanto),route,true,103,exeggutor,Noadkoko,1,10,37,walk
+kanto_route_13,Route 13 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
+kanto_route_13,Route 13 (Kanto),route,true,463,lickilicky,Coudlangue,1,9,36,walk
+kanto_route_13,Route 13 (Kanto),route,true,469,yanmega,Yanmega,1,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,225,delibird,Cadoizo,13,5,31,walk
+kanto_route_12,Route 12 (Kanto),route,true,259,marshtomp,Flobio,7,8,35,good-rod|surf
+kanto_route_12,Route 12 (Kanto),route,true,414,mothim,Papilord,7,8,35,walk
+kanto_route_12,Route 12 (Kanto),route,true,89,muk,Grotadmorv,4,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,110,weezing,Smogogo,4,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,423,gastrodon,Tritosor,4,9,36,good-rod|surf
+kanto_route_12,Route 12 (Kanto),route,true,226,mantine,Démanta,3,9,36,good-rod|surf
+kanto_route_12,Route 12 (Kanto),route,true,348,armaldo,Armaldo,3,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,416,vespiquen,Apireine,3,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,189,jumpluff,Cotovol,2,11,39,walk
+kanto_route_12,Route 12 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
+kanto_route_12,Route 12 (Kanto),route,true,233,porygon2,Porygon2,1,9,36,walk
+kanto_route_12,Route 12 (Kanto),route,true,395,empoleon,Pingoléon,1,12,40,super-rod|surf
+kanto_route_12,Route 12 (Kanto),route,true,469,yanmega,Yanmega,1,9,36,walk
+kanto_route_19,Route 19 (Kanto),route,true,278,wingull,Goélise,16,4,30,old-rod|good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,120,staryu,Stari,13,5,31,old-rod|good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,366,clamperl,Coquiperl,13,5,31,old-rod|good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,119,seaking,Poissoroy,8,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,159,croconaw,Crocrodil,7,8,35,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,184,azumarill,Azumarill,7,10,38,super-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,279,pelipper,Bekipan,7,8,35,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,394,prinplup,Prinplouf,7,8,35,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,55,golduck,Akwakwak,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,224,octillery,Octillery,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,321,wailord,Wailord,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,367,huntail,Serpang,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,368,gorebyss,Rosabyss,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,419,floatzel,Mustéflott,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,457,lumineon,Luminéon,4,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,226,mantine,Démanta,3,9,36,good-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
+kanto_route_19,Route 19 (Kanto),route,true,131,lapras,Lokhlass,1,8,34,super-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,86,seel,Otaria,16,5,31,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,370,luvdisc,Lovdisc,16,5,31,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,418,buizel,Mustébouée,16,5,31,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,456,finneon,Écayon,16,5,31,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,61,poliwhirl,Têtarte,12,8,35,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,458,mantyke,Babimanta,11,5,31,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,320,wailmer,Wailmer,10,6,32,old-rod|good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,117,seadra,Hypocéan,8,8,35,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,8,wartortle,Carabaffe,7,8,35,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,279,pelipper,Bekipan,7,8,35,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,99,kingler,Krabboss,4,9,36,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,226,mantine,Démanta,3,9,36,good-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,36,clefable,Mélodelfe,2,11,39,walk
+kanto_route_20,Route 20 (Kanto),route,true,186,politoed,Tarpaud,2,11,39,super-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,350,milotic,Milobellus,2,10,37,super-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,91,cloyster,Crustabri,1,10,37,super-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
+kanto_route_20,Route 20 (Kanto),route,true,134,vaporeon,Aquali,1,10,37,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,116,horsea,Hypotrempe,16,5,39,old-rod|good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,129,magikarp,Magicarpe,16,3,37,old-rod|good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,223,remoraid,Rémoraid,16,5,39,old-rod|good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,349,feebas,Barpau,16,3,37,old-rod|good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,183,marill,Marill,15,6,41,good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,361,snorunt,Stalgamin,15,5,39,walk
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,363,spheal,Obalie,15,4,38,old-rod|good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,364,sealeo,Phogleur,8,8,43,good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,87,dewgong,Lamantine,3,9,44,good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,139,omastar,Amonistar,3,9,44,good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,141,kabutops,Kabutops,3,9,44,good-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,362,glalie,Oniglali,3,9,44,walk
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,91,cloyster,Crustabri,1,10,45,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,131,lapras,Lokhlass,1,8,42,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,260,swampert,Laggron,1,12,48,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,365,walrein,Kaimorse,1,12,48,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,471,glaceon,Givrali,1,10,45,walk
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,473,mamoswine,Mammochon,1,12,48,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,228,houndour,Malosse,15,54,63,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,240,magby,Magby,11,54,63,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,77,ponyta,Ponyta,10,55,64,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,5,charmeleon,Reptincel,7,57,67,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,324,torkoal,Chartor,6,56,65,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,126,magmar,Magmar,3,58,68,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,59,arcanine,Arcanin,2,59,69,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,229,houndoom,Démolosse,2,58,68,walk
+kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,452,drapion,Drascore,2,58,68,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,58,growlithe,Caninos,13,26,35,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,219,magcargo,Volcaropod,8,29,39,rock-smash|walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,156,quilava,Feurisson,7,29,39,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,38,ninetales,Feunard,4,30,40,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,78,rapidash,Galopa,4,30,40,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,112,rhydon,Rhinoféros,4,30,40,rock-smash|walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,4,charmander,Salamèche,1,26,35,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,136,flareon,Pyroli,1,31,41,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,155,cyndaquil,Héricendre,1,26,35,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,157,typhlosion,Typhlosion,1,33,44,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,248,tyranitar,Tyranocif,1,34,45,rock-smash|walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,255,torchic,Poussifeu,1,26,35,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,306,aggron,Galeking,1,33,44,rock-smash|walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,390,chimchar,Ouisticram,1,26,35,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,464,rhyperior,Rhinastoc,1,33,44,rock-smash|walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,467,magmortar,Maganon,1,33,44,walk
+kanto_route_21,Route 21 (Kanto),route,true,54,psyduck,Psykokwak,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,60,poliwag,Ptitard,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,90,shellder,Kokiyas,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,98,krabby,Krabby,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,118,goldeen,Poissirène,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,341,corphish,Écrapince,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,422,shellos,Sancoki,16,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,458,mantyke,Babimanta,11,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,279,pelipper,Bekipan,7,8,35,good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,226,mantine,Démanta,3,9,36,good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,7,squirtle,Carapuce,1,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,9,blastoise,Tortank,1,12,40,super-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,158,totodile,Kaiminus,1,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,160,feraligatr,Aligatueur,1,12,40,super-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,258,mudkip,Gobou,1,5,31,old-rod|good-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,365,walrein,Kaimorse,1,12,40,super-rod|surf
+kanto_route_21,Route 21 (Kanto),route,true,393,piplup,Tiplouf,1,5,31,old-rod|good-rod|surf
+kanto_route_22,Route 22 (Kanto),route,true,74,geodude,Racaillou,16,2,31,walk
+kanto_route_22,Route 22 (Kanto),route,true,220,swinub,Marcacrin,15,1,30,walk
+kanto_route_22,Route 22 (Kanto),route,true,246,larvitar,Embrylex,14,2,31,walk
+kanto_route_22,Route 22 (Kanto),route,true,207,gligar,Scorplane,9,3,32,walk
+kanto_route_22,Route 22 (Kanto),route,true,221,piloswine,Cochignon,7,6,36,walk
+kanto_route_22,Route 22 (Kanto),route,true,247,pupitar,Ymphect,7,5,35,walk
+kanto_route_22,Route 22 (Kanto),route,true,112,rhydon,Rhinoféros,4,6,36,walk
+kanto_route_22,Route 22 (Kanto),route,true,472,gliscor,Scorvol,3,6,36,walk
+kanto_route_22,Route 22 (Kanto),route,true,76,golem,Grolem,2,8,39,walk
+kanto_route_22,Route 22 (Kanto),route,true,142,aerodactyl,Ptéra,2,4,33,walk
+kanto_route_22,Route 22 (Kanto),route,true,6,charizard,Dracaufeu,1,9,40,walk
+kanto_route_22,Route 22 (Kanto),route,true,330,flygon,Libégon,1,9,40,walk
+kanto_route_22,Route 22 (Kanto),route,true,373,salamence,Drattak,1,10,41,walk
+kanto_route_22,Route 22 (Kanto),route,true,464,rhyperior,Rhinastoc,1,9,40,walk
+kanto_route_22,Route 22 (Kanto),route,true,473,mamoswine,Mammochon,1,9,40,walk
+kanto_route_23,Route 23 (Kanto),route,true,290,nincada,Ningale,16,4,33,walk
+kanto_route_23,Route 23 (Kanto),route,true,207,gligar,Scorplane,9,6,35,walk
+kanto_route_23,Route 23 (Kanto),route,true,213,shuckle,Caratroc,6,7,36,walk
+kanto_route_23,Route 23 (Kanto),route,true,346,cradily,Vacilys,3,9,39,walk
+kanto_route_23,Route 23 (Kanto),route,true,472,gliscor,Scorvol,3,9,39,walk
+kanto_route_23,Route 23 (Kanto),route,true,76,golem,Grolem,2,11,42,walk
+kanto_route_23,Route 23 (Kanto),route,true,142,aerodactyl,Ptéra,2,7,36,walk
+kanto_route_23,Route 23 (Kanto),route,true,143,snorlax,Ronflex,1,10,40,walk
+kanto_route_23,Route 23 (Kanto),route,true,149,dragonite,Dracolosse,1,13,44,walk
+kanto_route_23,Route 23 (Kanto),route,true,260,swampert,Laggron,1,12,43,walk
+kanto_route_23,Route 23 (Kanto),route,true,289,slaking,Monaflèmit,1,14,45,walk
+kanto_route_23,Route 23 (Kanto),route,true,389,torterra,Torterra,1,12,43,walk
+kanto_route_23,Route 23 (Kanto),route,true,464,rhyperior,Rhinastoc,1,12,43,walk
+kanto_route_23,Route 23 (Kanto),route,true,468,togekiss,Togekiss,1,12,43,walk
+kanto_route_23,Route 23 (Kanto),route,true,474,porygon-z,Porygon-Z,1,12,43,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,95,onix,Onix,11,33,47,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,247,pupitar,Ymphect,7,35,50,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,112,rhydon,Rhinoféros,4,36,51,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,409,rampardos,Charkos,3,36,51,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,435,skuntank,Moufflair,3,36,51,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,76,golem,Grolem,2,38,54,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,229,houndoom,Démolosse,2,36,51,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,411,bastiodon,Bastiodon,2,36,51,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,450,hippowdon,Hippodocus,2,37,52,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,452,drapion,Drascore,2,36,51,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,461,weavile,Dimoret,2,36,51,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,94,gengar,Ectoplasma,1,38,54,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,248,tyranitar,Tyranocif,1,40,56,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,306,aggron,Galeking,1,39,55,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,330,flygon,Libégon,1,39,55,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,445,garchomp,Carchacrok,1,40,56,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,464,rhyperior,Rhinastoc,1,39,55,rock-smash|walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,476,probopass,Tarinorme,1,37,52,rock-smash|walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,3,venusaur,Florizarre,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,242,blissey,Leuphorie,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,257,blaziken,Braségali,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,376,metagross,Métalosse,1,70,81,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,392,infernape,Simiabraz,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,448,lucario,Lucario,1,67,77,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,462,magnezone,Magnézone,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,474,porygon-z,Porygon-Z,1,69,80,walk
+kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,475,gallade,Gallame,1,69,80,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,63,abra,Abra,16,5,54,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,96,drowzee,Soporifik,16,5,54,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,280,ralts,Tarsal,16,3,52,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,325,spoink,Spoink,16,5,54,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,360,wynaut,Okéoké,16,4,53,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,433,chingling,Korillon,16,4,53,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,439,mime-jr,Mime Jr.,16,5,54,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,281,kirlia,Kirlia,15,6,56,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,201,unown,Zarbi,13,5,54,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,211,qwilfish,Qwilfish,8,6,55,good-rod|surf
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,340,whiscash,Barbicha,4,9,59,good-rod|surf
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,65,alakazam,Alakazam,3,11,62,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,73,tentacruel,Tentacruel,2,9,59,super-rod|surf
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,196,espeon,Mentali,1,10,60,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,230,kingdra,Hyporoi,1,12,63,super-rod|surf
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,260,swampert,Laggron,1,12,63,super-rod|surf
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,282,gardevoir,Gardevoir,1,12,63,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,376,metagross,Métalosse,1,13,64,walk

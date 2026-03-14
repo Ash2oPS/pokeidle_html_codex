@@ -36,3 +36,22 @@ npm run desktop:build
 ```
 
 Sortie: `output/electron-dist/`
+
+## Tests
+
+```bash
+npm test
+```
+
+Suites disponibles:
+- `npm run test:node` pour les tests Node (`node:test`).
+- `npm run test:vitest` pour les tests unitaires Vitest.
+
+## Architecture scripts
+
+Les scripts sont maintenant organises par domaine:
+- `scripts/map/`
+- `scripts/data/pokemon/`
+- `scripts/testing/playwright/`
+
+Les anciens scripts racine sont conserves comme wrappers de compatibilite.
