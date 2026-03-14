@@ -9,14 +9,14 @@
     "route_defeat_counts":  {
 
                             },
-    "last_tick_epoch_ms":  1773440473630,
+    "last_tick_epoch_ms":  1773521317209,
     "team":  [
                  4
              ],
     "pokemon_entities":  {
                              "4":  {
                                        "id":  4,
-                                       "level":  22,
+                                       "level":  20,
                                        "xp":  0,
                                        "entity_unlocked":  true,
                                        "encountered_normal":  1,
@@ -25,7 +25,7 @@
                          },
     "money":  0,
     "ball_inventory":  {
-                           "poke_ball":  30,
+                           "poke_ball":  60,
                            "super_ball":  0,
                            "hyper_ball":  0
                        },
@@ -36,7 +36,7 @@
                        "leaf_stone":  0
                    },
     "attack_boost_until_ms":  0,
-    "pokeballs":  30,
+    "pokeballs":  60,
     "tutorials":  {
                       "route1_intro_seen":  true,
                       "evolution_intro_seen":  false,

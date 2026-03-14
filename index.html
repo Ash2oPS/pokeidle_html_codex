@@ -64,7 +64,7 @@
               </aside>
             </header>
 
-            <footer class="action-dock">
+            <footer class="action-dock is-temporary-disabled" aria-label="Menu principal temporairement desactive">
               <button id="map-btn" class="map-btn action-btn" type="button">
                 <span class="btn-icon" aria-hidden="true">M</span>
                 <span class="btn-label">Map</span>
@@ -89,7 +89,117 @@
                 <span class="btn-icon" aria-hidden="true">X</span>
                 <span class="btn-label">Supprimer la save</span>
               </button>
+              <div class="action-dock-pokeball-replacement">
+                <button
+                  id="action-dock-pokeball-toggle"
+                  class="action-dock-pokeball-toggle"
+                  type="button"
+                  aria-label="Afficher le menu principal"
+                  aria-controls="action-dock-fullscreen-menu"
+                  aria-expanded="false"
+                >
+                  <span class="loading-pokeball action-dock-loading-pokeball" aria-hidden="true"></span>
+                </button>
+              </div>
             </footer>
+
+            <section id="action-dock-fullscreen-menu" class="action-dock-fullscreen-menu hidden" aria-label="Menu principal plein ecran">
+              <div class="action-dock-fullscreen-shell">
+                <div id="action-dock-fullscreen-grid" class="action-dock-fullscreen-grid" role="menu" aria-label="Actions du menu">
+                  <button class="action-dock-fullscreen-btn" type="button" data-action-kind="map" data-action-target="map-btn" role="menuitem">
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M5.5 7.5L10 5l4 2.5L18.5 5v11.5L14 19l-4-2.5L5.5 19z" fill="currentColor" fill-opacity="0.2"></path>
+                        <path d="M10 5v11.5M14 7.5V19M5.5 7.5L10 5l4 2.5L18.5 5v11.5L14 19l-4-2.5L5.5 19z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Carte</span>
+                      <span class="action-dock-fullscreen-sub">Zones et routes</span>
+                    </span>
+                  </button>
+                  <button
+                    class="action-dock-fullscreen-btn"
+                    type="button"
+                    data-action-kind="pokedex"
+                    data-action-target="pokedex-btn"
+                    role="menuitem"
+                  >
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 0-3 3z" fill="currentColor" fill-opacity="0.2"></path>
+                        <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 0-3 3M6 4v19M9.5 9h5M9.5 12h5M9.5 15h3.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Pokedex</span>
+                      <span class="action-dock-fullscreen-sub">Fiches Pokemon</span>
+                    </span>
+                  </button>
+                  <button class="action-dock-fullscreen-btn" type="button" data-action-kind="shop" data-action-target="shop-btn" role="menuitem">
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M6 10h12l-1 10H7z" fill="currentColor" fill-opacity="0.2"></path>
+                        <path d="M8.5 10V8.3A3.5 3.5 0 0 1 12 4.8a3.5 3.5 0 0 1 3.5 3.5V10M6 10h12l-1 10H7z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Boutique</span>
+                      <span class="action-dock-fullscreen-sub">Objets et bonus</span>
+                    </span>
+                  </button>
+                  <button class="action-dock-fullscreen-btn" type="button" data-action-kind="skins" data-action-target="gacha-btn" role="menuitem">
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <rect x="5.2" y="4.5" width="13.6" height="15" rx="3" fill="currentColor" fill-opacity="0.2"></rect>
+                        <path d="M8 8.5h8M8 11.5h8M9.2 15.5h5.6M5.2 7.5h13.6M5.2 4.5h13.6v15H5.2z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <circle cx="16.9" cy="16.9" r="1.6" fill="currentColor"></circle>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Machine a Skins</span>
+                      <span class="action-dock-fullscreen-sub">Recompenses visuelles</span>
+                    </span>
+                  </button>
+                  <button
+                    class="action-dock-fullscreen-btn"
+                    type="button"
+                    data-action-kind="notifications"
+                    data-action-target="windows-notification-btn"
+                    role="menuitem"
+                  >
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M8 9a4 4 0 1 1 8 0v4.3l1.6 2.2H6.4L8 13.3z" fill="currentColor" fill-opacity="0.2"></path>
+                        <path d="M8 9a4 4 0 1 1 8 0v4.3l1.6 2.2H6.4L8 13.3zM10.2 18.2a1.8 1.8 0 0 0 3.6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Notifications</span>
+                      <span class="action-dock-fullscreen-sub">Alertes Windows</span>
+                    </span>
+                  </button>
+                  <button
+                    class="action-dock-fullscreen-btn is-danger"
+                    type="button"
+                    data-action-kind="danger"
+                    data-action-target="reset-save-btn"
+                    role="menuitem"
+                  >
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M8 8h8l-.8 10.2H8.8z" fill="currentColor" fill-opacity="0.2"></path>
+                        <path d="M9 8V6.7A1.7 1.7 0 0 1 10.7 5h2.6A1.7 1.7 0 0 1 15 6.7V8M6.8 8h10.4M8 8h8l-.8 10.2H8.8zM10.4 11.2v4.2M13.6 11.2v4.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Reinitialiser la save</span>
+                      <span class="action-dock-fullscreen-sub">Action irreversible</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </main>
@@ -176,7 +286,7 @@
     </section>
 
     <section id="gacha-modal" class="gacha-modal hidden" role="dialog" aria-modal="true" aria-label="Machine Gacha">
-      <div class="gacha-card">
+      <div id="gacha-card" class="gacha-card">
         <div class="gacha-header">
           <div>
             <h2 class="gacha-title">Machine Gacha Skins</h2>
@@ -205,16 +315,22 @@
             <div id="gacha-reel-track" class="gacha-reel-track"></div>
             <div class="gacha-reel-pointer" aria-hidden="true"></div>
           </div>
+          <div id="gacha-batch-reveal" class="gacha-batch-reveal hidden" aria-live="polite"></div>
         </div>
+        <div id="gacha-batch-spotlight" class="gacha-batch-spotlight hidden" aria-hidden="true"></div>
 
         <div id="gacha-result" class="gacha-result hidden">
-          <div class="gacha-result-kicker">Nouveau skin debloque</div>
+          <div id="gacha-result-kicker" class="gacha-result-kicker">Nouveau skin debloque</div>
           <div id="gacha-result-name" class="gacha-result-name">-</div>
           <div id="gacha-result-skin" class="gacha-result-skin">-</div>
           <div id="gacha-result-preview" class="gacha-result-preview"></div>
+          <div id="gacha-result-list" class="gacha-result-list hidden"></div>
         </div>
 
-        <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin aleatoire (10 Coins)</button>
+        <div class="gacha-spin-buttons">
+          <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin aleatoire (10 Coins)</button>
+          <button id="gacha-spin-10-btn" class="gacha-spin-btn gacha-spin-btn-batch" type="button">Obtenir 10 skins (100 Coins)</button>
+        </div>
       </div>
     </section>
 

@@ -4858,3 +4858,431 @@ Validation:
 - Add a small dev/debug command to force-enable post-unknown-cave mapping for QA without full progression.
 - Consider a second balancing pass from real capture telemetry (too many/too few seen species per zone over time).
 - If needed, expose a CSV diff report (base vs post-unknown-cave) for easier balancing reviews.
+## Additional progress (gacha x10)
+- Added a batch gacha purchase flow: `x10` skins for `100 Coins`, while keeping the original single-spin option (`10 Coins`).
+- Added a dedicated gacha batch animation variant:
+  - Longer reel main-scroll duration for batch spins.
+  - Distinct machine visual state (`is-spinning-10`) and mode-specific status text updates.
+- Extended gacha result UI to support multi-reward output:
+  - New result list container showing all won skins in order.
+  - Result header now switches between single reward and `Resultat x10` presentation.
+  - Preview keeps a highlighted reward sprite (last unlocked in the batch).
+- Extended runtime gacha state:
+  - `state.gacha.lastRewards` and `state.gacha.lastSpinCount` added.
+  - `render_game_to_text` now exposes `gacha_last_rewards` for automation/assertions.
+- Added a second button in gacha modal: `Obtenir 10 skins (100 Coins)`.
+
+## Validation runs (gacha x10)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Custom Playwright pass with seeded save (`tmp/dev_seed_gacha10.json`) to validate gacha x10 end-to-end:
+  - Triggered `#gacha-btn` then `#gacha-spin-10-btn`.
+  - Waited for `gacha_spinning = false` and `gacha_last_rewards.length >= 10`.
+  - Artifacts:
+    - `output/web-game-gacha10/shot-gacha10.png`
+    - `output/web-game-gacha10/state-gacha10.json`
+  - Observed result: 10 rewards listed in UI, coins decremented by 100, no console/page errors captured.
+
+## TODO / suggestions
+- Consider adding an explicit summary line `X nouveaux skins sur 10` if duplicate-protection behavior is changed later.
+- If desired, add an optional "ouvrir 10 fois" accelerated reel mode with reduced card count for faster UX on mobile.
+
+## Additional progress (2026-03-14, compteur Pokeballs en valeur reelle)
+- Updated `game.js` in `drawBallInventoryOverlay()` to display raw integer counts for Pokeball rows instead of compact notation (`K/M/B`).
+  - Replaced `formatCompactNumber(...)` with `String(Math.max(0, toSafeInt(row.count, 0)))` for:
+    - width measurement pass
+    - rendered value text
+- Result: examples like `9K` now render as `9000` in the left Pokeball counters overlay.
+
+## Validation (compteur Pokeballs valeur reelle)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted seeded Playwright run with `pokeballs=9000`: PASS.
+  - state confirms `pokeballs: 9000` and `ball_inventory.poke_ball: 9000`.
+  - screenshot confirms overlay displays `9000` (not `9K`):
+    - `output/web-game-pokeball-9000-v4/shot-0.png`
+
+## Additional progress (suppression systeme meteo -> cycle jour/nuit local)
+- Supprime tout le systeme meteo dans `game.js`:
+  - retrait des constantes de slots/transitions meteo;
+  - retrait des tables/types/profils meteo;
+  - retrait des fonctions de blend meteo/orage et des effets pluie, brouillard, eclairs, soleil.
+- Le snapshot environnement est maintenant strictement base sur l'heure locale du device:
+  - `07:00` a `18:59` => `day` (`dayLight = 1`, `night = 0`)
+  - `19:00` a `06:59` => `night` (`dayLight = 0`, `night = 1`)
+- Ajout de `LOCAL_DAY_START_HOUR = 7` et `LOCAL_NIGHT_START_HOUR = 19`.
+- Ajout du champ debug `local_time_of_day` dans `render_game_to_text`.
+- Suppression des champs debug meteo (`weather_current`, `weather_from`, `weather_to`, `weather_transition_blend`, `weather_weights`, `weather_lightning_intensity`).
+- Le grading jour/nuit continue de s'afficher meme en qualite de rendu basse.
+
+## Validation (suppression meteo)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Verification text state: `output/web-game-poke/state-2.json`
+  - `local_hour: 20`, `local_time_of_day: "night"`, `daylight_factor: 0`, `night_factor: 1`.
+- Verification visuelle: `output/web-game-poke/shot-2.png` (teinte nuit visible, plus aucun effet meteo).
+
+## TODO / Next (meteo)
+- Optionnel: exposer les heures 7/19 via un mini panneau debug pour ajustement live si besoin.
+## Additional progress (gacha x10 animation visibility pass)
+- Updated batch gacha flow so the x10 spin now includes a visible in-animation reveal stage:
+  - Added `#gacha-batch-reveal` panel in the gacha machine.
+  - During x10 spin, 10 slots are shown and revealed one by one as skins are unlocked.
+- Updated result section rendering to explicitly show the 10 obtained skins as reward cards (sprite + name + variant), not only text lines.
+- Adjusted gacha CSS for compact multi-card layouts so 10 rewards fit in the result area on desktop and remain readable on mobile.
+
+## Validation (animation + result visibility)
+- `node --check game.js`: PASS.
+- Timeline probe confirmed x10 animation reveal panel lifecycle:
+  - `gacha_spinning=true` while `gacha-batch-reveal` becomes visible with 10 child cards.
+  - End state switches to `gacha_spinning=false` with `gacha_last_rewards=10`.
+- Final visual artifact:
+  - `output/web-game-gacha10/shot-gacha10.png`
+  - Shows result section containing the 10 obtained skins.
+## Additional progress (result focus layout)
+- Added `show-result-focus` layout mode on gacha card when rewards are available.
+- In result focus mode, the top gacha UI (wallet + machine/reel section) is hidden and replaced by a large result panel.
+- Scaled up reward cards significantly (sprite + labels) for clearer visibility.
+- Kept spin action buttons accessible below the enlarged result block.
+
+## Validation (result focus)
+- `node --check game.js`: PASS.
+- Playwright gacha x10 capture confirms:
+  - top section replaced by result block,
+  - 10 rewards shown in large cards,
+  - `gacha_last_rewards.length = 10`.
+- Artifact: `output/web-game-gacha10/shot-gacha10.png`
+
+## Additional progress (temporary bottom dock replacement)
+- Temporarily disabled the bottom `action-dock` menu visually by adding `is-temporary-disabled` on the footer in `index.html` while keeping existing buttons in DOM for JS bindings.
+- Added a dock replacement container that reuses the loading-screen Pokeball style (`loading-pokeball`) and placed it bottom-center in the dock.
+- Added CSS override block in `styles.css` so `.action-dock.is-temporary-disabled` hides action buttons and displays a centered Pokeball with adapted size for the dock.
+- Validation:
+  - `run_playwright_check.ps1`: PASS (no error output).
+  - Additional Playwright capture produced:
+    - `output/web-game-poke/shot-actiondock-full.png`
+    - `output/web-game-poke/shot-actiondock-only.png`
+- Removed gameplay frame/liseret by disabling .game-stage box-shadow and hiding .game-stage::after in final CSS overrides.
+- Ran Playwright check (un_playwright_check.ps1); latest screenshot output/web-game-poke/shot-2.png confirms the outer gameplay frame is gone.
+
+## Additional progress (pokeball toggle -> fullscreen action grid)
+- Implemented a fullscreen action menu opened from the temporary bottom Pokeball:
+  - New clickable Pokeball toggle: `#action-dock-pokeball-toggle`.
+  - New fullscreen overlay menu: `#action-dock-fullscreen-menu`.
+  - Responsive action grid: `#action-dock-fullscreen-grid` with 6 actions (Map, Pokedex, Shop, Gacha, Notifs Windows, Reset save).
+- Behavior:
+  - First click on Pokeball opens fullscreen menu.
+  - Re-click on Pokeball in menu closes it.
+  - `Esc` closes the fullscreen menu.
+  - Clicking an action card relays to the original hidden button (`data-action-target`) and closes the menu.
+- CSS:
+  - Added full-screen blurred overlay skin and responsive grid layout (`auto-fit` desktop, 2 columns mobile).
+  - Preserved old button logic by keeping original buttons in DOM and hidden in temporary dock mode.
+
+## Validation (pokeball fullscreen menu)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Dedicated Playwright captures:
+  - Closed state: `output/web-game-poke/shot-pokeball-menu-closed.png`
+  - Open fullscreen menu: `output/web-game-poke/shot-pokeball-menu-open.png`
+  - Grid crop: `output/web-game-poke/shot-pokeball-menu-grid.png`
+  - Re-closed state after second Pokeball click: `output/web-game-poke/shot-pokeball-menu-reclosed.png`
+
+## Additional progress (damage text horizontal motion removed)
+- Updated `game.js` floating damage text behavior to remove left-right motion:
+  - set floating damage `vx` to `0` at spawn,
+  - removed sinusoidal `swayX` offset in `drawFloatingDamageTexts`,
+  - kept vertical rise/fade/scale behavior unchanged.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - `run_playwright_projectile.ps1`: PASS.
+  - Custom develop-web-game Playwright sequence with starter auto-click:
+    - artifacts: `output/web-game-damage-no-sway-seq/shot-16.png` and `output/web-game-damage-no-sway-seq/shot-17.png`.
+    - text-state check confirms no horizontal drift on same floating text across frames (constant `x`, decreasing `y`):
+      - `state-16 -> state-17 -> state-18`: `x = 648` while `y` rises `345 -> 306 -> 273`.
+
+## Additional progress (2026-03-14, mobile pokemon sprite upscale)
+- Fixed phone-size sprite readability in `game.js` by introducing viewport-aware sprite multipliers:
+  - Team sprites now use `TEAM_SPRITE_SCALE_PHONE_MULTIPLIER` / `TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER` via `getTeamSpriteScale(layout)`.
+  - Enemy sprite render size now uses `ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER` / `ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER` via `getEnemySpriteRenderSize(layout, baseSize)`.
+- Applied the new scale logic to all relevant render paths:
+  - team in-battle draw,
+  - drag/swap ghost sprite,
+  - enemy draw + enemy backdrop circle.
+- Synced interaction hitboxes with larger visuals:
+  - team hover hit radius now scales with rendered sprite scale,
+  - enemy hover radius now uses rendered enemy sprite size.
+
+### Validation (mobile sprite upscale)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Mobile viewport capture (390x844) with starter auto-select and tutorial close: PASS.
+  - Screenshot: `output/mobile-sprite-fix-390x844-battle-clear.png`
+  - State: `output/mobile-sprite-fix-390x844-battle-clear.state.json`
+  - Meta: `output/mobile-sprite-fix-390x844-battle-clear.meta.json` (`chosen: true`).
+
+### TODO / Next
+- If needed, fine-tune phone multipliers separately for very short landscape screens (<420px height).
+- Optionally add a small QA script under `scripts/testing/playwright/` for repeatable mobile viewport regressions.
+## Additional progress (batch spotlight reveal sequence)
+- Reworked x10 discovery animation to highlight each reward one-by-one:
+  - Added `#gacha-batch-spotlight` overlay layer.
+  - Each unlocked skin now appears centered in a large spotlight card (scale-in emphasis).
+  - After highlight, the card animates toward its corresponding slot in the reveal grid.
+  - Sequence repeats for all rewards before final result panel.
+- Added cleanup hooks for spotlight layer on reset/close/error paths.
+- Tuned reveal pacing to keep each reward visible longer before flying to the grid.
+
+## Validation (spotlight sequence)
+- `node --check game.js`: PASS.
+- Playwright capture confirms spotlight step and final result:
+  - Spotlight frame: `output/web-game-gacha10/shot-gacha10-animation.png`
+  - Final result frame: `output/web-game-gacha10/shot-gacha10.png`
+  - State check: `gacha_spinning=false`, `gacha_last_rewards.length=10`.
+
+## Additional progress (pokeball polish + menu transition)
+- Updated bottom Pokeball style to match requested shape:
+  - Center button is now pure white and smaller.
+  - Pokeball size increased and moved slightly higher above the bottom edge.
+  - Halo kept.
+- Added hover motion behavior on the bottom Pokeball:
+  - Mouse enter: 360deg clockwise spin + existing scale lift.
+  - Mouse leave: 360deg counter-clockwise spin.
+  - Animation always resets to base rotation (0deg) after each spin.
+- Fullscreen menu transition improved:
+  - Smooth fade/translate/blur entrance and exit.
+  - Staggered card reveal animation for menu buttons.
+- Removed Pokeball from inside fullscreen menu.
+  - Only the bottom Pokeball remains visible.
+  - Bottom Pokeball is rendered above the fullscreen menu and remains clickable to toggle close/open.
+
+## Validation (pokeball polish)
+- `node --check game.js`: PASS.
+- Playwright visual check:
+  - `output/web-game-poke/shot-pokeball-menu-open-styled.png`
+  - `output/web-game-poke/shot-pokeball-menu-open-styled-closeup.png`
+  - `output/web-game-poke/shot-pokeball-menu-grid-styled.png`
+  - Runtime probe: `visiblePokeballs=1` when fullscreen menu is open.
+- Hover behavior probe:
+  - After enter+leave sequence, Pokeball classes reset and computed transform returns to `none` (base rotation 0).
+
+## Additional progress (2026-03-14, projectile visual cap unification)
+- Unified projectile rendering to a single fixed profile, independent from global render quality tiers.
+- Added `PROJECTILE_VISUAL_PROFILE` in `game.js` and wired projectile draw/update logic to this fixed profile.
+- Chosen balanced profile for visuals/perf:
+  - trail enabled, `trailMaxPoints: 4`, `trailStride: 2`
+  - sprite detail enabled
+  - glow/aura/streak disabled to keep GPU cost reasonable.
+- Kept the global quality system for non-projectile effects; projectile visuals no longer degrade by quality tier.
+- Validation:
+  - `run_playwright_projectile.ps1`: PASS
+  - `run_playwright_check.ps1`: PASS
+  - No `errors-*.json` emitted in those runs.
+
+## Additional progress (fullscreen menu button redesign)
+- Redesigned fullscreen action-menu buttons with real inline SVG icons (map, pokedex, shop, skins machine, notifications, reset).
+- Updated labels/microcopy for clarity:
+  - `Map` -> `Carte`
+  - `Shop` -> `Boutique`
+  - `Machine Gacha` -> `Machine a Skins`
+  - `Notifs Windows` -> `Notifications`
+  - `Supprimer la save` -> `Reinitialiser la save`
+- Added secondary subtitles on each card for clearer intent.
+- Enhanced visual style:
+  - per-action accent colors,
+  - richer gradients and glow,
+  - polished hover/focus states,
+  - responsive alignment with icon + text stack.
+
+## Validation (button redesign)
+- Visual captures:
+  - `output/web-game-poke/shot-menu-buttons-redesign-open.png`
+  - `output/web-game-poke/shot-menu-buttons-redesign-grid.png`
+- Syntax check:
+  - `node --check game.js`: PASS.
+
+## Additional progress (2026-03-14, Bulbizarre too small on phone follow-up)
+- Added a mobile-focused minimum render floor for allied sprites in `game.js` to prevent very small source sprites (like Bulbizarre FRLG) from becoming hard to see.
+- New constants:
+  - `TEAM_SPRITE_MIN_RENDER_RATIO_PHONE = 0.96`
+  - `TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT = 0.9`
+- Added helper `getTeamSpriteMinRenderSize(layout, slotSize)`.
+- `drawPokemonSprite(...)` now supports `minRenderSizePx` and clamps final `renderSize` accordingly.
+- Applied min render floor to:
+  - team sprite draw path in battle,
+  - drag/swap ghost sprite draw path.
+
+### Validation (Bulbizarre visibility)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Mobile viewport capture after starter selection (390x844):
+  - `output/mobile-sprite-fix-390x844-battle-clear-v3.png`
+  - `output/mobile-sprite-fix-390x844-battle-clear-v3.state.json`
+- Visual check: Bulbizarre is now significantly larger and readable on phone.
+- Follow-up cleanup (projectile preset lock):
+  - Removed remaining projectile visual keys from `RENDER_QUALITY_PRESETS` to avoid any perf-tier-based projectile selection confusion.
+  - Renamed helper `getProjectileTrailMaxPointsForQuality` -> `getProjectileTrailMaxPoints`.
+  - `run_playwright_check.ps1`: PASS.
+
+## Additional progress (version + FPS bottom anchors)
+- Updated canvas HUD anchoring so version and FPS are now strictly pinned to viewport bottom corners:
+  - version: bottom-left (`drawVersionOverlay`),
+  - FPS: bottom-right (`drawFpsOverlay`).
+- Removed dock/safe-bound based vertical offset from `getBottomHudSafeEdge()` for these indicators to ensure true bottom anchoring.
+- Fine-tuned corner margins for desktop/mobile.
+
+## Validation (version/FPS anchors)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Visual capture: `output/web-game-poke/shot-version-fps-anchored.png`.
+
+## Additional progress (2026-03-14, enemy sprite +15%)
+- Increased enemy render size globally by +15% in `game.js`.
+- Added constant: `ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER = 1.15`.
+- Applied in `getEnemySpriteRenderSize(...)` so all enemy draw paths and enemy hover hit radius stay consistent.
+
+### Validation (enemy +15%)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Mobile viewport capture (390x844):
+  - `output/mobile-enemy-size-plus15-390x844.png`
+  - `output/mobile-enemy-size-plus15-390x844.state.json`
+- Visual check: enemy is noticeably larger on screen.
+
+## Additional progress (pokeball size/height + hover clipping fix)
+- Increased bottom Pokeball size again and raised its vertical position.
+- Adjusted temporary dock height/padding to give extra headroom for hover transforms.
+- Fixed hover clipping by enabling visible overflow around the Pokeball button/wrapper and preserving transformed bounds.
+- Kept hover animation behavior intact.
+
+## Validation (size + clipping)
+- Visual hover captures:
+  - `output/web-game-poke/shot-pokeball-bigger-higher-hover.png`
+  - `output/web-game-poke/shot-pokeball-bigger-higher-hover-closeup.png`
+- `run_playwright_check.ps1`: PASS.
+
+## Additional progress (touch-friendly pokeball animation behavior)
+- Removed Pokeball rotation triggers from hover in JS.
+- Moved Pokeball rotation to menu toggle actions only:
+  - opening menu => clockwise spin,
+  - closing menu => counter-clockwise spin.
+- Improved input behavior for phone/touch:
+  - added `touch-action: manipulation` on Pokeball toggle,
+  - restricted hover lift effect to fine-pointer hover devices,
+  - added `:active` press feedback for tap interactions.
+- Added a guard in `setActionDockFullscreenMenuOpen(...)` to avoid replaying animations on no-op state changes.
+- Added optional `{ animate: false }` call path for internal/reset close operations.
+
+## Validation (touch + animation trigger)
+- Probe results:
+  - `spinOnHover=false`
+  - `spinOnOpen=true`
+  - `spinOnClose=true`
+  - `mobileMenuOpen=true`
+  - `mobileMenuClosed=true`
+- Mobile visual capture:
+  - `output/web-game-poke/shot-pokeball-mobile-menu-open.png`
+- Standard check:
+  - `run_playwright_check.ps1`: PASS.
+## Additional progress (2026-03-14, mobile long-press context menu fix)
+- Fixed the Pokemon team context menu interaction on phone by adding an explicit touch long-press flow in `game.js`.
+- Added touch hold constants:
+  - `TEAM_CONTEXT_TOUCH_HOLD_DELAY_MS = 460`
+  - `TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX = 10`
+- Added dedicated UI state fields for touch-hold tracking (timer, pointer id, slot, start/current client coordinates).
+- Implemented helper workflow:
+  - schedule long-press on touch `pointerdown` over a team slot,
+  - cancel on movement drift / slot change / pointer end / cancel / blur,
+  - trigger context menu open on hold timeout with optional vibration feedback (`navigator.vibrate(12)`),
+  - suppress subsequent tap/click to avoid accidental `Boites` opening after hold.
+- Integrated cancellation guards into drag lifecycle so touch drag/swap remains stable and does not race with long-press.
+
+### Validation (mobile long-press)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Targeted mobile touch scenario (390x844, touch pointer emulation): PASS.
+  - Artifact screenshot: `output/mobile-longpress-check/mobile-longpress-context-menu.png`
+  - Artifact state: `output/mobile-longpress-check/mobile-longpress-state.json`
+  - Observed: `team_context_menu_open = true` during hold and still `true` after pointer up (no unwanted fallback click).
+
+## Additional progress (damage text spawn moved above target)
+- Updated floating damage text spawn in `game.js` so numbers appear above the target instead of on top of the sprite.
+- Implementation:
+  - Added `targetVisualSize` in `addFloatingDamageText(...)`.
+  - Added `extraSpawnLiftY = max(24, targetVisualSize * 0.52)`.
+  - Spawn position now uses `y = targetY - toneStyle.spawnLiftY - extraSpawnLiftY`.
+  - Call sites now pass enemy visual size from layout (`enemySize`) for both hit and miss damage texts.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Combat-targeted custom Playwright run is currently blocked by an unrelated pre-existing runtime error in this branch (`drawPokemonTerrainShadow is not defined`) when entering battle render path.
+
+## Additional progress (2026-03-14, refonte ombres team + enemy)
+- Reworked Pokemon ground shadows in `game.js` for cleaner battlefield rendering.
+- Added new helper: `drawPokemonTerrainShadow(renderSize, options)` with:
+  - multi-layer shadow (ambient + core + contact),
+  - profile support (`team`, `enemy`, `drag`),
+  - lift-aware squash/fade,
+  - ground anchoring support (`groundOffsetY`) so breathing/lift does not make shadows float unnaturally.
+- Updated `drawPokemonSprite(...)`:
+  - replaced old single ellipse shadow with the new helper,
+  - added shadow options passthrough (`shadowProfile`, `shadowAlpha`, `shadowGroundOffsetY`, `shadowLiftPx`).
+- Applied to team first, then enemy:
+  - team sprites now use `shadowProfile: "team"`,
+  - enemy sprite now uses `shadowProfile: "enemy"`,
+  - drag ghost uses `shadowProfile: "drag"` with lighter alpha and slight lift.
+
+### Validation (shadows)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- `run_playwright_projectile.ps1`: PASS.
+- Dedicated develop-web-game canvas capture with starter auto-click:
+  - screenshot: `output/web-game-shadow-check/shot-0.png`
+  - text state: `output/web-game-shadow-check/state-0.json`
+- Visual confirmation: team and enemy both show improved, cleaner ground shadows.
+
+## Additional progress (Pokemon combat animation tween migration)
+- Audited Pokemon-related animation paths in `game.js`:
+  - Kept continuous procedural animations as-is (breathing/hover/ambient sin waves) because they are perpetual signals, not finite transitions.
+  - Migrated finite combat transitions from manual elapsed timers to `Tween.js`-driven states.
+- Tween migration implemented inside `PokemonBattleManager`:
+  - Enemy hit pulse now tween-driven (`triggerEnemyHitPulse`) instead of manual `enemyHitPulseMs` decrements.
+  - Enemy damage flash now tween-driven (`triggerEnemyDamageFlash`) instead of manual `enemyDamageFlashMs` decrements.
+  - Slot recoil now tween-driven progress state (`triggerSlotRecoil`) with same visual curve formula.
+  - Slot attack flash now tween-driven blend decay (`triggerSlotAttackFlash`).
+  - Skip-turn tremor effect now tween-driven progress (`triggerSlotSkipTurnEffect`) with same envelope/jitter equations.
+  - Teleport swap scale squash now tween-driven progress (`triggerSlotTeleportScale`) with same down/up shape.
+- Added cleanup helpers to avoid stale visual tweens on transitions (`resetCombatVisualTweens`, slot-level stop methods).
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Custom Playwright battle pass with starter click + Route 1 switch + combat wait: PASS.
+    - Artifacts: `output/web-game-tween-audit/shot-0.png`, `output/web-game-tween-audit/state-0.json`.
+    - Observed: active Route 1 combat, damage events rendered, no generated Playwright error log.
+- Note:
+  - Long KO script wrappers exceeded local command timeout in this session; a shorter custom combat validation was used to verify tween migration behavior.
+
+## Additional progress (2026-03-14, gacha x10 reveal polish + fullscreen spotlight)
+- Fixed a runtime regression in `game.js` by restoring `drawPokemonTerrainShadow(...)`.
+  - This removes `ReferenceError: drawPokemonTerrainShadow is not defined` during renders.
+- Refined batch gacha reveal sequence for smoother skin-to-grid flow:
+  - spotlight card now exits with a dedicated fade/scale transition (`is-exiting`) while transfer continues;
+  - transfer no longer hard-cuts the spotlight before movement starts.
+- Increased reveal emphasis and juice:
+  - fullscreen spotlight layer for each unlocked skin;
+  - larger spotlight card typography + media;
+  - sprite pop-in animation on spotlight entry;
+  - stronger transfer orb treatment;
+  - slot impact wave + spark burst when each skin lands in its grid slot.
+- Kept result focus behavior: the top machine section remains replaced by the enlarged `Resultat x10` panel showing all 10 skins.
+
+## Validation (gacha x10 reveal polish)
+- `node --check game.js`: PASS.
+- Custom Playwright run (seeded save) with forced x10 flow: PASS.
+  - `output/web-game-gacha10/shot-gacha10-animation.png` (fullscreen spotlight reveal frame)
+  - `output/web-game-gacha10/shot-gacha10.png` (final enlarged x10 result)
+  - `output/web-game-gacha10/state-gacha10.json` confirms:
+    - `gacha_spinning = false`
+    - `gacha_last_rewards.length = 10`
+  - `output/web-game-gacha10/errors-gacha10.json`: not generated (no captured page/console errors).

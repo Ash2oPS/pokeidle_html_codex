@@ -194,6 +194,8 @@ const ROUTE_UNLOCK_DEFEATS = 20;
 const ROUTE_DEFEAT_TIMER_MS = 20000;
 const TEAM_DRAG_START_DISTANCE_PX = 12;
 const TEAM_DRAG_CLICK_SUPPRESS_MS = 220;
+const TEAM_CONTEXT_TOUCH_HOLD_DELAY_MS = 460;
+const TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX = 10;
 const ONLY_ONE_ENCOUNTER_INTERVAL = 50;
 const ONLY_ONE_ENCOUNTER_NORMALS_BEFORE_SPAWN = ONLY_ONE_ENCOUNTER_INTERVAL - 1;
 const ONLY_ONE_ENCOUNTER_HP_MULTIPLIER = 3;
@@ -602,6 +604,16 @@ const PROJECTILE_TRAIL_MAX_POINTS = 10;
 const PROJECTILE_TRAIL_POINT_BASE_SPACING_PX = 7.2;
 const PROJECTILE_TRAIL_POINT_MIN_SPACING_PX = 4.5;
 const PROJECTILE_TRAIL_POINT_MAX_SPACING_PX = 13.5;
+const PROJECTILE_VISUAL_PROFILE = Object.freeze({
+  trailEnabled: true,
+  trailMaxPoints: 4,
+  trailStride: 2,
+  trailGlow: false,
+  streak: false,
+  aura: false,
+  auraScale: 0.66,
+  spriteDetail: true,
+});
 const CAPTURE_THROW_MS = 360;
 const CAPTURE_SHAKE_MS = 560;
 const CAPTURE_SUCCESS_BURST_MS = 560;
@@ -616,15 +628,33 @@ const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
 const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const GACHA_SPIN_COST_COINS = 10;
+const GACHA_BATCH_SPIN_COUNT = 10;
+const GACHA_BATCH_SPIN_COST_COINS = 100;
 const GACHA_BASE_MAX_POKEMON_ID = 151;
 const GACHA_EXTENDED_MAX_POKEMON_ID = 493;
 const GACHA_REEL_TOTAL_ITEMS = 64;
 const GACHA_REEL_REWARD_INDEX = 44;
 const GACHA_SPIN_DURATION_MS = 2400;
+const GACHA_BATCH_SPIN_DURATION_MS = 3200;
 const GACHA_SPIN_FINAL_SNAP_DURATION_MS = 220;
 const GACHA_SPIN_MAIN_SCROLL_DURATION_MS = Math.max(200, GACHA_SPIN_DURATION_MS - GACHA_SPIN_FINAL_SNAP_DURATION_MS);
+const GACHA_BATCH_SPIN_MAIN_SCROLL_DURATION_MS = Math.max(
+  200,
+  GACHA_BATCH_SPIN_DURATION_MS - GACHA_SPIN_FINAL_SNAP_DURATION_MS,
+);
 const GACHA_SPIN_FINAL_SNAP_LEAD_PX = 24;
+const GACHA_BATCH_SPOTLIGHT_POP_MS = 620;
+const GACHA_BATCH_SPOTLIGHT_TRANSFER_MS = 420;
+const GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS = 110;
+const GACHA_BATCH_SLOT_JUICE_MS = 560;
 const TEAM_SPRITE_SCALE = 1.18;
+const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24;
+const TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER = 1.1;
+const TEAM_SPRITE_MIN_RENDER_RATIO_PHONE = 0.96;
+const TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT = 0.9;
+const ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER = 1.15;
+const ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER = 1.14;
+const ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER = 1.06;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
 const POKEMON_SPRITE_COMMON_PPU = 64;
@@ -750,9 +780,6 @@ const TUTORIAL_FLOW_DEFINITIONS = Object.freeze({
     ]),
   }),
 });
-const WEATHER_CHANGE_INTERVAL_MS = 30 * 60 * 1000;
-const WEATHER_TRANSITION_DURATION_MS = 90 * 1000;
-const WEATHER_LIGHTNING_WINDOW_MS = 1700;
 const POKEMON_BACKDROP_ALPHA = 0.5;
 const POKEMON_BACKDROP_RADIUS_RATIO = 0.36;
 const POKEMON_SHADOW_ALPHA = 0.52;
@@ -790,6 +817,8 @@ const DEFERRED_ROUTE_WARMUP_CHUNK_SIZE = 2;
 const DEFERRED_ROUTE_WARMUP_DELAY_MS = 180;
 const LOADING_SCREEN_EXIT_DURATION_MS = 820;
 const LOADING_SCREEN_DEFAULT_TEXT = "Le code de ce jeu a \u00e9t\u00e9 enti\u00e8rement g\u00e9n\u00e9r\u00e9 par IA.";
+const LOCAL_DAY_START_HOUR = 7;
+const LOCAL_NIGHT_START_HOUR = 19;
 const ENVIRONMENT_UPDATE_INTERVAL_MS = 120;
 const RENDER_QUALITY_ORDER = Object.freeze(["very_low", "low", "medium", "high", "ultra"]);
 const RENDER_QUALITY_PRESETS = Object.freeze({
@@ -801,14 +830,6 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
     environmentParticleScale: 0.45,
     environmentUpdateIntervalMult: 1.3,
     fogLayerCount: 1,
-    projectileTrailStride: 1,
-    projectileTrailMaxPoints: 6,
-    projectileTrailGlow: false,
-    projectileStreak: true,
-    projectileAura: false,
-    projectileAuraScale: 0.8,
-    projectileTrailEnabled: true,
-    projectileSpriteDetail: true,
     ambientOverlayEnabled: true,
     celebrationParticles: true,
     enemyHitGlow: false,
@@ -824,14 +845,6 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
     environmentParticleScale: 0.22,
     environmentUpdateIntervalMult: 1.6,
     fogLayerCount: 1,
-    projectileTrailStride: 2,
-    projectileTrailMaxPoints: 4,
-    projectileTrailGlow: false,
-    projectileStreak: false,
-    projectileAura: false,
-    projectileAuraScale: 0.68,
-    projectileTrailEnabled: true,
-    projectileSpriteDetail: true,
     ambientOverlayEnabled: true,
     celebrationParticles: true,
     enemyHitGlow: false,
@@ -847,14 +860,6 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
     environmentParticleScale: 0.06,
     environmentUpdateIntervalMult: 2,
     fogLayerCount: 0,
-    projectileTrailStride: 4,
-    projectileTrailMaxPoints: 0,
-    projectileTrailGlow: false,
-    projectileStreak: false,
-    projectileAura: false,
-    projectileAuraScale: 0.5,
-    projectileTrailEnabled: false,
-    projectileSpriteDetail: false,
     ambientOverlayEnabled: false,
     celebrationParticles: false,
     enemyHitGlow: false,
@@ -870,14 +875,6 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
     environmentParticleScale: 0,
     environmentUpdateIntervalMult: 2.4,
     fogLayerCount: 0,
-    projectileTrailStride: 4,
-    projectileTrailMaxPoints: 0,
-    projectileTrailGlow: false,
-    projectileStreak: false,
-    projectileAura: false,
-    projectileAuraScale: 0.45,
-    projectileTrailEnabled: false,
-    projectileSpriteDetail: false,
     ambientOverlayEnabled: false,
     celebrationParticles: false,
     enemyHitGlow: false,
@@ -893,14 +890,6 @@ const RENDER_QUALITY_PRESETS = Object.freeze({
     environmentParticleScale: 0,
     environmentUpdateIntervalMult: 2.8,
     fogLayerCount: 0,
-    projectileTrailStride: 4,
-    projectileTrailMaxPoints: 0,
-    projectileTrailGlow: false,
-    projectileStreak: false,
-    projectileAura: false,
-    projectileAuraScale: 0.4,
-    projectileTrailEnabled: false,
-    projectileSpriteDetail: false,
     ambientOverlayEnabled: false,
     celebrationParticles: false,
     enemyHitGlow: false,
@@ -986,71 +975,6 @@ const BALL_OVERLAY_UI_STYLE_DEFAULT = Object.freeze({
   glow: "rgba(130, 186, 255, 0.34)",
   phaseOffset: 0,
 });
-const WEATHER_TYPES = ["neutral", "sunny", "rainy", "foggy", "storm"];
-const WEATHER_WEIGHT_TABLE = [
-  { type: "neutral", weight: 40 },
-  { type: "sunny", weight: 20 },
-  { type: "rainy", weight: 20 },
-  { type: "foggy", weight: 10 },
-  { type: "storm", weight: 10 },
-];
-const WEATHER_PROFILE_BY_TYPE = {
-  neutral: {
-    label: "Neutre",
-    gradeOverlayColor: [255, 255, 255],
-    gradeOverlayAlpha: 0,
-    gradeScreenColor: [255, 255, 255],
-    gradeScreenAlpha: 0,
-    rain: 0,
-    fog: 0,
-    sun: 0,
-    storm: 0,
-  },
-  sunny: {
-    label: "Ensoleille",
-    gradeOverlayColor: [255, 228, 168],
-    gradeOverlayAlpha: 0.08,
-    gradeScreenColor: [255, 244, 206],
-    gradeScreenAlpha: 0.14,
-    rain: 0,
-    fog: 0.06,
-    sun: 1,
-    storm: 0,
-  },
-  rainy: {
-    label: "Pluvieux",
-    gradeOverlayColor: [78, 112, 160],
-    gradeOverlayAlpha: 0.17,
-    gradeScreenColor: [158, 214, 255],
-    gradeScreenAlpha: 0.045,
-    rain: 1,
-    fog: 0.14,
-    sun: 0,
-    storm: 0,
-  },
-  foggy: {
-    label: "Brumeux",
-    gradeOverlayColor: [152, 168, 184],
-    gradeOverlayAlpha: 0.2,
-    gradeScreenColor: [228, 238, 255],
-    gradeScreenAlpha: 0.05,
-    rain: 0,
-    fog: 0.5,
-    sun: 0,
-    storm: 0,
-  },
-  storm: {
-    label: "Orage",
-    gradeOverlayColor: [44, 70, 118],
-    gradeOverlayAlpha: 0.3,
-    gradeScreenColor: [168, 204, 255],
-    gradeScreenAlpha: 0.04,
-    rain: 1.6,
-    fog: 0.24,
-    sun: 0,
-    storm: 1,
-  },
-};
 function cloneConfigMap(source) {
   const clone = {};
   const entries = source && typeof source === "object" ? Object.entries(source) : [];
@@ -1576,6 +1500,13 @@ const loadingScreenEl = document.getElementById("loading-screen");
 const loadingScreenTextEl = document.getElementById("loading-screen-text");
 const uiTopbarEl = document.querySelector(".ui-topbar");
 const actionDockEl = document.querySelector(".action-dock");
+const actionDockPokeballToggleButtonEl = document.getElementById("action-dock-pokeball-toggle");
+const actionDockPokeballVisualEl =
+  actionDockPokeballToggleButtonEl instanceof Element
+    ? actionDockPokeballToggleButtonEl.querySelector(".action-dock-loading-pokeball")
+    : null;
+const actionDockFullscreenMenuEl = document.getElementById("action-dock-fullscreen-menu");
+const actionDockFullscreenGridEl = document.getElementById("action-dock-fullscreen-grid");
 const starterModalEl = document.getElementById("starter-modal");
 const starterChoicesEl = document.getElementById("starter-choices");
 const hoverPopupEl = document.getElementById("hover-popup");
@@ -1654,6 +1585,7 @@ const shopTabButtonEls = Array.from(document.querySelectorAll("[data-shop-tab]")
 const shopQtyPresetButtonEls = Array.from(document.querySelectorAll("[data-shop-qty]"));
 const closeShopButtonEl = document.getElementById("close-shop-btn");
 const gachaModalEl = document.getElementById("gacha-modal");
+const gachaCardEl = document.getElementById("gacha-card");
 const gachaCloseButtonEl = document.getElementById("gacha-close-btn");
 const gachaSubtitleEl = document.getElementById("gacha-subtitle");
 const gachaWalletCoinsEl = document.getElementById("gacha-wallet-coins");
@@ -1662,12 +1594,17 @@ const gachaWalletRemainingEl = document.getElementById("gacha-wallet-remaining")
 const gachaMachineEl = document.getElementById("gacha-machine");
 const gachaReelWindowEl = document.getElementById("gacha-reel-window");
 const gachaReelTrackEl = document.getElementById("gacha-reel-track");
+const gachaBatchRevealEl = document.getElementById("gacha-batch-reveal");
+const gachaBatchSpotlightEl = document.getElementById("gacha-batch-spotlight");
 const gachaStatusEl = document.getElementById("gacha-status");
 const gachaResultEl = document.getElementById("gacha-result");
+const gachaResultKickerEl = document.getElementById("gacha-result-kicker");
 const gachaResultNameEl = document.getElementById("gacha-result-name");
 const gachaResultSkinEl = document.getElementById("gacha-result-skin");
 const gachaResultPreviewEl = document.getElementById("gacha-result-preview");
+const gachaResultListEl = document.getElementById("gacha-result-list");
 const gachaSpinButtonEl = document.getElementById("gacha-spin-btn");
+const gachaSpin10ButtonEl = document.getElementById("gacha-spin-10-btn");
 const evolutionItemModalEl = document.getElementById("evolution-item-modal");
 const evolutionItemTitleEl = document.getElementById("evolution-item-title");
 const evolutionItemSubtitleEl = document.getElementById("evolution-item-subtitle");
@@ -1993,6 +1930,13 @@ const state = {
     teamDragPointerId: -1,
     teamDragPointerType: "",
     teamDragSuppressClickUntilMs: 0,
+    teamContextTouchHoldTimerId: 0,
+    teamContextTouchHoldPointerId: -1,
+    teamContextTouchHoldSlotIndex: -1,
+    teamContextTouchHoldClientX: 0,
+    teamContextTouchHoldClientY: 0,
+    teamContextTouchHoldStartClientX: 0,
+    teamContextTouchHoldStartClientY: 0,
     renameOpen: false,
     renameSlotIndex: -1,
     renamePokemonId: null,
@@ -2005,6 +1949,8 @@ const state = {
     reelRewardIndex: -1,
     reelOffsetPx: 0,
     lastReward: null,
+    lastRewards: [],
+    lastSpinCount: 0,
   },
   saveBackend: {
     indexedDbAvailable: null,
@@ -2562,6 +2508,12 @@ function stopProjectileTravelTween(projectile) {
   projectile.travelTweenCompleted = false;
 }
 
+function stopTweenIfRunning(tween) {
+  if (tween && typeof tween.stop === "function") {
+    tween.stop();
+  }
+}
+
 function createProjectileTravelTween(projectile, durationMs) {
   if (!projectile) {
     return null;
@@ -2724,12 +2676,11 @@ function shouldRenderCelebrationParticles() {
   return Boolean(getRenderQualitySettings().celebrationParticles);
 }
 
-function getProjectileTrailMaxPointsForQuality() {
-  const quality = getRenderQualitySettings();
-  if (!quality.projectileTrailEnabled) {
+function getProjectileTrailMaxPoints() {
+  if (!PROJECTILE_VISUAL_PROFILE.trailEnabled) {
     return 0;
   }
-  return Math.max(0, toSafeInt(quality.projectileTrailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS));
+  return Math.max(0, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailMaxPoints, PROJECTILE_TRAIL_MAX_POINTS));
 }
 
 function createProjectileTrailPoint(x, y) {
@@ -2881,38 +2832,6 @@ function hashStringToUnit(text) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0) / 4294967296;
-}
-
-function normalizeWeatherType(weatherTypeRaw) {
-  const weatherType = String(weatherTypeRaw || "").toLowerCase().trim();
-  return WEATHER_TYPES.includes(weatherType) ? weatherType : "neutral";
-}
-
-function getWeatherProfile(weatherTypeRaw) {
-  const weatherType = normalizeWeatherType(weatherTypeRaw);
-  return WEATHER_PROFILE_BY_TYPE[weatherType] || WEATHER_PROFILE_BY_TYPE.neutral;
-}
-
-function pickWeatherTypeFromRoll(unitRoll) {
-  const roll = clamp(Number(unitRoll) || 0, 0, 0.9999999);
-  const totalWeight = WEATHER_WEIGHT_TABLE.reduce((sum, entry) => sum + Math.max(0, Number(entry.weight) || 0), 0);
-  if (totalWeight <= 0) {
-    return "neutral";
-  }
-  let threshold = roll * totalWeight;
-  for (const entry of WEATHER_WEIGHT_TABLE) {
-    threshold -= Math.max(0, Number(entry.weight) || 0);
-    if (threshold < 0) {
-      return normalizeWeatherType(entry.type);
-    }
-  }
-  return "neutral";
-}
-
-function getWeatherTypeForSlot(slotIndex) {
-  const slot = Number.isFinite(Number(slotIndex)) ? Math.floor(Number(slotIndex)) : 0;
-  const unitRoll = hashStringToUnit(`weather-slot:${slot}:kanto`);
-  return pickWeatherTypeFromRoll(unitRoll);
 }
 
 function padTwoDigits(value) {
@@ -4057,97 +3976,23 @@ function getLocalTimeProfile(nowMs = Date.now()) {
   const hour = nowDate.getHours();
   const minute = nowDate.getMinutes();
   const second = nowDate.getSeconds() + nowDate.getMilliseconds() / 1000;
-  const totalMinutes = hour * 60 + minute + second / 60;
-  const dayProgress = clamp(totalMinutes / (24 * 60), 0, 1);
-  const solarCurve = Math.sin((dayProgress - 0.25) * Math.PI * 2);
-  const dayLight = clamp((solarCurve + 0.22) / 1.22, 0, 1);
-  const twilight = clamp(1 - Math.abs(solarCurve), 0, 1);
+  const isDay = hour >= LOCAL_DAY_START_HOUR && hour < LOCAL_NIGHT_START_HOUR;
+  const dayLight = isDay ? 1 : 0;
+  const night = isDay ? 0 : 1;
   return {
     nowMs: nowDate.getTime(),
     hour,
     minute,
     second,
     label: `${padTwoDigits(hour)}:${padTwoDigits(minute)}`,
-    dayProgress,
-    solarCurve,
     dayLight,
-    twilight,
-    night: clamp(1 - dayLight, 0, 1),
+    night,
+    timeOfDayTag: isDay ? "day" : "night",
   };
-}
-
-function getWeatherBlendWeightsByTime(nowMs = Date.now()) {
-  const currentMs = Number.isFinite(nowMs) ? Math.floor(nowMs) : Date.now();
-  const slotIndex = Math.floor(currentMs / WEATHER_CHANGE_INTERVAL_MS);
-  const slotStartMs = slotIndex * WEATHER_CHANGE_INTERVAL_MS;
-  const slotElapsedMs = Math.max(0, currentMs - slotStartMs);
-  const rawBlend = clamp(slotElapsedMs / WEATHER_TRANSITION_DURATION_MS, 0, 1);
-  const blend = easeInOutSine(rawBlend);
-  const previousType = getWeatherTypeForSlot(slotIndex - 1);
-  const currentType = getWeatherTypeForSlot(slotIndex);
-  if (previousType === currentType) {
-    return {
-      slotIndex,
-      previousType,
-      currentType,
-      blend: 1,
-      weights: {
-        [currentType]: 1,
-      },
-    };
-  }
-  return {
-    slotIndex,
-    previousType,
-    currentType,
-    blend,
-    weights: {
-      [previousType]: 1 - blend,
-      [currentType]: blend,
-    },
-  };
-}
-
-function getStormLightningIntensity(nowMs, stormWeight) {
-  const weight = clamp(Number(stormWeight) || 0, 0, 1);
-  if (weight <= 0.02) {
-    return 0;
-  }
-  const currentMs = Number.isFinite(nowMs) ? Math.floor(nowMs) : Date.now();
-  const bucketIndex = Math.floor(currentMs / WEATHER_LIGHTNING_WINDOW_MS);
-  const bucketProgress = (currentMs % WEATHER_LIGHTNING_WINDOW_MS) / WEATHER_LIGHTNING_WINDOW_MS;
-  const triggerRoll = hashStringToUnit(`lightning-roll:${bucketIndex}`);
-  const triggerThreshold = lerpNumber(0.045, 0.18, weight);
-  if (triggerRoll >= triggerThreshold) {
-    return 0;
-  }
-  const startRatio = hashStringToUnit(`lightning-start:${bucketIndex}`) * 0.68;
-  const durationRatio = lerpNumber(0.12, 0.28, hashStringToUnit(`lightning-dur:${bucketIndex}`));
-  const endRatio = startRatio + durationRatio;
-  if (bucketProgress < startRatio || bucketProgress > endRatio) {
-    return 0;
-  }
-  const local = clamp((bucketProgress - startRatio) / Math.max(0.01, durationRatio), 0, 1);
-  const pulse = Math.pow(Math.sin(local * Math.PI), 1.15);
-  const strength = lerpNumber(0.6, 1, 1 - triggerRoll / Math.max(0.0001, triggerThreshold));
-  return clamp(pulse * strength * weight, 0, 1);
 }
 
 function getEnvironmentSnapshot(nowMs = Date.now()) {
   const timeProfile = getLocalTimeProfile(nowMs);
-  const weatherBlend = getWeatherBlendWeightsByTime(timeProfile.nowMs);
-  const weights = weatherBlend.weights || { neutral: 1 };
-  let dominantWeatherType = "neutral";
-  let dominantWeatherWeight = -1;
-  for (const weatherType of WEATHER_TYPES) {
-    const weight = clamp(Number(weights[weatherType] || 0), 0, 1);
-    if (weight > dominantWeatherWeight) {
-      dominantWeatherWeight = weight;
-      dominantWeatherType = weatherType;
-    }
-  }
-  const stormWeight = clamp(Number(weights.storm || 0), 0, 1);
-  const lightningIntensity = getStormLightningIntensity(timeProfile.nowMs, stormWeight);
   return {
     nowMs: timeProfile.nowMs,
     localTimeLabel: timeProfile.label,
@@ -4155,15 +4000,8 @@ function getEnvironmentSnapshot(nowMs = Date.now()) {
     localMinute: timeProfile.minute,
     localSecond: Math.floor(timeProfile.second),
     dayLight: timeProfile.dayLight,
-    twilight: timeProfile.twilight,
     night: timeProfile.night,
-    weatherSlotIndex: weatherBlend.slotIndex,
-    weatherFrom: weatherBlend.previousType,
-    weatherTo: weatherBlend.currentType,
-    weatherTransitionBlend: weatherBlend.blend,
-    weatherWeights: weights,
-    dominantWeatherType,
-    lightningIntensity,
+    timeOfDayTag: timeProfile.timeOfDayTag,
   };
 }
 
@@ -10684,8 +10522,8 @@ class PokemonBattleManager {
     this.projectiles = [];
     this.floatingTexts = [];
     this.hitEffects = [];
-    this.enemyHitPulseMs = 0;
-    this.enemyDamageFlashMs = 0;
+    this.enemyHitPulse = { remainingMs: 0, tween: null };
+    this.enemyDamageFlash = { remainingMs: 0, tween: null };
     this.lastImpact = null;
     this.lastTurnEvent = null;
     this.enemiesDefeated = 0;
@@ -10758,6 +10596,7 @@ class PokemonBattleManager {
       );
     }
 
+    this.stopAllSlotEffectTweens();
     this.team = Array.isArray(team) ? team : [];
     this.turnIndex = this.team.length === 0 ? 0 : this.turnIndex % MAX_TEAM_SIZE;
     this.slotSkipTurnFx = Array.from({ length: MAX_TEAM_SIZE }, () => null);
@@ -10810,8 +10649,111 @@ class PokemonBattleManager {
     return this.hitEffects;
   }
 
+  stopEnemyHitPulseTween() {
+    stopTweenIfRunning(this.enemyHitPulse?.tween);
+    if (this.enemyHitPulse) {
+      this.enemyHitPulse.tween = null;
+    }
+  }
+
+  stopEnemyDamageFlashTween() {
+    stopTweenIfRunning(this.enemyDamageFlash?.tween);
+    if (this.enemyDamageFlash) {
+      this.enemyDamageFlash.tween = null;
+    }
+  }
+
+  setEnemyHitPulseMs(remainingMs = 0) {
+    const safeMs = Math.max(0, Number(remainingMs) || 0);
+    this.stopEnemyHitPulseTween();
+    this.enemyHitPulse.remainingMs = safeMs;
+  }
+
+  setEnemyDamageFlashMs(remainingMs = 0) {
+    const safeMs = Math.max(0, Number(remainingMs) || 0);
+    this.stopEnemyDamageFlashTween();
+    this.enemyDamageFlash.remainingMs = safeMs;
+  }
+
+  triggerEnemyHitPulse(durationMs = 120) {
+    const safeDurationMs = Math.max(1, Math.round(Number(durationMs) || 120));
+    this.setEnemyHitPulseMs(safeDurationMs);
+    const pulseRef = this.enemyHitPulse;
+    pulseRef.tween = new Tween(pulseRef, tweenGroup)
+      .to({ remainingMs: 0 }, safeDurationMs)
+      .easing(Easing.Cubic.Out)
+      .onComplete(() => {
+        if (this.enemyHitPulse === pulseRef) {
+          pulseRef.tween = null;
+        }
+      })
+      .start(state.timeMs);
+  }
+
+  triggerEnemyDamageFlash(durationMs = ENEMY_DAMAGE_FLASH_DURATION_MS) {
+    const safeDurationMs = Math.max(1, Math.round(Number(durationMs) || ENEMY_DAMAGE_FLASH_DURATION_MS));
+    this.setEnemyDamageFlashMs(safeDurationMs);
+    const flashRef = this.enemyDamageFlash;
+    flashRef.tween = new Tween(flashRef, tweenGroup)
+      .to({ remainingMs: 0 }, safeDurationMs)
+      .easing(Easing.Cubic.Out)
+      .onComplete(() => {
+        if (this.enemyDamageFlash === flashRef) {
+          flashRef.tween = null;
+        }
+      })
+      .start(state.timeMs);
+  }
+
+  stopSlotRecoilTween(slotIndex) {
+    const recoil = this.slotRecoil?.[slotIndex];
+    stopTweenIfRunning(recoil?.tween);
+    if (this.slotRecoil && slotIndex >= 0 && slotIndex < this.slotRecoil.length) {
+      this.slotRecoil[slotIndex] = null;
+    }
+  }
+
+  stopSlotAttackFlashTween(slotIndex) {
+    const flash = this.slotAttackFlash?.[slotIndex];
+    stopTweenIfRunning(flash?.tween);
+    if (this.slotAttackFlash && slotIndex >= 0 && slotIndex < this.slotAttackFlash.length) {
+      this.slotAttackFlash[slotIndex] = null;
+    }
+  }
+
+  stopSlotSkipTurnTween(slotIndex) {
+    const skipFx = this.slotSkipTurnFx?.[slotIndex];
+    stopTweenIfRunning(skipFx?.tween);
+    if (this.slotSkipTurnFx && slotIndex >= 0 && slotIndex < this.slotSkipTurnFx.length) {
+      this.slotSkipTurnFx[slotIndex] = null;
+    }
+  }
+
+  stopSlotTeleportScaleTween(slotIndex) {
+    const scaleFx = this.slotTeleportScale?.[slotIndex];
+    stopTweenIfRunning(scaleFx?.tween);
+    if (this.slotTeleportScale && slotIndex >= 0 && slotIndex < this.slotTeleportScale.length) {
+      this.slotTeleportScale[slotIndex] = null;
+    }
+  }
+
+  stopAllSlotEffectTweens() {
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      this.stopSlotRecoilTween(i);
+      this.stopSlotAttackFlashTween(i);
+      this.stopSlotSkipTurnTween(i);
+      this.stopSlotTeleportScaleTween(i);
+    }
+  }
+
+  resetCombatVisualTweens() {
+    this.setEnemyHitPulseMs(0);
+    this.setEnemyDamageFlashMs(0);
+    this.stopAllSlotEffectTweens();
+  }
+
   getEnemyHitPulseRatio() {
-    return clamp(this.enemyHitPulseMs / 120, 0, 1);
+    return clamp(Number(this.enemyHitPulse?.remainingMs || 0) / 120, 0, 1);
   }
 
   isEnemyRespawning() {
@@ -10867,8 +10809,7 @@ class PokemonBattleManager {
     this.clearProjectiles();
     this.clearFloatingTexts();
     this.hitEffects = [];
-    this.enemyHitPulseMs = 0;
-    this.enemyDamageFlashMs = 0;
+    this.resetCombatVisualTweens();
     this.pendingRespawnMs = 0;
     this.koAnimMs = 0;
     this.defeatedEnemyName = null;
@@ -11234,7 +11175,7 @@ class PokemonBattleManager {
     const dx = slot.x - layout.centerX;
     const dy = slot.y - layout.centerY;
     const length = Math.hypot(dx, dy) || 1;
-    const ratio = clamp(recoil.elapsedMs / Math.max(1, recoil.durationMs), 0, 1);
+    const ratio = clamp(Number(recoil.progress || 0), 0, 1);
     const curve = Math.sin(Math.PI * ratio) * (1 - ratio * 0.55);
     const distance = (4 + slot.size * 0.07) * curve * recoil.strength;
     return {
@@ -11244,44 +11185,56 @@ class PokemonBattleManager {
   }
 
   updateSlotRecoil(deltaMs) {
-    for (let i = 0; i < this.slotRecoil.length; i += 1) {
-      const recoil = this.slotRecoil[i];
-      if (!recoil) {
-        continue;
-      }
-      recoil.elapsedMs += deltaMs;
-      if (recoil.elapsedMs >= recoil.durationMs) {
-        this.slotRecoil[i] = null;
-      }
-    }
+    void deltaMs;
   }
 
   triggerSlotRecoil(slotIndex) {
-    this.slotRecoil[slotIndex] = {
-      elapsedMs: 0,
-      durationMs: 240,
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return;
+    }
+    this.stopSlotRecoilTween(safeSlotIndex);
+    const recoilState = {
+      progress: 0,
       strength: 1 + Math.random() * 0.18,
+      tween: null,
     };
+    this.slotRecoil[safeSlotIndex] = recoilState;
+    recoilState.tween = new Tween(recoilState, tweenGroup)
+      .to({ progress: 1 }, 240)
+      .easing(Easing.Linear.None)
+      .onComplete(() => {
+        if (this.slotRecoil[safeSlotIndex] === recoilState) {
+          this.slotRecoil[safeSlotIndex] = null;
+        }
+      })
+      .start(state.timeMs);
   }
 
   updateSlotAttackFlash(deltaMs) {
-    for (let i = 0; i < this.slotAttackFlash.length; i += 1) {
-      const flash = this.slotAttackFlash[i];
-      if (!flash) {
-        continue;
-      }
-      flash.elapsedMs += deltaMs;
-      if (flash.elapsedMs >= flash.durationMs) {
-        this.slotAttackFlash[i] = null;
-      }
-    }
+    void deltaMs;
   }
 
   triggerSlotAttackFlash(slotIndex) {
-    this.slotAttackFlash[slotIndex] = {
-      elapsedMs: 0,
-      durationMs: ATTACK_FLASH_DURATION_MS,
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return;
+    }
+    this.stopSlotAttackFlashTween(safeSlotIndex);
+    const flashState = {
+      blend: ATTACK_FLASH_WHITE_BLEND,
+      tween: null,
     };
+    this.slotAttackFlash[safeSlotIndex] = flashState;
+    flashState.tween = new Tween(flashState, tweenGroup)
+      .to({ blend: 0 }, ATTACK_FLASH_DURATION_MS)
+      .easing(Easing.Cubic.Out)
+      .onComplete(() => {
+        if (this.slotAttackFlash[safeSlotIndex] === flashState) {
+          this.slotAttackFlash[safeSlotIndex] = null;
+        }
+      })
+      .start(state.timeMs);
   }
 
   getSlotAttackFlashBlend(slotIndex) {
@@ -11289,8 +11242,7 @@ class PokemonBattleManager {
     if (!flash) {
       return 0;
     }
-    const ratio = clamp(1 - flash.elapsedMs / Math.max(1, flash.durationMs), 0, 1);
-    return ATTACK_FLASH_WHITE_BLEND * ratio;
+    return clamp(Number(flash.blend || 0), 0, ATTACK_FLASH_WHITE_BLEND);
   }
 
   getSkipTurnEffectDurationMs() {
@@ -11302,16 +11254,7 @@ class PokemonBattleManager {
   }
 
   updateSlotSkipTurnEffects(deltaMs) {
-    for (let i = 0; i < this.slotSkipTurnFx.length; i += 1) {
-      const effect = this.slotSkipTurnFx[i];
-      if (!effect) {
-        continue;
-      }
-      effect.elapsedMs += deltaMs;
-      if (effect.elapsedMs >= effect.durationMs) {
-        this.slotSkipTurnFx[i] = null;
-      }
-    }
+    void deltaMs;
   }
 
   triggerSlotSkipTurnEffect(slotIndex, options = {}) {
@@ -11324,11 +11267,23 @@ class PokemonBattleManager {
       SKIP_TURN_EFFECT_DURATION_MIN_MS,
       SKIP_TURN_EFFECT_DURATION_MAX_MS,
     );
-    this.slotSkipTurnFx[safeSlotIndex] = {
-      elapsedMs: 0,
+    this.stopSlotSkipTurnTween(safeSlotIndex);
+    const skipState = {
+      progress: 0,
       durationMs,
       phaseSeed: Math.random() * Math.PI * 2,
+      tween: null,
     };
+    this.slotSkipTurnFx[safeSlotIndex] = skipState;
+    skipState.tween = new Tween(skipState, tweenGroup)
+      .to({ progress: 1 }, durationMs)
+      .easing(Easing.Linear.None)
+      .onComplete(() => {
+        if (this.slotSkipTurnFx[safeSlotIndex] === skipState) {
+          this.slotSkipTurnFx[safeSlotIndex] = null;
+        }
+      })
+      .start(state.timeMs);
   }
 
   getSlotSkipTurnVisual(slotIndex) {
@@ -11341,8 +11296,8 @@ class PokemonBattleManager {
       return null;
     }
     const durationMs = Math.max(1, Number(effect.durationMs) || 1);
-    const elapsedMs = clamp(Number(effect.elapsedMs) || 0, 0, durationMs);
-    const progress = clamp(elapsedMs / durationMs, 0, 1);
+    const progress = clamp(Number(effect.progress || 0), 0, 1);
+    const elapsedMs = progress * durationMs;
     const fadeRatio = clamp(SKIP_TURN_EFFECT_FADE_RATIO, 0.08, 0.45);
     const fadeIn = easeInOutSine(clamp(progress / fadeRatio, 0, 1));
     const fadeOut = easeInOutSine(clamp((1 - progress) / fadeRatio, 0, 1));
@@ -11361,16 +11316,7 @@ class PokemonBattleManager {
   }
 
   updateSlotTeleportScale(deltaMs) {
-    for (let i = 0; i < this.slotTeleportScale.length; i += 1) {
-      const scaleFx = this.slotTeleportScale[i];
-      if (!scaleFx) {
-        continue;
-      }
-      scaleFx.elapsedMs += deltaMs;
-      if (scaleFx.elapsedMs >= scaleFx.durationMs) {
-        this.slotTeleportScale[i] = null;
-      }
-    }
+    void deltaMs;
   }
 
   triggerSlotTeleportScale(slotIndex) {
@@ -11378,10 +11324,22 @@ class PokemonBattleManager {
     if (safeSlotIndex < 0) {
       return;
     }
-    this.slotTeleportScale[safeSlotIndex] = {
-      elapsedMs: 0,
+    this.stopSlotTeleportScaleTween(safeSlotIndex);
+    const scaleState = {
+      progress: 0,
       durationMs: TELEPORT_SWAP_SCALE_DURATION_MS,
+      tween: null,
     };
+    this.slotTeleportScale[safeSlotIndex] = scaleState;
+    scaleState.tween = new Tween(scaleState, tweenGroup)
+      .to({ progress: 1 }, TELEPORT_SWAP_SCALE_DURATION_MS)
+      .easing(Easing.Linear.None)
+      .onComplete(() => {
+        if (this.slotTeleportScale[safeSlotIndex] === scaleState) {
+          this.slotTeleportScale[safeSlotIndex] = null;
+        }
+      })
+      .start(state.timeMs);
   }
 
   getSlotTeleportScale(slotIndex) {
@@ -11389,7 +11347,7 @@ class PokemonBattleManager {
     if (!scaleFx) {
       return 1;
     }
-    const ratio = clamp(scaleFx.elapsedMs / Math.max(1, scaleFx.durationMs), 0, 1);
+    const ratio = clamp(Number(scaleFx.progress || 0), 0, 1);
     const minScale = 0.16;
     if (ratio <= 0.5) {
       const downRatio = ratio / 0.5;
@@ -11732,10 +11690,11 @@ class PokemonBattleManager {
   }
 
   getEnemyDamageFlashBlend() {
-    if (this.enemyDamageFlashMs <= 0) {
+    const remainingMs = Math.max(0, Number(this.enemyDamageFlash?.remainingMs || 0));
+    if (remainingMs <= 0) {
       return 0;
     }
-    const ratio = clamp(this.enemyDamageFlashMs / Math.max(1, ENEMY_DAMAGE_FLASH_DURATION_MS), 0, 1);
+    const ratio = clamp(remainingMs / Math.max(1, ENEMY_DAMAGE_FLASH_DURATION_MS), 0, 1);
     return ENEMY_DAMAGE_FLASH_RED_BLEND * ratio;
   }
 
@@ -11773,8 +11732,7 @@ class PokemonBattleManager {
       this.clearProjectiles();
       this.clearFloatingTexts();
       this.hitEffects = [];
-      this.enemyHitPulseMs = 0;
-      this.enemyDamageFlashMs = 0;
+      this.resetCombatVisualTweens();
       this.lastTurnEvent = null;
       if (!this.enemy || this.enemy.hpCurrent <= 0) {
         this.spawnEnemy();
@@ -11912,8 +11870,7 @@ class PokemonBattleManager {
       this.clearProjectiles();
       this.clearFloatingTexts();
       this.hitEffects = [];
-      this.enemyHitPulseMs = 0;
-      this.enemyDamageFlashMs = 0;
+      this.resetCombatVisualTweens();
       return;
     }
 
@@ -12058,13 +12015,6 @@ class PokemonBattleManager {
   }
 
   updateHitEffects(deltaMs) {
-    if (this.enemyHitPulseMs > 0) {
-      this.enemyHitPulseMs = Math.max(0, this.enemyHitPulseMs - deltaMs);
-    }
-    if (this.enemyDamageFlashMs > 0) {
-      this.enemyDamageFlashMs = Math.max(0, this.enemyDamageFlashMs - deltaMs);
-    }
-
     const dt = deltaMs / 1000;
     const survivors = [];
     for (const effect of this.hitEffects) {
@@ -12267,7 +12217,7 @@ class PokemonBattleManager {
   updateProjectiles(deltaMs, layout) {
     const survivors = [];
     const dt = deltaMs / 1000;
-    const trailMaxPoints = getProjectileTrailMaxPointsForQuality();
+    const trailMaxPoints = getProjectileTrailMaxPoints();
 
     for (const projectile of this.projectiles) {
       projectile.prevX = projectile.x;
@@ -12371,6 +12321,7 @@ class PokemonBattleManager {
     targetX,
     targetY,
     isMiss = false,
+    targetVisualSize = 0,
   }) {
     const safeMultiplier = Math.max(0, Number(typeMultiplier) || 0);
     const tone = resolveFloatingDamageTone({
@@ -12401,10 +12352,13 @@ class PokemonBattleManager {
       intensityBoost: isCritical ? 0.4 : safeMultiplier >= 1.999 ? 0.2 : 0,
     });
 
+    const safeVisualSize = Math.max(0, Number(targetVisualSize) || 0);
+    const extraSpawnLiftY = Math.max(24, safeVisualSize * 0.52);
+
     this.floatingTexts.push({
       x: targetX + (Math.random() - 0.5) * toneStyle.spawnJitterX,
-      y: targetY - toneStyle.spawnLiftY,
-      vx: (Math.random() - 0.5) * toneStyle.horizontalDriftPx * 0.42,
+      y: targetY - toneStyle.spawnLiftY - extraSpawnLiftY,
+      vx: 0,
       vy: -toneStyle.verticalRiseSpeed - Math.random() * toneStyle.verticalRiseVariance,
       lifeMs: FLOATING_TEXT_LIFETIME_MS,
       maxLifeMs: FLOATING_TEXT_LIFETIME_MS,
@@ -12446,7 +12400,7 @@ class PokemonBattleManager {
           ? 0.72
           : 1;
     const impactFactor = impactFactorBase * (isCritical ? 1.18 : 1);
-    this.enemyHitPulseMs = 120;
+    this.triggerEnemyHitPulse(120);
 
     this.hitEffects.push({
       kind: "ring",
@@ -12539,6 +12493,10 @@ class PokemonBattleManager {
         });
       }
       if (!idleMode) {
+        const enemyVisualSize = Math.max(
+          0,
+          Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
+        );
         this.addFloatingDamageText({
           damage: 0,
           attackType,
@@ -12547,6 +12505,7 @@ class PokemonBattleManager {
           targetX: projectile.targetX,
           targetY: projectile.targetY,
           isMiss: true,
+          targetVisualSize: enemyVisualSize,
         });
       }
       const teleportSwapResult = this.tryApplyTeleportSwap(
@@ -12596,7 +12555,7 @@ class PokemonBattleManager {
     this.consumeQueuedProjectileDamage(projectile);
     this.enemy.hpCurrent = clamp(this.enemy.hpCurrent - damage, 0, this.enemy.hpMax);
     if (damage > 0) {
-      this.enemyDamageFlashMs = Math.max(this.enemyDamageFlashMs, ENEMY_DAMAGE_FLASH_DURATION_MS);
+      this.triggerEnemyDamageFlash(ENEMY_DAMAGE_FLASH_DURATION_MS);
     }
     this.lastImpact = {
       attackerNameFr: attacker.nameFr,
@@ -12623,6 +12582,10 @@ class PokemonBattleManager {
       });
     }
     if (!idleMode) {
+      const enemyVisualSize = Math.max(
+        0,
+        Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
+      );
       this.addFloatingDamageText({
         damage,
         attackType,
@@ -12630,6 +12593,7 @@ class PokemonBattleManager {
         isCritical: isCriticalHit,
         targetX: projectile.targetX,
         targetY: projectile.targetY,
+        targetVisualSize: enemyVisualSize,
       });
       this.addEnemyHitEffects({
         damage,
@@ -12701,8 +12665,7 @@ class PokemonBattleManager {
         this.pendingRespawnMs = 0;
         this.koAnimMs = 0;
         this.clearProjectiles();
-        this.enemyHitPulseMs = 0;
-        this.enemyDamageFlashMs = 0;
+        this.resetCombatVisualTweens();
         this.hitEffects = [];
         this.clearFloatingTexts();
         this.spawnEnemy();
@@ -12737,8 +12700,7 @@ class PokemonBattleManager {
         this.koAnimMs = KO_ANIMATION_DURATION_MS;
       }
       this.clearProjectiles();
-      this.enemyHitPulseMs = 0;
-      this.enemyDamageFlashMs = 0;
+      this.resetCombatVisualTweens();
       this.hitEffects = [];
     }
   }
@@ -12747,6 +12709,7 @@ class PokemonBattleManager {
     const source = this.createEnemy();
     if (!source) {
       this.enemy = null;
+      this.resetCombatVisualTweens();
       this.resetQueuedAttackState();
       this.enemyTimerEnabled = false;
       this.enemyTimerDurationMs = 0;
@@ -12761,8 +12724,7 @@ class PokemonBattleManager {
     };
     this.clearProjectiles();
     this.hitEffects = [];
-    this.enemyHitPulseMs = 0;
-    this.enemyDamageFlashMs = 0;
+    this.resetCombatVisualTweens();
     this.pendingRespawnMs = 0;
     this.koAnimMs = 0;
     this.resetQueuedAttackState();
@@ -14567,10 +14529,326 @@ function waitForGachaDelay(durationMs) {
   return new Promise((resolve) => window.setTimeout(resolve, safeDurationMs));
 }
 
+function setGachaResultFocusActive(active) {
+  if (!gachaCardEl) {
+    return;
+  }
+  gachaCardEl.classList.toggle("show-result-focus", active === true);
+}
+
+function clearGachaBatchRevealPanel() {
+  if (!gachaBatchRevealEl) {
+    return;
+  }
+  gachaBatchRevealEl.classList.remove("is-sequence-active");
+  gachaBatchRevealEl.classList.add("hidden");
+  gachaBatchRevealEl.innerHTML = "";
+}
+
+function clearGachaBatchSpotlightPanel() {
+  if (!gachaBatchSpotlightEl) {
+    return;
+  }
+  gachaBatchSpotlightEl.classList.add("hidden");
+  gachaBatchSpotlightEl.classList.remove("is-active");
+  gachaBatchSpotlightEl.innerHTML = "";
+}
+
+function buildGachaRewardCardElement(reward, options = {}) {
+  const card = document.createElement("div");
+  card.className = options?.cardClassName || "gacha-result-reward-card";
+  if (options?.pending) {
+    card.classList.add("is-pending");
+  }
+  const index = Math.max(0, toSafeInt(options?.index, 0));
+
+  const media = document.createElement("div");
+  media.className = "gacha-result-reward-media";
+  if (reward?.spritePath) {
+    const image = document.createElement("img");
+    image.src = reward.spritePath;
+    image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    if (options?.pending) {
+      image.classList.add("is-silhouette");
+    }
+    media.appendChild(image);
+  } else {
+    const fallback = document.createElement("span");
+    fallback.textContent = "?";
+    media.appendChild(fallback);
+  }
+  card.appendChild(media);
+
+  const text = document.createElement("div");
+  text.className = "gacha-result-reward-text";
+
+  const rank = document.createElement("div");
+  rank.className = "gacha-result-reward-rank";
+  rank.textContent = `#${index + 1}`;
+  text.appendChild(rank);
+
+  const name = document.createElement("div");
+  name.className = "gacha-result-reward-name";
+  name.textContent = options?.pending ? "???" : String(reward?.pokemonNameFr || "Inconnu");
+  text.appendChild(name);
+
+  const skin = document.createElement("div");
+  skin.className = "gacha-result-reward-skin";
+  skin.textContent = options?.pending ? "Skin mystere" : String(reward?.variantLabel || "Skin");
+  text.appendChild(skin);
+
+  card.appendChild(text);
+  return card;
+}
+
+function renderGachaBatchRevealSlots(totalCount) {
+  if (!gachaBatchRevealEl) {
+    return;
+  }
+  gachaBatchRevealEl.innerHTML = "";
+  gachaBatchRevealEl.classList.add("is-sequence-active");
+  const safeCount = Math.max(0, toSafeInt(totalCount, 0));
+  if (safeCount <= 0) {
+    gachaBatchRevealEl.classList.remove("is-sequence-active");
+    gachaBatchRevealEl.classList.add("hidden");
+    return;
+  }
+  gachaBatchRevealEl.classList.remove("hidden");
+  for (let index = 0; index < safeCount; index += 1) {
+    const slot = buildGachaRewardCardElement(null, {
+      index,
+      pending: true,
+      cardClassName: "gacha-batch-reveal-card",
+    });
+    slot.dataset.slotIndex = String(index);
+    gachaBatchRevealEl.appendChild(slot);
+  }
+}
+
+function revealGachaBatchSlot(index, reward) {
+  if (!gachaBatchRevealEl) {
+    return null;
+  }
+  const slot = gachaBatchRevealEl.querySelector(`[data-slot-index="${index}"]`);
+  if (!(slot instanceof HTMLElement)) {
+    return null;
+  }
+  const revealedCard = buildGachaRewardCardElement(reward, {
+    index,
+    pending: false,
+    cardClassName: "gacha-batch-reveal-card is-revealed",
+  });
+  revealedCard.dataset.slotIndex = String(index);
+  slot.replaceWith(revealedCard);
+  return revealedCard;
+}
+
+function triggerGachaBatchSlotRevealJuice(slot) {
+  if (!(slot instanceof HTMLElement)) {
+    return;
+  }
+  slot.classList.remove("is-juicy-reveal");
+  void slot.offsetWidth;
+  slot.classList.add("is-juicy-reveal");
+
+  for (const existing of Array.from(slot.querySelectorAll(".gacha-slot-spark-layer"))) {
+    existing.remove();
+  }
+  const sparkLayer = document.createElement("div");
+  sparkLayer.className = "gacha-slot-spark-layer";
+  const impactWave = document.createElement("span");
+  impactWave.className = "gacha-slot-impact-wave";
+  sparkLayer.appendChild(impactWave);
+  const sparkCount = 7;
+  for (let i = 0; i < sparkCount; i += 1) {
+    const spark = document.createElement("span");
+    spark.className = "gacha-slot-spark";
+    spark.style.setProperty("--spark-angle", `${(360 / sparkCount) * i + randomRange(-11, 11)}deg`);
+    spark.style.setProperty("--spark-distance", `${randomRange(17, 30)}px`);
+    spark.style.setProperty("--spark-delay", `${randomRange(0, 90)}ms`);
+    sparkLayer.appendChild(spark);
+  }
+  slot.appendChild(sparkLayer);
+
+  window.setTimeout(() => {
+    slot.classList.remove("is-juicy-reveal");
+    sparkLayer.remove();
+  }, GACHA_BATCH_SLOT_JUICE_MS);
+}
+
+function createGachaBatchTransferOrb(reward) {
+  const orb = document.createElement("div");
+  orb.className = "gacha-batch-transfer-orb";
+  if (reward?.spritePath) {
+    const image = document.createElement("img");
+    image.src = reward.spritePath;
+    image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    orb.appendChild(image);
+  } else {
+    const fallback = document.createElement("span");
+    fallback.textContent = "?";
+    orb.appendChild(fallback);
+  }
+  return orb;
+}
+
+function createGachaBatchSpotlightCard(reward, index, totalCount) {
+  const card = document.createElement("div");
+  card.className = "gacha-batch-spotlight-card";
+  card.innerHTML = "";
+
+  const rank = document.createElement("div");
+  rank.className = "gacha-batch-spotlight-rank";
+  rank.textContent = `${index + 1}/${Math.max(1, totalCount)}`;
+  card.appendChild(rank);
+
+  const media = document.createElement("div");
+  media.className = "gacha-batch-spotlight-media";
+  if (reward?.spritePath) {
+    const image = document.createElement("img");
+    image.src = reward.spritePath;
+    image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    media.appendChild(image);
+  } else {
+    const fallback = document.createElement("span");
+    fallback.textContent = "?";
+    media.appendChild(fallback);
+  }
+  card.appendChild(media);
+
+  const name = document.createElement("div");
+  name.className = "gacha-batch-spotlight-name";
+  name.textContent = String(reward?.pokemonNameFr || "Inconnu");
+  card.appendChild(name);
+
+  const skin = document.createElement("div");
+  skin.className = "gacha-batch-spotlight-skin";
+  skin.textContent = String(reward?.variantLabel || "Skin");
+  card.appendChild(skin);
+
+  return card;
+}
+
+async function animateGachaBatchSpotlightIntoSlot(index, reward, totalCount) {
+  if (!gachaBatchRevealEl || !gachaBatchSpotlightEl) {
+    const revealed = revealGachaBatchSlot(index, reward);
+    triggerGachaBatchSlotRevealJuice(revealed);
+    await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS);
+    return;
+  }
+
+  const slot = gachaBatchRevealEl.querySelector(`[data-slot-index="${index}"]`);
+  if (!(slot instanceof HTMLElement)) {
+    const revealed = revealGachaBatchSlot(index, reward);
+    triggerGachaBatchSlotRevealJuice(revealed);
+    await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS);
+    return;
+  }
+  const slotMedia = slot.querySelector(".gacha-result-reward-media");
+  const slotTarget = slotMedia instanceof HTMLElement ? slotMedia : slot;
+
+  gachaBatchSpotlightEl.classList.remove("hidden");
+  gachaBatchSpotlightEl.classList.add("is-active");
+  gachaBatchSpotlightEl.innerHTML = "";
+
+  const spotlightCard = createGachaBatchSpotlightCard(reward, index, totalCount);
+  gachaBatchSpotlightEl.appendChild(spotlightCard);
+
+  await new Promise((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(resolve)));
+  spotlightCard.classList.add("is-entered");
+  await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_POP_MS);
+
+  const spotlightMedia = spotlightCard.querySelector(".gacha-batch-spotlight-media");
+  const sourceRect = spotlightMedia instanceof HTMLElement
+    ? spotlightMedia.getBoundingClientRect()
+    : spotlightCard.getBoundingClientRect();
+  const targetRect = slotTarget.getBoundingClientRect();
+  const canTransfer =
+    Number.isFinite(sourceRect?.width)
+    && Number.isFinite(sourceRect?.height)
+    && sourceRect.width > 0
+    && sourceRect.height > 0
+    && Number.isFinite(targetRect?.width)
+    && Number.isFinite(targetRect?.height)
+    && targetRect.width > 0
+    && targetRect.height > 0;
+
+  if (!canTransfer) {
+    clearGachaBatchSpotlightPanel();
+    const revealed = revealGachaBatchSlot(index, reward);
+    triggerGachaBatchSlotRevealJuice(revealed);
+    await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS);
+    return;
+  }
+
+  const orb = createGachaBatchTransferOrb(reward);
+  if (!(orb instanceof HTMLElement)) {
+    clearGachaBatchSpotlightPanel();
+    const revealed = revealGachaBatchSlot(index, reward);
+    triggerGachaBatchSlotRevealJuice(revealed);
+    await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS);
+    return;
+  }
+  const sourceCenterX = sourceRect.left + sourceRect.width * 0.5;
+  const sourceCenterY = sourceRect.top + sourceRect.height * 0.5;
+  const targetCenterX = targetRect.left + targetRect.width * 0.5;
+  const targetCenterY = targetRect.top + targetRect.height * 0.5;
+  orb.style.left = `${sourceCenterX}px`;
+  orb.style.top = `${sourceCenterY}px`;
+  orb.style.setProperty("--tx", `${targetCenterX - sourceCenterX}px`);
+  orb.style.setProperty("--ty", `${targetCenterY - sourceCenterY}px`);
+  document.body.appendChild(orb);
+
+  slot.classList.add("is-incoming");
+  spotlightCard.classList.remove("is-entered");
+  spotlightCard.classList.add("is-exiting");
+  await new Promise((resolve) => window.requestAnimationFrame(resolve));
+  orb.classList.add("is-flying");
+
+  await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_TRANSFER_MS);
+  slot.classList.remove("is-incoming");
+  clearGachaBatchSpotlightPanel();
+  orb.remove();
+
+  const revealed = revealGachaBatchSlot(index, reward);
+  triggerGachaBatchSlotRevealJuice(revealed);
+  await waitForGachaDelay(GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS);
+}
+
+async function runGachaBatchRevealAnimation(rewards) {
+  const safeRewards = normalizeGachaRewardList(rewards);
+  clearGachaBatchSpotlightPanel();
+  renderGachaBatchRevealSlots(safeRewards.length);
+  if (safeRewards.length <= 0) {
+    return [];
+  }
+
+  const unlockedRewards = [];
+  for (let index = 0; index < safeRewards.length; index += 1) {
+    setGachaStatusText(`Ouverture capsule ${index + 1}/${safeRewards.length}...`);
+    const unlockedReward = await unlockGachaRewardSkin(safeRewards[index]);
+    const rewardToDisplay = unlockedReward || safeRewards[index];
+    if (unlockedReward) {
+      unlockedRewards.push(unlockedReward);
+    }
+    await animateGachaBatchSpotlightIntoSlot(index, rewardToDisplay, safeRewards.length);
+  }
+  clearGachaBatchSpotlightPanel();
+  return unlockedRewards;
+}
+
 function clearGachaResultPanel() {
   state.gacha.lastReward = null;
+  state.gacha.lastRewards = [];
+  state.gacha.lastSpinCount = 0;
+  setGachaResultFocusActive(false);
+  clearGachaBatchRevealPanel();
+  clearGachaBatchSpotlightPanel();
   if (gachaResultEl) {
     gachaResultEl.classList.add("hidden");
+  }
+  if (gachaResultKickerEl) {
+    gachaResultKickerEl.textContent = "Nouveau skin debloque";
   }
   if (gachaResultNameEl) {
     gachaResultNameEl.textContent = "-";
@@ -14579,23 +14857,72 @@ function clearGachaResultPanel() {
     gachaResultSkinEl.textContent = "-";
   }
   if (gachaResultPreviewEl) {
+    gachaResultPreviewEl.classList.remove("hidden");
     gachaResultPreviewEl.innerHTML = "";
+  }
+  if (gachaResultListEl) {
+    gachaResultListEl.classList.add("hidden");
+    gachaResultListEl.innerHTML = "";
   }
 }
 
-function renderGachaResultPanel(reward) {
-  if (!reward || !gachaResultEl || !gachaResultNameEl || !gachaResultSkinEl || !gachaResultPreviewEl) {
+function normalizeGachaRewardList(rewardOrRewards) {
+  if (Array.isArray(rewardOrRewards)) {
+    return rewardOrRewards.filter(Boolean);
+  }
+  return rewardOrRewards ? [rewardOrRewards] : [];
+}
+
+function renderGachaResultPanel(rewardOrRewards, options = {}) {
+  if (!gachaResultEl || !gachaResultNameEl || !gachaResultSkinEl || !gachaResultPreviewEl) {
     return;
   }
+  const rewards = normalizeGachaRewardList(rewardOrRewards);
+  if (rewards.length <= 0) {
+    return;
+  }
+  const requestedSpinCount = Math.max(1, toSafeInt(options?.spinCount, rewards.length));
+  const isBatch = requestedSpinCount > 1 || rewards.length > 1;
+  const highlightReward = rewards[rewards.length - 1] || rewards[0];
+  if (!highlightReward) {
+    return;
+  }
+
+  setGachaResultFocusActive(true);
   gachaResultEl.classList.remove("hidden");
-  gachaResultNameEl.textContent = reward.pokemonNameFr;
-  gachaResultSkinEl.textContent = `Skin: ${reward.variantLabel}`;
+  if (gachaResultKickerEl) {
+    gachaResultKickerEl.textContent = isBatch ? `${rewards.length} skins debloques` : "Nouveau skin debloque";
+  }
+  if (isBatch) {
+    gachaResultNameEl.textContent = `Resultat x${requestedSpinCount}`;
+    gachaResultSkinEl.textContent = `Dernier skin: ${highlightReward.pokemonNameFr} | ${highlightReward.variantLabel}`;
+  } else {
+    gachaResultNameEl.textContent = highlightReward.pokemonNameFr;
+    gachaResultSkinEl.textContent = `Skin: ${highlightReward.variantLabel}`;
+  }
   gachaResultPreviewEl.innerHTML = "";
-  if (reward.spritePath) {
+  gachaResultPreviewEl.classList.toggle("hidden", isBatch);
+  if (!isBatch && highlightReward.spritePath) {
     const image = document.createElement("img");
-    image.src = reward.spritePath;
-    image.alt = `${reward.pokemonNameFr} ${reward.variantLabel}`;
+    image.src = highlightReward.spritePath;
+    image.alt = `${highlightReward.pokemonNameFr} ${highlightReward.variantLabel}`;
     gachaResultPreviewEl.appendChild(image);
+  }
+  if (gachaResultListEl) {
+    gachaResultListEl.innerHTML = "";
+    if (isBatch) {
+      for (let index = 0; index < rewards.length; index += 1) {
+        const entry = rewards[index];
+        const card = buildGachaRewardCardElement(entry, {
+          index,
+          pending: false,
+        });
+        gachaResultListEl.appendChild(card);
+      }
+      gachaResultListEl.classList.remove("hidden");
+    } else {
+      gachaResultListEl.classList.add("hidden");
+    }
   }
 }
 
@@ -14806,7 +15133,7 @@ function getGachaRewardTargetOffsetPx(rewardIndex) {
 }
 
 function populateGachaPreviewReel(candidates, options = {}) {
-  if (!gachaReelTrackEl || state.gacha.spinning || state.gacha.lastReward) {
+  if (!gachaReelTrackEl || state.gacha.spinning || (Array.isArray(state.gacha.lastRewards) && state.gacha.lastRewards.length > 0)) {
     return;
   }
   const safeCandidates = Array.isArray(candidates) ? candidates : [];
@@ -14840,15 +15167,21 @@ function populateGachaPreviewReel(candidates, options = {}) {
 
 function resetGachaUiState() {
   clearGachaSuspenseTimers();
+  clearGachaBatchRevealPanel();
+  clearGachaBatchSpotlightPanel();
   state.gacha.spinning = false;
   state.gacha.reelItems = [];
   state.gacha.reelRewardIndex = -1;
   state.gacha.reelOffsetPx = 0;
   if (gachaMachineEl) {
     gachaMachineEl.classList.remove("is-spinning");
+    gachaMachineEl.classList.remove("is-spinning-10");
   }
   if (gachaSpinButtonEl) {
     gachaSpinButtonEl.disabled = false;
+  }
+  if (gachaSpin10ButtonEl) {
+    gachaSpin10ButtonEl.disabled = false;
   }
   if (gachaReelTrackEl) {
     gachaReelTrackEl.style.transition = "none";
@@ -14881,14 +15214,16 @@ function renderGachaModal() {
   const candidateCount = candidates.length;
   const gachaRangeLabel = getCurrentGachaPokemonRangeLabel();
   const coins = Math.max(0, toSafeInt(state.saveData?.coins, 0));
-  const canPay = coins >= GACHA_SPIN_COST_COINS;
-  const canSpin = candidateCount > 0 && canPay && !state.gacha.spinning;
+  const canPaySingle = coins >= GACHA_SPIN_COST_COINS;
+  const canPayBatch = coins >= GACHA_BATCH_SPIN_COST_COINS;
+  const canSpinSingle = candidateCount > 0 && canPaySingle && !state.gacha.spinning;
+  const canSpinBatch = candidateCount >= GACHA_BATCH_SPIN_COUNT && canPayBatch && !state.gacha.spinning;
 
   if (gachaWalletCoinsEl) {
     gachaWalletCoinsEl.textContent = formatPokeDollarValue(coins);
   }
   if (gachaWalletCostEl) {
-    gachaWalletCostEl.textContent = `${GACHA_SPIN_COST_COINS} Coins`;
+    gachaWalletCostEl.textContent = `x1: ${GACHA_SPIN_COST_COINS} | x${GACHA_BATCH_SPIN_COUNT}: ${GACHA_BATCH_SPIN_COST_COINS}`;
   }
   if (gachaWalletRemainingEl) {
     gachaWalletRemainingEl.textContent = formatPokeDollarValue(candidateCount);
@@ -14898,10 +15233,10 @@ function renderGachaModal() {
   }
   populateGachaPreviewReel(candidates);
   if (gachaSpinButtonEl) {
-    gachaSpinButtonEl.disabled = !canSpin;
+    gachaSpinButtonEl.disabled = !canSpinSingle;
     if (state.gacha.spinning) {
       gachaSpinButtonEl.textContent = "Tirage en cours...";
-    } else if (!canPay) {
+    } else if (!canPaySingle) {
       gachaSpinButtonEl.textContent = `${GACHA_SPIN_COST_COINS} Coins requis`;
     } else if (candidateCount <= 0) {
       gachaSpinButtonEl.textContent = `Tous les skins Kanto ${gachaRangeLabel} sont debloques`;
@@ -14909,11 +15244,27 @@ function renderGachaModal() {
       gachaSpinButtonEl.textContent = `Obtenir 1 skin aleatoire (${GACHA_SPIN_COST_COINS} Coins)`;
     }
   }
-  if (!state.gacha.spinning && !state.gacha.lastReward) {
+  if (gachaSpin10ButtonEl) {
+    gachaSpin10ButtonEl.disabled = !canSpinBatch;
+    if (state.gacha.spinning) {
+      gachaSpin10ButtonEl.textContent = `Tirage x${GACHA_BATCH_SPIN_COUNT} en cours...`;
+    } else if (candidateCount < GACHA_BATCH_SPIN_COUNT) {
+      gachaSpin10ButtonEl.textContent = `${GACHA_BATCH_SPIN_COUNT} skins restants requis`;
+    } else if (!canPayBatch) {
+      gachaSpin10ButtonEl.textContent = `${GACHA_BATCH_SPIN_COST_COINS} Coins requis`;
+    } else {
+      gachaSpin10ButtonEl.textContent = `Obtenir ${GACHA_BATCH_SPIN_COUNT} skins (${GACHA_BATCH_SPIN_COST_COINS} Coins)`;
+    }
+  }
+  if (!state.gacha.spinning && (!Array.isArray(state.gacha.lastRewards) || state.gacha.lastRewards.length <= 0)) {
     setGachaStatusText(candidateCount > 0 ? "Pret a tenter ta chance." : `Aucun skin restant sur Kanto ${gachaRangeLabel}.`);
   }
-  if (state.gacha.lastReward) {
-    renderGachaResultPanel(state.gacha.lastReward);
+  const hasResultRewards = Array.isArray(state.gacha.lastRewards) && state.gacha.lastRewards.length > 0;
+  setGachaResultFocusActive(hasResultRewards && !state.gacha.spinning);
+  if (Array.isArray(state.gacha.lastRewards) && state.gacha.lastRewards.length > 0) {
+    renderGachaResultPanel(state.gacha.lastRewards, {
+      spinCount: Math.max(1, toSafeInt(state.gacha.lastSpinCount, state.gacha.lastRewards.length)),
+    });
   } else if (!state.gacha.spinning && gachaResultEl) {
     gachaResultEl.classList.add("hidden");
   }
@@ -15007,10 +15358,36 @@ async function unlockGachaRewardSkin(reward) {
   };
 }
 
-async function startGachaSpin() {
+function pickGachaSkinCandidatesForSpin(candidates, count) {
+  const safePool = Array.isArray(candidates) ? candidates.filter(Boolean) : [];
+  const requestedCount = Math.max(1, toSafeInt(count, 1));
+  if (safePool.length <= 0 || requestedCount <= 0) {
+    return [];
+  }
+  const pool = safePool.slice();
+  const rewards = [];
+  const maxCount = Math.min(requestedCount, pool.length);
+  for (let index = 0; index < maxCount; index += 1) {
+    const pickIndex = randomInt(0, pool.length - 1);
+    const picked = pool.splice(pickIndex, 1)[0];
+    if (picked) {
+      rewards.push(picked);
+    }
+  }
+  return rewards;
+}
+
+async function startGachaSpin(options = {}) {
   if (!state.saveData || !state.ui.gachaOpen || state.gacha.spinning) {
     return;
   }
+
+  const requestedSpinCount = Math.max(1, toSafeInt(options?.spinCount, 1));
+  const spinCost = Math.max(0, toSafeInt(options?.cost, GACHA_SPIN_COST_COINS));
+  const isBatchSpin = requestedSpinCount > 1;
+  const spinMainScrollDurationMs = isBatchSpin
+    ? GACHA_BATCH_SPIN_MAIN_SCROLL_DURATION_MS
+    : GACHA_SPIN_MAIN_SCROLL_DURATION_MS;
 
   const candidates = getGachaSkinCandidates();
   if (candidates.length <= 0) {
@@ -15018,14 +15395,23 @@ async function startGachaSpin() {
     renderGachaModal();
     return;
   }
-  if (!spendCoins(GACHA_SPIN_COST_COINS)) {
-    setTopMessage(`Pas assez de Coins (cout: ${GACHA_SPIN_COST_COINS}).`, 1500);
+  if (candidates.length < requestedSpinCount) {
+    setTopMessage(
+      `Pas assez de skins restants (${candidates.length}/${requestedSpinCount}).`,
+      1700,
+    );
+    renderGachaModal();
+    return;
+  }
+  if (!spendCoins(spinCost)) {
+    setTopMessage(`Pas assez de Coins (cout: ${spinCost}).`, 1500);
     renderGachaModal();
     return;
   }
 
-  const reward = pickRandomGachaSkinCandidate(candidates);
-  if (!reward) {
+  const rewards = pickGachaSkinCandidatesForSpin(candidates, requestedSpinCount);
+  const reward = rewards[rewards.length - 1] || rewards[0] || null;
+  if (!reward || rewards.length <= 0) {
     renderGachaModal();
     return;
   }
@@ -15033,13 +15419,18 @@ async function startGachaSpin() {
   state.gacha.spinning = true;
   clearGachaSuspenseTimers();
   clearGachaResultPanel();
-  setGachaStatusText("La machine se lance...");
+  setGachaStatusText(isBatchSpin ? `Mode rafale x${requestedSpinCount}: lancement...` : "La machine se lance...");
   if (gachaMachineEl) {
     gachaMachineEl.classList.add("is-spinning");
+    gachaMachineEl.classList.toggle("is-spinning-10", isBatchSpin);
   }
   if (gachaSpinButtonEl) {
     gachaSpinButtonEl.disabled = true;
-    gachaSpinButtonEl.textContent = "Tirage en cours...";
+    gachaSpinButtonEl.textContent = isBatchSpin ? `Tirage x${requestedSpinCount} en cours...` : "Tirage en cours...";
+  }
+  if (gachaSpin10ButtonEl) {
+    gachaSpin10ButtonEl.disabled = true;
+    gachaSpin10ButtonEl.textContent = `Tirage x${requestedSpinCount} en cours...`;
   }
 
   const reelItems = [];
@@ -15052,18 +15443,33 @@ async function startGachaSpin() {
   }
   state.gacha.reelItems = reelItems.slice();
   state.gacha.reelRewardIndex = GACHA_REEL_REWARD_INDEX;
-  const setUnlockedRewardResult = (unlockedReward) => {
-    if (!unlockedReward) {
+  const setUnlockedRewardsResult = (unlockedRewards) => {
+    const safeUnlockedRewards = normalizeGachaRewardList(unlockedRewards);
+    if (safeUnlockedRewards.length <= 0) {
       setGachaStatusText("Le tirage est termine.");
       return false;
     }
-    state.gacha.lastReward = unlockedReward;
-    renderGachaResultPanel(unlockedReward);
-    setGachaStatusText("Incroyable tirage. Nouveau skin debloque.");
-    setTopMessage(
-      `Gacha: ${unlockedReward.pokemonNameFr} | skin ${unlockedReward.variantLabel} debloque.`,
-      2300,
-    );
+    state.gacha.lastRewards = safeUnlockedRewards.slice();
+    state.gacha.lastReward = safeUnlockedRewards[safeUnlockedRewards.length - 1] || safeUnlockedRewards[0];
+    state.gacha.lastSpinCount = requestedSpinCount;
+    renderGachaResultPanel(state.gacha.lastRewards, { spinCount: requestedSpinCount });
+    if (isBatchSpin) {
+      if (gachaBatchRevealEl) {
+        gachaBatchRevealEl.classList.add("hidden");
+      }
+      setGachaStatusText(`Mode rafale termine. ${safeUnlockedRewards.length} skins debloques.`);
+      setTopMessage(
+        `Gacha x${requestedSpinCount}: ${safeUnlockedRewards.length} skins debloques.`,
+        2300,
+      );
+    } else {
+      const unlockedReward = safeUnlockedRewards[0];
+      setGachaStatusText("Incroyable tirage. Nouveau skin debloque.");
+      setTopMessage(
+        `Gacha: ${unlockedReward.pokemonNameFr} | skin ${unlockedReward.variantLabel} debloque.`,
+        2300,
+      );
+    }
     return true;
   };
 
@@ -15072,7 +15478,7 @@ async function startGachaSpin() {
     if (gachaReelTrackEl) {
       gachaReelTrackEl.style.transition = "none";
       gachaReelTrackEl.style.transform = "translate3d(0px, 0px, 0px)";
-      gachaReelTrackEl.style.setProperty("--gacha-spin-ms", `${GACHA_SPIN_MAIN_SCROLL_DURATION_MS}ms`);
+      gachaReelTrackEl.style.setProperty("--gacha-spin-ms", `${spinMainScrollDurationMs}ms`);
     }
 
     updateHud();
@@ -15088,22 +15494,31 @@ async function startGachaSpin() {
     state.gacha.reelOffsetPx = targetOffsetPx;
     if (gachaReelTrackEl) {
       void gachaReelTrackEl.offsetWidth;
-      gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_MAIN_SCROLL_DURATION_MS}ms cubic-bezier(0.08, 0.7, 0.14, 1)`;
+      gachaReelTrackEl.style.transition = `transform ${spinMainScrollDurationMs}ms cubic-bezier(0.08, 0.7, 0.14, 1)`;
       gachaReelTrackEl.style.transform = `translate3d(${-preSnapOffsetPx}px, 0px, 0px)`;
     }
 
-    const suspenseAccelerationDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.18);
-    const suspenseSlowdownDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.56);
-    const suspenseFinalDelayMs = Math.round(GACHA_SPIN_MAIN_SCROLL_DURATION_MS * 0.82);
+    const suspenseAccelerationDelayMs = Math.round(spinMainScrollDurationMs * 0.18);
+    const suspenseSlowdownDelayMs = Math.round(spinMainScrollDurationMs * 0.56);
+    const suspenseFinalDelayMs = Math.round(spinMainScrollDurationMs * 0.82);
     state.gacha.suspenseTimerIds.push(
-      window.setTimeout(() => setGachaStatusText("Le reel accelere..."), suspenseAccelerationDelayMs),
-      window.setTimeout(() => setGachaStatusText("Ca ralentit... suspense..."), suspenseSlowdownDelayMs),
-      window.setTimeout(() => setGachaStatusText("Encore un instant..."), suspenseFinalDelayMs),
+      window.setTimeout(
+        () => setGachaStatusText(isBatchSpin ? `Mode x${requestedSpinCount}: le reel accelere...` : "Le reel accelere..."),
+        suspenseAccelerationDelayMs,
+      ),
+      window.setTimeout(
+        () => setGachaStatusText(isBatchSpin ? `Mode x${requestedSpinCount}: ralentissement...` : "Ca ralentit... suspense..."),
+        suspenseSlowdownDelayMs,
+      ),
+      window.setTimeout(
+        () => setGachaStatusText(isBatchSpin ? `Mode x${requestedSpinCount}: revelation imminente...` : "Encore un instant..."),
+        suspenseFinalDelayMs,
+      ),
     );
 
-    await waitForGachaDelay(GACHA_SPIN_MAIN_SCROLL_DURATION_MS);
+    await waitForGachaDelay(spinMainScrollDurationMs);
     clearGachaSuspenseTimers();
-    setGachaStatusText("Revelation...");
+    setGachaStatusText(isBatchSpin ? `Revelation des ${requestedSpinCount} skins...` : "Revelation...");
     if (gachaReelTrackEl) {
       void gachaReelTrackEl.offsetWidth;
       gachaReelTrackEl.style.transition = `transform ${GACHA_SPIN_FINAL_SNAP_DURATION_MS}ms cubic-bezier(0.2, 0.88, 0.2, 1)`;
@@ -15111,20 +15526,30 @@ async function startGachaSpin() {
     }
     await waitForGachaDelay(GACHA_SPIN_FINAL_SNAP_DURATION_MS);
 
-    const unlockedReward = await unlockGachaRewardSkin(reward);
-    setUnlockedRewardResult(unlockedReward);
+    const unlockedRewards = isBatchSpin
+      ? await runGachaBatchRevealAnimation(rewards)
+      : normalizeGachaRewardList(await unlockGachaRewardSkin(reward));
+    setUnlockedRewardsResult(unlockedRewards);
   } catch (error) {
     console.error("Gacha spin failed", error);
-    const recoveredReward = await unlockGachaRewardSkin(reward).catch((recoveryError) => {
-      console.error("Gacha recovery unlock failed", recoveryError);
-      return null;
-    });
-    setUnlockedRewardResult(recoveredReward);
+    const recoveredRewards = [];
+    for (const candidateReward of rewards) {
+      const recoveredReward = await unlockGachaRewardSkin(candidateReward).catch((recoveryError) => {
+        console.error("Gacha recovery unlock failed", recoveryError);
+        return null;
+      });
+      if (recoveredReward) {
+        recoveredRewards.push(recoveredReward);
+      }
+    }
+    setUnlockedRewardsResult(recoveredRewards);
   } finally {
     clearGachaSuspenseTimers();
+    clearGachaBatchSpotlightPanel();
     state.gacha.spinning = false;
     if (gachaMachineEl) {
       gachaMachineEl.classList.remove("is-spinning");
+      gachaMachineEl.classList.remove("is-spinning-10");
     }
 
     try {
@@ -15159,6 +15584,44 @@ function getBattleViewportProfile(width, height) {
     phone,
     portrait,
   };
+}
+
+function getTeamSpriteScale(layout = state.layout) {
+  const viewportProfile = layout?.viewportProfile || {};
+  const multiplier = viewportProfile.phone
+    ? TEAM_SPRITE_SCALE_PHONE_MULTIPLIER
+    : viewportProfile.compact
+      ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER
+      : 1;
+  return TEAM_SPRITE_SCALE * multiplier;
+}
+
+function getEnemySpriteRenderSize(layout = state.layout, baseSize = 0) {
+  const safeBaseSize = Math.max(0, Number(baseSize) || 0);
+  if (safeBaseSize <= 0) {
+    return 0;
+  }
+  const viewportProfile = layout?.viewportProfile || {};
+  const multiplier = viewportProfile.phone
+    ? ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER
+    : viewportProfile.compact
+      ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER
+      : 1;
+  return safeBaseSize * multiplier * ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER;
+}
+
+function getTeamSpriteMinRenderSize(layout = state.layout, slotSize = 0) {
+  const safeSlotSize = Math.max(0, Number(slotSize) || 0);
+  if (safeSlotSize <= 0) {
+    return 0;
+  }
+  const viewportProfile = layout?.viewportProfile || {};
+  const ratio = viewportProfile.phone
+    ? TEAM_SPRITE_MIN_RENDER_RATIO_PHONE
+    : viewportProfile.compact
+      ? TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT
+      : 0;
+  return safeSlotSize * ratio;
 }
 
 function getOverlayPaddingSnapshot() {
@@ -15846,6 +16309,66 @@ function getPokemonBreathTransform(entity, size, slotIndex = 0, options = {}) {
   return { scaleX: uniformScale, scaleY: uniformScale, offsetY };
 }
 
+function drawPokemonTerrainShadow(size, options = {}) {
+  const safeSize = Number(size);
+  if (!Number.isFinite(safeSize) || safeSize <= 0) {
+    return;
+  }
+  const profile = String(options.profile || "team").trim().toLowerCase();
+  const spriteAlpha = clamp(Number(options.spriteAlpha ?? 1), 0, 1);
+  const baseAlpha = clamp(Number(options.alpha ?? POKEMON_SHADOW_ALPHA), 0, 1);
+  const groundOffsetY = Number.isFinite(options.groundOffsetY) ? Number(options.groundOffsetY) : 0;
+  const liftPx = Math.max(0, Number.isFinite(options.liftPx) ? Number(options.liftPx) : 0);
+  const liftRatio = clamp(liftPx / Math.max(1, safeSize), 0, 1.5);
+
+  let radiusXRatio = 0.34;
+  let radiusYRatio = 0.16;
+  let centerYRatio = 0.3;
+  let profileAlpha = 1;
+  if (profile === "enemy") {
+    radiusXRatio = 0.37;
+    radiusYRatio = 0.17;
+    centerYRatio = 0.31;
+    profileAlpha = 1.04;
+  } else if (profile === "drag") {
+    radiusXRatio = 0.31;
+    radiusYRatio = 0.145;
+    centerYRatio = 0.285;
+    profileAlpha = 0.92;
+  }
+
+  const finalAlpha = clamp(baseAlpha * spriteAlpha * profileAlpha * (1 - liftRatio * 0.38), 0, 1);
+  if (finalAlpha <= 0.01) {
+    return;
+  }
+
+  const centerY = safeSize * centerYRatio + groundOffsetY + liftPx * 0.2;
+  const radiusX = safeSize * radiusXRatio * (1 - liftRatio * 0.08);
+  const radiusY = safeSize * radiusYRatio * (1 - liftRatio * 0.42);
+  if (!Number.isFinite(radiusX) || !Number.isFinite(radiusY) || radiusX <= 0.01 || radiusY <= 0.01) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  const gradient = ctx.createRadialGradient(
+    0,
+    centerY - radiusY * 0.04,
+    Math.max(0.1, radiusY * 0.14),
+    0,
+    centerY,
+    Math.max(radiusX, radiusY),
+  );
+  gradient.addColorStop(0, `rgba(11, 24, 50, ${(finalAlpha * 0.74).toFixed(3)})`);
+  gradient.addColorStop(0.68, `rgba(8, 16, 34, ${(finalAlpha * 0.4).toFixed(3)})`);
+  gradient.addColorStop(1, "rgba(5, 9, 18, 0)");
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.ellipse(0, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawPokemonBackdropCircle(x, y, size, options = {}) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size) || size <= 0) {
     return;
@@ -15916,7 +16439,7 @@ function drawTeamDragSwapOverlay(layout) {
   const pointerYRaw = Number(state.ui.teamDragCurrentWorldY);
   const pointerX = Number.isFinite(pointerXRaw) ? pointerXRaw : sourceSlot.x;
   const pointerY = Number.isFinite(pointerYRaw) ? pointerYRaw : sourceSlot.y;
-  const ghostSize = sourceSlot.size * TEAM_SPRITE_SCALE;
+  const ghostSize = sourceSlot.size * getTeamSpriteScale(layout);
   const lineTargetX = targetSlot ? targetSlot.x : pointerX;
   const lineTargetY = targetSlot ? targetSlot.y : pointerY;
   const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();
@@ -15944,6 +16467,11 @@ function drawTeamDragSwapOverlay(layout) {
     scaleX: 1.04,
     scaleY: 1.04,
     offsetY: -ghostSize * 0.02,
+    minRenderSizePx: getTeamSpriteMinRenderSize(layout, ghostSize),
+    shadowProfile: "drag",
+    shadowAlpha: 0.42,
+    shadowGroundOffsetY: 0,
+    shadowLiftPx: ghostSize * 0.1,
     flipX: shouldFlipTeamSprite(targetSlotIndex >= 0 ? targetSlotIndex : sourceSlotIndex, layout),
     shinyVisual: Boolean(forceUltraShinyAll || sourceMember.isShiny || sourceMember.isShinyVisual),
     ultraShinyVisual: Boolean(forceUltraShinyAll || sourceMember.isUltraShiny || sourceMember.isUltraShinyVisual),
@@ -16375,17 +16903,30 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const shaderConfig = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
   const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
   const spriteImage = resolvedSpriteSource.source;
-  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);
+  const minRenderSizePx = Number.isFinite(options.minRenderSizePx) ? Math.max(0, Number(options.minRenderSizePx)) : 0;
+  const renderSize = Math.max(
+    minRenderSizePx,
+    getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource),
+  );
   let spriteDrawX = -renderSize * 0.5;
   let spriteDrawY = -renderSize * 0.5;
   let spriteDrawWidth = renderSize;
   let spriteDrawHeight = renderSize;
   let spriteUsedImage = false;
-
-  ctx.fillStyle = `rgba(0, 0, 0, ${POKEMON_SHADOW_ALPHA})`;
-  ctx.beginPath();
-  ctx.ellipse(0, renderSize * 0.34, renderSize * 0.28, renderSize * 0.1, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const shadowProfile = String(options.shadowProfile || "team").toLowerCase();
+  const shadowGroundOffsetY = Number.isFinite(options.shadowGroundOffsetY)
+    ? Number(options.shadowGroundOffsetY)
+    : -(offsetY + wobbleOffsetY);
+  const shadowLiftPx = Number.isFinite(options.shadowLiftPx)
+    ? Math.max(0, Number(options.shadowLiftPx))
+    : Math.max(0, -(offsetY + wobbleOffsetY));
+  drawPokemonTerrainShadow(renderSize, {
+    profile: shadowProfile,
+    spriteAlpha: drawAlpha,
+    alpha: Number.isFinite(options.shadowAlpha) ? Number(options.shadowAlpha) : POKEMON_SHADOW_ALPHA,
+    liftPx: shadowLiftPx,
+    groundOffsetY: shadowGroundOffsetY,
+  });
 
   if (isDrawableImage(spriteImage)) {
     const dims = getDrawableImageDimensions(spriteImage);
@@ -17525,14 +18066,13 @@ function drawProjectileTypeMotif(projectile, rgb, radius) {
 }
 
 function drawProjectiles(projectiles) {
-  const quality = getRenderQualitySettings();
-  const trailStride = Math.max(1, toSafeInt(quality.projectileTrailStride, 1));
-  const trailEnabled = Boolean(quality.projectileTrailEnabled);
-  const trailGlow = Boolean(quality.projectileTrailGlow);
-  const projectileStreak = Boolean(quality.projectileStreak);
-  const projectileAura = Boolean(quality.projectileAura);
-  const spriteDetail = Boolean(quality.projectileSpriteDetail);
-  const auraScale = clamp(Number(quality.projectileAuraScale) || 1, 0.45, 1.5);
+  const trailStride = Math.max(1, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailStride, 1));
+  const trailEnabled = Boolean(PROJECTILE_VISUAL_PROFILE.trailEnabled);
+  const trailGlow = Boolean(PROJECTILE_VISUAL_PROFILE.trailGlow);
+  const projectileStreak = Boolean(PROJECTILE_VISUAL_PROFILE.streak);
+  const projectileAura = Boolean(PROJECTILE_VISUAL_PROFILE.aura);
+  const spriteDetail = Boolean(PROJECTILE_VISUAL_PROFILE.spriteDetail);
+  const auraScale = clamp(Number(PROJECTILE_VISUAL_PROFILE.auraScale) || 1, 0.45, 1.5);
   for (const projectile of projectiles || []) {
     const rgb = getTypeColor(projectile.attackType);
     const radius = projectile.radius || 8;
@@ -17900,7 +18440,6 @@ function drawFloatingDamageTexts(floatingTexts) {
     : clamp(shortestSide / 900, 0.82, 0.96);
   for (const text of floatingTexts || []) {
     const lifeRatio = clamp(text.lifeMs / Math.max(1, text.maxLifeMs), 0, 1);
-    const elapsedRatio = 1 - lifeRatio;
     const tone = String(text.tone || FLOATING_TEXT_TONE_NORMAL);
     const tonePalette = getFloatingTextTonePalette(tone);
     const tweenVisual = text.visualTween?.visual || null;
@@ -17920,13 +18459,8 @@ function drawFloatingDamageTexts(floatingTexts) {
     const numericDamage = Math.max(0, Number(text.damage) || 0);
     const dynamicFontBoost = clamp(Math.log10(numericDamage + 1) * 3.7, 0, 5);
     const mainFontSize = Math.round(((text.isMiss ? 16 : 19) + dynamicFontBoost + (tone === FLOATING_TEXT_TONE_CRITICAL ? 1 : 0)) * compactScale);
-    const swayAmplitudePx = clamp((Number(text.swayAmplitudePx) || 0) * compactScale, 0, 22);
-    const swayFrequencyHz = clamp(Number(text.swayFrequencyHz) || 1.4, 0.3, 3.2);
-    const swayPhase = Number(text.swayPhase) || 0;
-    const swayX = Math.sin(elapsedRatio * Math.PI * 2 * swayFrequencyHz + swayPhase) * swayAmplitudePx * (0.45 + lifeRatio * 0.65);
-
     ctx.save();
-    ctx.translate(text.x + swayX, text.y);
+    ctx.translate(text.x, text.y);
     ctx.scale(scale, scale);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -18684,38 +19218,15 @@ function drawTeamXpGainEffects() {
   }
 }
 
-function drawWeatherColorGrade(width, height, weatherType, strength, dayLight) {
-  const profile = getWeatherProfile(weatherType);
-  const weight = clamp(Number(strength) || 0, 0, 1);
-  if (weight <= 0.001) {
-    return;
-  }
-
-  const overlayAlpha = clamp(profile.gradeOverlayAlpha * weight, 0, 1);
-  const screenAlpha = clamp(profile.gradeScreenAlpha * weight * (0.72 + Number(dayLight || 0) * 0.36), 0, 1);
-  if (overlayAlpha > 0.001) {
-    ctx.fillStyle = rgba(profile.gradeOverlayColor, overlayAlpha.toFixed(3));
-    ctx.fillRect(0, 0, width, height);
-  }
-  if (screenAlpha > 0.001) {
-    ctx.save();
-    ctx.globalCompositeOperation = "screen";
-    ctx.fillStyle = rgba(profile.gradeScreenColor, screenAlpha.toFixed(3));
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
-  }
-}
-
 function drawTimeOfDayColorGrade(width, height, environmentSnapshot) {
   const dayLight = clamp(Number(environmentSnapshot?.dayLight) || 0, 0, 1);
-  const twilight = clamp(Number(environmentSnapshot?.twilight) || 0, 0, 1);
   const night = clamp(Number(environmentSnapshot?.night) || 0, 0, 1);
 
   ctx.save();
   if (night > 0.001) {
     const nightGradient = ctx.createLinearGradient(0, 0, 0, height);
-    nightGradient.addColorStop(0, `rgba(20, 35, 78, ${(0.05 + night * 0.16).toFixed(3)})`);
-    nightGradient.addColorStop(1, `rgba(8, 18, 46, ${(0.09 + night * 0.24).toFixed(3)})`);
+    nightGradient.addColorStop(0, `rgba(20, 35, 78, ${(0.18 + night * 0.18).toFixed(3)})`);
+    nightGradient.addColorStop(1, `rgba(8, 18, 46, ${(0.22 + night * 0.24).toFixed(3)})`);
     ctx.fillStyle = nightGradient;
     ctx.fillRect(0, 0, width, height);
   }
@@ -18732,136 +19243,6 @@ function drawTimeOfDayColorGrade(width, height, environmentSnapshot) {
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }
-
-  if (twilight > 0.001) {
-    const twilightGradient = ctx.createLinearGradient(0, 0, 0, height);
-    twilightGradient.addColorStop(0, `rgba(255, 176, 116, ${(twilight * 0.08).toFixed(3)})`);
-    twilightGradient.addColorStop(0.58, "rgba(171, 128, 198, 0)");
-    twilightGradient.addColorStop(1, `rgba(92, 126, 186, ${(twilight * 0.05).toFixed(3)})`);
-    ctx.fillStyle = twilightGradient;
-    ctx.fillRect(0, 0, width, height);
-  }
-  ctx.restore();
-}
-
-function drawSunDust(width, height, intensity) {
-  const amount = Math.max(0, Number(intensity) || 0);
-  if (amount <= 0.01) {
-    return;
-  }
-  const quality = getRenderQualitySettings();
-  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0.05, 1.4);
-  const particleCount = Math.round((width / 88) * amount * particleScale);
-  if (particleCount <= 0) {
-    return;
-  }
-  const time = state.timeMs * 0.00004;
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  for (let i = 0; i < particleCount; i += 1) {
-    const seed = i * 17.13 + 9.61;
-    const driftSpeed = 0.34 + pseudoRandomUnit(seed * 2.3) * 0.92;
-    const x = pseudoRandomUnit(seed) * width + Math.sin(time * driftSpeed * 13 + seed) * 18;
-    const yBase = pseudoRandomUnit(seed * 5.1) * (height + 120);
-    const y = (yBase - (time * (34 + driftSpeed * 46)) % (height + 120)) % (height + 120) - 60;
-    const radius = 1 + pseudoRandomUnit(seed * 7.7) * (2.2 + amount * 1.4);
-    const alpha = (0.1 + pseudoRandomUnit(seed * 3.7) * 0.16) * amount;
-    ctx.fillStyle = `rgba(255, 248, 218, ${alpha.toFixed(3)})`;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawRainStreakLayer(width, height, intensity) {
-  const rainIntensity = Math.max(0, Number(intensity) || 0);
-  if (rainIntensity <= 0.01) {
-    return;
-  }
-  const quality = getRenderQualitySettings();
-  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0.05, 1.4);
-  const streakCount = Math.round((width / 26) * rainIntensity * particleScale);
-  if (streakCount <= 0) {
-    return;
-  }
-  const wind = -0.32 - rainIntensity * 0.06;
-  const time = state.timeMs * 0.001;
-
-  ctx.save();
-  ctx.lineCap = "round";
-  for (let i = 0; i < streakCount; i += 1) {
-    const seed = i * 19.37 + 4.71;
-    const xBase = pseudoRandomUnit(seed) * (width + 160) - 80;
-    const speed = 240 + pseudoRandomUnit(seed * 3.17) * 250 + rainIntensity * 70;
-    const length = 10 + pseudoRandomUnit(seed * 6.9) * 16 + rainIntensity * 3;
-    const thickness = 0.7 + pseudoRandomUnit(seed * 8.3) * 0.75 + rainIntensity * 0.2;
-    const y = (pseudoRandomUnit(seed * 2.1) * (height + 180) + (time * speed) % (height + 180)) % (height + 180) - 90;
-    const alpha = 0.16 + rainIntensity * 0.1 + pseudoRandomUnit(seed * 9.7) * 0.1;
-    ctx.strokeStyle = `rgba(198, 228, 255, ${alpha.toFixed(3)})`;
-    ctx.lineWidth = thickness;
-    ctx.beginPath();
-    ctx.moveTo(xBase, y);
-    ctx.lineTo(xBase + wind * length, y + length);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawFogLayer(width, height, intensity, options = {}) {
-  const fogIntensity = Math.max(0, Number(intensity) || 0);
-  if (fogIntensity <= 0.01) {
-    return;
-  }
-  const quality = getRenderQualitySettings();
-  const layerCount = Math.max(0, toSafeInt(quality.fogLayerCount, 3));
-  if (layerCount <= 0) {
-    return;
-  }
-  const depth = clamp(Number(options.depth || 0), 0, 1);
-  const time = state.timeMs * (0.00011 + depth * 0.00007);
-  ctx.save();
-  ctx.globalCompositeOperation = depth > 0.4 ? "screen" : "source-over";
-  for (let i = 0; i < layerCount; i += 1) {
-    const layerRatio = (i + 1) / layerCount;
-    const x = width * (0.12 + layerRatio * 0.31) + Math.sin(time * (0.8 + layerRatio * 0.9) + i * 1.7) * width * 0.2;
-    const y = height * (0.18 + layerRatio * 0.28) + Math.cos(time * (1.1 + layerRatio * 0.6) + i * 0.6) * height * 0.11;
-    const radius = width * (0.26 + layerRatio * 0.2);
-    const alpha = fogIntensity * (0.08 + layerRatio * 0.08) * (0.6 + depth * 0.6);
-    const gradient = ctx.createRadialGradient(x, y, radius * 0.16, x, y, radius);
-    gradient.addColorStop(0, `rgba(220, 232, 245, ${alpha.toFixed(3)})`);
-    gradient.addColorStop(1, "rgba(220, 232, 245, 0)");
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawStormLightningOverlay(width, height, intensity) {
-  const flashIntensity = clamp(Number(intensity) || 0, 0, 1);
-  if (flashIntensity <= 0.001) {
-    return;
-  }
-  const quality = getRenderQualitySettings();
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  ctx.fillStyle = `rgba(214, 235, 255, ${(flashIntensity * 0.38).toFixed(3)})`;
-  ctx.fillRect(0, 0, width, height);
-  if (!quality.lightningGlow) {
-    ctx.restore();
-    return;
-  }
-
-  const flashX = width * (0.18 + pseudoRandomUnit(Math.floor(state.timeMs * 0.01) + 17) * 0.64);
-  const flashY = height * 0.05;
-  const flashRadius = width * (0.35 + flashIntensity * 0.4);
-  const glow = ctx.createRadialGradient(flashX, flashY, flashRadius * 0.08, flashX, flashY, flashRadius);
-  glow.addColorStop(0, `rgba(236, 246, 255, ${(flashIntensity * 0.56).toFixed(3)})`);
-  glow.addColorStop(1, "rgba(236, 246, 255, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, width, height);
   ctx.restore();
 }
 
@@ -19080,36 +19461,7 @@ function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
   if (!environmentSnapshot) {
     return;
   }
-  if (!shouldRenderAmbientOverlays()) {
-    return;
-  }
-  const quality = getRenderQualitySettings();
-  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0, 1.5);
   drawTimeOfDayColorGrade(width, height, environmentSnapshot);
-
-  const weights = environmentSnapshot.weatherWeights || { neutral: 1 };
-  const dayLight = clamp(Number(environmentSnapshot.dayLight) || 0, 0, 1);
-  for (const weatherType of WEATHER_TYPES) {
-    const weight = clamp(Number(weights[weatherType] || 0), 0, 1);
-    if (weight <= 0.001) {
-      continue;
-    }
-    drawWeatherColorGrade(width, height, weatherType, weight, dayLight);
-  }
-
-  const sunnyWeight = clamp(Number(weights.sunny || 0), 0, 1);
-  if (sunnyWeight > 0.001 && particleScale > 0.01) {
-    const sunnyIntensity = sunnyWeight * (0.55 + dayLight * 0.75) * particleScale;
-    drawSunDust(width, height, sunnyIntensity);
-  }
-
-  const fogWeight =
-    clamp(Number(weights.foggy || 0), 0, 1) * 1 +
-    clamp(Number(weights.rainy || 0), 0, 1) * 0.42 +
-    clamp(Number(weights.storm || 0), 0, 1) * 0.58;
-  if (fogWeight > 0.001 && particleScale > 0.01) {
-    drawFogLayer(width, height, fogWeight * (0.45 + particleScale * 0.55), { depth: 0.25 });
-  }
 }
 
 function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
@@ -19119,24 +19471,9 @@ function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
   if (!shouldRenderAmbientOverlays()) {
     return;
   }
-  const quality = getRenderQualitySettings();
-  const particleScale = clamp(Number(quality.environmentParticleScale) || 1, 0, 1.5);
-  const weights = environmentSnapshot.weatherWeights || { neutral: 1 };
-  const rainWeight =
-    clamp(Number(weights.rainy || 0), 0, 1) * 1 +
-    clamp(Number(weights.storm || 0), 0, 1) * 1.65;
-  if (rainWeight > 0.001 && particleScale > 0.01) {
-    drawRainStreakLayer(width, height, rainWeight * particleScale);
-  }
-
-  const fogWeight =
-    clamp(Number(weights.foggy || 0), 0, 1) * 0.58 +
-    clamp(Number(weights.storm || 0), 0, 1) * 0.35;
-  if (fogWeight > 0.001 && particleScale > 0.01) {
-    drawFogLayer(width, height, fogWeight * (0.42 + particleScale * 0.58), { depth: 0.78 });
-  }
-
-  drawStormLightningOverlay(width, height, environmentSnapshot.lightningIntensity || 0);
+  void width;
+  void height;
+  void environmentSnapshot;
 }
 
 function updateEvolutionAnimation(deltaMs) {
@@ -19500,11 +19837,7 @@ function drawBallInventoryOverlay(layout) {
 
   let maxValueWidth = 0;
   for (const row of rows) {
-    const value = formatCompactNumber(Math.max(0, toSafeInt(row.count, 0)), {
-      decimalsSmall: 0,
-      decimalsMedium: 0,
-      decimalsLarge: 0,
-    });
+    const value = String(Math.max(0, toSafeInt(row.count, 0)));
     maxValueWidth = Math.max(maxValueWidth, Math.ceil(ctx.measureText(value).width));
   }
   const dynamicPanelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxValueWidth + rightInset);
@@ -19553,11 +19886,7 @@ function drawBallInventoryOverlay(layout) {
     const rowBottom = rowY + rowVisualHeight;
     const iconCenterX = rowX + panelPaddingX + iconSize * 0.5;
     const image = row.spritePath ? getCachedSpriteImage(row.spritePath) : null;
-    const valueText = formatCompactNumber(Math.max(0, toSafeInt(row.count, 0)), {
-      decimalsSmall: 0,
-      decimalsMedium: 0,
-      decimalsLarge: 0,
-    });
+    const valueText = String(Math.max(0, toSafeInt(row.count, 0)));
 
     drawRetroHudPanel(rowX, rowY, rowWidth, rowVisualHeight, {
       cut: compact ? 6 : 8,
@@ -19729,31 +20058,8 @@ function getBottomHudSafeEdge(layout = state.layout) {
   }
 
   const viewportProfile = layout?.viewportProfile || {};
-  const margin = viewportProfile.phone ? 8 : 6;
-  let bottom = viewportHeight - margin;
-
-  const safeLayoutBottom = Number(layout?.safeBounds?.bottom);
-  if (Number.isFinite(safeLayoutBottom) && safeLayoutBottom > 0) {
-    bottom = Math.min(bottom, safeLayoutBottom - margin);
-  }
-
-  if (gameStageEl instanceof Element && actionDockEl instanceof Element) {
-    const stageRect = gameStageEl.getBoundingClientRect();
-    const dockRect = actionDockEl.getBoundingClientRect();
-    const dockVisible =
-      dockRect.width > 0
-      && dockRect.height > 0
-      && dockRect.bottom > stageRect.top
-      && dockRect.top < stageRect.bottom;
-    if (dockVisible) {
-      const dockTop = dockRect.top - stageRect.top;
-      if (Number.isFinite(dockTop)) {
-        bottom = Math.min(bottom, dockTop - margin);
-      }
-    }
-  }
-
-  return clamp(bottom, 24, viewportHeight - 6);
+  const margin = viewportProfile.phone ? 6 : 8;
+  return clamp(viewportHeight - margin, 24, viewportHeight);
 }
 
 function drawVersionOverlay() {
@@ -19763,7 +20069,7 @@ function drawVersionOverlay() {
   const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;
   const paddingX = 8;
   const paddingY = 5;
-  const x = 16;
+  const x = viewportProfile.phone ? 8 : 12;
   const bottom = getBottomHudSafeEdge(layout);
 
   ctx.save();
@@ -19798,7 +20104,7 @@ function drawFpsOverlay(layout = state.layout, bottomLimit = null) {
   const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;
   const paddingX = 7;
   const paddingY = 5;
-  const margin = 14;
+  const margin = viewportProfile.phone ? 8 : 12;
 
   ctx.save();
   ctx.font = `700 ${fontSize}px Tahoma`;
@@ -19808,7 +20114,7 @@ function drawFpsOverlay(layout = state.layout, bottomLimit = null) {
   const pillWidth = textWidth + paddingX * 2;
   const pillHeight = fontSize + paddingY * 2;
   const right = Math.max(8, state.viewport.width - margin);
-  const maxBottom = Math.max(8, state.viewport.height - margin);
+  const maxBottom = Math.max(8, state.viewport.height - (viewportProfile.phone ? 6 : 8));
   const bottom = Number.isFinite(bottomLimit) ? Math.min(maxBottom, bottomLimit) : Math.min(maxBottom, getBottomHudSafeEdge(layout));
   const x = right - pillWidth;
   const y = bottom - pillHeight;
@@ -19858,6 +20164,8 @@ function render() {
   drawBackground(width, height);
   drawEnvironmentBackgroundLayer(width, height, environmentSnapshot);
   if (hasTeamMembers) {
+    const teamSpriteScale = getTeamSpriteScale(layout);
+    const enemySpriteSize = getEnemySpriteRenderSize(layout, layout.enemySize);
     const teamDrawPositions = [];
     const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
@@ -19871,7 +20179,7 @@ function render() {
       const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;
       const teleportScale = state.battle ? state.battle.getSlotTeleportScale(i) : 1;
       const skipTurnVisual = state.battle ? state.battle.getSlotSkipTurnVisual(i) : null;
-      const spriteSize = slot.size * TEAM_SPRITE_SCALE;
+      const spriteSize = slot.size * teamSpriteScale;
       const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
       const drawX = slot.x + recoilOffset.x + Number(skipTurnVisual?.offsetX || 0);
       const drawY = slot.y + recoilOffset.y + Number(skipTurnVisual?.offsetY || 0) - hoverLift;
@@ -19901,7 +20209,7 @@ function render() {
       const shrinkActive = Boolean(koTransition?.shrink_active);
       const enemyBreath = getPokemonBreathTransform(
         state.enemy,
-        layout.enemySize,
+        enemySpriteSize,
         -1,
         {
           active: !captureSequence && !isKo,
@@ -19926,7 +20234,7 @@ function render() {
     }
 
     if (enemyRenderState?.visible) {
-      drawPokemonBackdropCircle(layout.centerX, layout.centerY, layout.enemySize);
+      drawPokemonBackdropCircle(layout.centerX, layout.centerY, enemySpriteSize);
     }
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
       const member = state.team[i];
@@ -19937,7 +20245,7 @@ function render() {
       }
       const hoverPulse = getHoveredTeamSlotPulse(i);
       const chargeGlow = clamp(Number(drawPosition?.chargeGlow || 0), 0, 1);
-      const spriteSize = slot.size * TEAM_SPRITE_SCALE;
+      const spriteSize = slot.size * teamSpriteScale;
       const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));
       const teleportBoostMultiplier = state.battle ? state.battle.getTeleportDamageBoostForSlot(i) : 1;
       const teleportBoostVisualIntensity = state.battle
@@ -19966,11 +20274,13 @@ function render() {
     }
 
     if (state.enemy && enemyRenderState?.visible) {
-        drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, layout.enemySize, {
+        drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, enemySpriteSize, {
           alpha: enemyRenderState.alpha,
           scaleX: enemyRenderState.scaleX,
           scaleY: enemyRenderState.scaleY,
           offsetY: enemyRenderState.offsetY,
+          shadowProfile: "enemy",
+          shadowAlpha: 0.58,
           shinyVisual: Boolean(forceUltraShinyAll || state.enemy.isShiny || state.enemy.isShinyVisual),
           ultraShinyVisual: Boolean(forceUltraShinyAll || state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual),
           tintBlend: enemyDamageTintBlend,
@@ -20010,10 +20320,14 @@ function render() {
           }
         : null;
       const memberShader = member?.spriteShader && typeof member.spriteShader === "object" ? member.spriteShader : null;
+      const teamMinRenderSize = getTeamSpriteMinRenderSize(layout, drawPosition.size || slot.size);
       drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
         scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale * skipScaleX,
         scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale * skipScaleY,
         offsetY: teamBreath.offsetY,
+        minRenderSizePx: teamMinRenderSize,
+        shadowProfile: "team",
+        shadowAlpha: 0.52,
         flipX: shouldFlipTeamSprite(i),
         shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
         ultraShinyVisual: Boolean(forceUltraShinyAll || member.isUltraShiny || member.isUltraShinyVisual),
@@ -20255,6 +20569,111 @@ function getTeamDragActivationDistancePx(pointerType) {
   return TEAM_DRAG_START_DISTANCE_PX;
 }
 
+function isTouchLikePointerType(pointerType) {
+  const normalizedPointerType = getNormalizedPointerType(pointerType);
+  return normalizedPointerType === "touch" || normalizedPointerType === "pen";
+}
+
+function resetTeamContextTouchHoldState() {
+  state.ui.teamContextTouchHoldTimerId = 0;
+  state.ui.teamContextTouchHoldPointerId = -1;
+  state.ui.teamContextTouchHoldSlotIndex = -1;
+  state.ui.teamContextTouchHoldClientX = 0;
+  state.ui.teamContextTouchHoldClientY = 0;
+  state.ui.teamContextTouchHoldStartClientX = 0;
+  state.ui.teamContextTouchHoldStartClientY = 0;
+}
+
+function cancelTeamContextTouchHold(pointerId = null) {
+  const activePointerId = toSafeInt(state.ui.teamContextTouchHoldPointerId, -1);
+  if (pointerId !== null && activePointerId >= 0 && toSafeInt(pointerId, -2) !== activePointerId) {
+    return false;
+  }
+  const timerId = toSafeInt(state.ui.teamContextTouchHoldTimerId, 0);
+  if (timerId > 0) {
+    clearTimeout(timerId);
+  }
+  resetTeamContextTouchHoldState();
+  return true;
+}
+
+function triggerTeamContextTouchHold(pointerId) {
+  const safePointerId = toSafeInt(pointerId, -1);
+  if (safePointerId < 0 || toSafeInt(state.ui.teamContextTouchHoldPointerId, -1) !== safePointerId) {
+    return false;
+  }
+  const slotIndex = clamp(toSafeInt(state.ui.teamContextTouchHoldSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  const member = slotIndex >= 0 ? state.team[slotIndex] : null;
+  const activeDragPointerId = toSafeInt(state.ui.teamDragPointerId, -1);
+  const matchesActiveDragPointer = activeDragPointerId < 0 || activeDragPointerId === safePointerId;
+  if (
+    slotIndex < 0
+    || !member
+    || isCanvasBattleInteractionBlocked()
+    || !state.ui.teamDragActive
+    || !matchesActiveDragPointer
+    || state.ui.teamDragMoved
+  ) {
+    cancelTeamContextTouchHold(safePointerId);
+    return false;
+  }
+
+  const clientX = Number(state.ui.teamContextTouchHoldClientX || state.ui.teamDragStartClientX || 0);
+  const clientY = Number(state.ui.teamContextTouchHoldClientY || state.ui.teamDragStartClientY || 0);
+  cancelTeamContextTouchHold(safePointerId);
+  clearTeamDragState({ suppressClickMs: TEAM_DRAG_CLICK_SUPPRESS_MS });
+  openTeamContextMenu(slotIndex, member, clientX, clientY);
+  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+    navigator.vibrate(12);
+  }
+  render();
+  return true;
+}
+
+function scheduleTeamContextTouchHold(slotIndex, member, event) {
+  if (!isTouchLikePointerType(event?.pointerType) || !member) {
+    cancelTeamContextTouchHold();
+    return;
+  }
+  const pointerId = toSafeInt(event?.pointerId, -1);
+  if (pointerId < 0) {
+    cancelTeamContextTouchHold();
+    return;
+  }
+  cancelTeamContextTouchHold();
+  state.ui.teamContextTouchHoldPointerId = pointerId;
+  state.ui.teamContextTouchHoldSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  state.ui.teamContextTouchHoldClientX = Number(event.clientX || 0);
+  state.ui.teamContextTouchHoldClientY = Number(event.clientY || 0);
+  state.ui.teamContextTouchHoldStartClientX = Number(event.clientX || 0);
+  state.ui.teamContextTouchHoldStartClientY = Number(event.clientY || 0);
+  state.ui.teamContextTouchHoldTimerId = window.setTimeout(() => {
+    triggerTeamContextTouchHold(pointerId);
+  }, TEAM_CONTEXT_TOUCH_HOLD_DELAY_MS);
+}
+
+function updateTeamContextTouchHoldFromMove(event, worldX, worldY, layout) {
+  const pointerId = toSafeInt(event?.pointerId, -1);
+  if (pointerId < 0 || toSafeInt(state.ui.teamContextTouchHoldPointerId, -1) !== pointerId) {
+    return;
+  }
+  state.ui.teamContextTouchHoldClientX = Number(event.clientX || state.ui.teamContextTouchHoldClientX || 0);
+  state.ui.teamContextTouchHoldClientY = Number(event.clientY || state.ui.teamContextTouchHoldClientY || 0);
+  const dx = state.ui.teamContextTouchHoldClientX - Number(state.ui.teamContextTouchHoldStartClientX || 0);
+  const dy = state.ui.teamContextTouchHoldClientY - Number(state.ui.teamContextTouchHoldStartClientY || 0);
+  const distanceSquared = dx * dx + dy * dy;
+  const cancelDistance = TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX;
+  if (distanceSquared >= cancelDistance * cancelDistance) {
+    cancelTeamContextTouchHold(pointerId);
+    return;
+  }
+  const slotIndex = clamp(toSafeInt(state.ui.teamContextTouchHoldSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  const hoveredSlot = findHoveredTeamSlot(worldX, worldY, layout, { pointerType: event?.pointerType });
+  if (!hoveredSlot || hoveredSlot.slotIndex !== slotIndex) {
+    cancelTeamContextTouchHold(pointerId);
+  }
+}
+
 function isTeamSlotSwapAllowed(routeId = null) {
   return getTeamBoxesAccessState(routeId).allowed;
 }
@@ -20267,6 +20686,7 @@ function clearTeamDragState(options = {}) {
       Date.now() + suppressClickMs,
     );
   }
+  cancelTeamContextTouchHold(state.ui.teamDragPointerId);
   releaseCanvasPointer(state.ui.teamDragPointerId);
   state.ui.teamDragActive = false;
   state.ui.teamDragMoved = false;
@@ -20483,13 +20903,15 @@ function findHoveredTeamSlot(worldX, worldY, layout, options = {}) {
   }
   const pointerType = getNormalizedPointerType(options?.pointerType);
   const radiusMultiplier = pointerType === "touch" ? 0.46 : 0.34;
+  const renderScale = clamp(getTeamSpriteScale(layout) / TEAM_SPRITE_SCALE, 1, 1.35);
+  const hitRadiusScale = clamp(Math.sqrt(renderScale), 1, 1.2);
   for (let i = 0; i < state.team.length; i += 1) {
     const member = state.team[i];
     const slot = layout.teamSlots[i];
     if (!member || !slot) {
       continue;
     }
-    const radius = slot.size * radiusMultiplier;
+    const radius = slot.size * radiusMultiplier * hitRadiusScale;
     if (Math.hypot(worldX - slot.x, worldY - slot.y) <= radius) {
       return { slotIndex: i, member, slot };
     }
@@ -20525,7 +20947,7 @@ function findHoveredPokemon(worldX, worldY, layout) {
   }
 
   if (state.enemy && !(state.battle && state.battle.isEnemyRespawning())) {
-    const enemyRadius = layout.enemySize * 0.38;
+    const enemyRadius = getEnemySpriteRenderSize(layout, layout.enemySize) * 0.38;
     if (Math.hypot(worldX - layout.centerX, worldY - layout.centerY) <= enemyRadius) {
       return state.enemy;
     }
@@ -22411,6 +22833,7 @@ function handleCanvasPointerDown(event) {
     clearTeamDragState();
     return;
   }
+  cancelTeamContextTouchHold();
   closeTeamContextMenu();
   closeBallCaptureMenu();
   const { worldX, worldY } = getWorldCoordinatesFromPointerEvent(event);
@@ -22438,6 +22861,7 @@ function handleCanvasPointerDown(event) {
     setHoveredBallOverlayType("");
     setHoveredTeamSlotIndex(hoveredTeamSlot.slotIndex);
     hideHoverPopup();
+    scheduleTeamContextTouchHold(hoveredTeamSlot.slotIndex, hoveredTeamSlot.member, event);
   }
 }
 
@@ -22465,9 +22889,13 @@ function handleCanvasPointerMove(event) {
     const dx = Number(event.clientX || 0) - Number(state.ui.teamDragStartClientX || 0);
     const dy = Number(event.clientY || 0) - Number(state.ui.teamDragStartClientY || 0);
     const distanceSquared = dx * dx + dy * dy;
+    if (isTouchLikePointerType(pointerType)) {
+      updateTeamContextTouchHoldFromMove(event, worldX, worldY, layout);
+    }
     const activationDistancePx = getTeamDragActivationDistancePx(pointerType);
     const activationDistanceSquared = activationDistancePx * activationDistancePx;
     if (!state.ui.teamDragMoved && distanceSquared >= activationDistanceSquared) {
+      cancelTeamContextTouchHold(event.pointerId);
       if (!isTeamSlotSwapAllowed()) {
         setTopMessage(getTeamBoxesLockedMessage(), 2100);
         clearTeamDragState({ suppressClickMs: TEAM_DRAG_CLICK_SUPPRESS_MS });
@@ -22525,6 +22953,7 @@ function handleCanvasPointerMove(event) {
 }
 
 function handleCanvasPointerUp(event) {
+  cancelTeamContextTouchHold(event.pointerId);
   const pointerType = getNormalizedPointerType(event.pointerType);
   if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
     return;
@@ -22586,6 +23015,7 @@ function handleCanvasClick(event) {
 }
 
 function handleCanvasContextMenu(event) {
+  cancelTeamContextTouchHold(event.pointerId);
   event.preventDefault();
   if (state.ui.teamDragActive) {
     clearTeamDragState({
@@ -22612,6 +23042,7 @@ function handleCanvasContextMenu(event) {
 }
 
 function handleCanvasPointerCancel(event) {
+  cancelTeamContextTouchHold(event.pointerId);
   if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
     return;
   }
@@ -22627,6 +23058,7 @@ function handleCanvasPointerCancel(event) {
 }
 
 function handleWindowPointerUpOutsideCanvas(event) {
+  cancelTeamContextTouchHold(event.pointerId);
   const pointerType = getNormalizedPointerType(event.pointerType);
   if (!state.ui.teamDragActive || !isEventFromActiveTeamDragPointer(event)) {
     return;
@@ -22814,16 +23246,9 @@ function exportTextState() {
     local_time: environmentSnapshot?.localTimeLabel || null,
     local_hour: Number.isFinite(Number(environmentSnapshot?.localHour)) ? Number(environmentSnapshot.localHour) : null,
     local_minute: Number.isFinite(Number(environmentSnapshot?.localMinute)) ? Number(environmentSnapshot.localMinute) : null,
+    local_time_of_day: environmentSnapshot?.timeOfDayTag || "night",
     daylight_factor: Math.round(clamp(Number(environmentSnapshot?.dayLight) || 0, 0, 1) * 1000) / 1000,
     night_factor: Math.round(clamp(Number(environmentSnapshot?.night) || 0, 0, 1) * 1000) / 1000,
-    weather_current: environmentSnapshot?.dominantWeatherType || "neutral",
-    weather_from: environmentSnapshot?.weatherFrom || "neutral",
-    weather_to: environmentSnapshot?.weatherTo || "neutral",
-    weather_transition_blend:
-      Math.round(clamp(Number(environmentSnapshot?.weatherTransitionBlend) || 0, 0, 1) * 1000) / 1000,
-    weather_weights: environmentSnapshot?.weatherWeights || { neutral: 1 },
-    weather_lightning_intensity:
-      Math.round(clamp(Number(environmentSnapshot?.lightningIntensity) || 0, 0, 1) * 1000) / 1000,
     unlocked_route_ids: state.saveData ? getOrderedUnlockedRouteIds() : [DEFAULT_ROUTE_ID],
     route_unlock_mode: unlockMode,
     route_unlock_progress_current: routeProgressState.currentDefeats,
@@ -22897,6 +23322,14 @@ function exportTextState() {
           variant_label: String(state.gacha.lastReward.variantLabel || ""),
         }
       : null,
+    gacha_last_rewards: Array.isArray(state.gacha.lastRewards)
+      ? state.gacha.lastRewards.map((reward) => ({
+          pokemon_id: Number(reward?.pokemonId || 0),
+          pokemon_name_fr: String(reward?.pokemonNameFr || ""),
+          variant_id: String(reward?.variantId || ""),
+          variant_label: String(reward?.variantLabel || ""),
+        }))
+      : [],
     shop_tab: String(state.ui.shopTab || SHOP_TAB_POKEBALLS),
     shop_ball_purchase_mode: normalizeShopQuantityMode(state.ui.shopQuantityMode),
     shop_ball_purchase_qty:
@@ -24294,6 +24727,7 @@ async function resetSaveAndRestart() {
   closeBoxesModal();
   closePokedexModal();
   closeAppearanceModal();
+  setActionDockFullscreenMenuOpen(false, { animate: false });
   closeTeamContextMenu();
   clearTeamDragState();
   persistSaveData();
@@ -24312,6 +24746,86 @@ async function toggleFullscreen() {
   await document.exitFullscreen();
 }
 
+const ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS = 340;
+let actionDockFullscreenMenuOpenTimeoutId = 0;
+
+function triggerActionDockPokeballSpin(direction) {
+  if (!(actionDockPokeballVisualEl instanceof HTMLElement)) {
+    return;
+  }
+  const spinClass = direction === "ccw" ? "is-spin-ccw" : "is-spin-cw";
+  actionDockPokeballVisualEl.classList.remove("is-spin-cw", "is-spin-ccw");
+  // Force reflow so repeated hover/unhover can replay the same animation reliably.
+  void actionDockPokeballVisualEl.offsetWidth;
+  actionDockPokeballVisualEl.classList.add(spinClass);
+}
+
+function setActionDockFullscreenMenuOpen(nextOpen, options = {}) {
+  if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+    return;
+  }
+  const shouldAnimate = options?.animate !== false;
+  const shouldOpen = Boolean(nextOpen);
+  const currentlyOpen = isActionDockFullscreenMenuOpen();
+  const isClosing = actionDockFullscreenMenuEl.classList.contains("is-closing");
+  if (actionDockFullscreenMenuOpenTimeoutId) {
+    clearTimeout(actionDockFullscreenMenuOpenTimeoutId);
+    actionDockFullscreenMenuOpenTimeoutId = 0;
+  }
+
+  if (shouldOpen === currentlyOpen && !isClosing) {
+    if (actionDockPokeballToggleButtonEl) {
+      actionDockPokeballToggleButtonEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      actionDockPokeballToggleButtonEl.setAttribute(
+        "aria-label",
+        shouldOpen ? "Masquer le menu principal" : "Afficher le menu principal",
+      );
+    }
+    return;
+  }
+
+  if (shouldAnimate) {
+    triggerActionDockPokeballSpin(shouldOpen ? "cw" : "ccw");
+  }
+
+  if (shouldOpen) {
+    actionDockFullscreenMenuEl.classList.remove("hidden", "is-closing");
+    requestAnimationFrame(() => {
+      actionDockFullscreenMenuEl.classList.add("is-open");
+    });
+  } else {
+    actionDockFullscreenMenuEl.classList.remove("is-open");
+    actionDockFullscreenMenuEl.classList.add("is-closing");
+    actionDockFullscreenMenuOpenTimeoutId = setTimeout(() => {
+      if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+        return;
+      }
+      actionDockFullscreenMenuEl.classList.add("hidden");
+      actionDockFullscreenMenuEl.classList.remove("is-closing");
+      actionDockFullscreenMenuOpenTimeoutId = 0;
+    }, ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS);
+  }
+
+  if (actionDockPokeballToggleButtonEl) {
+    actionDockPokeballToggleButtonEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+    actionDockPokeballToggleButtonEl.setAttribute(
+      "aria-label",
+      shouldOpen ? "Masquer le menu principal" : "Afficher le menu principal",
+    );
+  }
+}
+
+function isActionDockFullscreenMenuOpen() {
+  if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+    return false;
+  }
+  return !actionDockFullscreenMenuEl.classList.contains("hidden");
+}
+
+function toggleActionDockFullscreenMenu() {
+  setActionDockFullscreenMenuOpen(!isActionDockFullscreenMenuOpen());
+}
+
 document.addEventListener("keydown", (event) => {
   const key = String(event.key || "").toLowerCase();
   if (key === "escape" && state.ui.teamDragActive) {
@@ -24324,6 +24838,11 @@ document.addEventListener("keydown", (event) => {
     if (dragMoved) {
       render();
     }
+    return;
+  }
+  if (key === "escape" && isActionDockFullscreenMenuOpen()) {
+    event.preventDefault();
+    setActionDockFullscreenMenuOpen(false);
     return;
   }
   if (key === "escape" && state.ui.evolutionItemChoiceOpen) {
@@ -24410,6 +24929,7 @@ canvas.addEventListener("pointerleave", (event) => {
 });
 window.addEventListener("pointerup", handleWindowPointerUpOutsideCanvas);
 window.addEventListener("blur", () => {
+  cancelTeamContextTouchHold();
   if (!state.ui.teamDragActive) {
     return;
   }
@@ -24519,6 +25039,39 @@ if (windowsNotificationButtonEl) {
     void toggleWindowsNotificationSystemFromButton();
   });
 }
+if (actionDockPokeballToggleButtonEl) {
+  actionDockPokeballToggleButtonEl.addEventListener("click", () => {
+    toggleActionDockFullscreenMenu();
+  });
+}
+if (actionDockPokeballVisualEl) {
+  actionDockPokeballVisualEl.addEventListener("animationend", () => {
+    actionDockPokeballVisualEl.classList.remove("is-spin-cw", "is-spin-ccw");
+  });
+}
+if (actionDockFullscreenMenuEl) {
+  actionDockFullscreenMenuEl.addEventListener("click", (event) => {
+    if (event.target === actionDockFullscreenMenuEl) {
+      setActionDockFullscreenMenuOpen(false);
+    }
+  });
+}
+if (actionDockFullscreenGridEl) {
+  actionDockFullscreenGridEl.addEventListener("click", (event) => {
+    const actionButton = event.target instanceof Element
+      ? event.target.closest("[data-action-target]")
+      : null;
+    const actionTarget = String(actionButton?.getAttribute("data-action-target") || "");
+    if (!actionTarget) {
+      return;
+    }
+    const sourceButton = document.getElementById(actionTarget);
+    setActionDockFullscreenMenuOpen(false);
+    if (sourceButton instanceof HTMLElement) {
+      sourceButton.click();
+    }
+  });
+}
 if (routePrevButtonEl) {
   routePrevButtonEl.addEventListener("click", () => {
     navigateRouteByOffset(-1);
@@ -24541,7 +25094,18 @@ if (gachaCloseButtonEl) {
 }
 if (gachaSpinButtonEl) {
   gachaSpinButtonEl.addEventListener("click", () => {
-    void startGachaSpin();
+    void startGachaSpin({
+      spinCount: 1,
+      cost: GACHA_SPIN_COST_COINS,
+    });
+  });
+}
+if (gachaSpin10ButtonEl) {
+  gachaSpin10ButtonEl.addEventListener("click", () => {
+    void startGachaSpin({
+      spinCount: GACHA_BATCH_SPIN_COUNT,
+      cost: GACHA_BATCH_SPIN_COST_COINS,
+    });
   });
 }
 if (evolutionItemCloseButtonEl) {
