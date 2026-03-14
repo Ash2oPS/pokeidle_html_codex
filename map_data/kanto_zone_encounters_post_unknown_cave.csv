@@ -248,6 +248,7 @@ kanto_route_10,Route 10 (Kanto),route,true,45,vileplume,Rafflesia,2,11,39,walk
 kanto_route_10,Route 10 (Kanto),route,true,62,poliwrath,Tartard,2,11,39,walk
 kanto_route_10,Route 10 (Kanto),route,true,71,victreebel,Empiflor,2,11,39,walk
 kanto_route_10,Route 10 (Kanto),route,true,208,steelix,Steelix,2,9,36,walk
+kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,145,zapdos,Électhor,100,50,50,only-one
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,81,magnemite,Magnéti,15,22,43,rock-smash|walk
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,410,shieldon,Dinoclier,10,22,43,rock-smash|walk
 kanto_dungeon_power_plant,Centrale (Kanto),dungeon,true,305,lairon,Galegon,8,25,47,rock-smash|walk
@@ -507,6 +508,7 @@ kanto_route_20,Route 20 (Kanto),route,true,350,milotic,Milobellus,2,10,37,super-
 kanto_route_20,Route 20 (Kanto),route,true,91,cloyster,Crustabri,1,10,37,super-rod|surf
 kanto_route_20,Route 20 (Kanto),route,true,130,gyarados,Léviator,1,10,37,super-rod|surf
 kanto_route_20,Route 20 (Kanto),route,true,134,vaporeon,Aquali,1,10,37,super-rod|surf
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,144,articuno,Artikodin,100,50,50,only-one
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,116,horsea,Hypotrempe,16,5,39,old-rod|good-rod|surf
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,129,magikarp,Magicarpe,16,3,37,old-rod|good-rod|surf
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,223,remoraid,Rémoraid,16,5,39,old-rod|good-rod|surf
@@ -598,6 +600,7 @@ kanto_route_23,Route 23 (Kanto),route,true,389,torterra,Torterra,1,12,43,walk
 kanto_route_23,Route 23 (Kanto),route,true,464,rhyperior,Rhinastoc,1,12,43,walk
 kanto_route_23,Route 23 (Kanto),route,true,468,togekiss,Togekiss,1,12,43,walk
 kanto_route_23,Route 23 (Kanto),route,true,474,porygon-z,Porygon-Z,1,12,43,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,146,moltres,Sulfura,100,50,50,only-one
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,95,onix,Onix,11,33,47,rock-smash|walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,247,pupitar,Ymphect,7,35,50,rock-smash|walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,112,rhydon,Rhinoféros,4,36,51,rock-smash|walk
@@ -625,6 +628,7 @@ kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,448,lucario,Lucario,
 kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,462,magnezone,Magnézone,1,69,80,walk
 kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,474,porygon-z,Porygon-Z,1,69,80,walk
 kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,475,gallade,Gallame,1,69,80,walk
+kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,150,mewtwo,Mewtwo,100,70,70,only-one
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,63,abra,Abra,16,5,54,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,96,drowzee,Soporifik,16,5,54,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,280,ralts,Tarsal,16,3,52,walk

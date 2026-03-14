@@ -14,6 +14,12 @@ const FORBIDDEN_IDS = new Set([
   480, 481, 482, 483, 484, 485, 486, 487, 488,
   151, 251, 385, 386, 489, 490, 491, 492, 493,
 ]);
+const LEGACY_ONLY_ONE_KEYS = new Set([
+  "kanto_dungeon_power_plant:145:only-one",
+  "kanto_dungeon_seafoam_islands:144:only-one",
+  "kanto_dungeon_victory_road:146:only-one",
+  "kanto_dungeon_cerulean_cave:150:only-one",
+]);
 
 function parseCsv(content) {
   const text = String(content || "").replace(/^\uFEFF/, "");
@@ -63,7 +69,7 @@ function parseCsv(content) {
   return rows;
 }
 
-test("post unknown cave encounters mapping stays balanced and excludes forbidden species", () => {
+test("post unknown cave encounters mapping stays balanced and keeps only historical only-one forbidden encounters", () => {
   const catalog = JSON.parse(fs.readFileSync(CATALOG_PATH, "utf8"));
   const zoneOrder = Array.isArray(catalog?.zone_order) ? catalog.zone_order.map((routeId) => String(routeId || "")) : [];
   const csvRows = parseCsv(fs.readFileSync(ENCOUNTER_PATH, "utf8"));
@@ -75,10 +81,12 @@ test("post unknown cave encounters mapping stays balanced and excludes forbidden
   const routeIdIndex = columnIndex.route_id;
   const pokemonIdIndex = columnIndex.pokemon_id;
   const spawnWeightIndex = columnIndex.spawn_weight;
+  const methodsIndex = columnIndex.methods;
 
   assert.ok(Number.isInteger(routeIdIndex), "route_id column is required");
   assert.ok(Number.isInteger(pokemonIdIndex), "pokemon_id column is required");
   assert.ok(Number.isInteger(spawnWeightIndex), "spawn_weight column is required");
+  assert.ok(Number.isInteger(methodsIndex), "methods column is required");
 
   const countsByRoute = new Map();
   const uniqueSpeciesIds = new Set();
@@ -89,13 +97,14 @@ test("post unknown cave encounters mapping stays balanced and excludes forbidden
     const routeId = String(row[routeIdIndex] || "");
     const pokemonId = Math.max(0, Number(row[pokemonIdIndex] || 0));
     const spawnWeight = Math.max(0, Number(row[spawnWeightIndex] || 0));
+    const methods = String(row[methodsIndex] || "").trim().toLowerCase();
     if (!routeId || pokemonId <= 0) {
       continue;
     }
     countsByRoute.set(routeId, (countsByRoute.get(routeId) || 0) + 1);
     uniqueSpeciesIds.add(pokemonId);
     if (FORBIDDEN_IDS.has(pokemonId)) {
-      forbiddenFound.add(pokemonId);
+      forbiddenFound.add(`${routeId}:${pokemonId}:${methods}`);
     }
     if (STARTER_IDS.has(pokemonId) && spawnWeight !== 1) {
       starterWithWrongWeight += 1;
@@ -111,8 +120,12 @@ test("post unknown cave encounters mapping stays balanced and excludes forbidden
   const maxCount = Math.max(...encounterCounts);
 
   assert.equal(starterWithWrongWeight, 0, "All Gen 1-4 starters must stay at 1% rarity weight");
-  assert.deepEqual(Array.from(forbiddenFound.values()), [], "No legendary/mythical species should appear");
-  assert.equal(uniqueSpeciesIds.size, 458, "Expected full non-legendary/non-mythical Gen 1-4 coverage");
+  assert.deepEqual(
+    new Set(forbiddenFound),
+    LEGACY_ONLY_ONE_KEYS,
+    "Only original historical only-one forbidden encounters should be present",
+  );
+  assert.equal(uniqueSpeciesIds.size, 462, "Expected full non-legendary/non-mythical Gen 1-4 coverage plus restored only-one legendaries");
   assert.ok(minCount >= 9, `Expected at least 9 species per route, found ${minCount}`);
-  assert.ok(maxCount <= 18, `Expected at most 18 species per route, found ${maxCount}`);
+  assert.ok(maxCount <= 19, `Expected at most 19 species per route, found ${maxCount}`);
 });

@@ -5,6 +5,7 @@ const ROOT_DIR = process.cwd();
 const MAP_DIR = path.join(ROOT_DIR, "map_data");
 const POKEMON_DIR = path.join(ROOT_DIR, "pokemon_data");
 const CATALOG_PATH = path.join(MAP_DIR, "kanto_frlg_zones.json");
+const BASE_ENCOUNTER_PATH = path.join(MAP_DIR, "kanto_zone_encounters.csv");
 const OUTPUT_PATH = path.join(MAP_DIR, "kanto_zone_encounters_post_unknown_cave.csv");
 const UTF8_BOM = "\uFEFF";
 
@@ -51,6 +52,54 @@ function clamp(value, min, max) {
 function toSafeInt(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.floor(n) : fallback;
+}
+
+function parseCsv(content) {
+  const text = String(content || "").replace(/^\uFEFF/, "");
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuote = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (char === "\"") {
+      if (inQuote && next === "\"") {
+        cell += "\"";
+        i += 1;
+      } else {
+        inQuote = !inQuote;
+      }
+      continue;
+    }
+    if (!inQuote && char === ",") {
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+    if (!inQuote && (char === "\n" || char === "\r")) {
+      if (char === "\r" && next === "\n") {
+        i += 1;
+      }
+      row.push(cell);
+      cell = "";
+      if (row.some((value) => value.length > 0)) {
+        rows.push(row);
+      }
+      row = [];
+      continue;
+    }
+    cell += char;
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    if (row.some((value) => value.length > 0)) {
+      rows.push(row);
+    }
+  }
+  return rows;
 }
 
 function hashToUnit(input) {
@@ -128,6 +177,88 @@ function loadSpecies() {
   }
   all.sort((a, b) => a.id - b.id);
   return all;
+}
+
+function loadLegacyOnlyOneRows() {
+  if (!fs.existsSync(BASE_ENCOUNTER_PATH)) {
+    return [];
+  }
+  const csvRows = parseCsv(fs.readFileSync(BASE_ENCOUNTER_PATH, "utf8"));
+  if (csvRows.length <= 1) {
+    return [];
+  }
+  const header = csvRows[0];
+  const columnIndex = Object.fromEntries(header.map((name, index) => [String(name || ""), index]));
+  const requiredColumns = [
+    "route_id",
+    "route_name_fr",
+    "zone_type",
+    "combat_enabled",
+    "pokemon_id",
+    "pokemon_name_en",
+    "pokemon_name_fr",
+    "spawn_weight",
+    "min_level",
+    "max_level",
+    "methods",
+  ];
+  for (const columnName of requiredColumns) {
+    if (!Number.isInteger(columnIndex[columnName])) {
+      return [];
+    }
+  }
+
+  const legacyRows = [];
+  const dedupeKeys = new Set();
+  for (const row of csvRows.slice(1)) {
+    const methodsRaw = String(row[columnIndex.methods] || "").trim().toLowerCase();
+    const methods = methodsRaw.split("|").map((method) => method.trim()).filter(Boolean);
+    if (!methods.includes("only-one")) {
+      continue;
+    }
+    const pokemonId = toSafeInt(row[columnIndex.pokemon_id], 0);
+    if (pokemonId <= 0) {
+      continue;
+    }
+    const routeId = String(row[columnIndex.route_id] || "").trim();
+    if (!routeId) {
+      continue;
+    }
+    const dedupeKey = `${routeId}:${pokemonId}`;
+    if (dedupeKeys.has(dedupeKey)) {
+      continue;
+    }
+    dedupeKeys.add(dedupeKey);
+    legacyRows.push({
+      route_id: routeId,
+      route_name_fr: String(row[columnIndex.route_name_fr] || "").trim(),
+      zone_type: String(row[columnIndex.zone_type] || "").trim(),
+      combat_enabled: String(row[columnIndex.combat_enabled] || "true").trim().toLowerCase() === "false" ? "false" : "true",
+      pokemon_id: pokemonId,
+      pokemon_name_en: String(row[columnIndex.pokemon_name_en] || "").trim().toLowerCase(),
+      pokemon_name_fr: String(row[columnIndex.pokemon_name_fr] || "").trim(),
+      spawn_weight: clamp(toSafeInt(row[columnIndex.spawn_weight], 1), 1, 255),
+      min_level: clamp(toSafeInt(row[columnIndex.min_level], 1), 1, 100),
+      max_level: clamp(toSafeInt(row[columnIndex.max_level], 1), 1, 100),
+      methods: "only-one",
+    });
+  }
+  return legacyRows;
+}
+
+function buildRowsByRouteId(rows) {
+  const rowsByRouteId = new Map();
+  for (const row of rows) {
+    const routeId = String(row?.route_id || "");
+    if (!routeId) {
+      continue;
+    }
+    if (!rowsByRouteId.has(routeId)) {
+      rowsByRouteId.set(routeId, []);
+    }
+    rowsByRouteId.get(routeId).push(row);
+  }
+  return rowsByRouteId;
 }
 
 function inferRouteTags(routeId, zoneType) {
@@ -602,7 +733,7 @@ function pickMethods(species, routeProfile) {
   return "walk";
 }
 
-function buildRows(routeProfiles, routeAssignments, speciesById) {
+function buildRows(routeProfiles, routeAssignments, speciesById, legacyOnlyOneRowsByRouteId) {
   const rows = [];
   for (const routeProfile of routeProfiles) {
     const assignedIds = Array.from(routeAssignments.get(routeProfile.routeId) || []);
@@ -629,13 +760,34 @@ function buildRows(routeProfiles, routeAssignments, speciesById) {
       });
     }
 
+    const forcedRows = legacyOnlyOneRowsByRouteId.get(routeProfile.routeId) || [];
+    for (const forcedRow of forcedRows) {
+      encounters.push({
+        route_id: routeProfile.routeId,
+        route_name_fr: forcedRow.route_name_fr || routeProfile.routeNameFr,
+        zone_type: forcedRow.zone_type || routeProfile.zoneType,
+        combat_enabled: forcedRow.combat_enabled || (routeProfile.combatEnabled ? "true" : "false"),
+        pokemon_id: forcedRow.pokemon_id,
+        pokemon_name_en: forcedRow.pokemon_name_en,
+        pokemon_name_fr: forcedRow.pokemon_name_fr,
+        spawn_weight: forcedRow.spawn_weight,
+        min_level: forcedRow.min_level,
+        max_level: forcedRow.max_level,
+        methods: "only-one",
+      });
+    }
+
     encounters.sort((a, b) => b.spawn_weight - a.spawn_weight || a.pokemon_id - b.pokemon_id);
     rows.push(...encounters);
   }
   return rows;
 }
 
-function validateOutput(rows, speciesList) {
+function rowKey(row) {
+  return `${String(row?.route_id || "")}:${toSafeInt(row?.pokemon_id, 0)}:${String(row?.methods || "").trim().toLowerCase()}`;
+}
+
+function validateOutput(rows, speciesList, legacyOnlyOneRows) {
   const outputIds = new Set(rows.map((row) => Number(row.pokemon_id || 0)).filter((id) => id > 0));
   const eligibleIds = new Set(speciesList.map((species) => species.id));
 
@@ -644,10 +796,22 @@ function validateOutput(rows, speciesList) {
     throw new Error(`Des especes eligibles manquent dans le mapping: ${missing.slice(0, 12).join(", ")}${missing.length > 12 ? "..." : ""}`);
   }
 
-  const forbidden = rows.filter((row) => LEGENDARY_OR_MYTHICAL_IDS_FROM_WEB.has(Number(row.pokemon_id || 0)));
-  if (forbidden.length > 0) {
-    const ids = Array.from(new Set(forbidden.map((row) => Number(row.pokemon_id || 0)))).sort((a, b) => a - b);
+  const allowedLegacyKeys = new Set(
+    legacyOnlyOneRows
+      .filter((row) => LEGENDARY_OR_MYTHICAL_IDS_FROM_WEB.has(Number(row.pokemon_id || 0)))
+      .map((row) => rowKey(row)),
+  );
+  const forbiddenRows = rows.filter((row) => LEGENDARY_OR_MYTHICAL_IDS_FROM_WEB.has(Number(row.pokemon_id || 0)));
+  const forbiddenUnexpected = forbiddenRows.filter((row) => !allowedLegacyKeys.has(rowKey(row)));
+  if (forbiddenUnexpected.length > 0) {
+    const ids = Array.from(new Set(forbiddenUnexpected.map((row) => Number(row.pokemon_id || 0)))).sort((a, b) => a - b);
     throw new Error(`Le mapping contient des IDs legendaires/fabuleux interdits: ${ids.join(", ")}`);
+  }
+
+  const outputForbiddenLegacyKeys = new Set(forbiddenRows.map((row) => rowKey(row)));
+  const missingLegacyForbidden = Array.from(allowedLegacyKeys).filter((key) => !outputForbiddenLegacyKeys.has(key));
+  if (missingLegacyForbidden.length > 0) {
+    throw new Error("Des rencontres historiques only-one sont absentes du mapping post-grotte.");
   }
 }
 
@@ -688,6 +852,8 @@ function writeCsv(rows) {
 
 function main() {
   const { zoneById, zoneOrder } = loadCatalog();
+  const legacyOnlyOneRows = loadLegacyOnlyOneRows();
+  const legacyOnlyOneRowsByRouteId = buildRowsByRouteId(legacyOnlyOneRows);
   const routeProfiles = buildRouteProfiles(zoneOrder, zoneById);
 
   const allSpecies = loadSpecies();
@@ -708,8 +874,8 @@ function main() {
 
   const speciesById = new Map(eligibleSpecies.map((species) => [species.id, species]));
   const { routeAssignments, speciesUsage } = assignSpeciesToRoutes(eligibleSpecies, routeProfiles);
-  const rows = buildRows(routeProfiles, routeAssignments, speciesById);
-  validateOutput(rows, eligibleSpecies);
+  const rows = buildRows(routeProfiles, routeAssignments, speciesById, legacyOnlyOneRowsByRouteId);
+  validateOutput(rows, eligibleSpecies, legacyOnlyOneRows);
   writeCsv(rows);
 
   const startersPlaced = eligibleSpecies.filter((species) => STARTER_IDS.has(species.id) && (speciesUsage.get(species.id) || 0) > 0).length;
@@ -718,7 +884,8 @@ function main() {
   console.log(`[ok] Mapping genere: ${path.relative(ROOT_DIR, OUTPUT_PATH)}`);
   console.log(` - Routes: ${routeProfiles.length}`);
   console.log(` - Lignes: ${rows.length}`);
-  console.log(` - Especes uniques (sans legendaires/fabuleux): ${uniqueSpeciesCount}`);
+  console.log(` - Especes uniques: ${uniqueSpeciesCount}`);
+  console.log(` - Rencontres only-one historiques restaurees: ${legacyOnlyOneRows.length}`);
   console.log(` - Starters Gen1-4 places: ${startersPlaced}/${STARTER_IDS.size}`);
 }
 
