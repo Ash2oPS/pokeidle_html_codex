@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PokeIdle</string>
+    <string name="title_activity_main">PokeIdle</string>
+    <string name="package_name">com.ash2ops.pokeidle</string>
+    <string name="custom_url_scheme">com.ash2ops.pokeidle</string>
+</resources>

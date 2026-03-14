@@ -7,8 +7,12 @@
   "scripts": {
     "build:vendors": "node scripts/build-browser-vendors.mjs",
     "tool:custom-skins": "node scripts/custom-skin-tool-server.mjs",
+    "tool:data-studio": "node scripts/game-data-studio-server.mjs",
     "desktop:start": "electron .",
     "desktop:build": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win nsis --x64",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open:android": "npx cap open android",
+    "mobile:apk:debug": "cd android && gradlew.bat assembleDebug",
     "test": "npm run test:node && npm run test:vitest",
     "test:node": "node --test tests/*.mjs",
     "test:save": "npm run test:node",
@@ -20,12 +24,16 @@
     "zone:editor:export": "node scripts/export_zone_encounters_from_workbook.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/local-notifications": "^8.0.2",
     "@tweenjs/tween.js": "^25.0.0",
     "howler": "^2.2.4",
     "papaparse": "^5.5.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.2.0",
     "electron": "^35.7.2",
     "electron-builder": "^26.0.12",
     "exceljs": "^4.4.0",
@@ -41,9 +49,11 @@
     },
     "files": [
       "electron/**/*",
+      "assets/icons/**/*",
       "package.json"
     ],
     "win": {
+      "icon": "assets/icons/pokeball-dock.ico",
       "target": [
         {
           "target": "nsis",
@@ -56,6 +66,8 @@
       "signAndEditExecutable": false
     },
     "nsis": {
+      "installerIcon": "assets/icons/pokeball-dock.ico",
+      "uninstallerIcon": "assets/icons/pokeball-dock.ico",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }

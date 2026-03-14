@@ -25361,6 +25361,10 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
 window.addEventListener("pagehide", handlePageLifecyclePersist);
 window.addEventListener("beforeunload", handlePageLifecyclePersist);
 
+state.devLayout.settings = loadDevLayoutSettingsFromStorage();
+initializeDevLayoutControls();
+renderDevLayoutPanel();
+
 applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();

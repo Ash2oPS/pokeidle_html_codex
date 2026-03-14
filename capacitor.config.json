@@ -1,0 +1,9 @@
+{
+  "appId": "com.ash2ops.pokeidle",
+  "appName": "PokeIdle",
+  "webDir": "dist",
+  "server": {
+    "url": "https://ash2ops.github.io/pokeidle_html_codex/",
+    "cleartext": false
+  }
+}

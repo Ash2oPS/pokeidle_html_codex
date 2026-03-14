@@ -1,0 +1,816 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokeIdle - Talents Studio</title>
+    <style>
+      :root {
+        --bg-top: #fff7e1;
+        --bg-bottom: #e9f5ec;
+        --ink: #182028;
+        --muted: #5f6f7c;
+        --card: #ffffff;
+        --line: #d8e1e8;
+        --accent: #1f8f63;
+        --accent-strong: #0f6e49;
+        --danger: #c0392b;
+        --danger-soft: #fff2f0;
+        --radius: 14px;
+        --shadow: 0 10px 28px rgba(24, 32, 40, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+        min-height: 100vh;
+      }
+
+      .layout {
+        width: min(1380px, 97%);
+        margin: 16px auto 30px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+
+      h1, h2, h3 { margin: 0 0 8px; }
+      .sub { margin: 0; color: var(--muted); }
+
+      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .row + .row { margin-top: 10px; }
+
+      input, textarea, select {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: #fbfdff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+        width: 100%;
+      }
+
+      .grow { flex: 1 1 220px; }
+      .w-100 { width: 100%; }
+
+      .btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--accent);
+        color: white;
+      }
+      .btn:hover { background: var(--accent-strong); }
+
+      .btn-secondary { background: #2f7bb7; }
+      .btn-secondary:hover { background: #216395; }
+
+      .btn-danger { background: var(--danger); }
+      .btn-danger:hover { background: #9d2f24; }
+
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      .status {
+        border-radius: 10px;
+        border: 1px solid transparent;
+        padding: 9px 11px;
+        font-size: 0.92rem;
+      }
+
+      .status.ok { border-color: #9ed7bd; background: #effbf4; color: #185a3f; }
+      .status.info { border-color: #b7d5ff; background: #f2f8ff; color: #1b4d91; }
+      .status.warn { border-color: #efc56b; background: #fff7e6; color: #745308; }
+      .status.err { border-color: #f0b2a9; background: #fff3f2; color: #7e2a20; }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(300px, 420px) minmax(420px, 1fr);
+        gap: 12px;
+      }
+
+      .list-wrap {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: auto;
+        max-height: 70vh;
+        background: #fbfdff;
+      }
+
+      .talent-item {
+        border-bottom: 1px solid #e4ebf1;
+        padding: 8px 10px;
+        cursor: pointer;
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 3px;
+        align-items: center;
+      }
+
+      .talent-item:hover { background: #f3f9ff; }
+      .talent-item.active { background: #e9f6ef; border-left: 4px solid var(--accent); padding-left: 6px; }
+      .talent-item.unsaved { background: #fff9ec; }
+      .item-copy { display: grid; gap: 3px; }
+      .sprite-thumb {
+        width: 34px;
+        height: 34px;
+        image-rendering: pixelated;
+        object-fit: contain;
+        border: 1px solid #c9d5e2;
+        border-radius: 7px;
+        background-image:
+          var(--sprite-url, none),
+          linear-gradient(45deg, #dce5ef 25%, transparent 25%),
+          linear-gradient(-45deg, #dce5ef 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #dce5ef 75%),
+          linear-gradient(-45deg, transparent 75%, #dce5ef 75%);
+        background-size: contain, 12px 12px, 12px 12px, 12px 12px, 12px 12px;
+        background-position: center, 0 0, 0 6px, 6px -6px, -6px 0;
+        background-repeat: no-repeat, repeat, repeat, repeat, repeat;
+      }
+      .sprite-thumb.big {
+        width: 92px;
+        height: 92px;
+        border-radius: 12px;
+      }
+
+      .item-line { font-size: 0.84rem; }
+      .item-line strong { color: #1e2f3f; }
+      .muted { color: var(--muted); }
+      .hero-card {
+        border: 1px solid #d7e1eb;
+        border-radius: 12px;
+        padding: 10px;
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        gap: 10px;
+        background: linear-gradient(180deg, #f9fcff, #f4f9ff);
+      }
+      .hero-title {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .talent-badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+      .talent-badge.none {
+        color: #7e4a0a;
+        background: #fff4da;
+        border-color: #e8c27b;
+      }
+      .talent-badge.set {
+        color: #15553b;
+        background: #e9f8ef;
+        border-color: #9ed7bd;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+      }
+      .form-grid .full { grid-column: 1 / -1; }
+
+      .info-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 7px 9px;
+        background: #f8fbff;
+      }
+
+      .pill-key { color: var(--muted); font-size: 0.74rem; }
+      .pill-value { font-weight: 700; }
+
+      .small { font-size: 0.8rem; color: var(--muted); }
+
+      .kbd {
+        display: inline-block;
+        border: 1px solid #c3cbd4;
+        border-radius: 5px;
+        padding: 1px 6px;
+        background: #f5f8fb;
+        font-size: 0.75rem;
+        color: #3e4f5f;
+      }
+
+      @media (max-width: 980px) {
+        .split { grid-template-columns: 1fr; }
+        .list-wrap { max-height: 300px; }
+        .hero-card { grid-template-columns: 76px 1fr; }
+        .sprite-thumb.big { width: 68px; height: 68px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel">
+        <h1>Talents Studio</h1>
+        <p class="sub">Edite les talents Pokemon sans coder. Chaque sauvegarde cree un backup auto dans <code>output/tool-backups</code>.</p>
+      </section>
+
+      <section class="panel">
+        <div class="row">
+          <div class="grow">
+            <label for="filter-input">Filtrer Pokemon</label>
+            <input id="filter-input" class="w-100" type="text" placeholder="Ex: pikachu, #25, overgrow..." />
+          </div>
+          <button id="reload-all-btn" class="btn btn-secondary" type="button">Recharger depuis disque</button>
+          <button id="save-all-btn" class="btn" type="button" disabled>Sauvegarder toutes les modifs</button>
+        </div>
+        <div id="status" class="status info">Chargement des talents...</div>
+      </section>
+
+      <section class="split">
+        <section class="panel">
+          <h2>Liste Pokemon</h2>
+          <div class="info-grid" id="stats-grid"></div>
+          <div class="row small">Raccourci: <span class="kbd">Ctrl + S</span> pour sauvegarder le Pokemon actif.</div>
+          <div id="list-wrap" class="list-wrap"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Edition du talent</h2>
+          <div class="row">
+            <button id="prev-btn" class="btn btn-secondary" type="button" disabled>Prev</button>
+            <button id="next-btn" class="btn btn-secondary" type="button" disabled>Next</button>
+            <button id="reset-current-btn" class="btn btn-secondary" type="button" disabled>Annuler les modifs</button>
+            <button id="save-current-btn" class="btn" type="button" disabled>Sauvegarder ce Pokemon</button>
+          </div>
+          <div class="hero-card">
+            <div id="hero-sprite" class="sprite-thumb big" role="img" aria-label="Sprite Pokemon"></div>
+            <div>
+              <div id="hero-title" class="hero-title">Pokemon</div>
+              <div class="small" id="hero-subtitle"></div>
+              <div class="row">
+                <span id="hero-talent-badge" class="talent-badge none">Talent NONE</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div>
+              <label for="pokemon-id">Pokemon ID</label>
+              <input id="pokemon-id" type="number" readonly />
+            </div>
+            <div>
+              <label for="pokemon-name-fr">Nom FR</label>
+              <input id="pokemon-name-fr" type="text" />
+            </div>
+            <div>
+              <label for="pokemon-name-en">Nom EN</label>
+              <input id="pokemon-name-en" type="text" />
+            </div>
+            <div>
+              <label for="talent-id">Talent ID</label>
+              <input id="talent-id" type="text" placeholder="Ex: OVERGROW" />
+            </div>
+            <div>
+              <label for="talent-name-fr">Nom talent FR</label>
+              <input id="talent-name-fr" type="text" />
+            </div>
+            <div>
+              <label for="talent-name-en">Nom talent EN</label>
+              <input id="talent-name-en" type="text" />
+            </div>
+            <div class="full">
+              <label for="talent-description-fr">Description FR</label>
+              <textarea id="talent-description-fr"></textarea>
+            </div>
+            <div class="full">
+              <label for="commentaire">Commentaire</label>
+              <textarea id="commentaire"></textarea>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        loading: false,
+        rows: [],
+        rowById: new Map(),
+        pokemonById: new Map(),
+        filteredIds: [],
+        selectedId: 0,
+        drafts: new Map(),
+      };
+
+      const nodes = {
+        filterInput: document.getElementById("filter-input"),
+        reloadAllBtn: document.getElementById("reload-all-btn"),
+        saveAllBtn: document.getElementById("save-all-btn"),
+        status: document.getElementById("status"),
+        statsGrid: document.getElementById("stats-grid"),
+        listWrap: document.getElementById("list-wrap"),
+        prevBtn: document.getElementById("prev-btn"),
+        nextBtn: document.getElementById("next-btn"),
+        resetCurrentBtn: document.getElementById("reset-current-btn"),
+        saveCurrentBtn: document.getElementById("save-current-btn"),
+        pokemonId: document.getElementById("pokemon-id"),
+        pokemonNameFr: document.getElementById("pokemon-name-fr"),
+        pokemonNameEn: document.getElementById("pokemon-name-en"),
+        talentId: document.getElementById("talent-id"),
+        talentNameFr: document.getElementById("talent-name-fr"),
+        talentNameEn: document.getElementById("talent-name-en"),
+        talentDescriptionFr: document.getElementById("talent-description-fr"),
+        commentaire: document.getElementById("commentaire"),
+        heroSprite: document.getElementById("hero-sprite"),
+        heroTitle: document.getElementById("hero-title"),
+        heroSubtitle: document.getElementById("hero-subtitle"),
+        heroTalentBadge: document.getElementById("hero-talent-badge"),
+      };
+
+      function setStatus(kind, message) {
+        nodes.status.className = `status ${kind}`;
+        nodes.status.textContent = message;
+      }
+
+      function setBusy(busy) {
+        state.loading = busy;
+        nodes.reloadAllBtn.disabled = busy;
+        nodes.saveAllBtn.disabled = busy || state.drafts.size <= 0;
+        nodes.prevBtn.disabled = busy || state.filteredIds.length <= 0;
+        nodes.nextBtn.disabled = busy || state.filteredIds.length <= 0;
+        nodes.resetCurrentBtn.disabled = busy || !state.selectedId;
+        nodes.saveCurrentBtn.disabled = busy || !state.selectedId;
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const payload = contentType.includes("application/json") ? await response.json() : await response.text();
+        if (!response.ok) {
+          const message = typeof payload === "string" ? payload : payload?.error || `${response.status}`;
+          throw new Error(message);
+        }
+        return payload;
+      }
+
+      function normalizeTalentId(value) {
+        return String(value || "")
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9_]+/g, "_")
+          .replace(/^_+|_+$/g, "") || "NONE";
+      }
+
+      function getPokemonRef(pokemonId) {
+        return state.pokemonById.get(Number(pokemonId || 0)) || null;
+      }
+
+      function getPokemonSpriteUrl(pokemonId) {
+        const ref = getPokemonRef(pokemonId);
+        const id = Number.parseInt(String(pokemonId || ""), 10);
+        if (ref?.sprite_default_url) {
+          return String(ref.sprite_default_url);
+        }
+        if (!Number.isInteger(id) || id <= 0) {
+          return "";
+        }
+        const fallbackName = String(ref?.name_en || "").trim().toLowerCase();
+        if (!fallbackName) {
+          return "";
+        }
+        return `/pokemon_data/${id}_${fallbackName}/sprites/${id}_${fallbackName}_firered_leafgreen_front.png`;
+      }
+
+      function getPokemonSpriteUrlForRow(row) {
+        const byRef = getPokemonSpriteUrl(row?.pokemon_id);
+        if (byRef) {
+          return byRef;
+        }
+        const id = Number.parseInt(String(row?.pokemon_id || ""), 10);
+        const nameEn = String(row?.pokemon_name_en || "").trim().toLowerCase();
+        if (!Number.isInteger(id) || id <= 0 || !nameEn) {
+          return "";
+        }
+        return `/pokemon_data/${id}_${nameEn}/sprites/${id}_${nameEn}_firered_leafgreen_front.png`;
+      }
+
+      function buildSpriteStyle(url) {
+        const safeUrl = String(url || "")
+          .replaceAll("'", "%27")
+          .replaceAll("(", "%28")
+          .replaceAll(")", "%29");
+        return safeUrl ? `--sprite-url:url('${safeUrl}');` : "";
+      }
+
+      function renderSpriteBlock(url, className = "sprite-thumb", label = "") {
+        const style = buildSpriteStyle(url);
+        const safeLabel = escapeHtml(label || "");
+        return `<div class="${className}" style="${style}" role="img" aria-label="${safeLabel}" title="${safeLabel}"></div>`;
+      }
+
+      function getCurrentBaseRow() {
+        return state.rowById.get(state.selectedId) || null;
+      }
+
+      function getCurrentWorkingRow() {
+        if (!state.selectedId) {
+          return null;
+        }
+        return state.drafts.get(state.selectedId) || getCurrentBaseRow();
+      }
+
+      function updateStats() {
+        const total = state.rows.length;
+        const noneCount = state.rows.filter((row) => String(row?.talent_id || "").toUpperCase() === "NONE").length;
+        const unsaved = state.drafts.size;
+        nodes.statsGrid.innerHTML = `
+          <article class="pill"><div class="pill-key">Total Pokemon</div><div class="pill-value">${total}</div></article>
+          <article class="pill"><div class="pill-key">Talents NONE</div><div class="pill-value">${noneCount}</div></article>
+          <article class="pill"><div class="pill-key">Modifs non sauvegardees</div><div class="pill-value">${unsaved}</div></article>
+        `;
+      }
+
+      function applyFilter() {
+        const filter = String(nodes.filterInput.value || "").toLowerCase().trim();
+        if (!filter) {
+          state.filteredIds = state.rows.map((row) => row.pokemon_id);
+        } else {
+          state.filteredIds = state.rows
+            .filter((row) => {
+              const working = state.drafts.get(row.pokemon_id) || row;
+              const hay = [
+                working.pokemon_id,
+                working.pokemon_name_fr,
+                working.pokemon_name_en,
+                working.talent_id,
+                working.talent_name_fr,
+                working.talent_name_en,
+              ]
+                .join(" ")
+                .toLowerCase();
+              return hay.includes(filter);
+            })
+            .map((row) => row.pokemon_id);
+        }
+        if (!state.filteredIds.includes(state.selectedId)) {
+          state.selectedId = state.filteredIds[0] || 0;
+        }
+        renderList();
+        renderForm();
+      }
+
+      function renderList() {
+        if (state.filteredIds.length <= 0) {
+          nodes.listWrap.innerHTML = `<div class="talent-item"><div class="item-line muted">Aucun Pokemon pour ce filtre.</div></div>`;
+          return;
+        }
+        nodes.listWrap.innerHTML = state.filteredIds
+          .map((pokemonId) => {
+            const base = state.rowById.get(pokemonId);
+            if (!base) {
+              return "";
+            }
+            const row = state.drafts.get(pokemonId) || base;
+            const isActive = pokemonId === state.selectedId;
+            const unsaved = state.drafts.has(pokemonId);
+            const spriteMarkup = renderSpriteBlock(
+              getPokemonSpriteUrlForRow(row),
+              "sprite-thumb",
+              row.pokemon_name_en || row.pokemon_name_fr || pokemonId,
+            );
+            return `
+              <article class="talent-item ${isActive ? "active" : ""} ${unsaved ? "unsaved" : ""}" data-id="${pokemonId}">
+                ${spriteMarkup}
+                <div class="item-copy">
+                  <div class="item-line"><strong>#${pokemonId} ${escapeHtml(row.pokemon_name_fr || row.pokemon_name_en || "")}</strong> <span class="muted">(${escapeHtml(row.pokemon_name_en || "")})</span></div>
+                  <div class="item-line">Talent: <strong>${escapeHtml(row.talent_id || "NONE")}</strong>${unsaved ? " <span class=\"muted\">(non sauvegarde)</span>" : ""}</div>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderForm() {
+        const row = getCurrentWorkingRow();
+        if (!row) {
+          nodes.pokemonId.value = "";
+          nodes.pokemonNameFr.value = "";
+          nodes.pokemonNameEn.value = "";
+          nodes.talentId.value = "";
+          nodes.talentNameFr.value = "";
+          nodes.talentNameEn.value = "";
+          nodes.talentDescriptionFr.value = "";
+          nodes.commentaire.value = "";
+          nodes.saveCurrentBtn.disabled = true;
+          nodes.resetCurrentBtn.disabled = true;
+          nodes.prevBtn.disabled = true;
+          nodes.nextBtn.disabled = true;
+          nodes.heroSprite.style.setProperty("--sprite-url", "none");
+          nodes.heroTitle.textContent = "Pokemon";
+          nodes.heroSubtitle.textContent = "";
+          nodes.heroTalentBadge.textContent = "Talent NONE";
+          nodes.heroTalentBadge.className = "talent-badge none";
+          return;
+        }
+
+        nodes.pokemonId.value = String(row.pokemon_id || "");
+        nodes.pokemonNameFr.value = String(row.pokemon_name_fr || "");
+        nodes.pokemonNameEn.value = String(row.pokemon_name_en || "");
+        nodes.talentId.value = String(row.talent_id || "");
+        nodes.talentNameFr.value = String(row.talent_name_fr || "");
+        nodes.talentNameEn.value = String(row.talent_name_en || "");
+        nodes.talentDescriptionFr.value = String(row.talent_description_fr || "");
+        nodes.commentaire.value = String(row.commentaire || "");
+        const spriteUrl = getPokemonSpriteUrlForRow(row);
+        nodes.heroSprite.style.cssText = buildSpriteStyle(spriteUrl);
+        nodes.heroTitle.textContent = `#${row.pokemon_id} ${row.pokemon_name_fr || row.pokemon_name_en || "Pokemon"}`;
+        nodes.heroSubtitle.textContent = row.pokemon_name_en || "";
+        const talentId = String(row.talent_id || "NONE").toUpperCase();
+        const hasTalent = talentId !== "NONE";
+        nodes.heroTalentBadge.className = `talent-badge ${hasTalent ? "set" : "none"}`;
+        nodes.heroTalentBadge.textContent = hasTalent ? `Talent ${talentId}` : "Talent NONE";
+
+        nodes.saveCurrentBtn.disabled = false;
+        nodes.resetCurrentBtn.disabled = false;
+
+        const index = state.filteredIds.indexOf(state.selectedId);
+        nodes.prevBtn.disabled = index <= 0;
+        nodes.nextBtn.disabled = index < 0 || index >= state.filteredIds.length - 1;
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function collectFormRow() {
+        const pokemonId = Number.parseInt(String(nodes.pokemonId.value || ""), 10);
+        if (!Number.isInteger(pokemonId) || pokemonId <= 0) {
+          return null;
+        }
+        return {
+          pokemon_id: pokemonId,
+          pokemon_name_fr: String(nodes.pokemonNameFr.value || "").trim(),
+          pokemon_name_en: String(nodes.pokemonNameEn.value || "").trim().toLowerCase(),
+          talent_id: normalizeTalentId(nodes.talentId.value),
+          talent_name_fr: String(nodes.talentNameFr.value || "").trim(),
+          talent_name_en: String(nodes.talentNameEn.value || "").trim(),
+          talent_description_fr: String(nodes.talentDescriptionFr.value || "").trim(),
+          commentaire: String(nodes.commentaire.value || "").trim(),
+        };
+      }
+
+      function markDraftFromForm() {
+        const row = collectFormRow();
+        if (!row || !state.selectedId) {
+          return;
+        }
+        const base = getCurrentBaseRow();
+        if (!base) {
+          return;
+        }
+        const changed = JSON.stringify(base) !== JSON.stringify(row);
+        if (changed) {
+          state.drafts.set(row.pokemon_id, row);
+          setStatus("warn", "Modifications non sauvegardees.");
+        } else {
+          state.drafts.delete(row.pokemon_id);
+          setStatus("ok", "A jour avec le CSV.");
+        }
+        nodes.saveAllBtn.disabled = state.loading || state.drafts.size <= 0;
+        renderList();
+        updateStats();
+      }
+
+      function selectPokemon(pokemonId) {
+        const id = Number(pokemonId || 0);
+        if (!id) {
+          return;
+        }
+        state.selectedId = id;
+        renderList();
+        renderForm();
+      }
+
+      async function loadData() {
+        setBusy(true);
+        setStatus("info", "Chargement des donnees talents...");
+        try {
+          const [payload, refsPayload] = await Promise.all([api("/api/talents"), api("/api/pokemon-ref")]);
+          const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+          const refs = Array.isArray(refsPayload?.pokemon) ? refsPayload.pokemon : [];
+          state.pokemonById = new Map(refs.map((entry) => [Number(entry.id), entry]));
+          for (const row of rows) {
+            const ref = getPokemonRef(row?.pokemon_id);
+            if (ref) {
+              if (!String(row.pokemon_name_en || "").trim()) {
+                row.pokemon_name_en = ref.name_en;
+              }
+              if (!String(row.pokemon_name_fr || "").trim()) {
+                row.pokemon_name_fr = ref.name_fr;
+              }
+            }
+          }
+          rows.sort((a, b) => Number(a.pokemon_id || 0) - Number(b.pokemon_id || 0));
+          state.rows = rows;
+          state.rowById = new Map(rows.map((row) => [Number(row.pokemon_id), row]));
+          state.drafts.clear();
+          state.filteredIds = rows.map((row) => Number(row.pokemon_id));
+          state.selectedId = state.filteredIds[0] || 0;
+          applyFilter();
+          updateStats();
+          setStatus("ok", `Talents charges (${rows.length} Pokemon).`);
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function saveCurrent() {
+        const row = collectFormRow();
+        if (!row) {
+          setStatus("err", "Aucun Pokemon selectionne.");
+          return;
+        }
+        if (!row.pokemon_name_en) {
+          setStatus("err", "pokemon_name_en est obligatoire.");
+          return;
+        }
+        setBusy(true);
+        setStatus("info", `Sauvegarde de #${row.pokemon_id}...`);
+        try {
+          const payload = await api(`/api/talents/${row.pokemon_id}`, {
+            method: "PUT",
+            body: JSON.stringify(row),
+          });
+          const saved = payload?.row || row;
+          state.rowById.set(row.pokemon_id, saved);
+          const rowIndex = state.rows.findIndex((entry) => Number(entry.pokemon_id) === row.pokemon_id);
+          if (rowIndex >= 0) {
+            state.rows[rowIndex] = saved;
+          }
+          state.drafts.delete(row.pokemon_id);
+          setStatus("ok", `Pokemon #${row.pokemon_id} sauvegarde.`);
+          applyFilter();
+          updateStats();
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function saveAllDrafts() {
+        if (state.drafts.size <= 0) {
+          return;
+        }
+        setBusy(true);
+        try {
+          const entries = Array.from(state.drafts.values()).sort((a, b) => a.pokemon_id - b.pokemon_id);
+          for (const row of entries) {
+            setStatus("info", `Sauvegarde #${row.pokemon_id}...`);
+            const payload = await api(`/api/talents/${row.pokemon_id}`, {
+              method: "PUT",
+              body: JSON.stringify(row),
+            });
+            const saved = payload?.row || row;
+            state.rowById.set(row.pokemon_id, saved);
+            const rowIndex = state.rows.findIndex((entry) => Number(entry.pokemon_id) === row.pokemon_id);
+            if (rowIndex >= 0) {
+              state.rows[rowIndex] = saved;
+            }
+            state.drafts.delete(row.pokemon_id);
+          }
+          setStatus("ok", `Sauvegarde terminee (${entries.length} Pokemon).`);
+          applyFilter();
+          updateStats();
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      function resetCurrentDraft() {
+        if (!state.selectedId) {
+          return;
+        }
+        state.drafts.delete(state.selectedId);
+        renderList();
+        renderForm();
+        updateStats();
+        setStatus("ok", `Modifs annulees pour #${state.selectedId}.`);
+      }
+
+      function moveSelection(offset) {
+        if (state.filteredIds.length <= 0 || !state.selectedId) {
+          return;
+        }
+        const currentIndex = state.filteredIds.indexOf(state.selectedId);
+        if (currentIndex < 0) {
+          return;
+        }
+        const nextIndex = Math.max(0, Math.min(state.filteredIds.length - 1, currentIndex + offset));
+        state.selectedId = state.filteredIds[nextIndex];
+        renderList();
+        renderForm();
+      }
+
+      nodes.filterInput.addEventListener("input", () => {
+        applyFilter();
+      });
+
+      nodes.listWrap.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-id]");
+        if (!item) {
+          return;
+        }
+        const pokemonId = Number.parseInt(item.getAttribute("data-id") || "", 10);
+        if (!Number.isInteger(pokemonId) || pokemonId <= 0) {
+          return;
+        }
+        selectPokemon(pokemonId);
+      });
+
+      for (const input of [
+        nodes.pokemonNameFr,
+        nodes.pokemonNameEn,
+        nodes.talentId,
+        nodes.talentNameFr,
+        nodes.talentNameEn,
+        nodes.talentDescriptionFr,
+        nodes.commentaire,
+      ]) {
+        input.addEventListener("input", () => markDraftFromForm());
+      }
+
+      nodes.reloadAllBtn.addEventListener("click", async () => {
+        if (state.drafts.size > 0 && !confirm("Recharger depuis disque annulera les modifs non sauvegardees. Continuer ?")) {
+          return;
+        }
+        await loadData();
+      });
+
+      nodes.saveCurrentBtn.addEventListener("click", () => saveCurrent());
+      nodes.saveAllBtn.addEventListener("click", () => saveAllDrafts());
+      nodes.resetCurrentBtn.addEventListener("click", () => resetCurrentDraft());
+      nodes.prevBtn.addEventListener("click", () => moveSelection(-1));
+      nodes.nextBtn.addEventListener("click", () => moveSelection(1));
+
+      window.addEventListener("keydown", (event) => {
+        const lower = String(event.key || "").toLowerCase();
+        if ((event.ctrlKey || event.metaKey) && lower === "s") {
+          event.preventDefault();
+          if (!nodes.saveCurrentBtn.disabled) {
+            saveCurrent();
+          }
+        }
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (state.drafts.size <= 0) {
+          return;
+        }
+        event.preventDefault();
+        event.returnValue = "";
+      });
+
+      loadData();
+    </script>
+  </body>
+</html>

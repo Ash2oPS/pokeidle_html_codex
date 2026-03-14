@@ -7464,3 +7464,73 @@ body.update-required-active {
 .game-stage::after {
   display: none;
 }
+.route-nav .route-nav-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.route-nav-current-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-nav-current-statuses {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.route-nav-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.route-nav-status-ball {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+  background:
+    linear-gradient(to bottom, rgba(185, 194, 207, 0.96) 0 50%, rgba(123, 135, 154, 0.96) 50% 100%);
+  border: 1px solid rgba(230, 238, 250, 0.54);
+  box-shadow: inset 0 0 0 1px rgba(66, 78, 98, 0.22), 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.route-nav-status-ball::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 50%;
+  height: 1px;
+  background: rgba(40, 48, 62, 0.76);
+  transform: translateY(-50%);
+}
+
+.route-nav-status-ball::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(234, 240, 250, 0.95);
+  border: 1px solid rgba(70, 83, 102, 0.65);
+}
+
+.route-nav-status-badge {
+  width: 11px;
+  height: 11px;
+  font-size: 8px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}

@@ -5328,3 +5328,77 @@ Validation:
     - `output/web-game-gacha10/shot-gacha10.png`
     - `output/web-game-gacha10/state-gacha10.json`
   - `errors-gacha10.json`: not generated (no captured page/console errors).
+
+## Additional progress (2026-03-15, first free ball scope)
+- Restricted the first free purchase bonus to `poke_ball` only in `game.js`.
+  - Added `isFirstFreePokeballPurchaseEligible(itemOrPrice)` and scoped eligibility to `ballType === "poke_ball"`.
+  - Updated `getShopBallPurchasePricing(...)` so `freeQuantity` applies only when the selected item is `poke_ball`.
+  - Updated `getMaxAffordableShopBallQuantity(...)` so bonus quantity only affects `poke_ball`.
+- Expected behavior now:
+  - First `PokeBall` purchase can be free (as before).
+  - `SuperBall` and `HyperBall` never get the first-free discount.
+
+## Validation (first free ball scope)
+- `node --check game.js`: PASS.
+
+- 2026-03-15: Ajustement layout combat demandé utilisateur: ennemi abaissé et team placée en arc unique au-dessus (slots 0->5 conservés dans l'ordre). Validation visuelle via Playwright seedé (team 6) : output/web-game-layout-team6/shot-0.png, état: output/web-game-layout-team6/state-0.json (enemy.y=375, team.x croissant par slot 0..5).
+- Fixed Pokédex scroll behavior regression in `game.js` by removing the custom `wheel` interception and restoring native browser scrolling on `#pokedex-grid`.
+- Validation:
+  - Browser interaction check (Playwright, Chromium) confirms `#pokedex-grid.scrollTop` moves correctly down/up and clamps at boundaries.
+  - Screenshot captured: `output/pokedex-scroll-check/pokedex-scroll-after-fix.png`.
+  - Node tests pass (`npm run test:node`, 20/20).
+- Note: browser check surfaced an existing console error unrelated to this fix: `TURN_ACTION_SKIP is not defined`.
+
+## Additional progress (enemy ownership icons in enemy UI)
+- Added ownership/status badges on enemy name card in `drawNameAndLevel` (`game.js`):
+  - Pokeball icon:
+    - colored + opaque when the exact species is owned.
+    - grayed + semi-transparent when only an evolution-family member is owned.
+  - Shiny icon (✦): shown when exact species or family has shiny capture(s), with exact vs family visual intensity.
+  - Ultra shiny icon (✶): shown when exact species or family has ultra shiny capture(s), with exact vs family visual intensity.
+- Implemented helper functions:
+  - `getEnemyOwnershipBadgeState(pokemonId)`
+  - `buildEnemyOwnershipBadgeList(pokemonId)`
+  - `drawEnemyOwnershipBadge(centerX, centerY, size, badge)`
+- Adjusted enemy name-card layout to reserve space for badges while keeping name/level fitting.
+
+## Validation runs (enemy ownership icon change)
+- `node --check game.js`: PASS.
+- `run_playwright_check.ps1`: PASS.
+- Seeded combat Playwright run for visual verification: `output/web-game-enemy-ownership/`.
+  - Confirmed enemy cards render new badges in combat screenshots (`shot-0.png`, `shot-2.png`).
+- During seeded run, found runtime crash from existing combat path (`TURN_ACTION_SKIP is not defined`) in this branch state.
+  - Added a defensive fallback in `resolveTurnDecisionForSlot` (`safeSkipAction`) to keep combat test flow stable.
+
+- 2026-03-15: Ajustement demandé: team à équidistance de l'ennemi. computeLayout utilise désormais un arc radial centré sur l'ennemi (angles + rayon constant) pour les slots. Validation seedée team 6: output/web-game-layout-team6-full/state-0.json (distances quasi identiques après arrondi JSON).
+
+## 2026-03-15 - Capacitor Android notifications
+- Installed @capacitor/local-notifications and synced Android native project.
+- Extended notification pipeline in game.js to support Android Capacitor LocalNotifications while keeping Desktop/Electron behavior.
+- Windows notification toggle now handles Android permission flow and sends equivalent local notifications for shiny encounter/capture and empty pokeball stock alerts.
+- Verified 
+pm run mobile:apk:debug succeeds with the plugin integrated.
+
+## Additional progress (ultra shiny fallback on skins without shiny alt)
+- Added variant-aware shiny path resolution helpers in `game.js`:
+  - `canFallbackToDefaultShinyForVariant(def, variant)`
+  - `getVariantShinySpritePath(def, variant)`
+- Updated appearance resolution so a non-default skin without shiny alternative no longer falls back to the species default shiny sprite.
+  - In ultra shiny mode, the selected non-shiny skin now remains visible while ultra shiny shader effects still apply.
+- Reused the same helper in:
+  - appearance asset preload (`ensureVariantAppearanceAssetsLoaded`),
+  - notification sprite path fallback,
+  - enemy appearance fallback sync,
+  - appearance modal status (`selectedHasShiny`) so messaging reflects the selected skin capabilities.
+- Validation:
+  - `node --check game.js`: PASS.
+
+## Correction encodage UI (2026-03-15)
+- Correction des chaînes mojibake restantes dans `game.js` (ex: `PokÃƒÂ©mon`, `capturÃƒÂ©`, `Ã¢â€ â€™`, `Ã¢Å“Â¦`) vers des caractères UTF-8 corrects.
+- Zones corrigées: popup nouveaux Pokémon, notifications shiny/capture/évolution, libellés Pokédex (titre/sous-titre/stats/état vide), badges shiny/ultra shiny, message de préchargement.
+- Vérification effectuée:
+  - `rg -n '(Ã|Â|â€|ï¿½)' game.js` -> aucune occurrence restante.
+  - `node --check game.js` -> syntaxe valide.
+- Playwright non exécuté: changements purement textuels et localisés, sans modification de logique/UI structurelle complexe.
+
+- 2026-03-15: Rework layout lisibilite PC+mobile testee manuellement. Arc radial conserve (equi-distance), ennemi -25% garde. Ajustements: angles/rayon de l'arc, offset HUD radial, cartes equipe plus compactes sur telephone (largeur/hauteur + fonts). Captures de validation: output/web-game-layout-pc-long/shot-0.png et output/web-game-layout-mobile/shot-0.png.

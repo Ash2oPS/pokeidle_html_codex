@@ -10,6 +10,7 @@ const SAVE_DIR_NAME = "saves";
 const WINDOW_BACKGROUND = "#0f1720";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DESKTOP_ICON_PATH = path.join(__dirname, "..", "assets", "icons", "pokeball-dock.png");
 
 function resolveRemoteUrl() {
   const envOverride = String(process.env.POKEIDLE_REMOTE_URL || "").trim();
@@ -160,6 +161,7 @@ async function sendDesktopNotification(payload) {
 function createMainWindow() {
   const mainWindow = new BrowserWindow({
     title: "PokeIdle",
+    icon: DESKTOP_ICON_PATH,
     width: 1360,
     height: 820,
     minWidth: 1024,
