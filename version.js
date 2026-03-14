@@ -1,4 +1,4 @@
-export const POKEIDLE_APP_VERSION = "0.1.16";
+export const POKEIDLE_APP_VERSION = "0.1.17";
 export const POKEIDLE_PRODUCTION_HOSTNAME = "ash2ops.github.io";
 export const POKEIDLE_PRODUCTION_PATH_PREFIX = "/pokeidle_html_codex";
 export const POKEIDLE_GITHUB_REPO_OWNER = "ash2ops";
