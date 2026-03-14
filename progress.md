@@ -5286,3 +5286,45 @@ Validation:
     - `gacha_spinning = false`
     - `gacha_last_rewards.length = 10`
   - `output/web-game-gacha10/errors-gacha10.json`: not generated (no captured page/console errors).
+
+## Additional progress (2026-03-14, fixed sprite PPU consistency after mass crop)
+- Addressed sprite size inconsistency introduced by mass sprite cropping:
+  - Added `POKEMON_SPRITE_USE_SOURCE_PPU_ADAPTATION = false` in `game.js`.
+  - Locked sprite render sizing to a fixed PPU multiplier (`1`) by bypassing source-dimension-based adaptation in `getPokemonSpriteCommonPpuMultiplier(...)`.
+- Result:
+  - Sprite on-screen sizing is now stable and coherent regardless of source image dimensions/padding changes from crop operations.
+
+## Validation (sprite PPU consistency)
+- `node --check game.js`: PASS.
+- Playwright check pass (`scripts/testing/playwright/check.ps1`): PASS.
+- Combat-state Playwright run with starter + route flow: PASS.
+  - Artifacts:
+    - `output/web-game-sprite-ppu/shot-0.png`
+    - `output/web-game-sprite-ppu/state-0.json`
+  - No `errors.json` generated (no captured page/console errors).
+
+## Additional progress (2026-03-14, gacha skin reception sprite fill without stretch)
+- Improved skin reception UI sprite sizing so visuals occupy maximum space without distortion.
+- Added auto tight-fit logic in `game.js` for gacha image elements:
+  - New helper: `applyGachaSpriteTightFit(imageEl, options)`.
+  - Computes opaque sprite bounds and applies a capped uniform scale (`--gacha-tight-fit-scale`) so transparent padding no longer wastes card space.
+  - Wired for:
+    - spotlight card media (`createGachaBatchSpotlightCard`)
+    - transfer orb (`createGachaBatchTransferOrb`)
+    - reveal/result cards (`buildGachaRewardCardElement`)
+    - single-result preview (`renderGachaResultPanel`)
+- Updated gacha CSS to preserve aspect ratio while filling containers:
+  - switched gacha reception image blocks to `width: 100%`, `height: 100%`, `object-fit: contain`
+  - added `transform: scale(var(--gacha-tight-fit-scale, 1))`
+  - ensured clipping containers use `overflow: hidden`
+  - updated spotlight pop keyframes to multiply by tight-fit scale (no stretch, animation kept)
+  - aligned responsive overrides with the same fill strategy.
+
+## Validation (gacha reception sprite fill)
+- `node --check game.js`: PASS.
+- Re-ran seeded gacha x10 capture flow (`tmp/run_gacha10_playwright.ps1`): PASS.
+  - Artifacts:
+    - `output/web-game-gacha10/shot-gacha10-animation.png`
+    - `output/web-game-gacha10/shot-gacha10.png`
+    - `output/web-game-gacha10/state-gacha10.json`
+  - `errors-gacha10.json`: not generated (no captured page/console errors).

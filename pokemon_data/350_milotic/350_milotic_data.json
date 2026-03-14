@@ -37,14 +37,6 @@
   },
   "sprite_variants": [
     {
-      "id": "transparent",
-      "label_fr": "Home",
-      "generation": 0,
-      "game_key": "home",
-      "front": "sprites/350_milotic_transparent_front.png",
-      "front_shiny": "sprites/350_milotic_transparent_front_shiny.png"
-    },
-    {
       "id": "ruby_sapphire",
       "label_fr": "Rubis / Saphir",
       "generation": 3,

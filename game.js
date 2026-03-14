@@ -648,7 +648,7 @@ const GACHA_BATCH_SPOTLIGHT_TRANSFER_MS = 420;
 const GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS = 110;
 const GACHA_BATCH_SLOT_JUICE_MS = 560;
 const TEAM_SPRITE_SCALE = 1.18;
-const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24;
+const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24 * 0.7;
 const TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER = 1.1;
 const TEAM_SPRITE_MIN_RENDER_RATIO_PHONE = 0.96;
 const TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT = 0.9;
@@ -658,6 +658,7 @@ const ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER = 1.06;
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
 const POKEMON_SPRITE_COMMON_PPU = 64;
+const POKEMON_SPRITE_USE_SOURCE_PPU_ADAPTATION = false;
 const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN = 0.5;
 const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX = 1.8;
 const MAX_LEVEL = 100;
@@ -4625,6 +4626,9 @@ function getSpriteSourceMaxPixelDimension(source) {
 }
 
 function getPokemonSpriteCommonPpuMultiplier(source) {
+  if (!POKEMON_SPRITE_USE_SOURCE_PPU_ADAPTATION) {
+    return 1;
+  }
   const sourcePixels = Math.max(1, getSpriteSourceMaxPixelDimension(source));
   const commonPpu = Math.max(1, toSafeInt(POKEMON_SPRITE_COMMON_PPU, 64));
   const raw = sourcePixels / commonPpu;
@@ -14554,6 +14558,36 @@ function clearGachaBatchSpotlightPanel() {
   gachaBatchSpotlightEl.innerHTML = "";
 }
 
+function applyGachaSpriteTightFit(imageEl, options = {}) {
+  if (!(imageEl instanceof HTMLImageElement)) {
+    return;
+  }
+  const maxBoost = Math.max(1, Number(options?.maxBoost) || 3.4);
+  const minBoost = Math.max(1, Number(options?.minBoost) || 1);
+  const applyScale = () => {
+    if (!isDrawableImage(imageEl)) {
+      imageEl.style.removeProperty("--gacha-tight-fit-scale");
+      return;
+    }
+    const dims = getDrawableImageDimensions(imageEl);
+    const bounds = getOpaqueBoundsForDrawableImage(imageEl);
+    const fullWidth = Math.max(1, Number(dims.width) || 1);
+    const fullHeight = Math.max(1, Number(dims.height) || 1);
+    const opaqueWidth = Math.max(1, Number(bounds?.opaqueWidth) || fullWidth);
+    const opaqueHeight = Math.max(1, Number(bounds?.opaqueHeight) || fullHeight);
+    const widthBoost = fullWidth / opaqueWidth;
+    const heightBoost = fullHeight / opaqueHeight;
+    const rawBoost = Math.min(widthBoost, heightBoost);
+    const boost = clamp(rawBoost, minBoost, maxBoost);
+    imageEl.style.setProperty("--gacha-tight-fit-scale", boost.toFixed(3));
+  };
+
+  imageEl.addEventListener("load", applyScale, { once: true });
+  if (imageEl.complete) {
+    applyScale();
+  }
+}
+
 function buildGachaRewardCardElement(reward, options = {}) {
   const card = document.createElement("div");
   card.className = options?.cardClassName || "gacha-result-reward-card";
@@ -14568,6 +14602,7 @@ function buildGachaRewardCardElement(reward, options = {}) {
     const image = document.createElement("img");
     image.src = reward.spritePath;
     image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    applyGachaSpriteTightFit(image, { maxBoost: 3.25 });
     if (options?.pending) {
       image.classList.add("is-silhouette");
     }
@@ -14683,6 +14718,7 @@ function createGachaBatchTransferOrb(reward) {
     const image = document.createElement("img");
     image.src = reward.spritePath;
     image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    applyGachaSpriteTightFit(image, { maxBoost: 2.8 });
     orb.appendChild(image);
   } else {
     const fallback = document.createElement("span");
@@ -14708,6 +14744,7 @@ function createGachaBatchSpotlightCard(reward, index, totalCount) {
     const image = document.createElement("img");
     image.src = reward.spritePath;
     image.alt = `${reward?.pokemonNameFr || "Skin"} ${reward?.variantLabel || ""}`.trim();
+    applyGachaSpriteTightFit(image, { maxBoost: 3.8 });
     media.appendChild(image);
   } else {
     const fallback = document.createElement("span");
@@ -14906,6 +14943,7 @@ function renderGachaResultPanel(rewardOrRewards, options = {}) {
     const image = document.createElement("img");
     image.src = highlightReward.spritePath;
     image.alt = `${highlightReward.pokemonNameFr} ${highlightReward.variantLabel}`;
+    applyGachaSpriteTightFit(image, { maxBoost: 3.1 });
     gachaResultPreviewEl.appendChild(image);
   }
   if (gachaResultListEl) {

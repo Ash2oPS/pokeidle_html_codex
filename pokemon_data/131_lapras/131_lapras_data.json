@@ -23,14 +23,6 @@
   },
   "sprite_variants": [
     {
-      "id": "transparent",
-      "label_fr": "Home",
-      "generation": 0,
-      "game_key": "home",
-      "front": "sprites/131_lapras_transparent_front.png",
-      "front_shiny": "sprites/131_lapras_transparent_front_shiny.png"
-    },
-    {
       "id": "firered_leafgreen",
       "label_fr": "Rouge Feu / Vert Feuille",
       "generation": 3,

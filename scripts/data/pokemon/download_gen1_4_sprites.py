@@ -118,11 +118,6 @@ SPRITE_VARIANTS = [
 
 TRANSPARENT_SPRITE_CANDIDATES = [
     {
-        "other_key": "home",
-        "game_key": "home",
-        "label_fr": "Home",
-    },
-    {
         "other_key": "official-artwork",
         "game_key": "official-artwork",
         "label_fr": "Artwork officiel transparent",

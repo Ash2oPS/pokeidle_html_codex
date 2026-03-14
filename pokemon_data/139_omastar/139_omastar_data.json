@@ -33,14 +33,6 @@
   },
   "sprite_variants": [
     {
-      "id": "transparent",
-      "label_fr": "Home",
-      "generation": 0,
-      "game_key": "home",
-      "front": "sprites/139_omastar_transparent_front.png",
-      "front_shiny": "sprites/139_omastar_transparent_front_shiny.png"
-    },
-    {
       "id": "firered_leafgreen",
       "label_fr": "Rouge Feu / Vert Feuille",
       "generation": 3,

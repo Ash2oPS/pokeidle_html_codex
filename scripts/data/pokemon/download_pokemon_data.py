@@ -25,7 +25,6 @@ SIZE_REMAP_MIN = 10
 SIZE_REMAP_MAX = 100
 
 TRANSPARENT_SPRITE_CANDIDATES = [
-    "home",
     "official-artwork",
 ]
 

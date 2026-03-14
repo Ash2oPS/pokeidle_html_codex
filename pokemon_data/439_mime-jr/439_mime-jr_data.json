@@ -35,14 +35,6 @@
   },
   "sprite_variants": [
     {
-      "id": "transparent",
-      "label_fr": "Home",
-      "generation": 0,
-      "game_key": "home",
-      "front": "sprites/439_mime-jr_transparent_front.png",
-      "front_shiny": "sprites/439_mime-jr_transparent_front_shiny.png"
-    },
-    {
       "id": "heartgold_soulsilver",
       "label_fr": "HeartGold / SoulSilver",
       "generation": 4,
