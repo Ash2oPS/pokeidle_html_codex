@@ -91,6 +91,78 @@
       "front": "sprites/163_hoothoot_black_white_front.gif",
       "front_shiny": "sprites/163_hoothoot_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_163",
+      "label_fr": "Custom (163)",
+      "generation": 0,
+      "game_key": "custom-163",
+      "front": "sprites/163_hoothoot_custom_163.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and zagreus8",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163/",
+      "source_image_url": "https://cdn.fusiondex.org/VZS-d7L3BiurMVz5aPCgrZuh/dn/pif/163.png",
+      "added_at": "2026-03-14T12:10:52.679Z"
+    },
+    {
+      "id": "custom_163a",
+      "label_fr": "Custom (163a)",
+      "generation": 0,
+      "game_key": "custom-163a",
+      "front": "sprites/163_hoothoot_custom_163a.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and canblockbaguettes",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163a/",
+      "source_image_url": "https://cdn.fusiondex.org/MYb2C5fYTgAyrUaLTWfkZTPL/dn/pif/163a.png",
+      "added_at": "2026-03-14T12:10:52.703Z"
+    },
+    {
+      "id": "custom_163c",
+      "label_fr": "Custom (163c)",
+      "generation": 0,
+      "game_key": "custom-163c",
+      "front": "sprites/163_hoothoot_custom_163c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and quote.lass",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163c/",
+      "source_image_url": "https://cdn.fusiondex.org/JEzw4cDdU5x9Yme5h6RGb2Va/dn/pif/163c.png",
+      "added_at": "2026-03-14T12:10:52.725Z"
+    },
+    {
+      "id": "custom_163d",
+      "label_fr": "Custom (163d)",
+      "generation": 0,
+      "game_key": "custom-163d",
+      "front": "sprites/163_hoothoot_custom_163d.png",
+      "front_shiny": null,
+      "author": "hero.drawing and widecloud",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163d/",
+      "source_image_url": "https://cdn.fusiondex.org/B3NfYNxvgioVIT8bb1Dzvdm6/dn/pif/163d.png",
+      "added_at": "2026-03-14T12:10:52.748Z"
+    },
+    {
+      "id": "custom_163e",
+      "label_fr": "Custom (163e)",
+      "generation": 0,
+      "game_key": "custom-163e",
+      "front": "sprites/163_hoothoot_custom_163e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163e/",
+      "source_image_url": "https://cdn.fusiondex.org/Ygor_qTx1rv7s3LLrY5Oienn/dn/pif/163e.png",
+      "added_at": "2026-03-14T12:10:52.771Z"
+    },
+    {
+      "id": "custom_163g",
+      "label_fr": "Custom (163g)",
+      "generation": 0,
+      "game_key": "custom-163g",
+      "front": "sprites/163_hoothoot_custom_163g.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/163g/",
+      "source_image_url": "https://cdn.fusiondex.org/K_rzEA9UIbcaKMMZ4ML6ERhn/dn/pif/163g.png",
+      "added_at": "2026-03-14T12:10:52.794Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

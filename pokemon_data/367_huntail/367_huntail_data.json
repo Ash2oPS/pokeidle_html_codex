@@ -79,6 +79,78 @@
       "front": "sprites/367_huntail_black_white_front.gif",
       "front_shiny": "sprites/367_huntail_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_563c",
+      "label_fr": "Custom (563c)",
+      "generation": 0,
+      "game_key": "custom-563c",
+      "front": "sprites/367_huntail_custom_563c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563c/",
+      "source_image_url": "https://cdn.fusiondex.org/1Ka104zurMnK4ifPQEUpQamv/dn/pif/563c.png",
+      "added_at": "2026-03-14T12:13:58.519Z"
+    },
+    {
+      "id": "custom_563e",
+      "label_fr": "Custom (563e)",
+      "generation": 0,
+      "game_key": "custom-563e",
+      "front": "sprites/367_huntail_custom_563e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563e/",
+      "source_image_url": "https://cdn.fusiondex.org/qPUyt5ntXWVv_PSJlK3_4mbS/dn/pif/563e.png",
+      "added_at": "2026-03-14T12:13:58.542Z"
+    },
+    {
+      "id": "custom_563f",
+      "label_fr": "Custom (563f)",
+      "generation": 0,
+      "game_key": "custom-563f",
+      "front": "sprites/367_huntail_custom_563f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563f/",
+      "source_image_url": "https://cdn.fusiondex.org/X7y07sQM-4ZMFrzC0nnWx_mi/dn/pif/563f.png",
+      "added_at": "2026-03-14T12:13:58.564Z"
+    },
+    {
+      "id": "custom_563g",
+      "label_fr": "Custom (563g)",
+      "generation": 0,
+      "game_key": "custom-563g",
+      "front": "sprites/367_huntail_custom_563g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563g/",
+      "source_image_url": "https://cdn.fusiondex.org/Jdz8VvcdiPLIHM9KdDmm5Z7k/dn/pif/563g.png",
+      "added_at": "2026-03-14T12:13:58.587Z"
+    },
+    {
+      "id": "custom_563h",
+      "label_fr": "Custom (563h)",
+      "generation": 0,
+      "game_key": "custom-563h",
+      "front": "sprites/367_huntail_custom_563h.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and ivyswine",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563h/",
+      "source_image_url": "https://cdn.fusiondex.org/x1E1sMBbA-qYwUfB5bkoWXkF/dn/pif/563h.png",
+      "added_at": "2026-03-14T12:13:58.611Z"
+    },
+    {
+      "id": "custom_563i",
+      "label_fr": "Custom (563i)",
+      "generation": 0,
+      "game_key": "custom-563i",
+      "front": "sprites/367_huntail_custom_563i.png",
+      "front_shiny": null,
+      "author": "the pokémon company and mudkipster",
+      "source_url": "https://www.fusiondex.org/sprite/pif/563i/",
+      "source_image_url": "https://cdn.fusiondex.org/rvavTOq73n4YlFo89yprdkFs/dn/pif/563i.png",
+      "added_at": "2026-03-14T12:13:58.633Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

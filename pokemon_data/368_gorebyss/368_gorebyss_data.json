@@ -79,6 +79,54 @@
       "front": "sprites/368_gorebyss_black_white_front.gif",
       "front_shiny": "sprites/368_gorebyss_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_564d",
+      "label_fr": "Custom (564d)",
+      "generation": 0,
+      "game_key": "custom-564d",
+      "front": "sprites/368_gorebyss_custom_564d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/564d/",
+      "source_image_url": "https://cdn.fusiondex.org/ZHEmA-t4zImexLkNCDwB5IqT/dn/pif/564d.png",
+      "added_at": "2026-03-14T12:13:59.026Z"
+    },
+    {
+      "id": "custom_564e",
+      "label_fr": "Custom (564e)",
+      "generation": 0,
+      "game_key": "custom-564e",
+      "front": "sprites/368_gorebyss_custom_564e.png",
+      "front_shiny": null,
+      "author": "spider26",
+      "source_url": "https://www.fusiondex.org/sprite/pif/564e/",
+      "source_image_url": "https://cdn.fusiondex.org/-t7YYjBo0BTbTJEUcYtKOd8e/dn/pif/564e.png",
+      "added_at": "2026-03-14T12:13:59.050Z"
+    },
+    {
+      "id": "custom_564f",
+      "label_fr": "Custom (564f)",
+      "generation": 0,
+      "game_key": "custom-564f",
+      "front": "sprites/368_gorebyss_custom_564f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/564f/",
+      "source_image_url": "https://cdn.fusiondex.org/lGYvzfbJiWe8FqlNtkX-8QTd/dn/pif/564f.png",
+      "added_at": "2026-03-14T12:13:59.074Z"
+    },
+    {
+      "id": "custom_564g",
+      "label_fr": "Custom (564g)",
+      "generation": 0,
+      "game_key": "custom-564g",
+      "front": "sprites/368_gorebyss_custom_564g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/564g/",
+      "source_image_url": "https://cdn.fusiondex.org/VFRerepoeyKpMrvBOX0gv3VF/dn/pif/564g.png",
+      "added_at": "2026-03-14T12:13:59.099Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

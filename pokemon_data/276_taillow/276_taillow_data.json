@@ -82,6 +82,78 @@
       "front": "sprites/276_taillow_black_white_front.gif",
       "front_shiny": "sprites/276_taillow_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_514c",
+      "label_fr": "Custom (514c)",
+      "generation": 0,
+      "game_key": "custom-514c",
+      "front": "sprites/276_taillow_custom_514c.png",
+      "front_shiny": null,
+      "author": "007z3lda",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514c/",
+      "source_image_url": "https://cdn.fusiondex.org/a2JenjjIgoEzzXWgO_FIx2PQ/dn/pif/514c.png",
+      "added_at": "2026-03-14T12:12:37.302Z"
+    },
+    {
+      "id": "custom_514d",
+      "label_fr": "Custom (514d)",
+      "generation": 0,
+      "game_key": "custom-514d",
+      "front": "sprites/276_taillow_custom_514d.png",
+      "front_shiny": null,
+      "author": "djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514d/",
+      "source_image_url": "https://cdn.fusiondex.org/YQcCpnk4WwPS7AttjreTAVqP/dn/pif/514d.png",
+      "added_at": "2026-03-14T12:12:37.324Z"
+    },
+    {
+      "id": "custom_514e",
+      "label_fr": "Custom (514e)",
+      "generation": 0,
+      "game_key": "custom-514e",
+      "front": "sprites/276_taillow_custom_514e.png",
+      "front_shiny": null,
+      "author": "kobold_hijinks and momo irone",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514e/",
+      "source_image_url": "https://cdn.fusiondex.org/jFl0FPZ80MFfTECEBbUvZdk1/dn/pif/514e.png",
+      "added_at": "2026-03-14T12:12:37.347Z"
+    },
+    {
+      "id": "custom_514f",
+      "label_fr": "Custom (514f)",
+      "generation": 0,
+      "game_key": "custom-514f",
+      "front": "sprites/276_taillow_custom_514f.png",
+      "front_shiny": null,
+      "author": "stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514f/",
+      "source_image_url": "https://cdn.fusiondex.org/-XiI6WUvFsRZf3ophy5Ecxac/dn/pif/514f.png",
+      "added_at": "2026-03-14T12:12:37.370Z"
+    },
+    {
+      "id": "custom_514g",
+      "label_fr": "Custom (514g)",
+      "generation": 0,
+      "game_key": "custom-514g",
+      "front": "sprites/276_taillow_custom_514g.png",
+      "front_shiny": null,
+      "author": "game freak and _woofa_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514g/",
+      "source_image_url": "https://cdn.fusiondex.org/-cLlKhUK2DaXYGDRsENqJjoy/dn/pif/514g.png",
+      "added_at": "2026-03-14T12:12:37.393Z"
+    },
+    {
+      "id": "custom_514h",
+      "label_fr": "Custom (514h)",
+      "generation": 0,
+      "game_key": "custom-514h",
+      "front": "sprites/276_taillow_custom_514h.png",
+      "front_shiny": null,
+      "author": ".rayzard",
+      "source_url": "https://www.fusiondex.org/sprite/pif/514h/",
+      "source_image_url": "https://cdn.fusiondex.org/QqzJy5WOgVeNJJKFLHH6cjnt/dn/pif/514h.png",
+      "added_at": "2026-03-14T12:12:37.417Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

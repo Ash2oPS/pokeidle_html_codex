@@ -91,6 +91,66 @@
       "front": "sprites/294_loudred_black_white_front.gif",
       "front_shiny": "sprites/294_loudred_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_521d",
+      "label_fr": "Custom (521d)",
+      "generation": 0,
+      "game_key": "custom-521d",
+      "front": "sprites/294_loudred_custom_521d.png",
+      "front_shiny": null,
+      "author": ".rayzard",
+      "source_url": "https://www.fusiondex.org/sprite/pif/521d/",
+      "source_image_url": "https://cdn.fusiondex.org/ct_MCzuIYKA4ifDx5lTQ0isj/dn/pif/521d.png",
+      "added_at": "2026-03-14T12:12:48.582Z"
+    },
+    {
+      "id": "custom_521e",
+      "label_fr": "Custom (521e)",
+      "generation": 0,
+      "game_key": "custom-521e",
+      "front": "sprites/294_loudred_custom_521e.png",
+      "front_shiny": null,
+      "author": "game freak and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/521e/",
+      "source_image_url": "https://cdn.fusiondex.org/UdJ7a9kouxDiUvZbiF8MXpXi/dn/pif/521e.png",
+      "added_at": "2026-03-14T12:12:48.606Z"
+    },
+    {
+      "id": "custom_521f",
+      "label_fr": "Custom (521f)",
+      "generation": 0,
+      "game_key": "custom-521f",
+      "front": "sprites/294_loudred_custom_521f.png",
+      "front_shiny": null,
+      "author": "the pokémon company and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/521f/",
+      "source_image_url": "https://cdn.fusiondex.org/5AVJGgpGBPq3_zEAZuSkrjQr/dn/pif/521f.png",
+      "added_at": "2026-03-14T12:12:48.628Z"
+    },
+    {
+      "id": "custom_521g",
+      "label_fr": "Custom (521g)",
+      "generation": 0,
+      "game_key": "custom-521g",
+      "front": "sprites/294_loudred_custom_521g.png",
+      "front_shiny": null,
+      "author": "game freak and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/521g/",
+      "source_image_url": "https://cdn.fusiondex.org/PCtalS-LRRZIqPruCvJeHDK_/dn/pif/521g.png",
+      "added_at": "2026-03-14T12:12:48.650Z"
+    },
+    {
+      "id": "custom_521h",
+      "label_fr": "Custom (521h)",
+      "generation": 0,
+      "game_key": "custom-521h",
+      "front": "sprites/294_loudred_custom_521h.png",
+      "front_shiny": null,
+      "author": ".nottomention",
+      "source_url": "https://www.fusiondex.org/sprite/pif/521h/",
+      "source_image_url": "https://cdn.fusiondex.org/sZprg8hMHnIJGdPSQs-E5lyN/dn/pif/521h.png",
+      "added_at": "2026-03-14T12:12:48.673Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

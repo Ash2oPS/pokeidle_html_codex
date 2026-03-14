@@ -81,6 +81,54 @@
       "front": "sprites/325_spoink_black_white_front.gif",
       "front_shiny": "sprites/325_spoink_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_539d",
+      "label_fr": "Custom (539d)",
+      "generation": 0,
+      "game_key": "custom-539d",
+      "front": "sprites/325_spoink_custom_539d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gordogamr",
+      "source_url": "https://www.fusiondex.org/sprite/pif/539d/",
+      "source_image_url": "https://cdn.fusiondex.org/lRvZDmgxPe9fP1DvMa2wjQxg/dn/pif/539d.png",
+      "added_at": "2026-03-14T12:13:32.354Z"
+    },
+    {
+      "id": "custom_539e",
+      "label_fr": "Custom (539e)",
+      "generation": 0,
+      "game_key": "custom-539e",
+      "front": "sprites/325_spoink_custom_539e.png",
+      "front_shiny": null,
+      "author": "game freak , aplastic , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/539e/",
+      "source_image_url": "https://cdn.fusiondex.org/Sporatq6pSvZ8JLub3VIbeuC/dn/pif/539e.png",
+      "added_at": "2026-03-14T12:13:32.377Z"
+    },
+    {
+      "id": "custom_539f",
+      "label_fr": "Custom (539f)",
+      "generation": 0,
+      "game_key": "custom-539f",
+      "front": "sprites/325_spoink_custom_539f.png",
+      "front_shiny": null,
+      "author": "the pokémon company and chinigan",
+      "source_url": "https://www.fusiondex.org/sprite/pif/539f/",
+      "source_image_url": "https://cdn.fusiondex.org/1MPr9wIOZvuYF0GrmTd4oYNa/dn/pif/539f.png",
+      "added_at": "2026-03-14T12:13:32.399Z"
+    },
+    {
+      "id": "custom_539g",
+      "label_fr": "Custom (539g)",
+      "generation": 0,
+      "game_key": "custom-539g",
+      "front": "sprites/325_spoink_custom_539g.png",
+      "front_shiny": null,
+      "author": "game freak , pory , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/539g/",
+      "source_image_url": "https://cdn.fusiondex.org/-Ck6YeiWjkIZ03w-A36lIzue/dn/pif/539g.png",
+      "added_at": "2026-03-14T12:13:32.423Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

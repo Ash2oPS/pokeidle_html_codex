@@ -123,6 +123,78 @@
       "front": "sprites/69_bellsprout_black_white_front.gif",
       "front_shiny": "sprites/69_bellsprout_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_69",
+      "label_fr": "Custom (69)",
+      "generation": 0,
+      "game_key": "custom-69",
+      "front": "sprites/69_bellsprout_custom_69.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69/",
+      "source_image_url": "https://cdn.fusiondex.org/pHPfem6DtXoCK-_ikdc45NA7/dn/pif/69.png",
+      "added_at": "2026-03-14T12:09:20.380Z"
+    },
+    {
+      "id": "custom_69a",
+      "label_fr": "Custom (69a)",
+      "generation": 0,
+      "game_key": "custom-69a",
+      "front": "sprites/69_bellsprout_custom_69a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69a/",
+      "source_image_url": "https://cdn.fusiondex.org/IfnqpxoZj7GdqS1wKmb06eGz/dn/pif/69a.png",
+      "added_at": "2026-03-14T12:09:20.403Z"
+    },
+    {
+      "id": "custom_69b",
+      "label_fr": "Custom (69b)",
+      "generation": 0,
+      "game_key": "custom-69b",
+      "front": "sprites/69_bellsprout_custom_69b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and dr.teatime",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69b/",
+      "source_image_url": "https://cdn.fusiondex.org/gT4pYJa6yCjEYHIdbakvhBc_/dn/pif/69b.png",
+      "added_at": "2026-03-14T12:09:20.425Z"
+    },
+    {
+      "id": "custom_69c",
+      "label_fr": "Custom (69c)",
+      "generation": 0,
+      "game_key": "custom-69c",
+      "front": "sprites/69_bellsprout_custom_69c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69c/",
+      "source_image_url": "https://cdn.fusiondex.org/4SIoLPd24DsBhzPaH8OKQIX9/dn/pif/69c.png",
+      "added_at": "2026-03-14T12:09:20.447Z"
+    },
+    {
+      "id": "custom_69d",
+      "label_fr": "Custom (69d)",
+      "generation": 0,
+      "game_key": "custom-69d",
+      "front": "sprites/69_bellsprout_custom_69d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and derpyhooves",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69d/",
+      "source_image_url": "https://cdn.fusiondex.org/I4ywYLlp49TfElaWzZzy10OJ/dn/pif/69d.png",
+      "added_at": "2026-03-14T12:09:20.470Z"
+    },
+    {
+      "id": "custom_69e",
+      "label_fr": "Custom (69e)",
+      "generation": 0,
+      "game_key": "custom-69e",
+      "front": "sprites/69_bellsprout_custom_69e.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/69e/",
+      "source_image_url": "https://cdn.fusiondex.org/fw0teLF8DJXUMHv7W3MYO1ci/dn/pif/69e.png",
+      "added_at": "2026-03-14T12:09:20.494Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

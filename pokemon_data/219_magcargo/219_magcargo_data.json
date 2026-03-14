@@ -88,6 +88,78 @@
       "front": "sprites/219_magcargo_black_white_front.gif",
       "front_shiny": "sprites/219_magcargo_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_219",
+      "label_fr": "Custom (219)",
+      "generation": 0,
+      "game_key": "custom-219",
+      "front": "sprites/219_magcargo_custom_219.png",
+      "front_shiny": null,
+      "author": "rentalrafflesia",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219/",
+      "source_image_url": "https://cdn.fusiondex.org/h-WTOpSJUZy9fY8V8cRmftDf/dn/pif/219.png",
+      "added_at": "2026-03-14T12:11:57.972Z"
+    },
+    {
+      "id": "custom_219b",
+      "label_fr": "Custom (219b)",
+      "generation": 0,
+      "game_key": "custom-219b",
+      "front": "sprites/219_magcargo_custom_219b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and jaycielantern",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219b/",
+      "source_image_url": "https://cdn.fusiondex.org/RP_oBhEi3R2__PgVev4JLAUu/dn/pif/219b.png",
+      "added_at": "2026-03-14T12:11:57.995Z"
+    },
+    {
+      "id": "custom_219c",
+      "label_fr": "Custom (219c)",
+      "generation": 0,
+      "game_key": "custom-219c",
+      "front": "sprites/219_magcargo_custom_219c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and jaycielantern",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219c/",
+      "source_image_url": "https://cdn.fusiondex.org/U2voDna9nT6ZBht76m6Nj1r1/dn/pif/219c.png",
+      "added_at": "2026-03-14T12:11:58.018Z"
+    },
+    {
+      "id": "custom_219d",
+      "label_fr": "Custom (219d)",
+      "generation": 0,
+      "game_key": "custom-219d",
+      "front": "sprites/219_magcargo_custom_219d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and jaycielantern",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219d/",
+      "source_image_url": "https://cdn.fusiondex.org/D5B2KFCGjYMotDv8cWGKbhWd/dn/pif/219d.png",
+      "added_at": "2026-03-14T12:11:58.041Z"
+    },
+    {
+      "id": "custom_219e",
+      "label_fr": "Custom (219e)",
+      "generation": 0,
+      "game_key": "custom-219e",
+      "front": "sprites/219_magcargo_custom_219e.png",
+      "front_shiny": null,
+      "author": "monolithyk",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219e/",
+      "source_image_url": "https://cdn.fusiondex.org/TbeFM4mqNfoSPvTjYvY6iP2t/dn/pif/219e.png",
+      "added_at": "2026-03-14T12:11:58.063Z"
+    },
+    {
+      "id": "custom_219g",
+      "label_fr": "Custom (219g)",
+      "generation": 0,
+      "game_key": "custom-219g",
+      "front": "sprites/219_magcargo_custom_219g.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/219g/",
+      "source_image_url": "https://cdn.fusiondex.org/kiBZP-ExcEk6Dc6Xvw8pXFCR/dn/pif/219g.png",
+      "added_at": "2026-03-14T12:11:58.107Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

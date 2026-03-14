@@ -90,6 +90,66 @@
       "front": "sprites/220_swinub_black_white_front.gif",
       "front_shiny": "sprites/220_swinub_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_220",
+      "label_fr": "Custom (220)",
+      "generation": 0,
+      "game_key": "custom-220",
+      "front": "sprites/220_swinub_custom_220.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and cebularz_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/220/",
+      "source_image_url": "https://cdn.fusiondex.org/r9JWW6sP6aFDCjQNj_MYOLGO/dn/pif/220.png",
+      "added_at": "2026-03-14T12:11:58.542Z"
+    },
+    {
+      "id": "custom_220b",
+      "label_fr": "Custom (220b)",
+      "generation": 0,
+      "game_key": "custom-220b",
+      "front": "sprites/220_swinub_custom_220b.png",
+      "front_shiny": null,
+      "author": "game freak and lordforrest90",
+      "source_url": "https://www.fusiondex.org/sprite/pif/220b/",
+      "source_image_url": "https://cdn.fusiondex.org/qia5EAV4R0NpdUjTj7Czb20M/dn/pif/220b.png",
+      "added_at": "2026-03-14T12:11:58.566Z"
+    },
+    {
+      "id": "custom_220c",
+      "label_fr": "Custom (220c)",
+      "generation": 0,
+      "game_key": "custom-220c",
+      "front": "sprites/220_swinub_custom_220c.png",
+      "front_shiny": null,
+      "author": "game freak and superautoplayer",
+      "source_url": "https://www.fusiondex.org/sprite/pif/220c/",
+      "source_image_url": "https://cdn.fusiondex.org/RxDOBxndPv1190zgu8kjDMJi/dn/pif/220c.png",
+      "added_at": "2026-03-14T12:11:58.589Z"
+    },
+    {
+      "id": "custom_220d",
+      "label_fr": "Custom (220d)",
+      "generation": 0,
+      "game_key": "custom-220d",
+      "front": "sprites/220_swinub_custom_220d.png",
+      "front_shiny": null,
+      "author": "game freak and pory",
+      "source_url": "https://www.fusiondex.org/sprite/pif/220d/",
+      "source_image_url": "https://cdn.fusiondex.org/HW6JLt_5PtaZliiw1dBO1WYE/dn/pif/220d.png",
+      "added_at": "2026-03-14T12:11:58.611Z"
+    },
+    {
+      "id": "custom_220e",
+      "label_fr": "Custom (220e)",
+      "generation": 0,
+      "game_key": "custom-220e",
+      "front": "sprites/220_swinub_custom_220e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and seb04061",
+      "source_url": "https://www.fusiondex.org/sprite/pif/220e/",
+      "source_image_url": "https://cdn.fusiondex.org/n7TsA1tKeKCGscDLN7-ZbDvl/dn/pif/220e.png",
+      "added_at": "2026-03-14T12:11:58.634Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

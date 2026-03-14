@@ -70,6 +70,66 @@
       "front": "sprites/338_solrock_black_white_front.gif",
       "front_shiny": "sprites/338_solrock_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_545c",
+      "label_fr": "Custom (545c)",
+      "generation": 0,
+      "game_key": "custom-545c",
+      "front": "sprites/338_solrock_custom_545c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/545c/",
+      "source_image_url": "https://cdn.fusiondex.org/dRzbh78Qp3sMitWpQepSK9sW/dn/pif/545c.png",
+      "added_at": "2026-03-14T12:13:40.673Z"
+    },
+    {
+      "id": "custom_545d",
+      "label_fr": "Custom (545d)",
+      "generation": 0,
+      "game_key": "custom-545d",
+      "front": "sprites/338_solrock_custom_545d.png",
+      "front_shiny": null,
+      "author": "game freak and dukefrogpeasant",
+      "source_url": "https://www.fusiondex.org/sprite/pif/545d/",
+      "source_image_url": "https://cdn.fusiondex.org/a8QPqDRhaWu22CMkhvJcE6ko/dn/pif/545d.png",
+      "added_at": "2026-03-14T12:13:40.696Z"
+    },
+    {
+      "id": "custom_545e",
+      "label_fr": "Custom (545e)",
+      "generation": 0,
+      "game_key": "custom-545e",
+      "front": "sprites/338_solrock_custom_545e.png",
+      "front_shiny": null,
+      "author": "monolithyk",
+      "source_url": "https://www.fusiondex.org/sprite/pif/545e/",
+      "source_image_url": "https://cdn.fusiondex.org/cbw7S1-y3TDePSAHVMyoC7dX/dn/pif/545e.png",
+      "added_at": "2026-03-14T12:13:40.719Z"
+    },
+    {
+      "id": "custom_545f",
+      "label_fr": "Custom (545f)",
+      "generation": 0,
+      "game_key": "custom-545f",
+      "front": "sprites/338_solrock_custom_545f.png",
+      "front_shiny": null,
+      "author": "tinyboo53",
+      "source_url": "https://www.fusiondex.org/sprite/pif/545f/",
+      "source_image_url": "https://cdn.fusiondex.org/Xe6rMCfVNe6xfGDur7-Jk9ym/dn/pif/545f.png",
+      "added_at": "2026-03-14T12:13:40.742Z"
+    },
+    {
+      "id": "custom_545g",
+      "label_fr": "Custom (545g)",
+      "generation": 0,
+      "game_key": "custom-545g",
+      "front": "sprites/338_solrock_custom_545g.png",
+      "front_shiny": null,
+      "author": "the pokémon company and wolfxerumo",
+      "source_url": "https://www.fusiondex.org/sprite/pif/545g/",
+      "source_image_url": "https://cdn.fusiondex.org/BnYCbHm1RKqofrAAVDgjDTwI/dn/pif/545g.png",
+      "added_at": "2026-03-14T12:13:40.764Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

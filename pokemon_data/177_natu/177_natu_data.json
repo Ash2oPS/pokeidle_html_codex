@@ -90,6 +90,54 @@
       "front": "sprites/177_natu_black_white_front.gif",
       "front_shiny": "sprites/177_natu_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_177",
+      "label_fr": "Custom (177)",
+      "generation": 0,
+      "game_key": "custom-177",
+      "front": "sprites/177_natu_custom_177.png",
+      "front_shiny": null,
+      "author": "game freak and blaquaza",
+      "source_url": "https://www.fusiondex.org/sprite/pif/177/",
+      "source_image_url": "https://cdn.fusiondex.org/_yzUdNTs-OqhEl88ArmkyMGS/dn/pif/177.png",
+      "added_at": "2026-03-14T12:11:01.137Z"
+    },
+    {
+      "id": "custom_177a",
+      "label_fr": "Custom (177a)",
+      "generation": 0,
+      "game_key": "custom-177a",
+      "front": "sprites/177_natu_custom_177a.png",
+      "front_shiny": null,
+      "author": "game freak and milchik",
+      "source_url": "https://www.fusiondex.org/sprite/pif/177a/",
+      "source_image_url": "https://cdn.fusiondex.org/d4vzUt1ql291GUpTxX213vlH/dn/pif/177a.png",
+      "added_at": "2026-03-14T12:11:01.161Z"
+    },
+    {
+      "id": "custom_177c",
+      "label_fr": "Custom (177c)",
+      "generation": 0,
+      "game_key": "custom-177c",
+      "front": "sprites/177_natu_custom_177c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/177c/",
+      "source_image_url": "https://cdn.fusiondex.org/SGs9BG5eieRse3Re0QXD3pxo/dn/pif/177c.png",
+      "added_at": "2026-03-14T12:11:01.185Z"
+    },
+    {
+      "id": "custom_177d",
+      "label_fr": "Custom (177d)",
+      "generation": 0,
+      "game_key": "custom-177d",
+      "front": "sprites/177_natu_custom_177d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/177d/",
+      "source_image_url": "https://cdn.fusiondex.org/7yjDCjivoPmfMzXa2A5NfMVL/dn/pif/177d.png",
+      "added_at": "2026-03-14T12:11:01.207Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

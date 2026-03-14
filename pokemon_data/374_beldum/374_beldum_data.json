@@ -82,6 +82,66 @@
       "front": "sprites/374_beldum_black_white_front.gif",
       "front_shiny": "sprites/374_beldum_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_291",
+      "label_fr": "Custom (291)",
+      "generation": 0,
+      "game_key": "custom-291",
+      "front": "sprites/374_beldum_custom_291.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/291/",
+      "source_image_url": "https://cdn.fusiondex.org/bpAcdgpk_roXtL__6w7Svow-/dn/pif/291.png",
+      "added_at": "2026-03-14T12:14:03.171Z"
+    },
+    {
+      "id": "custom_291b",
+      "label_fr": "Custom (291b)",
+      "generation": 0,
+      "game_key": "custom-291b",
+      "front": "sprites/374_beldum_custom_291b.png",
+      "front_shiny": null,
+      "author": "the pokémon company and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/291b/",
+      "source_image_url": "https://cdn.fusiondex.org/obhZq7eWKTbZgBUY6UzPByHc/dn/pif/291b.png",
+      "added_at": "2026-03-14T12:14:03.196Z"
+    },
+    {
+      "id": "custom_291c",
+      "label_fr": "Custom (291c)",
+      "generation": 0,
+      "game_key": "custom-291c",
+      "front": "sprites/374_beldum_custom_291c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and mx_wellman",
+      "source_url": "https://www.fusiondex.org/sprite/pif/291c/",
+      "source_image_url": "https://cdn.fusiondex.org/0jGURbgD4dxZZrsgiTDtWPC7/dn/pif/291c.png",
+      "added_at": "2026-03-14T12:14:03.218Z"
+    },
+    {
+      "id": "custom_291d",
+      "label_fr": "Custom (291d)",
+      "generation": 0,
+      "game_key": "custom-291d",
+      "front": "sprites/374_beldum_custom_291d.png",
+      "front_shiny": null,
+      "author": "the pokémon company and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/291d/",
+      "source_image_url": "https://cdn.fusiondex.org/vshV9AIjF3VPfCZunuPYgm5X/dn/pif/291d.png",
+      "added_at": "2026-03-14T12:14:03.242Z"
+    },
+    {
+      "id": "custom_291e",
+      "label_fr": "Custom (291e)",
+      "generation": 0,
+      "game_key": "custom-291e",
+      "front": "sprites/374_beldum_custom_291e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/291e/",
+      "source_image_url": "https://cdn.fusiondex.org/k2ToUOLCHW7bHKf7ZcqZzd7Q/dn/pif/291e.png",
+      "added_at": "2026-03-14T12:14:03.265Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

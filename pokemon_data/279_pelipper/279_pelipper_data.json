@@ -80,6 +80,78 @@
       "front": "sprites/279_pelipper_black_white_front.gif",
       "front_shiny": "sprites/279_pelipper_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_517d",
+      "label_fr": "Custom (517d)",
+      "generation": 0,
+      "game_key": "custom-517d",
+      "front": "sprites/279_pelipper_custom_517d.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517d/",
+      "source_image_url": "https://cdn.fusiondex.org/lxzhDbj09mlWhy7w4f2WYaqO/dn/pif/517d.png",
+      "added_at": "2026-03-14T12:12:38.770Z"
+    },
+    {
+      "id": "custom_517f",
+      "label_fr": "Custom (517f)",
+      "generation": 0,
+      "game_key": "custom-517f",
+      "front": "sprites/279_pelipper_custom_517f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and mudults",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517f/",
+      "source_image_url": "https://cdn.fusiondex.org/-9O6vj73pTqaoRf_OV35i1Wl/dn/pif/517f.png",
+      "added_at": "2026-03-14T12:12:38.793Z"
+    },
+    {
+      "id": "custom_517g",
+      "label_fr": "Custom (517g)",
+      "generation": 0,
+      "game_key": "custom-517g",
+      "front": "sprites/279_pelipper_custom_517g.png",
+      "front_shiny": null,
+      "author": "cronchyradish",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517g/",
+      "source_image_url": "https://cdn.fusiondex.org/0eYCHFT47Jq8pW_Cdd92gQjw/dn/pif/517g.png",
+      "added_at": "2026-03-14T12:12:38.816Z"
+    },
+    {
+      "id": "custom_517h",
+      "label_fr": "Custom (517h)",
+      "generation": 0,
+      "game_key": "custom-517h",
+      "front": "sprites/279_pelipper_custom_517h.png",
+      "front_shiny": null,
+      "author": "cronchyradish",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517h/",
+      "source_image_url": "https://cdn.fusiondex.org/FMB7zp3rSpSjG8B84tuPVYqC/dn/pif/517h.png",
+      "added_at": "2026-03-14T12:12:38.838Z"
+    },
+    {
+      "id": "custom_517i",
+      "label_fr": "Custom (517i)",
+      "generation": 0,
+      "game_key": "custom-517i",
+      "front": "sprites/279_pelipper_custom_517i.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and liandres",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517i/",
+      "source_image_url": "https://cdn.fusiondex.org/FeaXJOUv1SA3af94bOeRanve/dn/pif/517i.png",
+      "added_at": "2026-03-14T12:12:38.860Z"
+    },
+    {
+      "id": "custom_517j",
+      "label_fr": "Custom (517j)",
+      "generation": 0,
+      "game_key": "custom-517j",
+      "front": "sprites/279_pelipper_custom_517j.png",
+      "front_shiny": null,
+      "author": "game freak and pinkyoshi2350641x",
+      "source_url": "https://www.fusiondex.org/sprite/pif/517j/",
+      "source_image_url": "https://cdn.fusiondex.org/AkLBAjogW1ckQhe49lLqFhwB/dn/pif/517j.png",
+      "added_at": "2026-03-14T12:12:38.884Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

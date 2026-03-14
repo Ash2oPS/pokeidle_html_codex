@@ -80,6 +80,78 @@
       "front": "sprites/323_camerupt_black_white_front.gif",
       "front_shiny": "sprites/323_camerupt_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_538d",
+      "label_fr": "Custom (538d)",
+      "generation": 0,
+      "game_key": "custom-538d",
+      "front": "sprites/323_camerupt_custom_538d.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538d/",
+      "source_image_url": "https://cdn.fusiondex.org/2hbbUkrMflp1vxiF-IQJWA1N/dn/pif/538d.png",
+      "added_at": "2026-03-14T12:13:31.075Z"
+    },
+    {
+      "id": "custom_538e",
+      "label_fr": "Custom (538e)",
+      "generation": 0,
+      "game_key": "custom-538e",
+      "front": "sprites/323_camerupt_custom_538e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538e/",
+      "source_image_url": "https://cdn.fusiondex.org/gyiZFDnIwD_zPQJCbMHPOtwL/dn/pif/538e.png",
+      "added_at": "2026-03-14T12:13:31.098Z"
+    },
+    {
+      "id": "custom_538f",
+      "label_fr": "Custom (538f)",
+      "generation": 0,
+      "game_key": "custom-538f",
+      "front": "sprites/323_camerupt_custom_538f.png",
+      "front_shiny": null,
+      "author": "the pokémon company and lyricwalk4592",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538f/",
+      "source_image_url": "https://cdn.fusiondex.org/rIbhi8Hw1nguNKYA_5Ect1s8/dn/pif/538f.png",
+      "added_at": "2026-03-14T12:13:31.122Z"
+    },
+    {
+      "id": "custom_538g",
+      "label_fr": "Custom (538g)",
+      "generation": 0,
+      "game_key": "custom-538g",
+      "front": "sprites/323_camerupt_custom_538g.png",
+      "front_shiny": null,
+      "author": "stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538g/",
+      "source_image_url": "https://cdn.fusiondex.org/GEet2Hj_Y3PlrlxsbjCTkdyu/dn/pif/538g.png",
+      "added_at": "2026-03-14T12:13:31.147Z"
+    },
+    {
+      "id": "custom_538h",
+      "label_fr": "Custom (538h)",
+      "generation": 0,
+      "game_key": "custom-538h",
+      "front": "sprites/323_camerupt_custom_538h.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and airtreck",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538h/",
+      "source_image_url": "https://cdn.fusiondex.org/IBY9912T_apYhcCe4PJvpyzz/dn/pif/538h.png",
+      "added_at": "2026-03-14T12:13:31.169Z"
+    },
+    {
+      "id": "custom_538i",
+      "label_fr": "Custom (538i)",
+      "generation": 0,
+      "game_key": "custom-538i",
+      "front": "sprites/323_camerupt_custom_538i.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/538i/",
+      "source_image_url": "https://cdn.fusiondex.org/CLbIz9zfYzy4AUlL4hIhAm-u/dn/pif/538i.png",
+      "added_at": "2026-03-14T12:13:31.192Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

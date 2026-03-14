@@ -122,6 +122,78 @@
       "front": "sprites/111_rhyhorn_black_white_front.gif",
       "front_shiny": "sprites/111_rhyhorn_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_111",
+      "label_fr": "Custom (111)",
+      "generation": 0,
+      "game_key": "custom-111",
+      "front": "sprites/111_rhyhorn_custom_111.png",
+      "front_shiny": null,
+      "author": "the pokémon company and rice_farmer1898",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111/",
+      "source_image_url": "https://cdn.fusiondex.org/E5JjyJWAdDnaHLoLWr08YnvG/dn/pif/111.png",
+      "added_at": "2026-03-14T12:10:13.167Z"
+    },
+    {
+      "id": "custom_111b",
+      "label_fr": "Custom (111b)",
+      "generation": 0,
+      "game_key": "custom-111b",
+      "front": "sprites/111_rhyhorn_custom_111b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111b/",
+      "source_image_url": "https://cdn.fusiondex.org/WrRD5fUhyZ0Tl93GRZa_kD4i/dn/pif/111b.png",
+      "added_at": "2026-03-14T12:10:13.191Z"
+    },
+    {
+      "id": "custom_111c",
+      "label_fr": "Custom (111c)",
+      "generation": 0,
+      "game_key": "custom-111c",
+      "front": "sprites/111_rhyhorn_custom_111c.png",
+      "front_shiny": null,
+      "author": "game freak and nottheionius",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111c/",
+      "source_image_url": "https://cdn.fusiondex.org/-WDYF6NLlLIHak-gU7lrHP8k/dn/pif/111c.png",
+      "added_at": "2026-03-14T12:10:13.214Z"
+    },
+    {
+      "id": "custom_111d",
+      "label_fr": "Custom (111d)",
+      "generation": 0,
+      "game_key": "custom-111d",
+      "front": "sprites/111_rhyhorn_custom_111d.png",
+      "front_shiny": null,
+      "author": "game freak and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111d/",
+      "source_image_url": "https://cdn.fusiondex.org/Fn4RbkOdXXxqUF4MLYQbCq_2/dn/pif/111d.png",
+      "added_at": "2026-03-14T12:10:13.236Z"
+    },
+    {
+      "id": "custom_111e",
+      "label_fr": "Custom (111e)",
+      "generation": 0,
+      "game_key": "custom-111e",
+      "front": "sprites/111_rhyhorn_custom_111e.png",
+      "front_shiny": null,
+      "author": "game freak , gasmaskblacky , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111e/",
+      "source_image_url": "https://cdn.fusiondex.org/p4eNcBG98_1OliEYuxT3Yah6/dn/pif/111e.png",
+      "added_at": "2026-03-14T12:10:13.259Z"
+    },
+    {
+      "id": "custom_111g",
+      "label_fr": "Custom (111g)",
+      "generation": 0,
+      "game_key": "custom-111g",
+      "front": "sprites/111_rhyhorn_custom_111g.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/111g/",
+      "source_image_url": "https://cdn.fusiondex.org/_z_rlpF2L8UCLfuPWJ0J77hq/dn/pif/111g.png",
+      "added_at": "2026-03-14T12:10:13.282Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

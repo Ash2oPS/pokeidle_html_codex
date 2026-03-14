@@ -119,6 +119,66 @@
       "front": "sprites/51_dugtrio_black_white_front.gif",
       "front_shiny": "sprites/51_dugtrio_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_51a",
+      "label_fr": "Custom (51a)",
+      "generation": 0,
+      "game_key": "custom-51a",
+      "front": "sprites/51_dugtrio_custom_51a.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and theheroicorange",
+      "source_url": "https://www.fusiondex.org/sprite/pif/51a/",
+      "source_image_url": "https://cdn.fusiondex.org/dLM1bQvVOqB0lML6RdOsN81Z/dn/pif/51a.png",
+      "added_at": "2026-03-14T12:09:07.183Z"
+    },
+    {
+      "id": "custom_51b",
+      "label_fr": "Custom (51b)",
+      "generation": 0,
+      "game_key": "custom-51b",
+      "front": "sprites/51_dugtrio_custom_51b.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/51b/",
+      "source_image_url": "https://cdn.fusiondex.org/sX6Z2L5HyUswqZfj23Spwtw-/dn/pif/51b.png",
+      "added_at": "2026-03-14T12:09:07.206Z"
+    },
+    {
+      "id": "custom_51c",
+      "label_fr": "Custom (51c)",
+      "generation": 0,
+      "game_key": "custom-51c",
+      "front": "sprites/51_dugtrio_custom_51c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/51c/",
+      "source_image_url": "https://cdn.fusiondex.org/nTO2YCDNGbtZZonfudH5sCaL/dn/pif/51c.png",
+      "added_at": "2026-03-14T12:09:07.228Z"
+    },
+    {
+      "id": "custom_51d",
+      "label_fr": "Custom (51d)",
+      "generation": 0,
+      "game_key": "custom-51d",
+      "front": "sprites/51_dugtrio_custom_51d.png",
+      "front_shiny": null,
+      "author": "game freak and pinkyoshi2350641x",
+      "source_url": "https://www.fusiondex.org/sprite/pif/51d/",
+      "source_image_url": "https://cdn.fusiondex.org/FDBjmduUq69XGaddqjWbdgd-/dn/pif/51d.png",
+      "added_at": "2026-03-14T12:09:07.251Z"
+    },
+    {
+      "id": "custom_51e",
+      "label_fr": "Custom (51e)",
+      "generation": 0,
+      "game_key": "custom-51e",
+      "front": "sprites/51_dugtrio_custom_51e.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/51e/",
+      "source_image_url": "https://cdn.fusiondex.org/oO4FHvTXHb-peyvmsYCfekSn/dn/pif/51e.png",
+      "added_at": "2026-03-14T12:09:07.293Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

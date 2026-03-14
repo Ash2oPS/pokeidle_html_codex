@@ -120,6 +120,78 @@
       "front": "sprites/91_cloyster_black_white_front.gif",
       "front_shiny": "sprites/91_cloyster_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_91",
+      "label_fr": "Custom (91)",
+      "generation": 0,
+      "game_key": "custom-91",
+      "front": "sprites/91_cloyster_custom_91.png",
+      "front_shiny": null,
+      "author": "game freak and goseigen",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91/",
+      "source_image_url": "https://cdn.fusiondex.org/hrmNi1KTBVUdZFBE0duxdoXi/dn/pif/91.png",
+      "added_at": "2026-03-14T12:09:33.667Z"
+    },
+    {
+      "id": "custom_91a",
+      "label_fr": "Custom (91a)",
+      "generation": 0,
+      "game_key": "custom-91a",
+      "front": "sprites/91_cloyster_custom_91a.png",
+      "front_shiny": null,
+      "author": "goseigen",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91a/",
+      "source_image_url": "https://cdn.fusiondex.org/I8fUm_dcdjfXe1nczgAEazPd/dn/pif/91a.png",
+      "added_at": "2026-03-14T12:09:33.691Z"
+    },
+    {
+      "id": "custom_91c",
+      "label_fr": "Custom (91c)",
+      "generation": 0,
+      "game_key": "custom-91c",
+      "front": "sprites/91_cloyster_custom_91c.png",
+      "front_shiny": null,
+      "author": "joshr691",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91c/",
+      "source_image_url": "https://cdn.fusiondex.org/a6lQDsuVx2Ibz6weVdZm4Ccg/dn/pif/91c.png",
+      "added_at": "2026-03-14T12:09:33.713Z"
+    },
+    {
+      "id": "custom_91d",
+      "label_fr": "Custom (91d)",
+      "generation": 0,
+      "game_key": "custom-91d",
+      "front": "sprites/91_cloyster_custom_91d.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91d/",
+      "source_image_url": "https://cdn.fusiondex.org/bqM85qXmFjgoUogFnB-5a0YB/dn/pif/91d.png",
+      "added_at": "2026-03-14T12:09:33.736Z"
+    },
+    {
+      "id": "custom_91e",
+      "label_fr": "Custom (91e)",
+      "generation": 0,
+      "game_key": "custom-91e",
+      "front": "sprites/91_cloyster_custom_91e.png",
+      "front_shiny": null,
+      "author": "kayky2329",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91e/",
+      "source_image_url": "https://cdn.fusiondex.org/V8FJWpoGsAS8tVyn7GEap_RC/dn/pif/91e.png",
+      "added_at": "2026-03-14T12:09:33.758Z"
+    },
+    {
+      "id": "custom_91f",
+      "label_fr": "Custom (91f)",
+      "generation": 0,
+      "game_key": "custom-91f",
+      "front": "sprites/91_cloyster_custom_91f.png",
+      "front_shiny": null,
+      "author": "game freak and luxio.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/91f/",
+      "source_image_url": "https://cdn.fusiondex.org/pkRNFsJNfHteZaQ0NobgDrY7/dn/pif/91f.png",
+      "added_at": "2026-03-14T12:09:33.781Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

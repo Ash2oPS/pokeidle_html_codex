@@ -86,6 +86,78 @@
       "front": "sprites/349_feebas_black_white_front.gif",
       "front_shiny": "sprites/349_feebas_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_394",
+      "label_fr": "Custom (394)",
+      "generation": 0,
+      "game_key": "custom-394",
+      "front": "sprites/349_feebas_custom_394.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and pridesnake",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394/",
+      "source_image_url": "https://cdn.fusiondex.org/5xQV0RUi4TQMhcyEwfEgYAHq/dn/pif/394.png",
+      "added_at": "2026-03-14T12:13:47.034Z"
+    },
+    {
+      "id": "custom_394a",
+      "label_fr": "Custom (394a)",
+      "generation": 0,
+      "game_key": "custom-394a",
+      "front": "sprites/349_feebas_custom_394a.png",
+      "front_shiny": null,
+      "author": "game freak and pridesnake",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394a/",
+      "source_image_url": "https://cdn.fusiondex.org/cz-aVXs3y2kqzsWFnPjtQ2F0/dn/pif/394a.png",
+      "added_at": "2026-03-14T12:13:47.058Z"
+    },
+    {
+      "id": "custom_394b",
+      "label_fr": "Custom (394b)",
+      "generation": 0,
+      "game_key": "custom-394b",
+      "front": "sprites/349_feebas_custom_394b.png",
+      "front_shiny": null,
+      "author": "game freak and pridesnake",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394b/",
+      "source_image_url": "https://cdn.fusiondex.org/RaGliDNEezwIMs9VHSmNxkBB/dn/pif/394b.png",
+      "added_at": "2026-03-14T12:13:47.080Z"
+    },
+    {
+      "id": "custom_394d",
+      "label_fr": "Custom (394d)",
+      "generation": 0,
+      "game_key": "custom-394d",
+      "front": "sprites/349_feebas_custom_394d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and .towerxvi",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394d/",
+      "source_image_url": "https://cdn.fusiondex.org/-lXMhhTtT0QIWIVzq9wFH-9S/dn/pif/394d.png",
+      "added_at": "2026-03-14T12:13:47.103Z"
+    },
+    {
+      "id": "custom_394e",
+      "label_fr": "Custom (394e)",
+      "generation": 0,
+      "game_key": "custom-394e",
+      "front": "sprites/349_feebas_custom_394e.png",
+      "front_shiny": null,
+      "author": "game freak and zerpus",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394e/",
+      "source_image_url": "https://cdn.fusiondex.org/CGnULhWIlbsgKADE7OHUOEmn/dn/pif/394e.png",
+      "added_at": "2026-03-14T12:13:47.126Z"
+    },
+    {
+      "id": "custom_394g",
+      "label_fr": "Custom (394g)",
+      "generation": 0,
+      "game_key": "custom-394g",
+      "front": "sprites/349_feebas_custom_394g.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/394g/",
+      "source_image_url": "https://cdn.fusiondex.org/grPwaHRB-U1OeGU3OnLK1YjG/dn/pif/394g.png",
+      "added_at": "2026-03-14T12:13:47.148Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

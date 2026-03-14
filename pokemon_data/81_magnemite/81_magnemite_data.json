@@ -122,6 +122,78 @@
       "front": "sprites/81_magnemite_black_white_front.gif",
       "front_shiny": "sprites/81_magnemite_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_81",
+      "label_fr": "Custom (81)",
+      "generation": 0,
+      "game_key": "custom-81",
+      "front": "sprites/81_magnemite_custom_81.png",
+      "front_shiny": null,
+      "author": "game freak and sand_coffin",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81/",
+      "source_image_url": "https://cdn.fusiondex.org/K-3zWlo2cHwEnP4fVz1BthrE/dn/pif/81.png",
+      "added_at": "2026-03-14T12:09:27.894Z"
+    },
+    {
+      "id": "custom_81b",
+      "label_fr": "Custom (81b)",
+      "generation": 0,
+      "game_key": "custom-81b",
+      "front": "sprites/81_magnemite_custom_81b.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81b/",
+      "source_image_url": "https://cdn.fusiondex.org/RFhabnWdDqUc0gDoDDio8OYN/dn/pif/81b.png",
+      "added_at": "2026-03-14T12:09:27.918Z"
+    },
+    {
+      "id": "custom_81c",
+      "label_fr": "Custom (81c)",
+      "generation": 0,
+      "game_key": "custom-81c",
+      "front": "sprites/81_magnemite_custom_81c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and hyper_lash",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81c/",
+      "source_image_url": "https://cdn.fusiondex.org/aTeS0lfJmw3EhL64CNIvi_CC/dn/pif/81c.png",
+      "added_at": "2026-03-14T12:09:27.940Z"
+    },
+    {
+      "id": "custom_81d",
+      "label_fr": "Custom (81d)",
+      "generation": 0,
+      "game_key": "custom-81d",
+      "front": "sprites/81_magnemite_custom_81d.png",
+      "front_shiny": null,
+      "author": "quote.lass",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81d/",
+      "source_image_url": "https://cdn.fusiondex.org/EOrh-Ab5rKVt5JVQGUmV37z7/dn/pif/81d.png",
+      "added_at": "2026-03-14T12:09:28.005Z"
+    },
+    {
+      "id": "custom_81e",
+      "label_fr": "Custom (81e)",
+      "generation": 0,
+      "game_key": "custom-81e",
+      "front": "sprites/81_magnemite_custom_81e.png",
+      "front_shiny": null,
+      "author": "pebblebat",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81e/",
+      "source_image_url": "https://cdn.fusiondex.org/REIkml98CBu2Dv-dak5rTSTh/dn/pif/81e.png",
+      "added_at": "2026-03-14T12:09:28.030Z"
+    },
+    {
+      "id": "custom_81g",
+      "label_fr": "Custom (81g)",
+      "generation": 0,
+      "game_key": "custom-81g",
+      "front": "sprites/81_magnemite_custom_81g.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/81g/",
+      "source_image_url": "https://cdn.fusiondex.org/SYvtD4nRSN_w1EGdj679UUsK/dn/pif/81g.png",
+      "added_at": "2026-03-14T12:09:28.052Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

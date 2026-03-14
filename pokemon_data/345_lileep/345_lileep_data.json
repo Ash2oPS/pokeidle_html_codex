@@ -82,6 +82,66 @@
       "front": "sprites/345_lileep_black_white_front.gif",
       "front_shiny": "sprites/345_lileep_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_301",
+      "label_fr": "Custom (301)",
+      "generation": 0,
+      "game_key": "custom-301",
+      "front": "sprites/345_lileep_custom_301.png",
+      "front_shiny": null,
+      "author": "game freak and mykoloth94",
+      "source_url": "https://www.fusiondex.org/sprite/pif/301/",
+      "source_image_url": "https://cdn.fusiondex.org/JRItGHaqC055sdbBYDuN8tx_/dn/pif/301.png",
+      "added_at": "2026-03-14T12:13:44.520Z"
+    },
+    {
+      "id": "custom_301b",
+      "label_fr": "Custom (301b)",
+      "generation": 0,
+      "game_key": "custom-301b",
+      "front": "sprites/345_lileep_custom_301b.png",
+      "front_shiny": null,
+      "author": "gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/301b/",
+      "source_image_url": "https://cdn.fusiondex.org/5S_t9KGdw0wDGssSwF0ybt0F/dn/pif/301b.png",
+      "added_at": "2026-03-14T12:13:44.544Z"
+    },
+    {
+      "id": "custom_301c",
+      "label_fr": "Custom (301c)",
+      "generation": 0,
+      "game_key": "custom-301c",
+      "front": "sprites/345_lileep_custom_301c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/301c/",
+      "source_image_url": "https://cdn.fusiondex.org/CB-v96U6PwjMIzOVRZhHpVDy/dn/pif/301c.png",
+      "added_at": "2026-03-14T12:13:44.569Z"
+    },
+    {
+      "id": "custom_301d",
+      "label_fr": "Custom (301d)",
+      "generation": 0,
+      "game_key": "custom-301d",
+      "front": "sprites/345_lileep_custom_301d.png",
+      "front_shiny": null,
+      "author": "lunakibby",
+      "source_url": "https://www.fusiondex.org/sprite/pif/301d/",
+      "source_image_url": "https://cdn.fusiondex.org/OHvbdDdIIr2HHUhw1WvIfHsr/dn/pif/301d.png",
+      "added_at": "2026-03-14T12:13:44.592Z"
+    },
+    {
+      "id": "custom_301h",
+      "label_fr": "Custom (301h)",
+      "generation": 0,
+      "game_key": "custom-301h",
+      "front": "sprites/345_lileep_custom_301h.png",
+      "front_shiny": null,
+      "author": "_cradily_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/301h/",
+      "source_image_url": "https://cdn.fusiondex.org/p3WXW4EcgKOATrnBLykq8JSn/dn/pif/301h.png",
+      "added_at": "2026-03-14T12:13:44.615Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

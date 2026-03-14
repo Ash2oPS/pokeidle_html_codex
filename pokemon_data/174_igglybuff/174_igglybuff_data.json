@@ -90,6 +90,78 @@
       "front": "sprites/174_igglybuff_black_white_front.gif",
       "front_shiny": "sprites/174_igglybuff_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_174a",
+      "label_fr": "Custom (174a)",
+      "generation": 0,
+      "game_key": "custom-174a",
+      "front": "sprites/174_igglybuff_custom_174a.png",
+      "front_shiny": null,
+      "author": "joshr691",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174a/",
+      "source_image_url": "https://cdn.fusiondex.org/WY5az7TbhnalKe_8XMgTsMXV/dn/pif/174a.png",
+      "added_at": "2026-03-14T12:10:59.425Z"
+    },
+    {
+      "id": "custom_174b",
+      "label_fr": "Custom (174b)",
+      "generation": 0,
+      "game_key": "custom-174b",
+      "front": "sprites/174_igglybuff_custom_174b.png",
+      "front_shiny": null,
+      "author": "game freak and sand_coffin",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174b/",
+      "source_image_url": "https://cdn.fusiondex.org/_vM9QiWKr53CEW2RglD9wGGN/dn/pif/174b.png",
+      "added_at": "2026-03-14T12:10:59.449Z"
+    },
+    {
+      "id": "custom_174c",
+      "label_fr": "Custom (174c)",
+      "generation": 0,
+      "game_key": "custom-174c",
+      "front": "sprites/174_igglybuff_custom_174c.png",
+      "front_shiny": null,
+      "author": "game freak and sand_coffin",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174c/",
+      "source_image_url": "https://cdn.fusiondex.org/T83HYVmj268vjxyYdgcrUePM/dn/pif/174c.png",
+      "added_at": "2026-03-14T12:10:59.471Z"
+    },
+    {
+      "id": "custom_174d",
+      "label_fr": "Custom (174d)",
+      "generation": 0,
+      "game_key": "custom-174d",
+      "front": "sprites/174_igglybuff_custom_174d.png",
+      "front_shiny": null,
+      "author": "game freak and knuckles3andknuckles",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174d/",
+      "source_image_url": "https://cdn.fusiondex.org/d6hrPf-K_XEhap-98N4gOZoz/dn/pif/174d.png",
+      "added_at": "2026-03-14T12:10:59.494Z"
+    },
+    {
+      "id": "custom_174e",
+      "label_fr": "Custom (174e)",
+      "generation": 0,
+      "game_key": "custom-174e",
+      "front": "sprites/174_igglybuff_custom_174e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and grafaiguy",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174e/",
+      "source_image_url": "https://cdn.fusiondex.org/eLxvG-ijPLr-GFnlrR5reJMI/dn/pif/174e.png",
+      "added_at": "2026-03-14T12:10:59.516Z"
+    },
+    {
+      "id": "custom_174f",
+      "label_fr": "Custom (174f)",
+      "generation": 0,
+      "game_key": "custom-174f",
+      "front": "sprites/174_igglybuff_custom_174f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and poleimaso2nerd",
+      "source_url": "https://www.fusiondex.org/sprite/pif/174f/",
+      "source_image_url": "https://cdn.fusiondex.org/QKOJcjbwN0WeX_TxZtSlS5K8/dn/pif/174f.png",
+      "added_at": "2026-03-14T12:10:59.539Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

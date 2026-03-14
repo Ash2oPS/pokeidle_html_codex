@@ -119,6 +119,78 @@
       "front": "sprites/76_golem_black_white_front.gif",
       "front_shiny": "sprites/76_golem_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_76",
+      "label_fr": "Custom (76)",
+      "generation": 0,
+      "game_key": "custom-76",
+      "front": "sprites/76_golem_custom_76.png",
+      "front_shiny": null,
+      "author": "druncle_pine",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76/",
+      "source_image_url": "https://cdn.fusiondex.org/qTaBprpRFFIzsBadi_8C8NRL/dn/pif/76.png",
+      "added_at": "2026-03-14T12:09:24.466Z"
+    },
+    {
+      "id": "custom_76a",
+      "label_fr": "Custom (76a)",
+      "generation": 0,
+      "game_key": "custom-76a",
+      "front": "sprites/76_golem_custom_76a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76a/",
+      "source_image_url": "https://cdn.fusiondex.org/C3ptV-tmnPjrHN_QnWfssRGc/dn/pif/76a.png",
+      "added_at": "2026-03-14T12:09:24.490Z"
+    },
+    {
+      "id": "custom_76c",
+      "label_fr": "Custom (76c)",
+      "generation": 0,
+      "game_key": "custom-76c",
+      "front": "sprites/76_golem_custom_76c.png",
+      "front_shiny": null,
+      "author": "game freak and derpyhooves",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76c/",
+      "source_image_url": "https://cdn.fusiondex.org/isevJ5hRuUI0GRnlLt1xTU51/dn/pif/76c.png",
+      "added_at": "2026-03-14T12:09:24.512Z"
+    },
+    {
+      "id": "custom_76d",
+      "label_fr": "Custom (76d)",
+      "generation": 0,
+      "game_key": "custom-76d",
+      "front": "sprites/76_golem_custom_76d.png",
+      "front_shiny": null,
+      "author": "game freak and derpyhooves",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76d/",
+      "source_image_url": "https://cdn.fusiondex.org/T4lFH-4ULoj6qWaF5AC-uzqG/dn/pif/76d.png",
+      "added_at": "2026-03-14T12:09:24.535Z"
+    },
+    {
+      "id": "custom_76e",
+      "label_fr": "Custom (76e)",
+      "generation": 0,
+      "game_key": "custom-76e",
+      "front": "sprites/76_golem_custom_76e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76e/",
+      "source_image_url": "https://cdn.fusiondex.org/I3cBtFK6aRstLb0sHw26OmLN/dn/pif/76e.png",
+      "added_at": "2026-03-14T12:09:24.558Z"
+    },
+    {
+      "id": "custom_76h",
+      "label_fr": "Custom (76h)",
+      "generation": 0,
+      "game_key": "custom-76h",
+      "front": "sprites/76_golem_custom_76h.png",
+      "front_shiny": null,
+      "author": "game freak and robosoup",
+      "source_url": "https://www.fusiondex.org/sprite/pif/76h/",
+      "source_image_url": "https://cdn.fusiondex.org/s7UuOdwBRn7G66BmMhJcQjTB/dn/pif/76h.png",
+      "added_at": "2026-03-14T12:09:24.580Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

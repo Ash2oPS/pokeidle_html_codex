@@ -93,6 +93,66 @@
       "front": "sprites/199_slowking_black_white_front.gif",
       "front_shiny": "sprites/199_slowking_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_199",
+      "label_fr": "Custom (199)",
+      "generation": 0,
+      "game_key": "custom-199",
+      "front": "sprites/199_slowking_custom_199.png",
+      "front_shiny": null,
+      "author": "the pokémon company and kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/199/",
+      "source_image_url": "https://cdn.fusiondex.org/1fGE-58yQ1rvTMzG6CEDW5k9/dn/pif/199.png",
+      "added_at": "2026-03-14T12:11:16.679Z"
+    },
+    {
+      "id": "custom_199b",
+      "label_fr": "Custom (199b)",
+      "generation": 0,
+      "game_key": "custom-199b",
+      "front": "sprites/199_slowking_custom_199b.png",
+      "front_shiny": null,
+      "author": "the pokémon company and the_lunarian",
+      "source_url": "https://www.fusiondex.org/sprite/pif/199b/",
+      "source_image_url": "https://cdn.fusiondex.org/WNCj_9YF0ngY7X_mftxpEtAC/dn/pif/199b.png",
+      "added_at": "2026-03-14T12:11:16.702Z"
+    },
+    {
+      "id": "custom_199c",
+      "label_fr": "Custom (199c)",
+      "generation": 0,
+      "game_key": "custom-199c",
+      "front": "sprites/199_slowking_custom_199c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and quarases",
+      "source_url": "https://www.fusiondex.org/sprite/pif/199c/",
+      "source_image_url": "https://cdn.fusiondex.org/bPTt_WH_ayl5yQIlJEJvDcnY/dn/pif/199c.png",
+      "added_at": "2026-03-14T12:11:16.724Z"
+    },
+    {
+      "id": "custom_199d",
+      "label_fr": "Custom (199d)",
+      "generation": 0,
+      "game_key": "custom-199d",
+      "front": "sprites/199_slowking_custom_199d.png",
+      "front_shiny": null,
+      "author": "game freak and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/199d/",
+      "source_image_url": "https://cdn.fusiondex.org/OQAYXA76uHjwNCzzNlunKPqo/dn/pif/199d.png",
+      "added_at": "2026-03-14T12:11:16.746Z"
+    },
+    {
+      "id": "custom_199e",
+      "label_fr": "Custom (199e)",
+      "generation": 0,
+      "game_key": "custom-199e",
+      "front": "sprites/199_slowking_custom_199e.png",
+      "front_shiny": null,
+      "author": "game freak and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/199e/",
+      "source_image_url": "https://cdn.fusiondex.org/ZvY3il4gkWetU5YLxNEgtPpO/dn/pif/199e.png",
+      "added_at": "2026-03-14T12:11:16.769Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

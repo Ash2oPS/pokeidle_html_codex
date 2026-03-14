@@ -83,6 +83,66 @@
       "front": "sprites/388_grotle_black_white_front.gif",
       "front_shiny": "sprites/388_grotle_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_317",
+      "label_fr": "Custom (317)",
+      "generation": 0,
+      "game_key": "custom-317",
+      "front": "sprites/388_grotle_custom_317.png",
+      "front_shiny": null,
+      "author": "hero.drawing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/317/",
+      "source_image_url": "https://cdn.fusiondex.org/zh1wujGntbDPinZNqGEXyclH/dn/pif/317.png",
+      "added_at": "2026-03-14T12:14:14.116Z"
+    },
+    {
+      "id": "custom_317b",
+      "label_fr": "Custom (317b)",
+      "generation": 0,
+      "game_key": "custom-317b",
+      "front": "sprites/388_grotle_custom_317b.png",
+      "front_shiny": null,
+      "author": "hero.drawing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/317b/",
+      "source_image_url": "https://cdn.fusiondex.org/YN41QzAs1xX-HXg7a-0GRLP4/dn/pif/317b.png",
+      "added_at": "2026-03-14T12:14:14.140Z"
+    },
+    {
+      "id": "custom_317c",
+      "label_fr": "Custom (317c)",
+      "generation": 0,
+      "game_key": "custom-317c",
+      "front": "sprites/388_grotle_custom_317c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and .realthree",
+      "source_url": "https://www.fusiondex.org/sprite/pif/317c/",
+      "source_image_url": "https://cdn.fusiondex.org/xqn-xAcpgjfYceAULgZyk2Pp/dn/pif/317c.png",
+      "added_at": "2026-03-14T12:14:14.163Z"
+    },
+    {
+      "id": "custom_317e",
+      "label_fr": "Custom (317e)",
+      "generation": 0,
+      "game_key": "custom-317e",
+      "front": "sprites/388_grotle_custom_317e.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/317e/",
+      "source_image_url": "https://cdn.fusiondex.org/gbtrroja9pKNd1k8EVyqTz4a/dn/pif/317e.png",
+      "added_at": "2026-03-14T12:14:14.206Z"
+    },
+    {
+      "id": "custom_317f",
+      "label_fr": "Custom (317f)",
+      "generation": 0,
+      "game_key": "custom-317f",
+      "front": "sprites/388_grotle_custom_317f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thatfellakromz",
+      "source_url": "https://www.fusiondex.org/sprite/pif/317f/",
+      "source_image_url": "https://cdn.fusiondex.org/3H30fkQzO1bRDOTJydbP3PRS/dn/pif/317f.png",
+      "added_at": "2026-03-14T12:14:14.228Z"
     }
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",

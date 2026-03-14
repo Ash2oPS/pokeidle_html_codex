@@ -69,6 +69,66 @@
       "front": "sprites/314_illumise_black_white_front.gif",
       "front_shiny": "sprites/314_illumise_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_534c",
+      "label_fr": "Custom (534c)",
+      "generation": 0,
+      "game_key": "custom-534c",
+      "front": "sprites/314_illumise_custom_534c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/534c/",
+      "source_image_url": "https://cdn.fusiondex.org/eIj_O-5f-fYVtkbdXsV79Nd1/dn/pif/534c.png",
+      "added_at": "2026-03-14T12:13:25.170Z"
+    },
+    {
+      "id": "custom_534d",
+      "label_fr": "Custom (534d)",
+      "generation": 0,
+      "game_key": "custom-534d",
+      "front": "sprites/314_illumise_custom_534d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and _kuke_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/534d/",
+      "source_image_url": "https://cdn.fusiondex.org/4oZdZszIdn7IQEziwkXJXp9_/dn/pif/534d.png",
+      "added_at": "2026-03-14T12:13:25.193Z"
+    },
+    {
+      "id": "custom_534e",
+      "label_fr": "Custom (534e)",
+      "generation": 0,
+      "game_key": "custom-534e",
+      "front": "sprites/314_illumise_custom_534e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gummy.frog",
+      "source_url": "https://www.fusiondex.org/sprite/pif/534e/",
+      "source_image_url": "https://cdn.fusiondex.org/6YFMizLX7NlgzjMexY8ME4Ta/dn/pif/534e.png",
+      "added_at": "2026-03-14T12:13:25.218Z"
+    },
+    {
+      "id": "custom_534f",
+      "label_fr": "Custom (534f)",
+      "generation": 0,
+      "game_key": "custom-534f",
+      "front": "sprites/314_illumise_custom_534f.png",
+      "front_shiny": null,
+      "author": "djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/534f/",
+      "source_image_url": "https://cdn.fusiondex.org/A_JeQdPU6FepHnLL0e2QhxMN/dn/pif/534f.png",
+      "added_at": "2026-03-14T12:13:25.240Z"
+    },
+    {
+      "id": "custom_534g",
+      "label_fr": "Custom (534g)",
+      "generation": 0,
+      "game_key": "custom-534g",
+      "front": "sprites/314_illumise_custom_534g.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gerolau",
+      "source_url": "https://www.fusiondex.org/sprite/pif/534g/",
+      "source_image_url": "https://cdn.fusiondex.org/TSmxfWsIuy2K-L4lplJBUFjX/dn/pif/534g.png",
+      "added_at": "2026-03-14T12:13:25.263Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

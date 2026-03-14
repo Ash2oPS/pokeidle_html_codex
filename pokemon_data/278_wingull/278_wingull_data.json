@@ -82,6 +82,66 @@
       "front": "sprites/278_wingull_black_white_front.gif",
       "front_shiny": "sprites/278_wingull_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_516d",
+      "label_fr": "Custom (516d)",
+      "generation": 0,
+      "game_key": "custom-516d",
+      "front": "sprites/278_wingull_custom_516d.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/516d/",
+      "source_image_url": "https://cdn.fusiondex.org/Z-G72CelRsbCvIF13eM0ONPs/dn/pif/516d.png",
+      "added_at": "2026-03-14T12:12:38.266Z"
+    },
+    {
+      "id": "custom_516e",
+      "label_fr": "Custom (516e)",
+      "generation": 0,
+      "game_key": "custom-516e",
+      "front": "sprites/278_wingull_custom_516e.png",
+      "front_shiny": null,
+      "author": "game freak and mbo1064.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/516e/",
+      "source_image_url": "https://cdn.fusiondex.org/Py8osFOuAmTlb30giIcT1Jsu/dn/pif/516e.png",
+      "added_at": "2026-03-14T12:12:38.291Z"
+    },
+    {
+      "id": "custom_516f",
+      "label_fr": "Custom (516f)",
+      "generation": 0,
+      "game_key": "custom-516f",
+      "front": "sprites/278_wingull_custom_516f.png",
+      "front_shiny": null,
+      "author": "game freak and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/516f/",
+      "source_image_url": "https://cdn.fusiondex.org/mLgzI2YS_qjhAvIgkLze808o/dn/pif/516f.png",
+      "added_at": "2026-03-14T12:12:38.314Z"
+    },
+    {
+      "id": "custom_516g",
+      "label_fr": "Custom (516g)",
+      "generation": 0,
+      "game_key": "custom-516g",
+      "front": "sprites/278_wingull_custom_516g.png",
+      "front_shiny": null,
+      "author": "game freak and stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/516g/",
+      "source_image_url": "https://cdn.fusiondex.org/SmACeV5gLH184JQLOsm3Owxs/dn/pif/516g.png",
+      "added_at": "2026-03-14T12:12:38.337Z"
+    },
+    {
+      "id": "custom_516h",
+      "label_fr": "Custom (516h)",
+      "generation": 0,
+      "game_key": "custom-516h",
+      "front": "sprites/278_wingull_custom_516h.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and markusknight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/516h/",
+      "source_image_url": "https://cdn.fusiondex.org/vByovEbmCjPN0OBQYRGx0-3X/dn/pif/516h.png",
+      "added_at": "2026-03-14T12:12:38.360Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

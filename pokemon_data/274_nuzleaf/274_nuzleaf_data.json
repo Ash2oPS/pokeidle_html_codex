@@ -92,6 +92,78 @@
       "front": "sprites/274_nuzleaf_black_white_front.gif",
       "front_shiny": "sprites/274_nuzleaf_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_512c",
+      "label_fr": "Custom (512c)",
+      "generation": 0,
+      "game_key": "custom-512c",
+      "front": "sprites/274_nuzleaf_custom_512c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512c/",
+      "source_image_url": "https://cdn.fusiondex.org/-UuxpIpRsXYiVDVdgD_wk9Y8/dn/pif/512c.png",
+      "added_at": "2026-03-14T12:12:36.241Z"
+    },
+    {
+      "id": "custom_512e",
+      "label_fr": "Custom (512e)",
+      "generation": 0,
+      "game_key": "custom-512e",
+      "front": "sprites/274_nuzleaf_custom_512e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512e/",
+      "source_image_url": "https://cdn.fusiondex.org/xnTiuArHWk0h600RBgikEWUa/dn/pif/512e.png",
+      "added_at": "2026-03-14T12:12:36.263Z"
+    },
+    {
+      "id": "custom_512f",
+      "label_fr": "Custom (512f)",
+      "generation": 0,
+      "game_key": "custom-512f",
+      "front": "sprites/274_nuzleaf_custom_512f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and dayvow",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512f/",
+      "source_image_url": "https://cdn.fusiondex.org/iHRqkzRwEPMDEokjw5tGRpW0/dn/pif/512f.png",
+      "added_at": "2026-03-14T12:12:36.286Z"
+    },
+    {
+      "id": "custom_512g",
+      "label_fr": "Custom (512g)",
+      "generation": 0,
+      "game_key": "custom-512g",
+      "front": "sprites/274_nuzleaf_custom_512g.png",
+      "front_shiny": null,
+      "author": "game freak , matin.d90 , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512g/",
+      "source_image_url": "https://cdn.fusiondex.org/9MSGY-sh4_m5jSHY_0fqZ_sH/dn/pif/512g.png",
+      "added_at": "2026-03-14T12:12:36.308Z"
+    },
+    {
+      "id": "custom_512h",
+      "label_fr": "Custom (512h)",
+      "generation": 0,
+      "game_key": "custom-512h",
+      "front": "sprites/274_nuzleaf_custom_512h.png",
+      "front_shiny": null,
+      "author": "the pokémon company and toad900",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512h/",
+      "source_image_url": "https://cdn.fusiondex.org/jZXAjaKGTIyWIpLaLHzVleIc/dn/pif/512h.png",
+      "added_at": "2026-03-14T12:12:36.331Z"
+    },
+    {
+      "id": "custom_512i",
+      "label_fr": "Custom (512i)",
+      "generation": 0,
+      "game_key": "custom-512i",
+      "front": "sprites/274_nuzleaf_custom_512i.png",
+      "front_shiny": null,
+      "author": "game freak , djoing , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/512i/",
+      "source_image_url": "https://cdn.fusiondex.org/bmLKlNamk6SHBWRQhadmBGHQ/dn/pif/512i.png",
+      "added_at": "2026-03-14T12:12:36.354Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

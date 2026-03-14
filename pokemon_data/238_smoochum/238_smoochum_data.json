@@ -90,6 +90,42 @@
       "front": "sprites/238_smoochum_black_white_front.gif",
       "front_shiny": "sprites/238_smoochum_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_238a",
+      "label_fr": "Custom (238a)",
+      "generation": 0,
+      "game_key": "custom-238a",
+      "front": "sprites/238_smoochum_custom_238a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and quote.lass",
+      "source_url": "https://www.fusiondex.org/sprite/pif/238a/",
+      "source_image_url": "https://cdn.fusiondex.org/YjKkDDH6CP8hYR9l4A_iRJTE/dn/pif/238a.png",
+      "added_at": "2026-03-14T12:12:10.243Z"
+    },
+    {
+      "id": "custom_238c",
+      "label_fr": "Custom (238c)",
+      "generation": 0,
+      "game_key": "custom-238c",
+      "front": "sprites/238_smoochum_custom_238c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and redflagdiver",
+      "source_url": "https://www.fusiondex.org/sprite/pif/238c/",
+      "source_image_url": "https://cdn.fusiondex.org/NgtmpwVJVa2i61VqJtWTX83l/dn/pif/238c.png",
+      "added_at": "2026-03-14T12:12:10.265Z"
+    },
+    {
+      "id": "custom_238d",
+      "label_fr": "Custom (238d)",
+      "generation": 0,
+      "game_key": "custom-238d",
+      "front": "sprites/238_smoochum_custom_238d.png",
+      "front_shiny": null,
+      "author": "anodddutchintrovert",
+      "source_url": "https://www.fusiondex.org/sprite/pif/238d/",
+      "source_image_url": "https://cdn.fusiondex.org/F7YMg-c1h_P766Cwc4au7-cR/dn/pif/238d.png",
+      "added_at": "2026-03-14T12:12:10.288Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

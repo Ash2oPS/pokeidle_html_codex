@@ -121,6 +121,54 @@
       "front": "sprites/88_grimer_black_white_front.gif",
       "front_shiny": "sprites/88_grimer_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_88a",
+      "label_fr": "Custom (88a)",
+      "generation": 0,
+      "game_key": "custom-88a",
+      "front": "sprites/88_grimer_custom_88a.png",
+      "front_shiny": null,
+      "author": "game freak and maelmc",
+      "source_url": "https://www.fusiondex.org/sprite/pif/88a/",
+      "source_image_url": "https://cdn.fusiondex.org/3k01FLtxGkRmp77SliuGlR37/dn/pif/88a.png",
+      "added_at": "2026-03-14T12:09:31.900Z"
+    },
+    {
+      "id": "custom_88c",
+      "label_fr": "Custom (88c)",
+      "generation": 0,
+      "game_key": "custom-88c",
+      "front": "sprites/88_grimer_custom_88c.png",
+      "front_shiny": null,
+      "author": "game freak and missingmilkman",
+      "source_url": "https://www.fusiondex.org/sprite/pif/88c/",
+      "source_image_url": "https://cdn.fusiondex.org/dqIBYv8G31sYpkxnL-yWGxLI/dn/pif/88c.png",
+      "added_at": "2026-03-14T12:09:31.922Z"
+    },
+    {
+      "id": "custom_88d",
+      "label_fr": "Custom (88d)",
+      "generation": 0,
+      "game_key": "custom-88d",
+      "front": "sprites/88_grimer_custom_88d.png",
+      "front_shiny": null,
+      "author": "game freak and missingmilkman",
+      "source_url": "https://www.fusiondex.org/sprite/pif/88d/",
+      "source_image_url": "https://cdn.fusiondex.org/KGO371lXwAyR7bUJPX7oSd1W/dn/pif/88d.png",
+      "added_at": "2026-03-14T12:09:31.945Z"
+    },
+    {
+      "id": "custom_88e",
+      "label_fr": "Custom (88e)",
+      "generation": 0,
+      "game_key": "custom-88e",
+      "front": "sprites/88_grimer_custom_88e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/88e/",
+      "source_image_url": "https://cdn.fusiondex.org/j-HcQHapxaaKDF5fk9EZrtT1/dn/pif/88e.png",
+      "added_at": "2026-03-14T12:09:31.969Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

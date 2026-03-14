@@ -92,6 +92,78 @@
       "front": "sprites/364_sealeo_black_white_front.gif",
       "front_shiny": "sprites/364_sealeo_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_560c",
+      "label_fr": "Custom (560c)",
+      "generation": 0,
+      "game_key": "custom-560c",
+      "front": "sprites/364_sealeo_custom_560c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560c/",
+      "source_image_url": "https://cdn.fusiondex.org/1biK8oVqHpJV2s_TMAfn_vB5/dn/pif/560c.png",
+      "added_at": "2026-03-14T12:13:56.922Z"
+    },
+    {
+      "id": "custom_560e",
+      "label_fr": "Custom (560e)",
+      "generation": 0,
+      "game_key": "custom-560e",
+      "front": "sprites/364_sealeo_custom_560e.png",
+      "front_shiny": null,
+      "author": "game freak and zerocipher2.0",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560e/",
+      "source_image_url": "https://cdn.fusiondex.org/nOqxvReYhwdxOJ7sGAULlMUF/dn/pif/560e.png",
+      "added_at": "2026-03-14T12:13:56.946Z"
+    },
+    {
+      "id": "custom_560f",
+      "label_fr": "Custom (560f)",
+      "generation": 0,
+      "game_key": "custom-560f",
+      "front": "sprites/364_sealeo_custom_560f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and .realthree",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560f/",
+      "source_image_url": "https://cdn.fusiondex.org/GsuuTGYyGgYfF1Xkb29evVEI/dn/pif/560f.png",
+      "added_at": "2026-03-14T12:13:56.969Z"
+    },
+    {
+      "id": "custom_560g",
+      "label_fr": "Custom (560g)",
+      "generation": 0,
+      "game_key": "custom-560g",
+      "front": "sprites/364_sealeo_custom_560g.png",
+      "front_shiny": null,
+      "author": "the pokémon company and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560g/",
+      "source_image_url": "https://cdn.fusiondex.org/W-Be86ZUqkNaRnbBIkgZePzA/dn/pif/560g.png",
+      "added_at": "2026-03-14T12:13:56.992Z"
+    },
+    {
+      "id": "custom_560h",
+      "label_fr": "Custom (560h)",
+      "generation": 0,
+      "game_key": "custom-560h",
+      "front": "sprites/364_sealeo_custom_560h.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and peanutscratch",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560h/",
+      "source_image_url": "https://cdn.fusiondex.org/SgsoMovOZj_t2FcTTCUVsrTP/dn/pif/560h.png",
+      "added_at": "2026-03-14T12:13:57.014Z"
+    },
+    {
+      "id": "custom_560i",
+      "label_fr": "Custom (560i)",
+      "generation": 0,
+      "game_key": "custom-560i",
+      "front": "sprites/364_sealeo_custom_560i.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gerolau",
+      "source_url": "https://www.fusiondex.org/sprite/pif/560i/",
+      "source_image_url": "https://cdn.fusiondex.org/KdqiT9kakATt12uxj0Sdu-vi/dn/pif/560i.png",
+      "added_at": "2026-03-14T12:13:57.038Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

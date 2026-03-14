@@ -80,6 +80,66 @@
       "front": "sprites/284_masquerain_black_white_front.gif",
       "front_shiny": "sprites/284_masquerain_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_519c",
+      "label_fr": "Custom (519c)",
+      "generation": 0,
+      "game_key": "custom-519c",
+      "front": "sprites/284_masquerain_custom_519c.png",
+      "front_shiny": null,
+      "author": "mfwr",
+      "source_url": "https://www.fusiondex.org/sprite/pif/519c/",
+      "source_image_url": "https://cdn.fusiondex.org/Yyr0dQn5sFGUJcSrfH7wysQw/dn/pif/519c.png",
+      "added_at": "2026-03-14T12:12:42.509Z"
+    },
+    {
+      "id": "custom_519d",
+      "label_fr": "Custom (519d)",
+      "generation": 0,
+      "game_key": "custom-519d",
+      "front": "sprites/284_masquerain_custom_519d.png",
+      "front_shiny": null,
+      "author": "the pokémon company and pory",
+      "source_url": "https://www.fusiondex.org/sprite/pif/519d/",
+      "source_image_url": "https://cdn.fusiondex.org/l_ef7ZuHnGBoMxwBQDJzHYTM/dn/pif/519d.png",
+      "added_at": "2026-03-14T12:12:42.531Z"
+    },
+    {
+      "id": "custom_519e",
+      "label_fr": "Custom (519e)",
+      "generation": 0,
+      "game_key": "custom-519e",
+      "front": "sprites/284_masquerain_custom_519e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and mudkipster",
+      "source_url": "https://www.fusiondex.org/sprite/pif/519e/",
+      "source_image_url": "https://cdn.fusiondex.org/FkXjz3xzaZ1nBOp57wH0opEc/dn/pif/519e.png",
+      "added_at": "2026-03-14T12:12:42.554Z"
+    },
+    {
+      "id": "custom_519f",
+      "label_fr": "Custom (519f)",
+      "generation": 0,
+      "game_key": "custom-519f",
+      "front": "sprites/284_masquerain_custom_519f.png",
+      "front_shiny": null,
+      "author": "game freak and _cradily_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/519f/",
+      "source_image_url": "https://cdn.fusiondex.org/u1_lx0hXvt4OjaodjoO00GZh/dn/pif/519f.png",
+      "added_at": "2026-03-14T12:12:42.578Z"
+    },
+    {
+      "id": "custom_519g",
+      "label_fr": "Custom (519g)",
+      "generation": 0,
+      "game_key": "custom-519g",
+      "front": "sprites/284_masquerain_custom_519g.png",
+      "front_shiny": null,
+      "author": "the pokémon company and calikov",
+      "source_url": "https://www.fusiondex.org/sprite/pif/519g/",
+      "source_image_url": "https://cdn.fusiondex.org/eLqhMjIGzBva4ZhnPe93yMZw/dn/pif/519g.png",
+      "added_at": "2026-03-14T12:12:42.601Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

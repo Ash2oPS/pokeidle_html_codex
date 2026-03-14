@@ -89,6 +89,78 @@
       "front": "sprites/223_remoraid_black_white_front.gif",
       "front_shiny": "sprites/223_remoraid_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_223",
+      "label_fr": "Custom (223)",
+      "generation": 0,
+      "game_key": "custom-223",
+      "front": "sprites/223_remoraid_custom_223.png",
+      "front_shiny": null,
+      "author": "._._.victor",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223/",
+      "source_image_url": "https://cdn.fusiondex.org/xVDCd_IaRxDFUodllvBMt1Jp/dn/pif/223.png",
+      "added_at": "2026-03-14T12:12:00.158Z"
+    },
+    {
+      "id": "custom_223b",
+      "label_fr": "Custom (223b)",
+      "generation": 0,
+      "game_key": "custom-223b",
+      "front": "sprites/223_remoraid_custom_223b.png",
+      "front_shiny": null,
+      "author": "game freak and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223b/",
+      "source_image_url": "https://cdn.fusiondex.org/QokQBqzCxz2r-z70uUL2Y2Lu/dn/pif/223b.png",
+      "added_at": "2026-03-14T12:12:00.181Z"
+    },
+    {
+      "id": "custom_223c",
+      "label_fr": "Custom (223c)",
+      "generation": 0,
+      "game_key": "custom-223c",
+      "front": "sprites/223_remoraid_custom_223c.png",
+      "front_shiny": null,
+      "author": "markusknight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223c/",
+      "source_image_url": "https://cdn.fusiondex.org/3zfQd1jtjEGU-AwyYTYvALqJ/dn/pif/223c.png",
+      "added_at": "2026-03-14T12:12:00.203Z"
+    },
+    {
+      "id": "custom_223d",
+      "label_fr": "Custom (223d)",
+      "generation": 0,
+      "game_key": "custom-223d",
+      "front": "sprites/223_remoraid_custom_223d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and exaltedghost",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223d/",
+      "source_image_url": "https://cdn.fusiondex.org/E1OmzX6rmTi8R-pgym8HP7S6/dn/pif/223d.png",
+      "added_at": "2026-03-14T12:12:00.226Z"
+    },
+    {
+      "id": "custom_223e",
+      "label_fr": "Custom (223e)",
+      "generation": 0,
+      "game_key": "custom-223e",
+      "front": "sprites/223_remoraid_custom_223e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223e/",
+      "source_image_url": "https://cdn.fusiondex.org/4QVekhtDv3fHAjI5A3IeaQB3/dn/pif/223e.png",
+      "added_at": "2026-03-14T12:12:00.248Z"
+    },
+    {
+      "id": "custom_223k",
+      "label_fr": "Custom (223k)",
+      "generation": 0,
+      "game_key": "custom-223k",
+      "front": "sprites/223_remoraid_custom_223k.png",
+      "front_shiny": null,
+      "author": "djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/223k/",
+      "source_image_url": "https://cdn.fusiondex.org/hZ3pSkRpmTZl1pP15gzKxdrB/dn/pif/223k.png",
+      "added_at": "2026-03-14T12:12:00.270Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

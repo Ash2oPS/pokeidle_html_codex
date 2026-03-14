@@ -90,6 +90,78 @@
       "front": "sprites/161_sentret_black_white_front.gif",
       "front_shiny": "sprites/161_sentret_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_161",
+      "label_fr": "Custom (161)",
+      "generation": 0,
+      "game_key": "custom-161",
+      "front": "sprites/161_sentret_custom_161.png",
+      "front_shiny": null,
+      "author": "kiwikelly",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161/",
+      "source_image_url": "https://cdn.fusiondex.org/gFAF5b7uyTfDhfewIcmpEVus/dn/pif/161.png",
+      "added_at": "2026-03-14T12:10:51.477Z"
+    },
+    {
+      "id": "custom_161b",
+      "label_fr": "Custom (161b)",
+      "generation": 0,
+      "game_key": "custom-161b",
+      "front": "sprites/161_sentret_custom_161b.png",
+      "front_shiny": null,
+      "author": "arctic_ptarmigan",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161b/",
+      "source_image_url": "https://cdn.fusiondex.org/tP_ae3lAceXZMYx5RtusYnED/dn/pif/161b.png",
+      "added_at": "2026-03-14T12:10:51.502Z"
+    },
+    {
+      "id": "custom_161c",
+      "label_fr": "Custom (161c)",
+      "generation": 0,
+      "game_key": "custom-161c",
+      "front": "sprites/161_sentret_custom_161c.png",
+      "front_shiny": null,
+      "author": "thesketchy",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161c/",
+      "source_image_url": "https://cdn.fusiondex.org/elvZlRsbTeXIc6uzyZzQXjBE/dn/pif/161c.png",
+      "added_at": "2026-03-14T12:10:51.524Z"
+    },
+    {
+      "id": "custom_161e",
+      "label_fr": "Custom (161e)",
+      "generation": 0,
+      "game_key": "custom-161e",
+      "front": "sprites/161_sentret_custom_161e.png",
+      "front_shiny": null,
+      "author": "glacierwing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161e/",
+      "source_image_url": "https://cdn.fusiondex.org/iMPQskKBF2sHqtVxl5i4UD2Z/dn/pif/161e.png",
+      "added_at": "2026-03-14T12:10:51.547Z"
+    },
+    {
+      "id": "custom_161f",
+      "label_fr": "Custom (161f)",
+      "generation": 0,
+      "game_key": "custom-161f",
+      "front": "sprites/161_sentret_custom_161f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and javu2011",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161f/",
+      "source_image_url": "https://cdn.fusiondex.org/rAc0hpKSqxaTbq6AYzx-uNQg/dn/pif/161f.png",
+      "added_at": "2026-03-14T12:10:51.568Z"
+    },
+    {
+      "id": "custom_161j",
+      "label_fr": "Custom (161j)",
+      "generation": 0,
+      "game_key": "custom-161j",
+      "front": "sprites/161_sentret_custom_161j.png",
+      "front_shiny": null,
+      "author": "lobsterandlobster",
+      "source_url": "https://www.fusiondex.org/sprite/pif/161j/",
+      "source_image_url": "https://cdn.fusiondex.org/XzMb-FvEk3d_XGUCV1MAx_pY/dn/pif/161j.png",
+      "added_at": "2026-03-14T12:10:51.594Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

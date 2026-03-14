@@ -131,6 +131,66 @@
       "front": "sprites/75_graveler_black_white_front.gif",
       "front_shiny": "sprites/75_graveler_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_75a",
+      "label_fr": "Custom (75a)",
+      "generation": 0,
+      "game_key": "custom-75a",
+      "front": "sprites/75_graveler_custom_75a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and nestoras_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/75a/",
+      "source_image_url": "https://cdn.fusiondex.org/qgE7LIjM8ASG-RKCu0bP7ZRO/dn/pif/75a.png",
+      "added_at": "2026-03-14T12:09:24.047Z"
+    },
+    {
+      "id": "custom_75b",
+      "label_fr": "Custom (75b)",
+      "generation": 0,
+      "game_key": "custom-75b",
+      "front": "sprites/75_graveler_custom_75b.png",
+      "front_shiny": null,
+      "author": "game freak and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/75b/",
+      "source_image_url": "https://cdn.fusiondex.org/u6CwDKlceCLsPOP4HUlNosgw/dn/pif/75b.png",
+      "added_at": "2026-03-14T12:09:24.071Z"
+    },
+    {
+      "id": "custom_75c",
+      "label_fr": "Custom (75c)",
+      "generation": 0,
+      "game_key": "custom-75c",
+      "front": "sprites/75_graveler_custom_75c.png",
+      "front_shiny": null,
+      "author": "game freak and krune",
+      "source_url": "https://www.fusiondex.org/sprite/pif/75c/",
+      "source_image_url": "https://cdn.fusiondex.org/bnwzqjMLCSN5WSTAZUTlR55a/dn/pif/75c.png",
+      "added_at": "2026-03-14T12:09:24.093Z"
+    },
+    {
+      "id": "custom_75d",
+      "label_fr": "Custom (75d)",
+      "generation": 0,
+      "game_key": "custom-75d",
+      "front": "sprites/75_graveler_custom_75d.png",
+      "front_shiny": null,
+      "author": "game freak , gasmaskblacky , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/75d/",
+      "source_image_url": "https://cdn.fusiondex.org/8os45D7UKiAlkasAlXDF9Tta/dn/pif/75d.png",
+      "added_at": "2026-03-14T12:09:24.116Z"
+    },
+    {
+      "id": "custom_75e",
+      "label_fr": "Custom (75e)",
+      "generation": 0,
+      "game_key": "custom-75e",
+      "front": "sprites/75_graveler_custom_75e.png",
+      "front_shiny": null,
+      "author": "game freak , gasmaskblacky , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/75e/",
+      "source_image_url": "https://cdn.fusiondex.org/leZ4ip8HeZ6OLVlrEib6WFDC/dn/pif/75e.png",
+      "added_at": "2026-03-14T12:09:24.141Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

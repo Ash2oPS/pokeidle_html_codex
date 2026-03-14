@@ -80,6 +80,78 @@
       "front": "sprites/376_metagross_black_white_front.gif",
       "front_shiny": "sprites/376_metagross_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_293",
+      "label_fr": "Custom (293)",
+      "generation": 0,
+      "game_key": "custom-293",
+      "front": "sprites/376_metagross_custom_293.png",
+      "front_shiny": null,
+      "author": "the pokémon company and skyboy321",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293/",
+      "source_image_url": "https://cdn.fusiondex.org/zUaUFohIcjlyNY5sv6Tei-Oh/dn/pif/293.png",
+      "added_at": "2026-03-14T12:14:04.236Z"
+    },
+    {
+      "id": "custom_293b",
+      "label_fr": "Custom (293b)",
+      "generation": 0,
+      "game_key": "custom-293b",
+      "front": "sprites/376_metagross_custom_293b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and francosvizzero93",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293b/",
+      "source_image_url": "https://cdn.fusiondex.org/kXYRz8tc3hHm94JrJkWS-P2J/dn/pif/293b.png",
+      "added_at": "2026-03-14T12:14:04.259Z"
+    },
+    {
+      "id": "custom_293c",
+      "label_fr": "Custom (293c)",
+      "generation": 0,
+      "game_key": "custom-293c",
+      "front": "sprites/376_metagross_custom_293c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and thornsoflight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293c/",
+      "source_image_url": "https://cdn.fusiondex.org/q5Hy_gkH7TyYto-bIyyjmObV/dn/pif/293c.png",
+      "added_at": "2026-03-14T12:14:04.282Z"
+    },
+    {
+      "id": "custom_293d",
+      "label_fr": "Custom (293d)",
+      "generation": 0,
+      "game_key": "custom-293d",
+      "front": "sprites/376_metagross_custom_293d.png",
+      "front_shiny": null,
+      "author": "onix98",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293d/",
+      "source_image_url": "https://cdn.fusiondex.org/mXBk3hMg8ePwonZeCt-zk7rp/dn/pif/293d.png",
+      "added_at": "2026-03-14T12:14:04.305Z"
+    },
+    {
+      "id": "custom_293f",
+      "label_fr": "Custom (293f)",
+      "generation": 0,
+      "game_key": "custom-293f",
+      "front": "sprites/376_metagross_custom_293f.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293f/",
+      "source_image_url": "https://cdn.fusiondex.org/QaVmiPzAknAHdFQseG_COMNc/dn/pif/293f.png",
+      "added_at": "2026-03-14T12:14:04.327Z"
+    },
+    {
+      "id": "custom_293i",
+      "label_fr": "Custom (293i)",
+      "generation": 0,
+      "game_key": "custom-293i",
+      "front": "sprites/376_metagross_custom_293i.png",
+      "front_shiny": null,
+      "author": "the pokémon company and _testrun_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/293i/",
+      "source_image_url": "https://cdn.fusiondex.org/HtBrMswaUyaHKs_rbUW2wzS0/dn/pif/293i.png",
+      "added_at": "2026-03-14T12:14:04.350Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

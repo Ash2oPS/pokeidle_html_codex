@@ -88,6 +88,78 @@
       "front": "sprites/230_kingdra_black_white_front.gif",
       "front_shiny": "sprites/230_kingdra_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_230",
+      "label_fr": "Custom (230)",
+      "generation": 0,
+      "game_key": "custom-230",
+      "front": "sprites/230_kingdra_custom_230.png",
+      "front_shiny": null,
+      "author": "game freak and maelmc",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230/",
+      "source_image_url": "https://cdn.fusiondex.org/WXP513lR3qvWf1Fdyzpi_24l/dn/pif/230.png",
+      "added_at": "2026-03-14T12:12:04.669Z"
+    },
+    {
+      "id": "custom_230b",
+      "label_fr": "Custom (230b)",
+      "generation": 0,
+      "game_key": "custom-230b",
+      "front": "sprites/230_kingdra_custom_230b.png",
+      "front_shiny": null,
+      "author": "game freak and holgast",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230b/",
+      "source_image_url": "https://cdn.fusiondex.org/JbJtuqSM5B-xUQCTHhYiIA59/dn/pif/230b.png",
+      "added_at": "2026-03-14T12:12:04.692Z"
+    },
+    {
+      "id": "custom_230c",
+      "label_fr": "Custom (230c)",
+      "generation": 0,
+      "game_key": "custom-230c",
+      "front": "sprites/230_kingdra_custom_230c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and fciv",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230c/",
+      "source_image_url": "https://cdn.fusiondex.org/SjnLv9mdL2tsskhBLymE4xvy/dn/pif/230c.png",
+      "added_at": "2026-03-14T12:12:04.716Z"
+    },
+    {
+      "id": "custom_230d",
+      "label_fr": "Custom (230d)",
+      "generation": 0,
+      "game_key": "custom-230d",
+      "front": "sprites/230_kingdra_custom_230d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and _kuke_",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230d/",
+      "source_image_url": "https://cdn.fusiondex.org/fjS5mQ5Fn019PI-GA9VhvUaF/dn/pif/230d.png",
+      "added_at": "2026-03-14T12:12:04.740Z"
+    },
+    {
+      "id": "custom_230e",
+      "label_fr": "Custom (230e)",
+      "generation": 0,
+      "game_key": "custom-230e",
+      "front": "sprites/230_kingdra_custom_230e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and firmamentality",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230e/",
+      "source_image_url": "https://cdn.fusiondex.org/JsKQ4tj7vlSVcDMUhwdh-4zu/dn/pif/230e.png",
+      "added_at": "2026-03-14T12:12:04.762Z"
+    },
+    {
+      "id": "custom_230f",
+      "label_fr": "Custom (230f)",
+      "generation": 0,
+      "game_key": "custom-230f",
+      "front": "sprites/230_kingdra_custom_230f.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/230f/",
+      "source_image_url": "https://cdn.fusiondex.org/JeIVJnIkdIUGCKINK5c93lEZ/dn/pif/230f.png",
+      "added_at": "2026-03-14T12:12:04.787Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

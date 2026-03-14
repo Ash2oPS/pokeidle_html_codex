@@ -100,6 +100,78 @@
       "front": "sprites/221_piloswine_black_white_front.gif",
       "front_shiny": "sprites/221_piloswine_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_221",
+      "label_fr": "Custom (221)",
+      "generation": 0,
+      "game_key": "custom-221",
+      "front": "sprites/221_piloswine_custom_221.png",
+      "front_shiny": null,
+      "author": "kiwikelly",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221/",
+      "source_image_url": "https://cdn.fusiondex.org/IbAcUusthG9B_6PWmRr0HtlZ/dn/pif/221.png",
+      "added_at": "2026-03-14T12:11:59.052Z"
+    },
+    {
+      "id": "custom_221a",
+      "label_fr": "Custom (221a)",
+      "generation": 0,
+      "game_key": "custom-221a",
+      "front": "sprites/221_piloswine_custom_221a.png",
+      "front_shiny": null,
+      "author": "game freak and xigzagoon",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221a/",
+      "source_image_url": "https://cdn.fusiondex.org/Mv5Qmk-zM__IBXA8cDriaVzh/dn/pif/221a.png",
+      "added_at": "2026-03-14T12:11:59.076Z"
+    },
+    {
+      "id": "custom_221c",
+      "label_fr": "Custom (221c)",
+      "generation": 0,
+      "game_key": "custom-221c",
+      "front": "sprites/221_piloswine_custom_221c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221c/",
+      "source_image_url": "https://cdn.fusiondex.org/FOW6WI6T7AHRFmFLgTaafpB_/dn/pif/221c.png",
+      "added_at": "2026-03-14T12:11:59.099Z"
+    },
+    {
+      "id": "custom_221d",
+      "label_fr": "Custom (221d)",
+      "generation": 0,
+      "game_key": "custom-221d",
+      "front": "sprites/221_piloswine_custom_221d.png",
+      "front_shiny": null,
+      "author": "game freak and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221d/",
+      "source_image_url": "https://cdn.fusiondex.org/ZKJwJq3LWJ4Wcmzdu3cjG_vq/dn/pif/221d.png",
+      "added_at": "2026-03-14T12:11:59.122Z"
+    },
+    {
+      "id": "custom_221e",
+      "label_fr": "Custom (221e)",
+      "generation": 0,
+      "game_key": "custom-221e",
+      "front": "sprites/221_piloswine_custom_221e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and sami05581",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221e/",
+      "source_image_url": "https://cdn.fusiondex.org/PfUqsleaNQjUPq8fqZgLXobV/dn/pif/221e.png",
+      "added_at": "2026-03-14T12:11:59.144Z"
+    },
+    {
+      "id": "custom_221f",
+      "label_fr": "Custom (221f)",
+      "generation": 0,
+      "game_key": "custom-221f",
+      "front": "sprites/221_piloswine_custom_221f.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gwenegade",
+      "source_url": "https://www.fusiondex.org/sprite/pif/221f/",
+      "source_image_url": "https://cdn.fusiondex.org/b7kwdr-4NkOXpMbH9iOxNuwT/dn/pif/221f.png",
+      "added_at": "2026-03-14T12:11:59.167Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

@@ -88,6 +88,54 @@
       "front": "sprites/189_jumpluff_black_white_front.gif",
       "front_shiny": "sprites/189_jumpluff_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_189",
+      "label_fr": "Custom (189)",
+      "generation": 0,
+      "game_key": "custom-189",
+      "front": "sprites/189_jumpluff_custom_189.png",
+      "front_shiny": null,
+      "author": "sdfproteam",
+      "source_url": "https://www.fusiondex.org/sprite/pif/189/",
+      "source_image_url": "https://cdn.fusiondex.org/H-vqwwgiFzkGKFuLvmJdEkqQ/dn/pif/189.png",
+      "added_at": "2026-03-14T12:11:08.959Z"
+    },
+    {
+      "id": "custom_189b",
+      "label_fr": "Custom (189b)",
+      "generation": 0,
+      "game_key": "custom-189b",
+      "front": "sprites/189_jumpluff_custom_189b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and derpyhooves",
+      "source_url": "https://www.fusiondex.org/sprite/pif/189b/",
+      "source_image_url": "https://cdn.fusiondex.org/eDQB-BM0crSqtEaXBlvKf-97/dn/pif/189b.png",
+      "added_at": "2026-03-14T12:11:08.983Z"
+    },
+    {
+      "id": "custom_189c",
+      "label_fr": "Custom (189c)",
+      "generation": 0,
+      "game_key": "custom-189c",
+      "front": "sprites/189_jumpluff_custom_189c.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and uncookie",
+      "source_url": "https://www.fusiondex.org/sprite/pif/189c/",
+      "source_image_url": "https://cdn.fusiondex.org/zYxLmK6IUmkuWJ4279I7qpg-/dn/pif/189c.png",
+      "added_at": "2026-03-14T12:11:09.006Z"
+    },
+    {
+      "id": "custom_189d",
+      "label_fr": "Custom (189d)",
+      "generation": 0,
+      "game_key": "custom-189d",
+      "front": "sprites/189_jumpluff_custom_189d.png",
+      "front_shiny": null,
+      "author": "game freak and tinkywinkych",
+      "source_url": "https://www.fusiondex.org/sprite/pif/189d/",
+      "source_image_url": "https://cdn.fusiondex.org/KV0yc6lqG7rjdnSq0DMSMQHa/dn/pif/189d.png",
+      "added_at": "2026-03-14T12:11:09.029Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

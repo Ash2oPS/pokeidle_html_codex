@@ -80,6 +80,54 @@
       "front": "sprites/277_swellow_black_white_front.gif",
       "front_shiny": "sprites/277_swellow_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_515d",
+      "label_fr": "Custom (515d)",
+      "generation": 0,
+      "game_key": "custom-515d",
+      "front": "sprites/277_swellow_custom_515d.png",
+      "front_shiny": null,
+      "author": "007z3lda",
+      "source_url": "https://www.fusiondex.org/sprite/pif/515d/",
+      "source_image_url": "https://cdn.fusiondex.org/Ip8LLzfYf0v8ZC9WYeJWFzAN/dn/pif/515d.png",
+      "added_at": "2026-03-14T12:12:37.810Z"
+    },
+    {
+      "id": "custom_515e",
+      "label_fr": "Custom (515e)",
+      "generation": 0,
+      "game_key": "custom-515e",
+      "front": "sprites/277_swellow_custom_515e.png",
+      "front_shiny": null,
+      "author": "game freak and 007z3lda",
+      "source_url": "https://www.fusiondex.org/sprite/pif/515e/",
+      "source_image_url": "https://cdn.fusiondex.org/CBo0cG4Z2Hpkdgw9VDMrhUTk/dn/pif/515e.png",
+      "added_at": "2026-03-14T12:12:37.833Z"
+    },
+    {
+      "id": "custom_515f",
+      "label_fr": "Custom (515f)",
+      "generation": 0,
+      "game_key": "custom-515f",
+      "front": "sprites/277_swellow_custom_515f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/515f/",
+      "source_image_url": "https://cdn.fusiondex.org/Lbn-eCfdewbZPg-94fMh8f02/dn/pif/515f.png",
+      "added_at": "2026-03-14T12:12:37.855Z"
+    },
+    {
+      "id": "custom_515g",
+      "label_fr": "Custom (515g)",
+      "generation": 0,
+      "game_key": "custom-515g",
+      "front": "sprites/277_swellow_custom_515g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and greyvenn",
+      "source_url": "https://www.fusiondex.org/sprite/pif/515g/",
+      "source_image_url": "https://cdn.fusiondex.org/bwtvs7uJDZ8ikMbwgRS-wdoJ/dn/pif/515g.png",
+      "added_at": "2026-03-14T12:12:37.877Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

@@ -72,6 +72,78 @@
       "front": "sprites/411_bastiodon_black_white_front.gif",
       "front_shiny": "sprites/411_bastiodon_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_308a",
+      "label_fr": "Custom (308a)",
+      "generation": 0,
+      "game_key": "custom-308a",
+      "front": "sprites/411_bastiodon_custom_308a.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308a/",
+      "source_image_url": "https://cdn.fusiondex.org/D_BkD4PcnfUx9ZVoDqZ3QgvQ/dn/pif/308a.png",
+      "added_at": "2026-03-14T12:14:59.621Z"
+    },
+    {
+      "id": "custom_308b",
+      "label_fr": "Custom (308b)",
+      "generation": 0,
+      "game_key": "custom-308b",
+      "front": "sprites/411_bastiodon_custom_308b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308b/",
+      "source_image_url": "https://cdn.fusiondex.org/IiHsq7naFGzmY279-WkZ0Yz9/dn/pif/308b.png",
+      "added_at": "2026-03-14T12:14:59.646Z"
+    },
+    {
+      "id": "custom_308c",
+      "label_fr": "Custom (308c)",
+      "generation": 0,
+      "game_key": "custom-308c",
+      "front": "sprites/411_bastiodon_custom_308c.png",
+      "front_shiny": null,
+      "author": "game freak and zahandozawarudo26",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308c/",
+      "source_image_url": "https://cdn.fusiondex.org/TwiURf0XMcqx_ITauMjjzVYw/dn/pif/308c.png",
+      "added_at": "2026-03-14T12:14:59.670Z"
+    },
+    {
+      "id": "custom_308d",
+      "label_fr": "Custom (308d)",
+      "generation": 0,
+      "game_key": "custom-308d",
+      "front": "sprites/411_bastiodon_custom_308d.png",
+      "front_shiny": null,
+      "author": "cajupokemonsprites",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308d/",
+      "source_image_url": "https://cdn.fusiondex.org/Hf0TJQTOlt87eRtLHp_kUd9l/dn/pif/308d.png",
+      "added_at": "2026-03-14T12:14:59.693Z"
+    },
+    {
+      "id": "custom_308h",
+      "label_fr": "Custom (308h)",
+      "generation": 0,
+      "game_key": "custom-308h",
+      "front": "sprites/411_bastiodon_custom_308h.png",
+      "front_shiny": null,
+      "author": "game freak , gasmaskblacky , and mildnight",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308h/",
+      "source_image_url": "https://cdn.fusiondex.org/3omfjSC66SZuN83D34Y_5AIg/dn/pif/308h.png",
+      "added_at": "2026-03-14T12:14:59.717Z"
+    },
+    {
+      "id": "custom_308i",
+      "label_fr": "Custom (308i)",
+      "generation": 0,
+      "game_key": "custom-308i",
+      "front": "sprites/411_bastiodon_custom_308i.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/308i/",
+      "source_image_url": "https://cdn.fusiondex.org/OZXD--UaPwWHJ9zDW89eItKx/dn/pif/308i.png",
+      "added_at": "2026-03-14T12:14:59.740Z"
     }
   ],
   "default_sprite_variant_id": "heartgold_soulsilver",

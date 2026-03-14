@@ -120,6 +120,78 @@
       "front": "sprites/49_venomoth_black_white_front.gif",
       "front_shiny": "sprites/49_venomoth_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_49",
+      "label_fr": "Custom (49)",
+      "generation": 0,
+      "game_key": "custom-49",
+      "front": "sprites/49_venomoth_custom_49.png",
+      "front_shiny": null,
+      "author": "the pokémon company and scarecrow_924",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49/",
+      "source_image_url": "https://cdn.fusiondex.org/YDgbTSSfY0w_avgjrgF4JWYS/dn/pif/49.png",
+      "added_at": "2026-03-14T12:09:06.111Z"
+    },
+    {
+      "id": "custom_49a",
+      "label_fr": "Custom (49a)",
+      "generation": 0,
+      "game_key": "custom-49a",
+      "front": "sprites/49_venomoth_custom_49a.png",
+      "front_shiny": null,
+      "author": "game freak and maelmc",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49a/",
+      "source_image_url": "https://cdn.fusiondex.org/G3kXejUQurWu7GI1apBpEQHb/dn/pif/49a.png",
+      "added_at": "2026-03-14T12:09:06.135Z"
+    },
+    {
+      "id": "custom_49c",
+      "label_fr": "Custom (49c)",
+      "generation": 0,
+      "game_key": "custom-49c",
+      "front": "sprites/49_venomoth_custom_49c.png",
+      "front_shiny": null,
+      "author": "game freak and barkey.",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49c/",
+      "source_image_url": "https://cdn.fusiondex.org/UJJeQsVaCPTzIwgJK_d3mxrd/dn/pif/49c.png",
+      "added_at": "2026-03-14T12:09:06.157Z"
+    },
+    {
+      "id": "custom_49d",
+      "label_fr": "Custom (49d)",
+      "generation": 0,
+      "game_key": "custom-49d",
+      "front": "sprites/49_venomoth_custom_49d.png",
+      "front_shiny": null,
+      "author": "game freak and lurkingforest",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49d/",
+      "source_image_url": "https://cdn.fusiondex.org/G9_goI3ifGFGkt7eAG4yu6wu/dn/pif/49d.png",
+      "added_at": "2026-03-14T12:09:06.180Z"
+    },
+    {
+      "id": "custom_49e",
+      "label_fr": "Custom (49e)",
+      "generation": 0,
+      "game_key": "custom-49e",
+      "front": "sprites/49_venomoth_custom_49e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and schniouf",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49e/",
+      "source_image_url": "https://cdn.fusiondex.org/tqB2tUdcdi4O_9rMD1Inqz_H/dn/pif/49e.png",
+      "added_at": "2026-03-14T12:09:06.203Z"
+    },
+    {
+      "id": "custom_49g",
+      "label_fr": "Custom (49g)",
+      "generation": 0,
+      "game_key": "custom-49g",
+      "front": "sprites/49_venomoth_custom_49g.png",
+      "front_shiny": null,
+      "author": "game freak and retrogamer9934",
+      "source_url": "https://www.fusiondex.org/sprite/pif/49g/",
+      "source_image_url": "https://cdn.fusiondex.org/alFcC5pRgLqkriWWrSJA80jF/dn/pif/49g.png",
+      "added_at": "2026-03-14T12:09:06.226Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

@@ -121,6 +121,66 @@
       "front": "sprites/114_tangela_black_white_front.gif",
       "front_shiny": "sprites/114_tangela_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_114",
+      "label_fr": "Custom (114)",
+      "generation": 0,
+      "game_key": "custom-114",
+      "front": "sprites/114_tangela_custom_114.png",
+      "front_shiny": null,
+      "author": "game freak and hero.drawing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/114/",
+      "source_image_url": "https://cdn.fusiondex.org/40oXKnNroBqmGSBGT2IQguBO/dn/pif/114.png",
+      "added_at": "2026-03-14T12:10:15.208Z"
+    },
+    {
+      "id": "custom_114b",
+      "label_fr": "Custom (114b)",
+      "generation": 0,
+      "game_key": "custom-114b",
+      "front": "sprites/114_tangela_custom_114b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and monoski1",
+      "source_url": "https://www.fusiondex.org/sprite/pif/114b/",
+      "source_image_url": "https://cdn.fusiondex.org/cY8oSf5lHq-gBw_BIDfYL4kN/dn/pif/114b.png",
+      "added_at": "2026-03-14T12:10:15.232Z"
+    },
+    {
+      "id": "custom_114c",
+      "label_fr": "Custom (114c)",
+      "generation": 0,
+      "game_key": "custom-114c",
+      "front": "sprites/114_tangela_custom_114c.png",
+      "front_shiny": null,
+      "author": "game freak and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/114c/",
+      "source_image_url": "https://cdn.fusiondex.org/FkVddAPiP-MdzGA8hrodumhl/dn/pif/114c.png",
+      "added_at": "2026-03-14T12:10:15.254Z"
+    },
+    {
+      "id": "custom_114d",
+      "label_fr": "Custom (114d)",
+      "generation": 0,
+      "game_key": "custom-114d",
+      "front": "sprites/114_tangela_custom_114d.png",
+      "front_shiny": null,
+      "author": "game freak and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/114d/",
+      "source_image_url": "https://cdn.fusiondex.org/VGo9GFTVhN4zDLBzVH8SZQJa/dn/pif/114d.png",
+      "added_at": "2026-03-14T12:10:15.277Z"
+    },
+    {
+      "id": "custom_114e",
+      "label_fr": "Custom (114e)",
+      "generation": 0,
+      "game_key": "custom-114e",
+      "front": "sprites/114_tangela_custom_114e.png",
+      "front_shiny": null,
+      "author": "game freak and dodogama_lover_63",
+      "source_url": "https://www.fusiondex.org/sprite/pif/114e/",
+      "source_image_url": "https://cdn.fusiondex.org/nK_zUoIwSuSLctbMEt_Q06Dg/dn/pif/114e.png",
+      "added_at": "2026-03-14T12:10:15.300Z"
     }
   ],
   "default_sprite_variant_id": "firered_leafgreen",

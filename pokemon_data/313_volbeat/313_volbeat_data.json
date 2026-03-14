@@ -69,6 +69,66 @@
       "front": "sprites/313_volbeat_black_white_front.gif",
       "front_shiny": "sprites/313_volbeat_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_533c",
+      "label_fr": "Custom (533c)",
+      "generation": 0,
+      "game_key": "custom-533c",
+      "front": "sprites/313_volbeat_custom_533c.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/533c/",
+      "source_image_url": "https://cdn.fusiondex.org/nLCbBOGwRzBcGnNteBBflH87/dn/pif/533c.png",
+      "added_at": "2026-03-14T12:13:24.702Z"
+    },
+    {
+      "id": "custom_533d",
+      "label_fr": "Custom (533d)",
+      "generation": 0,
+      "game_key": "custom-533d",
+      "front": "sprites/313_volbeat_custom_533d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and theheroicorange",
+      "source_url": "https://www.fusiondex.org/sprite/pif/533d/",
+      "source_image_url": "https://cdn.fusiondex.org/BOG-nAxnB8sdBSmqDlrCSM_R/dn/pif/533d.png",
+      "added_at": "2026-03-14T12:13:24.726Z"
+    },
+    {
+      "id": "custom_533e",
+      "label_fr": "Custom (533e)",
+      "generation": 0,
+      "game_key": "custom-533e",
+      "front": "sprites/313_volbeat_custom_533e.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and theheroicorange",
+      "source_url": "https://www.fusiondex.org/sprite/pif/533e/",
+      "source_image_url": "https://cdn.fusiondex.org/nTr2qVCkdziTHK8Aot90AJZF/dn/pif/533e.png",
+      "added_at": "2026-03-14T12:13:24.750Z"
+    },
+    {
+      "id": "custom_533f",
+      "label_fr": "Custom (533f)",
+      "generation": 0,
+      "game_key": "custom-533f",
+      "front": "sprites/313_volbeat_custom_533f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and .payapon",
+      "source_url": "https://www.fusiondex.org/sprite/pif/533f/",
+      "source_image_url": "https://cdn.fusiondex.org/sCJBVvan4TKauFvdTMxjMsID/dn/pif/533f.png",
+      "added_at": "2026-03-14T12:13:24.773Z"
+    },
+    {
+      "id": "custom_533g",
+      "label_fr": "Custom (533g)",
+      "generation": 0,
+      "game_key": "custom-533g",
+      "front": "sprites/313_volbeat_custom_533g.png",
+      "front_shiny": null,
+      "author": "theheroicorange",
+      "source_url": "https://www.fusiondex.org/sprite/pif/533g/",
+      "source_image_url": "https://cdn.fusiondex.org/Pf4yHMOxpNX-6RGoLh9uo-rQ/dn/pif/533g.png",
+      "added_at": "2026-03-14T12:13:24.796Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

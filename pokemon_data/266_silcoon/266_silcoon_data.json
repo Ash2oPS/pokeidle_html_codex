@@ -91,6 +91,78 @@
       "front": "sprites/266_silcoon_black_white_front.gif",
       "front_shiny": "sprites/266_silcoon_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_507c",
+      "label_fr": "Custom (507c)",
+      "generation": 0,
+      "game_key": "custom-507c",
+      "front": "sprites/266_silcoon_custom_507c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507c/",
+      "source_image_url": "https://cdn.fusiondex.org/0Ai2nINP3HjXjjOVr4yB-FEK/dn/pif/507c.png",
+      "added_at": "2026-03-14T12:12:31.572Z"
+    },
+    {
+      "id": "custom_507d",
+      "label_fr": "Custom (507d)",
+      "generation": 0,
+      "game_key": "custom-507d",
+      "front": "sprites/266_silcoon_custom_507d.png",
+      "front_shiny": null,
+      "author": "banefulbunker",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507d/",
+      "source_image_url": "https://cdn.fusiondex.org/QgSz-m1hAhR7ohA4_k1apppT/dn/pif/507d.png",
+      "added_at": "2026-03-14T12:12:31.595Z"
+    },
+    {
+      "id": "custom_507e",
+      "label_fr": "Custom (507e)",
+      "generation": 0,
+      "game_key": "custom-507e",
+      "front": "sprites/266_silcoon_custom_507e.png",
+      "front_shiny": null,
+      "author": "banefulbunker",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507e/",
+      "source_image_url": "https://cdn.fusiondex.org/nzID67yetOsDTtQpWtbRN5Fb/dn/pif/507e.png",
+      "added_at": "2026-03-14T12:12:31.617Z"
+    },
+    {
+      "id": "custom_507f",
+      "label_fr": "Custom (507f)",
+      "generation": 0,
+      "game_key": "custom-507f",
+      "front": "sprites/266_silcoon_custom_507f.png",
+      "front_shiny": null,
+      "author": "banefulbunker",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507f/",
+      "source_image_url": "https://cdn.fusiondex.org/HpZc2gT1fUq_zcIa8v5z_Md_/dn/pif/507f.png",
+      "added_at": "2026-03-14T12:12:31.639Z"
+    },
+    {
+      "id": "custom_507g",
+      "label_fr": "Custom (507g)",
+      "generation": 0,
+      "game_key": "custom-507g",
+      "front": "sprites/266_silcoon_custom_507g.png",
+      "front_shiny": null,
+      "author": "banefulbunker",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507g/",
+      "source_image_url": "https://cdn.fusiondex.org/ISZlVQCXNzjw7ET1hJtcwNm8/dn/pif/507g.png",
+      "added_at": "2026-03-14T12:12:31.662Z"
+    },
+    {
+      "id": "custom_507h",
+      "label_fr": "Custom (507h)",
+      "generation": 0,
+      "game_key": "custom-507h",
+      "front": "sprites/266_silcoon_custom_507h.png",
+      "front_shiny": null,
+      "author": "djoing",
+      "source_url": "https://www.fusiondex.org/sprite/pif/507h/",
+      "source_image_url": "https://cdn.fusiondex.org/S7r3ZD5gwbBRDnR2z8pOk7eH/dn/pif/507h.png",
+      "added_at": "2026-03-14T12:12:31.688Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

@@ -88,6 +88,66 @@
       "front": "sprites/205_forretress_black_white_front.gif",
       "front_shiny": "sprites/205_forretress_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_205d",
+      "label_fr": "Custom (205d)",
+      "generation": 0,
+      "game_key": "custom-205d",
+      "front": "sprites/205_forretress_custom_205d.png",
+      "front_shiny": null,
+      "author": "mrwashingtoncarver",
+      "source_url": "https://www.fusiondex.org/sprite/pif/205d/",
+      "source_image_url": "https://cdn.fusiondex.org/ZUmZ-tAO4r7VKL6aNFgyIQtb/dn/pif/205d.png",
+      "added_at": "2026-03-14T12:11:21.010Z"
+    },
+    {
+      "id": "custom_205f",
+      "label_fr": "Custom (205f)",
+      "generation": 0,
+      "game_key": "custom-205f",
+      "front": "sprites/205_forretress_custom_205f.png",
+      "front_shiny": null,
+      "author": "xenophacilus",
+      "source_url": "https://www.fusiondex.org/sprite/pif/205f/",
+      "source_image_url": "https://cdn.fusiondex.org/wQcE7Yq_IWpzaFPsMO6NfKAb/dn/pif/205f.png",
+      "added_at": "2026-03-14T12:11:21.035Z"
+    },
+    {
+      "id": "custom_205g",
+      "label_fr": "Custom (205g)",
+      "generation": 0,
+      "game_key": "custom-205g",
+      "front": "sprites/205_forretress_custom_205g.png",
+      "front_shiny": null,
+      "author": "game freak and pory",
+      "source_url": "https://www.fusiondex.org/sprite/pif/205g/",
+      "source_image_url": "https://cdn.fusiondex.org/tS68BuXOk-xIoa8l5ZCiYd5H/dn/pif/205g.png",
+      "added_at": "2026-03-14T12:11:21.058Z"
+    },
+    {
+      "id": "custom_205h",
+      "label_fr": "Custom (205h)",
+      "generation": 0,
+      "game_key": "custom-205h",
+      "front": "sprites/205_forretress_custom_205h.png",
+      "front_shiny": null,
+      "author": "game freak and pory",
+      "source_url": "https://www.fusiondex.org/sprite/pif/205h/",
+      "source_image_url": "https://cdn.fusiondex.org/xUF8Q-RnzoesRGkBVmyRyZQZ/dn/pif/205h.png",
+      "added_at": "2026-03-14T12:11:21.082Z"
+    },
+    {
+      "id": "custom_205j",
+      "label_fr": "Custom (205j)",
+      "generation": 0,
+      "game_key": "custom-205j",
+      "front": "sprites/205_forretress_custom_205j.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/205j/",
+      "source_image_url": "https://cdn.fusiondex.org/1jQiwQtH6UGs79LLOnZVVax8/dn/pif/205j.png",
+      "added_at": "2026-03-14T12:11:21.110Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

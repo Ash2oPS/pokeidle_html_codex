@@ -80,6 +80,66 @@
       "front": "sprites/267_beautifly_black_white_front.gif",
       "front_shiny": "sprites/267_beautifly_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_508c",
+      "label_fr": "Custom (508c)",
+      "generation": 0,
+      "game_key": "custom-508c",
+      "front": "sprites/267_beautifly_custom_508c.png",
+      "front_shiny": null,
+      "author": "kingofthe_x_roads",
+      "source_url": "https://www.fusiondex.org/sprite/pif/508c/",
+      "source_image_url": "https://cdn.fusiondex.org/c6SBlOpevv7gGe1RYRAVWIlm/dn/pif/508c.png",
+      "added_at": "2026-03-14T12:12:32.113Z"
+    },
+    {
+      "id": "custom_508e",
+      "label_fr": "Custom (508e)",
+      "generation": 0,
+      "game_key": "custom-508e",
+      "front": "sprites/267_beautifly_custom_508e.png",
+      "front_shiny": null,
+      "author": "the pokémon company and stickieanimates",
+      "source_url": "https://www.fusiondex.org/sprite/pif/508e/",
+      "source_image_url": "https://cdn.fusiondex.org/7oFwJwNNcX4ZA1SCGiskbUdn/dn/pif/508e.png",
+      "added_at": "2026-03-14T12:12:32.136Z"
+    },
+    {
+      "id": "custom_508f",
+      "label_fr": "Custom (508f)",
+      "generation": 0,
+      "game_key": "custom-508f",
+      "front": "sprites/267_beautifly_custom_508f.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and shalrak",
+      "source_url": "https://www.fusiondex.org/sprite/pif/508f/",
+      "source_image_url": "https://cdn.fusiondex.org/JATkL7ogQHW-4pRzCTgw4R_h/dn/pif/508f.png",
+      "added_at": "2026-03-14T12:12:32.159Z"
+    },
+    {
+      "id": "custom_508g",
+      "label_fr": "Custom (508g)",
+      "generation": 0,
+      "game_key": "custom-508g",
+      "front": "sprites/267_beautifly_custom_508g.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and shalrak",
+      "source_url": "https://www.fusiondex.org/sprite/pif/508g/",
+      "source_image_url": "https://cdn.fusiondex.org/-of5hXCWDZPWSsW5d22FQnu-/dn/pif/508g.png",
+      "added_at": "2026-03-14T12:12:32.183Z"
+    },
+    {
+      "id": "custom_508h",
+      "label_fr": "Custom (508h)",
+      "generation": 0,
+      "game_key": "custom-508h",
+      "front": "sprites/267_beautifly_custom_508h.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and gasmaskblacky",
+      "source_url": "https://www.fusiondex.org/sprite/pif/508h/",
+      "source_image_url": "https://cdn.fusiondex.org/eFWjhb2qDDKgvzT05jnWQuL2/dn/pif/508h.png",
+      "added_at": "2026-03-14T12:12:32.208Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",

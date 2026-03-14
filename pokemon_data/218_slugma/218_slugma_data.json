@@ -89,6 +89,66 @@
       "front": "sprites/218_slugma_black_white_front.gif",
       "front_shiny": "sprites/218_slugma_black_white_front_shiny.gif",
       "animated": true
+    },
+    {
+      "id": "custom_218",
+      "label_fr": "Custom (218)",
+      "generation": 0,
+      "game_key": "custom-218",
+      "front": "sprites/218_slugma_custom_218.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and cristata",
+      "source_url": "https://www.fusiondex.org/sprite/pif/218/",
+      "source_image_url": "https://cdn.fusiondex.org/OHNNUnK7S92asCXamns637Et/dn/pif/218.png",
+      "added_at": "2026-03-14T12:11:57.462Z"
+    },
+    {
+      "id": "custom_218b",
+      "label_fr": "Custom (218b)",
+      "generation": 0,
+      "game_key": "custom-218b",
+      "front": "sprites/218_slugma_custom_218b.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and donutsbg",
+      "source_url": "https://www.fusiondex.org/sprite/pif/218b/",
+      "source_image_url": "https://cdn.fusiondex.org/sV2m9PUO2r68IdMOpbcJyDr-/dn/pif/218b.png",
+      "added_at": "2026-03-14T12:11:57.487Z"
+    },
+    {
+      "id": "custom_218c",
+      "label_fr": "Custom (218c)",
+      "generation": 0,
+      "game_key": "custom-218c",
+      "front": "sprites/218_slugma_custom_218c.png",
+      "front_shiny": null,
+      "author": "game freak and donutsbg",
+      "source_url": "https://www.fusiondex.org/sprite/pif/218c/",
+      "source_image_url": "https://cdn.fusiondex.org/Z4UW4exEVuRmFSnkCDdlCP58/dn/pif/218c.png",
+      "added_at": "2026-03-14T12:11:57.510Z"
+    },
+    {
+      "id": "custom_218d",
+      "label_fr": "Custom (218d)",
+      "generation": 0,
+      "game_key": "custom-218d",
+      "front": "sprites/218_slugma_custom_218d.png",
+      "front_shiny": null,
+      "author": "pokémon tcg and cristata",
+      "source_url": "https://www.fusiondex.org/sprite/pif/218d/",
+      "source_image_url": "https://cdn.fusiondex.org/daU1i_JewHiA3kziBvE-aHEx/dn/pif/218d.png",
+      "added_at": "2026-03-14T12:11:57.532Z"
+    },
+    {
+      "id": "custom_218h",
+      "label_fr": "Custom (218h)",
+      "generation": 0,
+      "game_key": "custom-218h",
+      "front": "sprites/218_slugma_custom_218h.png",
+      "front_shiny": null,
+      "author": "the pokémon company and gerolau",
+      "source_url": "https://www.fusiondex.org/sprite/pif/218h/",
+      "source_image_url": "https://cdn.fusiondex.org/aBlbxDWbjUuDzC8YTQx66LFt/dn/pif/218h.png",
+      "added_at": "2026-03-14T12:11:57.555Z"
     }
   ],
   "default_sprite_variant_id": "ruby_sapphire",
