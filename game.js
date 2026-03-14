@@ -607,11 +607,6 @@ const CAPTURE_BALL_MULTIPLIER_NERF = 0.5;
 const COIN_REWARD_PER_CAPTURE = 1;
 const COIN_REWARD_FIRST_CAPTURE_BONUS = 5;
 const COIN_REWARD_PER_EVOLUTION = 3;
-const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE = 0.8;
-const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MID = 0.6;
-const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_LOW = 0.5;
-const COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MIN = 0.4;
-const MIN_CAPTURE_COIN_CHANCE = 0.1;
 const MIN_LEVEL_DIFF_MONEY_MULTIPLIER = 0.35;
 const GACHA_SPIN_COST_COINS = 10;
 const GACHA_MAX_POKEMON_ID = 151;
@@ -9579,20 +9574,6 @@ function getRewardMultipliersFromLevelDiff(levelDiff) {
   return { xp: 0.05, money: 0.35, coin: 0.1 };
 }
 
-function getFamilyOwnedCaptureCoinChanceFromLevelDiff(levelDiff) {
-  const diff = toSafeInt(levelDiff, 0);
-  if (diff >= 0) {
-    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE;
-  }
-  if (diff >= -5) {
-    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MID;
-  }
-  if (diff >= -15) {
-    return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_LOW;
-  }
-  return COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_MIN;
-}
-
 function getXpMultiplierFromLevelDiff(levelDiff) {
   const diff = toSafeInt(levelDiff, 0);
   if (diff >= 0) {
@@ -13091,14 +13072,11 @@ function applyAutoGrantedProgress(pokemonId, level = 1) {
     return { addedToTeam: false };
   }
 
-  const familyOwnedBeforeCapture = isEvolutionFamilyOwned(pokemonId);
   const { record, wasUnlocked } = ensurePokemonEntityUnlocked(pokemonId, level);
   const capturedBefore = getCapturedTotal(record);
   incrementSpeciesStat(pokemonId, "encountered", false, 1);
   incrementSpeciesStat(pokemonId, "captured", false, 1);
-  const baseCaptureCoinReward = familyOwnedBeforeCapture
-    ? (Math.random() < COIN_REWARD_FAMILY_OWNED_CAPTURE_CHANCE_BASE ? COIN_REWARD_PER_CAPTURE : 0)
-    : COIN_REWARD_PER_CAPTURE;
+  const baseCaptureCoinReward = COIN_REWARD_PER_CAPTURE;
   const firstCaptureBonus = capturedBefore <= 0 ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0;
   addCoins(baseCaptureCoinReward + firstCaptureBonus);
   record.encountered_normal = Math.max(1, record.encountered_normal);
@@ -13473,7 +13451,6 @@ function handleEnemyDefeated(enemy) {
     clamp(Number(teamDiffMultipliers.money || 1), 0, 1),
   );
   const moneyTalentMultiplier = getTeamMoneyTalentMultiplier(state.battle?.team || state.team);
-  const coinChanceMultiplier = clamp(Number(teamDiffMultipliers.coin || 1), 0, 1);
   const moneyReward = scaleRewardByMultiplier(
     computeDefeatMoneyReward(enemy),
     moneyMultiplier * moneyTalentMultiplier,
@@ -13533,18 +13510,10 @@ function handleEnemyDefeated(enemy) {
   let addedToTeam = false;
   let captureXpSummary = null;
   let usedBallType = null;
-  const familyOwnedBeforeCapture = isEvolutionFamilyOwned(enemy.id);
   const awardCaptureCoinReward = () => {
     const speciesRecord = ensureSpeciesStats(enemy.id);
     const isFirstCapture = getCapturedTotal(speciesRecord) <= 0;
-    const adjustedCaptureCoinChance = familyOwnedBeforeCapture
-      ? getFamilyOwnedCaptureCoinChanceFromLevelDiff(teamLevelDiff)
-      : clamp(
-        Math.max(MIN_CAPTURE_COIN_CHANCE, coinChanceMultiplier),
-        MIN_CAPTURE_COIN_CHANCE,
-        1,
-      );
-    const baseCaptureCoinReward = Math.random() < adjustedCaptureCoinChance ? COIN_REWARD_PER_CAPTURE : 0;
+    const baseCaptureCoinReward = COIN_REWARD_PER_CAPTURE;
     addCoins(baseCaptureCoinReward + (isFirstCapture ? COIN_REWARD_FIRST_CAPTURE_BONUS : 0));
   };
 
