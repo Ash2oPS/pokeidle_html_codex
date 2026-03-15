@@ -38,6 +38,7 @@ import {
   getPassiveBehaviorIdForTalentId,
   resolveCombatTurnDecision,
   TURN_ACTION_ATTACK,
+  TURN_ACTION_SKIP,
 } from "./lib/combat-passives.js";
 import {
   TALENT_NONE_DESCRIPTION_FR,
@@ -63,7 +64,7 @@ const SHOP_ITEMS_CSV_PATH = "item_data/shop_items.csv";
 const POKEMON_TALENTS_CSV_PATH = "pokemon_data/pokemon_talents.csv";
 const POST_UNKNOWN_CAVE_MAPPING_POPUP_MESSAGE =
   "De nouveaux Pokémon sont apparus :)\n" +
-  "(c'est très beta, y a ptet des trucs buggés, mal placés, pas équilibrés dessus, mais au moins y a des nouveaux pokémon)";
+  "(c'est très bêta, y a ptet des trucs buggés, mal placés, pas équilibrés dessus, mais au moins y a des nouveaux pokémon)";
 const ROUTE_ID_ORDER = [
   "kanto_city_pallet_town",
   "kanto_route_1",
@@ -652,13 +653,117 @@ const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24 * 0.7;
 const TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER = 1.1;
 const TEAM_SPRITE_MIN_RENDER_RATIO_PHONE = 0.96;
 const TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT = 0.9;
-const ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER = 1.15;
+const ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER = 0.8625;
 const ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER = 1.14;
 const ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER = 1.06;
+const DEV_LAYOUT_STORAGE_KEY = "pokeidle_dev_layout_v1";
+const DEV_LAYOUT_SETTINGS_DEFAULTS = Object.freeze({
+  enemySpriteScale: 1,
+  allySpriteScale: 1,
+  enemyCenterYOffset: 0,
+  allyRingYOffset: 0,
+  arcRotationDeg: 0,
+  arcSpreadScale: 1,
+  arcRadiusScale: 1,
+  hudXOffset: 0,
+  hudYOffset: 0,
+  hudDepthScale: 1,
+  enemyUiYOffset: 0,
+});
+const DEV_LAYOUT_CONTROL_DEFINITIONS = Object.freeze([
+  Object.freeze({
+    key: "enemySpriteScale",
+    label: "Taille ennemi",
+    min: 0.4,
+    max: 2,
+    step: 0.01,
+    valueType: "scale",
+  }),
+  Object.freeze({
+    key: "allySpriteScale",
+    label: "Taille allies",
+    min: 0.4,
+    max: 2,
+    step: 0.01,
+    valueType: "scale",
+  }),
+  Object.freeze({
+    key: "enemyCenterYOffset",
+    label: "Y ennemi",
+    min: -240,
+    max: 240,
+    step: 1,
+    valueType: "px",
+  }),
+  Object.freeze({
+    key: "allyRingYOffset",
+    label: "Y allies",
+    min: -240,
+    max: 240,
+    step: 1,
+    valueType: "px",
+  }),
+  Object.freeze({
+    key: "arcRotationDeg",
+    label: "Rotation arc",
+    min: -65,
+    max: 65,
+    step: 0.5,
+    valueType: "deg",
+  }),
+  Object.freeze({
+    key: "arcSpreadScale",
+    label: "Ouverture arc",
+    min: 0.55,
+    max: 1.7,
+    step: 0.01,
+    valueType: "scale",
+  }),
+  Object.freeze({
+    key: "arcRadiusScale",
+    label: "Rayon arc",
+    min: 0.6,
+    max: 2,
+    step: 0.01,
+    valueType: "scale",
+  }),
+  Object.freeze({
+    key: "hudXOffset",
+    label: "X panneaux allies",
+    min: -180,
+    max: 180,
+    step: 1,
+    valueType: "px",
+  }),
+  Object.freeze({
+    key: "hudYOffset",
+    label: "Y panneaux allies",
+    min: -220,
+    max: 260,
+    step: 1,
+    valueType: "px",
+  }),
+  Object.freeze({
+    key: "hudDepthScale",
+    label: "Profondeur panneaux",
+    min: 0.2,
+    max: 2.5,
+    step: 0.01,
+    valueType: "scale",
+  }),
+  Object.freeze({
+    key: "enemyUiYOffset",
+    label: "Y HUD ennemi",
+    min: -220,
+    max: 220,
+    step: 1,
+    valueType: "px",
+  }),
+]);
 const POKEMON_DATA_SPRITE_SCALE_MIN = 0.8;
 const POKEMON_DATA_SPRITE_SCALE_MAX = 1.2;
 const POKEMON_SPRITE_COMMON_PPU = 64;
-const POKEMON_SPRITE_USE_SOURCE_PPU_ADAPTATION = false;
+const POKEMON_SPRITE_USE_SOURCE_PPU_ADAPTATION = true;
 const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN = 0.5;
 const POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX = 1.8;
 const MAX_LEVEL = 100;
@@ -1653,10 +1758,18 @@ const tutorialProgressEl = document.getElementById("tutorial-progress");
 const tutorialPrevButtonEl = document.getElementById("tutorial-prev-btn");
 const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
 const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
+const devLayoutPanelEl = document.getElementById("dev-layout-panel");
+const devLayoutControlsEl = document.getElementById("dev-layout-controls");
+const devLayoutCloseButtonEl = document.getElementById("dev-layout-close-btn");
+const devLayoutResetButtonEl = document.getElementById("dev-layout-reset-btn");
+const devLayoutControlInputByKey = new Map();
+const devLayoutControlValueByKey = new Map();
 const tweenGroup = new Group();
 const uiAnimationStateByElement = new WeakMap();
 const notificationCardById = new Map();
 const notificationCardExitingIds = new Set();
+const androidNotificationIdByTag = new Map();
+let nextAndroidNotificationId = 10000;
 const UI_TWEEN_MODAL_OPEN = Object.freeze({
   overlayDurationMs: 180,
   panelDurationMs: 290,
@@ -1895,6 +2008,10 @@ const state = {
     snapshot: null,
     nextUpdateAtMs: 0,
   },
+  devLayout: {
+    settings: { ...DEV_LAYOUT_SETTINGS_DEFAULTS },
+    controlsInitialized: false,
+  },
   ui: {
     mapOpen: false,
     shopOpen: false,
@@ -1942,6 +2059,7 @@ const state = {
     renameSlotIndex: -1,
     renamePokemonId: null,
     tutorialOpen: false,
+    devLayoutOpen: false,
   },
   gacha: {
     spinning: false,
@@ -1995,6 +2113,65 @@ function hasDesktopSaveBridge() {
 function hasDesktopNotificationBridge() {
   const bridge = getDesktopBridge();
   return Boolean(bridge && typeof bridge.notify === "function");
+}
+
+function getCapacitorBridge() {
+  try {
+    const bridge = window?.Capacitor;
+    return bridge && typeof bridge === "object" ? bridge : null;
+  } catch {
+    return null;
+  }
+}
+
+function isCapacitorAndroidRuntime() {
+  const capacitorBridge = getCapacitorBridge();
+  if (!capacitorBridge) {
+    return false;
+  }
+  let platform = "";
+  try {
+    platform = typeof capacitorBridge.getPlatform === "function"
+      ? String(capacitorBridge.getPlatform() || "").toLowerCase().trim()
+      : String(capacitorBridge.platform || "").toLowerCase().trim();
+  } catch {
+    platform = "";
+  }
+  const nativeRuntime = typeof capacitorBridge.isNativePlatform === "function"
+    ? Boolean(capacitorBridge.isNativePlatform())
+    : platform === "android";
+  return nativeRuntime && platform === "android";
+}
+
+function getAndroidNotificationPlugin() {
+  if (!isCapacitorAndroidRuntime()) {
+    return null;
+  }
+  const capacitorBridge = getCapacitorBridge();
+  const plugin = capacitorBridge?.Plugins?.LocalNotifications;
+  if (
+    plugin
+    && typeof plugin.schedule === "function"
+    && typeof plugin.checkPermissions === "function"
+    && typeof plugin.requestPermissions === "function"
+  ) {
+    return plugin;
+  }
+  return null;
+}
+
+function hasAndroidNotificationBridge() {
+  return Boolean(getAndroidNotificationPlugin());
+}
+
+function getNotificationPlatformLabel() {
+  if (hasDesktopNotificationBridge()) {
+    return "Desktop";
+  }
+  if (hasAndroidNotificationBridge()) {
+    return "Android";
+  }
+  return "Windows";
 }
 
 function isLikelySmartphoneBrowser() {
@@ -3068,15 +3245,37 @@ function supportsWindowsSystemNotifications() {
   if (hasDesktopNotificationBridge()) {
     return true;
   }
+  if (hasAndroidNotificationBridge()) {
+    return true;
+  }
   return typeof window !== "undefined" && typeof Notification !== "undefined";
 }
 
 function normalizeNotificationPermission(permissionRaw) {
   const permission = String(permissionRaw || "default").toLowerCase().trim();
+  if (permission === "prompt" || permission === "prompt-with-rationale") {
+    return "default";
+  }
+  if (permission === "unsupported") {
+    return "unsupported";
+  }
   if (permission === "granted" || permission === "denied" || permission === "default") {
     return permission;
   }
   return "default";
+}
+
+async function getAndroidNotificationPermission() {
+  const plugin = getAndroidNotificationPlugin();
+  if (!plugin) {
+    return "unsupported";
+  }
+  try {
+    const status = await plugin.checkPermissions();
+    return normalizeNotificationPermission(status?.display);
+  } catch {
+    return "default";
+  }
 }
 
 function getCurrentNotificationPermission() {
@@ -3085,6 +3284,9 @@ function getCurrentNotificationPermission() {
   }
   if (hasDesktopNotificationBridge()) {
     return "granted";
+  }
+  if (hasAndroidNotificationBridge()) {
+    return normalizeNotificationPermission(state.windowsNotifications?.permission || "default");
   }
   return normalizeNotificationPermission(Notification.permission);
 }
@@ -3122,30 +3324,42 @@ function refreshWindowsNotificationButtonUi() {
   const enabled = Boolean(state.windowsNotifications?.enabled);
 
   const viaDesktop = hasDesktopNotificationBridge();
-  let label = viaDesktop ? "Notifs Desktop" : "Notifs Windows";
+  const viaAndroid = hasAndroidNotificationBridge();
+  const platformLabel = viaDesktop ? "Desktop" : viaAndroid ? "Android" : "Windows";
+  let label = viaDesktop ? "Notifs Desktop" : viaAndroid ? "Notifs Android" : "Notifs Windows";
   let title = viaDesktop
     ? "Notifications desktop actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
-    : "Notifs système Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+    : viaAndroid
+      ? "Notifs systeme Android pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
+      : "Notifs systeme Windows pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   if (!supported) {
-    label = "Notifs non supportées";
+    label = "Notifs non supportees";
     title = viaDesktop
       ? "Le bridge desktop ne supporte pas les notifications."
-      : "Ce navigateur ne supporte pas l'API Notification.";
+      : viaAndroid
+        ? "Le bridge Capacitor LocalNotifications est indisponible."
+        : "Ce navigateur ne supporte pas l'API Notification.";
   } else if (permission === "denied") {
-    label = "Notifs bloquées";
+    label = "Notifs bloquees";
     title = viaDesktop
       ? "Les notifications desktop sont bloquees."
-      : "Autorise les notifications dans les réglages du navigateur.";
+      : viaAndroid
+        ? "Autorise les notifications Android pour cette application."
+        : "Autorise les notifications dans les reglages du navigateur.";
   } else if (enabled) {
-    label = viaDesktop ? "Notifs Desktop ON" : "Notifs Windows ON";
+    label = `Notifs ${platformLabel} ON`;
     title = viaDesktop
       ? "Notifications desktop actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
-      : "Notifications système actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
+      : viaAndroid
+        ? "Notifications Android actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan."
+        : "Notifications systeme actives pour les shiny et le stock vide quand le jeu n'est plus au premier plan.";
   } else {
     label = "Activer notifs";
     title = viaDesktop
       ? "Clique pour activer les notifications desktop hors premier plan."
-      : "Clique pour activer les notifications système hors premier plan.";
+      : viaAndroid
+        ? "Clique pour activer les notifications Android hors premier plan."
+        : "Clique pour activer les notifications systeme hors premier plan.";
   }
 
   windowsNotificationButtonEl.setAttribute("aria-pressed", enabled ? "true" : "false");
@@ -3171,8 +3385,25 @@ function syncWindowsNotificationStateFromEnvironment() {
   refreshWindowsNotificationButtonUi();
 }
 
-function initializeWindowsNotificationSystem() {
+async function syncWindowsNotificationStateFromEnvironmentAsync() {
+  if (hasAndroidNotificationBridge()) {
+    const permission = await getAndroidNotificationPermission();
+    const storedPreference = readWindowsNotificationPreference();
+    state.windowsNotifications.supported = true;
+    state.windowsNotifications.permission = permission;
+    if (permission !== "granted") {
+      state.windowsNotifications.enabled = false;
+    } else {
+      state.windowsNotifications.enabled = storedPreference == null ? true : Boolean(storedPreference);
+    }
+    refreshWindowsNotificationButtonUi();
+    return;
+  }
   syncWindowsNotificationStateFromEnvironment();
+}
+
+async function initializeWindowsNotificationSystem() {
+  await syncWindowsNotificationStateFromEnvironmentAsync();
 }
 
 async function requestWindowsNotificationPermission() {
@@ -3181,6 +3412,22 @@ async function requestWindowsNotificationPermission() {
   }
   if (hasDesktopNotificationBridge()) {
     return "granted";
+  }
+  if (hasAndroidNotificationBridge()) {
+    const plugin = getAndroidNotificationPlugin();
+    if (!plugin) {
+      return "unsupported";
+    }
+    try {
+      const current = normalizeNotificationPermission((await plugin.checkPermissions())?.display);
+      if (current !== "default") {
+        return current;
+      }
+      const requested = await plugin.requestPermissions();
+      return normalizeNotificationPermission(requested?.display);
+    } catch {
+      return getCurrentNotificationPermission();
+    }
   }
   const permissionBefore = getCurrentNotificationPermission();
   if (permissionBefore !== "default") {
@@ -3202,8 +3449,11 @@ function disableWindowsNotificationSystem() {
 
 async function enableWindowsNotificationSystem() {
   if (!supportsWindowsSystemNotifications()) {
-    syncWindowsNotificationStateFromEnvironment();
+    await syncWindowsNotificationStateFromEnvironmentAsync();
     return { enabled: false, permission: "unsupported" };
+  }
+  if (hasAndroidNotificationBridge()) {
+    await syncWindowsNotificationStateFromEnvironmentAsync();
   }
   let permission = getCurrentNotificationPermission();
   if (permission === "default") {
@@ -3223,27 +3473,48 @@ async function enableWindowsNotificationSystem() {
 }
 
 async function toggleWindowsNotificationSystemFromButton() {
-  syncWindowsNotificationStateFromEnvironment();
+  await syncWindowsNotificationStateFromEnvironmentAsync();
+  const platformLabel = getNotificationPlatformLabel();
   if (!state.windowsNotifications.supported) {
-    setTopMessage("Notifications Windows indisponibles sur ce navigateur.", 2000);
+    setTopMessage(`Notifications ${platformLabel} indisponibles sur cette plateforme.`, 2200);
     return;
   }
   if (state.windowsNotifications.enabled) {
     disableWindowsNotificationSystem();
-    setTopMessage("Notifications Windows désactivées.", 1700);
+    setTopMessage(`Notifications ${platformLabel} desactivees.`, 1700);
     return;
   }
 
   const result = await enableWindowsNotificationSystem();
   if (result.enabled) {
-    setTopMessage("Notifications Windows activées.", 1800);
+    setTopMessage(`Notifications ${platformLabel} activees.`, 1800);
     return;
   }
   if (result.permission === "denied") {
-    setTopMessage("Notifications bloquées. Autorise-les dans le navigateur.", 2600);
+    if (platformLabel === "Android") {
+      setTopMessage("Notifications bloquees. Autorise-les dans les reglages Android.", 2800);
+    } else {
+      setTopMessage("Notifications bloquees. Autorise-les dans le navigateur.", 2600);
+    }
     return;
   }
-  setTopMessage("Permission de notification non accordée.", 1800);
+  setTopMessage("Permission de notification non accordee.", 1800);
+}
+
+function allocateAndroidNotificationId(tagRaw = "") {
+  const tag = String(tagRaw || "").trim();
+  if (tag) {
+    const existing = androidNotificationIdByTag.get(tag);
+    if (Number.isInteger(existing) && existing > 0) {
+      return existing;
+    }
+  }
+  const id = nextAndroidNotificationId;
+  nextAndroidNotificationId = nextAndroidNotificationId >= 2147483000 ? 10000 : nextAndroidNotificationId + 1;
+  if (tag) {
+    androidNotificationIdByTag.set(tag, id);
+  }
+  return id;
 }
 
 function sendWindowsSystemNotification(title, body, options = {}) {
@@ -3251,7 +3522,7 @@ function sendWindowsSystemNotification(title, body, options = {}) {
     return false;
   }
   const currentPermission = getCurrentNotificationPermission();
-  if (currentPermission !== state.windowsNotifications.permission) {
+  if (currentPermission !== state.windowsNotifications.permission && !hasAndroidNotificationBridge()) {
     syncWindowsNotificationStateFromEnvironment();
   }
   if (!state.windowsNotifications.enabled || state.windowsNotifications.permission !== "granted") {
@@ -3280,6 +3551,32 @@ function sendWindowsSystemNotification(title, body, options = {}) {
       return false;
     }
   }
+  if (hasAndroidNotificationBridge()) {
+    const plugin = getAndroidNotificationPlugin();
+    if (!plugin) {
+      return false;
+    }
+    const tag = options.tag ? String(options.tag) : "";
+    const notificationId = allocateAndroidNotificationId(tag);
+    try {
+      void plugin.schedule({
+        notifications: [
+          {
+            id: notificationId,
+            title: safeTitle,
+            body: safeBody,
+            schedule: {
+              at: new Date(Date.now() + 80),
+            },
+            extra: tag ? { tag } : undefined,
+          },
+        ],
+      }).catch(() => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }
   try {
     const notification = new Notification(safeTitle, {
       body: safeBody,
@@ -3299,7 +3596,6 @@ function sendWindowsSystemNotification(title, body, options = {}) {
     return false;
   }
 }
-
 function isGamePageVisibleAndFocused() {
   if (typeof document === "undefined") {
     return false;
@@ -3465,7 +3761,7 @@ function getNotificationPokemonSpritePath(item) {
     ultraShinyVisual: forceUltraShiny,
   });
   const def = state.pokemonDefsById.get(pokemonId);
-  const fallbackShinyPath = forceShiny ? appearance?.variant?.frontShinyPath || def?.shinySpritePath || "" : "";
+  const fallbackShinyPath = forceShiny ? getVariantShinySpritePath(def, appearance?.variant) : "";
   const fallbackNormalPath = appearance?.variant?.frontPath || def?.spritePath || "";
   return String(appearance?.spritePath || fallbackShinyPath || fallbackNormalPath || "").trim();
 }
@@ -4632,7 +4928,10 @@ function getPokemonSpriteCommonPpuMultiplier(source) {
   const sourcePixels = Math.max(1, getSpriteSourceMaxPixelDimension(source));
   const commonPpu = Math.max(1, toSafeInt(POKEMON_SPRITE_COMMON_PPU, 64));
   const raw = sourcePixels / commonPpu;
-  return clamp(raw, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX);
+  // Keep pixel density coherent: lower-res sources render a bit smaller.
+  // We do not upscale higher-res sources to avoid blowing up sprite occupancy.
+  const normalized = raw >= 1 ? 1 : raw;
+  return clamp(normalized, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN, POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX);
 }
 
 function getPokemonSpriteRenderSize(entity, size, source = null) {
@@ -4746,11 +5045,40 @@ async function ensureSpriteImageLoaded(imagePath) {
   return loadedImage;
 }
 
+function canFallbackToDefaultShinyForVariant(def, variant) {
+  if (!def) {
+    return false;
+  }
+  if (!variant) {
+    return true;
+  }
+  const variantId = String(variant.id || "").trim();
+  if (!variantId) {
+    return true;
+  }
+  const defaultVariantId = String(getDefaultSpriteVariantId(def) || "").trim();
+  if (!defaultVariantId) {
+    return true;
+  }
+  return variantId === defaultVariantId;
+}
+
+function getVariantShinySpritePath(def, variant) {
+  const variantShinyPath = String(variant?.frontShinyPath || "").trim();
+  if (variantShinyPath) {
+    return variantShinyPath;
+  }
+  if (!canFallbackToDefaultShinyForVariant(def, variant)) {
+    return "";
+  }
+  return String(def?.shinySpritePath || "").trim();
+}
+
 async function ensureVariantAppearanceAssetsLoaded(def, variant, options = {}) {
   const includeShiny = options.includeShiny === true;
   const paths = [variant?.frontPath || def?.spritePath || ""];
   if (includeShiny) {
-    paths.push(variant?.frontShinyPath || def?.shinySpritePath || "");
+    paths.push(getVariantShinySpritePath(def, variant));
   }
   const uniquePaths = Array.from(new Set(paths.filter(Boolean)));
   await Promise.all(uniquePaths.map((imagePath) => ensureSpriteImageLoaded(imagePath)));
@@ -7169,6 +7497,7 @@ function incrementSpeciesStat(pokemonId, kind, isShiny, amount = 1, options = {}
   if (state.ui.pokedexOpen) {
     queuePokedexGridRender();
   }
+  refreshRouteUi();
 }
 function buildOrderedCatalogRouteIds(routeCatalog = state.routeCatalog) {
   const availableRouteIds = routeCatalog?.size > 0 ? Array.from(routeCatalog.keys()) : ROUTE_ID_ORDER;
@@ -7908,11 +8237,14 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
         || (respectAppearanceShinyMode && record?.appearance_shiny_mode && shinyUnlocked),
       );
   const ultraShinyVisual = Boolean(ultraShinyModeRequested);
-  const shinyPath = variant?.frontShinyPath || def.shinySpritePath || "";
+  const shinyPath = getVariantShinySpritePath(def, variant);
   const canRenderShiny = shinyModeRequested && Boolean(shinyPath);
   const resolvedPath = canRenderShiny ? shinyPath : normalPath;
 
-  const fallbackImage = canRenderShiny ? def.spriteShinyImage || def.spriteImage : def.spriteImage;
+  const normalCachedImage = normalPath ? getCachedSpriteImage(normalPath) : null;
+  const fallbackImage = canRenderShiny
+    ? def.spriteShinyImage || normalCachedImage || def.spriteImage
+    : normalCachedImage || def.spriteImage;
   const cachedImage = resolvedPath ? getCachedSpriteImage(resolvedPath) : null;
   const resolvedImage = isDrawableImage(cachedImage) ? cachedImage : fallbackImage;
 
@@ -8001,8 +8333,12 @@ function syncActiveEnemyAppearance() {
     respectAppearanceShinyMode: false,
     respectAppearanceUltraShinyMode: false,
   });
-  const fallbackPath = shinyVisual ? def?.shinySpritePath || def?.spritePath || "" : def?.spritePath || "";
-  const fallbackImage = shinyVisual ? def?.spriteShinyImage || def?.spriteImage || null : def?.spriteImage || null;
+  const fallbackShinyPath = shinyVisual ? getVariantShinySpritePath(def, appearance?.variant) : "";
+  const fallbackPath = fallbackShinyPath || def?.spritePath || "";
+  const fallbackImage =
+    fallbackShinyPath && shinyVisual
+      ? def?.spriteShinyImage || def?.spriteImage || null
+      : def?.spriteImage || null;
 
   enemy.spritePath = appearance.spritePath || fallbackPath || enemy.spritePath || "";
   enemy.spriteImage = appearance.spriteImage || fallbackImage || enemy.spriteImage || null;
@@ -9045,7 +9381,7 @@ function renderEvolutionItemChoiceModal() {
     row.appendChild(createEvolutionItemChoiceMonElement(entry.fromId, entry.fromNameFr, { silhouette: false }));
     const arrow = document.createElement("div");
     arrow.className = "evolution-item-choice-arrow";
-    arrow.textContent = "→";
+    arrow.textContent = "\u2192";
     row.appendChild(arrow);
     row.appendChild(createEvolutionItemChoiceMonElement(entry.toId, entry.toNameFr, { silhouette: true }));
     button.appendChild(row);
@@ -10509,6 +10845,7 @@ class PokemonBattleManager {
     onEnemyDefeated,
     getEnemyTimerConfig,
     onEnemyTimerExpired,
+    canTeamAttack,
   }) {
     this.team = Array.isArray(team) ? team : [];
     this.attackIntervalMs = attackIntervalMs;
@@ -10522,6 +10859,7 @@ class PokemonBattleManager {
         ? getEnemyTimerConfig
         : () => ({ enabled: false, style: ENEMY_TIMER_STYLE_ROUTE });
     this.onEnemyTimerExpired = typeof onEnemyTimerExpired === "function" ? onEnemyTimerExpired : () => {};
+    this.canTeamAttack = typeof canTeamAttack === "function" ? canTeamAttack : () => true;
     this.turnIndex = 0;
     this.projectiles = [];
     this.floatingTexts = [];
@@ -10576,6 +10914,14 @@ class PokemonBattleManager {
       this.attackTimerMs = nextInterval * remainingRatio;
     }
     this.attackIntervalMs = nextInterval;
+  }
+
+  resetTurnOrder(startSlotIndex = 0, options = {}) {
+    const normalizedStartIndex = clamp(toSafeInt(startSlotIndex, 0), 0, MAX_TEAM_SIZE - 1);
+    this.turnIndex = normalizedStartIndex;
+    if (options?.resetAttackTimer !== false) {
+      this.attackTimerMs = Math.max(1, this.getEffectiveAttackIntervalMs());
+    }
   }
 
   syncTeam(team) {
@@ -10979,9 +11325,14 @@ class PokemonBattleManager {
       enemy: this.enemy,
     });
     const talentId = normalizeTalentId(decision.talentId || attacker?.talent?.id || TALENT_NONE_ID);
+    const safeSkipAction = typeof TURN_ACTION_SKIP === "string" ? TURN_ACTION_SKIP : "skip";
+    const baseAction = decision.action === TURN_ACTION_ATTACK ? TURN_ACTION_ATTACK : safeSkipAction;
+    const attackBlockedByZone = baseAction === TURN_ACTION_ATTACK && !this.canTeamAttack();
+    const action = attackBlockedByZone ? safeSkipAction : baseAction;
+    const reason = attackBlockedByZone ? "zone_no_attack" : decision.reason;
     return {
-      action: decision.action,
-      reason: decision.reason,
+      action,
+      reason,
       talentId,
       passiveBehaviorId: String(decision.passiveBehaviorId || getPassiveBehaviorIdForTalentId(talentId)),
     };
@@ -13380,6 +13731,13 @@ function handleEnemySpawn(enemy) {
 }
 
 function getEnemyTimerConfigForBattle(enemy = null) {
+  if (!isCurrentRouteCombatEnabled()) {
+    return {
+      enabled: false,
+      durationMs: 0,
+      style: ENEMY_TIMER_STYLE_ROUTE,
+    };
+  }
   if (isOnlyOneEncounterEnemy(enemy)) {
     return {
       enabled: true,
@@ -13632,6 +13990,7 @@ function startBattle() {
     onEnemyDefeated: handleEnemyDefeated,
     getEnemyTimerConfig: (enemy) => getEnemyTimerConfigForBattle(enemy),
     onEnemyTimerExpired: handleEnemyTimerExpired,
+    canTeamAttack: () => isCurrentRouteCombatEnabled(),
   });
   state.enemy = state.battle.getEnemy();
 }
@@ -13671,6 +14030,168 @@ function isRouteUnlocked(routeId) {
   return getOrderedUnlockedRouteIds().includes(id);
 }
 
+function getRouteEncounterSpeciesIds(routeInput = null) {
+  const routeData =
+    routeInput && typeof routeInput === "object"
+      ? routeInput
+      : getRouteDataById(routeInput || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID) ||
+        state.routeData;
+  const unlockedEncounters = getUnlockedEncountersForRoute(routeData);
+  const ids = [];
+  for (const encounter of unlockedEncounters) {
+    const id = Number(encounter?.id || 0);
+    if (id > 0 && !ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+function hasExactShinyCaptureForSpecies(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return false;
+  }
+  const record = getPokemonEntityRecord(id);
+  return Math.max(0, toSafeInt(record?.captured_shiny, 0)) > 0;
+}
+
+function hasExactUltraShinyCaptureForSpecies(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return false;
+  }
+  const record = getPokemonEntityRecord(id);
+  return Math.max(0, toSafeInt(record?.captured_ultra_shiny, 0)) > 0;
+}
+
+function getRouteCollectionBadgeState(routeInput = null) {
+  const speciesIds = getRouteEncounterSpeciesIds(routeInput);
+  if (speciesIds.length <= 0) {
+    return {
+      hasEncounterSpecies: false,
+      familyOwnedAll: false,
+      ownedAll: false,
+      familyShinyAll: false,
+      familyUltraAll: false,
+      ownedShinyAll: false,
+      ownedUltraAll: false,
+    };
+  }
+
+  let familyOwnedAll = true;
+  let ownedAll = true;
+  let familyShinyAll = true;
+  let familyUltraAll = true;
+  let ownedShinyAll = true;
+  let ownedUltraAll = true;
+
+  for (const pokemonId of speciesIds) {
+    if (!isEvolutionFamilyOwned(pokemonId)) {
+      familyOwnedAll = false;
+    }
+    if (!isPokemonEntityUnlockedById(pokemonId)) {
+      ownedAll = false;
+    }
+    if (getFamilyShinyCaptureCount(pokemonId) <= 0) {
+      familyShinyAll = false;
+    }
+    if (getFamilyUltraShinyCaptureCount(pokemonId) <= 0) {
+      familyUltraAll = false;
+    }
+    if (!hasExactShinyCaptureForSpecies(pokemonId)) {
+      ownedShinyAll = false;
+    }
+    if (!hasExactUltraShinyCaptureForSpecies(pokemonId)) {
+      ownedUltraAll = false;
+    }
+  }
+
+  return {
+    hasEncounterSpecies: true,
+    familyOwnedAll,
+    ownedAll,
+    familyShinyAll,
+    familyUltraAll,
+    ownedShinyAll,
+    ownedUltraAll,
+  };
+}
+
+function buildRouteNameStatusGroups(stateByRoute = null) {
+  const badgeState = stateByRoute || getRouteCollectionBadgeState();
+  const groups = [];
+  if (!badgeState.hasEncounterSpecies) {
+    return groups;
+  }
+  if (badgeState.familyOwnedAll) {
+    groups.push({
+      kind: "family",
+      ballTitle: "Familles de la zone: au moins une capture possedee pour chaque famille evolutive.",
+      shiny: badgeState.familyShinyAll,
+      ultra: badgeState.familyUltraAll,
+    });
+  }
+  if (badgeState.ownedAll) {
+    groups.push({
+      kind: "owned",
+      ballTitle: "Zone complete: toutes les especes de la zone sont possedees.",
+      shiny: badgeState.ownedShinyAll,
+      ultra: badgeState.ownedUltraAll,
+    });
+  }
+  return groups;
+}
+
+function buildRouteCurrentLabelFragment(routeName, groups = []) {
+  const fragment = document.createDocumentFragment();
+  const nameEl = document.createElement("span");
+  nameEl.className = "route-nav-current-name";
+  nameEl.textContent = String(routeName || "");
+  fragment.appendChild(nameEl);
+
+  if (!Array.isArray(groups) || groups.length <= 0) {
+    return fragment;
+  }
+
+  const statusesEl = document.createElement("span");
+  statusesEl.className = "route-nav-current-statuses";
+  for (const group of groups) {
+    const groupEl = document.createElement("span");
+    groupEl.className = "route-nav-status-group";
+
+    const ballEl = document.createElement("span");
+    ballEl.className = "route-nav-status-ball";
+    ballEl.title = String(group?.ballTitle || "Progression de collection");
+    groupEl.appendChild(ballEl);
+
+    if (group?.shiny) {
+      const shinyEl = document.createElement("span");
+      shinyEl.className = "boxes-mode-badge boxes-mode-badge-shiny route-nav-status-badge";
+      shinyEl.textContent = "\u2726";
+      shinyEl.title =
+        group?.kind === "family"
+          ? "Shiny famille complet sur la zone."
+          : "Shiny complet sur toutes les especes de la zone.";
+      groupEl.appendChild(shinyEl);
+    }
+    if (group?.ultra) {
+      const ultraEl = document.createElement("span");
+      ultraEl.className = "boxes-mode-badge boxes-mode-badge-ultra route-nav-status-badge";
+      ultraEl.textContent = "\u2726";
+      ultraEl.title =
+        group?.kind === "family"
+          ? "Ultra shiny famille complet sur la zone."
+          : "Ultra shiny complet sur toutes les especes de la zone.";
+      groupEl.appendChild(ultraEl);
+    }
+
+    statusesEl.appendChild(groupEl);
+  }
+  fragment.appendChild(statusesEl);
+  return fragment;
+}
+
 function refreshRouteUi() {
   const hasCatalog = state.routeCatalog?.size > 0;
   const orderedRoutes = getOrderedCatalogRouteIds();
@@ -13707,7 +14228,8 @@ function refreshRouteUi() {
   }
 
   if (routeNavCurrentEl) {
-    routeNavCurrentEl.textContent = currentRouteName;
+    const statusGroups = buildRouteNameStatusGroups(getRouteCollectionBadgeState(currentRouteId));
+    routeNavCurrentEl.replaceChildren(buildRouteCurrentLabelFragment(currentRouteName, statusGroups));
   }
   if (routeNavProgressEl) {
     routeNavProgressEl.textContent = "";
@@ -13754,10 +14276,18 @@ function applyRouteChange(routeId, options = {}) {
     if (!state.battle) {
       startBattle();
     } else {
+      state.battle.resetTurnOrder(0, { resetAttackTimer: true });
       state.battle.spawnEnemy();
       state.enemy = state.battle.getEnemy();
     }
   } else {
+    if (state.battle) {
+      state.battle.clearProjectiles();
+      state.battle.clearFloatingTexts();
+      state.battle.resetCombatVisualTweens();
+      state.battle.resetQueuedAttackState();
+      state.battle.resetEnemyTimer();
+    }
     state.battle = null;
     state.enemy = null;
     hideHoverPopup();
@@ -13896,11 +14426,19 @@ function hasPendingFirstFreePokeballPurchase() {
   return Boolean(state.saveData && !state.saveData.first_free_pokeball_claimed);
 }
 
+function isFirstFreePokeballPurchaseEligible(itemOrPrice) {
+  if (!hasPendingFirstFreePokeballPurchase() || !itemOrPrice || typeof itemOrPrice !== "object") {
+    return false;
+  }
+  const ballType = String(itemOrPrice.ballType || itemOrPrice.type || "").toLowerCase().trim();
+  return ballType === "poke_ball";
+}
+
 function getShopBallPurchasePricing(itemOrPrice, quantity) {
   const unitPrice = getShopBallUnitPrice(itemOrPrice);
   const remainingCapacity = getShopBallRemainingCapacity(itemOrPrice);
   const requestedQuantity = Math.min(Math.max(0, toSafeInt(quantity, 0)), remainingCapacity);
-  const freeQuantity = hasPendingFirstFreePokeballPurchase() ? Math.min(1, requestedQuantity) : 0;
+  const freeQuantity = isFirstFreePokeballPurchaseEligible(itemOrPrice) ? Math.min(1, requestedQuantity) : 0;
   const paidQuantity = Math.max(0, requestedQuantity - freeQuantity);
   const totalCost = Math.max(0, unitPrice * paidQuantity);
   return {
@@ -13937,11 +14475,11 @@ function getMaxAffordableShopBallQuantity(itemOrPrice) {
   }
   const currentMoney = Math.max(0, toSafeInt(state.saveData?.money, 0));
   if (unitPrice <= 0) {
-    const bonusQuantity = hasPendingFirstFreePokeballPurchase() ? 1 : 0;
+    const bonusQuantity = isFirstFreePokeballPurchaseEligible(itemOrPrice) ? 1 : 0;
     return Math.max(0, Math.min(remainingCapacity, bonusQuantity));
   }
   const paidQuantity = currentMoney < unitPrice ? 0 : Math.max(0, Math.floor(currentMoney / unitPrice));
-  const bonusQuantity = hasPendingFirstFreePokeballPurchase() ? 1 : 0;
+  const bonusQuantity = isFirstFreePokeballPurchaseEligible(itemOrPrice) ? 1 : 0;
   return Math.max(0, Math.min(remainingCapacity, paidQuantity + bonusQuantity));
 }
 
@@ -15053,7 +15591,7 @@ async function warmupDefinitionsForCurrentExtendedRange() {
   })()
     .catch((error) => {
       console.warn(
-        "Impossible de precharger les definitions Pokédex/Gacha etendu:",
+        "Impossible de précharger les définitions Pokédex/Gacha étendu:",
         error instanceof Error ? error.message : String(error || ""),
       );
     })
@@ -15688,7 +16226,14 @@ function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY
   if (count <= 0) {
     return positions;
   }
-  const steps = count === 1 ? [0] : [-1, 0, 1].slice(0, count);
+  const steps = [];
+  if (count === 1) {
+    steps.push(0);
+  } else {
+    for (let i = 0; i < count; i += 1) {
+      steps.push((i / (count - 1)) * 2 - 1);
+    }
+  }
   for (let i = 0; i < count; i += 1) {
     const t = steps[i] ?? 0;
     if (axis === "x") {
@@ -15759,172 +16304,83 @@ function computeLayout() {
   const teamHudWidth = clamp(
     teamHudBaseWidth * teamHudScale,
     64,
-    useSplitRows ? 106 : 172,
+    useSplitRows ? 86 : 172,
   );
   const teamHudHeight = clamp(
     teamHudBaseHeight * teamHudScale,
-    28,
-    useSplitRows ? 42 : 66,
+    24,
+    useSplitRows ? 34 : 66,
   );
   const teamTypeChipHeight = clamp(teamSize * 0.17, 11, 18);
   const cardMargin = 6;
   const teamSlots = [];
 
-  if (useSplitRows) {
-    const rowInsetY = clamp(playHeight * 0.24, teamSize * 1.55, playHeight * 0.33);
-    const topGroupY = clamp(
-      playTop + rowInsetY,
-      playTop + teamSize * 0.9,
-      playTop + playHeight * 0.42,
-    );
-    const bottomGroupY = clamp(
-      playBottom - rowInsetY,
-      playTop + playHeight * 0.58,
-      playBottom - teamSize * 0.9,
-    );
-    centerY = clamp(
-      (topGroupY + bottomGroupY) * 0.5,
-      playTop + enemySize * 0.88,
-      playBottom - enemySize * 0.88,
-    );
-    const spreadX = clamp(playWidth * 0.255, teamSize * 1.45, teamSize * 2.2);
-    const arcDepth = clamp(playHeight * 0.055, teamSize * 0.22, teamSize * 0.58);
+  centerY = clamp(
+    playTop + playHeight * (useSplitRows ? 0.64 : profile.compact ? 0.62 : 0.6),
+    playTop + enemySize * 1.02,
+    playBottom - enemySize * 0.9,
+  );
 
-    const topSlots = buildArcSlotPositions({
-      count: 3,
-      axis: "x",
-      spreadMain: spreadX,
-      arcDepth: -arcDepth,
-      baseX: centerX,
-      baseY: topGroupY,
+  const slotBoundsLeft = playLeft + teamSize * 0.6;
+  const slotBoundsRight = playRight - teamSize * 0.6;
+  const slotBoundsTop = playTop + teamSize * 0.56;
+  const slotBoundsBottom = centerY - enemySize * 0.58;
+  const arcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
+  const arcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
+  const arcStart = (arcStartDeg * Math.PI) / 180;
+  const arcEnd = (arcEndDeg * Math.PI) / 180;
+  const arcSpan = Math.max(0.01, arcEnd - arcStart);
+  const arcStartCosAbs = Math.max(0.001, Math.abs(Math.cos(arcStart)));
+  const arcEndCosAbs = Math.max(0.001, Math.abs(Math.cos(arcEnd)));
+  const arcEdgeSinAbs = Math.max(0.001, Math.abs(Math.sin(arcStart)));
+  const radiusMaxByLeft = Math.max(0, (centerX - slotBoundsLeft) / arcStartCosAbs);
+  const radiusMaxByRight = Math.max(0, (slotBoundsRight - centerX) / arcEndCosAbs);
+  const radiusMaxByTop = Math.max(0, centerY - slotBoundsTop);
+  const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));
+  const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);
+  const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);
+  const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5);
+  const slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);
+
+  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+    const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);
+    const angle = arcStart + arcSpan * t;
+    const x = centerX + Math.cos(angle) * slotRadius;
+    const y = centerY + Math.sin(angle) * slotRadius;
+    const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);
+    const centerProximity = 1 - Math.abs(2 * t - 1);
+    const dirY = 1;
+    let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14));
+    const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58);
+    let hudCenterY = y + (
+      teamSize * (useSplitRows ? 0.86 : 0.82)
+      + teamHudHeight * (useSplitRows ? 0.44 : 0.42)
+      + radialDepthOffset
+    );
+    hudCenterX = clamp(
+      hudCenterX,
+      playLeft + teamHudWidth * 0.5 + cardMargin,
+      playRight - teamHudWidth * 0.5 - cardMargin,
+    );
+    hudCenterY = clamp(
+      hudCenterY,
+      playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+      Math.min(playBottom - teamHudHeight * 0.5 - cardMargin, centerY - enemySize * 0.12),
+    );
+    const cardTopY = hudCenterY - teamHudHeight * 0.5;
+    teamSlots.push({
+      x,
+      y,
+      size: teamSize,
+      hudCenterX,
+      hudCenterY,
+      hudTopY: cardTopY,
+      hudWidth: teamHudWidth,
+      hudHeight: teamHudHeight,
+      hudTypeChipHeight: teamTypeChipHeight,
+      hudDirectionX: dirX,
+      hudDirectionY: dirY,
     });
-    const bottomSlots = buildArcSlotPositions({
-      count: 3,
-      axis: "x",
-      spreadMain: spreadX,
-      arcDepth,
-      baseX: centerX,
-      baseY: bottomGroupY,
-    });
-    const clockwisePortraitPlacement = [
-      { row: "top", index: 0 },
-      { row: "top", index: 1 },
-      { row: "top", index: 2 },
-      { row: "bottom", index: 2 },
-      { row: "bottom", index: 1 },
-      { row: "bottom", index: 0 },
-    ];
-    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-      const placement = clockwisePortraitPlacement[i] || { row: "top", index: 1 };
-      const isTopRow = placement.row === "top";
-      const source = isTopRow ? topSlots[placement.index] : bottomSlots[placement.index];
-      const x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
-      let y = clamp(source?.y ?? centerY, playTop + teamSize * 0.65, playBottom - teamSize * 0.65);
-      if (isTopRow) {
-        y = Math.min(y, centerY - enemySize * 0.44);
-      } else {
-        y = Math.max(y, centerY + enemySize * 0.44);
-      }
-      const dirX = Math.sign(x - centerX) || (x >= centerX ? 1 : -1);
-      const dirY = isTopRow ? -1 : 1;
-      let hudCenterX = x + dirX * (teamSize * 0.38 + teamHudWidth * 0.28);
-      let hudCenterY = y + dirY * (teamSize * 0.68 + teamHudHeight * 0.62);
-      hudCenterX = clamp(
-        hudCenterX,
-        playLeft + teamHudWidth * 0.5 + cardMargin,
-        playRight - teamHudWidth * 0.5 - cardMargin,
-      );
-      hudCenterY = clamp(
-        hudCenterY,
-        playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
-        playBottom - teamHudHeight * 0.5 - cardMargin,
-      );
-      const cardTopY = hudCenterY - teamHudHeight * 0.5;
-      teamSlots.push({
-        x,
-        y,
-        size: teamSize,
-        hudCenterX,
-        hudCenterY,
-        hudTopY: cardTopY,
-        hudWidth: teamHudWidth,
-        hudHeight: teamHudHeight,
-        hudTypeChipHeight: teamTypeChipHeight,
-        hudDirectionX: dirX,
-        hudDirectionY: dirY,
-      });
-    }
-  } else {
-    centerY = playTop + playHeight * 0.5;
-    const spreadY = clamp(playHeight * 0.22, teamSize * 1.38, teamSize * 1.96);
-    const arcDepth = clamp(playWidth * 0.055, teamSize * 0.24, teamSize * 0.66);
-    const sideOffset = clamp(enemySize * 1.18 + teamSize * 0.44, teamSize * 1.72, playWidth * 0.3);
-    const leftX = centerX - sideOffset;
-    const rightX = centerX + sideOffset;
-    const leftSlots = buildArcSlotPositions({
-      count: 3,
-      axis: "y",
-      spreadMain: spreadY,
-      arcDepth: -arcDepth,
-      baseX: leftX,
-      baseY: centerY,
-    });
-    const rightSlots = buildArcSlotPositions({
-      count: 3,
-      axis: "y",
-      spreadMain: spreadY,
-      arcDepth,
-      baseX: rightX,
-      baseY: centerY,
-    });
-    const clockwiseLandscapePlacement = [
-      { side: "left", index: 0 },
-      { side: "right", index: 0 },
-      { side: "right", index: 1 },
-      { side: "right", index: 2 },
-      { side: "left", index: 2 },
-      { side: "left", index: 1 },
-    ];
-    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-      const placement = clockwiseLandscapePlacement[i] || { side: "left", index: 1 };
-      const isLeftSide = placement.side === "left";
-      const source = isLeftSide ? leftSlots[placement.index] : rightSlots[placement.index];
-      let x = clamp(source?.x ?? centerX, playLeft + teamSize * 0.6, playRight - teamSize * 0.6);
-      const y = clamp(source?.y ?? centerY, playTop + teamSize * 0.6, playBottom - teamSize * 0.6);
-      if (isLeftSide) {
-        x = Math.min(x, centerX - enemySize * 0.62);
-      } else {
-        x = Math.max(x, centerX + enemySize * 0.62);
-      }
-      const dirX = isLeftSide ? -1 : 1;
-      const dirY = Math.sign(y - centerY);
-      let hudCenterX = x + dirX * (teamSize * 0.85 + teamHudWidth * 0.54);
-      let hudCenterY = y + dirY * (teamSize * 0.18);
-      hudCenterX = clamp(
-        hudCenterX,
-        playLeft + teamHudWidth * 0.5 + cardMargin,
-        playRight - teamHudWidth * 0.5 - cardMargin,
-      );
-      hudCenterY = clamp(
-        hudCenterY,
-        playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
-        playBottom - teamHudHeight * 0.5 - cardMargin,
-      );
-      const cardTopY = hudCenterY - teamHudHeight * 0.5;
-      teamSlots.push({
-        x,
-        y,
-        size: teamSize,
-        hudCenterX,
-        hudCenterY,
-        hudTopY: cardTopY,
-        hudWidth: teamHudWidth,
-        hudHeight: teamHudHeight,
-        hudTypeChipHeight: teamTypeChipHeight,
-        hudDirectionX: dirX,
-        hudDirectionY: dirY,
-      });
-    }
   }
 
   const hpBarWidth = clamp(
@@ -17085,6 +17541,136 @@ function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
   return { size, width: measuredWidth };
 }
 
+function getEnemyOwnershipBadgeState(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return {
+      exactOwned: false,
+      familyOwned: false,
+      exactShiny: false,
+      familyShiny: false,
+      exactUltraShiny: false,
+      familyUltraShiny: false,
+    };
+  }
+
+  const record = getPokemonEntityRecord(id);
+  const exactOwned = isEntityUnlocked(record);
+  const familyOwned = isEvolutionFamilyOwned(id);
+  const exactShiny = Math.max(0, toSafeInt(record?.captured_shiny, 0)) > 0;
+  const familyShiny = getFamilyShinyCaptureCount(id) > 0;
+  const exactUltraShiny = Math.max(0, toSafeInt(record?.captured_ultra_shiny, 0)) > 0;
+  const familyUltraShiny = getFamilyUltraShinyCaptureCount(id) > 0;
+
+  return {
+    exactOwned,
+    familyOwned,
+    exactShiny,
+    familyShiny,
+    exactUltraShiny,
+    familyUltraShiny,
+  };
+}
+
+function buildEnemyOwnershipBadgeList(pokemonId) {
+  const status = getEnemyOwnershipBadgeState(pokemonId);
+  const badges = [];
+  if (status.exactOwned || status.familyOwned) {
+    badges.push({
+      type: "owned",
+      exact: status.exactOwned,
+    });
+  }
+  if (status.exactShiny || status.familyShiny) {
+    badges.push({
+      type: "shiny",
+      exact: status.exactShiny,
+    });
+  }
+  if (status.exactUltraShiny || status.familyUltraShiny) {
+    badges.push({
+      type: "ultra_shiny",
+      exact: status.exactUltraShiny,
+    });
+  }
+  return badges;
+}
+
+function drawEnemyOwnershipBadge(centerX, centerY, size, badge = null) {
+  if (!badge) {
+    return;
+  }
+  const safeSize = clamp(Number(size) || 0, 10, 18);
+  const exact = badge.exact === true;
+
+  if (badge.type === "owned") {
+    drawPokeball(centerX, centerY, safeSize * 0.45, {
+      alpha: exact ? 0.98 : 0.52,
+      ball_type: "poke_ball",
+    });
+    if (!exact) {
+      ctx.save();
+      ctx.fillStyle = "rgba(116, 128, 146, 0.5)";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, safeSize * 0.44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(196, 211, 229, 0.55)";
+      ctx.lineWidth = Math.max(1, safeSize * 0.07);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, safeSize * 0.43, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
+
+  ctx.save();
+  ctx.globalAlpha = exact ? 1 : 0.58;
+  const radius = safeSize * 0.5;
+  const gradient =
+    badge.type === "ultra_shiny"
+      ? ctx.createConicGradient(0, centerX, centerY)
+      : ctx.createRadialGradient(
+          centerX - radius * 0.2,
+          centerY - radius * 0.28,
+          Math.max(0.2, radius * 0.06),
+          centerX,
+          centerY,
+          radius,
+        );
+  if (badge.type === "ultra_shiny") {
+    gradient.addColorStop(0, "#ff4f9b");
+    gradient.addColorStop(1 / 6, "#ff9f3f");
+    gradient.addColorStop(2 / 6, "#ffe24e");
+    gradient.addColorStop(3 / 6, "#55d8ff");
+    gradient.addColorStop(4 / 6, "#7a6dff");
+    gradient.addColorStop(1, "#ff4f9b");
+  } else {
+    gradient.addColorStop(0, "#ffffff");
+    gradient.addColorStop(0.62, "#cedef8");
+    gradient.addColorStop(1, "#93a8cd");
+  }
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(238, 248, 255, 0.62)";
+  ctx.lineWidth = Math.max(1, safeSize * 0.075);
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius - ctx.lineWidth * 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.font = `700 ${Math.max(8, Math.round(safeSize * 0.68))}px "Trebuchet MS", "Verdana", sans-serif`;
+  ctx.lineWidth = Math.max(0.8, safeSize * 0.08);
+  ctx.strokeStyle = "rgba(19, 30, 49, 0.72)";
+  ctx.fillStyle = "#f8fbff";
+  ctx.strokeText("\u2726", centerX, centerY + safeSize * 0.02);
+  ctx.fillText("\u2726", centerX, centerY + safeSize * 0.02);
+  ctx.restore();
+}
 function drawNameAndLevel(entity, centerX, topY, options = {}) {
   if (!entity) {
     return null;
@@ -17105,19 +17691,29 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
   ctx.shadowBlur = 0;
 
   if (enemy) {
+    const ownershipBadges = buildEnemyOwnershipBadgeList(entity.id);
     const horizontalPadding = 12;
     const verticalPadding = 6;
-    const gap = 10;
+    const levelGap = 14;
+    const badgeSize = clamp(levelBaseSize + 1, 10, 15);
+    const badgeGap = 3;
+    const leftBadgeWidth = ownershipBadges.length > 0
+      ? ownershipBadges.length * badgeSize + Math.max(0, ownershipBadges.length - 1) * badgeGap
+      : 0;
+    const badgeNameGap = ownershipBadges.length > 0 ? 7 : 0;
     const levelMetrics = getFittedFontMetrics(levelText, Math.max(34, maxWidth * 0.32), levelBaseSize, 9);
+    const reservedRightWidth = levelMetrics.width + levelGap;
     const nameMetrics = getFittedFontMetrics(
       entity.nameFr,
-      Math.max(48, maxWidth - horizontalPadding * 2 - levelMetrics.width - gap - 8),
+      Math.max(36, maxWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 4),
       nameBaseSize,
       12,
     );
+    const contentWidth = leftBadgeWidth + badgeNameGap + nameMetrics.width + reservedRightWidth;
+    const minCardWidth = Math.max(84, horizontalPadding * 2 + reservedRightWidth + leftBadgeWidth + 18);
     cardWidth = clamp(
-      nameMetrics.width + levelMetrics.width + gap + horizontalPadding * 2 + 6,
-      124,
+      contentWidth + horizontalPadding * 2 + 8,
+      minCardWidth,
       maxWidth,
     );
     cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size) + verticalPadding * 2 + 2);
@@ -17137,11 +17733,22 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     }
 
     const midY = y + cardHeight * 0.57;
+    const contentStartX = x + horizontalPadding;
+
+    if (ownershipBadges.length > 0) {
+      let badgeCenterX = contentStartX + badgeSize * 0.5;
+      for (const badge of ownershipBadges) {
+        drawEnemyOwnershipBadge(badgeCenterX, midY, badgeSize, badge);
+        badgeCenterX += badgeSize + badgeGap;
+      }
+    }
+
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = `700 ${nameMetrics.size}px Tahoma`;
     ctx.fillStyle = "#eef6ff";
-    ctx.fillText(entity.nameFr, x + horizontalPadding, midY);
+    const nameX = contentStartX + leftBadgeWidth + badgeNameGap;
+    ctx.fillText(entity.nameFr, nameX, midY);
 
     ctx.textAlign = "right";
     ctx.font = `700 ${levelMetrics.size}px Tahoma`;
@@ -17199,7 +17806,6 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     bottom: y + cardHeight,
   };
 }
-
 function getEnemyHpDisplayRatios(enemy, targetRatio) {
   const key = `${Number(enemy?.id || 0)}:${Math.max(1, toSafeInt(enemy?.hpMax, 1))}`;
   const hud = state.xpHud;
@@ -20034,8 +20640,8 @@ function drawBattleUiOverlay(layout, options = {}) {
     const isCompactViewport = Boolean(viewportProfile.compact);
     const nameCard = drawNameAndLevel(member, slot.hudCenterX, slot.hudTopY, {
       maxWidth: slot.hudWidth,
-      nameFontSize: isPhoneViewport ? 12 : isCompactViewport ? 15 : 19,
-      levelFontSize: isPhoneViewport ? 9 : isCompactViewport ? 11 : 13,
+      nameFontSize: isPhoneViewport ? 9 : isCompactViewport ? 15 : 19,
+      levelFontSize: isPhoneViewport ? 7 : isCompactViewport ? 11 : 13,
     });
     drawTeamTypeHud(member, i, {
       ...slot,
@@ -21873,35 +22479,6 @@ function bindPokedexVirtualEventsIfNeeded() {
     },
     { passive: true },
   );
-  pokedexGridEl.addEventListener(
-    "wheel",
-    (event) => {
-      if (!state.ui.pokedexOpen || !pokedexGridEl) {
-        return;
-      }
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      const rawDeltaY = Number(event.deltaY || 0);
-      if (!Number.isFinite(rawDeltaY) || rawDeltaY === 0) {
-        return;
-      }
-      const deltaMode = Number(event.deltaMode || 0);
-      let deltaY = rawDeltaY;
-      if (deltaMode === 1) {
-        deltaY *= 18;
-      } else if (deltaMode === 2) {
-        deltaY *= Math.max(1, pokedexGridEl.clientHeight);
-      }
-      const maxScrollTop = Math.max(0, pokedexGridEl.scrollHeight - pokedexGridEl.clientHeight);
-      const nextScrollTop = clamp(pokedexGridEl.scrollTop + deltaY, 0, maxScrollTop);
-      if (nextScrollTop !== pokedexGridEl.scrollTop) {
-        pokedexGridEl.scrollTop = nextScrollTop;
-        queuePokedexViewportRender();
-      }
-    },
-    { passive: false },
-  );
   pokedexVirtualEventsBound = true;
 }
 
@@ -22385,15 +22962,15 @@ function renderBoxesGrid() {
       if (entry.shinyModeUnlocked) {
         const shinyBadge = document.createElement("span");
         shinyBadge.className = "boxes-mode-badge boxes-mode-badge-shiny";
-        shinyBadge.textContent = "✦";
-        shinyBadge.title = "Mode shiny debloque";
+        shinyBadge.textContent = "\u2726";
+        shinyBadge.title = "Mode shiny débloqué";
         badgeRow.appendChild(shinyBadge);
       }
       if (entry.ultraShinyModeUnlocked) {
         const ultraBadge = document.createElement("span");
         ultraBadge.className = "boxes-mode-badge boxes-mode-badge-ultra";
-        ultraBadge.textContent = "✦";
-        ultraBadge.title = "Mode ultra shiny debloque";
+        ultraBadge.textContent = "\u2726";
+        ultraBadge.title = "Mode ultra shiny débloqué";
         badgeRow.appendChild(ultraBadge);
       }
       visualWrap.appendChild(badgeRow);
@@ -22615,7 +23192,7 @@ function renderAppearanceModal() {
   const ultraShinyCapturesFamily = getFamilyUltraShinyCaptureCount(pokemonId);
   const shinyModeActive = Boolean(record.appearance_shiny_mode && shinyUnlocked);
   const ultraShinyModeActive = Boolean(record.appearance_ultra_shiny_mode && ultraShinyUnlocked);
-  const selectedHasShiny = Boolean(selectedVariant?.frontShinyPath || def.shinySpritePath);
+  const selectedHasShiny = Boolean(getVariantShinySpritePath(def, selectedVariant));
 
   if (appearanceTitleEl) {
     appearanceTitleEl.textContent = `Apparence | ${def.nameFr}`;
@@ -24496,7 +25073,7 @@ async function initializeScene() {
   state.deferredSaveDirty = false;
   state.environment.nextUpdateAtMs = 0;
   updateEnvironment(Date.now(), true);
-  initializeWindowsNotificationSystem();
+  await initializeWindowsNotificationSystem();
   resetNotificationSystem();
   state.ui.shopTab = [SHOP_TAB_POKEBALLS, SHOP_TAB_COMBAT, SHOP_TAB_EVOLUTIONS].includes(state.ui.shopTab)
     ? state.ui.shopTab
