@@ -2528,6 +2528,119 @@ body {
   display: none !important;
 }
 
+.dev-layout-panel {
+  position: absolute;
+  top: calc(max(8px, env(safe-area-inset-top)) + 64px);
+  right: max(8px, env(safe-area-inset-right));
+  width: min(360px, calc(100vw - 20px));
+  max-height: min(74vh, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid rgba(149, 180, 210, 0.9);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(11, 29, 44, 0.96), rgba(8, 22, 34, 0.94)),
+    radial-gradient(circle at 0 0, rgba(142, 206, 255, 0.16), transparent 58%);
+  box-shadow:
+    0 18px 34px rgba(3, 8, 14, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  color: #d7e8fb;
+  pointer-events: auto;
+  overflow: hidden;
+  z-index: 140;
+}
+
+.dev-layout-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dev-layout-title {
+  margin: 0;
+  font-size: clamp(14px, 1.35vw, 16px);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: #f1f7ff;
+}
+
+.dev-layout-subtitle {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: rgba(193, 219, 245, 0.92);
+}
+
+.dev-layout-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.dev-layout-btn {
+  border: 1px solid rgba(130, 177, 220, 0.92);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font: 700 11px/1 "Trebuchet MS", "Verdana", sans-serif;
+  color: #eaf4ff;
+  background: linear-gradient(180deg, rgba(46, 88, 126, 0.92), rgba(31, 60, 87, 0.92));
+  cursor: pointer;
+}
+
+.dev-layout-btn:hover,
+.dev-layout-btn:focus-visible {
+  border-color: rgba(210, 232, 255, 0.95);
+  filter: brightness(1.1);
+}
+
+.dev-layout-btn:focus-visible {
+  outline: 2px solid rgba(190, 225, 255, 0.66);
+  outline-offset: 2px;
+}
+
+.dev-layout-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.dev-layout-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 8px;
+  border: 1px solid rgba(121, 161, 196, 0.7);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(17, 43, 67, 0.82), rgba(11, 29, 46, 0.86));
+}
+
+.dev-layout-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dev-layout-control-label {
+  font: 700 11px/1.2 "Trebuchet MS", "Verdana", sans-serif;
+  color: #dbeeff;
+}
+
+.dev-layout-control-value {
+  font: 700 11px/1.2 "Trebuchet MS", "Verdana", sans-serif;
+  color: #f5faff;
+  white-space: nowrap;
+}
+
+.dev-layout-slider {
+  width: 100%;
+  accent-color: #88c6ff;
+}
+
 .map-modal,
 .shop-modal,
 .gacha-modal,
@@ -2551,6 +2664,34 @@ body {
   .resource-strip {
     justify-self: stretch;
     width: min(680px, 100%);
+  }
+}
+
+@media (max-width: 900px) {
+  .dev-layout-panel {
+    top: calc(max(8px, env(safe-area-inset-top)) + 82px);
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    width: auto;
+    max-height: min(56vh, 500px);
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .dev-layout-title {
+    font-size: 13px;
+  }
+
+  .dev-layout-subtitle {
+    font-size: 10px;
+  }
+
+  .dev-layout-controls {
+    gap: 6px;
+  }
+
+  .dev-layout-control {
+    padding: 6px 7px;
   }
 }
 

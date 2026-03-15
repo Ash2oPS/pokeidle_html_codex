@@ -12,6 +12,7 @@ const PORT = Number(process.env.DATA_STUDIO_PORT || 4877);
 const ROOT_DIR = path.resolve(process.cwd());
 const ROUTE_UI_INDEX_PATH = path.join(ROOT_DIR, "tools", "route-encounter-studio", "index.html");
 const TALENT_UI_INDEX_PATH = path.join(ROOT_DIR, "tools", "talents-studio", "index.html");
+const MAP_DATA_DIR = path.join(ROOT_DIR, "map_data");
 const ROUTE_CSV_PATH = path.resolve(
   process.env.DATA_STUDIO_ROUTE_CSV || path.join(ROOT_DIR, "map_data", "kanto_zone_encounters.csv"),
 );
@@ -57,6 +58,8 @@ const BASE_METHODS = Object.freeze([
 ]);
 const ZONE_TYPES = new Set(["route", "town", "city", "dungeon", "cave", "forest"]);
 const UTF8_BOM = "\uFEFF";
+const DEFAULT_UNLOCK_DEFEATS_REQUIRED = 20;
+const DEFAULT_UNLOCK_TIMER_MS = 20000;
 const STATIC_MIME_BY_EXT = Object.freeze({
   ".png": "image/png",
   ".gif": "image/gif",
@@ -186,6 +189,27 @@ function normalizeZoneType(value, fallback = "route") {
   return normalized;
 }
 
+function normalizeUnlockMode(valueRaw, combatEnabled = true) {
+  const normalized = String(valueRaw || "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "visit") {
+    return "visit";
+  }
+  if (normalized === "defeats") {
+    return "defeats";
+  }
+  return combatEnabled ? "defeats" : "visit";
+}
+
+function normalizeUnlockDefeatsRequired(valueRaw, fallback = DEFAULT_UNLOCK_DEFEATS_REQUIRED) {
+  return Math.max(1, toSafeInt(valueRaw, fallback));
+}
+
+function normalizeUnlockTimerMs(valueRaw, fallback = DEFAULT_UNLOCK_TIMER_MS) {
+  return Math.max(1000, toSafeInt(valueRaw, fallback));
+}
+
 function normalizeMethods(valueRaw) {
   const methods = Array.isArray(valueRaw)
     ? valueRaw
@@ -215,6 +239,11 @@ function stringifyCsvLine(values) {
   return values.map((value) => csvEscape(value)).join(",");
 }
 
+function getRouteJsonPath(routeId) {
+  const id = sanitizeText(routeId);
+  return path.join(MAP_DATA_DIR, `${id}.json`);
+}
+
 async function readBodyJson(request) {
   const chunks = [];
   let totalBytes = 0;
@@ -242,6 +271,73 @@ async function ensureBackup(filePath) {
   const backupPath = path.join(BACKUP_DIR, `${path.basename(filePath)}.${timestamp}.bak`);
   await fsp.copyFile(filePath, backupPath);
   return backupPath;
+}
+
+async function readRouteJson(routeId) {
+  const routePath = getRouteJsonPath(routeId);
+  if (!fs.existsSync(routePath)) {
+    return null;
+  }
+  try {
+    const raw = await fsp.readFile(routePath, "utf8");
+    const payload = JSON.parse(raw);
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function buildRouteMetaFromJson(routeId, routeJson, fallbackMeta = null) {
+  const base = fallbackMeta && typeof fallbackMeta === "object" ? fallbackMeta : {};
+  const combatEnabled = routeJson?.combat_enabled !== false;
+  return {
+    route_id: sanitizeText(routeId, sanitizeText(base.route_id)),
+    route_name_fr: sanitizeText(routeJson?.route_name_fr, sanitizeText(base.route_name_fr, sanitizeText(routeId))),
+    zone_type: normalizeZoneType(routeJson?.zone_type, normalizeZoneType(base.zone_type, "route")),
+    combat_enabled: combatEnabled,
+    unlock_mode: normalizeUnlockMode(routeJson?.unlock_mode || base.unlock_mode, combatEnabled),
+    unlock_defeats_required: normalizeUnlockDefeatsRequired(
+      routeJson?.unlock_defeats_required,
+      normalizeUnlockDefeatsRequired(base.unlock_defeats_required, DEFAULT_UNLOCK_DEFEATS_REQUIRED),
+    ),
+    unlock_timer_ms: normalizeUnlockTimerMs(
+      routeJson?.unlock_timer_ms,
+      normalizeUnlockTimerMs(base.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS),
+    ),
+  };
+}
+
+async function writeRouteJsonMeta(routeId, payload = {}) {
+  const id = sanitizeText(routeId);
+  if (!id) {
+    return null;
+  }
+  const routePath = getRouteJsonPath(id);
+  const previous = (await readRouteJson(id)) || {};
+  const combatEnabled = parseBooleanValue(payload?.combat_enabled, previous?.combat_enabled !== false);
+  const nextUnlockMode = normalizeUnlockMode(payload?.unlock_mode || previous?.unlock_mode, combatEnabled);
+  const nextJson = {
+    ...previous,
+    route_id: id,
+    route_name_fr: sanitizeText(payload?.route_name_fr, sanitizeText(previous?.route_name_fr, id)),
+    zone_type: normalizeZoneType(payload?.zone_type, normalizeZoneType(previous?.zone_type, "route")),
+    combat_enabled: combatEnabled,
+    unlock_mode: nextUnlockMode,
+    unlock_defeats_required: normalizeUnlockDefeatsRequired(
+      payload?.unlock_defeats_required,
+      previous?.unlock_defeats_required,
+    ),
+    unlock_timer_ms: normalizeUnlockTimerMs(payload?.unlock_timer_ms, previous?.unlock_timer_ms),
+  };
+  await fsp.mkdir(path.dirname(routePath), { recursive: true });
+  if (fs.existsSync(routePath)) {
+    await ensureBackup(routePath);
+  }
+  await fsp.writeFile(routePath, `${JSON.stringify(nextJson, null, 2)}\n`, "utf8");
+  return nextJson;
 }
 
 function normalizeRouteCsvRow(row) {
@@ -348,6 +444,9 @@ async function loadRouteCsvModel() {
         route_name_fr: row.route_name_fr || row.route_id,
         zone_type: row.zone_type,
         combat_enabled: row.combat_enabled,
+        unlock_mode: row.combat_enabled ? "defeats" : "visit",
+        unlock_defeats_required: DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+        unlock_timer_ms: DEFAULT_UNLOCK_TIMER_MS,
       });
     }
     routeRowsById.get(row.route_id).push(row);
@@ -356,6 +455,21 @@ async function loadRouteCsvModel() {
         methodSet.add(method);
       }
     }
+  }
+
+  for (const routeId of routeOrder) {
+    const existingMeta = routeMetaById.get(routeId) || {
+      route_id: routeId,
+      route_name_fr: routeId,
+      zone_type: "route",
+      combat_enabled: true,
+      unlock_mode: "defeats",
+      unlock_defeats_required: DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+      unlock_timer_ms: DEFAULT_UNLOCK_TIMER_MS,
+    };
+    const routeJson = await readRouteJson(routeId);
+    const mergedMeta = buildRouteMetaFromJson(routeId, routeJson, existingMeta);
+    routeMetaById.set(routeId, mergedMeta);
   }
 
   return {
@@ -436,10 +550,19 @@ function buildRouteRowsForWrite(existingModel, routeId, payload, pokemonRefsById
     route_name_fr: id,
     zone_type: "route",
     combat_enabled: true,
+    unlock_mode: "defeats",
+    unlock_defeats_required: DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+    unlock_timer_ms: DEFAULT_UNLOCK_TIMER_MS,
   };
   const routeNameFr = sanitizeText(payload?.route_name_fr, existingMeta.route_name_fr || id);
   const zoneType = normalizeZoneType(payload?.zone_type, existingMeta.zone_type || "route");
   const combatEnabled = parseBooleanValue(payload?.combat_enabled, existingMeta.combat_enabled !== false);
+  const unlockMode = normalizeUnlockMode(payload?.unlock_mode || existingMeta.unlock_mode, combatEnabled);
+  const unlockDefeatsRequired = normalizeUnlockDefeatsRequired(
+    payload?.unlock_defeats_required,
+    existingMeta.unlock_defeats_required,
+  );
+  const unlockTimerMs = normalizeUnlockTimerMs(payload?.unlock_timer_ms, existingMeta.unlock_timer_ms);
   const rawEncounters = Array.isArray(payload?.encounters) ? payload.encounters : [];
   const encounters = [];
   for (let index = 0; index < rawEncounters.length; index += 1) {
@@ -474,8 +597,20 @@ function buildRouteRowsForWrite(existingModel, routeId, payload, pokemonRefsById
     });
   }
 
+  const routeMeta = {
+    route_id: id,
+    route_name_fr: routeNameFr,
+    zone_type: zoneType,
+    combat_enabled: combatEnabled,
+    unlock_mode: unlockMode,
+    unlock_defeats_required: unlockDefeatsRequired,
+    unlock_timer_ms: unlockTimerMs,
+  };
+
   if (encounters.length <= 0) {
-    return [
+    return {
+      routeMeta,
+      rows: [
       {
         route_id: id,
         route_name_fr: routeNameFr,
@@ -489,15 +624,21 @@ function buildRouteRowsForWrite(existingModel, routeId, payload, pokemonRefsById
         max_level: 0,
         methods: [],
       },
-    ];
+      ],
+    };
   }
-  return encounters;
+  return {
+    routeMeta,
+    rows: encounters,
+  };
 }
 
 async function writeRouteCsv(routeId, payload, pokemonRefsById) {
   const model = await loadRouteCsvModel();
   const targetRouteId = sanitizeText(routeId);
-  const newRowsForTarget = buildRouteRowsForWrite(model, targetRouteId, payload, pokemonRefsById);
+  const writePayload = buildRouteRowsForWrite(model, targetRouteId, payload, pokemonRefsById);
+  const newRowsForTarget = Array.isArray(writePayload?.rows) ? writePayload.rows : [];
+  const routeMeta = writePayload?.routeMeta || null;
   const outputRows = [];
   const routeOrder = model.routeOrder.includes(targetRouteId) ? model.routeOrder.slice() : [...model.routeOrder, targetRouteId];
   for (const currentRouteId of routeOrder) {
@@ -511,6 +652,9 @@ async function writeRouteCsv(routeId, payload, pokemonRefsById) {
   await ensureBackup(ROUTE_CSV_PATH);
   const nextCsv = serializeRouteRows(outputRows);
   await fsp.writeFile(ROUTE_CSV_PATH, nextCsv, "utf8");
+  if (routeMeta) {
+    await writeRouteJsonMeta(targetRouteId, routeMeta);
+  }
   return loadRouteCsvModel();
 }
 
