@@ -114,6 +114,6 @@ Puis ouvre:
 - `http://127.0.0.1:4877/route` pour `Route Encounter Studio`
 - `http://127.0.0.1:4877/talents` pour `Talents Studio`
 
-Lanceurs Windows:
-- `launch_route_encounter_tool.bat`
-- `launch_talents_tool.bat`
+Lanceurs Windows (ports separes):
+- `launch_route_encounter_tool.bat` -> `http://127.0.0.1:4877/route`
+- `launch_talents_tool.bat` -> `http://127.0.0.1:4878/talents`

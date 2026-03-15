@@ -5402,3 +5402,104 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Playwright non exécuté: changements purement textuels et localisés, sans modification de logique/UI structurelle complexe.
 
 - 2026-03-15: Rework layout lisibilite PC+mobile testee manuellement. Arc radial conserve (equi-distance), ennemi -25% garde. Ajustements: angles/rayon de l'arc, offset HUD radial, cartes equipe plus compactes sur telephone (largeur/hauteur + fonts). Captures de validation: output/web-game-layout-pc-long/shot-0.png et output/web-game-layout-mobile/shot-0.png.
+
+## Additional progress (route nav collection badges)
+- Added route-name top bar collection status groups in `#route-nav-current`:
+  - family completion group: grey Pokeball + optional shiny/ultra badges when every zone encounter species has at least one owned evolution-family member (including shiny/ultra family counters).
+  - exact zone completion group: grey Pokeball + optional shiny/ultra badges when every exact encounter species in the current zone is owned (and shiny/ultra-owned for exact counters).
+- Reused existing shiny/ultra badge classes from boxes/pokedex (`boxes-mode-badge-*`) for visual consistency.
+- Hooked route-label refresh on species stat increments so icons update after captures.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Targeted route-nav seeded checks:
+    - `output/route-nav-status/route-nav-family-only.json` confirms 1 family group (ball + shiny + ultra) without exact group.
+    - `output/route-nav-status/route-nav-exact-all.json` confirms 2 groups (family + exact), each with ball + shiny + ultra.
+    - Screenshots: `output/route-nav-status/route-nav-family-only.png`, `output/route-nav-status/route-nav-exact-all.png`.
+## Additional progress (Route tool unlock settings UX) - 2026-03-15
+- Added 2 editable zone settings in tools/route-encounter-studio/index.html:
+  - unlock_defeats_required via field Pokemon a battre d'affilee.
+  - unlock_timer_ms via field Timer de fight (secondes) with seconds <-> ms conversion in UI logic.
+- Wired settings through load/edit/save flow:
+  - Parse API payload into local route state.
+  - Sync UI -> state on input changes.
+  - Include both values in PUT payload on save.
+- Improved clarity in dashboard cards:
+  - Shows unlock requirement (KO d'affilee) and fight timer (Xs).
+- UX polish:
+  - Disables unlock-defeats input when combat is set to false (visit mode context).
+- Validation:
+  - node --check scripts/game-data-studio-server.mjs: PASS.
+  - Inline UI script syntax check: PASS.
+  - Playwright visual smoke screenshot: output/tool-screens/route-unlock-fields.png.
+## Additional progress (shiny fallback negative shader)
+- Added a shiny fallback visual for skins that do not have a shiny sprite alternative.
+- Behavior implemented in `resolveSpriteAppearanceForEntity`:
+  - when shiny is requested,
+  - and no shiny sprite exists for the selected variant,
+  - and ultra shiny is not active,
+  - the selected normal skin is kept and rendered with a negative shader fallback.
+- Added `shinyNegativeFallbackVisual` to resolved appearance payloads and propagated to runtime entities (`isShinyNegativeFallbackVisual`).
+- Added negative shader support in sprite rendering:
+  - new shader preset `SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG`;
+  - shader filter now supports `invert(...)`;
+  - shader merge now combines invert values safely.
+- Integrated with team/enemy rendering and debug text-state (`shiny_negative_fallback_visual`).
+- Validation:
+  - `node --check game.js`: PASS.
+  - Targeted Playwright seeded run: PASS (`output/shiny-negative-fallback/state-11.json`).
+  - Confirmed team slot 0 values: `sprite_variant_id: "yellow"`, `shiny_visual: true`, `ultra_shiny_visual: false`, `shiny_negative_fallback_visual: true`.
+  - Visual artifact captured: `output/shiny-negative-fallback/shot-11.png`.
+
+## Additional progress (enemy nameplate mobile harmonization)
+- Improved enemy nameplate composition on mobile in `drawNameAndLevel`:
+  - centered icon/name/level vertically on a stable row (`midY` at card center),
+  - dynamic spacing for level section in compact widths,
+  - strict name fit with ellipsis (`fitTextToWidthWithEllipsis`) to prevent overlap with `Lv`.
+- Improved enemy nameplate sizing budget in `computeLayout`:
+  - wider and more adaptive `enemyNamePlateWidth` for split-row/phone profiles.
+- Tuned enemy nameplate typography for compact/phone in `drawBattleUiOverlay`.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `run_playwright_check.ps1`: PASS.
+  - Mobile visual capture (390x844):
+    - `output/enemy-name-mobile-after.png`
+    - `output/enemy-name-mobile-after-full.png`
+
+## Additional progress (Tool ports split) - 2026-03-15
+- Updated Windows launchers so tools run on separate ports:
+  - Route tool: 4877 (`launch_route_encounter_tool.bat`)
+  - Talents tool: 4878 (`launch_talents_tool.bat`)
+- Launcher behavior simplified for reliability:
+  - starts browser URL,
+  - then runs `node scripts/game-data-studio-server.mjs` with `DATA_STUDIO_PORT` set.
+- Verified both launchers can run at the same time with two listeners:
+  - 127.0.0.1:4877 LISTENING
+  - 127.0.0.1:4878 LISTENING
+- Added screenshots:
+  - `output/tool-screens/route-port-4877.png`
+  - `output/tool-screens/talents-port-4878.png`
+
+## Additional progress (Sprite reliability in tools) - 2026-03-15
+- Route and Talents tools now render sprite thumbnails with real `<img>` tags (instead of CSS variable background-only rendering).
+- This makes sprite display more robust across browsers/Electron shells while keeping checkerboard fallback backgrounds.
+- Updated files:
+  - tools/route-encounter-studio/index.html
+  - tools/talents-studio/index.html
+- Validation screenshots:
+  - output/tool-screens/route-sprites-4877-fixed.png
+  - output/tool-screens/talents-sprites-4878-fixed.png
+
+- Updated dev layout defaults for PC tuning (enemy 139%, allies 109%, enemy Y +71, allies Y +60, arc spread 141%, arc radius 144%, panel X 0, panel Y +7, panel depth 20%, enemy HUD Y -21).
+
+## Additional progress (Electron background idle reliability)
+- Enabled Electron webContents background execution with `backgroundThrottling: false` in `electron/main.mjs` so gameplay simulation keeps running while window is minimized/inactive.
+- Validation run (2026-03-15, scripted Electron minimize/restore): PASS.
+  - During minimize: `window_state.isMinimized=true` and progression continued (`delta_during.enemies_defeated=+1`, `delta_during.money=+40`).
+  - Artifact: `output/electron-background-check/result.json`.
+- 2026-03-15: Ajustement visuel Morphing + logique de voisin de slot.
+  - Réduit de 70% l'intensité de mouvement de l'effet Métamorph (slime + wobble) via `MORPHING_MOTION_INTENSITY = 0.3` dans `game.js`.
+  - Ajout de helpers d'adjacence circulaire (`getWrappedTeamIndex`, `getTeamAdjacentMember`) pour les talents.
+  - `applyTeamTalentOverrides` utilise maintenant le voisin précédent en mode circulaire (slot 1 prend le dernier slot).
+  - Validation: `node --check game.js` OK.
+  - Playwright non lancé (modif ciblée/simple, pas de refonte UI complexe).

@@ -9,23 +9,69 @@
     "route_defeat_counts":  {
 
                             },
-    "last_tick_epoch_ms":  1773521317209,
+    "last_tick_epoch_ms":  1773569157227,
     "team":  [
-                 4
+                 4,
+                 7,
+                 25,
+                 39,
+                 52,
+                 133
              ],
     "pokemon_entities":  {
+                             "39":  {
+                                        "id":  39,
+                                        "level":  24,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    },
                              "4":  {
                                        "id":  4,
-                                       "level":  20,
+                                       "level":  28,
                                        "xp":  0,
                                        "entity_unlocked":  true,
                                        "encountered_normal":  1,
                                        "captured_normal":  1
-                                   }
+                                   },
+                             "7":  {
+                                       "id":  7,
+                                       "level":  27,
+                                       "xp":  0,
+                                       "entity_unlocked":  true,
+                                       "encountered_normal":  1,
+                                       "captured_normal":  1
+                                   },
+                             "52":  {
+                                        "id":  52,
+                                        "level":  25,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    },
+                             "133":  {
+                                         "id":  133,
+                                         "level":  23,
+                                         "xp":  0,
+                                         "entity_unlocked":  true,
+                                         "encountered_normal":  1,
+                                         "captured_normal":  1
+                                     },
+                             "25":  {
+                                        "id":  25,
+                                        "level":  26,
+                                        "xp":  0,
+                                        "entity_unlocked":  true,
+                                        "encountered_normal":  1,
+                                        "captured_normal":  1
+                                    }
                          },
     "money":  0,
+    "coins":  0,
     "ball_inventory":  {
-                           "poke_ball":  60,
+                           "poke_ball":  50,
                            "super_ball":  0,
                            "hyper_ball":  0
                        },
@@ -36,7 +82,7 @@
                        "leaf_stone":  0
                    },
     "attack_boost_until_ms":  0,
-    "pokeballs":  60,
+    "pokeballs":  50,
     "tutorials":  {
                       "route1_intro_seen":  true,
                       "evolution_intro_seen":  false,

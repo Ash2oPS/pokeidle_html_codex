@@ -98,21 +98,27 @@
         gap: 5px;
       }
       .sprite-mini {
+        position: relative;
         width: 48px;
         height: 48px;
-        image-rendering: pixelated;
-        object-fit: contain;
         border: 1px solid #c9d5e2;
         border-radius: 8px;
         background-image:
-          var(--sprite-url, none),
           linear-gradient(45deg, #dce5ef 25%, transparent 25%),
           linear-gradient(-45deg, #dce5ef 25%, transparent 25%),
           linear-gradient(45deg, transparent 75%, #dce5ef 75%),
           linear-gradient(-45deg, transparent 75%, #dce5ef 75%);
-        background-size: contain, 12px 12px, 12px 12px, 12px 12px, 12px 12px;
-        background-position: center, 0 0, 0 6px, 6px -6px, -6px 0;
-        background-repeat: no-repeat, repeat, repeat, repeat, repeat;
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px;
+        background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+        background-repeat: repeat, repeat, repeat, repeat;
+        overflow: hidden;
+      }
+      .sprite-mini > img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
       }
       .sprite-mini.small {
         width: 34px;
@@ -222,6 +228,17 @@
         </div>
         <div class="row">
           <div class="grow">
+            <label for="unlock-defeats-input">Pokemon a battre d'affilee</label>
+            <input id="unlock-defeats-input" class="w-100" type="number" min="1" step="1" />
+          </div>
+          <div class="grow">
+            <label for="unlock-timer-seconds-input">Timer de fight (secondes)</label>
+            <input id="unlock-timer-seconds-input" class="w-100" type="number" min="1" step="1" />
+            <div class="small">Ce timer est sauvegarde en ms dans les JSON de route.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
             <label for="quick-add-input">Ajout rapide Pokemon (ID ou nom)</label>
             <input id="quick-add-input" class="w-100" list="pokemon-ref-list" placeholder="Ex: 25 pikachu" />
             <datalist id="pokemon-ref-list"></datalist>
@@ -277,6 +294,8 @@
         methodChoices: [],
         route: null,
       };
+      const DEFAULT_UNLOCK_DEFEATS_REQUIRED = 20;
+      const DEFAULT_UNLOCK_TIMER_MS = 20000;
 
       const nodes = {
         routeFilter: document.getElementById("route-filter"),
@@ -290,6 +309,8 @@
         routeNameInput: document.getElementById("route-name-input"),
         zoneTypeSelect: document.getElementById("zone-type-select"),
         combatEnabledSelect: document.getElementById("combat-enabled-select"),
+        unlockDefeatsInput: document.getElementById("unlock-defeats-input"),
+        unlockTimerSecondsInput: document.getElementById("unlock-timer-seconds-input"),
         quickAddInput: document.getElementById("quick-add-input"),
         quickAddBtn: document.getElementById("quick-add-btn"),
         pokemonRefList: document.getElementById("pokemon-ref-list"),
@@ -357,6 +378,24 @@
           }
         }
         return 0;
+      }
+
+      function parsePositiveInt(valueRaw, fallback, min = 1) {
+        const parsed = Number.parseInt(String(valueRaw ?? "").trim(), 10);
+        if (!Number.isFinite(parsed)) {
+          return Math.max(min, Number(fallback || min));
+        }
+        return Math.max(min, parsed);
+      }
+
+      function toUnlockTimerSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
+        const fallbackSeconds = Math.max(1, Math.round(Number(fallbackMs || DEFAULT_UNLOCK_TIMER_MS) / 1000));
+        return parsePositiveInt(valueRaw, fallbackSeconds, 1);
+      }
+
+      function toUnlockTimerMsFromSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
+        const seconds = toUnlockTimerSeconds(valueRaw, fallbackMs);
+        return Math.max(1000, seconds * 1000);
       }
 
       function normalizeMethods(valueRaw) {
@@ -540,18 +579,13 @@
         return `/pokemon_data/${id}_${nameEn}/sprites/${id}_${nameEn}_firered_leafgreen_front.png`;
       }
 
-      function buildSpriteStyle(url) {
-        const safeUrl = String(url || "")
-          .replaceAll("'", "%27")
-          .replaceAll("(", "%28")
-          .replaceAll(")", "%29");
-        return safeUrl ? `--sprite-url:url('${safeUrl}');` : "";
-      }
-
       function renderSpriteBlock(url, className = "sprite-mini", label = "") {
-        const style = buildSpriteStyle(url);
         const safeLabel = escapeHtml(label || "");
-        return `<div class="${className}" style="${style}" title="${safeLabel}" aria-label="${safeLabel}"></div>`;
+        const safeUrl = escapeHtml(String(url || "").trim());
+        const imageMarkup = safeUrl
+          ? `<img src="${safeUrl}" alt="${safeLabel}" loading="lazy" decoding="async" />`
+          : "";
+        return `<div class="${className}" title="${safeLabel}" aria-label="${safeLabel}">${imageMarkup}</div>`;
       }
 
       function renderMethodsHelp() {
@@ -564,6 +598,17 @@
         const encounters = Array.isArray(state.route?.encounters) ? state.route.encounters : [];
         const totalWeight = encounters.reduce((sum, row) => sum + Math.max(0, Number(row.spawn_weight || 0)), 0);
         const invalidCount = encounters.filter((row) => validateEncounter(row).length > 0).length;
+        const unlockDefeatsRequired = parsePositiveInt(
+          state.route?.route?.unlock_defeats_required,
+          DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+          1,
+        );
+        const unlockTimerSeconds = toUnlockTimerSeconds(
+          state.route?.route?.unlock_timer_ms
+            ? Math.round(Number(state.route.route.unlock_timer_ms) / 1000)
+            : "",
+          DEFAULT_UNLOCK_TIMER_MS,
+        );
         const methodTotals = {};
         for (const row of encounters) {
           const rowWeight = Math.max(0, Number(row.spawn_weight || 0));
@@ -586,6 +631,8 @@
           <article class="pill"><div class="pill-key">Rencontres</div><div class="pill-value">${encounters.length}</div></article>
           <article class="pill"><div class="pill-key">Poids total</div><div class="pill-value">${totalWeight}</div></article>
           <article class="pill"><div class="pill-key">Lignes invalides</div><div class="pill-value">${invalidCount}</div></article>
+          <article class="pill"><div class="pill-key">Deblocage</div><div class="pill-value">${unlockDefeatsRequired} KO d'affilee</div></article>
+          <article class="pill"><div class="pill-key">Timer de fight</div><div class="pill-value">${unlockTimerSeconds}s</div></article>
           <article class="pill"><div class="pill-key">Repartition methods</div><div class="pill-value">${methodSummary || "-"}</div></article>
         `;
         renderEncounterCards(encounters, totalWeight);
@@ -692,6 +739,24 @@
         state.route.route.route_name_fr = String(nodes.routeNameInput.value || "").trim() || state.route.route.route_id;
         state.route.route.zone_type = String(nodes.zoneTypeSelect.value || "route").toLowerCase().trim();
         state.route.route.combat_enabled = nodes.combatEnabledSelect.value === "true";
+        state.route.route.unlock_defeats_required = parsePositiveInt(
+          nodes.unlockDefeatsInput.value,
+          state.route.route.unlock_defeats_required || DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+          1,
+        );
+        state.route.route.unlock_timer_ms = toUnlockTimerMsFromSeconds(
+          nodes.unlockTimerSecondsInput.value,
+          state.route.route.unlock_timer_ms || DEFAULT_UNLOCK_TIMER_MS,
+        );
+        refreshUnlockSettingsUi();
+      }
+
+      function refreshUnlockSettingsUi() {
+        const combatEnabled = nodes.combatEnabledSelect.value === "true";
+        nodes.unlockDefeatsInput.disabled = !combatEnabled;
+        nodes.unlockDefeatsInput.title = combatEnabled
+          ? ""
+          : "Combat inactif: ce seuil n'est pas utilise pour debloquer la prochaine zone.";
       }
 
       function updateEncounterNameById(index) {
@@ -734,6 +799,13 @@
             route_name_fr: String(route.route_name_fr || route.route_id || state.selectedRouteId || "").trim(),
             zone_type: String(route.zone_type || "route").toLowerCase().trim(),
             combat_enabled: Boolean(route.combat_enabled),
+            unlock_mode: String(route.unlock_mode || (route.combat_enabled === false ? "visit" : "defeats")),
+            unlock_defeats_required: parsePositiveInt(
+              route.unlock_defeats_required,
+              DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+              1,
+            ),
+            unlock_timer_ms: parsePositiveInt(route.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS, 1000),
           },
           encounters: encounters.map((row) => ({
             pokemon_id: Math.max(0, Number.parseInt(String(row.pokemon_id || ""), 10) || 0),
@@ -755,6 +827,18 @@
         nodes.routeNameInput.value = state.route.route.route_name_fr || "";
         nodes.zoneTypeSelect.value = state.route.route.zone_type || "route";
         nodes.combatEnabledSelect.value = state.route.route.combat_enabled ? "true" : "false";
+        nodes.unlockDefeatsInput.value = String(
+          parsePositiveInt(state.route.route.unlock_defeats_required, DEFAULT_UNLOCK_DEFEATS_REQUIRED, 1),
+        );
+        nodes.unlockTimerSecondsInput.value = String(
+          toUnlockTimerSeconds(
+            state.route.route.unlock_timer_ms
+              ? Math.round(Number(state.route.route.unlock_timer_ms) / 1000)
+              : "",
+            DEFAULT_UNLOCK_TIMER_MS,
+          ),
+        );
+        refreshUnlockSettingsUi();
       }
 
       async function loadBootstrap() {
@@ -831,6 +915,12 @@
             route_name_fr: state.route.route.route_name_fr,
             zone_type: state.route.route.zone_type,
             combat_enabled: state.route.route.combat_enabled,
+            unlock_defeats_required: parsePositiveInt(
+              state.route.route.unlock_defeats_required,
+              DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+              1,
+            ),
+            unlock_timer_ms: parsePositiveInt(state.route.route.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS, 1000),
             encounters: state.route.encounters.map((row) => ({
               pokemon_id: Number(row.pokemon_id || 0),
               pokemon_name_en: String(row.pokemon_name_en || "").trim().toLowerCase(),
@@ -1010,6 +1100,23 @@
         }
         syncRouteSettingsFromUi();
         setDirty(true);
+        renderMeta();
+      });
+      nodes.unlockDefeatsInput.addEventListener("input", () => {
+        if (!state.route) {
+          return;
+        }
+        syncRouteSettingsFromUi();
+        setDirty(true);
+        renderMeta();
+      });
+      nodes.unlockTimerSecondsInput.addEventListener("input", () => {
+        if (!state.route) {
+          return;
+        }
+        syncRouteSettingsFromUi();
+        setDirty(true);
+        renderMeta();
       });
 
       nodes.encountersBody.addEventListener("change", onEncounterFieldChange);

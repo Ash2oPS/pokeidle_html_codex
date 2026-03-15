@@ -434,6 +434,12 @@ const MORPHING_SHADER_CONFIG = Object.freeze({
   paletteStrength: 0.76,
   colorizeBlend: 0.1,
 });
+const SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG = Object.freeze({
+  invert: 1,
+  contrast: 1.08,
+  brightness: 1.04,
+  saturate: 0.92,
+});
 const BASE_STEP_MS = 1000 / 60;
 const ATTACK_INTERVAL_MS = 420;
 const ATTACK_CRIT_CHANCE = 0.05;
@@ -649,26 +655,26 @@ const GACHA_BATCH_SPOTLIGHT_TRANSFER_MS = 420;
 const GACHA_BATCH_SPOTLIGHT_STEP_GAP_MS = 110;
 const GACHA_BATCH_SLOT_JUICE_MS = 560;
 const TEAM_SPRITE_SCALE = 1.18;
-const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24 * 0.7;
+const TEAM_SPRITE_SCALE_PHONE_MULTIPLIER = 1.24 * 0.7 * 1.1;
 const TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER = 1.1;
 const TEAM_SPRITE_MIN_RENDER_RATIO_PHONE = 0.96;
 const TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT = 0.9;
 const ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER = 0.8625;
-const ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER = 1.14;
+const ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER = 1.14 * 1.1;
 const ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER = 1.06;
 const DEV_LAYOUT_STORAGE_KEY = "pokeidle_dev_layout_v1";
 const DEV_LAYOUT_SETTINGS_DEFAULTS = Object.freeze({
-  enemySpriteScale: 1,
-  allySpriteScale: 1,
-  enemyCenterYOffset: 0,
-  allyRingYOffset: 0,
+  enemySpriteScale: 1.39,
+  allySpriteScale: 1.09,
+  enemyCenterYOffset: 71,
+  allyRingYOffset: 60,
   arcRotationDeg: 0,
-  arcSpreadScale: 1,
-  arcRadiusScale: 1,
+  arcSpreadScale: 1.41,
+  arcRadiusScale: 1.44,
   hudXOffset: 0,
-  hudYOffset: 0,
-  hudDepthScale: 1,
-  enemyUiYOffset: 0,
+  hudYOffset: 7,
+  hudDepthScale: 0.2,
+  enemyUiYOffset: -21,
 });
 const DEV_LAYOUT_CONTROL_DEFINITIONS = Object.freeze([
   Object.freeze({
@@ -899,6 +905,7 @@ const MORPHING_OUTLINE_ALPHA = 0.85;
 const MORPHING_SLIME_BASE_RGB = Object.freeze([173, 117, 208]);
 const MORPHING_SLIME_HIGHLIGHT_RGB = Object.freeze([225, 198, 241]);
 const MORPHING_SLIME_ALPHA = 0.56;
+const MORPHING_MOTION_INTENSITY = 0.3;
 const MORPHING_WOBBLE_SCALE_AMPLITUDE = 0.14;
 const MORPHING_WOBBLE_VERTICAL_COMPENSATION = 0.11;
 const MORPHING_WOBBLE_ROTATION_DEG = 7.5;
@@ -2119,6 +2126,14 @@ function normalizeDevLayoutSettings(rawSettings = null) {
     nextSettings[definition.key] = normalizeDevLayoutSettingValue(definition.key, rawSettings[definition.key]);
   }
   return nextSettings;
+}
+
+function shouldAllowDevLayoutOverflowPositions() {
+  const profile = state.layout?.viewportProfile || getBattleViewportProfile(
+    Math.max(260, Number(state.viewport?.width) || 0),
+    Math.max(220, Number(state.viewport?.height) || 0),
+  );
+  return !Boolean(profile?.phone);
 }
 
 function loadDevLayoutSettingsFromStorage() {
@@ -8396,6 +8411,7 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
       spriteImage: null,
       animated: false,
       shinyVisual: false,
+      shinyNegativeFallbackVisual: false,
       shinyUnlocked: false,
       ultraShinyVisual: false,
       ultraShinyUnlocked: false,
@@ -8433,6 +8449,7 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
   const ultraShinyVisual = Boolean(ultraShinyModeRequested);
   const shinyPath = getVariantShinySpritePath(def, variant);
   const canRenderShiny = shinyModeRequested && Boolean(shinyPath);
+  const shinyNegativeFallbackVisual = Boolean(shinyModeRequested && !ultraShinyVisual && !canRenderShiny);
   const resolvedPath = canRenderShiny ? shinyPath : normalPath;
 
   const normalCachedImage = normalPath ? getCachedSpriteImage(normalPath) : null;
@@ -8447,7 +8464,8 @@ function resolveSpriteAppearanceForEntity(pokemonId, options = {}) {
     spritePath: resolvedPath || normalPath || def.spritePath || "",
     spriteImage: resolvedImage || null,
     animated: Boolean(variant?.animated),
-    shinyVisual: Boolean(canRenderShiny || ultraShinyVisual),
+    shinyVisual: Boolean(canRenderShiny || ultraShinyVisual || shinyNegativeFallbackVisual),
+    shinyNegativeFallbackVisual,
     shinyUnlocked,
     ultraShinyVisual,
     ultraShinyUnlocked,
@@ -8540,6 +8558,9 @@ function syncActiveEnemyAppearance() {
   enemy.spriteAnimated = Boolean(appearance.animated);
   enemy.isShinyVisual = Boolean(shinyVisual || appearance.shinyVisual || appearance.ultraShinyVisual);
   enemy.isUltraShinyVisual = Boolean(ultraShinyVisual || appearance.ultraShinyVisual);
+  enemy.isShinyNegativeFallbackVisual = Boolean(
+    appearance.shinyNegativeFallbackVisual && !enemy.isUltraShinyVisual,
+  );
   state.enemy = enemy;
 }
 
@@ -10631,6 +10652,7 @@ function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, option
   const safeDefenderTypes = Array.isArray(defenderTypes)
     ? defenderTypes.map((typeName) => normalizeType(typeName)).filter(Boolean).slice(0, 2)
     : [];
+  const allowOverflow = options.allowOverflow === true;
   const leadingType = normalizeType(options.typeIcon || "");
   const fontSize = clamp(Number(options.fontSize) || 0, 9, 14);
   const iconSize = clamp(Number(options.iconSize) || 0, 10, 16);
@@ -10659,8 +10681,11 @@ function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, option
       : options.align === "right"
         ? anchorX - width
         : anchorX;
-  x = clamp(x, 8, state.viewport.width - width - 8);
-  const y = clamp(centerY - height * 0.5, 8, state.viewport.height - height - 8);
+  if (!allowOverflow) {
+    x = clamp(x, 8, state.viewport.width - width - 8);
+  }
+  const yRaw = centerY - height * 0.5;
+  const y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - height - 8);
 
   drawRetroHudPanel(x, y, width, height, {
     cut: Math.max(6, height * 0.35),
@@ -10695,20 +10720,20 @@ function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, option
   ctx.restore();
 }
 
-function drawTeamTypeHud(member, slotIndex, slotAnchor, enemy) {
+function drawTeamTypeHud(member, slotIndex, slotAnchor, enemy, options = {}) {
   if (!member || !slotAnchor || !enemy) {
     return;
   }
+  const allowOverflow = options.allowOverflow === true;
   const offensiveType = normalizeType(member.offensiveType || member.defensiveTypes?.[0] || "normal");
   const defenderTypes = Array.isArray(enemy.defensiveTypes) ? enemy.defensiveTypes : [];
   const multiplier = getTypeMultiplier(offensiveType, defenderTypes);
   const chipCenterX = Number(slotAnchor.hudCenterX || slotAnchor.x);
   const chipHeight = clamp(Number(slotAnchor.hudTypeChipHeight) || slotAnchor.size * 0.17, 11, 16);
-  const chipCenterY = clamp(
-    Number(slotAnchor.hudTopY || slotAnchor.y) - chipHeight * 0.74,
-    chipHeight * 0.5 + 6,
-    state.viewport.height - chipHeight * 0.5 - 6,
-  );
+  const chipCenterYRaw = Number(slotAnchor.hudTopY || slotAnchor.y) - chipHeight * 0.74;
+  const chipCenterY = allowOverflow
+    ? chipCenterYRaw
+    : clamp(chipCenterYRaw, chipHeight * 0.5 + 6, state.viewport.height - chipHeight * 0.5 - 6);
   drawTypeMatchupPill(chipCenterX, chipCenterY, multiplier, [], {
     align: "center",
     typeIcon: offensiveType,
@@ -10716,13 +10741,15 @@ function drawTeamTypeHud(member, slotIndex, slotAnchor, enemy) {
     iconSize: clamp(chipHeight * 0.84, 10, 14),
     paddingX: clamp(slotAnchor.size * 0.064, 3, 5),
     paddingY: clamp(slotAnchor.size * 0.035, 2, 4),
+    allowOverflow,
   });
 }
 
-function drawEnemyDefensiveTypeHud(enemy, layout) {
+function drawEnemyDefensiveTypeHud(enemy, layout, options = {}) {
   if (!enemy || !layout) {
     return;
   }
+  const allowOverflow = options.allowOverflow === true;
 
   const defensiveTypes = Array.isArray(enemy.defensiveTypes)
     ? enemy.defensiveTypes.map((typeName) => normalizeType(typeName)).filter(Boolean).slice(0, 2)
@@ -10738,12 +10765,12 @@ function drawEnemyDefensiveTypeHud(enemy, layout) {
   const contentWidth = defensiveTypes.length * iconSize + Math.max(0, defensiveTypes.length - 1) * gap;
   const pillWidth = contentWidth + pillPaddingX * 2;
   const pillHeight = iconSize + pillPaddingY * 2;
-  const centerY = clamp(
-    Number(layout.enemyTypeHudY) || layout.hpBarY - pillHeight,
-    pillHeight * 0.5 + 8,
-    state.viewport.height - pillHeight * 0.5 - 8,
-  );
-  const x = clamp(layout.centerX - pillWidth * 0.5, 8, state.viewport.width - pillWidth - 8);
+  const centerYRaw = Number(layout.enemyTypeHudY) || layout.hpBarY - pillHeight;
+  const centerY = allowOverflow
+    ? centerYRaw
+    : clamp(centerYRaw, pillHeight * 0.5 + 8, state.viewport.height - pillHeight * 0.5 - 8);
+  const xRaw = layout.centerX - pillWidth * 0.5;
+  const x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - pillWidth - 8);
   const y = centerY - pillHeight * 0.5;
   drawRetroHudPanel(x, y, pillWidth, pillHeight, {
     cut: Math.max(6, pillHeight * 0.32),
@@ -13477,6 +13504,7 @@ function buildTeamMemberFromSaveEntry(entry) {
     isUltraShiny: false,
     isShinyVisual: Boolean(appearance.shinyVisual || ultraShinyVisual),
     isUltraShinyVisual: ultraShinyVisual,
+    isShinyNegativeFallbackVisual: Boolean(appearance.shinyNegativeFallbackVisual && !ultraShinyVisual),
     spritePath: appearance.spritePath || def.spritePath,
     spriteImage: appearance.spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || getDefaultSpriteVariantId(def),
@@ -13507,6 +13535,7 @@ function resolveMorphingBaseProfile(member) {
     spriteImage: appearance?.spriteImage || def?.spriteImage || member?.spriteImage || null,
     spriteVariantId: appearance?.variant?.id || member?.spriteVariantId || (def ? getDefaultSpriteVariantId(def) : null),
     spriteAnimated: Boolean(appearance?.animated),
+    isShinyNegativeFallbackVisual: Boolean(appearance?.shinyNegativeFallbackVisual),
   };
 }
 
@@ -13529,6 +13558,34 @@ function restoreMorphingMemberBaseState(member) {
   member.spriteImage = baseProfile.spriteImage || member.spriteImage;
   member.spriteVariantId = baseProfile.spriteVariantId || member.spriteVariantId;
   member.spriteAnimated = Boolean(baseProfile.spriteAnimated);
+  member.isShinyNegativeFallbackVisual = Boolean(
+    baseProfile.isShinyNegativeFallbackVisual && !member.isUltraShinyVisual,
+  );
+}
+
+function getWrappedTeamIndex(index, teamMembers) {
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 0) {
+    return -1;
+  }
+  const length = teamMembers.length;
+  const safeIndex = toSafeInt(index, 0);
+  return ((safeIndex % length) + length) % length;
+}
+
+function getTeamAdjacentMember(teamMembers, index, direction = 1) {
+  if (!Array.isArray(teamMembers) || teamMembers.length <= 1) {
+    return null;
+  }
+  const currentIndex = getWrappedTeamIndex(index, teamMembers);
+  if (currentIndex < 0) {
+    return null;
+  }
+  const offset = Number(direction) < 0 ? -1 : 1;
+  const targetIndex = getWrappedTeamIndex(currentIndex + offset, teamMembers);
+  if (targetIndex < 0 || targetIndex === currentIndex) {
+    return null;
+  }
+  return teamMembers[targetIndex] || null;
 }
 
 function applyTeamTalentOverrides(teamMembers) {
@@ -13543,7 +13600,7 @@ function applyTeamTalentOverrides(teamMembers) {
     }
 
     restoreMorphingMemberBaseState(member);
-    const source = index > 0 ? teamMembers[index - 1] : null;
+    const source = getTeamAdjacentMember(teamMembers, index, -1);
     member.morphingSourceId = Number(source?.id || 0) > 0 ? Number(source.id) : null;
     member.spriteShader = source ? buildMorphingShaderConfig() : null;
     if (!source) {
@@ -13569,6 +13626,9 @@ function applyTeamTalentOverrides(teamMembers) {
     member.spriteImage = source.spriteImage || member.spriteImage;
     member.spriteVariantId = source.spriteVariantId || member.spriteVariantId;
     member.spriteAnimated = Boolean(source.spriteAnimated);
+    member.isShinyNegativeFallbackVisual = Boolean(
+      source.isShinyNegativeFallbackVisual && !member.isUltraShinyVisual,
+    );
   }
 
   return teamMembers;
@@ -13900,6 +13960,9 @@ function createRouteEnemyInstance() {
     balanceRewardMultiplier: rewardScaleMultiplier,
     isShinyVisual: Boolean(shinyVisual || appearance.shinyVisual || appearance.ultraShinyVisual),
     isUltraShinyVisual: Boolean(ultraShinyVisual || appearance.ultraShinyVisual),
+    isShinyNegativeFallbackVisual: Boolean(
+      appearance.shinyNegativeFallbackVisual && !(ultraShinyVisual || appearance.ultraShinyVisual),
+    ),
     spritePath,
     spriteImage: spriteImage || def.spriteImage,
     spriteVariantId: appearance.variant?.id || defaultVariant?.id || getDefaultSpriteVariantId(def),
@@ -16365,7 +16428,9 @@ function getTeamSpriteScale(layout = state.layout) {
     : viewportProfile.compact
       ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER
       : 1;
-  const devScale = Math.max(0.2, Number(state.devLayout?.settings?.allySpriteScale || 1));
+  const devScale = viewportProfile.phone
+    ? 1
+    : Math.max(0.2, Number(state.devLayout?.settings?.allySpriteScale || 1));
   return TEAM_SPRITE_SCALE * multiplier * devScale;
 }
 
@@ -16380,7 +16445,9 @@ function getEnemySpriteRenderSize(layout = state.layout, baseSize = 0) {
     : viewportProfile.compact
       ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER
       : 1;
-  const devScale = Math.max(0.2, Number(state.devLayout?.settings?.enemySpriteScale || 1));
+  const devScale = viewportProfile.phone
+    ? 1
+    : Math.max(0.2, Number(state.devLayout?.settings?.enemySpriteScale || 1));
   return safeBaseSize * multiplier * ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER * devScale;
 }
 
@@ -16486,11 +16553,14 @@ function computeLayout() {
   const centerX = playLeft + playWidth * 0.5;
   let centerY = playTop + playHeight * 0.5;
   const useSplitRows = profile.phone || (profile.compact && profile.portrait);
-  const enemySize = clamp(
+  let enemySize = clamp(
     Math.min(playWidth, playHeight) * (useSplitRows ? 0.236 : profile.compact ? 0.278 : 0.305),
     useSplitRows ? 84 : 118,
     useSplitRows ? 168 : 236,
   );
+  if (profile.phone) {
+    enemySize = Math.min(196, enemySize * 1.16);
+  }
   const teamSize = clamp(
     enemySize * (useSplitRows ? 0.58 : profile.compact ? 0.6 : 0.62),
     useSplitRows ? 56 : 72,
@@ -16513,88 +16583,173 @@ function computeLayout() {
   const cardMargin = 6;
   const teamSlots = [];
   const devLayoutSettings = state.devLayout?.settings || DEV_LAYOUT_SETTINGS_DEFAULTS;
-  const enemyCenterYOffset = Number(devLayoutSettings.enemyCenterYOffset || 0);
-  const allyRingYOffset = Number(devLayoutSettings.allyRingYOffset || 0);
-  const arcRotationDeg = Number(devLayoutSettings.arcRotationDeg || 0);
-  const arcSpreadScale = Math.max(0.2, Number(devLayoutSettings.arcSpreadScale || 1));
-  const arcRadiusScale = Math.max(0.2, Number(devLayoutSettings.arcRadiusScale || 1));
-  const hudXOffset = Number(devLayoutSettings.hudXOffset || 0);
-  const hudYOffset = Number(devLayoutSettings.hudYOffset || 0);
-  const hudDepthScale = Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));
-  const enemyUiYOffset = Number(devLayoutSettings.enemyUiYOffset || 0);
-
-  centerY = clamp(
-    playTop + playHeight * (useSplitRows ? 0.64 : profile.compact ? 0.62 : 0.6) + enemyCenterYOffset,
-    playTop + enemySize * 1.02,
-    playBottom - enemySize * 0.9,
+  const usePhoneRowsLayout = Boolean(profile.phone);
+  const enemyCenterYOffset = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.enemyCenterYOffset || 0);
+  const allyRingYOffset = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.allyRingYOffset || 0);
+  const arcRotationDeg = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.arcRotationDeg || 0);
+  const arcSpreadScale = Math.max(
+    0.2,
+    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcSpreadScale || 1)),
   );
+  const arcRadiusScale = Math.max(
+    0.2,
+    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcRadiusScale || 1)),
+  );
+  const hudXOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudXOffset || 0);
+  const hudYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudYOffset || 0);
+  const hudDepthScale = usePhoneRowsLayout ? 1 : Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));
+  const enemyUiYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.enemyUiYOffset || 0);
+  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
 
-  const slotBoundsLeft = playLeft + teamSize * 0.6;
-  const slotBoundsRight = playRight - teamSize * 0.6;
-  const slotBoundsTop = playTop + teamSize * 0.56;
-  const slotBoundsBottom = centerY - enemySize * 0.58;
-  const baseArcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
-  const baseArcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
-  const baseArcCenterDeg = (baseArcStartDeg + baseArcEndDeg) * 0.5;
-  const baseArcSpreadDeg = baseArcEndDeg - baseArcStartDeg;
-  const arcCenterDeg = baseArcCenterDeg + arcRotationDeg;
-  const arcSpreadDeg = clamp(baseArcSpreadDeg * arcSpreadScale, 48, 178);
-  const arcStartDeg = arcCenterDeg - arcSpreadDeg * 0.5;
-  const arcEndDeg = arcCenterDeg + arcSpreadDeg * 0.5;
-  const arcStart = (arcStartDeg * Math.PI) / 180;
-  const arcEnd = (arcEndDeg * Math.PI) / 180;
-  const arcSpan = Math.max(0.01, arcEnd - arcStart);
-  const arcStartCosAbs = Math.max(0.001, Math.abs(Math.cos(arcStart)));
-  const arcEndCosAbs = Math.max(0.001, Math.abs(Math.cos(arcEnd)));
-  const arcEdgeSinAbs = Math.max(0.001, Math.abs(Math.sin(arcStart)));
-  const radiusMaxByLeft = Math.max(0, (centerX - slotBoundsLeft) / arcStartCosAbs);
-  const radiusMaxByRight = Math.max(0, (slotBoundsRight - centerX) / arcEndCosAbs);
-  const radiusMaxByTop = Math.max(0, centerY - slotBoundsTop);
-  const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));
-  const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);
-  const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);
-  const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5) * arcRadiusScale;
-  const slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);
+  const centerYBaseRatio = useSplitRows
+    ? 0.64
+    : profile.compact
+      ? 0.62
+      : 0.6;
+  const centerYRaw = usePhoneRowsLayout
+    ? height * 0.49 + enemyCenterYOffset
+    : playTop + playHeight * centerYBaseRatio + enemyCenterYOffset;
+  centerY = usePhoneRowsLayout
+    ? centerYRaw
+    : allowOverflowPositions
+      ? centerYRaw
+      : clamp(centerYRaw, playTop + enemySize * 1.02, playBottom - enemySize * 0.9);
 
-  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
-    const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);
-    const angle = arcStart + arcSpan * t;
-    const x = clamp(centerX + Math.cos(angle) * slotRadius, slotBoundsLeft, slotBoundsRight);
-    const y = clamp(centerY + Math.sin(angle) * slotRadius + allyRingYOffset, slotBoundsTop, slotBoundsBottom);
-    const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);
-    const centerProximity = 1 - Math.abs(2 * t - 1);
-    const dirY = 1;
-    let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14)) + hudXOffset;
-    const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58) * hudDepthScale;
-    let hudCenterY = y + (
-      teamSize * (useSplitRows ? 0.86 : 0.82)
-      + teamHudHeight * (useSplitRows ? 0.44 : 0.42)
-      + radialDepthOffset
-    ) + hudYOffset;
-    hudCenterX = clamp(
-      hudCenterX,
-      playLeft + teamHudWidth * 0.5 + cardMargin,
-      playRight - teamHudWidth * 0.5 - cardMargin,
-    );
-    hudCenterY = clamp(
-      hudCenterY,
-      playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
-      Math.min(playBottom - teamHudHeight * 0.5 - cardMargin, centerY - enemySize * 0.12),
-    );
-    const cardTopY = hudCenterY - teamHudHeight * 0.5;
-    teamSlots.push({
-      x,
-      y,
-      size: teamSize,
-      hudCenterX,
-      hudCenterY,
-      hudTopY: cardTopY,
-      hudWidth: teamHudWidth,
-      hudHeight: teamHudHeight,
-      hudTypeChipHeight: teamTypeChipHeight,
-      hudDirectionX: dirX,
-      hudDirectionY: dirY,
-    });
+  if (usePhoneRowsLayout) {
+    const rowCount = Math.ceil(MAX_TEAM_SIZE / 2);
+    const halfSpread = Math.min(playWidth * 0.34, enemySize * 1.95 + teamSize * 0.85);
+    const topRowY = height * 0.34;
+    const bottomRowY = height * 0.74;
+    const slotBoundsLeft = playLeft + teamSize * 0.6;
+    const slotBoundsRight = playRight - teamSize * 0.6;
+    const slotBoundsTop = playTop + teamSize * 0.56;
+    const slotBoundsBottom = playBottom - teamSize * 0.56;
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const row = i < rowCount ? 0 : 1;
+      const col = i % rowCount;
+      const t = rowCount <= 1 ? 0 : (col / (rowCount - 1)) * 2 - 1;
+      const xRaw = centerX + t * halfSpread;
+      const yRaw = row === 0 ? topRowY : bottomRowY;
+      const x = xRaw;
+      const y = yRaw;
+      const dirX = t === 0 ? (row === 0 ? -1 : 1) : Math.sign(t);
+      const dirY = row === 0 ? -1 : 1;
+      let hudCenterX = x + dirX * (teamSize * 0.16) + hudXOffset;
+      let hudCenterY = y + (
+        row === 0
+          ? -(teamSize * 0.86 + teamHudHeight * 0.58)
+          : (teamSize * 0.8 + teamHudHeight * 0.42)
+      ) + hudYOffset;
+      if (!allowOverflowPositions) {
+        hudCenterX = clamp(
+          hudCenterX,
+          playLeft + teamHudWidth * 0.5 + cardMargin,
+          playRight - teamHudWidth * 0.5 - cardMargin,
+        );
+        hudCenterY = clamp(
+          hudCenterY,
+          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+          playBottom - teamHudHeight * 0.5 - cardMargin,
+        );
+      }
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
+  } else {
+    const slotBoundsLeft = playLeft + teamSize * 0.6;
+    const slotBoundsRight = playRight - teamSize * 0.6;
+    const slotBoundsTop = playTop + teamSize * 0.56;
+    const slotBoundsBottom = centerY - enemySize * 0.58;
+    const baseArcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
+    const baseArcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
+    const baseArcCenterDeg = (baseArcStartDeg + baseArcEndDeg) * 0.5;
+    const baseArcSpreadDeg = baseArcEndDeg - baseArcStartDeg;
+    const arcCenterDeg = baseArcCenterDeg + arcRotationDeg;
+    const arcSpreadDegRaw = baseArcSpreadDeg * arcSpreadScale;
+    const arcSpreadDeg = allowOverflowPositions ? Math.max(4, arcSpreadDegRaw) : clamp(arcSpreadDegRaw, 48, 178);
+    const arcStartDeg = arcCenterDeg - arcSpreadDeg * 0.5;
+    const arcEndDeg = arcCenterDeg + arcSpreadDeg * 0.5;
+    const arcStart = (arcStartDeg * Math.PI) / 180;
+    const arcEnd = (arcEndDeg * Math.PI) / 180;
+    const arcSpan = Math.max(0.01, arcEnd - arcStart);
+    const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5) * arcRadiusScale;
+    let slotRadius = Math.max(teamSize * 0.2, preferredRadius);
+    if (!allowOverflowPositions) {
+      const arcStartCosAbs = Math.max(0.001, Math.abs(Math.cos(arcStart)));
+      const arcEndCosAbs = Math.max(0.001, Math.abs(Math.cos(arcEnd)));
+      const arcEdgeSinAbs = Math.max(0.001, Math.abs(Math.sin(arcStart)));
+      const radiusMaxByLeft = Math.max(0, (centerX - slotBoundsLeft) / arcStartCosAbs);
+      const radiusMaxByRight = Math.max(0, (slotBoundsRight - centerX) / arcEndCosAbs);
+      const radiusMaxByTop = Math.max(0, centerY - slotBoundsTop);
+      const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));
+      const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);
+      const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);
+      slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);
+    }
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);
+      const angle = arcStart + arcSpan * t;
+      const xRaw = centerX + Math.cos(angle) * slotRadius;
+      const yRaw = centerY + Math.sin(angle) * slotRadius + allyRingYOffset;
+      const x = allowOverflowPositions ? xRaw : clamp(xRaw, slotBoundsLeft, slotBoundsRight);
+      const y = allowOverflowPositions ? yRaw : clamp(yRaw, slotBoundsTop, slotBoundsBottom);
+      const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);
+      const centerProximity = 1 - Math.abs(2 * t - 1);
+      const dirY = 1;
+      let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14)) + hudXOffset;
+      const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58) * hudDepthScale;
+      let hudCenterY = y + (
+        teamSize * (useSplitRows ? 0.86 : 0.82)
+        + teamHudHeight * (useSplitRows ? 0.44 : 0.42)
+        + radialDepthOffset
+      ) + hudYOffset;
+      if (!allowOverflowPositions) {
+        hudCenterX = clamp(
+          hudCenterX,
+          playLeft + teamHudWidth * 0.5 + cardMargin,
+          playRight - teamHudWidth * 0.5 - cardMargin,
+        );
+        hudCenterY = clamp(
+          hudCenterY,
+          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+          Math.min(playBottom - teamHudHeight * 0.5 - cardMargin, centerY - enemySize * 0.12),
+        );
+      }
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
   }
 
   const hpBarWidth = clamp(
@@ -16604,29 +16759,28 @@ function computeLayout() {
   );
   const hpBarHeight = clamp(enemySize * 0.06, 9, 14);
   const enemyImpactX = centerX;
-  const enemyImpactY = clamp(
-    centerY + enemySize * (useSplitRows ? 0.04 : 0.03) + enemyUiYOffset,
-    playTop + enemySize * 0.22,
-    playBottom - enemySize * 0.22,
-  );
+  const enemyImpactYRaw = centerY + enemySize * (useSplitRows ? 0.04 : 0.03) + enemyUiYOffset;
+  const enemyImpactY = allowOverflowPositions
+    ? enemyImpactYRaw
+    : clamp(enemyImpactYRaw, playTop + enemySize * 0.22, playBottom - enemySize * 0.22);
   const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62) + enemyUiYOffset;
   const hpBarMinY = centerY + enemySize * 0.42;
   const hpBarMaxY = playBottom - (useSplitRows ? 98 : 114);
-  const hpBarY = clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));
+  const hpBarY = allowOverflowPositions
+    ? enemyUiTop
+    : clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));
   const enemyNameMinY = hpBarY + hpBarHeight + 6;
   const enemyNameMaxY = playBottom - (useSplitRows ? 70 : 78);
-  const enemyNameTopY = clamp(
-    hpBarY + hpBarHeight + (useSplitRows ? 8 : 10),
-    Math.min(enemyNameMinY, enemyNameMaxY),
-    Math.max(enemyNameMinY, enemyNameMaxY),
-  );
+  const enemyNameTopYRaw = hpBarY + hpBarHeight + (useSplitRows ? 8 : 10);
+  const enemyNameTopY = allowOverflowPositions
+    ? enemyNameTopYRaw
+    : clamp(enemyNameTopYRaw, Math.min(enemyNameMinY, enemyNameMaxY), Math.max(enemyNameMinY, enemyNameMaxY));
   const enemyTypeMinY = enemyNameTopY + 14;
   const enemyTypeMaxY = playBottom - 14;
-  const enemyTypeHudY = clamp(
-    enemyNameTopY + (useSplitRows ? 22 : 24),
-    Math.min(enemyTypeMinY, enemyTypeMaxY),
-    Math.max(enemyTypeMinY, enemyTypeMaxY),
-  );
+  const enemyTypeHudYRaw = enemyNameTopY + (useSplitRows ? 22 : 24);
+  const enemyTypeHudY = allowOverflowPositions
+    ? enemyTypeHudYRaw
+    : clamp(enemyTypeHudYRaw, Math.min(enemyTypeMinY, enemyTypeMaxY), Math.max(enemyTypeMinY, enemyTypeMaxY));
 
   return {
     centerX,
@@ -16638,7 +16792,13 @@ function computeLayout() {
     hpBarHeight,
     hpBarY,
     enemyNameTopY,
-    enemyNamePlateWidth: clamp(hpBarWidth * 0.74, 108, useSplitRows ? 164 : 224),
+    enemyNamePlateWidth: clamp(
+      useSplitRows
+        ? Math.max(hpBarWidth * 0.9, playWidth * 0.56)
+        : hpBarWidth * 0.74,
+      useSplitRows ? 126 : 108,
+      Math.min(useSplitRows ? 236 : 224, Math.max(108, playWidth - 12)),
+    ),
     enemyTypeHudY,
     viewportProfile: profile,
     safeBounds: {
@@ -16843,10 +17003,11 @@ function drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {
   }
 
   const time = state.timeMs * 0.0032 + Number(seed || 0) * 0.77;
+  const motionScale = MORPHING_MOTION_INTENSITY;
   const radiusX = safeSize * 0.29;
   const topY = -safeSize * 0.06;
   const baseY = safeSize * 0.11;
-  const dripAmplitude = safeSize * 0.165;
+  const dripAmplitude = safeSize * 0.165 * motionScale;
   const segmentCount = 16;
   const bodyAlpha = safeAlpha * MORPHING_SLIME_ALPHA * (0.92 + 0.08 * Math.sin(time * 1.1));
 
@@ -16858,7 +17019,7 @@ function drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {
   for (let i = segmentCount; i >= 0; i -= 1) {
     const ratio = i / segmentCount;
     const x = lerpNumber(-radiusX, radiusX, ratio);
-    const wave = Math.sin(time * 1.35 + ratio * Math.PI * 3.6 + seed * 0.19) * safeSize * 0.018;
+    const wave = Math.sin(time * 1.35 + ratio * Math.PI * 3.6 + seed * 0.19) * safeSize * 0.018 * motionScale;
     const dripNoise = Math.max(0, Math.sin(time * 1.9 + ratio * Math.PI * 7.2 + seed * 0.41));
     const dripShape = dripNoise * dripNoise;
     const edgeBias = 1 - Math.abs(ratio - 0.5) * 2;
@@ -16886,10 +17047,10 @@ function drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {
   const dropletCount = 3;
   for (let i = 0; i < dropletCount; i += 1) {
     const ratio = (i + 1) / (dropletCount + 1);
-    const drift = Math.sin(time * 1.6 + i * 1.17 + seed * 0.13) * safeSize * 0.012;
+    const drift = Math.sin(time * 1.6 + i * 1.17 + seed * 0.13) * safeSize * 0.012 * motionScale;
     const phase = ((time * 0.37 + i * 0.29 + seed * 0.07) % 1 + 1) % 1;
     const x = lerpNumber(-radiusX * 0.72, radiusX * 0.72, ratio) + drift;
-    const y = baseY + safeSize * (0.08 + phase * 0.17);
+    const y = baseY + safeSize * (0.08 + phase * 0.17 * motionScale);
     const radius = safeSize * (0.027 + (1 - phase) * 0.012);
     const dropAlpha = safeAlpha * 0.2 * (1 - phase * 0.55);
     ctx.beginPath();
@@ -16907,6 +17068,7 @@ function drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {
 
 function getMorphingWobbleTransform(entity, size) {
   const safeSize = Math.max(1, Number(size) || 0);
+  const motionScale = MORPHING_MOTION_INTENSITY;
   const seed =
     Number(entity?.id || 0) * 0.71
     + Number(entity?.morphingSourceId || 0) * 1.17
@@ -16916,13 +17078,22 @@ function getMorphingWobbleTransform(entity, size) {
   const secondary = Math.sin(t * 1.73 + seed * 0.63);
   const tertiary = Math.sin(t * 2.41 + seed * 1.17);
   const squashWave = primary * 0.7 + secondary * 0.3;
-  const scaleX = clamp(1 + squashWave * MORPHING_WOBBLE_SCALE_AMPLITUDE + tertiary * 0.03, 0.82, 1.28);
-  const scaleY = clamp(1 - squashWave * MORPHING_WOBBLE_VERTICAL_COMPENSATION - tertiary * 0.018, 0.8, 1.26);
-  const offsetX = safeSize * MORPHING_WOBBLE_OFFSET_RATIO * (primary * 0.7 + secondary * 0.3);
-  const offsetY = safeSize * MORPHING_WOBBLE_OFFSET_RATIO * 0.62 * (secondary * 0.65 - Math.abs(primary) * 0.35);
+  const scaleX = clamp(1 + (squashWave * MORPHING_WOBBLE_SCALE_AMPLITUDE + tertiary * 0.03) * motionScale, 0.82, 1.28);
+  const scaleY = clamp(
+    1 - (squashWave * MORPHING_WOBBLE_VERTICAL_COMPENSATION + tertiary * 0.018) * motionScale,
+    0.8,
+    1.26,
+  );
+  const offsetX = safeSize * MORPHING_WOBBLE_OFFSET_RATIO * (primary * 0.7 + secondary * 0.3) * motionScale;
+  const offsetY =
+    safeSize
+    * MORPHING_WOBBLE_OFFSET_RATIO
+    * 0.62
+    * (secondary * 0.65 - Math.abs(primary) * 0.35)
+    * motionScale;
   const rotationRad =
-    ((primary * 0.65 + tertiary * 0.35) * MORPHING_WOBBLE_ROTATION_DEG * Math.PI) / 180;
-  const shearX = clamp((secondary * 0.75 + tertiary * 0.25) * MORPHING_WOBBLE_SHEAR, -0.24, 0.24);
+    ((primary * 0.65 + tertiary * 0.35) * MORPHING_WOBBLE_ROTATION_DEG * motionScale * Math.PI) / 180;
+  const shearX = clamp((secondary * 0.75 + tertiary * 0.25) * MORPHING_WOBBLE_SHEAR * motionScale, -0.24, 0.24);
   return {
     scaleX,
     scaleY,
@@ -17403,6 +17574,10 @@ function buildSpriteShaderFilter(shader = null) {
   if (Number.isFinite(contrast) && Math.abs(contrast - 1) > 0.001) {
     parts.push(`contrast(${contrast.toFixed(3)})`);
   }
+  const invert = Number(shader.invert);
+  if (Number.isFinite(invert) && Math.abs(invert) > 0.001) {
+    parts.push(`invert(${clamp(invert, 0, 1).toFixed(3)})`);
+  }
 
   return parts.length > 0 ? parts.join(" ") : "none";
 }
@@ -17432,6 +17607,13 @@ function mergeSpriteShaderConfig(primaryShader = null, secondaryShader = null) {
   const saturate = multiplyOrDefault(primary?.saturate, secondary?.saturate);
   const brightness = multiplyOrDefault(primary?.brightness, secondary?.brightness);
   const contrast = multiplyOrDefault(primary?.contrast, secondary?.contrast);
+  const invertPrimary = readNumber(primary?.invert);
+  const invertSecondary = readNumber(secondary?.invert);
+  const invert =
+    invertPrimary == null && invertSecondary == null
+      ? null
+      : 1 - (1 - clamp(invertPrimary == null ? 0 : invertPrimary, 0, 1))
+        * (1 - clamp(invertSecondary == null ? 0 : invertSecondary, 0, 1));
   const colorizePrimary = Array.isArray(primary?.colorizeRgb) ? normalizeRgbColor(primary.colorizeRgb, null) : null;
   const colorizeSecondary =
     Array.isArray(secondary?.colorizeRgb) ? normalizeRgbColor(secondary.colorizeRgb, null) : null;
@@ -17460,6 +17642,9 @@ function mergeSpriteShaderConfig(primaryShader = null, secondaryShader = null) {
   }
   if (contrast != null) {
     merged.contrast = contrast;
+  }
+  if (invert != null && invert > 0.001) {
+    merged.invert = clamp(invert, 0, 1);
   }
   const mergedColorize = colorizePrimary || colorizeSecondary || null;
   if (mergedColorize) {
@@ -17597,6 +17782,10 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   }
   const shinyVisual = Boolean(options.shinyVisual || entity?.isShinyVisual || entity?.isShiny);
   const ultraShinyVisual = Boolean(options.ultraShinyVisual || entity?.isUltraShinyVisual || entity?.isUltraShiny);
+  const shinyNegativeFallbackVisual = Boolean(
+    !ultraShinyVisual
+    && (options.shinyNegativeFallbackVisual || entity?.isShinyNegativeFallbackVisual),
+  );
   const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);
   const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
   const ultraSeed =
@@ -17608,7 +17797,9 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
         ? entity.spriteShader
         : null;
   const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;
-  const shaderConfig = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
+  const shinyNegativeShaderConfig = shinyNegativeFallbackVisual ? SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG : null;
+  const shaderWithUltra = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
+  const shaderConfig = mergeSpriteShaderConfig(shaderWithUltra, shinyNegativeShaderConfig);
   const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
   const spriteImage = resolvedSpriteSource.source;
   const minRenderSizePx = Number.isFinite(options.minRenderSizePx) ? Math.max(0, Number(options.minRenderSizePx)) : 0;
@@ -17755,6 +17946,46 @@ function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
   return { size, width: measuredWidth };
 }
 
+function fitTextToWidthWithEllipsis(text, maxWidth, suffix = "...") {
+  const source = Array.from(String(text || ""));
+  if (source.length <= 0) {
+    return "";
+  }
+  const safeMaxWidth = Math.max(0, Number(maxWidth) || 0);
+  if (safeMaxWidth <= 0) {
+    return "";
+  }
+
+  const fullText = source.join("");
+  if (ctx.measureText(fullText).width <= safeMaxWidth) {
+    return fullText;
+  }
+
+  const safeSuffix = String(suffix || "");
+  if (!safeSuffix) {
+    return "";
+  }
+  if (ctx.measureText(safeSuffix).width > safeMaxWidth) {
+    return "";
+  }
+
+  let low = 0;
+  let high = source.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) * 0.5);
+    const candidate = source.slice(0, mid).join("") + safeSuffix;
+    if (ctx.measureText(candidate).width <= safeMaxWidth) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  if (low <= 0) {
+    return safeSuffix;
+  }
+  return source.slice(0, low).join("") + safeSuffix;
+}
+
 function getEnemyOwnershipBadgeState(pokemonId) {
   const id = Number(pokemonId || 0);
   if (id <= 0) {
@@ -17890,6 +18121,7 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     return null;
   }
   const enemy = Boolean(options.enemy);
+  const allowOverflow = options.allowOverflow === true;
   const maxWidth = clamp(Number(options.maxWidth) || (enemy ? 220 : 122), 56, state.viewport.width - 16);
   const nameBaseSize = clamp(Number(options.nameFontSize) || (enemy ? 20 : 16), 10, 24);
   const levelBaseSize = clamp(Number(options.levelFontSize) || (enemy ? 13 : 11), 8, 16);
@@ -17908,7 +18140,7 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     const ownershipBadges = buildEnemyOwnershipBadgeList(entity.id);
     const horizontalPadding = 12;
     const verticalPadding = 6;
-    const levelGap = 14;
+    const levelGap = maxWidth <= 180 ? 10 : 14;
     const badgeSize = clamp(levelBaseSize + 1, 10, 15);
     const badgeGap = 3;
     const leftBadgeWidth = ownershipBadges.length > 0
@@ -17930,9 +18162,11 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
       minCardWidth,
       maxWidth,
     );
-    cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size) + verticalPadding * 2 + 2);
-    x = clamp(centerX - cardWidth * 0.5, 8, state.viewport.width - cardWidth - 8);
-    y = clamp(Number(topY) || 0, 8, state.viewport.height - cardHeight - 8);
+    cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size, badgeSize - 1) + verticalPadding * 2 + 2);
+    const xRaw = centerX - cardWidth * 0.5;
+    const yRaw = Number(topY) || 0;
+    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);
+    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);
 
     if (options.card !== false) {
       drawRetroHudPanel(x, y, cardWidth, cardHeight, {
@@ -17946,7 +18180,7 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
       });
     }
 
-    const midY = y + cardHeight * 0.57;
+    const midY = y + cardHeight * 0.5;
     const contentStartX = x + horizontalPadding;
 
     if (ownershipBadges.length > 0) {
@@ -17962,12 +18196,17 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     ctx.font = `700 ${nameMetrics.size}px Tahoma`;
     ctx.fillStyle = "#eef6ff";
     const nameX = contentStartX + leftBadgeWidth + badgeNameGap;
-    ctx.fillText(entity.nameFr, nameX, midY);
+    const nameTextMaxWidth = Math.max(
+      22,
+      cardWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 2,
+    );
+    const nameText = fitTextToWidthWithEllipsis(entity.nameFr, nameTextMaxWidth);
+    ctx.fillText(nameText, nameX, midY);
 
     ctx.textAlign = "right";
     ctx.font = `700 ${levelMetrics.size}px Tahoma`;
     ctx.fillStyle = "#b8cee5";
-    ctx.fillText(levelText, x + cardWidth - horizontalPadding + 1, midY);
+    ctx.fillText(levelText, x + cardWidth - horizontalPadding, midY);
   } else {
     const horizontalPadding = 8;
     const verticalPadding = 5;
@@ -17980,8 +18219,10 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
       maxWidth,
     );
     cardHeight = Math.round(verticalPadding * 2 + nameMetrics.size + lineGap + levelMetrics.size);
-    x = clamp(centerX - cardWidth * 0.5, 8, state.viewport.width - cardWidth - 8);
-    y = clamp(Number(topY) || 0, 8, state.viewport.height - cardHeight - 8);
+    const xRaw = centerX - cardWidth * 0.5;
+    const yRaw = Number(topY) || 0;
+    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);
+    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);
     const cardCenterX = x + cardWidth * 0.5;
 
     if (options.card !== false) {
@@ -18111,12 +18352,15 @@ function pickContrastingHudTextColor(baseColor) {
 }
 
 function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
+  const allowOverflow = options.allowOverflow === true;
   const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
   const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);
   const panelHeight = Math.max(24, height + 10);
   const panelWidth = clamp(width + 96, 180, state.viewport.width - 18);
-  const panelX = clamp(centerX - panelWidth * 0.5, 8, state.viewport.width - panelWidth - 8);
-  const panelY = clamp(Number(topY) || 0, 8, state.viewport.height - panelHeight - 8) - 5;
+  const panelXRaw = centerX - panelWidth * 0.5;
+  const panelYRaw = (Number(topY) || 0) - 5;
+  const panelX = allowOverflow ? panelXRaw : clamp(panelXRaw, 8, state.viewport.width - panelWidth - 8);
+  const panelY = allowOverflow ? panelYRaw : clamp(panelYRaw, 3, state.viewport.height - panelHeight - 8);
   const chipX = panelX + 5;
   const chipY = panelY + 4;
   const chipWidth = 26;
@@ -18314,6 +18558,7 @@ function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
   if (!member || member.level >= MAX_LEVEL) {
     return;
   }
+  const allowOverflow = options.allowOverflow === true;
   const currentXp = Math.max(0, toSafeInt(member.xp, 0));
   const requiredXp = Math.max(1, toSafeInt(member.xpToNext, 1));
   const ratio = clamp(currentXp / requiredXp, 0, 1);
@@ -18321,7 +18566,8 @@ function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
   const width = clamp(Number(options.width) || 72, 40, 96);
   const height = clamp(Number(options.height) || 4, 3, 5);
   const x = centerX - width * 0.5;
-  const y = clamp(Number(topY) || 0, 8, state.viewport.height - height - 8);
+  const yRaw = Number(topY) || 0;
+  const y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - height - 8);
   const radius = Math.max(2, height * 0.45);
 
   ctx.save();
@@ -20821,6 +21067,7 @@ function drawBallInventoryOverlay(layout) {
 }
 
 function drawBattleUiOverlay(layout, options = {}) {
+  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
   if (options.showEnemyUi && state.enemy) {
     drawEnemyHpBar(
       state.enemy,
@@ -20828,10 +21075,17 @@ function drawBattleUiOverlay(layout, options = {}) {
       layout.hpBarY,
       layout.hpBarWidth,
       layout.hpBarHeight,
+      { allowOverflow: allowOverflowPositions },
     );
+    const viewportProfile = layout.viewportProfile || {};
+    const isPhoneViewport = Boolean(viewportProfile.phone);
+    const isCompactViewport = Boolean(viewportProfile.compact);
     const enemyNameCard = drawNameAndLevel(state.enemy, layout.centerX, layout.enemyNameTopY, {
       enemy: true,
       maxWidth: layout.enemyNamePlateWidth,
+      nameFontSize: isPhoneViewport ? 16 : isCompactViewport ? 18 : 20,
+      levelFontSize: isPhoneViewport ? 11 : isCompactViewport ? 12 : 13,
+      allowOverflow: allowOverflowPositions,
     });
     const enemyTypeHudY = Math.max(
       Number(layout.enemyTypeHudY) || 0,
@@ -20840,6 +21094,8 @@ function drawBattleUiOverlay(layout, options = {}) {
     drawEnemyDefensiveTypeHud(state.enemy, {
       ...layout,
       enemyTypeHudY,
+    }, {
+      allowOverflow: allowOverflowPositions,
     });
   }
 
@@ -20856,15 +21112,19 @@ function drawBattleUiOverlay(layout, options = {}) {
       maxWidth: slot.hudWidth,
       nameFontSize: isPhoneViewport ? 9 : isCompactViewport ? 15 : 19,
       levelFontSize: isPhoneViewport ? 7 : isCompactViewport ? 11 : 13,
+      allowOverflow: allowOverflowPositions,
     });
     drawTeamTypeHud(member, i, {
       ...slot,
       hudCenterX: nameCard?.centerX ?? slot.hudCenterX,
       hudTopY: nameCard?.y ?? slot.hudTopY,
-    }, state.enemy);
+    }, state.enemy, {
+      allowOverflow: allowOverflowPositions,
+    });
     drawTeamXpBar(member, i, nameCard?.centerX ?? slot.hudCenterX, (nameCard?.bottom ?? slot.hudTopY) + 4, {
       width: Math.max(40, (nameCard?.width ?? slot.hudWidth) - 16),
       height: isPhoneViewport ? 3.5 : isCompactViewport ? 4.4 : 5.2,
+      allowOverflow: allowOverflowPositions,
     });
   }
 }
@@ -22120,6 +22380,7 @@ function getCapturedEntityBoxesEntries() {
       talent,
       spriteVariantId: appearance.variant?.id || null,
       shinyVisual: appearance.shinyVisual,
+      shinyNegativeFallbackVisual: appearance.shinyNegativeFallbackVisual,
       ultraShinyVisual: appearance.ultraShinyVisual,
       shinyModeUnlocked,
       ultraShinyModeUnlocked,
@@ -23930,6 +24191,7 @@ function exportTextState() {
           is_shiny: Boolean(state.enemy.isShiny),
           is_ultra_shiny: Boolean(state.enemy.isUltraShiny),
           shiny_visual: Boolean(state.enemy.isShiny || state.enemy.isShinyVisual || shouldForceUltraShinyAllPokemon()),
+          shiny_negative_fallback_visual: Boolean(state.enemy.isShinyNegativeFallbackVisual),
           ultra_shiny_visual: Boolean(
             state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual || shouldForceUltraShinyAllPokemon(),
           ),
@@ -23985,6 +24247,7 @@ function exportTextState() {
       is_shiny: Boolean(member.isShiny),
       is_ultra_shiny: Boolean(member.isUltraShiny),
       shiny_visual: Boolean(member.isShiny || member.isShinyVisual || shouldForceUltraShinyAllPokemon()),
+      shiny_negative_fallback_visual: Boolean(member.isShinyNegativeFallbackVisual),
       ultra_shiny_visual: Boolean(member.isUltraShiny || member.isUltraShinyVisual || shouldForceUltraShinyAllPokemon()),
       sprite_variant_id: member.spriteVariantId || null,
       slot_index: index,
@@ -25657,16 +25920,6 @@ function toggleActionDockFullscreenMenu() {
 
 document.addEventListener("keydown", (event) => {
   const key = String(event.key || "").toLowerCase();
-  if (key === "m" && !event.repeat && !isTypingTarget(event.target)) {
-    event.preventDefault();
-    toggleDevLayoutPanel();
-    return;
-  }
-  if (key === "escape" && state.ui.devLayoutOpen) {
-    event.preventDefault();
-    setDevLayoutPanelOpen(false);
-    return;
-  }
   if (key === "escape" && state.ui.teamDragActive) {
     event.preventDefault();
     const dragMoved = Boolean(state.ui.teamDragMoved);
@@ -25886,16 +26139,6 @@ if (actionDockPokeballToggleButtonEl) {
 if (actionDockPokeballVisualEl) {
   actionDockPokeballVisualEl.addEventListener("animationend", () => {
     actionDockPokeballVisualEl.classList.remove("is-spin-cw", "is-spin-ccw");
-  });
-}
-if (devLayoutCloseButtonEl) {
-  devLayoutCloseButtonEl.addEventListener("click", () => {
-    setDevLayoutPanelOpen(false);
-  });
-}
-if (devLayoutResetButtonEl) {
-  devLayoutResetButtonEl.addEventListener("click", () => {
-    resetDevLayoutSettings();
   });
 }
 if (actionDockFullscreenMenuEl) {
@@ -26172,9 +26415,7 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
 window.addEventListener("pagehide", handlePageLifecyclePersist);
 window.addEventListener("beforeunload", handlePageLifecyclePersist);
 
-state.devLayout.settings = loadDevLayoutSettingsFromStorage();
-initializeDevLayoutControls();
-renderDevLayoutPanel();
+state.devLayout.settings = createDefaultDevLayoutSettings();
 
 applyInitialPerformanceProfile();
 resizeCanvas();

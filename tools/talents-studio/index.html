@@ -130,21 +130,27 @@
       .talent-item.unsaved { background: #fff9ec; }
       .item-copy { display: grid; gap: 3px; }
       .sprite-thumb {
+        position: relative;
         width: 34px;
         height: 34px;
-        image-rendering: pixelated;
-        object-fit: contain;
         border: 1px solid #c9d5e2;
         border-radius: 7px;
         background-image:
-          var(--sprite-url, none),
           linear-gradient(45deg, #dce5ef 25%, transparent 25%),
           linear-gradient(-45deg, #dce5ef 25%, transparent 25%),
           linear-gradient(45deg, transparent 75%, #dce5ef 75%),
           linear-gradient(-45deg, transparent 75%, #dce5ef 75%);
-        background-size: contain, 12px 12px, 12px 12px, 12px 12px, 12px 12px;
-        background-position: center, 0 0, 0 6px, 6px -6px, -6px 0;
-        background-repeat: no-repeat, repeat, repeat, repeat, repeat;
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px;
+        background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+        background-repeat: repeat, repeat, repeat, repeat;
+        overflow: hidden;
+      }
+      .sprite-thumb > img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
       }
       .sprite-thumb.big {
         width: 92px;
@@ -423,18 +429,26 @@
         return `/pokemon_data/${id}_${nameEn}/sprites/${id}_${nameEn}_firered_leafgreen_front.png`;
       }
 
-      function buildSpriteStyle(url) {
-        const safeUrl = String(url || "")
-          .replaceAll("'", "%27")
-          .replaceAll("(", "%28")
-          .replaceAll(")", "%29");
-        return safeUrl ? `--sprite-url:url('${safeUrl}');` : "";
+      function renderSpriteBlock(url, className = "sprite-thumb", label = "") {
+        const safeLabel = escapeHtml(label || "");
+        const safeUrl = escapeHtml(String(url || "").trim());
+        const imageMarkup = safeUrl
+          ? `<img src="${safeUrl}" alt="${safeLabel}" loading="lazy" decoding="async" />`
+          : "";
+        return `<div class="${className}" role="img" aria-label="${safeLabel}" title="${safeLabel}">${imageMarkup}</div>`;
       }
 
-      function renderSpriteBlock(url, className = "sprite-thumb", label = "") {
-        const style = buildSpriteStyle(url);
+      function setSpriteContent(node, url, label = "") {
+        if (!node) {
+          return;
+        }
+        const safeUrl = escapeHtml(String(url || "").trim());
         const safeLabel = escapeHtml(label || "");
-        return `<div class="${className}" style="${style}" role="img" aria-label="${safeLabel}" title="${safeLabel}"></div>`;
+        node.setAttribute("aria-label", safeLabel || "Sprite Pokemon");
+        node.setAttribute("title", safeLabel || "Sprite Pokemon");
+        node.innerHTML = safeUrl
+          ? `<img src="${safeUrl}" alt="${safeLabel}" loading="lazy" decoding="async" />`
+          : "";
       }
 
       function getCurrentBaseRow() {
@@ -535,7 +549,7 @@
           nodes.resetCurrentBtn.disabled = true;
           nodes.prevBtn.disabled = true;
           nodes.nextBtn.disabled = true;
-          nodes.heroSprite.style.setProperty("--sprite-url", "none");
+          setSpriteContent(nodes.heroSprite, "", "Sprite Pokemon");
           nodes.heroTitle.textContent = "Pokemon";
           nodes.heroSubtitle.textContent = "";
           nodes.heroTalentBadge.textContent = "Talent NONE";
@@ -552,7 +566,11 @@
         nodes.talentDescriptionFr.value = String(row.talent_description_fr || "");
         nodes.commentaire.value = String(row.commentaire || "");
         const spriteUrl = getPokemonSpriteUrlForRow(row);
-        nodes.heroSprite.style.cssText = buildSpriteStyle(spriteUrl);
+        setSpriteContent(
+          nodes.heroSprite,
+          spriteUrl,
+          row.pokemon_name_en || row.pokemon_name_fr || String(row.pokemon_id || ""),
+        );
         nodes.heroTitle.textContent = `#${row.pokemon_id} ${row.pokemon_name_fr || row.pokemon_name_en || "Pokemon"}`;
         nodes.heroSubtitle.textContent = row.pokemon_name_en || "";
         const talentId = String(row.talent_id || "NONE").toUpperCase();
