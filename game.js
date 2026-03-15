@@ -14540,6 +14540,7 @@ function updateHud() {
     updateSaveBackendIndicator();
     refreshRouteUi();
     renderGachaModal();
+    renderDevLayoutPanel();
     state.lastHudAutoUpdateMs = nowMs;
     return;
   }
@@ -14567,6 +14568,7 @@ function updateHud() {
   updateSaveBackendIndicator();
   refreshRouteUi();
   renderGachaModal();
+  renderDevLayoutPanel();
   state.lastHudAutoUpdateMs = nowMs;
 }
 
@@ -16510,9 +16512,19 @@ function computeLayout() {
   const teamTypeChipHeight = clamp(teamSize * 0.17, 11, 18);
   const cardMargin = 6;
   const teamSlots = [];
+  const devLayoutSettings = state.devLayout?.settings || DEV_LAYOUT_SETTINGS_DEFAULTS;
+  const enemyCenterYOffset = Number(devLayoutSettings.enemyCenterYOffset || 0);
+  const allyRingYOffset = Number(devLayoutSettings.allyRingYOffset || 0);
+  const arcRotationDeg = Number(devLayoutSettings.arcRotationDeg || 0);
+  const arcSpreadScale = Math.max(0.2, Number(devLayoutSettings.arcSpreadScale || 1));
+  const arcRadiusScale = Math.max(0.2, Number(devLayoutSettings.arcRadiusScale || 1));
+  const hudXOffset = Number(devLayoutSettings.hudXOffset || 0);
+  const hudYOffset = Number(devLayoutSettings.hudYOffset || 0);
+  const hudDepthScale = Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));
+  const enemyUiYOffset = Number(devLayoutSettings.enemyUiYOffset || 0);
 
   centerY = clamp(
-    playTop + playHeight * (useSplitRows ? 0.64 : profile.compact ? 0.62 : 0.6),
+    playTop + playHeight * (useSplitRows ? 0.64 : profile.compact ? 0.62 : 0.6) + enemyCenterYOffset,
     playTop + enemySize * 1.02,
     playBottom - enemySize * 0.9,
   );
@@ -16521,8 +16533,14 @@ function computeLayout() {
   const slotBoundsRight = playRight - teamSize * 0.6;
   const slotBoundsTop = playTop + teamSize * 0.56;
   const slotBoundsBottom = centerY - enemySize * 0.58;
-  const arcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
-  const arcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
+  const baseArcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
+  const baseArcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
+  const baseArcCenterDeg = (baseArcStartDeg + baseArcEndDeg) * 0.5;
+  const baseArcSpreadDeg = baseArcEndDeg - baseArcStartDeg;
+  const arcCenterDeg = baseArcCenterDeg + arcRotationDeg;
+  const arcSpreadDeg = clamp(baseArcSpreadDeg * arcSpreadScale, 48, 178);
+  const arcStartDeg = arcCenterDeg - arcSpreadDeg * 0.5;
+  const arcEndDeg = arcCenterDeg + arcSpreadDeg * 0.5;
   const arcStart = (arcStartDeg * Math.PI) / 180;
   const arcEnd = (arcEndDeg * Math.PI) / 180;
   const arcSpan = Math.max(0.01, arcEnd - arcStart);
@@ -16535,24 +16553,24 @@ function computeLayout() {
   const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));
   const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);
   const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);
-  const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5);
+  const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5) * arcRadiusScale;
   const slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);
 
   for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
     const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);
     const angle = arcStart + arcSpan * t;
-    const x = centerX + Math.cos(angle) * slotRadius;
-    const y = centerY + Math.sin(angle) * slotRadius;
+    const x = clamp(centerX + Math.cos(angle) * slotRadius, slotBoundsLeft, slotBoundsRight);
+    const y = clamp(centerY + Math.sin(angle) * slotRadius + allyRingYOffset, slotBoundsTop, slotBoundsBottom);
     const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);
     const centerProximity = 1 - Math.abs(2 * t - 1);
     const dirY = 1;
-    let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14));
-    const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58);
+    let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14)) + hudXOffset;
+    const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58) * hudDepthScale;
     let hudCenterY = y + (
       teamSize * (useSplitRows ? 0.86 : 0.82)
       + teamHudHeight * (useSplitRows ? 0.44 : 0.42)
       + radialDepthOffset
-    );
+    ) + hudYOffset;
     hudCenterX = clamp(
       hudCenterX,
       playLeft + teamHudWidth * 0.5 + cardMargin,
@@ -16587,11 +16605,11 @@ function computeLayout() {
   const hpBarHeight = clamp(enemySize * 0.06, 9, 14);
   const enemyImpactX = centerX;
   const enemyImpactY = clamp(
-    centerY + enemySize * (useSplitRows ? 0.04 : 0.03),
+    centerY + enemySize * (useSplitRows ? 0.04 : 0.03) + enemyUiYOffset,
     playTop + enemySize * 0.22,
     playBottom - enemySize * 0.22,
   );
-  const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62);
+  const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62) + enemyUiYOffset;
   const hpBarMinY = centerY + enemySize * 0.42;
   const hpBarMaxY = playBottom - (useSplitRows ? 98 : 114);
   const hpBarY = clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));
@@ -25639,6 +25657,16 @@ function toggleActionDockFullscreenMenu() {
 
 document.addEventListener("keydown", (event) => {
   const key = String(event.key || "").toLowerCase();
+  if (key === "m" && !event.repeat && !isTypingTarget(event.target)) {
+    event.preventDefault();
+    toggleDevLayoutPanel();
+    return;
+  }
+  if (key === "escape" && state.ui.devLayoutOpen) {
+    event.preventDefault();
+    setDevLayoutPanelOpen(false);
+    return;
+  }
   if (key === "escape" && state.ui.teamDragActive) {
     event.preventDefault();
     const dragMoved = Boolean(state.ui.teamDragMoved);
@@ -25858,6 +25886,16 @@ if (actionDockPokeballToggleButtonEl) {
 if (actionDockPokeballVisualEl) {
   actionDockPokeballVisualEl.addEventListener("animationend", () => {
     actionDockPokeballVisualEl.classList.remove("is-spin-cw", "is-spin-ccw");
+  });
+}
+if (devLayoutCloseButtonEl) {
+  devLayoutCloseButtonEl.addEventListener("click", () => {
+    setDevLayoutPanelOpen(false);
+  });
+}
+if (devLayoutResetButtonEl) {
+  devLayoutResetButtonEl.addEventListener("click", () => {
+    resetDevLayoutSettings();
   });
 }
 if (actionDockFullscreenMenuEl) {
