@@ -2,6 +2,7 @@
 kanto_city_pallet_town,Bourg Palette (Kanto),town,false,,,,,,,
 kanto_route_1,Route 1 (Kanto),route,true,16,pidgey,Roucool,50,2,5,walk
 kanto_route_1,Route 1 (Kanto),route,true,19,rattata,Rattata,50,2,4,walk
+kanto_route_1,Route 1 (Kanto),route,true,150,mewtwo,Mewtwo,1000,2,4,walk
 kanto_city_viridian_city,Jadielle (Kanto),town,false,,,,,,,
 kanto_route_2,Route 2 (Kanto),route,true,16,pidgey,Roucool,45,2,5,walk
 kanto_route_2,Route 2 (Kanto),route,true,19,rattata,Rattata,45,2,5,walk
@@ -151,11 +152,16 @@ kanto_route_17,Route 17 (Kanto),route,true,21,spearow,Piafabec,30,20,22,walk
 kanto_route_17,Route 17 (Kanto),route,true,20,raticate,Rattatac,25,25,29,walk
 kanto_route_17,Route 17 (Kanto),route,true,19,rattata,Rattata,5,22,22,walk
 kanto_route_17,Route 17 (Kanto),route,true,22,fearow,Rapasdepic,5,25,27,walk
+kanto_route_17,Route 17 (Kanto),route,true,77,ponyta,Ponyta,12,24,28,walk
+kanto_route_17,Route 17 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
 kanto_route_18,Route 18 (Kanto),route,true,84,doduo,Doduo,35,24,28,walk
 kanto_route_18,Route 18 (Kanto),route,true,21,spearow,Piafabec,30,20,22,walk
 kanto_route_18,Route 18 (Kanto),route,true,20,raticate,Rattatac,15,25,29,walk
 kanto_route_18,Route 18 (Kanto),route,true,22,fearow,Rapasdepic,15,25,29,walk
 kanto_route_18,Route 18 (Kanto),route,true,19,rattata,Rattata,5,22,22,walk
+kanto_route_18,Route 18 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
+kanto_route_18,Route 18 (Kanto),route,true,108,lickitung,Excelangue,8,25,29,walk
+kanto_route_18,Route 18 (Kanto),route,true,122,mr-mime,M. Mime,1,26,30,walk
 kanto_city_fuchsia_city,Parmanie (Kanto),town,false,,,,,,,
 kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
 kanto_dungeon_safari_zone,Parc Safari (Kanto),dungeon,true,54,psyduck,Psykokwak,104,15,40,super-rod|surf
@@ -212,6 +218,7 @@ kanto_route_13,Route 13 (Kanto),route,true,70,weepinbell,Boustiflor,5,28,30,walk
 kanto_route_13,Route 13 (Kanto),route,true,132,ditto,Métamorph,5,25,25,walk
 kanto_route_13,Route 13 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_13,Route 13 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
+kanto_route_13,Route 13 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
 kanto_route_12,Route 12 (Kanto),route,true,98,krabby,Krabby,144,5,35,good-rod|super-rod
 kanto_route_12,Route 12 (Kanto),route,true,116,horsea,Hypotrempe,144,5,35,good-rod|super-rod
 kanto_route_12,Route 12 (Kanto),route,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
@@ -226,6 +233,7 @@ kanto_route_12,Route 12 (Kanto),route,true,44,gloom,Ortide,5,28,30,walk
 kanto_route_12,Route 12 (Kanto),route,true,70,weepinbell,Boustiflor,5,28,30,walk
 kanto_route_12,Route 12 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_12,Route 12 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
+kanto_route_12,Route 12 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
 kanto_route_19,Route 19 (Kanto),route,true,98,krabby,Krabby,140,5,25,good-rod|super-rod
 kanto_route_19,Route 19 (Kanto),route,true,116,horsea,Hypotrempe,140,5,25,good-rod|super-rod
 kanto_route_19,Route 19 (Kanto),route,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
@@ -235,6 +243,7 @@ kanto_route_19,Route 19 (Kanto),route,true,99,kingler,Krabboss,4,25,35,super-rod
 kanto_route_19,Route 19 (Kanto),route,true,117,seadra,Hypocéan,4,25,35,super-rod
 kanto_route_19,Route 19 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_19,Route 19 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
+kanto_route_19,Route 19 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
 kanto_route_20,Route 20 (Kanto),route,true,98,krabby,Krabby,140,5,25,good-rod|super-rod
 kanto_route_20,Route 20 (Kanto),route,true,116,horsea,Hypotrempe,140,5,25,good-rod|super-rod
 kanto_route_20,Route 20 (Kanto),route,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
@@ -244,6 +253,7 @@ kanto_route_20,Route 20 (Kanto),route,true,99,kingler,Krabboss,4,25,35,super-rod
 kanto_route_20,Route 20 (Kanto),route,true,117,seadra,Hypocéan,4,25,35,super-rod
 kanto_route_20,Route 20 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_20,Route 20 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
+kanto_route_20,Route 20 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,98,krabby,Krabby,170,5,30,good-rod|super-rod|surf
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,116,horsea,Hypotrempe,170,5,30,good-rod|super-rod|surf
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
@@ -257,6 +267,7 @@ kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,80,slowbro,Flagado
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,130,gyarados,Léviator,16,15,35,super-rod
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,42,golbat,Nosferalto,15,26,30,walk
 kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,87,dewgong,Lamantine,15,32,40,surf|walk
+kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,124,jynx,Lippoutou,25,34,40,walk
 kanto_city_cinnabar_island,Cramois'Ile (Kanto),town,false,,,,,,,
 kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,20,raticate,Rattatac,21,32,38,walk
 kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,88,grimer,Tadmorv,20,28,30,walk
@@ -268,6 +279,7 @@ kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,132,ditto,Mét
 kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,89,muk,Grotadmorv,1,32,34,walk
 kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,110,weezing,Smogogo,1,32,34,walk
 kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,133,eevee,Evoli,1,30,32,walk
+kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,77,ponyta,Ponyta,6,30,34,walk
 kanto_route_21,Route 21 (Kanto),route,true,98,krabby,Krabby,140,5,25,good-rod|super-rod
 kanto_route_21,Route 21 (Kanto),route,true,116,horsea,Hypotrempe,140,5,25,good-rod|super-rod
 kanto_route_21,Route 21 (Kanto),route,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
@@ -278,6 +290,7 @@ kanto_route_21,Route 21 (Kanto),route,true,99,kingler,Krabboss,4,25,35,super-rod
 kanto_route_21,Route 21 (Kanto),route,true,117,seadra,Hypocéan,4,25,35,super-rod
 kanto_route_21,Route 21 (Kanto),route,true,54,psyduck,Psykokwak,1,25,35,super-rod
 kanto_route_21,Route 21 (Kanto),route,true,79,slowpoke,Ramoloss,1,25,35,super-rod
+kanto_route_21,Route 21 (Kanto),route,true,131,lapras,Lokhlass,13,25,35,surf
 kanto_route_22,Route 22 (Kanto),route,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
 kanto_route_22,Route 22 (Kanto),route,true,54,psyduck,Psykokwak,105,15,40,super-rod|surf
 kanto_route_22,Route 22 (Kanto),route,true,79,slowpoke,Ramoloss,105,15,40,super-rod|surf
@@ -314,6 +327,7 @@ kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,28,sandslash,Sabl
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,42,golbat,Nosferalto,5,44,46,walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,67,machoke,Machopeur,5,44,48,walk
 kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,105,marowak,Ossatueur,5,44,48,walk
+kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,126,magmar,Magmar,4,45,50,walk
 kanto_city_indigo_plateau,Plateau Indigo (Kanto),town,false,,,,,,,
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,129,magikarp,Magicarpe,120,5,15,good-rod|old-rod
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,60,poliwag,Ptitard,100,5,25,good-rod|super-rod
@@ -336,17 +350,4 @@ kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,130,gyarados,L�
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,57,primeape,Colossinge,11,52,61,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,101,electrode,Électrode,5,58,64,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,202,wobbuffet,Qulbutoké,5,55,61,walk
-kanto_route_17,Route 17 (Kanto),route,true,77,ponyta,Ponyta,12,24,28,walk
-kanto_dungeon_pokemon_mansion,Manoir Pokemon (Kanto),dungeon,true,77,ponyta,Ponyta,6,30,34,walk
-kanto_route_12,Route 12 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
-kanto_route_13,Route 13 (Kanto),route,true,83,farfetchd,Canarticho,5,23,27,walk
-kanto_route_17,Route 17 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
-kanto_route_18,Route 18 (Kanto),route,true,90,shellder,Kokiyas,10,25,35,super-rod
-kanto_route_18,Route 18 (Kanto),route,true,108,lickitung,Excelangue,8,25,29,walk
 kanto_dungeon_cerulean_cave,Grotte Inconnue (Kanto),dungeon,true,108,lickitung,Excelangue,12,52,64,walk
-kanto_route_19,Route 19 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
-kanto_route_20,Route 20 (Kanto),route,true,120,staryu,Stari,12,15,35,super-rod
-kanto_route_18,Route 18 (Kanto),route,true,122,mr-mime,M. Mime,1,26,30,walk
-kanto_dungeon_seafoam_islands,Iles Ecume (Kanto),dungeon,true,124,jynx,Lippoutou,25,34,40,walk
-kanto_dungeon_victory_road,Route Victoire (Kanto),dungeon,true,126,magmar,Magmar,4,45,50,walk
-kanto_route_21,Route 21 (Kanto),route,true,131,lapras,Lokhlass,13,25,35,surf

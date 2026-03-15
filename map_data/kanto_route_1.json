@@ -80,5 +80,6 @@
   ],
   "encounter_species_count_source": 2,
   "generated_from": "pokeapi + bulbagarden",
-  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+  "generated_at_utc": "2026-03-07T17:06:59.473Z",
+  "unlock_timer_ms": 20000
 }
