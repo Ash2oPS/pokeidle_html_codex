@@ -2,7 +2,6 @@
 kanto_city_pallet_town,Bourg Palette (Kanto),town,false,,,,,,,
 kanto_route_1,Route 1 (Kanto),route,true,16,pidgey,Roucool,50,2,5,walk
 kanto_route_1,Route 1 (Kanto),route,true,19,rattata,Rattata,50,2,4,walk
-kanto_route_1,Route 1 (Kanto),route,true,150,mewtwo,Mewtwo,1000,2,4,walk
 kanto_city_viridian_city,Jadielle (Kanto),town,false,,,,,,,
 kanto_route_2,Route 2 (Kanto),route,true,16,pidgey,Roucool,45,2,5,walk
 kanto_route_2,Route 2 (Kanto),route,true,19,rattata,Rattata,45,2,5,walk
