@@ -5952,3 +5952,9 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
   - Browser check wrote `output/maintenance-gate-check/maintenance-static-anim.json` with `"animationName": "none"`.
   - Visual capture: `output/maintenance-gate-check/maintenance-static-pokeball.png`.
+- Maintenance visual polish:
+  - Updated `.loading-screen.is-static-pokeball .loading-pokeball` to a grey palette (top/bottom + center button accents).
+  - Added subtle maintenance-only glow pulse animation `loading-pokeball-maintenance-glow` (no rotation).
+- Visual validation:
+  - Screenshot: `output/maintenance-gate-check/maintenance-grey-glow.png`.
+  - Computed style check: `output/maintenance-gate-check/maintenance-grey-glow-anim.json` confirms `"animationName": "loading-pokeball-maintenance-glow"`.
