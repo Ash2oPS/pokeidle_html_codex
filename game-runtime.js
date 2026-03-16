@@ -10835,7 +10835,7 @@ async function bootstrapRuntimeStartup() {
   if (!isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
     state.mode = "loading";
     const maintenanceMessage = getMaintenanceMessage(gameSettingsLoad.settings);
-    showLoadingScreen(maintenanceMessage);
+    showLoadingScreen(maintenanceMessage, { disablePokeballSpin: true });
     console.warn("[pokeidle:maintenance]", maintenanceMessage);
     return;
   }

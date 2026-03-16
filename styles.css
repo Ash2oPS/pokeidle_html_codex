@@ -1460,6 +1460,10 @@ body {
   animation: loading-pokeball-spin 1.02s linear infinite;
 }
 
+.loading-screen.is-static-pokeball .loading-pokeball {
+  animation: none;
+}
+
 .loading-pokeball::before {
   content: "";
   position: absolute;

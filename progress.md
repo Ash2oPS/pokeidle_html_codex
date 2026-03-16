@@ -5944,3 +5944,11 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Visual/state validation:
   - `output/web-game-poke/shot-0.png` now renders the game scene (no fetch illegal invocation screen).
   - `output/web-game-poke/state-0.json` now reports `"mode":"ready"`.
+- Maintenance UX tweak:
+  - Loading-screen Pokeball can now be forced static via `showLoadingScreen(message, { disablePokeballSpin: true })`.
+  - Added CSS class gate `.loading-screen.is-static-pokeball .loading-pokeball { animation: none; }`.
+  - Maintenance bootstrap now uses static Pokeball mode when showing maintenance lock.
+- Validation:
+  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
+  - Browser check wrote `output/maintenance-gate-check/maintenance-static-anim.json` with `"animationName": "none"`.
+  - Visual capture: `output/maintenance-gate-check/maintenance-static-pokeball.png`.
