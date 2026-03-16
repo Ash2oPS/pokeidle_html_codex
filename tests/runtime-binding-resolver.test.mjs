@@ -30,3 +30,43 @@ test("runtime binding resolver swallows getter errors and returns undefined", ()
 
   assert.equal(resolve("exploding"), undefined);
 });
+
+test("runtime binding resolver binds browser global methods to window", () => {
+  const originalWindow = globalThis.window;
+  const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+  const fakeWindow = {
+    callCount: 0,
+    requestAnimationFrame(callback) {
+      this.callCount += 1;
+      callback(16);
+      return this.callCount;
+    },
+  };
+
+  globalThis.window = fakeWindow;
+  globalThis.requestAnimationFrame = fakeWindow.requestAnimationFrame;
+
+  try {
+    const resolve = createRuntimeBindingResolver({
+      requestAnimationFrame: () => globalThis.requestAnimationFrame,
+    });
+
+    const requestAnimationFrameFn = resolve("requestAnimationFrame");
+    const result = requestAnimationFrameFn(() => {});
+
+    assert.equal(result, 1);
+    assert.equal(fakeWindow.callCount, 1);
+  } finally {
+    if (originalWindow === undefined) {
+      delete globalThis.window;
+    } else {
+      globalThis.window = originalWindow;
+    }
+
+    if (originalRequestAnimationFrame === undefined) {
+      delete globalThis.requestAnimationFrame;
+    } else {
+      globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+    }
+  }
+});

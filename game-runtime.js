@@ -1,7 +1,6 @@
 import {
   POKEIDLE_APP_VERSION,
   getDisplayedAppVersion,
-  isLocalDevelopmentServerLocation,
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "./version.js";
@@ -57,11 +56,6 @@ import { createGameMathUtils } from "./lib/game-math-runtime.js";
 import { createWalletUiRuntime } from "./lib/wallet-ui-runtime.js";
 import { createEnvironmentRuntime } from "./lib/environment-runtime.js";
 import { createPokemonCoreUtils } from "./lib/pokemon-core-utils.js";
-import {
-  loadGameSettings,
-  isGameMaintenanceActive,
-  getMaintenanceMessage,
-} from "./lib/game-settings-runtime.js";
 import { createRuntimeConfigLoaders } from "./lib/runtime-config-loaders.js";
 import { createRuntimeLoopKernel } from "./core/runtime-loop-kernel.js";
 import { createRuntimeOrchestrator } from "./core/runtime-orchestrator.js";
@@ -7443,8 +7437,17 @@ function drawTypeIconGraphic(typeName, centerX, centerY, size, options = {}) {
     ctx.drawImage(image, drawX, drawY, drawSize, drawSize);
     ctx.imageSmoothingEnabled = wasSmoothing;
   } else {
-    ctx.translate(snapSpriteValue(centerX - safeSize * 0.5), snapSpriteValue(centerY - safeSize * 0.5));
-    drawProjectileGlyph(ctx, normalizeType(typeName), safeSize);
+    const fallbackType = normalizeType(typeName);
+    const fallbackColor = getTypeColor(fallbackType);
+    const radius = Math.max(3, safeSize * 0.34);
+    const lineWidth = Math.max(1.1, safeSize * 0.08);
+    ctx.fillStyle = rgba(fallbackColor, 0.94);
+    ctx.strokeStyle = "rgba(6, 11, 22, 0.64)";
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.arc(snapSpriteValue(centerX), snapSpriteValue(centerY), radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
   }
 
   ctx.restore();
@@ -7618,6 +7621,8 @@ function getPokemonBattleRuntime() {
       clamp,
       toSafeInt,
       Tween,
+      Easing,
+      tweenGroup,
       normalizeType,
       getTypeColor,
       rgba,
@@ -7644,6 +7649,7 @@ function getPokemonBattleRuntime() {
       stopProjectileTravelTween,
       blendRgb,
       getFloatingTextTonePalette,
+      getFloatingTextToneVisualStyle,
       resolveFloatingDamageTone,
       buildFloatingDamageLabels,
       shouldRenderCelebrationParticles,
@@ -10946,20 +10952,7 @@ applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
 
-async function bootstrapRuntimeStartup() {
-  const gameSettingsLoad = await loadGameSettings();
-  const isLocalDevServer = isLocalDevelopmentServerLocation(window.location);
-  if (!isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
-    state.mode = "loading";
-    const maintenanceMessage = getMaintenanceMessage(gameSettingsLoad.settings);
-    showLoadingScreen(maintenanceMessage, { disablePokeballSpin: true });
-    console.warn("[pokeidle:maintenance]", maintenanceMessage);
-    return;
-  }
-  if (isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
-    console.info("[pokeidle:maintenance] mode local detecte, maintenance ignoree sur serveur dev.");
-  }
-
+function bootstrapRuntimeStartup() {
   if (isProductionGithubPagesLocation(window.location)) {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
@@ -10967,15 +10960,5 @@ async function bootstrapRuntimeStartup() {
   window.requestAnimationFrame(gameLoop);
 }
 
-bootstrapRuntimeStartup().catch((error) => {
-  console.warn(
-    "[pokeidle:settings] Impossible de charger game-settings.json, bootstrap standard conserve:",
-    error instanceof Error ? error.message : String(error || ""),
-  );
-  if (isProductionGithubPagesLocation(window.location)) {
-    initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
-  }
-  initializeScene();
-  window.requestAnimationFrame(gameLoop);
-});
+bootstrapRuntimeStartup();
 

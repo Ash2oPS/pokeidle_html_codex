@@ -107,6 +107,17 @@
 - Add explicit Pokeball projectile animation (current auto-catch is state/message-driven).
 - Add a visible save-reset button for easier test/debug loops.
 
+## Additional progress (runtime binding hotfix)
+- Fixed a regression introduced by runtime resolver hardening:
+  - `core/runtime-binding-resolver.js` now rebinds browser-global methods that require the `window` invocation context.
+  - This covers runtime bindings such as `requestAnimationFrame`, `setTimeout`, `clearTimeout`, `addEventListener`, and related globals.
+- Added regression coverage in `tests/runtime-binding-resolver.test.mjs` for window-bound browser methods.
+- Validation:
+  - `node --test tests/runtime-binding-resolver.test.mjs`: PASS.
+  - `npm test`: PASS.
+  - Browser smoke via Playwright wrapper: PASS (`output/playwright/action-dock-load/`).
+  - Direct browser click on `#action-dock-pokeball-toggle`: PASS, no console/page errors after toggle flow.
+
 ## Additional progress (team sprite flip + type badges)
 - Added official Pokemon type icons from Bulbagarden Archives Scarlet/Violet set in `assets/type-icons/`.
   - Source manifest added in `assets/type-icons/SOURCES.md`.
@@ -5964,3 +5975,23 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Validation:
   - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
   - `run_playwright_check.ps1` completed and latest `output/web-game-poke/state-0.json` reports `"mode":"ready"`.
+
+## Additional progress (battle runtime visual ball helpers restore - 2026-03-16)
+- Fixed runtime crash `ReferenceError: normalizeBallTypeForVisual is not defined` during battle manager initialization.
+- Root cause: `game-runtime.js` still injected `normalizeBallTypeForVisual` and `getBallRenderTheme` into `createPokemonBattleRuntime(...)` deps after extraction, but both helpers were no longer defined in the runtime scope.
+- Restored both helpers in `game-runtime.js` near existing ball utility helpers:
+  - `normalizeBallTypeForVisual(ballType)`
+  - `getBallRenderTheme(ballType)` with per-ball palettes + particle color pools (`successColors`, `criticalSuccessColors`, `breakColors`).
+- This restores compatibility for both combat capture particles and Pokeball visual rendering paths that consume the same theme contract.
+
+### Validation for visual ball helper restore
+- `npm run test:node`: PASS (86/86).
+- `npm run test:vitest`: PASS (8/8).
+- `powershell -ExecutionPolicy Bypass -File run_playwright_check.ps1`: PASS.
+- Latest artifacts reviewed:
+  - `output/web-game-poke/shot-0.png`
+  - `output/web-game-poke/shot-1.png`
+  - `output/web-game-poke/shot-2.png`
+  - `output/web-game-poke/state-0.json` (`"mode":"ready"`, no runtime crash).
+
+- 2026-03-16: Fixed lost phone-layout detection in `systems/ui/runtime-render-system.js` by widening `getBattleViewportProfile()` to account for modern smartphone portrait widths and `isLikelySmartphoneBrowser()`. Added `tests/runtime-render-system.test.mjs` to lock narrow portrait, wide smartphone, tablet, and landscape-phone cases. Verified with Playwright iPhone viewport smoke (`output/playwright/mobile-mode-restore/shot-0.png`) and `runtime_client: browser_smartphone` / no console errors.

@@ -49,12 +49,26 @@ function fallbackRgba(rgb, alpha = 1) {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
+const FALLBACK_TWEEN_EASING = {
+  Linear: {
+    None: (value) => Number(value) || 0,
+  },
+  Cubic: {
+    Out: (value) => {
+      const t = Number(value) || 0;
+      return 1 - Math.pow(1 - t, 3);
+    },
+  },
+};
+
 export function createPokemonBattleRuntime(deps = {}) {
   const {
     state,
     clamp = fallbackClamp,
     toSafeInt = fallbackToSafeInt,
     Tween,
+    Easing = FALLBACK_TWEEN_EASING,
+    tweenGroup = null,
     normalizeType = (typeName) => String(typeName || '').toLowerCase(),
     getTypeColor = () => [255, 255, 255],
     rgba = fallbackRgba,
@@ -86,9 +100,19 @@ export function createPokemonBattleRuntime(deps = {}) {
     stopProjectileTravelTween = () => {},
     blendRgb = (left) => left,
     getFloatingTextTonePalette = () => ({
+      main: [255, 255, 255],
+      secondary: [214, 226, 243],
+      alpha: 1,
       fill: [255, 255, 255],
       stroke: [0, 0, 0],
       glow: [255, 255, 255],
+    }),
+    getFloatingTextToneVisualStyle = () => ({
+      spawnJitterX: 6,
+      spawnLiftY: 28,
+      verticalRiseSpeed: 52,
+      verticalRiseVariance: 18,
+      pulseStrength: 0.18,
     }),
     resolveFloatingDamageTone = () => 'normal',
     buildFloatingDamageLabels = () => ({
