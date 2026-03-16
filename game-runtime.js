@@ -871,6 +871,7 @@ const {
   shouldRenderCelebrationParticles,
   getProjectileTrailMaxPoints,
   createProjectileTrailPoint,
+  getProjectileTrailTypeVfxProfile,
   getRenderFrameIntervalMs,
   updateRenderQualityFromFrame,
 } = createRenderQualityUtils({
@@ -5811,6 +5812,98 @@ function getBallCaptureMultiplier(ballType) {
   return CAPTURE_BALL_MULTIPLIER_NERF;
 }
 
+function normalizeBallTypeForVisual(ballType) {
+  const type = String(ballType || "").toLowerCase().trim();
+  return Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : "poke_ball";
+}
+
+function getBallRenderTheme(ballType) {
+  const type = normalizeBallTypeForVisual(ballType);
+  if (type === "super_ball") {
+    return {
+      type,
+      shell: [245, 248, 255],
+      seam: [15, 20, 34],
+      topA: [56, 148, 255],
+      topB: [18, 73, 182],
+      topHighlight: [190, 225, 255],
+      glowCore: [102, 189, 255],
+      glowOuter: [56, 112, 255],
+      buttonOuter: [31, 48, 81],
+      buttonCenter: [213, 233, 255],
+      breakColors: [
+        [56, 148, 255],
+        [228, 68, 88],
+        [248, 250, 255],
+      ],
+      successColors: [
+        [103, 188, 255],
+        [255, 116, 136],
+        [241, 248, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 229, 138],
+        [160, 220, 255],
+        [223, 191, 255],
+      ],
+    };
+  }
+  if (type === "hyper_ball") {
+    return {
+      type,
+      shell: [244, 247, 252],
+      seam: [12, 16, 25],
+      topA: [63, 69, 83],
+      topB: [23, 27, 38],
+      topHighlight: [152, 161, 183],
+      glowCore: [255, 229, 122],
+      glowOuter: [88, 98, 146],
+      buttonOuter: [32, 38, 58],
+      buttonCenter: [250, 220, 112],
+      breakColors: [
+        [248, 216, 86],
+        [63, 69, 83],
+        [243, 247, 252],
+      ],
+      successColors: [
+        [255, 220, 122],
+        [171, 183, 255],
+        [244, 249, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 234, 150],
+        [245, 202, 120],
+        [203, 177, 255],
+      ],
+    };
+  }
+  return {
+    type: "poke_ball",
+    shell: [248, 248, 248],
+    seam: [14, 17, 23],
+    topA: [232, 68, 82],
+    topB: [188, 39, 53],
+    topHighlight: [255, 168, 174],
+    glowCore: [176, 255, 202],
+    glowOuter: [96, 208, 148],
+    buttonOuter: [34, 41, 55],
+    buttonCenter: [250, 250, 250],
+    breakColors: [
+      [225, 48, 60],
+      [250, 250, 250],
+    ],
+    successColors: [
+      [115, 240, 160],
+      [255, 255, 195],
+    ],
+    criticalSuccessColors: [
+      [255, 236, 130],
+      [214, 174, 255],
+      [184, 231, 255],
+    ],
+  };
+}
+
 function getBallInventoryOverlayRows() {
   if (!state.saveData) {
     return [];
@@ -7307,6 +7400,30 @@ function drawRetroHudPanel(x, y, width, height, options = {}) {
     ctx.stroke();
   }
   ctx.restore();
+}
+
+function getSpriteSnapFactor() {
+  const dpr = Number(state.viewport?.dpr || 1);
+  return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+}
+
+function snapSpriteValue(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  return Math.round(numericValue * snapFactor) / snapFactor;
+}
+
+function snapSpriteDimension(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return 1;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  const snapped = Math.round(numericValue * snapFactor) / snapFactor;
+  return Math.max(1 / snapFactor, snapped);
 }
 
 function drawTypeIconGraphic(typeName, centerX, centerY, size, options = {}) {
