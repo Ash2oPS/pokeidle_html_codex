@@ -1,3 +1,15 @@
+import {
+  computeCaptureXpReward as computeCaptureXpRewardRule,
+  computeDefeatMoneyReward as computeDefeatMoneyRewardRule,
+  computeRewardMultipliersFromLevelDiff as computeRewardMultipliersFromLevelDiffRule,
+  computeXpMultiplierFromLevelDiff as computeXpMultiplierFromLevelDiffRule,
+  scaleRewardByMultiplier as computeScaledRewardByMultiplierRule,
+} from "../../domain/progression/reward-rules.js";
+import {
+  computeEnemyHpTeamScaleMultiplier as computeEnemyHpTeamScaleMultiplierRule,
+  computeEnemyRewardScaleMultiplier as computeEnemyRewardScaleMultiplierRule,
+} from "../../domain/combat/balance-rules.js";
+
 function fallbackToSafeInt(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) {
@@ -140,62 +152,44 @@ export function createRewardProgressionSystem({
   }
 
   function getEnemyHpTeamScaleMultiplier(teamSize = getActiveTeamSizeForBalance()) {
-    const normalizedTeamSize = clampFn(toSafeIntFn(teamSize, 1), 1, maxTeamSizeValue);
-    const fillRatio = maxTeamSizeValue > 1 ? (normalizedTeamSize - 1) / (maxTeamSizeValue - 1) : 1;
-    const bonus = Math.pow(fillRatio, enemyHpScaleExponent) * enemyHpScaleMaxBonus;
-    return 1 + Math.max(0, bonus);
+    return computeEnemyHpTeamScaleMultiplierRule({
+      teamSize,
+      maxTeamSize: maxTeamSizeValue,
+      enemyHpScaleExponent,
+      enemyHpScaleMaxBonus,
+      toSafeInt: toSafeIntFn,
+      clamp: clampFn,
+    });
   }
 
   function getEnemyRewardScaleMultiplier(teamHpScaleMultiplier = 1, isOnlyOneEncounter = false) {
-    const teamScale = Math.max(1, Number(teamHpScaleMultiplier || 1));
-    const easedTeamScale = Math.pow(teamScale, rewardScaleExponent);
-    const blendedTeamScale = 1 + (easedTeamScale - 1) * rewardScaleBlend;
-    const onlyOneBonus = isOnlyOneEncounter ? 1.18 : 1;
-    return Math.max(1, blendedTeamScale * onlyOneBonus);
+    return computeEnemyRewardScaleMultiplierRule({
+      teamHpScaleMultiplier,
+      rewardScaleExponent,
+      rewardScaleBlend,
+      isOnlyOneEncounter,
+      onlyOneBonus: 1.18,
+      clamp: clampFn,
+    });
   }
 
   function getRewardMultipliersFromLevelDiff(levelDiff) {
-    const diff = toSafeIntFn(levelDiff, 0);
-    if (diff >= 0) {
-      return { xp: 1, money: 1, coin: 1 };
-    }
-    if (diff >= -5) {
-      return { xp: 0.75, money: 0.9, coin: 0.85 };
-    }
-    if (diff >= -15) {
-      return { xp: 0.4, money: 0.65, coin: 0.55 };
-    }
-    if (diff >= -30) {
-      return { xp: 0.15, money: 0.35, coin: 0.25 };
-    }
-    return { xp: 0.05, money: 0.35, coin: 0.1 };
+    return computeRewardMultipliersFromLevelDiffRule(levelDiff, {
+      toSafeInt: toSafeIntFn,
+    });
   }
 
   function getXpMultiplierFromLevelDiff(levelDiff) {
-    const diff = toSafeIntFn(levelDiff, 0);
-    if (diff >= 0) {
-      return 1;
-    }
-    if (diff >= -5) {
-      return 0.9;
-    }
-    if (diff >= -10) {
-      return 0.7;
-    }
-    if (diff >= -20) {
-      return 0.45;
-    }
-    return 0.1;
+    return computeXpMultiplierFromLevelDiffRule(levelDiff, {
+      toSafeInt: toSafeIntFn,
+    });
   }
 
   function scaleRewardByMultiplier(baseReward, multiplier, minimumIfPositive = 0) {
-    const reward = Math.max(0, toSafeIntFn(baseReward, 0));
-    if (reward <= 0) {
-      return 0;
-    }
-    const scaled = Math.floor(reward * Math.max(0, Number(multiplier) || 0));
-    const minimum = Math.max(0, toSafeIntFn(minimumIfPositive, 0));
-    return Math.max(minimum, scaled);
+    return computeScaledRewardByMultiplierRule(baseReward, multiplier, {
+      minimumIfPositive,
+      toSafeInt: toSafeIntFn,
+    });
   }
 
   function getHighestTeamLevelForRewardScaling() {
@@ -243,21 +237,25 @@ export function createRewardProgressionSystem({
   }
 
   function computeCaptureXpReward(enemy) {
-    const enemyLevel = Math.max(1, toSafeIntFn(enemy?.level, 1));
-    const baseStatTotal = getBaseStatTotalFn(enemy?.baseStats || enemy?.stats);
-    const rewardScale = Math.max(1, Number(enemy?.balanceRewardMultiplier || 1));
-    const baseReward = captureXpBaseValue + enemyLevel * captureXpLevelMultValue + baseStatTotal * captureXpStatFactorValue;
-    const shinyMultiplier = enemy?.isShiny ? 1.35 : 1;
-    return Math.max(8, Math.round(baseReward * rewardScale * shinyMultiplier));
+    return computeCaptureXpRewardRule({
+      enemy,
+      captureXpBase: captureXpBaseValue,
+      captureXpLevelMult: captureXpLevelMultValue,
+      captureXpStatFactor: captureXpStatFactorValue,
+      getBaseStatTotal: getBaseStatTotalFn,
+      toSafeInt: toSafeIntFn,
+    });
   }
 
   function computeDefeatMoneyReward(enemy) {
-    const enemyLevel = Math.max(1, toSafeIntFn(enemy?.level, 1));
-    const baseStatTotal = getBaseStatTotalFn(enemy?.baseStats || enemy?.stats);
-    const rewardScale = Math.max(1, Number(enemy?.balanceRewardMultiplier || 1));
-    const baseReward = enemyMoneyBaseValue + enemyLevel * enemyMoneyLevelMultValue + baseStatTotal * enemyMoneyStatFactorValue;
-    const shinyMultiplier = enemy?.isShiny ? 1.6 : 1;
-    return Math.max(4, Math.round(baseReward * rewardScale * shinyMultiplier));
+    return computeDefeatMoneyRewardRule({
+      enemy,
+      enemyMoneyBase: enemyMoneyBaseValue,
+      enemyMoneyLevelMult: enemyMoneyLevelMultValue,
+      enemyMoneyStatFactor: enemyMoneyStatFactorValue,
+      getBaseStatTotal: getBaseStatTotalFn,
+      toSafeInt: toSafeIntFn,
+    });
   }
 
   function applyExperienceToEntity(record, amount) {

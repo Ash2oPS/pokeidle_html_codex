@@ -1,3 +1,6 @@
+import { rollShinyEncounterState } from "../../domain/encounter/shiny-rules.js";
+import { resolveEnemyTimerConfig } from "../../domain/routes/route-timer-rules.js";
+
 export function createRouteEncounterCombatSystem({
   state,
   isCurrentRouteCombatEnabled,
@@ -90,13 +93,18 @@ export function createRouteEncounterCombatSystem({
       return null;
     }
 
-    const isUltraShiny = Math.floor(rollRandom() * ultraShinyOdds) === 0;
-    const isRegularShiny =
-      !isUltraShiny && Math.floor(rollRandom() * nonUltraShinyOddsDenominator) < nonUltraShinyOddsNumerator;
-    const isShiny = isUltraShiny || isRegularShiny;
     const forceUltraShiny = shouldForceUltraShinyAllPokemonFn();
-    const ultraShinyVisual = Boolean(isUltraShiny || forceUltraShiny);
-    const shinyVisual = Boolean(isShiny || ultraShinyVisual);
+    const shinyState = rollShinyEncounterState({
+      randomFn: rollRandom,
+      ultraShinyOdds,
+      nonUltraShinyOddsNumerator,
+      nonUltraShinyOddsDenominator,
+      forceUltraShiny,
+    });
+    const isUltraShiny = shinyState.isUltraShiny;
+    const isShiny = shinyState.isShiny;
+    const ultraShinyVisual = Boolean(shinyState.ultraShinyVisual);
+    const shinyVisual = Boolean(shinyState.shinyVisual);
     const isOnlyOneEncounter = Boolean(pickResult?.isOnlyOneEncounter && encounterHasMethodFn(picked, onlyOneEncounterMethodId));
     const level = pickEncounterLevelFn(picked);
     const stats = computeStatsAtLevelFn(def.stats, level);
@@ -152,27 +160,15 @@ export function createRouteEncounterCombatSystem({
   }
 
   function getEnemyTimerConfigForBattle(enemy = null) {
-    if (!isRouteCombatEnabledFn()) {
-      return {
-        enabled: false,
-        durationMs: 0,
-        style: enemyTimerStyleRoute,
-      };
-    }
-    if (isOnlyOneEncounterEnemy(enemy)) {
-      return {
-        enabled: true,
-        durationMs: onlyOneEncounterTimerMs,
-        style: enemyTimerStyleOnlyOne,
-      };
-    }
     const activeRouteId = state.routeData?.route_id || state.saveData?.current_route_id || defaultRouteId;
-    const progressState = getRouteUnlockProgressStateFn(activeRouteId);
-    return {
-      enabled: progressState.timerEnabled,
-      durationMs: progressState.timerDurationMs,
-      style: enemyTimerStyleRoute,
-    };
+    return resolveEnemyTimerConfig({
+      routeCombatEnabled: isRouteCombatEnabledFn(),
+      isOnlyOneEncounterEnemy: isOnlyOneEncounterEnemy(enemy),
+      onlyOneEncounterTimerMs,
+      enemyTimerStyleOnlyOne,
+      enemyTimerStyleRoute,
+      routeUnlockProgressState: getRouteUnlockProgressStateFn(activeRouteId),
+    });
   }
 
   function getEnemyLevelForRewards(enemy) {
