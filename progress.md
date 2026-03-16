@@ -5876,3 +5876,71 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - `npm run test:perf:phase5:regression`: PASS (`cpu_regression_ratio: 1`).
 - `npm run test:perf:web-game:regression`: PASS (`cpu_regression_ratio: 1`).
 - `npm test`: PASS (Node 66/66 + Vitest 8/8).
+
+## Additional progress (maintenance gate by version)
+- Added designer-friendly runtime settings file `game-settings.json` with mirrored `default`, `tooltips`, and required `store` redirect keys.
+- Added `lib/game-settings-runtime.js` mapper/sanitizer for maintenance/store settings with safe fallback when JSON is missing/invalid.
+- Added startup maintenance gate in `game-runtime.js`:
+  - loads `game-settings.json` before scene init;
+  - blocks bootstrap when maintenance is active (`enabled`, `blockCurrentVersion`, or listed version);
+  - keeps loading screen visible with a custom maintenance message.
+- Added automated coverage in `tests/game-settings-runtime.test.mjs` for sanitization and maintenance activation rules.
+
+## Additional progress (runtime TDZ boot fix - 2026-03-16)
+- Fixed runtime bootstrap crash from console (`Cannot access 'getPokemonDisplayNameById' before initialization`):
+  - changed composition-root dependency wiring to lazy wrappers via `runtimeUiInteractionFacade` for early-initialized deps.
+  - applied same lazy wiring to `hideHoverPopup` dependency to avoid second TDZ at bootstrap.
+- Restored missing runtime imports used by current modularized bootstrap flow:
+  - `createRuntimeBindingResolver`
+  - `createRuntimeUiInteractionSystem`
+- Reconnected CSV loader functions that were referenced by bootstrap but not defined at runtime:
+  - instantiated `createRuntimeConfigLoaders(...)` in `game-runtime.js`
+  - exposed `warnRuntimeDataValidation`, `loadPokemonTalentCsv`, `loadBallConfigCsv`, `loadShopItemConfigCsv`, `loadZoneEncounterCsv`.
+- Hardened optional evolution animation update call in `update(...)`:
+  - switched to direct `getRuntimeUiInteractionSystem()` method existence check to avoid proxy false-positive function wrappers.
+
+### Validation for TDZ boot fix
+- `node --check game-runtime.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File run_playwright_check.ps1`: PASS (no new Playwright pageerror artifact generated).
+- Visual artifact review:
+  - `output/web-game-poke/shot-0.png` now no longer shows the previous `getPokemonDisplayNameById` crash.
+  - Current capture stays in loading mode (black screen) due the existing maintenance-gate/bootstrap state, but the targeted initialization ReferenceError is resolved.
+
+## Additional progress (maintenance gate validation + fetch binding fix - 2026-03-16)
+- Fixed a startup error in settings loader:
+  - `lib/game-settings-runtime.js` now calls `globalThis.fetch(...)` through a safe wrapper to avoid browser `Illegal invocation` when loading `game-settings.json`.
+- Validated maintenance gate behavior with temporary config toggle (`maintenance.blockCurrentVersion = true`) and visual capture:
+  - Full-page maintenance screenshot: `output/maintenance-gate-check/maintenance-fullpage.png`.
+  - Playwright state check under maintenance: `output/maintenance-gate-check/state-0.json` reports `"mode":"loading"` (scene bootstrap blocked as expected).
+- Restored default settings after validation:
+  - `game-settings.json` back to maintenance disabled (`enabled=false`, `blockCurrentVersion=false`).
+- Re-ran targeted tests:
+  - `node --test tests/game-settings-runtime.test.mjs`: PASS (4/4).
+- Re-ran standard Playwright smoke script:
+  - Existing unrelated runtime page error still present in normal bootstrap: `ReferenceError: createRuntimeUiInteractionSystem is not defined` (from `output/web-game-poke/errors-0.json`).
+  - This pre-existing issue does not affect maintenance lock flow because bootstrap exits early when maintenance is active.
+- Added local-dev maintenance bypass:
+  - New helper `isLocalDevelopmentServerLocation(...)` in `version.js`.
+  - Runtime bootstrap now ignores maintenance gating when served from localhost/127.0.0.1/::1 (local HTTP servers), while keeping maintenance active for non-local environments.
+- Added test coverage in `tests/version-environment.test.mjs` for localhost host variants.
+- Validation:
+  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
+- Maintenance message behavior tightened in tests:
+  - Added explicit assertion that `maintenance.message = ""` falls back to default maintenance text.
+- Validation:
+  - `node --test tests/game-settings-runtime.test.mjs`: PASS (4/4).
+
+## Additional progress (runtime fetch resolver binding fix - 2026-03-16)
+- Root cause traced in runtime binding proxy:
+  - `RUNTIME_BINDING_GETTERS` exposed `"fetch": () => fetch`, which can forward an unbound Window method inside chunked runtime systems.
+- Applied safe binding in `game-runtime.js`:
+  - replaced `"fetch": () => fetch` with `"fetch": () => ((...args) => globalThis.fetch(...args))`.
+- Result:
+  - runtime bootstrap no longer fails with `Failed to execute 'fetch' on 'Window': Illegal invocation`.
+
+### Validation for fetch resolver fix
+- `node --check game-runtime.js`: PASS.
+- `powershell -ExecutionPolicy Bypass -File run_playwright_check.ps1`: PASS.
+- Visual/state validation:
+  - `output/web-game-poke/shot-0.png` now renders the game scene (no fetch illegal invocation screen).
+  - `output/web-game-poke/state-0.json` now reports `"mode":"ready"`.

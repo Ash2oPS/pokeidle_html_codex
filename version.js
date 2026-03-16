@@ -29,6 +29,15 @@ export function isProductionGithubPagesLocation(locationLike) {
   return pathname === productionPath || pathname.startsWith(`${productionPath}/`);
 }
 
+export function isLocalDevelopmentServerLocation(locationLike) {
+  const protocol = String(locationLike?.protocol || "").trim().toLowerCase();
+  const hostname = String(locationLike?.hostname || "").trim().toLowerCase();
+  if (protocol !== "http:" && protocol !== "https:") {
+    return false;
+  }
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+}
+
 export function getGithubRepositoryFromLocation(
   locationLike,
   fallbackOwner = POKEIDLE_GITHUB_REPO_OWNER,

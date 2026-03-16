@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   compareSemver,
   getDisplayedAppVersion,
+  isLocalDevelopmentServerLocation,
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "../version.js";
@@ -40,6 +41,41 @@ test("isProductionGithubPagesLocation rejects local servers", () => {
     isProductionGithubPagesLocation({
       protocol: "http:",
       hostname: "localhost",
+      pathname: "/pokeidle_html_codex/",
+    }),
+    false,
+  );
+});
+
+test("isLocalDevelopmentServerLocation matches localhost variants", () => {
+  assert.equal(
+    isLocalDevelopmentServerLocation({
+      protocol: "http:",
+      hostname: "localhost",
+      pathname: "/",
+    }),
+    true,
+  );
+  assert.equal(
+    isLocalDevelopmentServerLocation({
+      protocol: "http:",
+      hostname: "127.0.0.1",
+      pathname: "/",
+    }),
+    true,
+  );
+  assert.equal(
+    isLocalDevelopmentServerLocation({
+      protocol: "https:",
+      hostname: "::1",
+      pathname: "/",
+    }),
+    true,
+  );
+  assert.equal(
+    isLocalDevelopmentServerLocation({
+      protocol: "https:",
+      hostname: "ash2ops.github.io",
       pathname: "/pokeidle_html_codex/",
     }),
     false,
