@@ -1,6 +1,7 @@
 import {
   POKEIDLE_APP_VERSION,
   getDisplayedAppVersion,
+  isLocalDevelopmentServerLocation,
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "./version.js";
@@ -56,6 +57,11 @@ import { createGameMathUtils } from "./lib/game-math-runtime.js";
 import { createWalletUiRuntime } from "./lib/wallet-ui-runtime.js";
 import { createEnvironmentRuntime } from "./lib/environment-runtime.js";
 import { createPokemonCoreUtils } from "./lib/pokemon-core-utils.js";
+import {
+  loadGameSettings,
+  isGameMaintenanceActive,
+  getMaintenanceMessage,
+} from "./lib/game-settings-runtime.js";
 import { createRuntimeConfigLoaders } from "./lib/runtime-config-loaders.js";
 import { createRuntimeLoopKernel } from "./core/runtime-loop-kernel.js";
 import { createRuntimeOrchestrator } from "./core/runtime-orchestrator.js";
@@ -10952,7 +10958,20 @@ applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
 
-function bootstrapRuntimeStartup() {
+async function bootstrapRuntimeStartup() {
+  const gameSettingsLoad = await loadGameSettings();
+  const isLocalDevServer = isLocalDevelopmentServerLocation(window.location);
+  if (!isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
+    state.mode = "loading";
+    const maintenanceMessage = getMaintenanceMessage(gameSettingsLoad.settings);
+    showLoadingScreen(maintenanceMessage, { disablePokeballSpin: true });
+    console.warn("[pokeidle:maintenance]", maintenanceMessage);
+    return;
+  }
+  if (isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
+    console.info("[pokeidle:maintenance] mode local detecte, maintenance ignoree sur serveur dev.");
+  }
+
   if (isProductionGithubPagesLocation(window.location)) {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
@@ -10960,5 +10979,15 @@ function bootstrapRuntimeStartup() {
   window.requestAnimationFrame(gameLoop);
 }
 
-bootstrapRuntimeStartup();
+bootstrapRuntimeStartup().catch((error) => {
+  console.warn(
+    "[pokeidle:settings] Impossible de charger game-settings.json, bootstrap standard conserve:",
+    error instanceof Error ? error.message : String(error || ""),
+  );
+  if (isProductionGithubPagesLocation(window.location)) {
+    initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
+  }
+  initializeScene();
+  window.requestAnimationFrame(gameLoop);
+});
 

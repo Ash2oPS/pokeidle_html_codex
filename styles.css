@@ -1460,6 +1460,33 @@ body {
   animation: loading-pokeball-spin 1.02s linear infinite;
 }
 
+.loading-screen.is-static-pokeball .loading-pokeball {
+  border-color: #d7dce6;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(186, 195, 210, 1) 0%,
+      rgba(148, 158, 176, 1) 45%,
+      rgba(24, 28, 34, 1) 45%,
+      rgba(24, 28, 34, 1) 55%,
+      rgba(236, 240, 246, 1) 55%,
+      rgba(210, 217, 230, 1) 100%
+    );
+  box-shadow:
+    0 0 0 clamp(2px, 0.32vw, 4px) rgba(8, 10, 12, 0.95),
+    0 0 12px rgba(205, 218, 238, 0.24);
+  animation: loading-pokeball-maintenance-glow 2.15s ease-in-out infinite;
+}
+
+.loading-screen.is-static-pokeball .loading-pokeball::before {
+  border-color: #1f252d;
+  background: #eef2f7;
+}
+
+.loading-screen.is-static-pokeball .loading-pokeball::after {
+  background: #1f252d;
+}
+
 .loading-pokeball::before {
   content: "";
   position: absolute;
@@ -1507,6 +1534,27 @@ body {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-pokeball-maintenance-glow {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 clamp(2px, 0.32vw, 4px) rgba(8, 10, 12, 0.95),
+      0 0 10px rgba(188, 204, 232, 0.2);
+  }
+  50% {
+    transform: scale(1.012);
+    box-shadow:
+      0 0 0 clamp(2px, 0.32vw, 4px) rgba(8, 10, 12, 0.95),
+      0 0 22px rgba(208, 224, 250, 0.42);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 clamp(2px, 0.32vw, 4px) rgba(8, 10, 12, 0.95),
+      0 0 10px rgba(188, 204, 232, 0.2);
   }
 }
 

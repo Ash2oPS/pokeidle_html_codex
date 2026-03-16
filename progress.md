@@ -5995,3 +5995,14 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `output/web-game-poke/state-0.json` (`"mode":"ready"`, no runtime crash).
 
 - 2026-03-16: Fixed lost phone-layout detection in `systems/ui/runtime-render-system.js` by widening `getBattleViewportProfile()` to account for modern smartphone portrait widths and `isLikelySmartphoneBrowser()`. Added `tests/runtime-render-system.test.mjs` to lock narrow portrait, wide smartphone, tablet, and landscape-phone cases. Verified with Playwright iPhone viewport smoke (`output/playwright/mobile-mode-restore/shot-0.png`) and `runtime_client: browser_smartphone` / no console errors.
+## Additional progress (2026-03-16, maintenance gate regression patch)
+- Restored runtime maintenance controls removed by recent `wip` commit:
+  - re-added `game-settings.json` and `lib/game-settings-runtime.js`.
+  - restored startup gate in `game-runtime.js` (`loadGameSettings` + maintenance blocking outside localhost).
+- Restored loading-screen maintenance visual behavior:
+  - `showLoadingScreen(message, { disablePokeballSpin: true })` now re-enables static maintenance Pokeball mode.
+  - reintroduced `.loading-screen.is-static-pokeball` and `loading-pokeball-maintenance-glow` styles in `styles.css`.
+- Added regression tests to reduce rollback risk:
+  - `tests/game-settings-runtime.test.mjs` (settings sanitization + maintenance activation rules).
+  - `tests/ui-animation-runtime.test.mjs` (static Pokeball class toggle/cleanup behavior).
+  - `tests/runtime-startup-maintenance-gate.test.mjs` (bootstrap maintenance flow guard in `game-runtime.js`).
