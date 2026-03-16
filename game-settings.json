@@ -1,9 +1,9 @@
 {
   "maintenance": {
     "enabled": false,
-    "blockCurrentVersion": true,
+    "blockCurrentVersion": false,
     "blockedVersions": [],
-    "message": "Pas de Mewtwo shiny pour toi Armand tant que t'es pas gentil avec Illo."
+    "message": "Le jeu est en maintenance. Merci de reessayer plus tard."
   },
   "store": {
     "playStoreUrl": "",
@@ -28,9 +28,9 @@
   "default": {
     "maintenance": {
       "enabled": false,
-      "blockCurrentVersion": true,
+      "blockCurrentVersion": false,
       "blockedVersions": [],
-      "message": "Pas de Mewtwo shiny pour toi Armand tant que t'es pas gentil avec Illo."
+      "message": "Le jeu est en maintenance. Merci de reessayer plus tard."
     },
     "store": {
       "playStoreUrl": "",

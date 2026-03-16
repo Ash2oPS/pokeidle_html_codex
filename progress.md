@@ -5958,3 +5958,9 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Visual validation:
   - Screenshot: `output/maintenance-gate-check/maintenance-grey-glow.png`.
   - Computed style check: `output/maintenance-gate-check/maintenance-grey-glow-anim.json` confirms `"animationName": "loading-pokeball-maintenance-glow"`.
+- Maintenance disabled for functional release:
+  - `game-settings.json` switched back to `maintenance.enabled=false` and `maintenance.blockCurrentVersion=false` at root and mirrored `default`.
+  - Maintenance message reset to default fallback text.
+- Validation:
+  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
+  - `run_playwright_check.ps1` completed and latest `output/web-game-poke/state-0.json` reports `"mode":"ready"`.
