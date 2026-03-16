@@ -5503,3 +5503,376 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `applyTeamTalentOverrides` utilise maintenant le voisin précédent en mode circulaire (slot 1 prend le dernier slot).
   - Validation: `node --check game.js` OK.
   - Playwright non lancé (modif ciblée/simple, pas de refonte UI complexe).
+
+## Additional progress (modularization pass: world config extraction)
+- Refactored `game.js` by extracting route/world constants into `lib/game-world-config.js`.
+- Moved starter choices, route unlock/mapping constants, map marker overrides, encounter method gates, and route timer/drag constants out of the main runtime file.
+- Updated `game.js` imports to consume these values from `lib/game-world-config.js` without behavior changes.
+- Validation:
+  - `node --check game.js`: PASS.
+  - `node --check lib/game-world-config.js`: PASS.
+  - `npm test`: PARTIAL (Node tests PASS, Vitest command unavailable in local env).
+  - `run_playwright_check.ps1`: PASS.
+  - Reviewed latest Playwright screenshots (`output/web-game-poke/shot-0..2.png`) and state output (`state-2.json`): runtime and UI consistent after refactor.
+
+## TODO / Next (modularization)
+- Continue extracting constant families from `game.js` into focused modules (save/runtime-client constants, battle tuning constants, talent constants).
+- Start moving pure utility functions from `game.js` into `lib/` modules with targeted tests.
+- Fix local Vitest environment (`vitest` executable/dependency resolution) so full test suite can run in one command again.
+- Follow-up fix: corrected FR popup string encoding in `lib/game-world-config.js` (Unicode escapes) to preserve original text.
+- Re-validation after encoding fix:
+  - `node --check game.js`: PASS.
+  - `node --check lib/game-world-config.js`: PASS.
+  - `run_playwright_check.ps1`: PASS (screenshots manually reviewed).
+- Additional modularization: extracted save/runtime-client constants from `game.js` to `lib/save-runtime-config.js` and switched `game.js` to imports.
+- Re-validation after this second extraction:
+  - `node --check game.js`: PASS.
+  - `node --check lib/game-world-config.js`: PASS.
+  - `node --check lib/save-runtime-config.js`: PASS.
+  - `npm run test:node`: PASS (20/20).
+  - `run_playwright_check.ps1`: PASS (screenshots manually reviewed).
+
+## Additional progress (deep modularization pass)
+- Continued autonomous refactor loop with repeated validate-after-each-step workflow.
+- Added and wired new config/data modules:
+  - `lib/combat-balance-config.js` (talents + combat/capture/gacha balance constants).
+  - `lib/pokedex-display-config.js` (sprite variant/pokedex/type-display constants).
+  - `lib/gameplay-ui-config.js` (layout, progression, rendering/perf presets, tutorials, ball UI constants).
+  - `lib/type-combat-data.js` (special attack types + type effectiveness + type colors).
+  - `lib/ui-tween-config.js` (modal/popup tween presets).
+  - `lib/stats-config.js` (stat keys + FR stat labels).
+- Updated `game.js` imports to consume these modules and cleaned import placement/formatting after each extraction.
+- Playwright runner quality-of-life update:
+  - `scripts/testing/playwright/invoke-web-game-playwright.ps1` now starts the temporary static server with `-WindowStyle Hidden` to avoid visible console popups.
+
+## Validation log for this pass
+- Repeated checks across each iteration:
+  - `node --check game.js`: PASS.
+  - `node --check` on each new module: PASS.
+  - `npm run test:node`: PASS (20/20) after each extraction cycle.
+  - `run_playwright_check.ps1`: PASS after each cycle (latest screenshots manually reviewed).
+- No runtime/visual regression observed in latest `output/web-game-poke/shot-2.png`.
+- Additional extraction pass completed:
+  - Added `lib/runtime-version-config.js` for shiny/save-version constants.
+  - Added `lib/shop-config-factory.js` for shop config builders + config map helpers.
+  - Added `lib/shop-config-runtime.js` for runtime shop derivation/rebuild logic.
+  - Added `lib/ball-capture-menu-config.js` for capture-toggle menu definitions.
+- Updated `game.js` to import all of the above and replaced local implementations with module calls.
+- Validation after this pass:
+  - `node --check` on `game.js` and all extracted modules: PASS.
+  - `npm run test:node`: PASS (20/20).
+  - `run_playwright_check.ps1`: PASS (silent server window + screenshot verification).
+
+## Additional progress (aggressive modularization pass - 2026-03-16)
+- Continued autonomous refactor loop to reduce `game.js` footprint while preserving behavior.
+- New modules extracted from `game.js`:
+  - `lib/game-runtime-state.js` (initial runtime state factory).
+  - `lib/dev-layout-controls.js` (dev-layout settings/state/storage/controller logic).
+  - `lib/runtime-platform-utils.js` (desktop/capacitor/platform/runtime-client detection).
+  - `lib/game-math-runtime.js` (math/random/compact-number helpers).
+  - `lib/render-quality-utils.js` (auto quality/perf adaptation runtime).
+  - `lib/pokemon-core-utils.js` (weighted encounter pick, stat progression, species counters).
+  - `lib/environment-runtime.js` (background drift + local-time environment snapshot/update).
+  - `lib/ui-animation-runtime.js` (UI/modal/popup/loading/tween helpers + projectile/floating-text tween runtime).
+- `game.js` updated to wire these modules through explicit factory wiring/destructuring while keeping existing API/function names used by the rest of the runtime.
+- Removed now-redundant local runtime declarations replaced by module-encapsulated state (`uiAnimationStateByElement`, loading screen hide timer handling).
+- Line count improvement in this pass:
+  - `game.js`: 23,391 -> 22,087 lines (−1,304 lines).
+
+### Validation loop (after each extraction batch)
+- `node --check game.js`: PASS.
+- `node --check` on every new extracted module: PASS.
+- `npm run test:node`: PASS (20/20) after each batch.
+- `run_playwright_check.ps1`: PASS after each batch (silent server window mode retained).
+- Latest visual check reviewed manually: `output/web-game-poke/shot-2.png` (stable, no visible regression).
+- Additional extraction round completed after the previous pass:
+  - `lib/wallet-ui-runtime.js` created for money HUD + wallet panel + floater animation runtime.
+  - `game.js` now wires wallet functions from this module.
+- Re-validation after wallet extraction:
+  - `node --check game.js`: PASS.
+  - `node --check lib/wallet-ui-runtime.js`: PASS.
+  - `npm run test:node`: PASS (20/20).
+  - `run_playwright_check.ps1`: PASS (silent runner).
+  - Screenshot review: `output/web-game-poke/shot-2.png` stable.
+- Updated footprint:
+  - `game.js`: 21,954 lines (from 23,391 at start of this pass, net -1,437).
+
+## Additional progress (orchestrator cutover - 2026-03-16)
+- `game.js` is now reduced to a pure orchestrator entrypoint:
+  - imports runtime side-effect from `./game-runtime.js`.
+- Main runtime moved to `game-runtime.js` (formerly monolithic `game.js`).
+- Current line counts after cutover:
+  - `game.js`: 1 line.
+  - `game-runtime.js`: 24,581 lines.
+- Validation after cutover/recovery:
+  - `node --check game.js`: PASS.
+  - `node --check game-runtime.js`: PASS.
+  - `npm run test:node`: PASS (20/20).
+  - `run_playwright_check.ps1` (silent): PASS.
+  - Latest visual check: `output/web-game-poke/shot-2.png` stable.
+- Next autonomous objective:
+  - iteratively split `game-runtime.js` by domain (ui animation, environment, pokemon core, wallet/ui, notifications, rendering) while keeping `game.js` as lightweight orchestrator.
+
+## Additional progress (phase 1 core loop boundary - 2026-03-16)
+- Implemented non-breaking phase 1 extraction for runtime loop orchestration:
+  - Added `core/runtime-loop-kernel.js` with delegated implementations of:
+    - `queueRealtimeElapsedMs`
+    - `queueOfflineCatchupFromSave`
+    - `consumePendingSimulation`
+    - `tickSimulationFromRealtime`
+  - Added `core/runtime-orchestrator.js` with delegated lifecycle handlers:
+    - `handleVisibilityChange`
+    - `handlePageLifecyclePersist`
+- Updated `game-runtime.js`:
+  - wired imports for new `core/` modules;
+  - replaced local loop implementations with wrappers delegating to the kernel;
+  - replaced visibility/page lifecycle handlers with orchestrator delegation;
+  - preserved function names/call sites and existing runtime hooks.
+- Added architecture decision record:
+  - `docs/adr/0001-hybrid-runtime-core-loop-boundary.md`
+- Added dedicated node tests:
+  - `tests/runtime-loop-kernel.test.mjs` covering catchup cap, hidden/foreground behavior, deferred save flush, and idle-mode stepping.
+
+### Validation for phase 1
+- `node --check game-runtime.js`: PASS.
+- `node --check game.js`: PASS.
+- `node --check core/runtime-loop-kernel.js`: PASS.
+- `node --check core/runtime-orchestrator.js`: PASS.
+- `npm run test:node`: PASS.
+- `node --test tests/runtime-loop-kernel.test.mjs`: PASS.
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+
+## Additional progress (phase 2 save boundary - 2026-03-16)
+- Added save system module:
+  - `systems/save/runtime-save-system.js`
+  - Encapsulates save load/persist orchestration, backend indicator refresh, browser/desktop write queue, and retry timers.
+- Added infra browser storage adapter:
+  - `infra/storage/browser-save-storage.js`
+  - Centralizes browser storage area access + read/write/remove helpers.
+- Updated `game-runtime.js`:
+  - Wired `createRuntimeSaveSystem` + `createBrowserSaveStorage`.
+  - Replaced inline browser storage helpers with adapter-backed wrappers.
+  - Replaced inline save orchestration block with `runtimeSaveSystem` wrappers while preserving function names and call sites.
+- Added ADR:
+  - `docs/adr/0002-save-system-boundary.md`
+- Added save-system unit tests:
+  - `tests/runtime-save-system.test.mjs`
+
+### Validation for phase 2
+- `node --check game-runtime.js`: PASS.
+- `node --check systems/save/runtime-save-system.js`: PASS.
+- `node --check infra/storage/browser-save-storage.js`: PASS.
+- `node --test tests/runtime-save-system.test.mjs`: PASS.
+- `npm run test:node`: PASS (29/29).
+- Playwright smoke run: PASS (`output/phase2-save-smoke/shot-0..2.png`, `state-0..2.json`).
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+
+## Additional progress (phase 2 save adapters completion - 2026-03-16)
+- Completed infra adapter extraction for remaining save backends:
+  - `infra/storage/desktop-bridge-save-storage.js`
+  - `infra/storage/indexeddb-save-storage.js`
+- Updated `game-runtime.js` save section:
+  - desktop bridge read/write/delete now delegate to adapter wrappers;
+  - indexedDB support/open/read/write/delete now delegate to adapter wrappers;
+  - retained existing function names and runtime call sites for non-breaking compatibility.
+- Added adapter tests:
+  - `tests/browser-save-storage-adapter.test.mjs`
+  - `tests/desktop-bridge-save-storage.test.mjs`
+  - `tests/indexeddb-save-storage.test.mjs`
+
+### Validation for phase 2 completion
+- `node --check game-runtime.js`: PASS.
+- `node --check infra/storage/desktop-bridge-save-storage.js`: PASS.
+- `node --check infra/storage/indexeddb-save-storage.js`: PASS.
+- `node --test tests/browser-save-storage-adapter.test.mjs`: PASS.
+- `node --test tests/desktop-bridge-save-storage.test.mjs`: PASS.
+- `node --test tests/indexeddb-save-storage.test.mjs`: PASS.
+- `npm run test:node`: PASS (36/36).
+- Playwright smoke run: PASS (`output/phase2-save-smoke-2/shot-0..2.png`, `state-0..2.json`).
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+
+## Additional progress (phase 3 combat/encounter boundaries - 2026-03-16)
+- Added encounter system boundary:
+  - `systems/encounter/route-encounter-combat-system.js`
+  - Encapsulates:
+    - only-one encounter detection (`isOnlyOneEncounterEnemy`)
+    - route enemy payload creation (`createRouteEnemyInstance`)
+    - route/only-one timer config (`getEnemyTimerConfigForBattle`)
+    - reward level normalization (`getEnemyLevelForRewards`)
+- Added battle lifecycle system boundary:
+  - `systems/combat/battle-lifecycle-system.js`
+  - Encapsulates:
+    - team hydration + battle sync (`rebuildTeamAndSyncBattle`)
+    - battle manager boot (`startBattle`)
+    - route-change combat lifecycle (`syncBattleForRouteChange`)
+- Updated `game-runtime.js` with non-breaking wrappers:
+  - existing runtime function names/call sites preserved;
+  - extracted functions now delegate to `routeEncounterCombatSystem` / `battleLifecycleSystem`;
+  - route change combat branch now routed through `syncBattleForRouteChange`;
+  - reward-level read switched to delegated helper for consistency.
+- Added ADR:
+  - `docs/adr/0003-combat-encounter-lifecycle-boundaries.md`
+- Added unit tests:
+  - `tests/route-encounter-combat-system.test.mjs`
+  - `tests/battle-lifecycle-system.test.mjs`
+
+### Validation for phase 3
+- `node --check game-runtime.js`: PASS.
+- `node --check game.js`: PASS.
+- `node --check systems/encounter/route-encounter-combat-system.js`: PASS.
+- `node --check systems/combat/battle-lifecycle-system.js`: PASS.
+- `node --check tests/route-encounter-combat-system.test.mjs`: PASS.
+- `node --check tests/battle-lifecycle-system.test.mjs`: PASS.
+- `node --test tests/route-encounter-combat-system.test.mjs`: PASS (6/6).
+- `node --test tests/battle-lifecycle-system.test.mjs`: PASS (7/7).
+- `npm run test:node`: PASS (49/49).
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+- Playwright smoke run (baseline): PASS (`output/phase3-combat-encounter-smoke/shot-0..2.png`, `state-0..2.json`).
+- Playwright smoke run (seeded Route 1 combat): PASS (`output/phase3-combat-encounter-smoke-route1/shot-0..2.png`, `state-0..2.json`).
+- Manual visual inspection completed on seeded run screenshots:
+  - `output/phase3-combat-encounter-smoke-route1/shot-0.png`
+  - `output/phase3-combat-encounter-smoke-route1/shot-1.png`
+  - `output/phase3-combat-encounter-smoke-route1/shot-2.png`
+
+## Additional progress (phase 4 progression/economy/notifications boundaries - 2026-03-16)
+- Added progression/economy system boundary:
+  - `systems/progression/reward-progression-system.js`
+  - Encapsulates:
+    - economy mutations (`addMoney`, `addCoins`, `spendMoney`, `spendCoins`)
+    - combat balance helpers (`getActiveTeamSizeForBalance`, enemy HP/reward multipliers)
+    - reward formulas and scaling (`computeCaptureXpReward`, `computeDefeatMoneyReward`, level-diff multipliers)
+    - XP application and team distribution (`applyExperienceToEntity`, `awardCaptureXpToTeam`)
+- Added notification system boundary:
+  - `systems/notifications/runtime-notification-system.js`
+  - Encapsulates:
+    - temporary notification push flow
+    - top-message normalization + notification dispatch
+- Updated `game-runtime.js` with non-breaking wrappers:
+  - imported and instantiated `rewardProgressionSystem` + `runtimeNotificationSystem`;
+  - replaced inline implementations of progression/economy helpers by delegation wrappers;
+  - replaced inline `pushTemporaryNotification` and `setTopMessage` by system delegation;
+  - preserved existing function names/call sites to keep gameplay/save compatibility.
+- Added ADR:
+  - `docs/adr/0004-progression-economy-notification-boundaries.md`
+- Added tests:
+  - `tests/reward-progression-system.test.mjs`
+  - `tests/runtime-notification-system.test.mjs`
+
+### Validation for phase 4
+- `node --check game-runtime.js`: PASS.
+- `node --check systems/progression/reward-progression-system.js`: PASS.
+- `node --check systems/notifications/runtime-notification-system.js`: PASS.
+- `node --check tests/reward-progression-system.test.mjs`: PASS.
+- `node --check tests/runtime-notification-system.test.mjs`: PASS.
+- `node --test tests/reward-progression-system.test.mjs`: PASS (5/5).
+- `node --test tests/runtime-notification-system.test.mjs`: PASS (3/3).
+- `npm run test:node`: PASS (57/57).
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+- Playwright smoke run (seeded Route 1 combat): PASS (`output/phase4-progression-economy-smoke-route1/shot-0..2.png`, `state-0..2.json`).
+- Manual visual inspection completed on:
+  - `output/phase4-progression-economy-smoke-route1/shot-0.png`
+  - `output/phase4-progression-economy-smoke-route1/shot-1.png`
+  - `output/phase4-progression-economy-smoke-route1/shot-2.png`
+
+## Additional progress (phase 5 UI system + composition root - 2026-03-16)
+- Added UI HUD system boundary:
+  - `systems/ui/runtime-hud-system.js`
+  - Encapsulates `updateHud` responsibilities:
+    - money/coins HUD state reset + refresh
+    - wallet panel synchronization
+    - save backend indicator refresh
+    - route/gacha/dev panel refresh dispatch
+    - money gain floater + pulse trigger logic
+- Added runtime composition root:
+  - `core/runtime-composition-root.js`
+  - Centralizes wiring for extracted systems:
+    - progression/economy
+    - notifications
+    - encounter combat
+    - battle lifecycle
+    - UI HUD
+- Updated `game-runtime.js`:
+  - replaced direct system instantiation block with composition-root destructuring;
+  - replaced inline `updateHud` implementation with delegation to `runtimeHudSystem.updateHud()`;
+  - preserved all public function names/call sites and runtime hooks.
+- Added ADR:
+  - `docs/adr/0005-ui-hud-and-composition-root-boundary.md`
+- Added tests:
+  - `tests/runtime-hud-system.test.mjs`
+  - `tests/runtime-composition-root.test.mjs`
+
+### Validation for phase 5
+- `node --check game-runtime.js`: PASS.
+- `node --check core/runtime-composition-root.js`: PASS.
+- `node --check systems/ui/runtime-hud-system.js`: PASS.
+- `node --check tests/runtime-hud-system.test.mjs`: PASS.
+- `node --check tests/runtime-composition-root.test.mjs`: PASS.
+- `node --test tests/runtime-hud-system.test.mjs`: PASS (3/3).
+- `node --test tests/runtime-composition-root.test.mjs`: PASS (1/1).
+- `npm run test:node`: PASS (61/61).
+- `npm run test:vitest`: FAIL (`vitest` command unavailable in current local environment).
+- Playwright smoke run (seeded Route 1 combat): PASS (`output/phase5-ui-composition-smoke-route1/shot-0..2.png`, `state-0..2.json`).
+- Manual visual inspection completed on:
+  - `output/phase5-ui-composition-smoke-route1/shot-0.png`
+  - `output/phase5-ui-composition-smoke-route1/shot-1.png`
+  - `output/phase5-ui-composition-smoke-route1/shot-2.png`
+
+## Additional progress (final validation sweep - 2026-03-16)
+- Restored local Vitest execution path and completed full test matrix:
+  - installed local `vitest` dependency in project devDependencies.
+  - retained `package.json` script as `vitest run`.
+- Re-ran end-to-end test suite:
+  - `npm test`: PASS (`test:node` + `test:vitest`).
+- Re-ran browser smoke script:
+  - `powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/check.ps1`: PASS.
+  - Updated visual artifacts reviewed in `output/web-game-poke/shot-0..2.png`.
+- Current status:
+  - phase 1 to phase 5 boundaries implemented with non-breaking facades.
+  - node + vitest suites green in local environment.
+
+## Additional progress (hardening pass: save matrix + perf guardrails - 2026-03-16)
+- Added extended save non-regression matrix:
+  - `tests/runtime-save-system-matrix.test.mjs`
+  - Covers:
+    - seeded save priority and backend-read bypass
+    - equal-timestamp selection tie-breaks with desktop preference
+    - transient write failure + retry for indexedDB and desktop bridge queues
+    - backend indicator fallback behavior
+    - telemetry backend value switching
+- Added lightweight runtime perf validator for Playwright smoke artifacts:
+  - `scripts/testing/perf/validate-runtime-performance.mjs`
+  - Reads `state-*.json` snapshots and enforces threshold guardrails on:
+    - `cpu_frame_ms_estimate`
+    - `frame_ms_estimate`
+  - Supports optional baseline write/compare flow (`--write-baseline`, `--baseline-file`, ratio cap).
+- Added npm shortcuts:
+  - `npm run test:perf:phase5`
+  - `npm run test:perf:web-game`
+- Added usage docs:
+  - `docs/testing/runtime-performance-validation.md`
+
+### Validation for hardening pass
+- `node --test tests/runtime-save-system-matrix.test.mjs`: PASS (5/5).
+- `npm run test:perf:phase5`: PASS.
+- `npm run test:perf:web-game`: PASS.
+- `npm test`: PASS (Node 66/66 + Vitest 8/8).
+- `powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/check.ps1`: PASS.
+- Manual visual inspection updated:
+  - `output/web-game-poke/shot-2.png` reviewed (runtime/UI stable).
+
+## Additional progress (perf baseline + 5% regression guard - 2026-03-16)
+- Added tracked baseline snapshots:
+  - `tests/perf-baselines/phase5-core-loop.json`
+  - `tests/perf-baselines/web-game-poke.json`
+- Added npm scripts for regression checks against baseline:
+  - `test:perf:phase5:regression`
+  - `test:perf:web-game:regression`
+- Added npm scripts for baseline refresh:
+  - `test:perf:baseline:phase5`
+  - `test:perf:baseline:web-game`
+- Updated perf validation docs with new scripts + tracked baseline paths.
+
+### Validation for baseline/regression pass
+- `npm run test:perf:phase5:regression`: PASS (`cpu_regression_ratio: 1`).
+- `npm run test:perf:web-game:regression`: PASS (`cpu_regression_ratio: 1`).
+- `npm test`: PASS (Node 66/66 + Vitest 8/8).

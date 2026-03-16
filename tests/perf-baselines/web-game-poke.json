@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-03-16T13:18:29.559Z",
+  "state_dir": "C:\\Users\\etiennes\\Desktop\\Perso\\pokeidle_html_codex\\output\\web-game-poke",
+  "state_files": [
+    "state-0.json",
+    "state-1.json",
+    "state-2.json"
+  ],
+  "metrics": {
+    "sampleCount": 3,
+    "meanCpuFrameMs": 7.53,
+    "minCpuFrameMs": 6.84,
+    "maxCpuFrameMs": 7.89,
+    "meanFrameMs": 8.973,
+    "minFrameMs": 8.33,
+    "maxFrameMs": 10.25,
+    "meanRenderFrameMs": 17.743,
+    "meanFps": 112.467
+  }
+}

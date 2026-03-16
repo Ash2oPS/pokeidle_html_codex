@@ -24,7 +24,7 @@ if (![string]::IsNullOrWhiteSpace($ScreenshotDir)) {
   New-Item -ItemType Directory -Force -Path $ScreenshotDir | Out-Null
 }
 
-$server = Start-Process -FilePath py -ArgumentList @('-3', '-m', 'http.server', "$Port", '--bind', '127.0.0.1') -WorkingDirectory $RepoRoot -PassThru
+$server = Start-Process -FilePath py -ArgumentList @('-3', '-m', 'http.server', "$Port", '--bind', '127.0.0.1') -WorkingDirectory $RepoRoot -WindowStyle Hidden -PassThru
 $serverReady = $false
 for ($i = 0; $i -lt 80; $i++) {
   Start-Sleep -Milliseconds 250
