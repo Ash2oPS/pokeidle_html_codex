@@ -10697,9 +10697,9 @@ function update(deltaMs, options = {}) {
   const layout = idleMode
     ? (state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs }))
     : refreshLayoutIfNeeded({ nowMs: state.timeMs });
-  const runtimeUiInteraction = getRuntimeUiInteractionSystem();
-  if (runtimeUiInteraction && typeof runtimeUiInteraction.updateEvolutionAnimation === "function") {
-    runtimeUiInteraction.updateEvolutionAnimation(deltaMs);
+  const runtimeRenderSystem = getRuntimeRenderSystem();
+  if (runtimeRenderSystem && typeof runtimeRenderSystem.updateEvolutionAnimation === "function") {
+    runtimeRenderSystem.updateEvolutionAnimation(deltaMs);
   }
 
   state.simulationIdleMode = idleMode;

@@ -40,6 +40,20 @@ function fallbackEaseInOutSine(t) {
   return -(Math.cos(Math.PI * value) - 1) / 2;
 }
 
+function fallbackEaseOutBack(t) {
+  const value = Number(t) || 0;
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  const shifted = value - 1;
+  return 1 + c3 * shifted * shifted * shifted + c1 * shifted * shifted;
+}
+
+function fallbackEaseOutQuad(t) {
+  const value = Number(t) || 0;
+  const shifted = 1 - value;
+  return 1 - shifted * shifted;
+}
+
 function fallbackRgba(rgb, alpha = 1) {
   const source = Array.isArray(rgb) ? rgb : [255, 255, 255];
   const r = Math.max(0, Math.min(255, Number(source[0]) || 0));
@@ -93,6 +107,8 @@ export function createPokemonBattleRuntime(deps = {}) {
     randomInt = fallbackRandomInt,
     randomRange = fallbackRandomRange,
     easeInOutSine = fallbackEaseInOutSine,
+    easeOutBack = fallbackEaseOutBack,
+    easeOutQuad = fallbackEaseOutQuad,
     stopTweenIfRunning = () => {},
     createFloatingTextVisualTween = () => null,
     stopFloatingTextVisualTween = () => {},
@@ -148,6 +164,11 @@ export function createPokemonBattleRuntime(deps = {}) {
     MAX_TEAM_SIZE = 6,
     KO_RESPAWN_DELAY_MS = 350,
     KO_ANIMATION_DURATION_MS = 420,
+    ENEMY_ENTER_ANIM_DURATION_MS = 400,
+    ENEMY_ENTER_ANIM_OFFSET_PX = 100,
+    ENEMY_ENTER_ANIM_ROTATION_DEG = 10,
+    ENEMY_ENTER_ANIM_FADE_RATIO = 0.7,
+    ENEMY_ENTER_ANIM_ROTATE_RATIO = 0.5,
     ATTACK_FLASH_DURATION_MS = 150,
     ATTACK_FLASH_WHITE_BLEND = 0,
     SKIP_TURN_EFFECT_DURATION_MIN_MS = 250,
@@ -500,6 +521,16 @@ class PokemonBattleManager {
     this.enemyTimerMs = 0;
     this.enemyTimerStyle = ENEMY_TIMER_STYLE_ROUTE;
     this.enemy = null;
+    this.enemyEnterAnim = {
+      active: false,
+      elapsedMs: Math.max(1, toSafeInt(ENEMY_ENTER_ANIM_DURATION_MS, 400)),
+      durationMs: Math.max(1, toSafeInt(ENEMY_ENTER_ANIM_DURATION_MS, 400)),
+      direction: 1,
+      offsetPx: Math.max(0, Number(ENEMY_ENTER_ANIM_OFFSET_PX) || 100),
+      rotationRad: (Math.max(0, Number(ENEMY_ENTER_ANIM_ROTATION_DEG) || 10) * Math.PI) / 180,
+      fadeRatio: clamp(Number(ENEMY_ENTER_ANIM_FADE_RATIO) || 0.7, 0.05, 1),
+      rotateRatio: clamp(Number(ENEMY_ENTER_ANIM_ROTATE_RATIO) || 0.5, 0.05, 1),
+    };
     this.pendingEnemyDamage = 0;
     this.enemyDefeatReserved = false;
     this.enemyDefeatReservedBySlot = -1;
@@ -720,6 +751,83 @@ class PokemonBattleManager {
     return clamp(Number(this.enemyHitPulse?.remainingMs || 0) / 120, 0, 1);
   }
 
+  resetEnemyEnterAnimation() {
+    if (!this.enemyEnterAnim) {
+      return;
+    }
+    this.enemyEnterAnim.active = false;
+    this.enemyEnterAnim.elapsedMs = this.enemyEnterAnim.durationMs;
+    this.enemyEnterAnim.direction = 1;
+  }
+
+  startEnemyEnterAnimation() {
+    if (!this.enemyEnterAnim || !this.enemy) {
+      return;
+    }
+    this.enemyEnterAnim.active = true;
+    this.enemyEnterAnim.elapsedMs = 0;
+    this.enemyEnterAnim.direction = randomInt(0, 1) === 0 ? 1 : -1;
+  }
+
+  updateEnemyEnterAnimation(deltaMs) {
+    if (!this.enemyEnterAnim || !this.enemyEnterAnim.active) {
+      return;
+    }
+    const safeDelta = Math.max(0, Number(deltaMs) || 0);
+    const durationMs = Math.max(1, Number(this.enemyEnterAnim.durationMs) || 1);
+    this.enemyEnterAnim.elapsedMs = Math.min(durationMs, this.enemyEnterAnim.elapsedMs + safeDelta);
+    if (this.enemyEnterAnim.elapsedMs >= durationMs) {
+      this.enemyEnterAnim.active = false;
+      this.enemyEnterAnim.elapsedMs = durationMs;
+    }
+  }
+
+  isEnemyEntering() {
+    return Boolean(this.enemy && this.enemyEnterAnim?.active);
+  }
+
+  getEnemyEnterAnimationState() {
+    if (!this.enemy) {
+      return {
+        active: false,
+        progress: 1,
+        alpha: 1,
+        offset_x: 0,
+        rotation_rad: 0,
+      };
+    }
+    const anim = this.enemyEnterAnim;
+    if (!anim?.active) {
+      return {
+        active: false,
+        progress: 1,
+        alpha: 1,
+        offset_x: 0,
+        rotation_rad: 0,
+      };
+    }
+    const durationMs = Math.max(1, Number(anim.durationMs) || 1);
+    const elapsedMs = clamp(Number(anim.elapsedMs) || 0, 0, durationMs);
+    const progress = clamp(elapsedMs / durationMs, 0, 1);
+    const direction = Number(anim.direction || 1) >= 0 ? 1 : -1;
+    const moveRatio = easeOutBack(progress);
+    const fadeDurationMs = Math.max(1, durationMs * clamp(Number(anim.fadeRatio) || 0.7, 0.05, 1));
+    const fadeRatio = clamp(elapsedMs / fadeDurationMs, 0, 1);
+    const alpha = clamp(easeOutBack(fadeRatio), 0, 1);
+    const rotationDurationMs = Math.max(1, durationMs * clamp(Number(anim.rotateRatio) || 0.5, 0.05, 1));
+    const rotationRatio = clamp(elapsedMs / rotationDurationMs, 0, 1);
+    const rotationProgress = clamp(easeOutQuad(rotationRatio), 0, 1);
+    const startOffsetX = -Math.max(0, Number(anim.offsetPx) || 0) * direction;
+    const startRotation = -Math.max(0, Number(anim.rotationRad) || 0) * direction;
+    return {
+      active: true,
+      progress,
+      alpha,
+      offset_x: startOffsetX * (1 - moveRatio),
+      rotation_rad: startRotation * (1 - rotationProgress),
+    };
+  }
+
   isEnemyRespawning() {
     return this.pendingRespawnMs > 0;
   }
@@ -741,7 +849,11 @@ class PokemonBattleManager {
   }
 
   isEnemyTimerRunning() {
-    return this.enemyTimerEnabled && Boolean(this.enemy) && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning();
+    return this.enemyTimerEnabled
+      && Boolean(this.enemy)
+      && this.enemy.hpCurrent > 0
+      && !this.isEnemyRespawning()
+      && !this.isEnemyEntering();
   }
 
   getEnemyTimerState() {
@@ -1821,6 +1933,7 @@ class PokemonBattleManager {
   update(deltaMs, layout, options = {}) {
     const idleMode = Boolean(options.idleMode);
     this.setAttackInterval(this.getEffectiveAttackIntervalMs());
+    this.updateEnemyEnterAnimation(deltaMs);
     this.updateFloatingTexts(deltaMs);
     this.updateHitEffects(deltaMs);
     this.updateKoTransition(deltaMs);
@@ -1843,7 +1956,7 @@ class PokemonBattleManager {
       return;
     }
 
-    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || this.isEnemyEntering()) {
       return;
     }
 
@@ -2407,7 +2520,7 @@ class PokemonBattleManager {
   applyHit(projectile, options = {}) {
     const idleMode = Boolean(options.idleMode);
     const suppressTurnEvent = Boolean(options.suppressTurnEvent);
-    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || this.isEnemyEntering()) {
       this.consumeQueuedProjectileDamage(projectile);
       return;
     }
@@ -2678,6 +2791,7 @@ class PokemonBattleManager {
     const source = this.createEnemy();
     if (!source) {
       this.enemy = null;
+      this.resetEnemyEnterAnimation();
       this.resetCombatVisualTweens();
       this.resetQueuedAttackState();
       this.enemyTimerEnabled = false;
@@ -2697,6 +2811,7 @@ class PokemonBattleManager {
     this.pendingRespawnMs = 0;
     this.koAnimMs = 0;
     this.resetQueuedAttackState();
+    this.startEnemyEnterAnimation();
     this.defeatedEnemyName = null;
     this.captureSequence = null;
     this.lastTurnEvent = null;

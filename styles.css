@@ -1374,18 +1374,21 @@ body {
   align-content: start;
   overscroll-behavior: none;
   touch-action: pan-y;
+  overflow-anchor: none;
 }
 
 .pokedex-virtual-content {
   display: grid;
   grid-template-columns: repeat(1, minmax(112px, 1fr));
   gap: 9px;
+  overflow-anchor: none;
 }
 
 .pokedex-virtual-spacer {
   width: 100%;
   pointer-events: none;
   user-select: none;
+  overflow-anchor: none;
 }
 
 .loading-screen {
@@ -7581,4 +7584,104 @@ body.update-required-active {
   font-size: 8px;
   line-height: 1;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile readability pass for Pokedex modal. Keep this block at file end. */
+@media (max-width: 900px) {
+  .pokedex-card .boxes-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .pokedex-card .pokedex-header-copy {
+    gap: 4px;
+  }
+
+  .pokedex-card .boxes-subtitle {
+    margin-top: 1px;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .pokedex-card .pokedex-global-completion {
+    padding: 7px 8px;
+    font-size: clamp(14px, 3.9vw, 18px);
+    line-height: 1.15;
+  }
+
+  .pokedex-card .pokedex-header-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .pokedex-card .pokedex-header-stat {
+    padding: 6px 7px;
+    font-size: 10px;
+    line-height: 1.24;
+  }
+
+  .pokedex-card .boxes-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) clamp(120px, 28dvh, 200px);
+    gap: 6px;
+  }
+
+  .pokedex-card .pokedex-grid {
+    min-height: 0;
+    padding: 6px;
+  }
+
+  .pokedex-card .boxes-info-panel {
+    min-height: 0;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.28;
+  }
+
+  .pokedex-card .boxes-info-panel strong {
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 430px) {
+  .pokedex-card .boxes-header {
+    gap: 6px;
+  }
+
+  .pokedex-card .boxes-title {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .pokedex-card .boxes-subtitle {
+    display: none;
+  }
+
+  .pokedex-card .pokedex-global-completion {
+    padding: 6px 7px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .pokedex-card .pokedex-header-stats {
+    display: none;
+  }
+
+  .pokedex-card .boxes-layout {
+    grid-template-rows: minmax(0, 1fr) clamp(104px, 22dvh, 164px);
+    gap: 5px;
+  }
+
+  .pokedex-card .pokedex-grid {
+    padding: 5px;
+  }
+
+  .pokedex-card .boxes-info-panel {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
 }

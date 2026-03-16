@@ -6006,3 +6006,66 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `tests/game-settings-runtime.test.mjs` (settings sanitization + maintenance activation rules).
   - `tests/ui-animation-runtime.test.mjs` (static Pokeball class toggle/cleanup behavior).
   - `tests/runtime-startup-maintenance-gate.test.mjs` (bootstrap maintenance flow guard in `game-runtime.js`).
+## Additional progress (2026-03-16, evolution animation wire fix)
+- Fixed evolution animation update wiring in `game-runtime.js`:
+  - before: update loop called `updateEvolutionAnimation` on `runtimeUiInteraction` (method absent there).
+  - after: update loop now calls `updateEvolutionAnimation` on `runtimeRenderSystem`, where the method is actually exposed.
+- Added non-regression guard `tests/runtime-evolution-animation-wireup.test.mjs` to ensure future changes keep this binding on the render system path.
+
+## Additional progress (enemy enter tween adaptation)
+- Ported the Godot-style enemy enter tween behavior into the web combat runtime:
+  - random left/right spawn direction;
+  - horizontal slide-in toward center;
+  - alpha fade-in;
+  - slight rotation settling to 0.
+- Added a dedicated enemy enter animation state in `systems/combat/pokemon-battle-manager.js` and exposed it through `getEnemyEnterAnimationState()`.
+- Prevented attack/timer progression while the enemy enter animation is active, so combat starts after the entry completes.
+- Applied render integration in `systems/ui/runtime-render-system.js`:
+  - enemy draw now consumes enter animation offset/alpha/rotation;
+  - enemy backdrop follows the horizontal entry offset;
+  - `drawPokemonSprite` now accepts `rotationRad` and applies it after terrain shadow rendering.
+
+## Validation runs
+- `node --check systems/combat/pokemon-battle-manager.js`: PASS.
+- `node --check systems/ui/runtime-render-system.js`: PASS.
+- `node --test tests/pokemon-battle-runtime.test.mjs tests/runtime-render-system.test.mjs tests/battle-lifecycle-system.test.mjs`: PASS.
+
+## Additional progress (2026-03-16, pokedex virtual scroll stabilization)
+- Fixed Pokédex scroll instability caused by browser scroll anchoring fighting the virtualized slice updates.
+- CSS patch in `styles.css`:
+  - `.pokedex-grid { overflow-anchor: none; }`
+  - `.pokedex-virtual-content { overflow-anchor: none; }`
+  - `.pokedex-virtual-spacer { overflow-anchor: none; }`
+- Result: `scrollTop` no longer jumps backward/forward unpredictably while scrolling; virtual rows remain stable.
+
+### Validation artifacts (Playwright custom repro)
+- `output/pokedex-scroll-debug/samples.json` now shows stable monotonic scroll values (no anchor jump).
+- Visual captures:
+  - `output/pokedex-scroll-fix/pokedex-open.png`
+  - `output/pokedex-scroll-fix/pokedex-scrolled.png`
+
+## Additional progress (2026-03-16, pokedex mobile readability overhaul)
+- Reproduced Pokédex mobile regressions on iPhone viewport and captured before state.
+- Applied dedicated mobile overrides with Pokédex-specific selector specificity to avoid desktop rule leakage:
+  - force `.pokedex-card .boxes-layout` to vertical stack on mobile;
+  - compact header spacing and completion banner;
+  - hide verbose long stat blocks on very small phones (<=430px);
+  - keep grid dominant and info panel readable below.
+- Kept Pokédex virtual card height untouched to preserve virtualization math stability.
+
+### Validation artifacts
+- Before/after screenshots (iPhone viewport):
+  - `output/pokedex-mobile-before/open.png`
+  - `output/pokedex-mobile-before/scrolled.png`
+- Runtime sample confirms improved geometry:
+  - header height reduced from ~266px to ~52px;
+  - grid width now full modal width (374px), 3 columns visible;
+  - info panel moved below grid (full width).
+  - see `output/pokedex-mobile-before/sample.json`.
+
+## Additional progress (enemy enter tween sprite-only scope) - 2026-03-16
+- Tweaked enemy enter render integration so the tween affects only the enemy sprite.
+- Removed enemy enter X offset from backdrop circle draw; backdrop now remains centered while sprite keeps slide/fade/rotation.
+- Validation:
+  - node --check systems/ui/runtime-render-system.js: PASS.
+  - node --test tests/runtime-render-system.test.mjs: PASS (4/4).
