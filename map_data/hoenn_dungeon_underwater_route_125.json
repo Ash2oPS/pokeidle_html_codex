@@ -1,0 +1,29 @@
+{
+  "route_id": "hoenn_dungeon_underwater_route_125",
+  "route_name_fr": "Underwater Route 125 (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": false,
+  "unlock_mode": "visit",
+  "unlock_defeats_required": 0,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "underwater-route-125",
+  "source_location_areas": [
+    "underwater-route-125"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_125_emerald.png",
+  "map_marker": {
+    "x": 90.536,
+    "y": 29
+  },
+  "encounters": [],
+  "encounter_species_count_source": 0,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Underwater_Route125/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Underwater_Route125/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

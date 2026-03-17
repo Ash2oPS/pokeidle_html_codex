@@ -1,0 +1,67 @@
+{
+  "route_id": "hoenn_dungeon_cave_of_origin",
+  "route_name_fr": "Cave of Origin (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "cave-of-origin",
+  "source_location_areas": [
+    "cave-of-origin-entrance",
+    "cave-of-origin-1-f",
+    "cave-of-origin-b-1-f"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_cave_of_origin_emerald.png",
+  "map_marker": {
+    "x": 78.036,
+    "y": 48
+  },
+  "encounters": [
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 150,
+      "min_level": 28,
+      "max_level": 35
+    },
+    {
+      "id": 302,
+      "name_en": "sableye",
+      "name_fr": "Ténéfix",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 30,
+      "max_level": 34
+    },
+    {
+      "id": 42,
+      "name_en": "golbat",
+      "name_fr": "Nosferalto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 33,
+      "max_level": 36
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/CaveOfOrigin_Entrance/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/CaveOfOrigin_Entrance/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/CaveOfOrigin_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/CaveOfOrigin_B1F/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

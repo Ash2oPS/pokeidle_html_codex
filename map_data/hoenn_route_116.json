@@ -1,0 +1,96 @@
+{
+  "route_id": "hoenn_route_116",
+  "route_name_fr": "Route 116 (Hoenn)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "route-116",
+  "source_location_areas": [
+    "route-116"
+  ],
+  "background_image": "assets/backgrounds/hoenn_route_116_emerald.png",
+  "map_marker": {
+    "x": 10.714,
+    "y": 36.667
+  },
+  "encounters": [
+    {
+      "id": 261,
+      "name_en": "poochyena",
+      "name_fr": "Medhyèna",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 28,
+      "min_level": 6,
+      "max_level": 8
+    },
+    {
+      "id": 276,
+      "name_en": "taillow",
+      "name_fr": "Nirondelle",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 6,
+      "max_level": 8
+    },
+    {
+      "id": 290,
+      "name_en": "nincada",
+      "name_fr": "Ningale",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 6,
+      "max_level": 7
+    },
+    {
+      "id": 293,
+      "name_en": "whismur",
+      "name_fr": "Chuchmur",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 6,
+      "max_level": 6
+    },
+    {
+      "id": 63,
+      "name_en": "abra",
+      "name_fr": "Abra",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 7,
+      "max_level": 7
+    },
+    {
+      "id": 300,
+      "name_en": "skitty",
+      "name_fr": "Skitty",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 2,
+      "min_level": 7,
+      "max_level": 8
+    }
+  ],
+  "encounter_species_count_source": 6,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route116/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route116/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

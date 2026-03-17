@@ -1,0 +1,96 @@
+{
+  "route_id": "hoenn_dungeon_fiery_path",
+  "route_name_fr": "Fiery Path (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "fiery-path",
+  "source_location_areas": [
+    "fiery-path"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_fiery_path_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 23.333
+  },
+  "encounters": [
+    {
+      "id": 322,
+      "name_en": "numel",
+      "name_fr": "Chamallot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 109,
+      "name_en": "koffing",
+      "name_fr": "Smogo",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 25,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 324,
+      "name_en": "torkoal",
+      "name_fr": "Chartor",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 18,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 66,
+      "name_en": "machop",
+      "name_fr": "Machoc",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 15,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 218,
+      "name_en": "slugma",
+      "name_fr": "Limagma",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 15,
+      "max_level": 15
+    },
+    {
+      "id": 88,
+      "name_en": "grimer",
+      "name_fr": "Tadmorv",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 2,
+      "min_level": 14,
+      "max_level": 14
+    }
+  ],
+  "encounter_species_count_source": 6,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/FieryPath/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/FieryPath/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

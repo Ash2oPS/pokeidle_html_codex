@@ -1,0 +1,63 @@
+{
+  "route_id": "hoenn_route_113",
+  "route_name_fr": "Route 113 (Hoenn)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "route-113",
+  "source_location_areas": [
+    "route-113"
+  ],
+  "background_image": "assets/backgrounds/hoenn_route_113_emerald.png",
+  "map_marker": {
+    "x": 21.429,
+    "y": 3.333
+  },
+  "encounters": [
+    {
+      "id": 327,
+      "name_en": "spinda",
+      "name_fr": "Spinda",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 70,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 218,
+      "name_en": "slugma",
+      "name_fr": "Limagma",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 25,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 227,
+      "name_en": "skarmory",
+      "name_fr": "Airmure",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 16,
+      "max_level": 16
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route113/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route113/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

@@ -1,0 +1,1548 @@
+{
+  "source": "pret/pokeemerald Emerald data + Bulbagarden Archives backgrounds",
+  "games": [
+    "emerald"
+  ],
+  "unlock_target_default": 20,
+  "map_image": "assets/maps/hoenn_map_emerald.png",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z",
+  "zone_order": [
+    "hoenn_route_101",
+    "hoenn_city_littleroot_town",
+    "hoenn_city_oldale_town",
+    "hoenn_route_103",
+    "hoenn_route_102",
+    "hoenn_city_petalburg_city",
+    "hoenn_route_104",
+    "hoenn_dungeon_petalburg_woods",
+    "hoenn_city_rustboro_city",
+    "hoenn_route_116",
+    "hoenn_dungeon_rusturf_tunnel",
+    "hoenn_route_106",
+    "hoenn_city_dewford_town",
+    "hoenn_dungeon_granite_cave",
+    "hoenn_route_107",
+    "hoenn_route_108",
+    "hoenn_route_109",
+    "hoenn_city_slateport_city",
+    "hoenn_route_110",
+    "hoenn_city_mauville_city",
+    "hoenn_route_117",
+    "hoenn_city_verdanturf_town",
+    "hoenn_route_111",
+    "hoenn_route_112",
+    "hoenn_dungeon_fiery_path",
+    "hoenn_route_113",
+    "hoenn_city_fallarbor_town",
+    "hoenn_route_114",
+    "hoenn_dungeon_meteor_falls",
+    "hoenn_dungeon_mt_chimney",
+    "hoenn_dungeon_jagged_pass",
+    "hoenn_city_lavaridge_town",
+    "hoenn_dungeon_route_111_desert",
+    "hoenn_dungeon_new_mauville",
+    "hoenn_route_115",
+    "hoenn_route_105",
+    "hoenn_dungeon_abandoned_ship",
+    "hoenn_route_118",
+    "hoenn_route_119",
+    "hoenn_dungeon_weather_institute",
+    "hoenn_city_fortree_city",
+    "hoenn_route_120",
+    "hoenn_route_121",
+    "hoenn_dungeon_safari_zone",
+    "hoenn_city_lilycove_city",
+    "hoenn_route_122",
+    "hoenn_dungeon_mt_pyre",
+    "hoenn_route_123",
+    "hoenn_dungeon_magma_hideout",
+    "hoenn_dungeon_aqua_hideout",
+    "hoenn_route_124",
+    "hoenn_city_mossdeep_city",
+    "hoenn_route_125",
+    "hoenn_dungeon_shoal_cave",
+    "hoenn_dungeon_underwater_route_124",
+    "hoenn_dungeon_underwater_route_125",
+    "hoenn_dungeon_underwater_route_105",
+    "hoenn_route_127",
+    "hoenn_dungeon_underwater_route_127",
+    "hoenn_route_126",
+    "hoenn_dungeon_underwater_route_126",
+    "hoenn_city_sootopolis_city",
+    "hoenn_route_128",
+    "hoenn_dungeon_underwater_route_128",
+    "hoenn_dungeon_seafloor_cavern",
+    "hoenn_route_129",
+    "hoenn_dungeon_underwater_route_129",
+    "hoenn_route_130",
+    "hoenn_city_pacifidlog_town",
+    "hoenn_route_131",
+    "hoenn_dungeon_sky_pillar",
+    "hoenn_dungeon_cave_of_origin",
+    "hoenn_city_ever_grande_city",
+    "hoenn_dungeon_victory_road",
+    "hoenn_route_132",
+    "hoenn_route_133",
+    "hoenn_route_134"
+  ],
+  "zones": [
+    {
+      "route_id": "hoenn_route_101",
+      "route_name_fr": "Route 101 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-101",
+      "source_location_areas": [
+        "route-101"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_101_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 16.071,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_city_littleroot_town",
+      "route_name_fr": "Littleroot Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "littleroot-town",
+      "source_location_areas": [
+        "littleroot-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_littleroot_town_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 16.071,
+        "y": 76.667
+      }
+    },
+    {
+      "route_id": "hoenn_city_oldale_town",
+      "route_name_fr": "Oldale Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "oldale-town",
+      "source_location_areas": [
+        "oldale-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_oldale_town_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 16.071,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_103",
+      "route_name_fr": "Route 103 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-103",
+      "source_location_areas": [
+        "route-103"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_103_emerald.png",
+      "encounter_species_count": 8,
+      "map_marker": {
+        "x": 21.429,
+        "y": 56.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_102",
+      "route_name_fr": "Route 102 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-102",
+      "source_location_areas": [
+        "route-102"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_102_emerald.png",
+      "encounter_species_count": 10,
+      "map_marker": {
+        "x": 10.714,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_city_petalburg_city",
+      "route_name_fr": "Petalburg City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "petalburg-city",
+      "source_location_areas": [
+        "petalburg-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_petalburg_city_emerald.png",
+      "encounter_species_count": 4,
+      "map_marker": {
+        "x": 5.357,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_104",
+      "route_name_fr": "Route 104 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-104",
+      "source_location_areas": [
+        "route-104"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_104_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 1.786,
+        "y": 56.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_petalburg_woods",
+      "route_name_fr": "Petalburg Woods (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "petalburg-woods",
+      "source_location_areas": [
+        "petalburg-woods"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_petalburg_woods_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 1.786,
+        "y": 56.667
+      }
+    },
+    {
+      "route_id": "hoenn_city_rustboro_city",
+      "route_name_fr": "Rustboro City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "rustboro-city",
+      "source_location_areas": [
+        "rustboro-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_rustboro_city_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 1.786,
+        "y": 40
+      }
+    },
+    {
+      "route_id": "hoenn_route_116",
+      "route_name_fr": "Route 116 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-116",
+      "source_location_areas": [
+        "route-116"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_116_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 10.714,
+        "y": 36.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_rusturf_tunnel",
+      "route_name_fr": "Rusturf Tunnel (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "rusturf-tunnel",
+      "source_location_areas": [
+        "rusturf-tunnel"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_rusturf_tunnel_emerald.png",
+      "encounter_species_count": 1,
+      "map_marker": {
+        "x": 8.929,
+        "y": 36.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_106",
+      "route_name_fr": "Route 106 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-106",
+      "source_location_areas": [
+        "route-106"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_106_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 3.571,
+        "y": 90
+      }
+    },
+    {
+      "route_id": "hoenn_city_dewford_town",
+      "route_name_fr": "Dewford Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "dewford-town",
+      "source_location_areas": [
+        "dewford-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_dewford_town_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 8.929,
+        "y": 96.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_granite_cave",
+      "route_name_fr": "Granite Cave (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "granite-cave",
+      "source_location_areas": [
+        "granite-cave-1-f",
+        "granite-cave-b-1-f",
+        "granite-cave-b-2-f",
+        "granite-cave-stevens-room"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_granite_cave_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 5.357,
+        "y": 90
+      }
+    },
+    {
+      "route_id": "hoenn_route_107",
+      "route_name_fr": "Route 107 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-107",
+      "source_location_areas": [
+        "route-107"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_107_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 16.071,
+        "y": 96.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_108",
+      "route_name_fr": "Route 108 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-108",
+      "source_location_areas": [
+        "route-108"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_108_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 25,
+        "y": 96.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_109",
+      "route_name_fr": "Route 109 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-109",
+      "source_location_areas": [
+        "route-109"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_109_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 30.357,
+        "y": 90
+      }
+    },
+    {
+      "route_id": "hoenn_city_slateport_city",
+      "route_name_fr": "Slateport City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "slateport-city",
+      "source_location_areas": [
+        "slateport-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_slateport_city_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 30.357,
+        "y": 73.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_110",
+      "route_name_fr": "Route 110 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-110",
+      "source_location_areas": [
+        "route-110"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_110_emerald.png",
+      "encounter_species_count": 11,
+      "map_marker": {
+        "x": 30.357,
+        "y": 56.667
+      }
+    },
+    {
+      "route_id": "hoenn_city_mauville_city",
+      "route_name_fr": "Mauville City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "mauville-city",
+      "source_location_areas": [
+        "mauville-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_mauville_city_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 32.143,
+        "y": 43.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_117",
+      "route_name_fr": "Route 117 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-117",
+      "source_location_areas": [
+        "route-117"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_117_emerald.png",
+      "encounter_species_count": 9,
+      "map_marker": {
+        "x": 23.214,
+        "y": 43.333
+      }
+    },
+    {
+      "route_id": "hoenn_city_verdanturf_town",
+      "route_name_fr": "Verdanturf Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "verdanturf-town",
+      "source_location_areas": [
+        "verdanturf-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_verdanturf_town_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 16.071,
+        "y": 43.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_111",
+      "route_name_fr": "Route 111 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-111",
+      "source_location_areas": [
+        "route-111"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_111_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 30.357,
+        "y": 20
+      }
+    },
+    {
+      "route_id": "hoenn_route_112",
+      "route_name_fr": "Route 112 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-112",
+      "source_location_areas": [
+        "route-112"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_112_emerald.png",
+      "encounter_species_count": 2,
+      "map_marker": {
+        "x": 25,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_fiery_path",
+      "route_name_fr": "Fiery Path (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "fiery-path",
+      "source_location_areas": [
+        "fiery-path"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_fiery_path_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 23.214,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_113",
+      "route_name_fr": "Route 113 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-113",
+      "source_location_areas": [
+        "route-113"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_113_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 21.429,
+        "y": 3.333
+      }
+    },
+    {
+      "route_id": "hoenn_city_fallarbor_town",
+      "route_name_fr": "Fallarbor Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "fallarbor-town",
+      "source_location_areas": [
+        "fallarbor-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_fallarbor_town_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 12.5,
+        "y": 3.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_114",
+      "route_name_fr": "Route 114 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-114",
+      "source_location_areas": [
+        "route-114"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_114_emerald.png",
+      "encounter_species_count": 10,
+      "map_marker": {
+        "x": 7.143,
+        "y": 10
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_meteor_falls",
+      "route_name_fr": "Meteor Falls (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "meteor-falls",
+      "source_location_areas": [
+        "meteor-falls-1-f-1-r",
+        "meteor-falls-1-f-2-r",
+        "meteor-falls-b-1-f-1-r",
+        "meteor-falls-b-1-f-2-r",
+        "meteor-falls-stevens-cave"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_meteor_falls_emerald.png",
+      "encounter_species_count": 8,
+      "map_marker": {
+        "x": 1.786,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_mt_chimney",
+      "route_name_fr": "Mt. Chimney (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "mt-chimney",
+      "source_location_areas": [
+        "mt-chimney"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_mt_chimney_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 23.214,
+        "y": 16.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_jagged_pass",
+      "route_name_fr": "Jagged Pass (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "jagged-pass",
+      "source_location_areas": [
+        "jagged-pass"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_jagged_pass_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 23.214,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_city_lavaridge_town",
+      "route_name_fr": "Lavaridge Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "lavaridge-town",
+      "source_location_areas": [
+        "lavaridge-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_lavaridge_town_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 19.643,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_route_111_desert",
+      "route_name_fr": "Route 111 Desert (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-111-desert",
+      "source_location_areas": [
+        "route-111"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_route_111_desert_emerald.png",
+      "encounter_species_count": 4,
+      "map_marker": {
+        "x": 32.143,
+        "y": 17.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_new_mauville",
+      "route_name_fr": "New Mauville (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "new-mauville",
+      "source_location_areas": [
+        "new-mauville-entrance",
+        "new-mauville-inside"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_new_mauville_emerald.png",
+      "encounter_species_count": 4,
+      "map_marker": {
+        "x": 30.357,
+        "y": 50
+      }
+    },
+    {
+      "route_id": "hoenn_route_115",
+      "route_name_fr": "Route 115 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-115",
+      "source_location_areas": [
+        "route-115"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_115_emerald.png",
+      "encounter_species_count": 9,
+      "map_marker": {
+        "x": 1.786,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_105",
+      "route_name_fr": "Route 105 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-105",
+      "source_location_areas": [
+        "route-105"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_105_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 1.786,
+        "y": 76.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_abandoned_ship",
+      "route_name_fr": "Abandoned Ship (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "abandoned-ship",
+      "source_location_areas": [
+        "abandoned-ship-deck",
+        "abandoned-ship-corridors-1-f",
+        "abandoned-ship-rooms-1-f",
+        "abandoned-ship-corridors-b-1-f",
+        "abandoned-ship-rooms-b-1-f",
+        "abandoned-ship-rooms-2-b-1-f",
+        "abandoned-ship-underwater-1",
+        "abandoned-ship-room-b-1-f",
+        "abandoned-ship-rooms-2-1-f",
+        "abandoned-ship-captains-office",
+        "abandoned-ship-underwater-2",
+        "abandoned-ship-hidden-floor-corridors",
+        "abandoned-ship-hidden-floor-rooms"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_abandoned_ship_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 23.214,
+        "y": 96.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_118",
+      "route_name_fr": "Route 118 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-118",
+      "source_location_areas": [
+        "route-118"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_118_emerald.png",
+      "encounter_species_count": 11,
+      "map_marker": {
+        "x": 39.286,
+        "y": 43.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_119",
+      "route_name_fr": "Route 119 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-119",
+      "source_location_areas": [
+        "route-119"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_119_emerald.png",
+      "encounter_species_count": 10,
+      "map_marker": {
+        "x": 41.071,
+        "y": 20
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_weather_institute",
+      "route_name_fr": "Weather Institute (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "weather-institute",
+      "source_location_areas": [
+        "route-119-weather-institute-1-f",
+        "route-119-weather-institute-2-f"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_weather_institute_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 42.679,
+        "y": 17.667
+      }
+    },
+    {
+      "route_id": "hoenn_city_fortree_city",
+      "route_name_fr": "Fortree City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "fortree-city",
+      "source_location_areas": [
+        "fortree-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_fortree_city_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 44.643,
+        "y": 3.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_120",
+      "route_name_fr": "Route 120 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-120",
+      "source_location_areas": [
+        "route-120"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_120_emerald.png",
+      "encounter_species_count": 10,
+      "map_marker": {
+        "x": 48.214,
+        "y": 13.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_121",
+      "route_name_fr": "Route 121 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-121",
+      "source_location_areas": [
+        "route-121"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_121_emerald.png",
+      "encounter_species_count": 11,
+      "map_marker": {
+        "x": 57.143,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_safari_zone",
+      "route_name_fr": "Safari Zone (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "safari-zone",
+      "source_location_areas": [
+        "route-121-safari-zone-entrance",
+        "safari-zone-south",
+        "safari-zone-southwest",
+        "safari-zone-north",
+        "safari-zone-northwest",
+        "safari-zone-southeast",
+        "safari-zone-northeast",
+        "safari-zone-rest-house"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_safari_zone_emerald.png",
+      "encounter_species_count": 38,
+      "map_marker": {
+        "x": 58.929,
+        "y": 16.667
+      }
+    },
+    {
+      "route_id": "hoenn_city_lilycove_city",
+      "route_name_fr": "Lilycove City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "lilycove-city",
+      "source_location_areas": [
+        "lilycove-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_lilycove_city_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 67.857,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_122",
+      "route_name_fr": "Route 122 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-122",
+      "source_location_areas": [
+        "route-122"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_122_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 58.929,
+        "y": 33.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_mt_pyre",
+      "route_name_fr": "Mt. Pyre (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "mt-pyre",
+      "source_location_areas": [
+        "mt-pyre-1-f",
+        "mt-pyre-2-f",
+        "mt-pyre-3-f",
+        "mt-pyre-4-f",
+        "mt-pyre-5-f",
+        "mt-pyre-6-f",
+        "mt-pyre-exterior",
+        "mt-pyre-summit"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_mt_pyre_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 58.929,
+        "y": 30
+      }
+    },
+    {
+      "route_id": "hoenn_route_123",
+      "route_name_fr": "Route 123 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-123",
+      "source_location_areas": [
+        "route-123"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_123_emerald.png",
+      "encounter_species_count": 11,
+      "map_marker": {
+        "x": 51.786,
+        "y": 43.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_magma_hideout",
+      "route_name_fr": "Magma Hideout (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "magma-hideout",
+      "source_location_areas": [
+        "magma-hideout-1-f",
+        "magma-hideout-2-f-1-r",
+        "magma-hideout-2-f-2-r",
+        "magma-hideout-3-f-1-r",
+        "magma-hideout-3-f-2-r",
+        "magma-hideout-4-f",
+        "magma-hideout-3-f-3-r",
+        "magma-hideout-2-f-3-r"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_magma_hideout_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 23.214,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_aqua_hideout",
+      "route_name_fr": "Aqua Hideout (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "aqua-hideout",
+      "source_location_areas": [
+        "aqua-hideout-1-f",
+        "aqua-hideout-b-1-f",
+        "aqua-hideout-b-2-f"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_aqua_hideout_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 69.643,
+        "y": 23.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_124",
+      "route_name_fr": "Route 124 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-124",
+      "source_location_areas": [
+        "route-124"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_124_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 78.571,
+        "y": 30
+      }
+    },
+    {
+      "route_id": "hoenn_city_mossdeep_city",
+      "route_name_fr": "Mossdeep City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "mossdeep-city",
+      "source_location_areas": [
+        "mossdeep-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_mossdeep_city_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 89.286,
+        "y": 36.667
+      }
+    },
+    {
+      "route_id": "hoenn_route_125",
+      "route_name_fr": "Route 125 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-125",
+      "source_location_areas": [
+        "route-125"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_125_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 89.286,
+        "y": 26.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_shoal_cave",
+      "route_name_fr": "Shoal Cave (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "shoal-cave",
+      "source_location_areas": [
+        "shoal-cave-low-tide-entrance-room",
+        "shoal-cave-low-tide-inner-room",
+        "shoal-cave-low-tide-stairs-room",
+        "shoal-cave-low-tide-lower-room",
+        "shoal-cave-high-tide-entrance-room",
+        "shoal-cave-high-tide-inner-room",
+        "shoal-cave-low-tide-ice-room"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_shoal_cave_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 87.5,
+        "y": 30
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_124",
+      "route_name_fr": "Underwater Route 124 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "underwater-route-124",
+      "source_location_areas": [
+        "underwater-route-124"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_124_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 79.821,
+        "y": 32.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_125",
+      "route_name_fr": "Underwater Route 125 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "underwater-route-125",
+      "source_location_areas": [
+        "underwater-route-125"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_125_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 90.536,
+        "y": 29
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_105",
+      "route_name_fr": "Underwater Route 105 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "underwater-route-105",
+      "source_location_areas": [
+        "underwater-route-105"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_105_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 3.036,
+        "y": 79
+      }
+    },
+    {
+      "route_id": "hoenn_route_127",
+      "route_name_fr": "Route 127 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-127",
+      "source_location_areas": [
+        "route-127"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_127_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 87.5,
+        "y": 50
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_127",
+      "route_name_fr": "Underwater Route 127 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "underwater-route-127",
+      "source_location_areas": [
+        "underwater-route-127"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_127_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 88.75,
+        "y": 52.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_126",
+      "route_name_fr": "Route 126 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-126",
+      "source_location_areas": [
+        "route-126"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_126_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 76.786,
+        "y": 50
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_126",
+      "route_name_fr": "Underwater Route 126 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "underwater-route-126",
+      "source_location_areas": [
+        "underwater-route-126"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_126_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 78.036,
+        "y": 52.333
+      }
+    },
+    {
+      "route_id": "hoenn_city_sootopolis_city",
+      "route_name_fr": "Sootopolis City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "sootopolis-city",
+      "source_location_areas": [
+        "sootopolis-city",
+        "underwater-sootopolis-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_sootopolis_city_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 76.786,
+        "y": 50
+      }
+    },
+    {
+      "route_id": "hoenn_route_128",
+      "route_name_fr": "Route 128 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-128",
+      "source_location_areas": [
+        "route-128"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_128_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 89.286,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_128",
+      "route_name_fr": "Underwater Route 128 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "underwater-route-128",
+      "source_location_areas": [
+        "underwater-route-128"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_128_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 90.536,
+        "y": 65.667
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_seafloor_cavern",
+      "route_name_fr": "Seafloor Cavern (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "seafloor-cavern",
+      "source_location_areas": [
+        "underwater-seafloor-cavern",
+        "seafloor-cavern-entrance",
+        "seafloor-cavern-room-1",
+        "seafloor-cavern-room-2",
+        "seafloor-cavern-room-3",
+        "seafloor-cavern-room-4",
+        "seafloor-cavern-room-5",
+        "seafloor-cavern-room-6",
+        "seafloor-cavern-room-7",
+        "seafloor-cavern-room-8",
+        "seafloor-cavern-room-9"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_seafloor_cavern_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 87.5,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_129",
+      "route_name_fr": "Route 129 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-129",
+      "source_location_areas": [
+        "route-129"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_129_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 89.286,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_underwater_route_129",
+      "route_name_fr": "Underwater Route 129 (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "underwater-route-129",
+      "source_location_areas": [
+        "underwater-route-129"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_underwater_route_129_emerald.png",
+      "encounter_species_count": 0,
+      "map_marker": {
+        "x": 90.536,
+        "y": 72.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_130",
+      "route_name_fr": "Route 130 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-130",
+      "source_location_areas": [
+        "route-130"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_130_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 80.357,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_city_pacifidlog_town",
+      "route_name_fr": "Pacifidlog Town (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "pacifidlog-town",
+      "source_location_areas": [
+        "pacifidlog-town"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_pacifidlog_town_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 62.5,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_route_131",
+      "route_name_fr": "Route 131 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-131",
+      "source_location_areas": [
+        "route-131"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_131_emerald.png",
+      "encounter_species_count": 6,
+      "map_marker": {
+        "x": 69.643,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_sky_pillar",
+      "route_name_fr": "Sky Pillar (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "sky-pillar",
+      "source_location_areas": [
+        "sky-pillar-entrance",
+        "sky-pillar-outside",
+        "sky-pillar-1-f",
+        "sky-pillar-2-f",
+        "sky-pillar-3-f",
+        "sky-pillar-4-f",
+        "sky-pillar-5-f",
+        "sky-pillar-top"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_sky_pillar_emerald.png",
+      "encounter_species_count": 5,
+      "map_marker": {
+        "x": 69.643,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_cave_of_origin",
+      "route_name_fr": "Cave of Origin (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "cave-of-origin",
+      "source_location_areas": [
+        "cave-of-origin-entrance",
+        "cave-of-origin-1-f",
+        "cave-of-origin-b-1-f"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_cave_of_origin_emerald.png",
+      "encounter_species_count": 3,
+      "map_marker": {
+        "x": 78.036,
+        "y": 48
+      }
+    },
+    {
+      "route_id": "hoenn_city_ever_grande_city",
+      "route_name_fr": "Ever Grande City (Hoenn)",
+      "zone_type": "town",
+      "combat_enabled": false,
+      "unlock_mode": "visit",
+      "unlock_defeats_required": 0,
+      "source_location": "ever-grande-city",
+      "source_location_areas": [
+        "ever-grande-city"
+      ],
+      "background_image": "assets/backgrounds/hoenn_city_ever_grande_city_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 98.214,
+        "y": 60
+      }
+    },
+    {
+      "route_id": "hoenn_dungeon_victory_road",
+      "route_name_fr": "Victory Road (Hoenn)",
+      "zone_type": "dungeon",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "victory-road",
+      "source_location_areas": [
+        "victory-road-1-f",
+        "victory-road-b-1-f",
+        "victory-road-b-2-f"
+      ],
+      "background_image": "assets/backgrounds/hoenn_dungeon_victory_road_emerald.png",
+      "encounter_species_count": 16,
+      "map_marker": {
+        "x": 98.214,
+        "y": 63.333
+      }
+    },
+    {
+      "route_id": "hoenn_route_132",
+      "route_name_fr": "Route 132 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-132",
+      "source_location_areas": [
+        "route-132"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_132_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 57.143,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_route_133",
+      "route_name_fr": "Route 133 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-133",
+      "source_location_areas": [
+        "route-133"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_133_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 48.214,
+        "y": 70
+      }
+    },
+    {
+      "route_id": "hoenn_route_134",
+      "route_name_fr": "Route 134 (Hoenn)",
+      "zone_type": "route",
+      "combat_enabled": true,
+      "unlock_mode": "defeats",
+      "unlock_defeats_required": 20,
+      "source_location": "route-134",
+      "source_location_areas": [
+        "route-134"
+      ],
+      "background_image": "assets/backgrounds/hoenn_route_134_emerald.png",
+      "encounter_species_count": 7,
+      "map_marker": {
+        "x": 37.5,
+        "y": 70
+      }
+    }
+  ]
+}

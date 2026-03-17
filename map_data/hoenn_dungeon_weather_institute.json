@@ -1,0 +1,31 @@
+{
+  "route_id": "hoenn_dungeon_weather_institute",
+  "route_name_fr": "Weather Institute (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": false,
+  "unlock_mode": "visit",
+  "unlock_defeats_required": 0,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "weather-institute",
+  "source_location_areas": [
+    "route-119-weather-institute-1-f",
+    "route-119-weather-institute-2-f"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_weather_institute_emerald.png",
+  "map_marker": {
+    "x": 42.679,
+    "y": 17.667
+  },
+  "encounters": [],
+  "encounter_species_count_source": 0,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route119_WeatherInstitute_1F/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route119_WeatherInstitute_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route119_WeatherInstitute_2F/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

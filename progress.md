@@ -6397,3 +6397,61 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - Dungeon proof: `output/johto-zone-bg-proof/dungeon/shot-0.png`
 - Remaining temporary visual debt:
   - `assets/maps/johto_map_placeholder.png` is still the provisional Johto region map image used by the map screen.
+
+## Additional progress (Hoenn full Emerald integration + production backgrounds - 2026-03-17)
+- Added a full Hoenn integration pipeline sourced from `pret/pokeemerald`:
+  - `scripts/map/hoenn-emerald-zone-definitions.mjs`
+  - `scripts/map/generate-hoenn-emerald-source-of-truth.mjs`
+  - `scripts/map/generate-hoenn-emerald-zones.mjs`
+  - `scripts/refresh_hoenn_emerald_backgrounds_with_blur.py`
+- Integrated Hoenn after the final Johto zone in `lib/game-world-config.js`.
+  - First Hoenn unlock is now `hoenn_route_101`.
+  - Added Hoenn map copy/config and region map asset support.
+  - `game-runtime.js` now recognizes `hoenn_` ids as region `hoenn`.
+- Generated the full Hoenn Emerald runtime slice:
+  - `77` runtime zones total
+  - all routes `101-134`
+  - all Hoenn towns/cities in the planned progression
+  - `7` underwater zone nodes
+  - major dungeons including `Granite Cave`, `Meteor Falls`, `Mt. Pyre`, `Seafloor Cavern`, `Sky Pillar`, `Victory Road`, etc.
+- Corrected the Emerald encounter pipeline:
+  - normalized map ids against `wild_encounters.json` so route and dungeon encounter lookups no longer miss due to `MAP_*` naming differences
+  - split `Route 111` surface vs `Route 111 Desert` correctly (`walk` stays in the desert node, surf/fishing/rock smash stay on the route node)
+  - absorbed `Underwater_SootopolisCity` into `hoenn_city_sootopolis_city` instead of creating a fake standalone runtime zone
+  - expanded `hoenn_dungeon_cave_of_origin` to include `CaveOfOrigin_B1F`
+  - summed Emerald slot weights per species when building the runtime encounter pool so spawn weights stay faithful to the decomp tables
+- Added final non-placeholder Hoenn support files:
+  - `assets/maps/hoenn_map_emerald.png`
+  - `assets/maps/hoenn_map_markers_emerald.json`
+  - `assets/backgrounds/hoenn_background_bindings_emerald.csv`
+- Refreshed all Hoenn zone backgrounds from Bulbagarden Archives with the same subtle blur baked into Kanto/Johto assets.
+  - Routes, towns, underwater nodes, and dungeons now point to `assets/backgrounds/hoenn_*_emerald.png`
+  - removed the old Hoenn `placeholder`-named marker/binding artifacts
+- Added regression coverage in `tests/hoenn-integration.test.mjs` to lock:
+  - Hoenn immediately after the Johto slice in `ROUTE_ID_ORDER`
+  - Hoenn catalog/order sync
+  - Hoenn map region config/runtime recognition
+  - valid Hoenn JSON payloads and Emerald-only backgrounds
+  - Emerald sentinel encounter sets for `Route 101`, `Route 111`, `Route 119`, `New Mauville`, `Underwater Route 126`, `Victory Road`, and `Magma Hideout`
+  - no fake standalone `Underwater_SootopolisCity` runtime zone
+- Important Emerald source-of-truth note:
+  - all `7` underwater Hoenn nodes are present in runtime order
+  - only `Underwater Route 124` and `Underwater Route 126` have real wild encounter tables in `pret/pokeemerald`
+  - the other underwater nodes remain visit-only/non-combat instead of inventing fake encounters
+- Validation:
+  - `npm run zone:hoenn:generate`: PASS
+  - `node --check game-runtime.js`: PASS
+  - `node --test tests/hoenn-integration.test.mjs`: PASS
+  - `npm run test:node`: PASS
+  - `npm test`: PASS
+  - Seeded Playwright Hoenn smoke captures: PASS
+    - `output/playwright/hoenn-smoke/hoenn_route_101/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_city_littleroot_town/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_route_119/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_route_124/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_dungeon_underwater_route_126/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_dungeon_victory_road-long/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_city_mossdeep_city/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_city_sootopolis_city/stage.png`
+    - `output/playwright/hoenn-smoke/hoenn_dungeon_sky_pillar/stage.png`
+  - All Hoenn smoke `errors.json` files were empty.

@@ -1,0 +1,100 @@
+{
+  "route_id": "hoenn_route_126",
+  "route_name_fr": "Route 126 (Hoenn)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "route-126",
+  "source_location_areas": [
+    "route-126"
+  ],
+  "background_image": "assets/backgrounds/hoenn_route_126_emerald.png",
+  "map_marker": {
+    "x": 76.786,
+    "y": 50
+  },
+  "encounters": [
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "spawn_weight": 130,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "surf"
+      ],
+      "spawn_weight": 110,
+      "min_level": 5,
+      "max_level": 35
+    },
+    {
+      "id": 320,
+      "name_en": "wailmer",
+      "name_fr": "Wailmer",
+      "methods": [
+        "good-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 80,
+      "min_level": 10,
+      "max_level": 45
+    },
+    {
+      "id": 319,
+      "name_en": "sharpedo",
+      "name_fr": "Sharpedo",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 30,
+      "max_level": 35
+    },
+    {
+      "id": 278,
+      "name_en": "wingull",
+      "name_fr": "Goélise",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 35,
+      "min_level": 10,
+      "max_level": 30
+    },
+    {
+      "id": 279,
+      "name_en": "pelipper",
+      "name_fr": "Bekipan",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 5,
+      "min_level": 25,
+      "max_level": 30
+    }
+  ],
+  "encounter_species_count_source": 6,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route126/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route126/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

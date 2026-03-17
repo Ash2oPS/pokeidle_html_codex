@@ -5051,6 +5051,9 @@ function getTeamBoxesLockedMessage(routeId = null) {
 
 function getRouteRegionId(routeId) {
   const id = String(routeId || "").toLowerCase().trim();
+  if (id.startsWith("hoenn_")) {
+    return "hoenn";
+  }
   if (id.startsWith("johto_")) {
     return "johto";
   }

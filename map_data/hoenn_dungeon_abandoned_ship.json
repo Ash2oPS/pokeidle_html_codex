@@ -1,0 +1,92 @@
+{
+  "route_id": "hoenn_dungeon_abandoned_ship",
+  "route_name_fr": "Abandoned Ship (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "abandoned-ship",
+  "source_location_areas": [
+    "abandoned-ship-deck",
+    "abandoned-ship-corridors-1-f",
+    "abandoned-ship-rooms-1-f",
+    "abandoned-ship-corridors-b-1-f",
+    "abandoned-ship-rooms-b-1-f",
+    "abandoned-ship-rooms-2-b-1-f",
+    "abandoned-ship-underwater-1",
+    "abandoned-ship-room-b-1-f",
+    "abandoned-ship-rooms-2-1-f",
+    "abandoned-ship-captains-office",
+    "abandoned-ship-underwater-2",
+    "abandoned-ship-hidden-floor-corridors",
+    "abandoned-ship-hidden-floor-rooms"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_abandoned_ship_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 96.667
+  },
+  "encounters": [
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 498,
+      "min_level": 5,
+      "max_level": 35
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "spawn_weight": 260,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 73,
+      "name_en": "tentacruel",
+      "name_fr": "Tentacruel",
+      "methods": [
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 42,
+      "min_level": 20,
+      "max_level": 35
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Deck/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Deck/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Corridors_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Rooms_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Corridors_B1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Rooms_B1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Rooms2_B1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Underwater1/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Room_B1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Rooms2_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_CaptainsOffice/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_Underwater2/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_HiddenFloorCorridors/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/AbandonedShip_HiddenFloorRooms/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

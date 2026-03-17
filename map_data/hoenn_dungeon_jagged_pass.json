@@ -1,0 +1,63 @@
+{
+  "route_id": "hoenn_dungeon_jagged_pass",
+  "route_name_fr": "Jagged Pass (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "jagged-pass",
+  "source_location_areas": [
+    "jagged-pass"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_jagged_pass_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 23.333
+  },
+  "encounters": [
+    {
+      "id": 322,
+      "name_en": "numel",
+      "name_fr": "Chamallot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 55,
+      "min_level": 20,
+      "max_level": 22
+    },
+    {
+      "id": 66,
+      "name_en": "machop",
+      "name_fr": "Machoc",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 25,
+      "min_level": 20,
+      "max_level": 22
+    },
+    {
+      "id": 325,
+      "name_en": "spoink",
+      "name_fr": "Spoink",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 20,
+      "max_level": 22
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/JaggedPass/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/JaggedPass/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

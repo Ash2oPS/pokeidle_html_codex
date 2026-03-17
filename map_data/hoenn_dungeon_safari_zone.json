@@ -1,0 +1,466 @@
+{
+  "route_id": "hoenn_dungeon_safari_zone",
+  "route_name_fr": "Safari Zone (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "safari-zone",
+  "source_location_areas": [
+    "route-121-safari-zone-entrance",
+    "safari-zone-south",
+    "safari-zone-southwest",
+    "safari-zone-north",
+    "safari-zone-northwest",
+    "safari-zone-southeast",
+    "safari-zone-northeast",
+    "safari-zone-rest-house"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_safari_zone_emerald.png",
+  "map_marker": {
+    "x": 58.929,
+    "y": 16.667
+  },
+  "encounters": [
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 390,
+      "min_level": 5,
+      "max_level": 35
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "spawn_weight": 390,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 54,
+      "name_en": "psyduck",
+      "name_fr": "Psykokwak",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 195,
+      "min_level": 20,
+      "max_level": 35
+    },
+    {
+      "id": 43,
+      "name_en": "oddish",
+      "name_fr": "Mystherbe",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 140,
+      "min_level": 25,
+      "max_level": 29
+    },
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "rock-smash"
+      ],
+      "spawn_weight": 100,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 213,
+      "name_en": "shuckle",
+      "name_fr": "Caratroc",
+      "methods": [
+        "rock-smash"
+      ],
+      "spawn_weight": 100,
+      "min_level": 20,
+      "max_level": 40
+    },
+    {
+      "id": 223,
+      "name_en": "remoraid",
+      "name_fr": "Rémoraid",
+      "methods": [
+        "good-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 79,
+      "min_level": 25,
+      "max_level": 35
+    },
+    {
+      "id": 194,
+      "name_en": "wooper",
+      "name_fr": "Axoloto",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 25,
+      "max_level": 30
+    },
+    {
+      "id": 44,
+      "name_en": "gloom",
+      "name_fr": "Ortide",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 25,
+      "max_level": 31
+    },
+    {
+      "id": 119,
+      "name_en": "seaking",
+      "name_fr": "Poissoroy",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 25,
+      "max_level": 40
+    },
+    {
+      "id": 190,
+      "name_en": "aipom",
+      "name_fr": "Capumain",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 33,
+      "max_level": 35
+    },
+    {
+      "id": 191,
+      "name_en": "sunkern",
+      "name_fr": "Tournegrin",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 33,
+      "max_level": 35
+    },
+    {
+      "id": 203,
+      "name_en": "girafarig",
+      "name_fr": "Girafarig",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 25,
+      "max_level": 27
+    },
+    {
+      "id": 183,
+      "name_en": "marill",
+      "name_fr": "Marill",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 39,
+      "min_level": 25,
+      "max_level": 35
+    },
+    {
+      "id": 84,
+      "name_en": "doduo",
+      "name_fr": "Doduo",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 35,
+      "min_level": 25,
+      "max_level": 29
+    },
+    {
+      "id": 177,
+      "name_en": "natu",
+      "name_fr": "Natu",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 35,
+      "min_level": 25,
+      "max_level": 29
+    },
+    {
+      "id": 111,
+      "name_en": "rhyhorn",
+      "name_fr": "Rhinocorne",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 27,
+      "max_level": 29
+    },
+    {
+      "id": 179,
+      "name_en": "mareep",
+      "name_fr": "Wattouat",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 34,
+      "max_level": 36
+    },
+    {
+      "id": 216,
+      "name_en": "teddiursa",
+      "name_fr": "Teddiursa",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 34,
+      "max_level": 36
+    },
+    {
+      "id": 231,
+      "name_en": "phanpy",
+      "name_fr": "Phanpy",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 27,
+      "max_level": 29
+    },
+    {
+      "id": 202,
+      "name_en": "wobbuffet",
+      "name_fr": "Qulbutoké",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 27,
+      "max_level": 29
+    },
+    {
+      "id": 25,
+      "name_en": "pikachu",
+      "name_fr": "Pikachu",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 25,
+      "max_level": 27
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 35,
+      "max_level": 35
+    },
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 33,
+      "max_level": 33
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 33,
+      "max_level": 33
+    },
+    {
+      "id": 55,
+      "name_en": "golduck",
+      "name_fr": "Akwakwak",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 5,
+      "min_level": 25,
+      "max_level": 40
+    },
+    {
+      "id": 85,
+      "name_en": "dodrio",
+      "name_fr": "Dodrio",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 29,
+      "max_level": 31
+    },
+    {
+      "id": 127,
+      "name_en": "pinsir",
+      "name_fr": "Scarabrute",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 27,
+      "max_level": 29
+    },
+    {
+      "id": 178,
+      "name_en": "xatu",
+      "name_fr": "Xatu",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 29,
+      "max_level": 31
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 34,
+      "max_level": 34
+    },
+    {
+      "id": 207,
+      "name_en": "gligar",
+      "name_fr": "Scorplane",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 37,
+      "max_level": 40
+    },
+    {
+      "id": 209,
+      "name_en": "snubbull",
+      "name_fr": "Snubbull",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 34,
+      "max_level": 34
+    },
+    {
+      "id": 214,
+      "name_en": "heracross",
+      "name_fr": "Scarhino",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 27,
+      "max_level": 29
+    },
+    {
+      "id": 228,
+      "name_en": "houndour",
+      "name_fr": "Malosse",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 36,
+      "max_level": 39
+    },
+    {
+      "id": 234,
+      "name_en": "stantler",
+      "name_fr": "Cerfrousse",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 36,
+      "max_level": 39
+    },
+    {
+      "id": 241,
+      "name_en": "miltank",
+      "name_fr": "Écrémeuh",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 37,
+      "max_level": 40
+    },
+    {
+      "id": 195,
+      "name_en": "quagsire",
+      "name_fr": "Maraiste",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 1,
+      "min_level": 35,
+      "max_level": 40
+    },
+    {
+      "id": 224,
+      "name_en": "octillery",
+      "name_fr": "Octillery",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 1,
+      "min_level": 35,
+      "max_level": 40
+    }
+  ],
+  "encounter_species_count_source": 38,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route121_SafariZoneEntrance/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route121_SafariZoneEntrance/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_South/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_Southwest/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_North/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_Northwest/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_Southeast/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_Northeast/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/SafariZone_RestHouse/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

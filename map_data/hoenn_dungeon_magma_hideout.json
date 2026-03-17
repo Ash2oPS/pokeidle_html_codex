@@ -1,0 +1,77 @@
+{
+  "route_id": "hoenn_dungeon_magma_hideout",
+  "route_name_fr": "Magma Hideout (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "magma-hideout",
+  "source_location_areas": [
+    "magma-hideout-1-f",
+    "magma-hideout-2-f-1-r",
+    "magma-hideout-2-f-2-r",
+    "magma-hideout-3-f-1-r",
+    "magma-hideout-3-f-2-r",
+    "magma-hideout-4-f",
+    "magma-hideout-3-f-3-r",
+    "magma-hideout-2-f-3-r"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_magma_hideout_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 23.333
+  },
+  "encounters": [
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 440,
+      "min_level": 27,
+      "max_level": 30
+    },
+    {
+      "id": 324,
+      "name_en": "torkoal",
+      "name_fr": "Chartor",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 240,
+      "min_level": 28,
+      "max_level": 30
+    },
+    {
+      "id": 75,
+      "name_en": "graveler",
+      "name_fr": "Gravalanch",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 120,
+      "min_level": 30,
+      "max_level": 33
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_1F/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_1F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_2F_1R/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_2F_2R/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_3F_1R/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_3F_2R/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_4F/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_3F_3R/map.json",
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MagmaHideout_2F_3R/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

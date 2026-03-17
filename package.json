@@ -34,6 +34,8 @@
     "test:perf:baseline:web-game": "node scripts/testing/perf/validate-runtime-performance.mjs --state-dir output/web-game-poke --max-mean-cpu-frame-ms 12 --max-mean-frame-ms 40 --write-baseline tests/perf-baselines/web-game-poke.json",
     "test:desktop:background": "node scripts/testing/electron/verify-desktop-background-runtime.mjs",
     "zone:csv:export": "node scripts/map/export-zone-encounters-csv.mjs",
+    "zone:hoenn:generate:source": "node scripts/map/generate-hoenn-emerald-source-of-truth.mjs",
+    "zone:hoenn:generate": "npm run zone:hoenn:generate:source && node scripts/map/generate-hoenn-emerald-zones.mjs && python scripts/refresh_hoenn_emerald_backgrounds_with_blur.py && node scripts/map/generate-hoenn-emerald-zones.mjs",
     "zone:johto:generate:source": "node scripts/map/generate-johto-hgss-source-of-truth.mjs",
     "zone:johto:generate": "npm run zone:johto:generate:source && node scripts/map/generate-johto-hgss-zones.mjs",
     "zone:routes:generate": "node scripts/map/generate-kanto-routes-frlg.mjs",

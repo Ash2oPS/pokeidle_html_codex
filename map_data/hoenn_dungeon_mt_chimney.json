@@ -1,0 +1,29 @@
+{
+  "route_id": "hoenn_dungeon_mt_chimney",
+  "route_name_fr": "Mt. Chimney (Hoenn)",
+  "zone_type": "dungeon",
+  "combat_enabled": false,
+  "unlock_mode": "visit",
+  "unlock_defeats_required": 0,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "mt-chimney",
+  "source_location_areas": [
+    "mt-chimney"
+  ],
+  "background_image": "assets/backgrounds/hoenn_dungeon_mt_chimney_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 16.667
+  },
+  "encounters": [],
+  "encounter_species_count_source": 0,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MtChimney/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/MtChimney/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

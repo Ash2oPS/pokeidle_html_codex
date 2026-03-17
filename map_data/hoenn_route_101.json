@@ -1,0 +1,63 @@
+{
+  "route_id": "hoenn_route_101",
+  "route_name_fr": "Route 101 (Hoenn)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "route-101",
+  "source_location_areas": [
+    "route-101"
+  ],
+  "background_image": "assets/backgrounds/hoenn_route_101_emerald.png",
+  "map_marker": {
+    "x": 16.071,
+    "y": 70
+  },
+  "encounters": [
+    {
+      "id": 261,
+      "name_en": "poochyena",
+      "name_fr": "Medhyèna",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 45,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 265,
+      "name_en": "wurmple",
+      "name_fr": "Chenipotte",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 45,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 263,
+      "name_en": "zigzagoon",
+      "name_fr": "Zigzaton",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 2,
+      "max_level": 3
+    }
+  ],
+  "encounter_species_count_source": 3,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route101/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route101/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}

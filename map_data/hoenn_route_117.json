@@ -1,0 +1,134 @@
+{
+  "route_id": "hoenn_route_117",
+  "route_name_fr": "Route 117 (Hoenn)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "unlock_timer_ms": 20000,
+  "source_games": [
+    "emerald"
+  ],
+  "source_location": "route-117",
+  "source_location_areas": [
+    "route-117"
+  ],
+  "background_image": "assets/backgrounds/hoenn_route_117_emerald.png",
+  "map_marker": {
+    "x": 23.214,
+    "y": 43.333
+  },
+  "encounters": [
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "spawn_weight": 130,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 341,
+      "name_en": "corphish",
+      "name_fr": "Écrapince",
+      "methods": [
+        "good-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 120,
+      "min_level": 10,
+      "max_level": 45
+    },
+    {
+      "id": 183,
+      "name_en": "marill",
+      "name_fr": "Marill",
+      "methods": [
+        "surf",
+        "walk"
+      ],
+      "spawn_weight": 109,
+      "min_level": 5,
+      "max_level": 35
+    },
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "surf"
+      ],
+      "spawn_weight": 51,
+      "min_level": 5,
+      "max_level": 30
+    },
+    {
+      "id": 43,
+      "name_en": "oddish",
+      "name_fr": "Mystherbe",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 13,
+      "max_level": 14
+    },
+    {
+      "id": 261,
+      "name_en": "poochyena",
+      "name_fr": "Medhyèna",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 13,
+      "max_level": 14
+    },
+    {
+      "id": 314,
+      "name_en": "illumise",
+      "name_fr": "Lumivole",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 18,
+      "min_level": 13,
+      "max_level": 14
+    },
+    {
+      "id": 273,
+      "name_en": "seedot",
+      "name_fr": "Grainipiot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 1,
+      "min_level": 13,
+      "max_level": 13
+    },
+    {
+      "id": 313,
+      "name_en": "volbeat",
+      "name_fr": "Muciole",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 1,
+      "min_level": 13,
+      "max_level": 13
+    }
+  ],
+  "encounter_species_count_source": 9,
+  "source_url": "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route117/map.json",
+  "source_urls": [
+    "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route117/map.json"
+  ],
+  "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
+  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+}
