@@ -3,19 +3,20 @@
 ## Telechargement rapide (Windows)
 
 Installer Electron versionne directement dans le depot public:  
-**[Telecharger l'installer Windows (.exe)](./downloads/PokeIdle-Windows-Installer.exe?raw=1)**
+**[Telecharger l'installer Windows (.exe)](https://github.com/Ash2oPS/pokeidle_html_codex/raw/main/downloads/PokeIdle-Windows-Installer.exe)**
 
-Fichier source dans le repo: [`downloads/PokeIdle-Windows-Installer.exe`](./downloads/PokeIdle-Windows-Installer.exe)
+Fallback repo: **[ouvrir le dossier downloads](https://github.com/Ash2oPS/pokeidle_html_codex/tree/main/downloads)**
 
 ## Telechargement rapide (Android)
 
 APK Android versionne directement dans le depot public:  
-**[Telecharger l'APK Android (.apk)](./downloads/PokeIdle-Android.apk?raw=1)**
+**[Telecharger l'APK Android (.apk)](https://github.com/Ash2oPS/pokeidle_html_codex/raw/main/downloads/PokeIdle-Android.apk)**
 
-Fichier source dans le repo: [`downloads/PokeIdle-Android.apk`](./downloads/PokeIdle-Android.apk)
+Fallback repo: **[ouvrir le dossier downloads](https://github.com/Ash2oPS/pokeidle_html_codex/tree/main/downloads)**
 
 Les deux binaires ci-dessus sont pousses comme fichiers normaux du depot public, sans passer par
-GitHub Releases. Le manifeste courant est disponible dans [`downloads/manifest.json`](./downloads/manifest.json).
+GitHub Releases. Le manifeste courant est disponible dans
+[`downloads/manifest.json`](https://github.com/Ash2oPS/pokeidle_html_codex/blob/main/downloads/manifest.json).
 
 ## Desktop (Electron)
 
