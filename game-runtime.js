@@ -6689,6 +6689,222 @@ function queueEvolutionAnimationForResult(evolutionResult) {
     totalMs: EVOLUTION_ANIM_TOTAL_MS,
     particles,
   });
+  activateNextEvolutionAnimationIfNeeded();
+}
+
+function activateNextEvolutionAnimationIfNeeded() {
+  if (state.evolutionAnimation.current) {
+    return false;
+  }
+  const queue = Array.isArray(state.evolutionAnimation.queue) ? state.evolutionAnimation.queue : [];
+  while (queue.length > 0) {
+    const candidate = queue.shift();
+    if (!candidate || !candidate.fromDef || !candidate.toDef) {
+      continue;
+    }
+    state.evolutionAnimation.current = {
+      ...candidate,
+      elapsedMs: 0,
+      totalMs: Math.max(
+        EVOLUTION_ANIM_TOTAL_MS,
+        EVOLUTION_ANIM_WHITE_MS + EVOLUTION_ANIM_FLASH_MS + EVOLUTION_ANIM_REVEAL_MS,
+      ),
+    };
+    if (typeof syncCanvasInteractionCursor === "function") {
+      syncCanvasInteractionCursor();
+    }
+    return true;
+  }
+  return false;
+}
+
+function updateEvolutionAnimation(deltaMs) {
+  activateNextEvolutionAnimationIfNeeded();
+  const current = state.evolutionAnimation.current;
+  if (!current) {
+    return false;
+  }
+  current.elapsedMs = Math.max(0, Number(current.elapsedMs || 0) + Math.max(0, Number(deltaMs) || 0));
+  const totalMs = Math.max(1, Number(current.totalMs || EVOLUTION_ANIM_TOTAL_MS));
+  if (current.elapsedMs < totalMs) {
+    return true;
+  }
+  state.evolutionAnimation.current = null;
+  activateNextEvolutionAnimationIfNeeded();
+  if (typeof syncCanvasInteractionCursor === "function") {
+    syncCanvasInteractionCursor();
+  }
+  return true;
+}
+
+function drawEvolutionSpriteFrame(definition, centerX, centerY, size, options = {}) {
+  if (!definition || size <= 0) {
+    return;
+  }
+  const alpha = clamp(Number(options.alpha ?? 1), 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+  const scale = Math.max(0.08, Number(options.scale ?? 1));
+  const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);
+  const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
+  drawPokemonSprite(
+    {
+      ...definition,
+      spriteVariantId: getDefaultSpriteVariantId(definition),
+    },
+    centerX,
+    centerY,
+    size,
+    {
+      alpha,
+      scaleX: scale,
+      scaleY: scale,
+      shadowProfile: "enemy",
+      shadowAlpha: 0.56,
+      tintBlend,
+      tintColor,
+      shinyVisual: false,
+      ultraShinyVisual: false,
+    },
+  );
+}
+
+function drawEvolutionAnimationParticles(layout, animation, options = {}) {
+  const particles = Array.isArray(animation?.particles) ? animation.particles : [];
+  const progressAlpha = clamp(Number(options.alpha ?? 1), 0, 1);
+  if (particles.length <= 0 || progressAlpha <= 0.001) {
+    return;
+  }
+  const spriteSize = Math.max(
+    48,
+    getEnemySpriteRenderSize(layout, Number(layout?.enemySize || 0) || 160) * 0.92,
+  );
+  const centerX = Number(options.centerX ?? layout?.centerX ?? state.viewport.width * 0.5);
+  const centerY = Number(options.centerY ?? layout?.centerY ?? state.viewport.height * 0.5);
+  const elapsedMs = Math.max(0, Number(animation?.elapsedMs || 0));
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const particle of particles) {
+    const startMs = Math.max(0, Number(particle?.startMs || 0));
+    const durationMs = Math.max(1, Number(particle?.durationMs || 0));
+    const ageMs = elapsedMs - startMs;
+    if (ageMs < 0 || ageMs > durationMs) {
+      continue;
+    }
+    const ratio = clamp(ageMs / durationMs, 0, 1);
+    const angle = Number(particle?.baseAngle || 0) + ratio * Math.PI * 2 * Number(particle?.spinTurns || 0);
+    const radius = spriteSize * (Number(particle?.radiusStart || 0.2) + Number(particle?.radiusGrow || 0.18) * ratio);
+    const lift = spriteSize * Number(particle?.lift || 0.14) * ratio;
+    const heightOffset = spriteSize * Number(particle?.heightOffset || 0);
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius * 0.54 - lift - heightOffset;
+    const size = Math.max(1.4, Number(particle?.size || 2));
+    const color = Array.isArray(particle?.color) ? particle.color : [255, 255, 255];
+    const alpha = Math.sin(ratio * Math.PI) * progressAlpha * 0.9;
+    ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha.toFixed(3)})`;
+    ctx.shadowColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(alpha * 0.85).toFixed(3)})`;
+    ctx.shadowBlur = 10 + size * 3;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawEvolutionAnimationOverlay(layout = state.layout) {
+  const animation = state.evolutionAnimation.current;
+  if (!animation || !layout) {
+    return;
+  }
+
+  const elapsedMs = Math.max(0, Number(animation.elapsedMs || 0));
+  const totalMs = Math.max(1, Number(animation.totalMs || EVOLUTION_ANIM_TOTAL_MS));
+  const whiteEnd = Math.min(totalMs, Math.max(1, EVOLUTION_ANIM_WHITE_MS));
+  const flashEnd = Math.min(totalMs, whiteEnd + Math.max(1, EVOLUTION_ANIM_FLASH_MS));
+  const revealEnd = Math.min(totalMs, flashEnd + Math.max(1, EVOLUTION_ANIM_REVEAL_MS));
+  const revealRatio = clamp((elapsedMs - whiteEnd) / Math.max(1, revealEnd - whiteEnd), 0, 1);
+  const flashRatio = clamp((elapsedMs - whiteEnd) / Math.max(1, flashEnd - whiteEnd), 0, 1);
+  const flashPulse = flashRatio > 0 && flashRatio < 1 ? Math.sin(flashRatio * Math.PI) : 0;
+  const whiteRatio = elapsedMs < whiteEnd ? 1 - clamp(elapsedMs / whiteEnd, 0, 1) * 0.12 : 0;
+  const backdropFadeInRatio = clamp(
+    elapsedMs / Math.max(1, Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, totalMs * 0.28)),
+    0,
+    1,
+  );
+  const backdropFadeOutRatio = clamp(
+    (totalMs - elapsedMs) / Math.max(1, Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, totalMs * 0.32)),
+    0,
+    1,
+  );
+  const backdropPresence = Math.min(backdropFadeInRatio, backdropFadeOutRatio);
+  const overlayAlpha = clamp(0.82 * backdropPresence + flashPulse * 0.12, 0, 0.92);
+  const spriteSize = Math.max(
+    72,
+    getEnemySpriteRenderSize(layout, Number(layout?.enemySize || 0) || 180) * 1.06,
+  );
+  const centerX = Number(layout.centerX || state.viewport.width * 0.5);
+  const centerY = Number(layout.centerY || state.viewport.height * 0.5) - spriteSize * 0.04;
+  const fromAlpha = clamp((1 - revealRatio) * (1 - flashPulse * 0.45), 0, 1);
+  const toAlpha = clamp(revealRatio + flashPulse * 0.12, 0, 1);
+  const fromScale = 1 + flashPulse * 0.08 - revealRatio * 0.08;
+  const toScale = 0.88 + revealRatio * 0.18 + flashPulse * 0.06;
+
+  ctx.save();
+  ctx.fillStyle = `rgba(7, 14, 28, ${overlayAlpha.toFixed(3)})`;
+  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+
+  const haloGradient = ctx.createRadialGradient(centerX, centerY, spriteSize * 0.12, centerX, centerY, spriteSize * 1.36);
+  haloGradient.addColorStop(0, `rgba(255, 255, 255, ${(0.22 + flashPulse * 0.2).toFixed(3)})`);
+  haloGradient.addColorStop(0.32, `rgba(190, 224, 255, ${(0.18 + backdropPresence * 0.18).toFixed(3)})`);
+  haloGradient.addColorStop(0.7, `rgba(102, 152, 255, ${(0.09 + flashPulse * 0.12).toFixed(3)})`);
+  haloGradient.addColorStop(1, "rgba(12, 20, 34, 0)");
+  ctx.fillStyle = haloGradient;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, spriteSize * 1.36, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawEvolutionAnimationParticles(layout, animation, {
+    centerX,
+    centerY,
+    alpha: Math.max(backdropPresence, revealRatio),
+  });
+
+  drawEvolutionSpriteFrame(animation.fromDef, centerX, centerY, spriteSize, {
+    alpha: fromAlpha,
+    scale: fromScale,
+    tintBlend: flashPulse * 0.42 + whiteRatio * 0.2,
+    tintColor: [255, 255, 255],
+  });
+  drawEvolutionSpriteFrame(animation.toDef, centerX, centerY, spriteSize, {
+    alpha: toAlpha,
+    scale: toScale,
+    tintBlend: flashPulse * 0.4 + revealRatio * 0.12,
+    tintColor: [255, 255, 255],
+  });
+
+  const whiteOverlayAlpha = clamp(whiteRatio * 0.72 + flashPulse * 0.44, 0, 0.92);
+  if (whiteOverlayAlpha > 0.001) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${whiteOverlayAlpha.toFixed(3)})`;
+    ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+  }
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
+  ctx.lineWidth = 6;
+  ctx.fillStyle = "rgba(244, 250, 255, 0.98)";
+  ctx.font = `800 ${Math.max(18, Math.round(spriteSize * 0.14))}px Tahoma`;
+  const titleY = Math.max(48, centerY - spriteSize * 0.92);
+  ctx.strokeText("Evolution", centerX, titleY);
+  ctx.fillText("Evolution", centerX, titleY);
+  ctx.font = `700 ${Math.max(14, Math.round(spriteSize * 0.09))}px Tahoma`;
+  const subtitle = `${animation.fromNameFr || animation.fromDef?.nameFr || "Pokemon"} -> ${animation.toNameFr || animation.toDef?.nameFr || "Pokemon"}`;
+  ctx.strokeText(subtitle, centerX, titleY + Math.max(22, spriteSize * 0.18));
+  ctx.fillText(subtitle, centerX, titleY + Math.max(22, spriteSize * 0.18));
+  ctx.restore();
 }
 
 function getEvolutionRootSpeciesId(pokemonId) {

@@ -2,17 +2,20 @@
 
 ## Telechargement rapide (Windows)
 
-Installer Electron (dernier build publie):  
-**[Telecharger l'installer (.exe)](https://github.com/Ash2oPS/pokeidle_html_codex/releases/latest)**
+Installer Electron versionne directement dans le depot public:  
+**[Telecharger l'installer Windows (.exe)](./downloads/PokeIdle-Windows-Installer.exe?raw=1)**
 
-Dans la page de release, ouvre **Assets** puis telecharge le fichier `PokeIdle-Setup-<version>.exe`.
+Fichier source dans le repo: [`downloads/PokeIdle-Windows-Installer.exe`](./downloads/PokeIdle-Windows-Installer.exe)
 
 ## Telechargement rapide (Android)
 
-APK Android (dernier build publie):  
-**[Telecharger l'APK (.apk)](https://github.com/Ash2oPS/pokeidle_html_codex/releases/latest)**
+APK Android versionne directement dans le depot public:  
+**[Telecharger l'APK Android (.apk)](./downloads/PokeIdle-Android.apk?raw=1)**
 
-Dans la page de release, ouvre **Assets** puis telecharge le fichier `.apk` publie.
+Fichier source dans le repo: [`downloads/PokeIdle-Android.apk`](./downloads/PokeIdle-Android.apk)
+
+Les deux binaires ci-dessus sont pousses comme fichiers normaux du depot public, sans passer par
+GitHub Releases. Le manifeste courant est disponible dans [`downloads/manifest.json`](./downloads/manifest.json).
 
 ## Desktop (Electron)
 
@@ -51,6 +54,12 @@ npm run desktop:build
 
 Sortie: `output/electron-dist/`
 
+Pour copier l'installateur dans le dossier public versionne:
+
+```bash
+npm run downloads:publish
+```
+
 ## Mobile Android (Capacitor, mode server.url)
 
 L'APK Android charge directement la version live GitHub Pages:
@@ -82,6 +91,18 @@ npm run mobile:apk:debug
 
 Sortie attendue:
 - `android/app/build/outputs/apk/debug/app-debug.apk`
+
+Pour copier l'APK dans le dossier public versionne:
+
+```bash
+npm run downloads:publish
+```
+
+Pour regenerer les deux binaires publics d'un coup:
+
+```bash
+npm run downloads:refresh
+```
 
 ## Tests
 

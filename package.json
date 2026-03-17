@@ -13,6 +13,8 @@
     "mobile:sync": "npx cap sync android",
     "mobile:open:android": "npx cap open android",
     "mobile:apk:debug": "cd android && gradlew.bat assembleDebug",
+    "downloads:publish": "node scripts/release/publish-public-downloads.mjs",
+    "downloads:refresh": "npm run desktop:build && npm run mobile:apk:debug && npm run downloads:publish",
     "test": "npm run test:node && npm run test:vitest",
     "test:node": "node --test tests/*.mjs",
     "test:save": "npm run test:node",

@@ -6096,3 +6096,31 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/pokedex-info-layout-full.png`
     - `output/pokedex-info-layout-panel.png`
     - `output/pokedex-info-layout-report.json`
+
+## Additional progress (evolution animation restore - 2026-03-17)
+- Fixed the evolution flow where clicking `Evoluer` no longer played the canvas evolution animation.
+- Root cause:
+  - `game-runtime.js` still queued evolution animations and the render path still called `drawEvolutionAnimationOverlay(...)`.
+  - But the runtime update loop now consumed `runtimeUiInteraction.updateEvolutionAnimation(...)`, and `systems/ui/runtime-ui-interaction-system.js` no longer exposed the evolution animation helpers in its returned API.
+  - The top-level runtime also no longer had the concrete evolution overlay/update helper implementations wired in, so queued evolutions never advanced visually.
+- Runtime fix:
+  - Restored the evolution animation lifecycle in `game-runtime.js` with:
+    - `activateNextEvolutionAnimationIfNeeded()`
+    - `updateEvolutionAnimation(deltaMs)`
+    - `drawEvolutionSpriteFrame(...)`
+    - `drawEvolutionAnimationParticles(...)`
+    - `drawEvolutionAnimationOverlay(...)`
+  - `queueEvolutionAnimationForResult(...)` now immediately activates the queue when no evolution is already playing.
+  - Re-exposed `activateNextEvolutionAnimationIfNeeded` and `updateEvolutionAnimation` from `systems/ui/runtime-ui-interaction-system.js`.
+- Regression coverage:
+  - Added `tests/runtime-ui-interaction-system.test.mjs` to assert the runtime UI interaction system still exposes the evolution animation helpers.
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs tests/runtime-render-system.test.mjs tests/runtime-binding-resolver.test.mjs`: PASS (9/9).
+  - `node --check game-runtime.js`: PASS.
+  - Browser verification with injected save succeeded after including a supported `app_build_version` in the seeded snapshot (the older ad-hoc seed was being normalized back to an empty/new save).
+  - Visual captures:
+    - `output/evolution-browser-check/shot-after-click.png`
+    - `output/evolution-browser-check/shot-after-1p2s.png`
+  - Text-state confirmation:
+    - `output/evolution-browser-check/state-after-click.json` shows `evolution_animation` active with `from_id: 4` -> `to_id: 5`.
+    - `output/evolution-browser-check/state-after-1p2s.json` still shows `evolution_animation` progressing (`elapsed_ms: 1884` / `total_ms: 2480`).
