@@ -7685,3 +7685,261 @@ body.update-required-active {
     font-size: 11px;
   }
 }
+
+/* Pokemon info card refresh (Pokedex + Boxes). Keep this block at file end. */
+.boxes-info-panel {
+  display: block;
+}
+
+.pokemon-info-card {
+  border: 1px solid color-mix(in srgb, var(--menu-accent) 34%, rgba(233, 244, 255, 0.66));
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 9px;
+  background:
+    linear-gradient(180deg, rgba(9, 21, 35, 0.9), rgba(7, 16, 28, 0.95)),
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--menu-accent) 24%, transparent 76%), transparent 56%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 7px 16px rgba(0, 0, 0, 0.26);
+  color: #e8f1ff;
+}
+
+.pokemon-info-card--empty {
+  min-height: 100%;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 5px;
+}
+
+.pokemon-info-empty-title {
+  margin: 0;
+  color: #f0f6ff;
+  font: 800 14px/1.1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.pokemon-info-empty-text {
+  margin: 0;
+  color: #acc1de;
+  font: 700 12px/1.35 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.pokemon-info-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pokemon-info-title-wrap {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.pokemon-info-title {
+  margin: 0;
+  color: #f4f9ff;
+  font: 900 18px/1.05 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pokemon-info-subtitle {
+  margin: 0;
+  color: #9eb4d1;
+  font: 700 11px/1.22 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.pokemon-info-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pokemon-info-badge {
+  border: 1px solid rgba(149, 168, 192, 0.58);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: #9db4cf;
+  background: rgba(26, 40, 59, 0.72);
+  font: 800 10px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pokemon-info-badge.is-active {
+  border-color: color-mix(in srgb, var(--menu-accent) 60%, #fff3b4 40%);
+  color: #fff3bf;
+  background: linear-gradient(180deg, rgba(120, 89, 36, 0.9), rgba(79, 55, 22, 0.94));
+}
+
+.pokemon-info-badge--ultra.is-active {
+  border-color: rgba(154, 213, 255, 0.76);
+  color: #eaf9ff;
+  background: linear-gradient(180deg, rgba(42, 92, 126, 0.9), rgba(22, 56, 85, 0.95));
+}
+
+.pokemon-info-zone,
+.pokemon-info-hint {
+  margin: 0;
+  border: 1px solid rgba(126, 146, 173, 0.44);
+  border-radius: 9px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, rgba(20, 34, 52, 0.76), rgba(11, 22, 36, 0.82));
+  display: grid;
+  gap: 2px;
+}
+
+.pokemon-info-zone-label,
+.pokemon-info-hint-label {
+  color: #9eb4d1;
+  font: 800 10px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pokemon-info-zone-value,
+.pokemon-info-hint-value,
+.pokemon-info-hint {
+  color: #e2ecfb;
+  font: 700 12px/1.28 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.pokemon-info-block {
+  display: grid;
+  gap: 6px;
+}
+
+.pokemon-info-block-title {
+  margin: 0;
+  color: #bcd0ea;
+  font: 800 11px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pokemon-info-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.pokemon-info-stat {
+  border: 1px solid rgba(120, 140, 167, 0.4);
+  border-radius: 8px;
+  padding: 6px 7px;
+  display: grid;
+  gap: 2px;
+  background: linear-gradient(180deg, rgba(22, 37, 55, 0.7), rgba(13, 24, 38, 0.82));
+}
+
+.pokemon-info-stat-label {
+  color: #9fb5d1;
+  font: 700 10px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pokemon-info-stat-value {
+  color: #f1f7ff;
+  font: 800 13px/1.1 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.pokemon-info-stat--primary .pokemon-info-stat-value {
+  color: #ffd999;
+}
+
+.pokemon-info-stat--shiny .pokemon-info-stat-value {
+  color: #ffef9c;
+}
+
+.pokemon-info-stat--ultra .pokemon-info-stat-value {
+  color: #bdeeff;
+}
+
+.pokemon-info-micro-grid {
+  display: grid;
+  gap: 5px;
+}
+
+.pokemon-info-micro {
+  border: 1px solid rgba(119, 139, 164, 0.38);
+  border-radius: 8px;
+  padding: 6px 7px;
+  background: linear-gradient(180deg, rgba(23, 36, 56, 0.66), rgba(11, 22, 34, 0.78));
+  display: grid;
+  gap: 2px;
+}
+
+.pokemon-info-micro-label {
+  color: #9db3cf;
+  font: 700 10px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pokemon-info-micro-value {
+  color: #edf5ff;
+  font: 800 12px/1.2 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.pokemon-info-micro--ultra .pokemon-info-micro-value {
+  color: #bdeeff;
+}
+
+.pokemon-info-state--captured .pokemon-info-title {
+  color: #fff1c6;
+}
+
+.pokemon-info-state--encountered .pokemon-info-title {
+  color: #d7ecff;
+}
+
+.pokemon-info-state--unknown .pokemon-info-title {
+  color: #bed1e8;
+}
+
+@media (max-width: 900px) {
+  .pokemon-info-card {
+    padding: 8px;
+    gap: 7px;
+  }
+
+  .pokemon-info-title {
+    font-size: 16px;
+  }
+
+  .pokemon-info-subtitle {
+    font-size: 10px;
+  }
+
+  .pokemon-info-zone,
+  .pokemon-info-hint {
+    padding: 5px 7px;
+  }
+
+  .pokemon-info-stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .pokemon-info-stat {
+    padding: 5px 6px;
+  }
+
+  .pokemon-info-stat-value {
+    font-size: 12px;
+  }
+
+  .pokemon-info-micro {
+    padding: 5px 6px;
+  }
+}

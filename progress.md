@@ -6069,3 +6069,30 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Validation:
   - node --check systems/ui/runtime-render-system.js: PASS.
   - node --test tests/runtime-render-system.test.mjs: PASS (4/4).
+
+## Additional progress (2026-03-17, Pokedex zone hint when encountered)
+- Updated `systems/ui/runtime-ui-interaction-system.js` Pokedex cache payload:
+  - Added `buildPokedexEncounterZonesByPokemonId()` to map species -> encounter zones from `state.routeCatalog`.
+  - Added `encounterZoneLabels` on each Pokedex entry.
+- Updated `setPokedexInfoFromEntry(entry)`:
+  - If `encounteredTotal > 0`, the info panel now shows a `Zone` line (first matching zone, with `+N autres` when multiple).
+  - If never encountered, no zone line is shown.
+- Validation:
+  - `node --check systems/ui/runtime-ui-interaction-system.js`: PASS.
+  - `node --check game-runtime.js`: PASS.
+- No Playwright run for this first change (UI text + lightweight logic only).
+
+## Additional progress (2026-03-17, Pokemon info layout overhaul)
+- Reworked Pokemon info rendering in `systems/ui/runtime-ui-interaction-system.js`:
+  - `setPokedexInfoFromEntry(entry)` now renders a structured card layout (header, badges, zone row, encounter/capture stat blocks, clear empty state).
+  - `setBoxesInfoFromEntry(entry)` now renders a richer card (identity, level/BST badges, types, talent, progression, stat micro-cards, clear empty state).
+- Added dedicated card styling in `styles.css` (file end):
+  - `.pokemon-info-card*`, `.pokemon-info-head*`, `.pokemon-info-badge*`, `.pokemon-info-zone*`, `.pokemon-info-stat*`, `.pokemon-info-micro*`.
+  - Responsive adjustments for smaller widths (`@media (max-width: 900px)`).
+- Validation:
+  - `node --check systems/ui/runtime-ui-interaction-system.js`: PASS.
+  - `node --check game-runtime.js`: PASS.
+  - Visual capture updated:
+    - `output/pokedex-info-layout-full.png`
+    - `output/pokedex-info-layout-panel.png`
+    - `output/pokedex-info-layout-report.json`
