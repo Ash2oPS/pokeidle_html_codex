@@ -6124,3 +6124,52 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - Text-state confirmation:
     - `output/evolution-browser-check/state-after-click.json` shows `evolution_animation` active with `from_id: 4` -> `to_id: 5`.
     - `output/evolution-browser-check/state-after-1p2s.json` still shows `evolution_animation` progressing (`elapsed_ms: 1884` / `total_ms: 2480`).
+
+## Additional progress (evolution animation unfreeze fix - 2026-03-17)
+- Fixed a follow-up regression where the evolution overlay appeared but stayed frozen in its initial white-ball state, leaving the game blocked.
+- Root cause:
+  - the runtime update loop in `game-runtime.js` had been wired to `runtimeRenderSystem.updateEvolutionAnimation(deltaMs)`;
+  - but `createRuntimeRenderSystem(...)` does not expose `updateEvolutionAnimation`, so `elapsedMs` never advanced and `state.evolutionAnimation.current` never cleared.
+- Fix:
+  - rewired the runtime update loop back to `runtimeUiInteraction.updateEvolutionAnimation(deltaMs)`, which is the system that actually exposes the evolution animation update helpers.
+  - updated `tests/runtime-evolution-animation-wireup.test.mjs` to lock the correct wiring and explicitly reject the stale render-system path.
+- Validation:
+  - `node --test tests/runtime-evolution-animation-wireup.test.mjs tests/runtime-ui-interaction-system.test.mjs tests/runtime-binding-resolver.test.mjs tests/runtime-render-system.test.mjs`: PASS (10/10).
+  - `node --check game-runtime.js`: PASS.
+  - Browser verification with injected save:
+    - `output/evolution-browser-unfreeze-check/state-during.json` shows `evolution_animation` active with `elapsed_ms: 375`.
+    - `output/evolution-browser-unfreeze-check/state-after.json` shows `evolution_animation: null` after ~3.2 s and combat resumed.
+  - Visual captures:
+    - `output/evolution-browser-unfreeze-check/shot-during.png`
+    - `output/evolution-browser-unfreeze-check/shot-after.png`
+
+## Additional progress (desktop Electron background permanence - 2026-03-17)
+- Hardened desktop runtime detection so Electron EXE is treated as desktop even when the preload bridge is unavailable in the remote page context:
+  - added `isDesktopRuntime()` in `lib/runtime-platform-utils.js`;
+  - desktop fallback now also detects the Electron user agent.
+- Prevented desktop runtime from degrading into the browser hidden-mode simulation path:
+  - `game-runtime.js` now uses a desktop-aware hidden policy for runtime loop/orchestrator wiring;
+  - renderer quality backlog logic now accepts an injected hidden reader instead of hardcoding `document.hidden`.
+- Added a desktop watchdog fallback for minimized/background EXE runs:
+  - if the desktop renderer ever stops pumping frames while minimized, a short interval keeps simulation time advancing;
+  - Chromium anti-throttling and app-suspension protection remain active in `electron/main.mjs`.
+- Added regression coverage:
+  - `tests/runtime-platform-utils.test.mjs`
+  - extended `tests/render-quality-utils.test.mjs`
+  - reusable packaged-EXE verification script `scripts/testing/electron/verify-desktop-background-runtime.mjs`
+
+### Validation
+- `npm run desktop:build`: PASS (`output/electron-dist/win-unpacked/PokeIdle.exe`, installer `output/electron-dist/PokeIdle-Setup-0.1.39.exe`).
+- `npm run downloads:publish`: PASS (`downloads/PokeIdle-Windows-Installer.exe`, `downloads/manifest.json` now point to version `0.1.39`).
+- `npm run test:node`: PASS (103/103).
+- `npm run test:desktop:background`: PASS.
+  - Packaged EXE launched from `output/electron-dist/win-unpacked/PokeIdle.exe` against a local static server.
+  - Runtime reported `runtime_client: "desktop_exe_pc"` before, during, and after minimize.
+  - Minimized-window verification over ~2.5 s:
+    - `minimizedIntervalDelta: 50`
+    - `minimizedRafDelta: 304`
+    - `document.hidden: false`
+    - `visibilityState: "visible"`
+  - Artifacts:
+    - `output/playwright/desktop-background-runtime/report.json`
+    - `output/playwright/desktop-background-runtime/restored-window.png`

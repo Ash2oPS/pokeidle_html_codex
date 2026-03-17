@@ -794,6 +794,7 @@ const {
   getDesktopBridge,
   hasDesktopSaveBridge,
   hasDesktopNotificationBridge,
+  isDesktopRuntime,
   getCapacitorBridge,
   isCapacitorAndroidRuntime,
   getAndroidNotificationPlugin,
@@ -877,6 +878,14 @@ const {
 } = createRenderQualityUtils({
   clamp,
   toSafeInt,
+  isHidden: () => {
+    if (typeof document === "undefined") {
+      return false;
+    }
+    const userAgent = String(window?.navigator?.userAgent || "").toLowerCase();
+    const isDesktopClient = Boolean(window?.pokeidleDesktop?.isDesktop) || userAgent.includes("electron/");
+    return !isDesktopClient && Boolean(document.hidden);
+  },
   state,
   renderQualityOrder: RENDER_QUALITY_ORDER,
   renderQualityPresets: RENDER_QUALITY_PRESETS,
@@ -4424,6 +4433,25 @@ function flushDeferredSaveIfNeeded() {
   persistSaveData();
 }
 
+const DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS = 50;
+const DESKTOP_BACKGROUND_WATCHDOG_STALL_MS = 125;
+
+function isDocumentHidden() {
+  return typeof document !== "undefined" && Boolean(document.hidden);
+}
+
+function shouldTreatRuntimeAsHidden() {
+  return !isDesktopRuntime() && isDocumentHidden();
+}
+
+function shouldRunBackgroundTicker() {
+  return shouldTreatRuntimeAsHidden() || (isDesktopRuntime() && isDocumentHidden());
+}
+
+function markSimulationPump(nowMs = Date.now()) {
+  state.lastSimulationPumpAtMs = Math.max(0, toSafeInt(nowMs, Date.now()));
+}
+
 const runtimeLoopKernel = createRuntimeLoopKernel({
   state,
   update,
@@ -4433,7 +4461,7 @@ const runtimeLoopKernel = createRuntimeLoopKernel({
   getForegroundSimulationBudgetMs,
   getSaveTickEpochMs,
   toSafeInt,
-  isHidden: () => Boolean(document.hidden),
+  isHidden: shouldTreatRuntimeAsHidden,
   nowMs: () => Date.now(),
   maxForegroundPendingMs: MAX_FOREGROUND_PENDING_MS,
   maxOfflineCatchupMs: MAX_OFFLINE_CATCHUP_MS,
@@ -4464,15 +4492,31 @@ function ensureBackgroundTicker() {
   if (state.backgroundTickHandle) {
     return;
   }
+  const desktopRuntime = isDesktopRuntime();
+  const tickIntervalMs = desktopRuntime
+    ? DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS
+    : BACKGROUND_TICK_INTERVAL_MS;
   state.backgroundTickHandle = window.setInterval(() => {
-    if (!document.hidden) {
+    if (shouldTreatRuntimeAsHidden()) {
+      tickSimulationFromRealtime({
+        forceIdleMode: true,
+        budgetMs: HIDDEN_SIM_BUDGET_MS,
+      });
+      markSimulationPump();
       return;
     }
-    tickSimulationFromRealtime({
-      forceIdleMode: true,
-      budgetMs: HIDDEN_SIM_BUDGET_MS,
-    });
-  }, BACKGROUND_TICK_INTERVAL_MS);
+    if (!desktopRuntime || !isDocumentHidden()) {
+      return;
+    }
+    const now = Date.now();
+    const lastPumpAtMs = Math.max(0, toSafeInt(state.lastSimulationPumpAtMs, 0));
+    if (lastPumpAtMs > 0 && now - lastPumpAtMs < DESKTOP_BACKGROUND_WATCHDOG_STALL_MS) {
+      return;
+    }
+    const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, now - lastPumpAtMs);
+    tickSimulationFromRealtime({ budgetMs });
+    markSimulationPump(now);
+  }, tickIntervalMs);
 }
 
 function stopBackgroundTicker() {
@@ -4484,7 +4528,7 @@ function stopBackgroundTicker() {
 }
 
 const runtimeOrchestrator = createRuntimeOrchestrator({
-  isHidden: () => Boolean(document.hidden),
+  isHidden: shouldTreatRuntimeAsHidden,
   ensureBackgroundTicker,
   stopBackgroundTicker,
   tickSimulationFromRealtime,
@@ -4498,6 +4542,11 @@ const runtimeOrchestrator = createRuntimeOrchestrator({
 
 function handleVisibilityChange() {
   runtimeOrchestrator.handleVisibilityChange();
+  if (shouldRunBackgroundTicker()) {
+    ensureBackgroundTicker();
+    return;
+  }
+  stopBackgroundTicker();
 }
 
 function handlePageLifecyclePersist() {
@@ -10913,9 +10962,9 @@ function update(deltaMs, options = {}) {
   const layout = idleMode
     ? (state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs }))
     : refreshLayoutIfNeeded({ nowMs: state.timeMs });
-  const runtimeRenderSystem = getRuntimeRenderSystem();
-  if (runtimeRenderSystem && typeof runtimeRenderSystem.updateEvolutionAnimation === "function") {
-    runtimeRenderSystem.updateEvolutionAnimation(deltaMs);
+  const runtimeUiInteraction = getRuntimeUiInteractionSystem();
+  if (runtimeUiInteraction && typeof runtimeUiInteraction.updateEvolutionAnimation === "function") {
+    runtimeUiInteraction.updateEvolutionAnimation(deltaMs);
   }
 
   state.simulationIdleMode = idleMode;
@@ -10931,7 +10980,7 @@ function update(deltaMs, options = {}) {
 
 function gameLoop(timestamp) {
   const now = Number.isFinite(Number(timestamp)) ? Number(timestamp) : 0;
-  if (document.hidden) {
+  if (shouldTreatRuntimeAsHidden()) {
     state.lastFrameTimestamp = 0;
     state.lastRenderTimestamp = 0;
     window.requestAnimationFrame(gameLoop);
@@ -10942,6 +10991,7 @@ function gameLoop(timestamp) {
     : BASE_STEP_MS;
   state.lastFrameTimestamp = now;
   tickSimulationFromRealtime();
+  markSimulationPump(now);
   let frameCpuMs = TARGET_FRAME_MS;
   let renderDeltaMs = null;
   const renderIntervalMs = getRenderFrameIntervalMs();
@@ -11173,6 +11223,7 @@ state.devLayout.settings = createDefaultDevLayoutSettings();
 applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
+state.lastSimulationPumpAtMs = state.realClockLastMs;
 
 async function bootstrapRuntimeStartup() {
   const gameSettingsLoad = await loadGameSettings();
@@ -11192,6 +11243,9 @@ async function bootstrapRuntimeStartup() {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
   initializeScene();
+  if (shouldRunBackgroundTicker()) {
+    ensureBackgroundTicker();
+  }
   window.requestAnimationFrame(gameLoop);
 }
 

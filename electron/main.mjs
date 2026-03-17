@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Notification, ipcMain, shell } from "electron";
+import { app, BrowserWindow, Notification, ipcMain, shell, powerSaveBlocker, nativeImage } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,9 +8,17 @@ const DESKTOP_APP_ID = "com.ash2ops.pokeidle";
 const SAVE_FILE_NAME = "pokeidle_save_v3.json";
 const SAVE_DIR_NAME = "saves";
 const WINDOW_BACKGROUND = "#0f1720";
+const DESKTOP_ICON_FILE_NAME = process.platform === "win32" ? "pokeball-dock.ico" : "pokeball-dock.png";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DESKTOP_ICON_PATH = path.join(__dirname, "..", "assets", "icons", "pokeball-dock.png");
+const DESKTOP_ICON_PATH = path.join(__dirname, "..", "assets", "icons", DESKTOP_ICON_FILE_NAME);
+let runtimePowerSaveBlockerId = null;
+
+// Keep Chromium from throttling the renderer when the game window is occluded,
+// backgrounded, or minimized. The desktop build must keep simulating continuously.
+app.commandLine.appendSwitch("disable-background-timer-throttling");
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
+app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
 
 function resolveRemoteUrl() {
   const envOverride = String(process.env.POKEIDLE_REMOTE_URL || "").trim();
@@ -28,11 +36,41 @@ function getSaveFilePath() {
   return path.join(app.getPath("userData"), SAVE_DIR_NAME, SAVE_FILE_NAME);
 }
 
+function ensureDesktopRuntimePowerBlocker() {
+  if (
+    runtimePowerSaveBlockerId !== null
+    && powerSaveBlocker.isStarted(runtimePowerSaveBlockerId)
+  ) {
+    return;
+  }
+  runtimePowerSaveBlockerId = powerSaveBlocker.start("prevent-app-suspension");
+}
+
+function releaseDesktopRuntimePowerBlocker() {
+  if (
+    runtimePowerSaveBlockerId === null
+    || !powerSaveBlocker.isStarted(runtimePowerSaveBlockerId)
+  ) {
+    runtimePowerSaveBlockerId = null;
+    return;
+  }
+  powerSaveBlocker.stop(runtimePowerSaveBlockerId);
+  runtimePowerSaveBlockerId = null;
+}
+
 function toErrorMessage(error) {
   if (error instanceof Error && error.message) {
     return error.message;
   }
   return String(error || "Erreur inconnue");
+}
+
+function createDesktopWindowIcon() {
+  const iconImage = nativeImage.createFromPath(DESKTOP_ICON_PATH);
+  if (!iconImage.isEmpty()) {
+    return iconImage;
+  }
+  return DESKTOP_ICON_PATH;
 }
 
 function isSaveObject(payload) {
@@ -159,9 +197,10 @@ async function sendDesktopNotification(payload) {
 }
 
 function createMainWindow() {
+  const windowIcon = createDesktopWindowIcon();
   const mainWindow = new BrowserWindow({
     title: "PokeIdle",
-    icon: DESKTOP_ICON_PATH,
+    icon: windowIcon,
     width: 1360,
     height: 820,
     minWidth: 1024,
@@ -176,6 +215,10 @@ function createMainWindow() {
       backgroundThrottling: false,
     },
   });
+
+  if (typeof mainWindow.webContents.setBackgroundThrottling === "function") {
+    mainWindow.webContents.setBackgroundThrottling(false);
+  }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);
@@ -207,6 +250,7 @@ if (process.platform === "win32") {
 }
 
 app.whenReady().then(() => {
+  ensureDesktopRuntimePowerBlocker();
   registerIpcHandlers();
   createMainWindow();
 
@@ -215,6 +259,10 @@ app.whenReady().then(() => {
       createMainWindow();
     }
   });
+});
+
+app.on("before-quit", () => {
+  releaseDesktopRuntimePowerBlocker();
 });
 
 app.on("window-all-closed", () => {
