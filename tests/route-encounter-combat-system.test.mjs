@@ -27,6 +27,7 @@ function readEncounterMethods(encounter) {
 function createFixture(options = {}) {
   const routeId = "kanto_route_1";
   const encounter = options.encounter || { id: 25, catch_rate: 90, methods: ["walk"] };
+  const routeEncounters = options.encounters || [encounter];
   const pokemonDef = {
     id: 25,
     nameFr: "Pikachu",
@@ -41,12 +42,12 @@ function createFixture(options = {}) {
   const state = {
     routeData: {
       route_id: routeId,
-      encounters: [encounter],
+      encounters: routeEncounters,
     },
     saveData: {
       current_route_id: routeId,
     },
-    pokemonDefsById: new Map([[25, pokemonDef]]),
+    pokemonDefsById: options.pokemonDefsById || new Map([[25, pokemonDef]]),
   };
 
   const calls = {
@@ -79,23 +80,25 @@ function createFixture(options = {}) {
       calls.rewardScale.push({ teamHpScaleMultiplier, isOnlyOne });
       return isOnlyOne ? 4 : 1.25;
     },
-    resolveSpriteAppearanceForEntity: () => ({
-      spritePath: "",
-      spriteImage: null,
-      variant: { id: "variant-default" },
-      animated: false,
-      shinyVisual: false,
-      ultraShinyVisual: false,
-      shinyNegativeFallbackVisual: false,
-    }),
-    getSpriteVariantById: () => ({
-      id: "variant-default",
-      frontPath: "variant-default-front.png",
-      frontShinyPath: "variant-default-front-shiny.png",
-    }),
-    getDefaultSpriteVariantId: () => "variant-default",
-    getCachedSpriteImage: (path) => ({ drawable: true, path }),
-    isDrawableImage: (image) => Boolean(image?.drawable),
+    resolveSpriteAppearanceForEntity:
+      options.resolveSpriteAppearanceForEntity || (() => ({
+        spritePath: "",
+        spriteImage: null,
+        variant: { id: "variant-default" },
+        animated: false,
+        shinyVisual: false,
+        ultraShinyVisual: false,
+        shinyNegativeFallbackVisual: false,
+      })),
+    getSpriteVariantById:
+      options.getSpriteVariantById || (() => ({
+        id: "variant-default",
+        frontPath: "variant-default-front.png",
+        frontShinyPath: "variant-default-front-shiny.png",
+      })),
+    getDefaultSpriteVariantId: options.getDefaultSpriteVariantId || (() => "variant-default"),
+    getCachedSpriteImage: options.getCachedSpriteImage || ((path) => ({ drawable: true, path })),
+    isDrawableImage: options.isDrawableImage || ((image) => Boolean(image?.drawable)),
     normalizeStatsPayload: (stats) => ({
       ...stats,
       normalized: true,
@@ -190,6 +193,74 @@ test("createRouteEnemyInstance applies only-one multipliers and ultra shiny roll
     teamHpScaleMultiplier: 1.25,
     isOnlyOne: true,
   });
+});
+
+test("createRouteEnemyInstance falls back to another loaded encounter when the picked definition is missing", () => {
+  const fixture = createFixture({
+    encounters: [
+      { id: 999, catch_rate: 45, methods: ["walk"], spawn_weight: 10 },
+      { id: 25, catch_rate: 90, methods: ["walk"], spawn_weight: 1 },
+    ],
+    pickResult: {
+      encounter: { id: 999, catch_rate: 45, methods: ["walk"], spawn_weight: 10 },
+      isOnlyOneEncounter: false,
+    },
+  });
+
+  const enemy = fixture.system.createRouteEnemyInstance();
+
+  assert.equal(enemy.id, 25);
+  assert.equal(enemy.catchRate, 190);
+  assert.equal(enemy.spritePath, "variant-default-front.png");
+});
+
+test("createRouteEnemyInstance prefers another drawable encounter when the picked one has no loaded sprite", () => {
+  const emptySpriteDef = {
+    id: 7,
+    nameFr: "Carabaffe",
+    stats: { hp: 59, attack: 63 },
+    spritePath: "wartortle-missing.png",
+    shinySpritePath: "wartortle-missing-shiny.png",
+    spriteImage: null,
+    spriteShinyImage: null,
+    catchRate: 120,
+  };
+  const validDef = {
+    id: 25,
+    nameFr: "Pikachu",
+    stats: { hp: 35, attack: 55 },
+    spritePath: "pikachu-front.png",
+    shinySpritePath: "pikachu-front-shiny.png",
+    spriteImage: { name: "normal-sprite" },
+    spriteShinyImage: { name: "shiny-sprite" },
+    catchRate: 190,
+  };
+  const fixture = createFixture({
+    encounters: [
+      { id: 7, catch_rate: 120, methods: ["walk"], spawn_weight: 10 },
+      { id: 25, catch_rate: 90, methods: ["walk"], spawn_weight: 1 },
+    ],
+    pickResult: {
+      encounter: { id: 7, catch_rate: 120, methods: ["walk"], spawn_weight: 10 },
+      isOnlyOneEncounter: false,
+    },
+    pokemonDefsById: new Map([
+      [7, emptySpriteDef],
+      [25, validDef],
+    ]),
+    getSpriteVariantById: (def) => ({
+      id: "variant-default",
+      frontPath: def.id === 25 ? "pikachu-front.png" : "wartortle-missing.png",
+      frontShinyPath: def.id === 25 ? "pikachu-front-shiny.png" : "wartortle-missing-shiny.png",
+    }),
+    getCachedSpriteImage: (path) => (String(path).includes("pikachu") ? { drawable: true, path } : null),
+    isDrawableImage: (image) => Boolean(image?.drawable),
+  });
+
+  const enemy = fixture.system.createRouteEnemyInstance();
+
+  assert.equal(enemy.id, 25);
+  assert.equal(enemy.nameFr, "Pikachu");
 });
 
 test("getEnemyTimerConfigForBattle returns only-one timer for only-one enemy", () => {

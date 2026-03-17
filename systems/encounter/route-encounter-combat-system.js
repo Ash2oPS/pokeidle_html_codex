@@ -79,17 +79,143 @@ export function createRouteEncounterCombatSystem({
     return encounterHasMethodFn({ methods: enemy.encounterMethods }, onlyOneEncounterMethodId);
   }
 
+  function getEncounterId(encounter) {
+    return Number(encounter?.id || 0);
+  }
+
+  function getEncounterDefinition(encounter) {
+    const encounterId = getEncounterId(encounter);
+    if (encounterId <= 0 || !(state.pokemonDefsById instanceof Map)) {
+      return null;
+    }
+    return state.pokemonDefsById.get(encounterId) || null;
+  }
+
+  function hasSpawnableEncounterSprite(def) {
+    if (!def || typeof def !== "object") {
+      return false;
+    }
+    if (isDrawableImageFn(def.spriteImage) || isDrawableImageFn(def.spriteShinyImage)) {
+      return true;
+    }
+    const defaultVariant = getSpriteVariantByIdFn(def, getDefaultSpriteVariantIdFn(def));
+    const candidatePaths = [
+      defaultVariant?.frontPath,
+      defaultVariant?.frontShinyPath,
+      def.spritePath,
+      def.shinySpritePath,
+    ];
+    for (const spritePath of candidatePaths) {
+      if (!spritePath) {
+        continue;
+      }
+      if (isDrawableImageFn(getCachedSpriteImageFn(spritePath))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function buildEncounterFallbackPool(routeData, excludedEncounter = null, options = {}) {
+    const encounters = Array.isArray(routeData?.encounters) ? routeData.encounters : [];
+    const excludedId = getEncounterId(excludedEncounter);
+    const requireDrawableSprite = options.requireDrawableSprite === true;
+    const pool = [];
+    for (const encounter of encounters) {
+      const encounterId = getEncounterId(encounter);
+      if (encounterId <= 0 || encounterId === excludedId) {
+        continue;
+      }
+      const def = getEncounterDefinition(encounter);
+      if (!def) {
+        continue;
+      }
+      if (requireDrawableSprite && !hasSpawnableEncounterSprite(def)) {
+        continue;
+      }
+      pool.push({
+        encounter,
+        def,
+        weight: Math.max(1, toSafeIntFn(encounter?.spawn_weight, 1)),
+      });
+    }
+    return pool;
+  }
+
+  function pickEncounterFromFallbackPool(routeData, excludedEncounter = null, options = {}) {
+    const pool = buildEncounterFallbackPool(routeData, excludedEncounter, options);
+    if (pool.length <= 0) {
+      return null;
+    }
+    const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+    let remainingWeight = rollRandom() * Math.max(1, totalWeight);
+    for (const entry of pool) {
+      remainingWeight -= entry.weight;
+      if (remainingWeight <= 0) {
+        return entry;
+      }
+    }
+    return pool[pool.length - 1] || null;
+  }
+
+  function resolveEncounterForSpawn(pickResult) {
+    const preferredEncounter = pickResult?.encounter || null;
+    const preferredDef = getEncounterDefinition(preferredEncounter);
+    const preferredOnlyOneEncounter = Boolean(
+      pickResult?.isOnlyOneEncounter && encounterHasMethodFn(preferredEncounter, onlyOneEncounterMethodId),
+    );
+    if (preferredEncounter && preferredDef && hasSpawnableEncounterSprite(preferredDef)) {
+      return {
+        encounter: preferredEncounter,
+        def: preferredDef,
+        isOnlyOneEncounter: preferredOnlyOneEncounter,
+      };
+    }
+
+    const drawableFallback = pickEncounterFromFallbackPool(state.routeData, preferredEncounter, {
+      requireDrawableSprite: true,
+    });
+    if (drawableFallback) {
+      return {
+        encounter: drawableFallback.encounter,
+        def: drawableFallback.def,
+        isOnlyOneEncounter: encounterHasMethodFn(drawableFallback.encounter, onlyOneEncounterMethodId),
+      };
+    }
+
+    if (preferredEncounter && preferredDef) {
+      return {
+        encounter: preferredEncounter,
+        def: preferredDef,
+        isOnlyOneEncounter: preferredOnlyOneEncounter,
+      };
+    }
+
+    const definitionFallback = pickEncounterFromFallbackPool(state.routeData, preferredEncounter);
+    if (definitionFallback) {
+      return {
+        encounter: definitionFallback.encounter,
+        def: definitionFallback.def,
+        isOnlyOneEncounter: encounterHasMethodFn(definitionFallback.encounter, onlyOneEncounterMethodId),
+      };
+    }
+
+    return {
+      encounter: null,
+      def: null,
+      isOnlyOneEncounter: false,
+    };
+  }
+
   function createRouteEnemyInstance() {
     if (!state.routeData || !isRouteCombatEnabledFn() || !Array.isArray(state.routeData.encounters)) {
       return null;
     }
     const pickResult = pickEncounterForRouteFn(state.routeData);
-    const picked = pickResult?.encounter || null;
-    if (!picked) {
-      return null;
-    }
-    const def = state.pokemonDefsById.get(Number(picked.id));
-    if (!def) {
+    const resolvedEncounter = resolveEncounterForSpawn(pickResult);
+    const picked = resolvedEncounter.encounter;
+    const def = resolvedEncounter.def;
+    if (!picked || !def) {
       return null;
     }
 
@@ -105,7 +231,7 @@ export function createRouteEncounterCombatSystem({
     const isShiny = shinyState.isShiny;
     const ultraShinyVisual = Boolean(shinyState.ultraShinyVisual);
     const shinyVisual = Boolean(shinyState.shinyVisual);
-    const isOnlyOneEncounter = Boolean(pickResult?.isOnlyOneEncounter && encounterHasMethodFn(picked, onlyOneEncounterMethodId));
+    const isOnlyOneEncounter = Boolean(resolvedEncounter.isOnlyOneEncounter);
     const level = pickEncounterLevelFn(picked);
     const stats = computeStatsAtLevelFn(def.stats, level);
     const baseHpMax = computeBattleHpMaxFn(stats, level, true);
@@ -133,6 +259,8 @@ export function createRouteEncounterCombatSystem({
 
     return {
       ...def,
+      nameFr: String(def.nameFr || def.nameEn || `Pokemon ${def.id}`),
+      nameEn: String(def.nameEn || def.nameFr || `pokemon_${def.id}`),
       level,
       stats,
       baseStats: normalizeStatsPayloadFn(def.stats),

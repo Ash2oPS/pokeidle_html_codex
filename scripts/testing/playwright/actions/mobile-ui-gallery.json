@@ -1,0 +1,63 @@
+{
+  "steps": [
+    {
+      "waitMs": 1800
+    },
+    {
+      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 2200
+    },
+    {
+      "clickSelectorIfVisible": "#tutorial-close-btn",
+      "waitMs": 900
+    },
+    {
+      "captureName": "idle"
+    },
+    {
+      "clickSelector": "#action-dock-pokeball-toggle"
+    },
+    {
+      "waitForSelector": "#action-dock-fullscreen-menu:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "captureName": "menu"
+    },
+    {
+      "clickSelector": "#action-dock-fullscreen-menu [data-action-target='map-btn']"
+    },
+    {
+      "waitForSelector": "#map-modal:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "captureName": "map"
+    },
+    {
+      "clickSelectorIfVisible": "#map-close-btn",
+      "waitMs": 700
+    },
+    {
+      "clickSelector": "#action-dock-pokeball-toggle"
+    },
+    {
+      "waitForSelector": "#action-dock-fullscreen-menu:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "clickSelector": "#action-dock-fullscreen-menu [data-action-target='shop-btn']"
+    },
+    {
+      "waitForSelector": "#shop-modal:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "captureName": "shop"
+    },
+    {
+      "clickSelectorIfVisible": "#close-shop-btn",
+      "waitMs": 700
+    }
+  ]
+}

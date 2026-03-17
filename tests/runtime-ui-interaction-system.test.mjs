@@ -19,3 +19,10 @@ test("runtime ui interaction system returns evolution animation helpers", () => 
     /return\s*\{[\s\S]*\bactivateNextEvolutionAnimationIfNeeded\b[\s\S]*\bupdateEvolutionAnimation\b[\s\S]*\};\\n\}"/,
   );
 });
+
+test("runtime ui interaction system prefers ruby_sapphire for offline Hoenn species sprites", () => {
+  const source = fs.readFileSync(runtimeUiInteractionSystemPath, "utf8");
+
+  assert.match(source, /function getPokedexPreferredOfflineVariantId[\s\S]*return \\\"ruby_sapphire\\\";/);
+  assert.doesNotMatch(source, /function getPokedexPreferredOfflineVariantId[\s\S]*return \\\"emerald\\\";/);
+});

@@ -1,18 +1,24 @@
-﻿param(
+param(
   [Parameter(Mandatory = $true)][string]$RepoRoot,
   [Parameter(Mandatory = $true)][int]$Port,
   [Parameter(Mandatory = $true)][string]$ActionsPath,
   [Parameter(Mandatory = $true)][string]$ScreenshotDir,
   [int]$Iterations = 1,
   [int]$PauseMs = 0,
-  [string]$GameUrl = ""
+  [string]$GameUrl = "",
+  [int]$ViewportWidth = 1366,
+  [int]$ViewportHeight = 768,
+  [switch]$Touch,
+  [double]$DeviceScaleFactor = 1
 )
 
 $ErrorActionPreference = "Stop"
 
-$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$clientPath = Join-Path $codexHome "skills/develop-web-game/scripts/web_game_playwright_client.js"
+if (!(Test-Path $RepoRoot)) {
+  throw "RepoRoot introuvable: $RepoRoot"
+}
 
+$clientPath = Join-Path $RepoRoot "scripts/testing/playwright/web-game-playwright-client.mjs"
 if (!(Test-Path $clientPath)) {
   throw "Client Playwright introuvable: $clientPath"
 }
@@ -43,9 +49,19 @@ if (-not $serverReady) {
 }
 
 $finalGameUrl = if ([string]::IsNullOrWhiteSpace($GameUrl)) { "http://127.0.0.1:$Port" } else { $GameUrl }
+$touchValue = if ($Touch.IsPresent) { "true" } else { "false" }
 
 try {
-  node $clientPath --url $finalGameUrl --actions-file $ActionsPath --iterations $Iterations --pause-ms $PauseMs --screenshot-dir $ScreenshotDir
+  node $clientPath `
+    --url $finalGameUrl `
+    --actions-file $ActionsPath `
+    --iterations $Iterations `
+    --pause-ms $PauseMs `
+    --screenshot-dir $ScreenshotDir `
+    --viewport-width $ViewportWidth `
+    --viewport-height $ViewportHeight `
+    --touch $touchValue `
+    --device-scale-factor $DeviceScaleFactor
   exit $LASTEXITCODE
 }
 finally {

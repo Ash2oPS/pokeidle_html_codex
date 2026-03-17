@@ -138,6 +138,7 @@ import {
   SPRITE_VARIANT_BASE_PRICE,
   SPRITE_VARIANT_GEN_PRICE_STEP,
   SPRITE_VARIANT_INDEX_PRICE_STEP,
+  DEPRECATED_POKEMON_SPRITE_VARIANT_IDS,
   DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE,
   POKEDEX_VARIANT_PREFERENCE_GEN_1_TO_3,
   POKEDEX_VARIANT_PREFERENCE_GEN_4,
@@ -442,6 +443,10 @@ import {
   rebuildShopItemConfigStateRuntime,
   refreshBallConfigDerivedStateRuntime,
 } from "./lib/shop-config-runtime.js";
+import {
+  PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE,
+  projectWorldToStage,
+} from "./lib/runtime-stage-layout.js";
 
 const APP_VERSION = POKEIDLE_APP_VERSION;
 const DISPLAY_APP_VERSION = getDisplayedAppVersion(window.location, APP_VERSION);
@@ -509,7 +514,9 @@ const spriteColorSampleCtx =
   spriteColorSampleCanvas.getContext("2d");
 const spriteOutlineTintBufferCanvas = document.createElement("canvas");
 const spriteOutlineTintBufferCtx = spriteOutlineTintBufferCanvas.getContext("2d");
+const captureRootEl = document.getElementById("game-capture-root");
 const gameStageEl = document.getElementById("game-stage");
+const worldUiLayerEl = document.getElementById("world-ui-layer");
 const gameOverlayEl = document.querySelector(".game-overlay");
 const loadingScreenEl = document.getElementById("loading-screen");
 const loadingScreenTextEl = document.getElementById("loading-screen-text");
@@ -1934,6 +1941,11 @@ function normalizeSpriteVariantId(rawValue, fallbackValue = "") {
   return value || String(fallbackValue || "").trim().toLowerCase() || "";
 }
 
+function isDeprecatedSpriteVariantId(rawVariantId) {
+  const variantId = normalizeSpriteVariantId(rawVariantId);
+  return Boolean(variantId && DEPRECATED_POKEMON_SPRITE_VARIANT_IDS.has(variantId));
+}
+
 function normalizeSpriteVariantIdList(rawList) {
   const output = [];
   const list = Array.isArray(rawList) ? rawList : [];
@@ -2890,7 +2902,7 @@ function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
   }
 
   const id = normalizeSpriteVariantId(rawVariant.id || rawVariant.game_key || `variant_${fallbackIndex + 1}`);
-  if (!id) {
+  if (!id || isDeprecatedSpriteVariantId(id)) {
     return null;
   }
   const frontPath = resolveSpritePath(jsonPath, rawVariant.front);
@@ -2910,7 +2922,9 @@ function normalizeSpriteVariantEntry(rawVariant, jsonPath, fallbackIndex = 0) {
 }
 
 function getSpriteVariantsForDef(def) {
-  return Array.isArray(def?.spriteVariants) ? def.spriteVariants.filter((entry) => entry?.frontPath) : [];
+  return Array.isArray(def?.spriteVariants)
+    ? def.spriteVariants.filter((entry) => entry?.frontPath && !isDeprecatedSpriteVariantId(entry.id))
+    : [];
 }
 
 function getSpriteVariantById(def, variantId) {
@@ -10933,15 +10947,155 @@ function getTeamSpriteMinRenderSize(layout = state.layout, slotSize = 0) {
 }
 
 function computeLayout() {
-  return getRuntimeRenderSystem().computeLayout();
+  const nextLayout = getRuntimeRenderSystem().computeLayout();
+  state.layoutMode = nextLayout?.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
+  syncCaptureRootLayoutMode(nextLayout);
+  return nextLayout;
 }
 
 function refreshLayoutIfNeeded(options = {}) {
-  return getRuntimeRenderSystem().refreshLayoutIfNeeded(options);
+  const nextLayout = getRuntimeRenderSystem().refreshLayoutIfNeeded(options);
+  state.layoutMode = nextLayout?.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
+  syncCaptureRootLayoutMode(nextLayout);
+  return nextLayout;
 }
 
 function render() {
   return getRuntimeRenderSystem().render();
+}
+
+function getStageProjectionRect() {
+  const stageRect = gameStageEl?.getBoundingClientRect();
+  return {
+    left: Math.max(0, Number(stageRect?.left) || 0),
+    top: Math.max(0, Number(stageRect?.top) || 0),
+    width: Math.max(1, Number(stageRect?.width) || Number(state.viewport?.width) || 1),
+    height: Math.max(1, Number(stageRect?.height) || Number(state.viewport?.height) || 1),
+  };
+}
+
+function syncCaptureRootLayoutMode(layout = state.layout) {
+  if (!captureRootEl) {
+    return;
+  }
+  const layoutMode = String(layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
+  captureRootEl.dataset.layoutMode = layoutMode;
+}
+
+function projectWorldToRuntimeStage(worldX, worldY, options = {}) {
+  const layout = options?.layout || state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
+  return projectWorldToStage({
+    worldX,
+    worldY,
+    viewport: state.viewport,
+    stageRect: getStageProjectionRect(),
+    worldSafeRect: options?.worldSafeRect || layout?.worldSafeRect,
+    preferredPlacement: options?.preferredPlacement,
+  });
+}
+
+function extractClientPointFromArgs(args = []) {
+  const numericArgs = Array.isArray(args)
+    ? args.filter((value) => Number.isFinite(Number(value))).map((value) => Number(value))
+    : [];
+  const count = numericArgs.length;
+  if (count < 2) {
+    return { clientX: 0, clientY: 0 };
+  }
+  return {
+    clientX: numericArgs[count - 2],
+    clientY: numericArgs[count - 1],
+  };
+}
+
+function positionWorldUiElementInStage(element, clientX, clientY, options = {}) {
+  if (!(element instanceof HTMLElement) || !(worldUiLayerEl instanceof HTMLElement)) {
+    return null;
+  }
+  const layout = state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
+  const layoutMode = layout?.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
+  const stageRect = getStageProjectionRect();
+  const rawLocalX = Number(clientX || 0) - stageRect.left;
+  const rawLocalY = Number(clientY || 0) - stageRect.top;
+  const rect = element.getBoundingClientRect();
+  const elementWidth = Math.max(0, Number(rect?.width) || Number(element.offsetWidth) || 0);
+  const elementHeight = Math.max(0, Number(rect?.height) || Number(element.offsetHeight) || 0);
+  const worldSafeRect = layout?.worldSafeRect || {
+    left: 0,
+    top: 0,
+    right: stageRect.width,
+    bottom: stageRect.height,
+  };
+  const margin = layoutMode === "mobilePortrait" ? 12 : 8;
+  const anchorX = rawLocalX + Number(options.offsetX || 0);
+  const anchorY = rawLocalY + Number(options.offsetY || 0);
+  const minLeft = Math.max(0, Number(worldSafeRect.left || 0) + margin);
+  const maxLeft = Math.max(minLeft, Number(worldSafeRect.right || stageRect.width) - elementWidth - margin);
+  const minTop = Math.max(0, Number(worldSafeRect.top || 0) + margin);
+  const maxTop = Math.max(minTop, Number(worldSafeRect.bottom || stageRect.height) - elementHeight - margin);
+  const left = clamp(anchorX, minLeft, maxLeft);
+  const top = clamp(anchorY, minTop, maxTop);
+  element.style.left = `${left}px`;
+  element.style.top = `${top}px`;
+  return { left, top };
+}
+
+function decorateRuntimeUiInteractionSystem(system) {
+  if (!system || system.__stageWorldUiDecorated) {
+    return system;
+  }
+
+  const originalShowHoverPopup =
+    typeof system.showHoverPopup === "function" ? system.showHoverPopup.bind(system) : null;
+  const originalOpenTeamContextMenu =
+    typeof system.openTeamContextMenu === "function" ? system.openTeamContextMenu.bind(system) : null;
+  const originalOpenBallCaptureMenu =
+    typeof system.openBallCaptureMenu === "function" ? system.openBallCaptureMenu.bind(system) : null;
+
+  system.positionFloatingMenuElement = (element, clientX, clientY, options = {}) =>
+    positionWorldUiElementInStage(element, clientX, clientY, options);
+
+  if (originalShowHoverPopup) {
+    system.showHoverPopup = (...args) => {
+      const result = originalShowHoverPopup(...args);
+      const { clientX, clientY } = extractClientPointFromArgs(args);
+      const layoutMode = state.layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
+      positionWorldUiElementInStage(hoverPopupEl, clientX, clientY, {
+        offsetX: layoutMode === "mobilePortrait" ? -18 : 12,
+        offsetY: layoutMode === "mobilePortrait" ? -52 : -24,
+      });
+      return result;
+    };
+  }
+
+  if (originalOpenTeamContextMenu) {
+    system.openTeamContextMenu = (...args) => {
+      const result = originalOpenTeamContextMenu(...args);
+      const { clientX, clientY } = extractClientPointFromArgs(args);
+      positionWorldUiElementInStage(teamContextMenuEl, clientX, clientY, {
+        offsetX: -16,
+        offsetY: 12,
+      });
+      return result;
+    };
+  }
+
+  if (originalOpenBallCaptureMenu) {
+    system.openBallCaptureMenu = (...args) => {
+      const result = originalOpenBallCaptureMenu(...args);
+      const { clientX, clientY } = extractClientPointFromArgs(args);
+      positionWorldUiElementInStage(ballCaptureMenuEl, clientX, clientY, {
+        offsetX: -20,
+        offsetY: 12,
+      });
+      return result;
+    };
+  }
+
+  system.projectWorldToStage = (worldX, worldY, options = {}) =>
+    projectWorldToRuntimeStage(worldX, worldY, options);
+  system.__stageWorldUiDecorated = true;
+  return system;
 }
 
 function update(deltaMs, options = {}) {
@@ -11044,9 +11198,14 @@ function resolveRuntimeUiInteractionBinding(name) {
 
 function getRuntimeUiInteractionSystem() {
   if (!runtimeUiInteractionSystem) {
-    runtimeUiInteractionSystem = createRuntimeUiInteractionSystem({
+    runtimeUiInteractionSystem = decorateRuntimeUiInteractionSystem(createRuntimeUiInteractionSystem({
+      bindings: {
+        captureRootEl,
+        worldUiLayerEl,
+        projectWorldToRuntimeStage,
+      },
       resolveBinding: resolveRuntimeUiInteractionBinding,
-    });
+    }));
   }
   return runtimeUiInteractionSystem;
 }

@@ -1,13 +1,13 @@
 {
-  "version": "0.1.39",
-  "generatedAt": "2026-03-17T09:31:09.297Z",
+  "version": "0.1.40",
+  "generatedAt": "2026-03-17T09:46:37.007Z",
   "files": [
     {
       "id": "windows-installer",
       "label": "Windows installer",
-      "source": "output/electron-dist/PokeIdle-Setup-0.1.39.exe",
+      "source": "output/electron-dist/PokeIdle-Setup-0.1.40.exe",
       "destination": "downloads/PokeIdle-Windows-Installer.exe",
-      "sizeBytes": 88026526
+      "sizeBytes": 88026809
     },
     {
       "id": "android-apk",

@@ -1,10 +1,20 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $runnerPath = Join-Path $PSScriptRoot "invoke-web-game-playwright.ps1"
-$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$actionsPath = Join-Path $codexHome "skills/develop-web-game/references/action_payloads.json"
-$screenshotDir = Join-Path $repoRoot "output/web-game-poke"
+$actionsPath = Join-Path $PSScriptRoot "actions\desktop-landscape.json"
+$screenshotDir = Join-Path $repoRoot "output\web-game-poke\desktop-landscape"
 
-& $runnerPath -RepoRoot $repoRoot -Port 5317 -ActionsPath $actionsPath -ScreenshotDir $screenshotDir -Iterations 3 -PauseMs 250
+& $runnerPath `
+  -RepoRoot $repoRoot `
+  -Port 5317 `
+  -ActionsPath $actionsPath `
+  -ScreenshotDir $screenshotDir `
+  -Iterations 1 `
+  -PauseMs 250 `
+  -ViewportWidth 1366 `
+  -ViewportHeight 768 `
+  -Touch:$false `
+  -DeviceScaleFactor 1
+
 exit $LASTEXITCODE

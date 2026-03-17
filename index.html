@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div id="game-capture-root" class="game-capture-root" data-layout-mode="desktopLandscape">
     <div class="app-root">
       <main class="app-shell">
         <div id="game-stage" class="game-stage">
@@ -21,6 +22,59 @@
             </div>
             <div class="loading-screen-flash" aria-hidden="true"></div>
           </section>
+          <div id="world-ui-layer" class="world-ui-layer" aria-live="polite">
+            <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
+            <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pokemon">
+              <div id="team-context-menu-title" class="team-context-menu-title">Pokemon</div>
+              <button id="team-context-menu-rename" class="team-context-menu-btn" type="button" role="menuitem">
+                Renommer
+              </button>
+              <button id="team-context-menu-boxes" class="team-context-menu-btn" type="button" role="menuitem">
+                Echanger avec la boite
+              </button>
+              <button id="team-context-menu-appearance" class="team-context-menu-btn" type="button" role="menuitem">
+                Changer l'apparence
+              </button>
+            </div>
+            <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="Reglages de capture par ball">
+              <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
+              <button
+                id="ball-capture-toggle-all"
+                class="team-context-menu-btn ball-capture-menu-btn"
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked="true"
+              ></button>
+              <button
+                id="ball-capture-toggle-unowned"
+                class="team-context-menu-btn ball-capture-menu-btn"
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked="true"
+              ></button>
+              <button
+                id="ball-capture-toggle-owned"
+                class="team-context-menu-btn ball-capture-menu-btn"
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked="true"
+              ></button>
+              <button
+                id="ball-capture-toggle-shiny"
+                class="team-context-menu-btn ball-capture-menu-btn"
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked="true"
+              ></button>
+              <button
+                id="ball-capture-toggle-ultra"
+                class="team-context-menu-btn ball-capture-menu-btn"
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked="true"
+              ></button>
+            </div>
+          </div>
           <div class="game-overlay">
             <header class="ui-topbar">
               <div class="route-nav-wrap">
@@ -481,57 +535,6 @@
         <div id="starter-choices" class="starter-choices"></div>
       </div>
     </div>
-    <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
-    <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pokemon">
-      <div id="team-context-menu-title" class="team-context-menu-title">Pokemon</div>
-      <button id="team-context-menu-rename" class="team-context-menu-btn" type="button" role="menuitem">
-        Renommer
-      </button>
-      <button id="team-context-menu-boxes" class="team-context-menu-btn" type="button" role="menuitem">
-        Echanger avec la boite
-      </button>
-      <button id="team-context-menu-appearance" class="team-context-menu-btn" type="button" role="menuitem">
-        Changer l'apparence
-      </button>
-    </div>
-    <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="Reglages de capture par ball">
-      <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
-      <button
-        id="ball-capture-toggle-all"
-        class="team-context-menu-btn ball-capture-menu-btn"
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked="true"
-      ></button>
-      <button
-        id="ball-capture-toggle-unowned"
-        class="team-context-menu-btn ball-capture-menu-btn"
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked="true"
-      ></button>
-      <button
-        id="ball-capture-toggle-owned"
-        class="team-context-menu-btn ball-capture-menu-btn"
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked="true"
-      ></button>
-      <button
-        id="ball-capture-toggle-shiny"
-        class="team-context-menu-btn ball-capture-menu-btn"
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked="true"
-      ></button>
-      <button
-        id="ball-capture-toggle-ultra"
-        class="team-context-menu-btn ball-capture-menu-btn"
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked="true"
-      ></button>
-    </div>
     <section
       id="rename-modal"
       class="rename-modal hidden"
@@ -573,6 +576,8 @@
       </div>
     </section>
     <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
+    </div>
+    </div>
     <script src="vendor/pako.min.js"></script>
     <script src="vendor/upng.js"></script>
     <script src="vendor/omggif.js"></script>

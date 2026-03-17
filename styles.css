@@ -22,6 +22,14 @@
   --text-soft: #4c5f67;
   --text-dark: #1a262d;
   --shadow-strong: 0 18px 44px rgba(5, 18, 25, 0.3);
+  --layer-canvas-world: 1;
+  --layer-stage-frame: 2;
+  --layer-world-ui-passive: 40;
+  --layer-world-ui-interactive: 45;
+  --layer-screen-hud: 50;
+  --layer-panel: 60;
+  --layer-modal: 70;
+  --layer-blocking: 80;
 }
 
 * {
@@ -46,6 +54,14 @@ body {
     radial-gradient(circle at 88% 22%, rgba(114, 211, 195, 0.34), transparent 24%),
     radial-gradient(circle at 50% 100%, rgba(8, 28, 40, 0.58), transparent 42%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 40%, var(--bg-bottom) 100%);
+}
+
+.game-capture-root {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .app-root {
@@ -85,7 +101,7 @@ body {
 }
 
 .game-stage::after {
-  z-index: 2;
+  z-index: var(--layer-stage-frame);
   inset: 14px;
   border: 1px solid rgba(220, 248, 255, 0.1);
   border-radius: 28px;
@@ -95,6 +111,7 @@ body {
 #game-canvas {
   position: absolute;
   inset: 0;
+  z-index: var(--layer-canvas-world);
   display: block;
   border: 0;
   background: #0a1323;
@@ -104,10 +121,17 @@ body {
   user-select: none;
 }
 
+.world-ui-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--layer-world-ui-interactive);
+  pointer-events: none;
+}
+
 .game-overlay {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--layer-screen-hud);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -653,10 +677,10 @@ body {
 }
 
 .notification-stack {
-  position: fixed;
+  position: absolute;
   right: calc(12px + env(safe-area-inset-right));
   bottom: calc(12px + env(safe-area-inset-bottom));
-  z-index: 96;
+  z-index: var(--layer-panel);
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-end;
@@ -2403,7 +2427,7 @@ body {
 }
 
 .hover-popup {
-  position: fixed;
+  position: absolute;
   min-width: 230px;
   max-width: 290px;
   padding: 10px 12px;
@@ -2414,7 +2438,7 @@ body {
   font-size: 13px;
   line-height: 1.35;
   pointer-events: none;
-  z-index: 90;
+  z-index: var(--layer-world-ui-passive);
   box-shadow: 0 14px 30px rgba(2, 8, 17, 0.62);
 }
 
@@ -2425,11 +2449,11 @@ body {
 }
 
 .team-context-menu {
-  position: fixed;
-  width: min(280px, calc(100vw - 16px));
-  min-width: min(240px, calc(100vw - 16px));
-  max-width: calc(100vw - 16px);
-  max-height: calc(100dvh - 16px);
+  position: absolute;
+  width: min(280px, calc(100% - 16px), calc(100vw - 16px));
+  min-width: min(240px, calc(100% - 16px), calc(100vw - 16px));
+  max-width: min(calc(100% - 16px), calc(100vw - 16px));
+  max-height: min(calc(100% - 16px), calc(100dvh - 16px));
   padding: 8px;
   border-radius: 14px;
   border: 1px solid rgba(168, 223, 255, 0.34);
@@ -2439,10 +2463,11 @@ body {
   box-shadow:
     0 20px 36px rgba(3, 9, 18, 0.58),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  z-index: 95;
+  z-index: var(--layer-world-ui-interactive);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  pointer-events: auto;
 }
 
 .team-context-menu-title {
@@ -2492,7 +2517,7 @@ body {
 }
 
 .ball-capture-menu {
-  min-width: min(220px, calc(100vw - 16px));
+  min-width: min(220px, calc(100% - 16px), calc(100vw - 16px));
   max-width: 270px;
   padding: 6px;
 }
@@ -2592,6 +2617,33 @@ body {
 .team-context-menu,
 .ball-capture-menu {
   will-change: opacity, transform, filter;
+}
+
+#game-capture-root .action-dock-fullscreen-menu {
+  z-index: var(--layer-panel);
+}
+
+#game-capture-root .map-modal,
+#game-capture-root .shop-modal,
+#game-capture-root .gacha-modal,
+#game-capture-root .evolution-item-modal,
+#game-capture-root .boxes-modal,
+#game-capture-root .appearance-modal,
+#game-capture-root .rename-modal,
+#game-capture-root .tutorial-modal {
+  z-index: var(--layer-modal);
+}
+
+#game-capture-root .starter-modal {
+  z-index: var(--layer-blocking);
+}
+
+#game-capture-root[data-layout-mode="desktopLandscape"] {
+  --stage-inline-padding: 8px;
+}
+
+#game-capture-root[data-layout-mode="mobilePortrait"] {
+  --stage-inline-padding: 10px;
 }
 
 @media (max-width: 1180px) {

@@ -6173,3 +6173,77 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - Artifacts:
     - `output/playwright/desktop-background-runtime/report.json`
     - `output/playwright/desktop-background-runtime/restored-window.png`
+
+## Additional progress (post-Unknown-Cave missing spawn hardening - 2026-03-17)
+- Fixed an endgame crash where the post-Unknown-Cave encounter mapping could sometimes select a Pokemon that had no usable loaded definition/sprite at spawn time, leaving combat with a blank enemy and crashing follow-up render code.
+- Root cause:
+  - the new post-Unknown-Cave CSV itself was valid, but runtime spawn selection could still keep an unusable encounter candidate instead of falling back to another valid one;
+  - the offline Pokedex sprite fallback still defaulted to `emerald`, which produced bogus 404s for species that only ship `ruby_sapphire` art locally;
+  - the render placeholder path assumed `entity.nameFr` was always a string and could throw when a broken enemy payload slipped through.
+- Fix:
+  - hardened `systems/encounter/route-encounter-combat-system.js` so route enemy creation now validates the picked encounter and falls back to another loaded/drawable encounter when needed;
+  - normalized fallback enemy names so placeholder rendering always receives a safe string;
+  - switched the offline default sprite variant in `systems/ui/runtime-ui-interaction-system.js` from `emerald` to `ruby_sapphire`;
+  - hardened the render fallback initial in `systems/ui/runtime-render-system.js` so missing names no longer crash the placeholder path.
+- Regression coverage:
+  - extended `tests/route-encounter-combat-system.test.mjs` with missing-definition and missing-drawable-sprite fallback cases;
+  - added source-locked checks in `tests/runtime-render-system.test.mjs` and `tests/runtime-ui-interaction-system.test.mjs` for the safe placeholder initial and `ruby_sapphire` offline default.
+- Validation:
+  - `npm test`: PASS.
+  - `npm run test:node`: PASS (114/114).
+  - `powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/check.ps1`: PASS.
+  - Playwright artifacts:
+    - `output/web-game-poke/desktop-landscape/stage.png`
+    - `output/web-game-poke/desktop-landscape/state.json`
+    - `output/web-game-poke/desktop-landscape/errors.json` (`[]`).
+
+## Additional progress (desktop/mobile UI gallery capture - 2026-03-17)
+- Extended `scripts/testing/playwright/web-game-playwright-client.mjs` so selector-driven UI flows can:
+  - click DOM controls safely, including a DOM-click fallback when CSS visibility blocks Playwright's normal click path;
+  - wait for selector states explicitly;
+  - emit named screenshots/state snapshots for gallery-style captures.
+- Added reusable gallery scenarios:
+  - `scripts/testing/playwright/actions/desktop-ui-gallery.json`
+  - `scripts/testing/playwright/actions/mobile-ui-gallery.json`
+- Added reusable launchers:
+  - `scripts/testing/playwright/desktop-ui-gallery.ps1`
+  - `scripts/testing/playwright/mobile-ui-gallery.ps1`
+- Added npm shortcuts:
+  - `npm run test:visual:gallery:desktop`
+  - `npm run test:visual:gallery:mobile`
+  - `npm run test:visual:gallery`
+- Added regression coverage in `tests/web-game-playwright-client.test.mjs`.
+- Validation:
+  - `node --test tests/web-game-playwright-client.test.mjs`: PASS.
+  - `npm run test:visual:gallery`: PASS.
+  - Desktop gallery artifacts:
+    - `output/ui-state-gallery/desktop-landscape/idle.png`
+    - `output/ui-state-gallery/desktop-landscape/map.png`
+    - `output/ui-state-gallery/desktop-landscape/shop.png`
+    - `output/ui-state-gallery/desktop-landscape/gacha.png`
+  - Mobile gallery artifacts:
+    - `output/ui-state-gallery/mobile-portrait/idle.png`
+  - `output/ui-state-gallery/mobile-portrait/menu.png`
+  - `output/ui-state-gallery/mobile-portrait/map.png`
+  - `output/ui-state-gallery/mobile-portrait/shop.png`
+  - `errors.json` is `[]` for both gallery runs.
+
+## Additional progress (deprecated Pokemon sprite variant handling - 2026-03-17)
+- Removed `emerald` from all default/prioritized sprite-variant preference lists in `lib/pokedex-display-config.js`.
+- Added a centralized deprecated-variant registry so runtime can explicitly reject retired sprite ids instead of trying to select/load them.
+- Hardened `game-runtime.js` so:
+  - deprecated sprite variants are discarded during normalization;
+  - deprecated sprite variants are filtered out of runtime lookups before ownership/selection reconciliation runs.
+- Kept the deprecation flow targeted to confirmed retired ids (`emerald`) so we do not accidentally purge still-used classic or `custom_*` variants without a deliberate product list.
+- Regression coverage:
+  - added `tests/pokedex-display-config.test.mjs`;
+  - verified preference lists no longer include `emerald`;
+  - verified runtime normalization/lookup source paths reject deprecated variant ids.
+- Validation:
+  - `node --test tests/pokedex-display-config.test.mjs tests/runtime-ui-interaction-system.test.mjs`: PASS.
+  - `npm test`: PASS (127/127 aggregate checks across node + vitest).
+  - `powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/check.ps1`: PASS.
+  - Playwright artifacts:
+    - `output/web-game-poke/desktop-landscape/stage.png`
+    - `output/web-game-poke/desktop-landscape/state.json`
+    - `output/web-game-poke/desktop-landscape/errors.json` (`[]`).
