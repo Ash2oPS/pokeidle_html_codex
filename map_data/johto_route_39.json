@@ -1,0 +1,179 @@
+{
+  "route_id": "johto_route_39",
+  "route_name_fr": "Route 39 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-39",
+  "background_image": "assets/backgrounds/johto_route_39_hgss.png",
+  "map_marker": {
+    "x": 68.33,
+    "y": 55.56
+  },
+  "encounters": [
+    {
+      "id": 83,
+      "name_en": "farfetchd",
+      "name_fr": "Canarticho",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 16,
+      "max_level": 16
+    },
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 16,
+      "max_level": 17
+    },
+    {
+      "id": 241,
+      "name_en": "miltank",
+      "name_fr": "Écrémeuh",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 15,
+      "max_level": 15
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 50,
+      "min_level": 16,
+      "max_level": 17
+    },
+    {
+      "id": 81,
+      "name_en": "magnemite",
+      "name_fr": "Magnéti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 16,
+      "max_level": 16
+    },
+    {
+      "id": 52,
+      "name_en": "meowth",
+      "name_fr": "Miaouss",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 60,
+      "min_level": 16,
+      "max_level": 16
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 16,
+      "max_level": 17
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 16,
+      "max_level": 17
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 60,
+      "min_level": 16,
+      "max_level": 16
+    },
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "name_fr": "Rattatac",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 17,
+      "max_level": 17
+    },
+    {
+      "id": 128,
+      "name_en": "tauros",
+      "name_fr": "Tauros",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 15,
+      "max_level": 15
+    }
+  ],
+  "encounter_species_count_source": 12,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-39.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

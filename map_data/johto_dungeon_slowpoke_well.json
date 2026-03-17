@@ -1,0 +1,110 @@
+{
+  "route_id": "johto_dungeon_slowpoke_well",
+  "route_name_fr": "Puits RAMOLOSS (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "slowpoke-well",
+  "source_location_areas": [
+    "slowpoke-well-1f",
+    "slowpoke-well-b1f"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_slowpoke_well_hgss.png",
+  "encounters": [
+    {
+      "id": 79,
+      "name_en": "slowpoke",
+      "name_fr": "Ramoloss",
+      "methods": [
+        "surf",
+        "walk"
+      ],
+      "spawn_weight": 60,
+      "min_level": 5,
+      "max_level": 25
+    },
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 23
+    },
+    {
+      "id": 119,
+      "name_en": "seaking",
+      "name_fr": "Poissoroy",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 10,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 80,
+      "name_en": "slowbro",
+      "name_fr": "Flagadoss",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 5,
+      "min_level": 15,
+      "max_level": 30
+    },
+    {
+      "id": 42,
+      "name_en": "golbat",
+      "name_fr": "Nosferalto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 23,
+      "max_level": 23
+    }
+  ],
+  "encounter_species_count_source": 7,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 37.5,
+    "y": 80.28
+  }
+}

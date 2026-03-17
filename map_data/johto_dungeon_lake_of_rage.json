@@ -1,0 +1,55 @@
+{
+  "route_id": "johto_dungeon_lake_of_rage",
+  "route_name_fr": "Lac Colere (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "lake-of-rage",
+  "source_location_areas": [
+    "lake-of-rage-area"
+  ],
+  "background_image": "assets/backgrounds/kanto_route_24_frlg.png",
+  "encounters": [
+    {
+      "id": 130,
+      "name_en": "gyarados",
+      "name_fr": "Léviator",
+      "methods": [
+        "good-rod",
+        "only-one",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 100,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 5,
+      "max_level": 40
+    }
+  ],
+  "encounter_species_count_source": 2,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 72.5,
+    "y": 27.22
+  }
+}

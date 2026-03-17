@@ -1,0 +1,223 @@
+{
+  "route_id": "johto_route_45",
+  "route_name_fr": "Route 45 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-45",
+  "background_image": "assets/backgrounds/johto_route_45_hgss.png",
+  "map_marker": {
+    "x": 85,
+    "y": 24.44
+  },
+  "encounters": [
+    {
+      "id": 227,
+      "name_en": "skarmory",
+      "name_fr": "Airmure",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 27,
+      "max_level": 27
+    },
+    {
+      "id": 190,
+      "name_en": "aipom",
+      "name_fr": "Capumain",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 23,
+      "max_level": 24
+    },
+    {
+      "id": 190,
+      "name_en": "aipom",
+      "name_fr": "Capumain",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 26,
+      "max_level": 27
+    },
+    {
+      "id": 75,
+      "name_en": "graveler",
+      "name_fr": "Gravalanch",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 48,
+      "min_level": 23,
+      "max_level": 27
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 85,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 20,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 100,
+      "min_level": 2,
+      "max_level": 25
+    },
+    {
+      "id": 231,
+      "name_en": "phanpy",
+      "name_fr": "Phanpy",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 23,
+      "max_level": 24
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 80,
+      "min_level": 26,
+      "max_level": 27
+    },
+    {
+      "id": 60,
+      "name_en": "poliwag",
+      "name_fr": "Ptitard",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 60,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 60,
+      "name_en": "poliwag",
+      "name_fr": "Ptitard",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 15,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 60,
+      "name_en": "poliwag",
+      "name_fr": "Ptitard",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 80,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 23,
+      "max_level": 23
+    },
+    {
+      "id": 214,
+      "name_en": "heracross",
+      "name_fr": "Scarhino",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 23,
+      "max_level": 25
+    },
+    {
+      "id": 207,
+      "name_en": "gligar",
+      "name_fr": "Scorplane",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 24,
+      "max_level": 24
+    },
+    {
+      "id": 216,
+      "name_en": "teddiursa",
+      "name_fr": "Teddiursa",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 20,
+      "max_level": 20
+    }
+  ],
+  "encounter_species_count_source": 11,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-45.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

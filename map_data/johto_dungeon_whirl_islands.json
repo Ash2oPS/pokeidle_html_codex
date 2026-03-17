@@ -1,0 +1,160 @@
+{
+  "route_id": "johto_dungeon_whirl_islands",
+  "route_name_fr": "Tourb'Iles (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "whirl-islands",
+  "source_location_areas": [
+    "whirl-islands-1f",
+    "whirl-islands-b1f",
+    "whirl-islands-empty-floor-x",
+    "whirl-islands-b2f",
+    "whirl-islands-empty-floor-y",
+    "whirl-islands-b3f"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_whirl_islands_hgss.png",
+  "encounters": [
+    {
+      "id": 249,
+      "name_en": "lugia",
+      "name_fr": "Lugia",
+      "methods": [
+        "only-one"
+      ],
+      "spawn_weight": 100,
+      "min_level": 45,
+      "max_level": 70
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 15,
+      "max_level": 25
+    },
+    {
+      "id": 116,
+      "name_en": "horsea",
+      "name_fr": "Hypotrempe",
+      "methods": [
+        "good-rod",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 98,
+      "name_en": "krabby",
+      "name_fr": "Krabby",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 20
+    },
+    {
+      "id": 73,
+      "name_en": "tentacruel",
+      "name_fr": "Tentacruel",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 25
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 23,
+      "max_level": 24
+    },
+    {
+      "id": 99,
+      "name_en": "kingler",
+      "name_fr": "Krabboss",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 15,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 117,
+      "name_en": "seadra",
+      "name_fr": "Hypocéan",
+      "methods": [
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 10,
+      "min_level": 15,
+      "max_level": 40
+    },
+    {
+      "id": 86,
+      "name_en": "seel",
+      "name_fr": "Otaria",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 22,
+      "max_level": 25
+    },
+    {
+      "id": 42,
+      "name_en": "golbat",
+      "name_fr": "Nosferalto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 23,
+      "max_level": 24
+    }
+  ],
+  "encounter_species_count_source": 11,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 75.42,
+    "y": 72.22
+  }
+}

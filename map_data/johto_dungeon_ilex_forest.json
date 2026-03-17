@@ -1,0 +1,152 @@
+{
+  "route_id": "johto_dungeon_ilex_forest",
+  "route_name_fr": "Bois aux Chenes (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "ilex-forest",
+  "source_location_areas": [
+    "ilex-forest-area"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_ilex_forest_hgss.png",
+  "encounters": [
+    {
+      "id": 54,
+      "name_en": "psyduck",
+      "name_fr": "Psykokwak",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 5,
+      "max_level": 20
+    },
+    {
+      "id": 60,
+      "name_en": "poliwag",
+      "name_fr": "Ptitard",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 10,
+      "name_en": "caterpie",
+      "name_fr": "Chenipan",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 11,
+      "name_en": "metapod",
+      "name_fr": "Chrysacier",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 13,
+      "name_en": "weedle",
+      "name_fr": "Aspicot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 14,
+      "name_en": "kakuna",
+      "name_fr": "Coconfort",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 43,
+      "name_en": "oddish",
+      "name_fr": "Mystherbe",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 46,
+      "name_en": "paras",
+      "name_fr": "Paras",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 5,
+      "max_level": 6
+    },
+    {
+      "id": 55,
+      "name_en": "golduck",
+      "name_fr": "Akwakwak",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 5,
+      "min_level": 10,
+      "max_level": 20
+    }
+  ],
+  "encounter_species_count_source": 11,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 42.08,
+    "y": 88.06
+  }
+}

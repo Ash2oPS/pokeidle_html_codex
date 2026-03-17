@@ -6197,6 +6197,51 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/web-game-poke/desktop-landscape/state.json`
     - `output/web-game-poke/desktop-landscape/errors.json` (`[]`).
 
+## Additional progress (projectile easing out cubic - 2026-03-17)
+- Updated projectile travel tween in `lib/ui-animation-runtime.js` so projectile speed now follows a cubic-out profile instead of cubic-in.
+- Added regression coverage in `tests/ui-animation-runtime.test.mjs` to lock the projectile tween easing choice.
+- Validation:
+  - `node --test tests/ui-animation-runtime.test.mjs`: PASS.
+  - Develop-web-game browser verification with the skill client: PASS.
+  - Confirmed in `output/projectile-out-cubic-tight/state-6.json` that `active_projectiles` reaches `1`.
+  - Captured clearer mid-flight projectile frames in:
+    - `output/projectile-out-cubic-midflight/shot-1.png`
+    - `output/projectile-out-cubic-midflight/state-1.json`
+
+## Additional progress (combat cadence through KO/respawn - 2026-03-17)
+- Tightened non-capture KO timings in `lib/combat-balance-config.js` and centralized enemy enter animation timings there as well.
+- Updated `systems/combat/pokemon-battle-manager.js` so:
+  - the attack timer keeps advancing during non-capture downtime instead of freezing;
+  - enemy enter animation is now visual-only and no longer blocks attacks/hits/timers;
+  - capture attempts still pause the cadence as an explicit exception.
+- Added runtime regression coverage in `tests/pokemon-battle-runtime.test.mjs` for:
+  - preserved attack cadence through non-capture respawn;
+  - paused cadence during capture sequence.
+- Validation:
+  - `node --check lib/combat-balance-config.js`: PASS.
+  - `node --check systems/combat/pokemon-battle-manager.js`: PASS.
+  - `node --check game-runtime.js`: PASS.
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS.
+  - `npm run test:node`: PASS (125/125).
+  - Browser cadence verification without capture attempts: PASS.
+  - Key artifacts:
+    - `output/combat-cadence-seq/tick-03.png`
+    - `output/combat-cadence-seq/tick-03.json`
+    - `output/combat-cadence-seq/tick-04.png`
+    - `output/combat-cadence-seq/tick-04.json`
+    - `output/combat-cadence-seq/tick-07.png`
+    - `output/combat-cadence-seq/tick-07.json`
+
+## Additional progress (projectile speed x1.75 - 2026-03-17)
+- Increased projectile travel speed target by `1.75x` in `lib/combat-balance-config.js`.
+- Adjusted projectile tween duration clamps proportionally as well so short/long trajectories keep the same faster feel instead of being partially capped by the old limits.
+- Validation:
+  - `node --check lib/combat-balance-config.js`: PASS.
+  - `node --check game-runtime.js`: PASS.
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS.
+  - Browser validation currently blocked by an unrelated runtime import error already present in the worktree:
+    - `SyntaxError: The requested module './lib/game-world-config.js' does not provide an export named 'POST_UNKNOWN_CAVE_MAPPING_POPUP_MESSAGE'`
+
 ## Additional progress (desktop/mobile UI gallery capture - 2026-03-17)
 - Extended `scripts/testing/playwright/web-game-playwright-client.mjs` so selector-driven UI flows can:
   - click DOM controls safely, including a DOM-click fallback when CSS visibility blocks Playwright's normal click path;
@@ -6247,3 +6292,82 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/web-game-poke/desktop-landscape/stage.png`
     - `output/web-game-poke/desktop-landscape/state.json`
     - `output/web-game-poke/desktop-landscape/errors.json` (`[]`).
+
+## Additional progress (Johto full integration after Unknown Cave - 2026-03-17)
+- Integrated a full Johto progression slice after `kanto_dungeon_cerulean_cave` in `lib/game-world-config.js`, so the first post-Unknown-Cave unlock is now `johto_route_29`.
+- Added a Johto generation pipeline:
+  - `scripts/map/generate-johto-hgss-source-of-truth.mjs`
+  - `scripts/map/generate-johto-hgss-zones.mjs`
+  - `npm run zone:johto:generate`
+- Generated and wired Johto runtime data/assets:
+  - route JSON files `map_data/johto_route_29.json` through `map_data/johto_route_48.json`
+  - town/dungeon JSON files under `map_data/johto_*`
+  - catalog `map_data/johto_hgss_zones.json`
+  - source/reference artifacts `map_data/johto_hgss_source_of_truth.*` and `map_data/johto_hgss_runtime_subset.*`
+  - placeholder Johto map/background assets under `assets/maps/` and `assets/backgrounds/`
+- Updated the map modal/runtime to support multiple regions instead of a Kanto-only reference image:
+  - Johto routes resolve to the Johto reference map asset and copy strings.
+  - Kanto and Johto markers are filtered per active region so the current map no longer mixes both regions together.
+- Added regression coverage in `tests/johto-integration.test.mjs` to lock:
+  - `johto_route_29` immediately after Unknown Cave in `ROUTE_ID_ORDER`
+  - Johto catalog/order sync
+  - Johto zone payload validation
+  - existing background/marker references
+  - non-combat handling for empty encounter zones
+- Validation:
+  - `npm run zone:johto:generate`: PASS.
+  - `node --check scripts/map/generate-johto-hgss-zones.mjs`: PASS.
+  - `node --check game-runtime.js`: PASS.
+  - `npm run test:node`: PASS.
+  - `npm test`: PASS.
+  - Develop-web-game smoke with bundled client: PASS.
+  - Smoke artifacts:
+    - `output/johto-integration-smoke/shot-0.png`
+    - `output/johto-integration-smoke/state-0.json`
+    - `output/johto-ui-smoke-clear/full-page-clear.png`
+    - `output/johto-ui-smoke-clear/diagnostics.json`
+- Notes / TODO:
+  - Johto visual assets are currently placeholder art/map markers; gameplay/data wiring is in place but final production art can still replace these files later without changing runtime structure.
+  - A forced-save Playwright attempt to jump directly onto Johto for a region-switched map screenshot was normalized back to Kanto by runtime save repair/load rules, so a clean visual proof of the Johto map modal still needs either a legitimate progression seed or a dedicated debug hook.
+
+## Additional progress (remove post-Unknown-Cave encounter remap - 2026-03-17)
+- Removed the entire post-Unknown-Cave Kanto encounter remap pipeline from live runtime code:
+  - deleted the alternate CSV constant and popup message from `lib/game-world-config.js`
+  - removed dedicated remap state from `lib/game-runtime-state.js`
+  - stopped bootstrap from loading or activating any secondary post-cave encounter dataset in `core/runtime-bootstrap-system.js`
+  - removed the remap/popup activation flow from `systems/ui/runtime-ui-interaction-system.js`
+  - patched `game-runtime.js` as well because `game.js` consumes it directly
+- Deleted obsolete artifacts:
+  - `map_data/kanto_zone_encounters_post_unknown_cave.csv`
+  - `scripts/map/generate-post-unknown-cave-encounters.mjs`
+  - `tests/post-unknown-cave-encounters.test.mjs`
+- Added regression coverage in `tests/post-unknown-cave-removal.test.mjs` to lock:
+  - no runtime/config source references to the removed post-cave remap
+  - obsolete post-cave mapping files remain deleted
+- Product assumption kept intentionally:
+  - Johto progression after `kanto_dungeon_cerulean_cave` stays intact
+  - Pokédex/Gacha extended-range unlock tied to Unknown Cave stays intact so Johto content remains visible/usable
+- Validation:
+  - `node --check game-runtime.js`: PASS
+  - `node --check core/runtime-bootstrap-system.js`: PASS
+  - `node --check systems/ui/runtime-ui-interaction-system.js`: PASS
+  - `npm run test:node`: PASS
+  - `npm test`: PASS
+
+## Additional progress (Johto route backgrounds HGSS + Kanto blur parity - 2026-03-17)
+- Added `scripts/refresh_johto_hgss_route_backgrounds_with_blur.py`.
+  - Downloads official route map PNGs for Johto routes 29-48 from Bulbagarden Archives via the MediaWiki API.
+  - Applies the same subtle blur profile used by the Kanto refresh script (`GaussianBlur radius 2.0`, blend alpha `0.25`).
+  - Refreshes both the main route assets (`johto_route_<n>_hgss.png`) and the legacy sea aliases for routes 40/41.
+- Replaced the route placeholder backgrounds in `assets/backgrounds/` with actual HGSS route map art in place, so existing Johto route JSON files continue to work without runtime changes.
+- Validation:
+  - `python scripts/refresh_johto_hgss_route_backgrounds_with_blur.py`: PASS (20/20 route jobs).
+  - Browser visual verification via seeded Playwright fights: PASS.
+  - Refreshed artifacts:
+    - `output/johto-fight-screens/johto-route-29-combat-clean.png`
+    - `output/johto-fight-screens/johto-route-35-combat.png`
+    - `output/johto-fight-screens/johto-route-40-combat.png`
+    - `output/johto-fight-screens/johto-route-47-combat.png`
+  - `output/johto-fight-screens/errors.json`: `[]`
+- Notes / TODO:
+  - This pass only replaced Johto route backgrounds. Several Johto city/dungeon assets are still placeholder art or Kanto fallbacks and can be refreshed next with the same pipeline approach.

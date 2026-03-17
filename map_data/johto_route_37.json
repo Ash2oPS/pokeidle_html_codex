@@ -1,0 +1,190 @@
+{
+  "route_id": "johto_route_37",
+  "route_name_fr": "Route 37 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-37",
+  "background_image": "assets/backgrounds/johto_route_37_hgss.png",
+  "map_marker": {
+    "x": 59.17,
+    "y": 62.22
+  },
+  "encounters": [
+    {
+      "id": 58,
+      "name_en": "growlithe",
+      "name_fr": "Caninos",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 25,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 234,
+      "name_en": "stantler",
+      "name_fr": "Cerfrousse",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 15
+    },
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 17
+    },
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 13,
+      "max_level": 15
+    },
+    {
+      "id": 37,
+      "name_en": "vulpix",
+      "name_fr": "Goupix",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 25,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 12,
+      "max_level": 14
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 50,
+      "min_level": 15,
+      "max_level": 17
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 13,
+      "max_level": 15
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 17
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 40,
+      "min_level": 13,
+      "max_level": 15
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 12,
+      "max_level": 14
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 15,
+      "max_level": 17
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 12,
+      "max_level": 14
+    },
+    {
+      "id": 16,
+      "name_en": "pidgey",
+      "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 90,
+      "min_level": 13,
+      "max_level": 15
+    },
+    {
+      "id": 17,
+      "name_en": "pidgeotto",
+      "name_fr": "Roucoups",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 15,
+      "max_level": 15
+    }
+  ],
+  "encounter_species_count_source": 10,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-37.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

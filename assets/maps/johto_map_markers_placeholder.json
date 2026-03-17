@@ -1,0 +1,105 @@
+{
+  "map_image": "assets/maps/johto_map_placeholder.png",
+  "markers": [
+    {
+      "route_id": "johto_route_29",
+      "x": 11.67,
+      "y": 84.44
+    },
+    {
+      "route_id": "johto_route_30",
+      "x": 17.5,
+      "y": 73.33
+    },
+    {
+      "route_id": "johto_route_31",
+      "x": 23.75,
+      "y": 65.56
+    },
+    {
+      "route_id": "johto_route_32",
+      "x": 29.17,
+      "y": 71.11
+    },
+    {
+      "route_id": "johto_route_33",
+      "x": 34.17,
+      "y": 78.33
+    },
+    {
+      "route_id": "johto_route_34",
+      "x": 39.17,
+      "y": 85.56
+    },
+    {
+      "route_id": "johto_route_35",
+      "x": 46.67,
+      "y": 77.78
+    },
+    {
+      "route_id": "johto_route_36",
+      "x": 53.33,
+      "y": 68.89
+    },
+    {
+      "route_id": "johto_route_37",
+      "x": 59.17,
+      "y": 62.22
+    },
+    {
+      "route_id": "johto_route_38",
+      "x": 63.33,
+      "y": 57.78
+    },
+    {
+      "route_id": "johto_route_39",
+      "x": 68.33,
+      "y": 55.56
+    },
+    {
+      "route_id": "johto_route_40",
+      "x": 73.33,
+      "y": 62.22
+    },
+    {
+      "route_id": "johto_route_41",
+      "x": 78.33,
+      "y": 67.78
+    },
+    {
+      "route_id": "johto_route_42",
+      "x": 63.33,
+      "y": 46.67
+    },
+    {
+      "route_id": "johto_route_43",
+      "x": 71.67,
+      "y": 37.78
+    },
+    {
+      "route_id": "johto_route_44",
+      "x": 78.33,
+      "y": 31.11
+    },
+    {
+      "route_id": "johto_route_45",
+      "x": 85.0,
+      "y": 24.44
+    },
+    {
+      "route_id": "johto_route_46",
+      "x": 20.42,
+      "y": 57.78
+    },
+    {
+      "route_id": "johto_route_47",
+      "x": 86.67,
+      "y": 57.78
+    },
+    {
+      "route_id": "johto_route_48",
+      "x": 90.42,
+      "y": 65.0
+    }
+  ]
+}

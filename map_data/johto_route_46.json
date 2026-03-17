@@ -1,0 +1,113 @@
+{
+  "route_id": "johto_route_46",
+  "route_name_fr": "Route 46 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-46",
+  "background_image": "assets/backgrounds/johto_route_46_hgss.png",
+  "map_marker": {
+    "x": 20.42,
+    "y": 57.78
+  },
+  "encounters": [
+    {
+      "id": 190,
+      "name_en": "aipom",
+      "name_fr": "Capumain",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 190,
+      "name_en": "aipom",
+      "name_fr": "Capumain",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 80,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 35,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 75,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 80,
+      "min_level": 2,
+      "max_level": 4
+    },
+    {
+      "id": 214,
+      "name_en": "heracross",
+      "name_fr": "Scarhino",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 2,
+      "max_level": 3
+    }
+  ],
+  "encounter_species_count_source": 5,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-46.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

@@ -1,0 +1,134 @@
+{
+  "route_id": "johto_dungeon_dark_cave",
+  "route_name_fr": "Antre Noir (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "dark-cave",
+  "source_location_areas": [
+    "dark-cave-violet-city-entrance",
+    "dark-cave-blackthorn-city-entrance"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_dark_cave_hgss.png",
+  "encounters": [
+    {
+      "id": 206,
+      "name_en": "dunsparce",
+      "name_fr": "Insolourdo",
+      "methods": [
+        "rock-smash",
+        "walk"
+      ],
+      "spawn_weight": 90,
+      "min_level": 4,
+      "max_level": 8
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 2,
+      "max_level": 40
+    },
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 2,
+      "max_level": 23
+    },
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "rock-smash",
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 2,
+      "max_level": 23
+    },
+    {
+      "id": 75,
+      "name_en": "graveler",
+      "name_fr": "Gravalanch",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 25,
+      "max_level": 25
+    },
+    {
+      "id": 119,
+      "name_en": "seaking",
+      "name_fr": "Poissoroy",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 10,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 202,
+      "name_en": "wobbuffet",
+      "name_fr": "Qulbutoké",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 20,
+      "max_level": 25
+    },
+    {
+      "id": 42,
+      "name_en": "golbat",
+      "name_fr": "Nosferalto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 23,
+      "max_level": 23
+    }
+  ],
+  "encounter_species_count_source": 9,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 82.92,
+    "y": 20.83
+  }
+}

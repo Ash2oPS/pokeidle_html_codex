@@ -1,0 +1,388 @@
+{
+  "route_id": "johto_route_47",
+  "route_name_fr": "Route 47 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-47",
+  "background_image": "assets/backgrounds/johto_route_47_hgss.png",
+  "map_marker": {
+    "x": 86.67,
+    "y": 57.78
+  },
+  "encounters": [
+    {
+      "id": 83,
+      "name_en": "farfetchd",
+      "name_fr": "Canarticho",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 35,
+      "max_level": 35
+    },
+    {
+      "id": 11,
+      "name_en": "metapod",
+      "name_fr": "Chrysacier",
+      "methods": [
+        "headbutt_special"
+      ],
+      "spawn_weight": 50,
+      "min_level": 25,
+      "max_level": 28
+    },
+    {
+      "id": 14,
+      "name_en": "kakuna",
+      "name_fr": "Coconfort",
+      "methods": [
+        "headbutt_special"
+      ],
+      "spawn_weight": 50,
+      "min_level": 25,
+      "max_level": 28
+    },
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 17,
+      "max_level": 18
+    },
+    {
+      "id": 15,
+      "name_en": "beedrill",
+      "name_fr": "Dardargnan",
+      "methods": [
+        "headbutt_special"
+      ],
+      "spawn_weight": 30,
+      "min_level": 25,
+      "max_level": 28
+    },
+    {
+      "id": 241,
+      "name_en": "miltank",
+      "name_fr": "Écrémeuh",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 35,
+      "max_level": 35
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 50,
+      "min_level": 17,
+      "max_level": 18
+    },
+    {
+      "id": 90,
+      "name_en": "shellder",
+      "name_fr": "Kokiyas",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 10,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 90,
+      "name_en": "shellder",
+      "name_fr": "Kokiyas",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 30,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 171,
+      "name_en": "lanturn",
+      "name_fr": "Lanturn",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 10,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 170,
+      "name_en": "chinchou",
+      "name_fr": "Loupio",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 20,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 170,
+      "name_en": "chinchou",
+      "name_fr": "Loupio",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 85,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 132,
+      "name_en": "ditto",
+      "name_fr": "Métamorph",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 41,
+      "min_level": 31,
+      "max_level": 40
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 17,
+      "max_level": 18
+    },
+    {
+      "id": 164,
+      "name_en": "noctowl",
+      "name_fr": "Noarfang",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 35,
+      "max_level": 35
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 17,
+      "max_level": 18
+    },
+    {
+      "id": 44,
+      "name_en": "gloom",
+      "name_fr": "Ortide",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 32,
+      "max_level": 32
+    },
+    {
+      "id": 86,
+      "name_en": "seel",
+      "name_fr": "Otaria",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 30,
+      "min_level": 10,
+      "max_level": 20
+    },
+    {
+      "id": 12,
+      "name_en": "butterfree",
+      "name_fr": "Papilusion",
+      "methods": [
+        "headbutt_special"
+      ],
+      "spawn_weight": 30,
+      "min_level": 25,
+      "max_level": 28
+    },
+    {
+      "id": 21,
+      "name_en": "spearow",
+      "name_fr": "Piafabec",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 31,
+      "max_level": 31
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 16
+    },
+    {
+      "id": 22,
+      "name_en": "fearow",
+      "name_fr": "Rapasdepic",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 34,
+      "max_level": 34
+    },
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "name_fr": "Rattatac",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 31,
+      "max_level": 33
+    },
+    {
+      "id": 214,
+      "name_en": "heracross",
+      "name_fr": "Scarhino",
+      "methods": [
+        "headbutt_special"
+      ],
+      "spawn_weight": 20,
+      "min_level": 25,
+      "max_level": 30
+    },
+    {
+      "id": 120,
+      "name_en": "staryu",
+      "name_fr": "Stari",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 10,
+      "min_level": 15,
+      "max_level": 25
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 30,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 15,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 15,
+      "max_level": 25
+    },
+    {
+      "id": 73,
+      "name_en": "tentacruel",
+      "name_fr": "Tentacruel",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 20,
+      "min_level": 40,
+      "max_level": 40
+    }
+  ],
+  "encounter_species_count_source": 26,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-47.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

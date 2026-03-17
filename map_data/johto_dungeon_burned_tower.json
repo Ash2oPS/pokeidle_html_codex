@@ -1,0 +1,83 @@
+{
+  "route_id": "johto_dungeon_burned_tower",
+  "route_name_fr": "Tour Cendree (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "burned-tower",
+  "source_location_areas": [
+    "burned-tower-1f",
+    "burned-tower-b1f"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_burned_tower_hgss.png",
+  "encounters": [
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 13,
+      "max_level": 16
+    },
+    {
+      "id": 109,
+      "name_en": "koffing",
+      "name_fr": "Smogo",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 14,
+      "max_level": 15
+    },
+    {
+      "id": 126,
+      "name_en": "magmar",
+      "name_fr": "Magmar",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "name_fr": "Rattatac",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 15,
+      "max_level": 15
+    }
+  ],
+  "encounter_species_count_source": 5,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 59.58,
+    "y": 52.78
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "route_id": "johto_dungeon_mt_mortar",
+  "route_name_fr": "Mont Creuset (Johto)",
+  "zone_type": "dungeon",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "mt-mortar",
+  "source_location_areas": [
+    "mt-mortar-1f",
+    "mt-mortar-lower-cave",
+    "mt-mortar-upper-cave",
+    "mt-mortar-b1f"
+  ],
+  "background_image": "assets/backgrounds/johto_dungeon_mt_mortar_hgss.png",
+  "encounters": [
+    {
+      "id": 236,
+      "name_en": "tyrogue",
+      "name_fr": "Debugant",
+      "methods": [
+        "gift"
+      ],
+      "spawn_weight": 100,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 118,
+      "name_en": "goldeen",
+      "name_fr": "Poissirène",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod",
+        "old-rod",
+        "super-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 10,
+      "max_level": 40
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 13,
+      "max_level": 17
+    },
+    {
+      "id": 66,
+      "name_en": "machop",
+      "name_fr": "Machoc",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 13,
+      "max_level": 28
+    },
+    {
+      "id": 67,
+      "name_en": "machoke",
+      "name_fr": "Machopeur",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 32,
+      "max_level": 32
+    },
+    {
+      "id": 74,
+      "name_en": "geodude",
+      "name_fr": "Racaillou",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 13,
+      "max_level": 31
+    },
+    {
+      "id": 75,
+      "name_en": "graveler",
+      "name_fr": "Gravalanch",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 20,
+      "min_level": 31,
+      "max_level": 31
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 14,
+      "max_level": 16
+    },
+    {
+      "id": 119,
+      "name_en": "seaking",
+      "name_fr": "Poissoroy",
+      "methods": [
+        "super-rod",
+        "surf"
+      ],
+      "spawn_weight": 10,
+      "min_level": 15,
+      "max_level": 40
+    },
+    {
+      "id": 20,
+      "name_en": "raticate",
+      "name_fr": "Rattatac",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 16,
+      "max_level": 30
+    },
+    {
+      "id": 42,
+      "name_en": "golbat",
+      "name_fr": "Nosferalto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 4,
+      "min_level": 30,
+      "max_level": 30
+    },
+    {
+      "id": 183,
+      "name_en": "marill",
+      "name_fr": "Marill",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 1,
+      "min_level": 15,
+      "max_level": 15
+    }
+  ],
+  "encounter_species_count_source": 13,
+  "generated_from": "pokeapi (HGSS standard encounters only)",
+  "generated_at_utc": "2026-03-17T13:27:35.676Z",
+  "unlock_timer_ms": 20000,
+  "map_marker": {
+    "x": 67.08,
+    "y": 44.44
+  }
+}

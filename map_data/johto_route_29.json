@@ -1,0 +1,146 @@
+{
+  "route_id": "johto_route_29",
+  "route_name_fr": "Route 29 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-29",
+  "background_image": "assets/backgrounds/johto_route_29_hgss.png",
+  "map_marker": {
+    "x": 11.67,
+    "y": 84.44
+  },
+  "encounters": [
+    {
+      "id": 165,
+      "name_en": "ledyba",
+      "name_fr": "Coxy",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 161,
+      "name_en": "sentret",
+      "name_fr": "Fouinette",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 70,
+      "min_level": 2,
+      "max_level": 4
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 50,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 85,
+      "min_level": 2,
+      "max_level": 4
+    },
+    {
+      "id": 167,
+      "name_en": "spinarak",
+      "name_fr": "Mimigal",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 30,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 2,
+      "max_level": 3
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 23,
+      "min_level": 2,
+      "max_level": 4
+    },
+    {
+      "id": 16,
+      "name_en": "pidgey",
+      "name_fr": "Roucool",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 55,
+      "min_level": 2,
+      "max_level": 4
+    }
+  ],
+  "encounter_species_count_source": 8,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-29.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}

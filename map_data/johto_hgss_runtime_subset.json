@@ -1,0 +1,5422 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-03-17T14:50:34.565Z",
+  "source_reference": "map_data/johto_hgss_source_of_truth.json",
+  "route_number_range": {
+    "start": 29,
+    "end": 48
+  },
+  "games_union": "heartgold+soulsilver",
+  "exclusions": {
+    "category_excluded": [
+      "radio_conditional",
+      "other_conditional",
+      "static"
+    ],
+    "include_only_standard_rows": true,
+    "include_only_representable_runtime_encounters": true
+  },
+  "routes": [
+    {
+      "route_number": 29,
+      "route_key": "johto_route_29",
+      "route_name_en": "Route 29",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-29.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 161,
+          "pokemon_name_en": "sentret",
+          "pokemon_name_fr": "Fouinette",
+          "pokemon_name_site": "Sentret",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 70,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 23,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 55,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 30,
+      "route_key": "johto_route_30",
+      "route_name_en": "Route 30",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-30.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 13,
+          "pokemon_name_en": "weedle",
+          "pokemon_name_fr": "Aspicot",
+          "pokemon_name_site": "Weedle",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 85,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 10,
+          "pokemon_name_en": "caterpie",
+          "pokemon_name_fr": "Chenipan",
+          "pokemon_name_site": "Caterpie",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 85,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 11,
+          "pokemon_name_en": "metapod",
+          "pokemon_name_fr": "Chrysacier",
+          "pokemon_name_site": "Metapod",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 25,
+          "min_level": 4,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Morning"
+          ]
+        },
+        {
+          "pokemon_id": 14,
+          "pokemon_name_en": "kakuna",
+          "pokemon_name_fr": "Coconfort",
+          "pokemon_name_site": "Kakuna",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 25,
+          "min_level": 4,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Morning"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 3,
+          "max_level": 3,
+          "condition_texts": [
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 45,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 2,
+          "max_level": 2,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 75,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Day",
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 61,
+          "pokemon_name_en": "poliwhirl",
+          "pokemon_name_fr": "Têtarte",
+          "pokemon_name_site": "Poliwhirl",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 32,
+          "condition_texts": [
+            "Poliwhirl"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 31,
+      "route_key": "johto_route_31",
+      "route_name_en": "Route 31",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-31.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 13,
+          "pokemon_name_en": "weedle",
+          "pokemon_name_fr": "Aspicot",
+          "pokemon_name_site": "Weedle",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 55,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 10,
+          "pokemon_name_en": "caterpie",
+          "pokemon_name_fr": "Chenipan",
+          "pokemon_name_site": "Caterpie",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 35,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 69,
+          "pokemon_name_en": "bellsprout",
+          "pokemon_name_fr": "Chétiflor",
+          "pokemon_name_site": "Bellsprout",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 3,
+          "max_level": 3,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 11,
+          "pokemon_name_en": "metapod",
+          "pokemon_name_fr": "Chrysacier",
+          "pokemon_name_site": "Metapod",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 15,
+          "min_level": 5,
+          "max_level": 5,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 14,
+          "pokemon_name_en": "kakuna",
+          "pokemon_name_fr": "Coconfort",
+          "pokemon_name_site": "Kakuna",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 25,
+          "min_level": 5,
+          "max_level": 5,
+          "condition_texts": [
+            "Day",
+            "Morning"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 5,
+          "max_level": 6,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 4,
+          "condition_texts": [
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 5,
+          "max_level": 6,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 25,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 5,
+          "max_level": 6,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 3,
+          "max_level": 3,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 5,
+          "max_level": 6,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 3,
+          "max_level": 4,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 3,
+          "max_level": 5,
+          "condition_texts": [
+            "Day",
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 61,
+          "pokemon_name_en": "poliwhirl",
+          "pokemon_name_fr": "Têtarte",
+          "pokemon_name_site": "Poliwhirl",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 32,
+          "condition_texts": [
+            "Poliwhirl"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 32,
+      "route_key": "johto_route_32",
+      "route_name_en": "Route 32",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-32.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 23,
+          "pokemon_name_en": "ekans",
+          "pokemon_name_fr": "Abo",
+          "pokemon_name_site": "Ekans",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 4,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 194,
+          "pokemon_name_en": "wooper",
+          "pokemon_name_fr": "Axoloto",
+          "pokemon_name_site": "Wooper",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 6,
+          "max_level": 6,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 69,
+          "pokemon_name_en": "bellsprout",
+          "pokemon_name_fr": "Chétiflor",
+          "pokemon_name_site": "Bellsprout",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 6,
+          "max_level": 6,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 187,
+          "pokemon_name_en": "hoppip",
+          "pokemon_name_fr": "Granivol",
+          "pokemon_name_site": "Hoppip",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 6,
+          "max_level": 6,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime",
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 195,
+          "pokemon_name_en": "quagsire",
+          "pokemon_name_fr": "Maraiste",
+          "pokemon_name_site": "Quagsire",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Quagsire"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 41,
+          "pokemon_name_en": "zubat",
+          "pokemon_name_fr": "Nosferapti",
+          "pokemon_name_site": "Zubat",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 4,
+          "max_level": 4,
+          "condition_texts": [
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 211,
+          "pokemon_name_en": "qwilfish",
+          "pokemon_name_fr": "Qwilfish",
+          "pokemon_name_site": "Qwilfish",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 211,
+          "pokemon_name_en": "qwilfish",
+          "pokemon_name_fr": "Qwilfish",
+          "pokemon_name_site": "Qwilfish",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 4,
+          "max_level": 6,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Night",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 55,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime",
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 70,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 10,
+          "max_level": 20,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 36,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        },
+        {
+          "pokemon_id": 179,
+          "pokemon_name_en": "mareep",
+          "pokemon_name_fr": "Wattouat",
+          "pokemon_name_site": "Mareep",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 6,
+          "max_level": 6,
+          "condition_texts": [
+            "Morning, Day, Radio: Off",
+            "Night"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 33,
+      "route_key": "johto_route_33",
+      "route_name_en": "Route 33",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-33.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 23,
+          "pokemon_name_en": "ekans",
+          "pokemon_name_fr": "Abo",
+          "pokemon_name_site": "Ekans",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 7,
+          "max_level": 7,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 3,
+          "max_level": 5,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 6,
+          "max_level": 8,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 187,
+          "pokemon_name_en": "hoppip",
+          "pokemon_name_fr": "Granivol",
+          "pokemon_name_site": "Hoppip",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 6,
+          "max_level": 8,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 41,
+          "pokemon_name_en": "zubat",
+          "pokemon_name_fr": "Nosferapti",
+          "pokemon_name_site": "Zubat",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 45,
+          "min_level": 4,
+          "max_level": 8,
+          "condition_texts": [
+            "Morning",
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 3,
+          "max_level": 5,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 6,
+          "max_level": 8,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 6,
+          "max_level": 6,
+          "condition_texts": [
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 75,
+          "min_level": 4,
+          "max_level": 7,
+          "condition_texts": [
+            "Day",
+            "Morning, Day, Radio: Off",
+            "Morning, Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 3,
+          "max_level": 5,
+          "condition_texts": [
+            "Heracross"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 34,
+      "route_key": "johto_route_34",
+      "route_name_en": "Route 34",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-34.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 63,
+          "pokemon_name_en": "abra",
+          "pokemon_name_fr": "Abra",
+          "pokemon_name_site": "Abra",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 222,
+          "pokemon_name_en": "corsola",
+          "pokemon_name_fr": "Corayon",
+          "pokemon_name_site": "Corsola",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 222,
+          "pokemon_name_en": "corsola",
+          "pokemon_name_fr": "Corayon",
+          "pokemon_name_site": "Corsola",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 11,
+          "max_level": 12,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 9,
+          "max_level": 10,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 11,
+          "max_level": 12,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 99,
+          "pokemon_name_en": "kingler",
+          "pokemon_name_fr": "Krabboss",
+          "pokemon_name_site": "Kingler",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 132,
+          "pokemon_name_en": "ditto",
+          "pokemon_name_fr": "Métamorph",
+          "pokemon_name_site": "Ditto",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 11,
+          "max_level": 12,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 9,
+          "max_level": 10,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 11,
+          "max_level": 12,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 9,
+          "max_level": 10,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 11,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime",
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 96,
+          "pokemon_name_en": "drowzee",
+          "pokemon_name_fr": "Soporifik",
+          "pokemon_name_site": "Drowzee",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 10,
+          "max_level": 12,
+          "condition_texts": [
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name_en": "staryu",
+          "pokemon_name_fr": "Stari",
+          "pokemon_name_site": "Staryu",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name_en": "staryu",
+          "pokemon_name_fr": "Stari",
+          "pokemon_name_site": "Staryu",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 29,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 35,
+      "route_key": "johto_route_35",
+      "route_name_en": "Route 35",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-35.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 63,
+          "pokemon_name_en": "abra",
+          "pokemon_name_fr": "Abra",
+          "pokemon_name_site": "Abra",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 55,
+          "pokemon_name_en": "golduck",
+          "pokemon_name_fr": "Akwakwak",
+          "pokemon_name_site": "Golduck",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 31,
+          "condition_texts": [
+            "Golduck"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 10,
+          "max_level": 11,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 14,
+          "max_level": 14,
+          "condition_texts": [
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 132,
+          "pokemon_name_en": "ditto",
+          "pokemon_name_fr": "Métamorph",
+          "pokemon_name_site": "Ditto",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 4,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 29,
+          "pokemon_name_en": "nidoran-f",
+          "pokemon_name_fr": "Nidoran♀",
+          "pokemon_name_site": "Nidoran♀",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 12,
+          "max_level": 12,
+          "condition_texts": [
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 32,
+          "pokemon_name_en": "nidoran-m",
+          "pokemon_name_fr": "Nidoran♂",
+          "pokemon_name_site": "Nidoran♂",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 12,
+          "max_level": 12,
+          "condition_texts": [
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 10,
+          "max_level": 11,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 10,
+          "max_level": 11,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 54,
+          "pokemon_name_en": "psyduck",
+          "pokemon_name_fr": "Psykokwak",
+          "pokemon_name_site": "Psyduck",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Psyduck"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 14,
+          "max_level": 14,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 96,
+          "pokemon_name_en": "drowzee",
+          "pokemon_name_fr": "Soporifik",
+          "pokemon_name_site": "Drowzee",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 14,
+          "max_level": 14,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 193,
+          "pokemon_name_en": "yanma",
+          "pokemon_name_fr": "Yanma",
+          "pokemon_name_site": "Yanma",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 1,
+          "min_level": 12,
+          "max_level": 12,
+          "condition_texts": [
+            "Anytime"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 36,
+      "route_key": "johto_route_36",
+      "route_name_en": "Route 36",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-36.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 58,
+          "pokemon_name_en": "growlithe",
+          "pokemon_name_fr": "Caninos",
+          "pokemon_name_site": "Growlithe",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 25,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Day",
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 234,
+          "pokemon_name_en": "stantler",
+          "pokemon_name_fr": "Cerfrousse",
+          "pokemon_name_site": "Stantler",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 13,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 37,
+          "pokemon_name_en": "vulpix",
+          "pokemon_name_fr": "Goupix",
+          "pokemon_name_site": "Vulpix",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 25,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Day",
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 25,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 29,
+          "pokemon_name_en": "nidoran-f",
+          "pokemon_name_fr": "Nidoran♀",
+          "pokemon_name_site": "Nidoran♀",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 12,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime",
+            "Day, Night, Radio: Off",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 32,
+          "pokemon_name_en": "nidoran-m",
+          "pokemon_name_fr": "Nidoran♂",
+          "pokemon_name_site": "Nidoran♂",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 12,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime",
+            "Day, Night, Radio: Off",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 6,
+          "max_level": 7,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 45,
+          "min_level": 12,
+          "max_level": 15,
+          "condition_texts": [
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 37,
+      "route_key": "johto_route_37",
+      "route_name_en": "Route 37",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-37.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 58,
+          "pokemon_name_en": "growlithe",
+          "pokemon_name_fr": "Caninos",
+          "pokemon_name_site": "Growlithe",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 25,
+          "min_level": 14,
+          "max_level": 15,
+          "condition_texts": [
+            "Day",
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 234,
+          "pokemon_name_en": "stantler",
+          "pokemon_name_fr": "Cerfrousse",
+          "pokemon_name_site": "Stantler",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 40,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 37,
+          "pokemon_name_en": "vulpix",
+          "pokemon_name_fr": "Goupix",
+          "pokemon_name_site": "Vulpix",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 25,
+          "min_level": 14,
+          "max_level": 15,
+          "condition_texts": [
+            "Day",
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 12,
+          "max_level": 14,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 40,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 12,
+          "max_level": 14,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 12,
+          "max_level": 14,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name_en": "pidgey",
+          "pokemon_name_fr": "Roucool",
+          "pokemon_name_site": "Pidgey",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Day",
+            "Day, Radio: Off",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 17,
+          "pokemon_name_en": "pidgeotto",
+          "pokemon_name_fr": "Roucoups",
+          "pokemon_name_site": "Pidgeotto",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Day"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 38,
+      "route_key": "johto_route_38",
+      "route_name_en": "Route 38",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-38.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "headbutt_special",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 83,
+          "pokemon_name_en": "farfetchd",
+          "pokemon_name_fr": "Canarticho",
+          "pokemon_name_site": "Farfetch'd",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 412,
+          "pokemon_name_en": "burmy",
+          "pokemon_name_fr": "Cheniti",
+          "pokemon_name_site": "Burmy (Plant)",
+          "method": "headbutt_special",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 18,
+          "max_level": 25,
+          "condition_texts": [
+            "Burmy (Plant)"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 241,
+          "pokemon_name_en": "miltank",
+          "pokemon_name_fr": "Écrémeuh",
+          "pokemon_name_site": "Miltank",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 13,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 81,
+          "pokemon_name_en": "magnemite",
+          "pokemon_name_fr": "Magnéti",
+          "pokemon_name_site": "Magnemite",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 52,
+          "pokemon_name_en": "meowth",
+          "pokemon_name_fr": "Miaouss",
+          "pokemon_name_site": "Meowth",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 40,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Day, Night, Radio: Off",
+            "Morning, Night",
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_special",
+          "availability": "both",
+          "spawn_weight": 65,
+          "min_level": 18,
+          "max_level": 25,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 40,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Night",
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 20,
+          "pokemon_name_en": "raticate",
+          "pokemon_name_fr": "Rattatac",
+          "pokemon_name_site": "Raticate",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 209,
+          "pokemon_name_en": "snubbull",
+          "pokemon_name_fr": "Snubbull",
+          "pokemon_name_site": "Snubbull",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 1,
+          "min_level": 13,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 128,
+          "pokemon_name_en": "tauros",
+          "pokemon_name_fr": "Tauros",
+          "pokemon_name_site": "Tauros",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 4,
+          "min_level": 13,
+          "max_level": 13,
+          "condition_texts": [
+            "Anytime"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 39,
+      "route_key": "johto_route_39",
+      "route_name_en": "Route 39",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-39.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 83,
+          "pokemon_name_en": "farfetchd",
+          "pokemon_name_fr": "Canarticho",
+          "pokemon_name_site": "Farfetch'd",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Day",
+            "Morning",
+            "Morning, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 16,
+          "max_level": 17,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 241,
+          "pokemon_name_en": "miltank",
+          "pokemon_name_fr": "Écrémeuh",
+          "pokemon_name_site": "Miltank",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 14,
+          "max_level": 15,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 16,
+          "max_level": 17,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 81,
+          "pokemon_name_en": "magnemite",
+          "pokemon_name_fr": "Magnéti",
+          "pokemon_name_site": "Magnemite",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 52,
+          "pokemon_name_en": "meowth",
+          "pokemon_name_fr": "Miaouss",
+          "pokemon_name_site": "Meowth",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 60,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Day",
+            "Day, Night, Radio: Off",
+            "Morning, Night"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 16,
+          "max_level": 17,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 14,
+          "max_level": 15,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 16,
+          "max_level": 17,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 14,
+          "max_level": 15,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 60,
+          "min_level": 16,
+          "max_level": 16,
+          "condition_texts": [
+            "Morning, Day",
+            "Night",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 20,
+          "pokemon_name_en": "raticate",
+          "pokemon_name_fr": "Rattatac",
+          "pokemon_name_site": "Raticate",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 17,
+          "max_level": 17,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 128,
+          "pokemon_name_en": "tauros",
+          "pokemon_name_fr": "Tauros",
+          "pokemon_name_site": "Tauros",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 40,
+      "route_key": "johto_route_40",
+      "route_name_en": "Route 40",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-40.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 222,
+          "pokemon_name_en": "corsola",
+          "pokemon_name_fr": "Corayon",
+          "pokemon_name_site": "Corsola",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 222,
+          "pokemon_name_en": "corsola",
+          "pokemon_name_fr": "Corayon",
+          "pokemon_name_site": "Corsola",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 99,
+          "pokemon_name_en": "kingler",
+          "pokemon_name_fr": "Krabboss",
+          "pokemon_name_site": "Kingler",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 98,
+          "pokemon_name_en": "krabby",
+          "pokemon_name_fr": "Krabby",
+          "pokemon_name_site": "Krabby",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name_en": "staryu",
+          "pokemon_name_fr": "Stari",
+          "pokemon_name_site": "Staryu",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name_en": "staryu",
+          "pokemon_name_fr": "Stari",
+          "pokemon_name_site": "Staryu",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 41,
+      "route_key": "johto_route_41",
+      "route_name_en": "Route 41",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-41.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "old-rod",
+        "super-rod",
+        "surf"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 226,
+          "pokemon_name_en": "mantine",
+          "pokemon_name_fr": "Démanta",
+          "pokemon_name_site": "Mantine",
+          "method": "surf",
+          "availability": "heartgold",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 90,
+          "pokemon_name_en": "shellder",
+          "pokemon_name_fr": "Kokiyas",
+          "pokemon_name_site": "Shellder",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Shellder"
+          ]
+        },
+        {
+          "pokemon_id": 90,
+          "pokemon_name_en": "shellder",
+          "pokemon_name_fr": "Kokiyas",
+          "pokemon_name_site": "Shellder",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Shellder"
+          ]
+        },
+        {
+          "pokemon_id": 171,
+          "pokemon_name_en": "lanturn",
+          "pokemon_name_fr": "Lanturn",
+          "pokemon_name_site": "Lanturn",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Lanturn"
+          ]
+        },
+        {
+          "pokemon_id": 170,
+          "pokemon_name_en": "chinchou",
+          "pokemon_name_fr": "Loupio",
+          "pokemon_name_site": "Chinchou",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Chinchou"
+          ]
+        },
+        {
+          "pokemon_id": 170,
+          "pokemon_name_en": "chinchou",
+          "pokemon_name_fr": "Loupio",
+          "pokemon_name_site": "Chinchou",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Chinchou"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 75,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 42,
+      "route_key": "johto_route_42",
+      "route_name_en": "Route 42",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-42.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 56,
+          "pokemon_name_en": "mankey",
+          "pokemon_name_fr": "Férosinge",
+          "pokemon_name_site": "Mankey",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 180,
+          "pokemon_name_en": "flaaffy",
+          "pokemon_name_fr": "Lainergie",
+          "pokemon_name_site": "Flaaffy",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 41,
+          "pokemon_name_en": "zubat",
+          "pokemon_name_fr": "Nosferapti",
+          "pokemon_name_site": "Zubat",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 14,
+          "max_level": 16,
+          "condition_texts": [
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 14,
+          "max_level": 16,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 118,
+          "pokemon_name_en": "goldeen",
+          "pokemon_name_fr": "Poissirène",
+          "pokemon_name_site": "Goldeen",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Goldeen"
+          ]
+        },
+        {
+          "pokemon_id": 118,
+          "pokemon_name_en": "goldeen",
+          "pokemon_name_fr": "Poissirène",
+          "pokemon_name_site": "Goldeen",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Goldeen"
+          ]
+        },
+        {
+          "pokemon_id": 118,
+          "pokemon_name_en": "goldeen",
+          "pokemon_name_fr": "Poissirène",
+          "pokemon_name_site": "Goldeen",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 70,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Goldeen"
+          ]
+        },
+        {
+          "pokemon_id": 118,
+          "pokemon_name_en": "goldeen",
+          "pokemon_name_fr": "Poissirène",
+          "pokemon_name_site": "Goldeen",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 10,
+          "max_level": 25,
+          "condition_texts": [
+            "Goldeen"
+          ]
+        },
+        {
+          "pokemon_id": 119,
+          "pokemon_name_en": "seaking",
+          "pokemon_name_fr": "Poissoroy",
+          "pokemon_name_site": "Seaking",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Seaking"
+          ]
+        },
+        {
+          "pokemon_id": 119,
+          "pokemon_name_en": "seaking",
+          "pokemon_name_fr": "Poissoroy",
+          "pokemon_name_site": "Seaking",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Seaking"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 13,
+          "max_level": 14,
+          "condition_texts": [
+            "Heracross"
+          ]
+        },
+        {
+          "pokemon_id": 179,
+          "pokemon_name_en": "mareep",
+          "pokemon_name_fr": "Wattouat",
+          "pokemon_name_site": "Mareep",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 13,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 43,
+      "route_key": "johto_route_43",
+      "route_name_en": "Route 43",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-43.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 203,
+          "pokemon_name_en": "girafarig",
+          "pokemon_name_fr": "Girafarig",
+          "pokemon_name_site": "Girafarig",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 15,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 65,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 180,
+          "pokemon_name_en": "flaaffy",
+          "pokemon_name_fr": "Lainergie",
+          "pokemon_name_site": "Flaaffy",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "Day",
+            "Morning, Night",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 100,
+          "min_level": 5,
+          "max_level": 50,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 48,
+          "pokemon_name_en": "venonat",
+          "pokemon_name_fr": "Mimitoss",
+          "pokemon_name_site": "Venonat",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Venonat"
+          ]
+        },
+        {
+          "pokemon_id": 48,
+          "pokemon_name_en": "venonat",
+          "pokemon_name_fr": "Mimitoss",
+          "pokemon_name_site": "Venonat",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 17,
+          "condition_texts": [
+            "Morning",
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 164,
+          "pokemon_name_en": "noctowl",
+          "pokemon_name_fr": "Noarfang",
+          "pokemon_name_site": "Noctowl",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 17,
+          "condition_texts": [
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 17,
+          "pokemon_name_en": "pidgeotto",
+          "pokemon_name_fr": "Roucoups",
+          "pokemon_name_site": "Pidgeotto",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 25,
+          "min_level": 17,
+          "max_level": 17,
+          "condition_texts": [
+            "Morning",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 179,
+          "pokemon_name_en": "mareep",
+          "pokemon_name_fr": "Wattouat",
+          "pokemon_name_site": "Mareep",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Morning, Day",
+            "Night"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 44,
+      "route_key": "johto_route_44",
+      "route_name_en": "Route 44",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-44.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 70,
+          "pokemon_name_en": "weepinbell",
+          "pokemon_name_fr": "Boustiflor",
+          "pokemon_name_site": "Weepinbell",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 22,
+          "max_level": 24,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 21,
+          "max_level": 22,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 23,
+          "max_level": 24,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 69,
+          "pokemon_name_en": "bellsprout",
+          "pokemon_name_fr": "Chétiflor",
+          "pokemon_name_site": "Bellsprout",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 22,
+          "max_level": 22,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 108,
+          "pokemon_name_en": "lickitung",
+          "pokemon_name_fr": "Excelangue",
+          "pokemon_name_site": "Lickitung",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 24,
+          "max_level": 26,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime",
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 21,
+          "max_level": 22,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 23,
+          "max_level": 24,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 55,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime",
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 70,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 90,
+          "min_level": 15,
+          "max_level": 30,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 223,
+          "pokemon_name_en": "remoraid",
+          "pokemon_name_fr": "Rémoraid",
+          "pokemon_name_site": "Remoraid",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 223,
+          "pokemon_name_en": "remoraid",
+          "pokemon_name_fr": "Rémoraid",
+          "pokemon_name_site": "Remoraid",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 114,
+          "pokemon_name_en": "tangela",
+          "pokemon_name_fr": "Saquedeneu",
+          "pokemon_name_site": "Tangela",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 23,
+          "max_level": 23,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 21,
+          "max_level": 22,
+          "condition_texts": [
+            "Heracross"
+          ]
+        },
+        {
+          "pokemon_id": 61,
+          "pokemon_name_en": "poliwhirl",
+          "pokemon_name_fr": "Têtarte",
+          "pokemon_name_site": "Poliwhirl",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 30,
+          "condition_texts": [
+            "Poliwhirl"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 45,
+      "route_key": "johto_route_45",
+      "route_name_en": "Route 45",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-45.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 227,
+          "pokemon_name_en": "skarmory",
+          "pokemon_name_fr": "Airmure",
+          "pokemon_name_site": "Skarmory",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 5,
+          "min_level": 27,
+          "max_level": 27,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 23,
+          "max_level": 24,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 26,
+          "max_level": 27,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 75,
+          "pokemon_name_en": "graveler",
+          "pokemon_name_fr": "Gravalanch",
+          "pokemon_name_site": "Graveler",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 48,
+          "min_level": 23,
+          "max_level": 27,
+          "condition_texts": [
+            "Anytime",
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 100,
+          "min_level": 2,
+          "max_level": 25,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 231,
+          "pokemon_name_en": "phanpy",
+          "pokemon_name_fr": "Phanpy",
+          "pokemon_name_site": "Phanpy",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 23,
+          "max_level": 24,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 26,
+          "max_level": 27,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 60,
+          "pokemon_name_en": "poliwag",
+          "pokemon_name_fr": "Ptitard",
+          "pokemon_name_site": "Poliwag",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Poliwag"
+          ]
+        },
+        {
+          "pokemon_id": 74,
+          "pokemon_name_en": "geodude",
+          "pokemon_name_fr": "Racaillou",
+          "pokemon_name_site": "Geodude",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 23,
+          "max_level": 23,
+          "condition_texts": [
+            "No swarm",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 23,
+          "max_level": 25,
+          "condition_texts": [
+            "Heracross"
+          ]
+        },
+        {
+          "pokemon_id": 207,
+          "pokemon_name_en": "gligar",
+          "pokemon_name_fr": "Scorplane",
+          "pokemon_name_site": "Gligar",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 20,
+          "min_level": 24,
+          "max_level": 24,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 216,
+          "pokemon_name_en": "teddiursa",
+          "pokemon_name_fr": "Teddiursa",
+          "pokemon_name_site": "Teddiursa",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 46,
+      "route_key": "johto_route_46",
+      "route_name_en": "Route 46",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-46.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name_en": "aipom",
+          "pokemon_name_fr": "Capumain",
+          "pokemon_name_site": "Aipom",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Aipom"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 4,
+          "max_level": 5,
+          "condition_texts": [
+            "Spearow"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 35,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 74,
+          "pokemon_name_en": "geodude",
+          "pokemon_name_fr": "Racaillou",
+          "pokemon_name_site": "Geodude",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 75,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Morning, Day",
+            "Night",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 19,
+          "pokemon_name_en": "rattata",
+          "pokemon_name_fr": "Rattata",
+          "pokemon_name_site": "Rattata",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 80,
+          "min_level": 2,
+          "max_level": 4,
+          "condition_texts": [
+            "Morning, Day",
+            "Morning, Day, Radio: Off",
+            "Night",
+            "Night, Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 2,
+          "max_level": 3,
+          "condition_texts": [
+            "Heracross"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 47,
+      "route_key": "johto_route_47",
+      "route_name_en": "Route 47",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-47.html",
+      "runtime_methods_present": [
+        "good-rod",
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "headbutt_special",
+        "old-rod",
+        "super-rod",
+        "surf",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 83,
+          "pokemon_name_en": "farfetchd",
+          "pokemon_name_fr": "Canarticho",
+          "pokemon_name_site": "Farfetch'd",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 35,
+          "max_level": 35,
+          "condition_texts": [
+            "Morning, Day, No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 11,
+          "pokemon_name_en": "metapod",
+          "pokemon_name_fr": "Chrysacier",
+          "pokemon_name_site": "Metapod",
+          "method": "headbutt_special",
+          "availability": "heartgold",
+          "spawn_weight": 50,
+          "min_level": 25,
+          "max_level": 28,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 14,
+          "pokemon_name_en": "kakuna",
+          "pokemon_name_fr": "Coconfort",
+          "pokemon_name_site": "Kakuna",
+          "method": "headbutt_special",
+          "availability": "soulsilver",
+          "spawn_weight": 50,
+          "min_level": 25,
+          "max_level": 28,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 15,
+          "pokemon_name_en": "beedrill",
+          "pokemon_name_fr": "Dardargnan",
+          "pokemon_name_site": "Beedrill",
+          "method": "headbutt_special",
+          "availability": "soulsilver",
+          "spawn_weight": 30,
+          "min_level": 25,
+          "max_level": 28,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 241,
+          "pokemon_name_en": "miltank",
+          "pokemon_name_fr": "Écrémeuh",
+          "pokemon_name_site": "Miltank",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 35,
+          "max_level": 35,
+          "condition_texts": [
+            "No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 90,
+          "pokemon_name_en": "shellder",
+          "pokemon_name_fr": "Kokiyas",
+          "pokemon_name_site": "Shellder",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Shellder"
+          ]
+        },
+        {
+          "pokemon_id": 90,
+          "pokemon_name_en": "shellder",
+          "pokemon_name_fr": "Kokiyas",
+          "pokemon_name_site": "Shellder",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Shellder"
+          ]
+        },
+        {
+          "pokemon_id": 171,
+          "pokemon_name_en": "lanturn",
+          "pokemon_name_fr": "Lanturn",
+          "pokemon_name_site": "Lanturn",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Lanturn"
+          ]
+        },
+        {
+          "pokemon_id": 170,
+          "pokemon_name_en": "chinchou",
+          "pokemon_name_fr": "Loupio",
+          "pokemon_name_site": "Chinchou",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Chinchou"
+          ]
+        },
+        {
+          "pokemon_id": 170,
+          "pokemon_name_en": "chinchou",
+          "pokemon_name_fr": "Loupio",
+          "pokemon_name_site": "Chinchou",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Chinchou"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 40,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name_en": "magikarp",
+          "pokemon_name_fr": "Magicarpe",
+          "pokemon_name_site": "Magikarp",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 85,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Magikarp"
+          ]
+        },
+        {
+          "pokemon_id": 132,
+          "pokemon_name_en": "ditto",
+          "pokemon_name_fr": "Métamorph",
+          "pokemon_name_site": "Ditto",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 41,
+          "min_level": 31,
+          "max_level": 40,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 164,
+          "pokemon_name_en": "noctowl",
+          "pokemon_name_fr": "Noarfang",
+          "pokemon_name_site": "Noctowl",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 35,
+          "max_level": 35,
+          "condition_texts": [
+            "Night, No swarm"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 44,
+          "pokemon_name_en": "gloom",
+          "pokemon_name_fr": "Ortide",
+          "pokemon_name_site": "Gloom",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 32,
+          "max_level": 32,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 86,
+          "pokemon_name_en": "seel",
+          "pokemon_name_fr": "Otaria",
+          "pokemon_name_site": "Seel",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 10,
+          "max_level": 20,
+          "condition_texts": [
+            "Seel"
+          ]
+        },
+        {
+          "pokemon_id": 12,
+          "pokemon_name_en": "butterfree",
+          "pokemon_name_fr": "Papilusion",
+          "pokemon_name_site": "Butterfree",
+          "method": "headbutt_special",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 25,
+          "max_level": 28,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 21,
+          "pokemon_name_en": "spearow",
+          "pokemon_name_fr": "Piafabec",
+          "pokemon_name_site": "Spearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 31,
+          "max_level": 31,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 22,
+          "pokemon_name_en": "fearow",
+          "pokemon_name_fr": "Rapasdepic",
+          "pokemon_name_site": "Fearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 4,
+          "min_level": 34,
+          "max_level": 34,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 20,
+          "pokemon_name_en": "raticate",
+          "pokemon_name_fr": "Rattatac",
+          "pokemon_name_site": "Raticate",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 31,
+          "max_level": 33,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name_en": "heracross",
+          "pokemon_name_fr": "Scarhino",
+          "pokemon_name_site": "Heracross",
+          "method": "headbutt_special",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 25,
+          "max_level": 30,
+          "condition_texts": [
+            "Heracross"
+          ]
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name_en": "staryu",
+          "pokemon_name_fr": "Stari",
+          "pokemon_name_site": "Staryu",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Staryu"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "good-rod",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "old-rod",
+          "availability": "both",
+          "spawn_weight": 15,
+          "min_level": 10,
+          "max_level": 10,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name_en": "tentacool",
+          "pokemon_name_fr": "Tentacool",
+          "pokemon_name_site": "Tentacool",
+          "method": "surf",
+          "availability": "both",
+          "spawn_weight": 60,
+          "min_level": 15,
+          "max_level": 25,
+          "condition_texts": [
+            "Tentacool"
+          ]
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name_en": "tentacruel",
+          "pokemon_name_fr": "Tentacruel",
+          "pokemon_name_site": "Tentacruel",
+          "method": "super-rod",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 40,
+          "max_level": 40,
+          "condition_texts": [
+            "Tentacruel"
+          ]
+        }
+      ]
+    },
+    {
+      "route_number": 48,
+      "route_key": "johto_route_48",
+      "route_name_en": "Route 48",
+      "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-48.html",
+      "runtime_methods_present": [
+        "headbutt_group_a",
+        "headbutt_group_b",
+        "walk"
+      ],
+      "runtime_encounters": [
+        {
+          "pokemon_id": 83,
+          "pokemon_name_en": "farfetchd",
+          "pokemon_name_fr": "Canarticho",
+          "pokemon_name_site": "Farfetch'd",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 24,
+          "max_level": 25,
+          "condition_texts": [
+            "Morning, Day"
+          ]
+        },
+        {
+          "pokemon_id": 58,
+          "pokemon_name_en": "growlithe",
+          "pokemon_name_fr": "Caninos",
+          "pokemon_name_site": "Growlithe",
+          "method": "walk",
+          "availability": "heartgold",
+          "spawn_weight": 38,
+          "min_level": 21,
+          "max_level": 25,
+          "condition_texts": [
+            "Morning, Day",
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 165,
+          "pokemon_name_en": "ledyba",
+          "pokemon_name_fr": "Coxy",
+          "pokemon_name_site": "Ledyba",
+          "method": "headbutt_group_b",
+          "availability": "soulsilver",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 203,
+          "pokemon_name_en": "girafarig",
+          "pokemon_name_fr": "Girafarig",
+          "pokemon_name_site": "Girafarig",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 5,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 37,
+          "pokemon_name_en": "vulpix",
+          "pokemon_name_fr": "Goupix",
+          "pokemon_name_site": "Vulpix",
+          "method": "walk",
+          "availability": "soulsilver",
+          "spawn_weight": 38,
+          "min_level": 21,
+          "max_level": 24,
+          "condition_texts": [
+            "Morning, Day",
+            "Night"
+          ]
+        },
+        {
+          "pokemon_id": 187,
+          "pokemon_name_en": "hoppip",
+          "pokemon_name_fr": "Granivol",
+          "pokemon_name_site": "Hoppip",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 11,
+          "min_level": 20,
+          "max_level": 22,
+          "condition_texts": [
+            "Anytime",
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 163,
+          "pokemon_name_en": "hoothoot",
+          "pokemon_name_fr": "Hoothoot",
+          "pokemon_name_site": "Hoothoot",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 50,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Hoothoot"
+          ]
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name_en": "spinarak",
+          "pokemon_name_fr": "Mimigal",
+          "pokemon_name_site": "Spinarak",
+          "method": "headbutt_group_b",
+          "availability": "heartgold",
+          "spawn_weight": 30,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "N/A"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 102,
+          "pokemon_name_en": "exeggcute",
+          "pokemon_name_fr": "Noeunoeuf",
+          "pokemon_name_site": "Exeggcute",
+          "method": "headbutt_group_b",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 17,
+          "max_level": 18,
+          "condition_texts": [
+            "Exeggcute"
+          ]
+        },
+        {
+          "pokemon_id": 44,
+          "pokemon_name_en": "gloom",
+          "pokemon_name_fr": "Ortide",
+          "pokemon_name_site": "Gloom",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 20,
+          "min_level": 22,
+          "max_level": 24,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 204,
+          "pokemon_name_en": "pineco",
+          "pokemon_name_fr": "Pomdepik",
+          "pokemon_name_site": "Pineco",
+          "method": "headbutt_group_a",
+          "availability": "both",
+          "spawn_weight": 30,
+          "min_level": 15,
+          "max_level": 16,
+          "condition_texts": [
+            "Pineco"
+          ]
+        },
+        {
+          "pokemon_id": 22,
+          "pokemon_name_en": "fearow",
+          "pokemon_name_fr": "Rapasdepic",
+          "pokemon_name_site": "Fearow",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 10,
+          "min_level": 21,
+          "max_level": 21,
+          "condition_texts": [
+            "Radio: Off"
+          ]
+        },
+        {
+          "pokemon_id": 50,
+          "pokemon_name_en": "diglett",
+          "pokemon_name_fr": "Taupiqueur",
+          "pokemon_name_site": "Diglett",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 4,
+          "min_level": 20,
+          "max_level": 20,
+          "condition_texts": [
+            "Anytime"
+          ]
+        },
+        {
+          "pokemon_id": 128,
+          "pokemon_name_en": "tauros",
+          "pokemon_name_fr": "Tauros",
+          "pokemon_name_site": "Tauros",
+          "method": "walk",
+          "availability": "both",
+          "spawn_weight": 21,
+          "min_level": 20,
+          "max_level": 24,
+          "condition_texts": [
+            "Anytime"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -469,7 +469,7 @@ function getProjectileSprite(typeName) {
   return sprite;
 }
 
-class PokemonBattleManager {
+  class PokemonBattleManager {
   constructor({
     team,
     attackIntervalMs,
@@ -559,6 +559,22 @@ class PokemonBattleManager {
       this.attackTimerMs = nextInterval * remainingRatio;
     }
     this.attackIntervalMs = nextInterval;
+  }
+
+  advanceAttackTimerDuringDowntime(deltaMs) {
+    if (this.captureSequence) {
+      return;
+    }
+    const safeDeltaMs = Math.max(0, Number(deltaMs) || 0);
+    if (safeDeltaMs <= 0) {
+      return;
+    }
+    const currentTimer = Number(this.attackTimerMs);
+    if (!Number.isFinite(currentTimer)) {
+      this.attackTimerMs = Math.max(1, this.getEffectiveAttackIntervalMs());
+      return;
+    }
+    this.attackTimerMs = Math.max(0, currentTimer - safeDeltaMs);
   }
 
   resetTurnOrder(startSlotIndex = 0, options = {}) {
@@ -852,8 +868,7 @@ class PokemonBattleManager {
     return this.enemyTimerEnabled
       && Boolean(this.enemy)
       && this.enemy.hpCurrent > 0
-      && !this.isEnemyRespawning()
-      && !this.isEnemyEntering();
+      && !this.isEnemyRespawning();
   }
 
   getEnemyTimerState() {
@@ -1932,23 +1947,25 @@ class PokemonBattleManager {
 
   update(deltaMs, layout, options = {}) {
     const idleMode = Boolean(options.idleMode);
+    const safeDeltaMs = Math.max(0, Number(deltaMs) || 0);
+    const downtimeAtStart = !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning();
     this.setAttackInterval(this.getEffectiveAttackIntervalMs());
-    this.updateEnemyEnterAnimation(deltaMs);
-    this.updateFloatingTexts(deltaMs);
-    this.updateHitEffects(deltaMs);
-    this.updateKoTransition(deltaMs);
-    this.updateSlotRecoil(deltaMs);
-    this.updateSlotAttackFlash(deltaMs);
-    this.updateSlotSkipTurnEffects(deltaMs);
-    this.updateSlotTeleportScale(deltaMs);
-    this.updateTeleportBoostVisuals(deltaMs);
+    this.updateEnemyEnterAnimation(safeDeltaMs);
+    this.updateFloatingTexts(safeDeltaMs);
+    this.updateHitEffects(safeDeltaMs);
+    this.updateKoTransition(safeDeltaMs);
+    this.updateSlotRecoil(safeDeltaMs);
+    this.updateSlotAttackFlash(safeDeltaMs);
+    this.updateSlotSkipTurnEffects(safeDeltaMs);
+    this.updateSlotTeleportScale(safeDeltaMs);
+    this.updateTeleportBoostVisuals(safeDeltaMs);
     if (!layout) {
       return;
     }
 
     if (idleMode) {
       this.resetQueuedAttackState();
-      this.updateIdleCombat(deltaMs, layout);
+      this.updateIdleCombat(safeDeltaMs, layout);
       this.clearProjectiles();
       this.clearFloatingTexts();
       this.hitEffects = [];
@@ -1956,12 +1973,17 @@ class PokemonBattleManager {
       return;
     }
 
-    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || this.isEnemyEntering()) {
+    if (downtimeAtStart) {
+      this.advanceAttackTimerDuringDowntime(safeDeltaMs);
       return;
     }
 
-    this.advanceEnemyTimer(deltaMs);
-    this.attackTimerMs -= deltaMs;
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return;
+    }
+
+    this.advanceEnemyTimer(safeDeltaMs);
+    this.attackTimerMs -= safeDeltaMs;
     while (this.attackTimerMs <= 0) {
       if (this.isEnemyDefeatReserved()) {
         this.attackTimerMs = 0;
@@ -1971,7 +1993,7 @@ class PokemonBattleManager {
       this.attackTimerMs += this.attackIntervalMs;
     }
 
-    this.updateProjectiles(deltaMs, layout);
+    this.updateProjectiles(safeDeltaMs, layout);
     if (this.isEnemyTimerRunning() && this.enemyTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0) {
       this.expireEnemyFromTimer();
     }
@@ -2520,7 +2542,7 @@ class PokemonBattleManager {
   applyHit(projectile, options = {}) {
     const idleMode = Boolean(options.idleMode);
     const suppressTurnEvent = Boolean(options.suppressTurnEvent);
-    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || this.isEnemyEntering()) {
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
       this.consumeQueuedProjectileDamage(projectile);
       return;
     }

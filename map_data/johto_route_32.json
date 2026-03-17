@@ -1,0 +1,278 @@
+{
+  "route_id": "johto_route_32",
+  "route_name_fr": "Route 32 (Johto)",
+  "zone_type": "route",
+  "combat_enabled": true,
+  "unlock_mode": "defeats",
+  "unlock_defeats_required": 20,
+  "source_games": [
+    "heartgold",
+    "soulsilver"
+  ],
+  "source_location": "johto-route-32",
+  "background_image": "assets/backgrounds/johto_route_32_hgss.png",
+  "map_marker": {
+    "x": 29.17,
+    "y": 71.11
+  },
+  "encounters": [
+    {
+      "id": 23,
+      "name_en": "ekans",
+      "name_fr": "Abo",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 4,
+      "max_level": 4
+    },
+    {
+      "id": 194,
+      "name_en": "wooper",
+      "name_fr": "Axoloto",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 35,
+      "min_level": 6,
+      "max_level": 6
+    },
+    {
+      "id": 69,
+      "name_en": "bellsprout",
+      "name_fr": "Chétiflor",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 50,
+      "min_level": 6,
+      "max_level": 6
+    },
+    {
+      "id": 187,
+      "name_en": "hoppip",
+      "name_fr": "Granivol",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 10,
+      "min_level": 6,
+      "max_level": 6
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 50,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 163,
+      "name_en": "hoothoot",
+      "name_fr": "Hoothoot",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 80,
+      "min_level": 6,
+      "max_level": 7
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 40,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 85,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 129,
+      "name_en": "magikarp",
+      "name_fr": "Magicarpe",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 20,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 195,
+      "name_en": "quagsire",
+      "name_fr": "Maraiste",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 30,
+      "min_level": 15,
+      "max_level": 25
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 20,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 102,
+      "name_en": "exeggcute",
+      "name_fr": "Noeunoeuf",
+      "methods": [
+        "headbutt_group_b"
+      ],
+      "spawn_weight": 20,
+      "min_level": 6,
+      "max_level": 7
+    },
+    {
+      "id": 41,
+      "name_en": "zubat",
+      "name_fr": "Nosferapti",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 5,
+      "min_level": 4,
+      "max_level": 4
+    },
+    {
+      "id": 204,
+      "name_en": "pineco",
+      "name_fr": "Pomdepik",
+      "methods": [
+        "headbutt_group_a"
+      ],
+      "spawn_weight": 30,
+      "min_level": 4,
+      "max_level": 5
+    },
+    {
+      "id": 211,
+      "name_en": "qwilfish",
+      "name_fr": "Qwilfish",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 5,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 211,
+      "name_en": "qwilfish",
+      "name_fr": "Qwilfish",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 10,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 19,
+      "name_en": "rattata",
+      "name_fr": "Rattata",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 50,
+      "min_level": 4,
+      "max_level": 6
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "good-rod"
+      ],
+      "spawn_weight": 55,
+      "min_level": 20,
+      "max_level": 20
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "old-rod"
+      ],
+      "spawn_weight": 15,
+      "min_level": 10,
+      "max_level": 10
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "super-rod"
+      ],
+      "spawn_weight": 70,
+      "min_level": 40,
+      "max_level": 40
+    },
+    {
+      "id": 72,
+      "name_en": "tentacool",
+      "name_fr": "Tentacool",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 60,
+      "min_level": 10,
+      "max_level": 20
+    },
+    {
+      "id": 73,
+      "name_en": "tentacruel",
+      "name_fr": "Tentacruel",
+      "methods": [
+        "surf"
+      ],
+      "spawn_weight": 10,
+      "min_level": 15,
+      "max_level": 36
+    },
+    {
+      "id": 179,
+      "name_en": "mareep",
+      "name_fr": "Wattouat",
+      "methods": [
+        "walk"
+      ],
+      "spawn_weight": 30,
+      "min_level": 6,
+      "max_level": 6
+    }
+  ],
+  "encounter_species_count_source": 15,
+  "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-32.html",
+  "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
+  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "unlock_timer_ms": 20000
+}
