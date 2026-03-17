@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh Johto HGSS route backgrounds with the same subtle blur as Kanto."""
+"""Refresh Johto HGSS zone backgrounds with the same subtle blur as Kanto."""
 
 from __future__ import annotations
 
@@ -24,6 +24,42 @@ USER_AGENT = "pokeidle-johto-background-refresh/1.0"
 BLUR_RADIUS = 2.0
 BLEND_ALPHA = 0.25
 
+CITY_BACKGROUND_TITLES = {
+    "johto_city_new_bark_town_hgss.png": "New_Bark_Town_HGSS.png",
+    "johto_city_cherrygrove_city_hgss.png": "Cherrygrove_City_HGSS.png",
+    "johto_city_violet_city_hgss.png": "Violet_City_HGSS.png",
+    "johto_city_azalea_town_hgss.png": "Azalea_Town_HGSS.png",
+    "johto_city_goldenrod_city_hgss.png": "Goldenrod_City_HGSS.png",
+    "johto_city_ecruteak_city_hgss.png": "Ecruteak_City_HGSS.png",
+    "johto_city_olivine_city_hgss.png": "Olivine_City_HGSS.png",
+    "johto_city_cianwood_city_hgss.png": "Cianwood_City_HGSS.png",
+    "johto_city_mahogany_town_hgss.png": "Mahogany_Town_HGSS.png",
+    "johto_city_blackthorn_city_hgss.png": "Blackthorn_City_HGSS.png",
+}
+
+# Some Johto areas have HGSS archive files under floor-specific or legacy names.
+DUNGEON_BACKGROUND_TITLES = {
+    "johto_dungeon_sprout_tower_hgss.png": "Sprout_Tower_1F_HGSS.png",
+    "johto_dungeon_ruins_of_alph_hgss.png": "Ruins_of_Alph_Outside_HGSS.png",
+    "johto_dungeon_union_cave_hgss.png": "Union_Cave_1F_HGSS.png",
+    "johto_dungeon_slowpoke_well_hgss.png": "Slowpoke_Well_HGSS.png",
+    "johto_dungeon_ilex_forest_hgss.png": "Ilex_Forest_HGSS.png",
+    "johto_dungeon_national_park_hgss.png": "National_Park_HGSS.png",
+    "johto_dungeon_burned_tower_hgss.png": "Burned_Tower_1F_HGSS.png",
+    "johto_dungeon_bell_tower_hgss.png": "Bell_Tower_1F_HGSS.png",
+    "johto_dungeon_johto_lighthouse_hgss.png": "Glitter_Lighthouse_1F_HGSS.png",
+    "johto_dungeon_whirl_islands_hgss.png": "Whirl_Islands_B1F_HGSS.png",
+    "johto_dungeon_mt_mortar_hgss.png": "Mt_Mortar_Entrance_HGSS.png",
+    "johto_dungeon_lake_of_rage_hgss.png": "Lake_of_Rage_HGSS_wet.png",
+    "johto_dungeon_team_rocket_hq_hgss.png": "Rocket_Hideout_B1F_HGSS.png",
+    "johto_dungeon_ice_path_hgss.png": "Ice_Path_1F_HGSS.png",
+    "johto_dungeon_dragons_den_hgss.png": "Dragons_Den_HGSS.png",
+    "johto_dungeon_dark_cave_hgss.png": "Dark_Cave_1_HGSS.png",
+    "johto_dungeon_tohjo_falls_hgss.png": "Tohjo_Falls_HGSS.png",
+    "johto_dungeon_cliff_cave_hgss.png": "Cliff_Cave_1F_HGSS.png",
+    "johto_dungeon_johto_safari_zone_hgss.png": "Johto_Safari_Zone_Plains_HGSS.png",
+}
+
 
 def build_background_jobs() -> List[Dict[str, object]]:
     jobs: List[Dict[str, object]] = []
@@ -39,6 +75,10 @@ def build_background_jobs() -> List[Dict[str, object]]:
                 "outputs": outputs,
             }
         )
+    for output_name, title in CITY_BACKGROUND_TITLES.items():
+        jobs.append({"title": title, "outputs": [output_name]})
+    for output_name, title in DUNGEON_BACKGROUND_TITLES.items():
+        jobs.append({"title": title, "outputs": [output_name]})
     return jobs
 
 
@@ -108,7 +148,7 @@ def download_and_save(job: Dict[str, object]) -> None:
 
 def main() -> int:
     jobs = build_background_jobs()
-    print(f"[info] Refreshing {len(jobs)} Johto HGSS route background images")
+    print(f"[info] Refreshing {len(jobs)} Johto HGSS zone background images")
     failures: List[str] = []
 
     for job in jobs:
@@ -123,7 +163,7 @@ def main() -> int:
         print(f"[done] completed with {len(failures)} failure(s)")
         return 1
 
-    print("[done] all Johto route backgrounds refreshed with blur")
+    print("[done] all Johto zone backgrounds refreshed with blur")
     return 0
 
 

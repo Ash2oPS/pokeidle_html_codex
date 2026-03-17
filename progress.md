@@ -6371,3 +6371,29 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `output/johto-fight-screens/errors.json`: `[]`
 - Notes / TODO:
   - This pass only replaced Johto route backgrounds. Several Johto city/dungeon assets are still placeholder art or Kanto fallbacks and can be refreshed next with the same pipeline approach.
+
+## Additional progress (Johto all-zone backgrounds HGSS + city/dungeon cleanup - 2026-03-17)
+- Extended `scripts/refresh_johto_hgss_route_backgrounds_with_blur.py` so it now refreshes all 49 Johto zone backgrounds, not just routes.
+  - Cities now pull the exact HGSS town map files from Bulbagarden Archives.
+  - Dungeons now pull HGSS floor/area maps chosen to match the zone better than the old placeholders.
+  - Tricky area mappings were resolved explicitly:
+    - `johto_dungeon_johto_lighthouse` -> `Glitter_Lighthouse_1F_HGSS.png`
+    - `johto_dungeon_lake_of_rage` -> `Lake_of_Rage_HGSS_wet.png`
+    - `johto_dungeon_team_rocket_hq` -> `Rocket_Hideout_B1F_HGSS.png`
+    - `johto_dungeon_johto_safari_zone` -> `Johto_Safari_Zone_Plains_HGSS.png`
+    - `johto_dungeon_cliff_cave` -> `Cliff_Cave_1F_HGSS.png`
+- Added the missing Johto dungeon bindings to `assets/backgrounds/johto_background_bindings_placeholder.csv`, then regenerated `map_data/johto_*.json` so every Johto zone now points to a Johto-specific asset instead of Kanto fallbacks.
+- Updated `tests/johto-integration.test.mjs` with a regression check that all Johto zones:
+  - reference an existing `assets/backgrounds/johto_*_hgss.png` asset
+  - no longer point at Kanto backgrounds
+  - no longer use the old fixed-size placeholder canvas for non-route zones
+- Updated `assets/backgrounds/johto_placeholder_manifest.json` and `docs/johto-visual-assets-strategy.md` so they no longer lie about the route/city/dungeon backgrounds still being placeholders.
+- Validation:
+  - `python scripts/refresh_johto_hgss_route_backgrounds_with_blur.py`: PASS (49/49 Johto zone jobs)
+  - `npm run zone:johto:generate`: PASS
+  - `npm test`: PASS
+  - Develop-web-game Playwright seeded validation: PASS
+    - Town proof: `output/johto-zone-bg-proof/town/shot-0.png`
+    - Dungeon proof: `output/johto-zone-bg-proof/dungeon/shot-0.png`
+- Remaining temporary visual debt:
+  - `assets/maps/johto_map_placeholder.png` is still the provisional Johto region map image used by the map screen.

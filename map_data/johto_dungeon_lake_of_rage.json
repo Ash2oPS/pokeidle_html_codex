@@ -13,7 +13,7 @@
   "source_location_areas": [
     "lake-of-rage-area"
   ],
-  "background_image": "assets/backgrounds/kanto_route_24_frlg.png",
+  "background_image": "assets/backgrounds/johto_dungeon_lake_of_rage_hgss.png",
   "encounters": [
     {
       "id": 130,

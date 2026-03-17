@@ -275,7 +275,7 @@ function buildZoneCatalog(zoneOrder, generatedAtUtc) {
   });
 
   return {
-    source: "altissimo + pokeapi + placeholders",
+    source: "altissimo + pokeapi + bulbagarden archives hgss maps",
     games: ["heartgold", "soulsilver"],
     unlock_target_default: ROUTE_UNLOCK_DEFEATS,
     map_image: JOHTO_MAP_IMAGE_PATH,

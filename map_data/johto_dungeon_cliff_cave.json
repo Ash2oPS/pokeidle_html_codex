@@ -11,7 +11,7 @@
   ],
   "source_location": "cliff-cave",
   "source_location_areas": [],
-  "background_image": "assets/backgrounds/kanto_dungeon_rock_tunnel_frlg.png",
+  "background_image": "assets/backgrounds/johto_dungeon_cliff_cave_hgss.png",
   "encounters": [],
   "encounter_species_count_source": 0,
   "generated_from": "pokeapi (HGSS standard encounters only)",

@@ -1,6 +1,6 @@
 # Johto HGSS Source of Truth
 
-Generated at (UTC): 2026-03-17T14:50:34.565Z
+Generated at (UTC): 2026-03-17T15:13:15.491Z
 Routes covered: 29-48
 
 Categories:

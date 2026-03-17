@@ -11,7 +11,7 @@
   ],
   "source_location": "johto-lighthouse",
   "source_location_areas": [],
-  "background_image": "assets/backgrounds/kanto_city_vermilion_city_frlg.png",
+  "background_image": "assets/backgrounds/johto_dungeon_johto_lighthouse_hgss.png",
   "encounters": [],
   "encounter_species_count_source": 0,
   "generated_from": "pokeapi (HGSS standard encounters only)",

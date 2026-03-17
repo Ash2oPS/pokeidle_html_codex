@@ -1,12 +1,12 @@
 {
-  "source": "altissimo + pokeapi + placeholders",
+  "source": "altissimo + pokeapi + bulbagarden archives hgss maps",
   "games": [
     "heartgold",
     "soulsilver"
   ],
   "unlock_target_default": 20,
   "map_image": "assets/maps/johto_map_placeholder.png",
-  "generated_at_utc": "2026-03-17T14:50:34.691Z",
+  "generated_at_utc": "2026-03-17T15:13:15.600Z",
   "zone_order": [
     "johto_route_29",
     "johto_city_new_bark_town",
@@ -536,7 +536,7 @@
       "unlock_defeats_required": 0,
       "source_location": "johto-lighthouse",
       "source_location_areas": [],
-      "background_image": "assets/backgrounds/kanto_city_vermilion_city_frlg.png",
+      "background_image": "assets/backgrounds/johto_dungeon_johto_lighthouse_hgss.png",
       "encounter_species_count": 0,
       "map_marker": {
         "x": 68.75,
@@ -683,7 +683,7 @@
       "source_location_areas": [
         "lake-of-rage-area"
       ],
-      "background_image": "assets/backgrounds/kanto_route_24_frlg.png",
+      "background_image": "assets/backgrounds/johto_dungeon_lake_of_rage_hgss.png",
       "encounter_species_count": 2,
       "map_marker": {
         "x": 72.5,
@@ -719,7 +719,7 @@
       "source_location_areas": [
         "team-rocket-hq-area"
       ],
-      "background_image": "assets/backgrounds/kanto_dungeon_pokemon_mansion_frlg.png",
+      "background_image": "assets/backgrounds/johto_dungeon_team_rocket_hq_hgss.png",
       "encounter_species_count": 4,
       "map_marker": {
         "x": 73.75,
@@ -893,7 +893,7 @@
       "unlock_defeats_required": 0,
       "source_location": "cliff-cave",
       "source_location_areas": [],
-      "background_image": "assets/backgrounds/kanto_dungeon_rock_tunnel_frlg.png",
+      "background_image": "assets/backgrounds/johto_dungeon_cliff_cave_hgss.png",
       "encounter_species_count": 0,
       "map_marker": {
         "x": 86.25,
@@ -938,7 +938,7 @@
         "johto-safari-zone-zone-savannah",
         "johto-safari-zone-zone-wetland"
       ],
-      "background_image": "assets/backgrounds/kanto_dungeon_safari_zone_frlg.png",
+      "background_image": "assets/backgrounds/johto_dungeon_johto_safari_zone_hgss.png",
       "encounter_species_count": 75,
       "map_marker": {
         "x": 94.58,

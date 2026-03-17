@@ -24,7 +24,7 @@
     "johto-safari-zone-zone-savannah",
     "johto-safari-zone-zone-wetland"
   ],
-  "background_image": "assets/backgrounds/kanto_dungeon_safari_zone_frlg.png",
+  "background_image": "assets/backgrounds/johto_dungeon_johto_safari_zone_hgss.png",
   "encounters": [
     {
       "id": 16,

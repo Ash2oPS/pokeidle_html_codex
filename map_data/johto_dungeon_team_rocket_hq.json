@@ -13,7 +13,7 @@
   "source_location_areas": [
     "team-rocket-hq-area"
   ],
-  "background_image": "assets/backgrounds/kanto_dungeon_pokemon_mansion_frlg.png",
+  "background_image": "assets/backgrounds/johto_dungeon_team_rocket_hq_hgss.png",
   "encounters": [
     {
       "id": 74,
