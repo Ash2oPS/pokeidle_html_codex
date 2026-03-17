@@ -9,6 +9,8 @@ const SAVE_FILE_NAME = "pokeidle_save_v3.json";
 const SAVE_DIR_NAME = "saves";
 const WINDOW_BACKGROUND = "#0f1720";
 const DESKTOP_ICON_FILE_NAME = process.platform === "win32" ? "pokeball-dock.ico" : "pokeball-dock.png";
+const WINDOW_STATE_CHANNEL = "pokeidle:window-state";
+const WINDOW_STATE_CHANGED_CHANNEL = "pokeidle:window-state-changed";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP_ICON_PATH = path.join(__dirname, "..", "assets", "icons", DESKTOP_ICON_FILE_NAME);
@@ -71,6 +73,52 @@ function createDesktopWindowIcon() {
     return iconImage;
   }
   return DESKTOP_ICON_PATH;
+}
+
+function serializeDesktopWindowState(windowRef) {
+  const minimized = Boolean(windowRef?.isMinimized?.());
+  const visible = Boolean(windowRef?.isVisible?.());
+  const focused = Boolean(windowRef?.isFocused?.());
+  const occluded = typeof windowRef?.isOccluded === "function" ? Boolean(windowRef.isOccluded()) : false;
+  return {
+    minimized,
+    visible,
+    focused,
+    occluded,
+    backgrounded: minimized || !visible || !focused || occluded,
+    updatedAtMs: Date.now(),
+  };
+}
+
+function emitDesktopWindowState(windowRef) {
+  if (!windowRef || windowRef.isDestroyed()) {
+    return;
+  }
+  const webContents = windowRef.webContents;
+  if (!webContents || webContents.isDestroyed()) {
+    return;
+  }
+  webContents.send(WINDOW_STATE_CHANGED_CHANNEL, serializeDesktopWindowState(windowRef));
+}
+
+function bindDesktopWindowStateTracking(windowRef) {
+  if (!windowRef || windowRef.isDestroyed()) {
+    return;
+  }
+  const emitCurrentState = () => emitDesktopWindowState(windowRef);
+  const windowStateEvents = [
+    "ready-to-show",
+    "show",
+    "hide",
+    "focus",
+    "blur",
+    "minimize",
+    "restore",
+  ];
+  for (const eventName of windowStateEvents) {
+    windowRef.on(eventName, emitCurrentState);
+  }
+  windowRef.webContents.on("did-finish-load", emitCurrentState);
 }
 
 function isSaveObject(payload) {
@@ -219,6 +267,7 @@ function createMainWindow() {
   if (typeof mainWindow.webContents.setBackgroundThrottling === "function") {
     mainWindow.webContents.setBackgroundThrottling(false);
   }
+  bindDesktopWindowStateTracking(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);
@@ -243,6 +292,10 @@ function registerIpcHandlers() {
   ipcMain.handle("pokeidle:save-write", async (_event, payload) => writeDesktopSave(payload?.save));
   ipcMain.handle("pokeidle:save-delete", async () => deleteDesktopSave());
   ipcMain.handle("pokeidle:notify", async (_event, payload) => sendDesktopNotification(payload));
+  ipcMain.handle(WINDOW_STATE_CHANNEL, (event) => {
+    const windowRef = BrowserWindow.fromWebContents(event.sender);
+    return serializeDesktopWindowState(windowRef);
+  });
 }
 
 if (process.platform === "win32") {

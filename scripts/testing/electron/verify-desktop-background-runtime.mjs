@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import http from "node:http";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,9 +13,13 @@ const artifactDir = path.join(repoRoot, "output", "playwright", "desktop-backgro
 const reportPath = path.join(artifactDir, "report.json");
 const screenshotPath = path.join(artifactDir, "restored-window.png");
 const host = "127.0.0.1";
-const monitorTickMs = 50;
-const minimizeDurationMs = 2500;
-const minExpectedIntervalDelta = 10;
+const minimizeDurationMs = 8000;
+const saveFilePath = path.join(
+  process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+  "pokeidle-html-codex",
+  "saves",
+  "pokeidle_save_v3.json",
+);
 
 const MIME_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -36,6 +41,11 @@ const MIME_TYPES = new Map([
   [".csv", "text/csv; charset=utf-8"],
 ]);
 
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
 function getContentType(filePath) {
   return MIME_TYPES.get(path.extname(filePath).toLowerCase()) || "application/octet-stream";
 }
@@ -47,7 +57,6 @@ async function resolveStaticFile(rootDir, urlPath) {
   if (!resolvedPath.startsWith(rootDir)) {
     return null;
   }
-
   try {
     const stats = await fs.stat(resolvedPath);
     if (stats.isDirectory()) {
@@ -71,7 +80,6 @@ function createStaticServer(rootDir) {
         response.end("Not found");
         return;
       }
-
       const body = await fs.readFile(filePath);
       response.writeHead(200, {
         "Content-Type": getContentType(filePath),
@@ -104,92 +112,85 @@ async function ensureArtifactsDirectory() {
   await fs.mkdir(artifactDir, { recursive: true });
 }
 
-async function installMonitor(page) {
-  return page.evaluate(({ tickMs }) => {
-    const existing = window.__codexBackgroundMonitor;
-    if (existing?.intervalId) {
-      window.clearInterval(existing.intervalId);
-    }
-    if (existing?.rafId) {
-      window.cancelAnimationFrame(existing.rafId);
-    }
-    if (typeof existing?.visibilityHandler === "function") {
-      document.removeEventListener("visibilitychange", existing.visibilityHandler);
-    }
-
-    const monitor = {
-      intervalCount: 0,
-      rafCount: 0,
-      hiddenTransitions: 0,
-      lastHidden: document.hidden,
-      lastVisibilityState: document.visibilityState,
-      lastIntervalAtMs: 0,
-      lastRafAtMs: 0,
-      startedAtMs: Date.now(),
-      intervalId: 0,
-      rafId: 0,
-      visibilityHandler: null,
-    };
-
-    monitor.intervalId = window.setInterval(() => {
-      monitor.intervalCount += 1;
-      monitor.lastIntervalAtMs = performance.now();
-    }, tickMs);
-
-    const handleRaf = () => {
-      monitor.rafCount += 1;
-      monitor.lastRafAtMs = performance.now();
-      monitor.rafId = window.requestAnimationFrame(handleRaf);
-    };
-
-    monitor.visibilityHandler = () => {
-      monitor.hiddenTransitions += 1;
-      monitor.lastHidden = document.hidden;
-      monitor.lastVisibilityState = document.visibilityState;
-    };
-
-    document.addEventListener("visibilitychange", monitor.visibilityHandler);
-    monitor.rafId = window.requestAnimationFrame(handleRaf);
-    window.__codexBackgroundMonitor = monitor;
-
-    return {
-      hidden: document.hidden,
-      visibilityState: document.visibilityState,
-      renderStateAvailable: typeof window.render_game_to_text === "function",
-    };
-  }, { tickMs: monitorTickMs });
+function computeDelta(before, after) {
+  return {
+    enemiesDefeated: toNumber(after?.enemiesDefeated) - toNumber(before?.enemiesDefeated),
+    money: toNumber(after?.money) - toNumber(before?.money),
+    team0Xp: toNumber(after?.team0?.xp) - toNumber(before?.team0?.xp),
+    enemyHp: toNumber(after?.enemy?.hpCurrent) - toNumber(before?.enemy?.hpCurrent),
+    enemyChanged: String(after?.enemy?.id || "") !== String(before?.enemy?.id || ""),
+    attackTimerChanged: toNumber(after?.attackTimerMs) !== toNumber(before?.attackTimerMs),
+  };
 }
 
-async function readMonitorState(page) {
+async function snapshotCombatState(page) {
   return page.evaluate(() => {
-    const monitor = window.__codexBackgroundMonitor || {};
-    let renderState = null;
-    if (typeof window.render_game_to_text === "function") {
-      try {
-        renderState = window.render_game_to_text();
-      } catch (error) {
-        renderState = {
-          error: String(error?.message || error || "render_game_to_text failed"),
-        };
-      }
-    }
+    const safeNumber = (value, fallback = 0) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : fallback;
+    };
+    const state = JSON.parse(window.render_game_to_text());
+    const enemy = state?.enemy || null;
+    const team0 = Array.isArray(state?.team) && state.team.length > 0 ? state.team[0] : null;
     return {
-      hidden: document.hidden,
+      documentHidden: document.hidden,
       visibilityState: document.visibilityState,
-      intervalCount: Number(monitor.intervalCount || 0),
-      rafCount: Number(monitor.rafCount || 0),
-      hiddenTransitions: Number(monitor.hiddenTransitions || 0),
-      lastHidden: Boolean(monitor.lastHidden),
-      lastVisibilityState: String(monitor.lastVisibilityState || document.visibilityState || ""),
-      lastIntervalAtMs: Number(monitor.lastIntervalAtMs || 0),
-      lastRafAtMs: Number(monitor.lastRafAtMs || 0),
-      renderState,
+      hasFocus: typeof document.hasFocus === "function" ? document.hasFocus() : null,
+      routeCombatEnabled: Boolean(state?.route_combat_enabled),
+      enemiesDefeated: safeNumber(state?.enemies_defeated),
+      money: safeNumber(state?.money),
+      attackTimerMs: safeNumber(state?.attack_timer_ms),
+      desktopWindowState: state?.desktopWindowState || null,
+      enemy: enemy ? {
+        id: enemy.pokemon_id || enemy.id || null,
+        name: enemy.name_fr || enemy.nameFr || enemy.name || null,
+        hpCurrent: safeNumber(enemy.hp_current ?? enemy.hpCurrent),
+        hpMax: safeNumber(enemy.hp_max ?? enemy.hpMax),
+      } : null,
+      team0: team0 ? {
+        id: team0.pokemon_id || team0.id || null,
+        xp: safeNumber(team0.xp),
+      } : null,
     };
   });
 }
 
-async function writeReport(report) {
-  await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+async function backupSaveFile() {
+  try {
+    return await fs.readFile(saveFilePath);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+async function restoreSaveFile(backupBuffer) {
+  if (backupBuffer) {
+    await fs.mkdir(path.dirname(saveFilePath), { recursive: true });
+    await fs.writeFile(saveFilePath, backupBuffer);
+    return;
+  }
+  await fs.rm(saveFilePath, { force: true }).catch(() => {});
+}
+
+async function waitForCombat(page) {
+  await page.waitForFunction(() => {
+    try {
+      const state = JSON.parse(window.render_game_to_text());
+      return state
+        && state.mode === "ready"
+        && state.starter_modal_visible === false
+        && state.route_combat_enabled === true
+        && Array.isArray(state.team)
+        && state.team.length > 0
+        && state.enemy
+        && Number(state.enemy.hp_current ?? state.enemy.hpCurrent ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }, null, { timeout: 120000 });
 }
 
 async function main() {
@@ -199,9 +200,12 @@ async function main() {
   const server = createStaticServer(repoRoot);
   const port = await listen(server);
   const remoteUrl = `http://${host}:${port}/`;
+  const saveBackup = await backupSaveFile();
   let electronApp = null;
 
   try {
+    await fs.rm(saveFilePath, { force: true });
+
     electronApp = await electron.launch({
       executablePath,
       args: [`--remote-url=${remoteUrl}`],
@@ -209,12 +213,51 @@ async function main() {
 
     const page = await electronApp.firstWindow();
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForFunction(() => document.readyState === "complete");
-    await page.waitForTimeout(1200);
+    await page.waitForFunction(() => typeof window.render_game_to_text === "function", null, { timeout: 120000 });
+    await page.waitForFunction(() => {
+      try {
+        return JSON.parse(window.render_game_to_text())?.mode === "ready";
+      } catch {
+        return false;
+      }
+    }, null, { timeout: 120000 });
+    await page.waitForFunction(() => document.querySelectorAll(".starter-choice").length > 0, null, {
+      timeout: 120000,
+    });
 
-    const monitorInstall = await installMonitor(page);
-    await page.waitForTimeout(600);
-    const beforeMinimize = await readMonitorState(page);
+    const meta = await page.evaluate(async () => ({
+      locationHref: window.location.href,
+      desktopMeta: await window.pokeidleDesktop?.getMeta?.(),
+      bridgeWindowState: window.pokeidleDesktop?.getWindowState?.() || null,
+    }));
+
+    const starterClick = await page.evaluate(() => {
+      const button = document.querySelector(".starter-choice");
+      if (!button) {
+        return { clicked: false };
+      }
+      button.click();
+      return {
+        clicked: true,
+        label: String(button.textContent || "").trim(),
+      };
+    });
+
+    await waitForCombat(page);
+    await page.waitForFunction(() => {
+      try {
+        const state = JSON.parse(window.render_game_to_text());
+        const enemy = state?.enemy;
+        const hpCurrent = Number(enemy?.hp_current ?? enemy?.hpCurrent ?? 0);
+        const hpMax = Number(enemy?.hp_max ?? enemy?.hpMax ?? 0);
+        return hpCurrent > 0 && hpCurrent === hpMax;
+      } catch {
+        return false;
+      }
+    }, null, { timeout: 120000 });
+
+    await page.waitForTimeout(500);
+    const beforeMinimize = await snapshotCombatState(page);
 
     const minimizedWindow = await electronApp.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0];
@@ -222,11 +265,12 @@ async function main() {
       return {
         isMinimized: win.isMinimized(),
         isVisible: win.isVisible(),
+        isFocused: win.isFocused(),
       };
     });
 
     await page.waitForTimeout(minimizeDurationMs);
-    const duringMinimize = await readMonitorState(page);
+    const duringMinimize = await snapshotCombatState(page);
 
     const restoredWindow = await electronApp.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0];
@@ -237,44 +281,50 @@ async function main() {
       return {
         isMinimized: win.isMinimized(),
         isVisible: win.isVisible(),
+        isFocused: win.isFocused(),
       };
     });
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(800);
     await page.screenshot({ path: screenshotPath });
-    const afterRestore = await readMonitorState(page);
+    const afterRestore = await snapshotCombatState(page);
 
-    const minimizedIntervalDelta = duringMinimize.intervalCount - beforeMinimize.intervalCount;
-    const minimizedRafDelta = duringMinimize.rafCount - beforeMinimize.rafCount;
+    const deltaDuringMinimize = computeDelta(beforeMinimize, duringMinimize);
+    const deltaAfterRestore = computeDelta(beforeMinimize, afterRestore);
+    const combatProgressedWhileMinimized = Boolean(
+      deltaDuringMinimize.enemiesDefeated > 0
+      || deltaDuringMinimize.money > 0
+      || deltaDuringMinimize.team0Xp > 0
+      || deltaDuringMinimize.enemyChanged
+      || deltaDuringMinimize.enemyHp < 0
+    );
 
     const report = {
       remoteUrl,
       executablePath,
-      monitorInstall,
-      minimizedWindow,
-      restoredWindow,
+      minimizeDurationMs,
+      meta,
+      starterClick,
       beforeMinimize,
+      minimizedWindow,
       duringMinimize,
+      restoredWindow,
       afterRestore,
-      minimizedIntervalDelta,
-      minimizedRafDelta,
-      pass: minimizedIntervalDelta >= minExpectedIntervalDelta,
-      criteria: {
-        minExpectedIntervalDelta,
-        minimizeDurationMs,
-        monitorTickMs,
-      },
+      deltaDuringMinimize,
+      deltaAfterRestore,
+      combatProgressedWhileMinimized,
+      pass: combatProgressedWhileMinimized,
       artifacts: {
         reportPath,
         screenshotPath,
       },
     };
 
-    await writeReport(report);
+    await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
-    if (minimizedIntervalDelta < minExpectedIntervalDelta) {
+    if (!combatProgressedWhileMinimized) {
       throw new Error(
-        `Le runtime desktop s'est fige en background: interval delta ${minimizedIntervalDelta} < ${minExpectedIntervalDelta}.`,
+        `Le combat s'est fige en minimisation: ${JSON.stringify(deltaDuringMinimize)}`,
       );
     }
 
@@ -286,6 +336,7 @@ async function main() {
     await new Promise((resolve) => {
       server.close(() => resolve());
     });
+    await restoreSaveFile(saveBackup);
   }
 }
 

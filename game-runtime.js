@@ -801,6 +801,7 @@ const {
   getDesktopBridge,
   hasDesktopSaveBridge,
   hasDesktopNotificationBridge,
+  getDesktopWindowState,
   isDesktopRuntime,
   getCapacitorBridge,
   isCapacitorAndroidRuntime,
@@ -4449,9 +4450,69 @@ function flushDeferredSaveIfNeeded() {
 
 const DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS = 50;
 const DESKTOP_BACKGROUND_WATCHDOG_STALL_MS = 125;
+let desktopRuntimeWatchdogHandle = null;
+const DEFAULT_DESKTOP_WINDOW_STATE = Object.freeze({
+  minimized: false,
+  visible: true,
+  focused: true,
+  occluded: false,
+  backgrounded: false,
+  updatedAtMs: 0,
+});
+let desktopWindowStateBridgeUnsubscribe = null;
 
 function isDocumentHidden() {
   return typeof document !== "undefined" && Boolean(document.hidden);
+}
+
+function normalizeDesktopWindowState(input = null) {
+  const minimized = Boolean(input?.minimized);
+  const visible = typeof input?.visible === "boolean" ? input.visible : true;
+  const focused = typeof input?.focused === "boolean" ? input.focused : true;
+  const occluded = Boolean(input?.occluded);
+  const updatedAtMs = Number(input?.updatedAtMs);
+  return {
+    minimized,
+    visible,
+    focused,
+    occluded,
+    backgrounded: Boolean(input?.backgrounded ?? (minimized || !visible || !focused || occluded)),
+    updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : Date.now(),
+  };
+}
+
+function syncDesktopWindowState(windowState = null) {
+  const nextWindowState = normalizeDesktopWindowState(
+    windowState || state.desktopWindowState || DEFAULT_DESKTOP_WINDOW_STATE,
+  );
+  state.desktopWindowState = nextWindowState;
+  return nextWindowState;
+}
+
+function readDesktopWindowState() {
+  if (!isDesktopRuntime()) {
+    return syncDesktopWindowState(DEFAULT_DESKTOP_WINDOW_STATE);
+  }
+  const bridgeWindowState = getDesktopWindowState();
+  if (bridgeWindowState && typeof bridgeWindowState === "object") {
+    return syncDesktopWindowState(bridgeWindowState);
+  }
+  return syncDesktopWindowState(state.desktopWindowState || DEFAULT_DESKTOP_WINDOW_STATE);
+}
+
+function isDesktopWindowBackgrounded() {
+  if (!isDesktopRuntime()) {
+    return false;
+  }
+  const windowState = readDesktopWindowState();
+  return Boolean(
+    windowState?.backgrounded
+    || windowState?.minimized
+    || !windowState?.visible
+    || !windowState?.focused
+    || windowState?.occluded
+    || isDocumentHidden()
+  );
 }
 
 function shouldTreatRuntimeAsHidden() {
@@ -4459,7 +4520,7 @@ function shouldTreatRuntimeAsHidden() {
 }
 
 function shouldRunBackgroundTicker() {
-  return shouldTreatRuntimeAsHidden() || (isDesktopRuntime() && isDocumentHidden());
+  return shouldTreatRuntimeAsHidden() || isDesktopRuntime();
 }
 
 function markSimulationPump(nowMs = Date.now()) {
@@ -4511,24 +4572,31 @@ function ensureBackgroundTicker() {
     ? DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS
     : BACKGROUND_TICK_INTERVAL_MS;
   state.backgroundTickHandle = window.setInterval(() => {
+    const now = Date.now();
     if (shouldTreatRuntimeAsHidden()) {
       tickSimulationFromRealtime({
         forceIdleMode: true,
         budgetMs: HIDDEN_SIM_BUDGET_MS,
       });
-      markSimulationPump();
+      markSimulationPump(now);
       return;
     }
-    if (!desktopRuntime || !isDocumentHidden()) {
+    if (!desktopRuntime) {
       return;
     }
-    const now = Date.now();
+    const desktopBackgrounded = isDesktopWindowBackgrounded();
     const lastPumpAtMs = Math.max(0, toSafeInt(state.lastSimulationPumpAtMs, 0));
     if (lastPumpAtMs > 0 && now - lastPumpAtMs < DESKTOP_BACKGROUND_WATCHDOG_STALL_MS) {
       return;
     }
-    const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, now - lastPumpAtMs);
-    tickSimulationFromRealtime({ budgetMs });
+    const elapsedSinceLastPumpMs = lastPumpAtMs > 0
+      ? now - lastPumpAtMs
+      : DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS;
+    const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, elapsedSinceLastPumpMs);
+    tickSimulationFromRealtime({
+      budgetMs,
+      forceIdleMode: desktopBackgrounded,
+    });
     markSimulationPump(now);
   }, tickIntervalMs);
 }
@@ -4539,6 +4607,31 @@ function stopBackgroundTicker() {
   }
   window.clearInterval(state.backgroundTickHandle);
   state.backgroundTickHandle = null;
+}
+
+function ensureDesktopRuntimeWatchdog() {
+  if (!isDesktopRuntime() || desktopRuntimeWatchdogHandle) {
+    return;
+  }
+  desktopRuntimeWatchdogHandle = window.setInterval(() => {
+    if (!isDesktopRuntime()) {
+      return;
+    }
+    const now = Date.now();
+    const lastPumpAtMs = Math.max(0, toSafeInt(state.lastSimulationPumpAtMs, 0));
+    if (lastPumpAtMs > 0 && now - lastPumpAtMs < DESKTOP_BACKGROUND_WATCHDOG_STALL_MS) {
+      return;
+    }
+    const elapsedSinceLastPumpMs = lastPumpAtMs > 0
+      ? now - lastPumpAtMs
+      : DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS;
+    const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, elapsedSinceLastPumpMs);
+    tickSimulationFromRealtime({
+      budgetMs,
+      forceIdleMode: isDocumentHidden(),
+    });
+    markSimulationPump(now);
+  }, DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS);
 }
 
 const runtimeOrchestrator = createRuntimeOrchestrator({
@@ -4561,6 +4654,50 @@ function handleVisibilityChange() {
     return;
   }
   stopBackgroundTicker();
+}
+
+function handleDesktopWindowStateChange(nextWindowState = null) {
+  const previousBackgrounded = Boolean(state.desktopWindowState?.backgrounded);
+  const windowState = syncDesktopWindowState(nextWindowState);
+  const backgrounded = Boolean(windowState?.backgrounded);
+  if (backgrounded) {
+    ensureBackgroundTicker();
+    tickSimulationFromRealtime({
+      forceIdleMode: true,
+      budgetMs: HIDDEN_SIM_BUDGET_MS,
+    });
+    markSimulationPump(Date.now());
+    flushDeferredSaveIfNeeded();
+    persistSaveData();
+    return;
+  }
+  if (previousBackgrounded) {
+    tickSimulationFromRealtime();
+    markSimulationPump(Date.now());
+    render();
+  }
+}
+
+function initializeDesktopWindowStateBridge() {
+  if (!isDesktopRuntime()) {
+    syncDesktopWindowState(DEFAULT_DESKTOP_WINDOW_STATE);
+    return;
+  }
+  syncDesktopWindowState(readDesktopWindowState());
+  if (typeof desktopWindowStateBridgeUnsubscribe === "function") {
+    desktopWindowStateBridgeUnsubscribe();
+    desktopWindowStateBridgeUnsubscribe = null;
+  }
+  const bridge = getDesktopBridge();
+  if (!bridge || typeof bridge.onWindowStateChanged !== "function") {
+    return;
+  }
+  const unsubscribe = bridge.onWindowStateChanged((windowState) => {
+    handleDesktopWindowStateChange(windowState);
+  });
+  if (typeof unsubscribe === "function") {
+    desktopWindowStateBridgeUnsubscribe = unsubscribe;
+  }
 }
 
 function handlePageLifecyclePersist() {
@@ -11145,7 +11282,7 @@ function gameLoop(timestamp) {
     : BASE_STEP_MS;
   state.lastFrameTimestamp = now;
   tickSimulationFromRealtime();
-  markSimulationPump(now);
+  markSimulationPump();
   let frameCpuMs = TARGET_FRAME_MS;
   let renderDeltaMs = null;
   const renderIntervalMs = getRenderFrameIntervalMs();
@@ -11377,6 +11514,7 @@ const runtimeInputSystem = createRuntimeInputSystem({
   },
 });
 runtimeInputSystem.init();
+initializeDesktopWindowStateBridge();
 state.devLayout.settings = createDefaultDevLayoutSettings();
 
 applyInitialPerformanceProfile();
@@ -11402,6 +11540,7 @@ async function bootstrapRuntimeStartup() {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
   initializeScene();
+  ensureDesktopRuntimeWatchdog();
   if (shouldRunBackgroundTicker()) {
     ensureBackgroundTicker();
   }
