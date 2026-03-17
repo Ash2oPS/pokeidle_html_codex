@@ -1,7 +1,7 @@
 {
   "name": "pokeidle-html-codex",
   "private": true,
-  "version": "0.1.43",
+  "version": "0.1.44",
   "type": "module",
   "main": "electron/main.mjs",
   "scripts": {
