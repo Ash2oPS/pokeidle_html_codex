@@ -79,6 +79,22 @@
 - `run_playwright_check.ps1`: PASS (starter modal visible in text state; no console/page error).
 - Playwright run with starter click (`output/web-game-starter`): PASS.
 
+## Additional progress (temporary Mewtwo rename easter egg)
+- Added a temporary one-off easter egg for this build:
+  - Renaming Mewtwo to exactly `Armand` unlocks Lugia shiny in the save data.
+  - The first-time shiny capture notification now falls back to `species_name_en` from the save if the species definition is not loaded yet, avoiding the old `Pokemon 249` text.
+- Added coverage:
+  - `tests/easter-egg-rules.test.mjs`
+  - `tests/runtime-mewtwo-rename-easter-egg-wireup.test.mjs`
+- Validation:
+  - `node --check game-runtime.js`: PASS
+  - `node --test tests/easter-egg-rules.test.mjs tests/runtime-mewtwo-rename-easter-egg-wireup.test.mjs`: PASS
+  - End-to-end Playwright smoke on `http://127.0.0.1:8911/index.html`: PASS
+    - Save seed: `output/easter-egg-smoke/mewtwo-rename-seed.json`
+    - Positive screenshot (`Armand`): `output/easter-egg-smoke/mewtwo-armand-lugia-shiny-notif.png`
+    - Negative screenshot (`MiaouTwo`): `output/easter-egg-smoke/mewtwo-miaoutwo-no-lugia.png`
+    - Final notification text: `Lugia capturé pour la première fois en shiny.`
+
 ## Additional progress (semver alpha + UI badge)
 - Added a dedicated `version.js` bootstrap with the current app version set to `0.1.0-alpha.0`.
 - Added a discreet in-game version badge rendered directly inside the canvas at bottom-left.
