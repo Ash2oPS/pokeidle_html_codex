@@ -1,7 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { createRenderQualityUtils } from "../lib/render-quality-utils.js";
+import {
+  RENDER_QUALITY_PRESETS,
+  TARGET_RENDER_INTERVAL_MS,
+} from "../lib/gameplay-ui-config.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const gameRuntimePath = path.resolve(__dirname, "../game-runtime.js");
 
 test("createRenderQualityUtils exposes projectile trail type VFX profiles", () => {
   const state = {
@@ -101,6 +112,7 @@ function createPerfState() {
       longFrameMsEma: 16,
       cpuFrameMsEma: 16,
       renderFrameMsEma: 16,
+      autoAdjustEnabled: false,
       maxAutomaticQualityRank: 2,
       switchCooldownMs: 0,
       slowFrameStreak: 0,
@@ -120,4 +132,35 @@ test("createRenderQualityUtils honors the injected hidden reader for backlog pre
 
   assert.ok(visibleState.performance.slowFrameStreak > 0);
   assert.ok(hiddenState.performance.fastFrameStreak > 0);
+});
+
+test("createRenderQualityUtils keeps runtime quality static when auto adjustment is disabled", () => {
+  const state = createPerfState();
+  state.performance.quality = "low";
+  state.performance.maxAutomaticQualityRank = 3;
+  state.performance.fastFrameStreak = 8;
+  state.performance.cpuFrameMsEma = 4;
+  state.performance.shortFrameMsEma = 10;
+  state.performance.longFrameMsEma = 10;
+
+  const utils = createRenderQualityFixture(state, () => false);
+
+  assert.equal(utils.getMaxAutomaticRenderQualityRank(), 3);
+  utils.updateRenderQualityFromFrame(16, 4, 4);
+  assert.equal(state.performance.quality, "low");
+});
+
+test("runtime render quality presets slow the render loop on low-end tiers", () => {
+  assert.equal(RENDER_QUALITY_PRESETS.low.renderFrameIntervalMs > TARGET_RENDER_INTERVAL_MS, true);
+  assert.equal(RENDER_QUALITY_PRESETS.very_low.renderFrameIntervalMs > RENDER_QUALITY_PRESETS.low.renderFrameIntervalMs, true);
+});
+
+test("runtime resizeCanvas applies sub-1 render DPR on low-end presets", () => {
+  const source = fs.readFileSync(gameRuntimePath, "utf8");
+
+  assert.match(source, /const targetDpr = Math\.max\(0\.5, deviceDpr \* renderScale\);/);
+  assert.doesNotMatch(source, /function syncDynamicLaserPerformanceProfile\(\)/);
+  assert.doesNotMatch(source, /function getLaserCrowdRenderScalePenalty\(\)/);
+  assert.doesNotMatch(source, /syncDynamicLaserPerformanceProfile\(\);/);
+  assert.doesNotMatch(source, /syncDynamicRenderScalePenalty\(\);/);
 });

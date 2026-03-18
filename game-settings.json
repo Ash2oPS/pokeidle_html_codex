@@ -1,9 +1,12 @@
 ﻿{
   "maintenance": {
-    "enabled": false,
+    "enabled": true,
     "blockCurrentVersion": false,
     "blockedVersions": [],
     "message": "Le jeu est en maintenance. Merci de reessayer plus tard."
+  },
+  "notifications": {
+    "evolutionReadySystemEnabled": true
   },
   "store": {
     "playStoreUrl": "",
@@ -17,6 +20,9 @@
       "blockCurrentVersion": "Bloque automatiquement la version actuellement en ligne.",
       "blockedVersions": "Liste des versions a bloquer manuellement (ex: 0.1.28).",
       "message": "Message affiche sur l'ecran de chargement pendant la maintenance."
+    },
+    "notifications": {
+      "evolutionReadySystemEnabled": "Active la notif systeme Desktop/Android quand un Pokemon peut evoluer hors premier plan."
     },
     "store": {
       "playStoreUrl": "URL Play Store utilisee par les redirections publicitaires.",
@@ -32,6 +38,9 @@
       "blockedVersions": [],
       "message": "Le jeu est en maintenance. Merci de reessayer plus tard."
     },
+    "notifications": {
+      "evolutionReadySystemEnabled": true
+    },
     "store": {
       "playStoreUrl": "",
       "appStoreUrl": "",
@@ -44,6 +53,9 @@
         "blockCurrentVersion": "Bloque automatiquement la version actuellement en ligne.",
         "blockedVersions": "Liste des versions a bloquer manuellement (ex: 0.1.28).",
         "message": "Message affiche sur l'ecran de chargement pendant la maintenance."
+      },
+      "notifications": {
+        "evolutionReadySystemEnabled": "Active la notif systeme Desktop/Android quand un Pokemon peut evoluer hors premier plan."
       },
       "store": {
         "playStoreUrl": "URL Play Store utilisee par les redirections publicitaires.",

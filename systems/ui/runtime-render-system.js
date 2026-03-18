@@ -1,50 +1,6561 @@
-const RUNTIME_RENDER_CHUNK = "function getBattleViewportProfile(width, height) {\r\n  const safeWidth = Math.max(1, Number(width) || 0);\r\n  const safeHeight = Math.max(1, Number(height) || 0);\r\n  const portrait = safeHeight > safeWidth * 1.05;\r\n  const coarsePointer = isCoarsePointerDevice();\r\n  const runtimeSmartphone = typeof isLikelySmartphoneBrowser === \"function\" && isLikelySmartphoneBrowser();\r\n  const minSide = Math.min(safeWidth, safeHeight);\r\n  const maxSide = Math.max(safeWidth, safeHeight);\r\n  const compact = coarsePointer || runtimeSmartphone || safeWidth <= 900 || safeHeight <= 640;\r\n  const phoneLikeViewport = minSide <= 500\r\n    || (portrait && safeWidth <= 620 && safeHeight <= 1180)\r\n    || (runtimeSmartphone && minSide <= 640 && maxSide <= 1280);\r\n  const phone = compact && phoneLikeViewport;\r\n  return {\r\n    coarsePointer,\r\n    compact,\r\n    phone,\r\n    portrait,\r\n  };\r\n}\r\n\r\nfunction getTeamSpriteScale(layout = state.layout) {\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const multiplier = viewportProfile.phone\r\n    ? TEAM_SPRITE_SCALE_PHONE_MULTIPLIER\r\n    : viewportProfile.compact\r\n      ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER\r\n      : 1;\r\n  const devScale = viewportProfile.phone\r\n    ? 1\r\n    : Math.max(0.2, Number(state.devLayout?.settings?.allySpriteScale || 1));\r\n  return TEAM_SPRITE_SCALE * multiplier * devScale;\r\n}\r\n\r\nfunction getEnemySpriteRenderSize(layout = state.layout, baseSize = 0) {\r\n  const safeBaseSize = Math.max(0, Number(baseSize) || 0);\r\n  if (safeBaseSize <= 0) {\r\n    return 0;\r\n  }\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const multiplier = viewportProfile.phone\r\n    ? ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER\r\n    : viewportProfile.compact\r\n      ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER\r\n      : 1;\r\n  const devScale = viewportProfile.phone\r\n    ? 1\r\n    : Math.max(0.2, Number(state.devLayout?.settings?.enemySpriteScale || 1));\r\n  return safeBaseSize * multiplier * ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER * devScale;\r\n}\r\n\r\nfunction getTeamSpriteMinRenderSize(layout = state.layout, slotSize = 0) {\r\n  const safeSlotSize = Math.max(0, Number(slotSize) || 0);\r\n  if (safeSlotSize <= 0) {\r\n    return 0;\r\n  }\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const ratio = viewportProfile.phone\r\n    ? TEAM_SPRITE_MIN_RENDER_RATIO_PHONE\r\n    : viewportProfile.compact\r\n      ? TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT\r\n      : 0;\r\n  return safeSlotSize * ratio;\r\n}\r\n\r\nfunction getOverlayPaddingSnapshot() {\r\n  if (!gameOverlayEl || typeof window.getComputedStyle !== \"function\") {\r\n    return { top: 0, right: 0, bottom: 0, left: 0 };\r\n  }\r\n  const styles = window.getComputedStyle(gameOverlayEl);\r\n  return {\r\n    top: Math.max(0, parseFloat(styles.paddingTop || \"0\") || 0),\r\n    right: Math.max(0, parseFloat(styles.paddingRight || \"0\") || 0),\r\n    bottom: Math.max(0, parseFloat(styles.paddingBottom || \"0\") || 0),\r\n    left: Math.max(0, parseFloat(styles.paddingLeft || \"0\") || 0),\r\n  };\r\n}\r\n\r\nfunction getElementClientHeight(element) {\r\n  if (!(element instanceof Element)) {\r\n    return 0;\r\n  }\r\n  const rect = element.getBoundingClientRect();\r\n  return Math.max(0, Number(rect?.height) || 0);\r\n}\r\n\r\nfunction buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY }) {\r\n  const positions = [];\r\n  if (count <= 0) {\r\n    return positions;\r\n  }\r\n  const steps = [];\r\n  if (count === 1) {\r\n    steps.push(0);\r\n  } else {\r\n    for (let i = 0; i < count; i += 1) {\r\n      steps.push((i / (count - 1)) * 2 - 1);\r\n    }\r\n  }\r\n  for (let i = 0; i < count; i += 1) {\r\n    const t = steps[i] ?? 0;\r\n    if (axis === \"x\") {\r\n      positions.push({\r\n        x: baseX + (Number(spreadMain) || 0) * t,\r\n        y: baseY + (Number(arcDepth) || 0) * (1 - Math.abs(t)),\r\n      });\r\n    } else {\r\n      positions.push({\r\n        x: baseX + (Number(arcDepth) || 0) * (1 - Math.abs(t)),\r\n        y: baseY + (Number(spreadMain) || 0) * t,\r\n      });\r\n    }\r\n  }\r\n  return positions;\r\n}\r\n\r\nfunction computeLayout() {\r\n  const width = Math.max(260, Number(state.viewport.width) || 0);\r\n  const height = Math.max(220, Number(state.viewport.height) || 0);\r\n  const profile = getBattleViewportProfile(width, height);\r\n  const overlayPadding = getOverlayPaddingSnapshot();\r\n  const topHudHeight =\r\n    getElementClientHeight(uiTopbarEl)\r\n    || clamp(height * (profile.phone ? 0.17 : profile.compact ? 0.13 : 0.1), 54, profile.phone ? 122 : 92);\r\n  const bottomHudHeight =\r\n    getElementClientHeight(actionDockEl)\r\n    || clamp(height * (profile.phone ? 0.1 : profile.compact ? 0.085 : 0.072), 44, profile.phone ? 74 : 64);\r\n\r\n  let safeTop = overlayPadding.top + topHudHeight + (profile.phone ? 8 : profile.compact ? 12 : 14);\r\n  let safeBottom = overlayPadding.bottom + bottomHudHeight + (profile.phone ? 8 : profile.compact ? 10 : 12);\r\n  const maxReservedVertical = height * (profile.phone ? 0.4 : profile.compact ? 0.34 : 0.29);\r\n  const reservedVertical = safeTop + safeBottom;\r\n  if (reservedVertical > maxReservedVertical && reservedVertical > 0) {\r\n    const ratio = maxReservedVertical / reservedVertical;\r\n    safeTop *= ratio;\r\n    safeBottom *= ratio;\r\n  }\r\n\r\n  safeTop = clamp(safeTop, 40, height * (profile.phone ? 0.25 : 0.2));\r\n  safeBottom = clamp(safeBottom, 40, height * (profile.phone ? 0.27 : 0.2));\r\n\r\n  const sideInset = profile.phone ? 8 : profile.compact ? 12 : 18;\r\n  const leftInset = clamp(overlayPadding.left + sideInset, 8, width * 0.14);\r\n  const rightInset = clamp(overlayPadding.right + sideInset, 8, width * 0.14);\r\n  const playLeft = leftInset;\r\n  const playRight = Math.max(playLeft + 180, width - rightInset);\r\n  const playTop = safeTop;\r\n  const playBottom = Math.max(playTop + 180, height - safeBottom);\r\n  const playWidth = Math.max(180, playRight - playLeft);\r\n  const playHeight = Math.max(180, playBottom - playTop);\r\n  const centerX = playLeft + playWidth * 0.5;\r\n  let centerY = playTop + playHeight * 0.5;\r\n  const useSplitRows = profile.phone || (profile.compact && profile.portrait);\r\n  let enemySize = clamp(\r\n    Math.min(playWidth, playHeight) * (useSplitRows ? 0.236 : profile.compact ? 0.278 : 0.305),\r\n    useSplitRows ? 84 : 118,\r\n    useSplitRows ? 168 : 236,\r\n  );\r\n  if (profile.phone) {\r\n    enemySize = Math.min(196, enemySize * 1.16);\r\n  }\r\n  const teamSize = clamp(\r\n    enemySize * (useSplitRows ? 0.58 : profile.compact ? 0.6 : 0.62),\r\n    useSplitRows ? 56 : 72,\r\n    useSplitRows ? 106 : 130,\r\n  );\r\n  const teamHudScale = profile.phone ? 1 : profile.compact ? 1.05 : profile.portrait ? 1.18 : 1.34;\r\n  const teamHudBaseWidth = teamSize * (useSplitRows ? 1.14 : profile.compact ? 1.2 : 1.27);\r\n  const teamHudBaseHeight = teamSize * (useSplitRows ? 0.5 : 0.52);\r\n  const teamHudWidth = clamp(\r\n    teamHudBaseWidth * teamHudScale,\r\n    64,\r\n    useSplitRows ? 86 : 172,\r\n  );\r\n  const teamHudHeight = clamp(\r\n    teamHudBaseHeight * teamHudScale,\r\n    24,\r\n    useSplitRows ? 34 : 66,\r\n  );\r\n  const teamTypeChipHeight = clamp(teamSize * 0.17, 11, 18);\r\n  const cardMargin = 6;\r\n  const teamSlots = [];\r\n  const devLayoutSettings = state.devLayout?.settings || DEV_LAYOUT_SETTINGS_DEFAULTS;\r\n  const usePhoneRowsLayout = Boolean(profile.phone);\r\n  const enemyCenterYOffset = usePhoneRowsLayout\r\n    ? 0\r\n    : Number(devLayoutSettings.enemyCenterYOffset || 0);\r\n  const allyRingYOffset = usePhoneRowsLayout\r\n    ? 0\r\n    : Number(devLayoutSettings.allyRingYOffset || 0);\r\n  const arcRotationDeg = usePhoneRowsLayout\r\n    ? 0\r\n    : Number(devLayoutSettings.arcRotationDeg || 0);\r\n  const arcSpreadScale = Math.max(\r\n    0.2,\r\n    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcSpreadScale || 1)),\r\n  );\r\n  const arcRadiusScale = Math.max(\r\n    0.2,\r\n    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcRadiusScale || 1)),\r\n  );\r\n  const hudXOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudXOffset || 0);\r\n  const hudYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudYOffset || 0);\r\n  const hudDepthScale = usePhoneRowsLayout ? 1 : Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));\r\n  const enemyUiYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.enemyUiYOffset || 0);\r\n  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();\r\n\r\n  const centerYBaseRatio = useSplitRows\r\n    ? 0.64\r\n    : profile.compact\r\n      ? 0.62\r\n      : 0.6;\r\n  const centerYRaw = usePhoneRowsLayout\r\n    ? height * 0.49 + enemyCenterYOffset\r\n    : playTop + playHeight * centerYBaseRatio + enemyCenterYOffset;\r\n  centerY = usePhoneRowsLayout\r\n    ? centerYRaw\r\n    : allowOverflowPositions\r\n      ? centerYRaw\r\n      : clamp(centerYRaw, playTop + enemySize * 1.02, playBottom - enemySize * 0.9);\r\n\r\n  if (usePhoneRowsLayout) {\r\n    const rowCount = Math.ceil(MAX_TEAM_SIZE / 2);\r\n    const halfSpread = Math.min(playWidth * 0.34, enemySize * 1.95 + teamSize * 0.85);\r\n    const topRowY = height * 0.34;\r\n    const bottomRowY = height * 0.74;\r\n    const slotBoundsLeft = playLeft + teamSize * 0.6;\r\n    const slotBoundsRight = playRight - teamSize * 0.6;\r\n    const slotBoundsTop = playTop + teamSize * 0.56;\r\n    const slotBoundsBottom = playBottom - teamSize * 0.56;\r\n\r\n    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n      const row = i < rowCount ? 0 : 1;\r\n      const col = i % rowCount;\r\n      const t = rowCount <= 1 ? 0 : (col / (rowCount - 1)) * 2 - 1;\r\n      const xRaw = centerX + t * halfSpread;\r\n      const yRaw = row === 0 ? topRowY : bottomRowY;\r\n      const x = xRaw;\r\n      const y = yRaw;\r\n      const dirX = t === 0 ? (row === 0 ? -1 : 1) : Math.sign(t);\r\n      const dirY = row === 0 ? -1 : 1;\r\n      let hudCenterX = x + dirX * (teamSize * 0.16) + hudXOffset;\r\n      let hudCenterY = y + (\r\n        row === 0\r\n          ? -(teamSize * 0.86 + teamHudHeight * 0.58)\r\n          : (teamSize * 0.8 + teamHudHeight * 0.42)\r\n      ) + hudYOffset;\r\n      if (!allowOverflowPositions) {\r\n        hudCenterX = clamp(\r\n          hudCenterX,\r\n          playLeft + teamHudWidth * 0.5 + cardMargin,\r\n          playRight - teamHudWidth * 0.5 - cardMargin,\r\n        );\r\n        hudCenterY = clamp(\r\n          hudCenterY,\r\n          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,\r\n          playBottom - teamHudHeight * 0.5 - cardMargin,\r\n        );\r\n      }\r\n      const cardTopY = hudCenterY - teamHudHeight * 0.5;\r\n      teamSlots.push({\r\n        x,\r\n        y,\r\n        size: teamSize,\r\n        hudCenterX,\r\n        hudCenterY,\r\n        hudTopY: cardTopY,\r\n        hudWidth: teamHudWidth,\r\n        hudHeight: teamHudHeight,\r\n        hudTypeChipHeight: teamTypeChipHeight,\r\n        hudDirectionX: dirX,\r\n        hudDirectionY: dirY,\r\n      });\r\n    }\r\n  } else {\r\n    const slotBoundsLeft = playLeft + teamSize * 0.6;\r\n    const slotBoundsRight = playRight - teamSize * 0.6;\r\n    const slotBoundsTop = playTop + teamSize * 0.56;\r\n    const slotBoundsBottom = centerY - enemySize * 0.58;\r\n    const baseArcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;\r\n    const baseArcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;\r\n    const baseArcCenterDeg = (baseArcStartDeg + baseArcEndDeg) * 0.5;\r\n    const baseArcSpreadDeg = baseArcEndDeg - baseArcStartDeg;\r\n    const arcCenterDeg = baseArcCenterDeg + arcRotationDeg;\r\n    const arcSpreadDegRaw = baseArcSpreadDeg * arcSpreadScale;\r\n    const arcSpreadDeg = allowOverflowPositions ? Math.max(4, arcSpreadDegRaw) : clamp(arcSpreadDegRaw, 48, 178);\r\n    const arcStartDeg = arcCenterDeg - arcSpreadDeg * 0.5;\r\n    const arcEndDeg = arcCenterDeg + arcSpreadDeg * 0.5;\r\n    const arcStart = (arcStartDeg * Math.PI) / 180;\r\n    const arcEnd = (arcEndDeg * Math.PI) / 180;\r\n    const arcSpan = Math.max(0.01, arcEnd - arcStart);\r\n    const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5) * arcRadiusScale;\r\n    let slotRadius = Math.max(teamSize * 0.2, preferredRadius);\r\n    if (!allowOverflowPositions) {\r\n      const arcStartCosAbs = Math.max(0.001, Math.abs(Math.cos(arcStart)));\r\n      const arcEndCosAbs = Math.max(0.001, Math.abs(Math.cos(arcEnd)));\r\n      const arcEdgeSinAbs = Math.max(0.001, Math.abs(Math.sin(arcStart)));\r\n      const radiusMaxByLeft = Math.max(0, (centerX - slotBoundsLeft) / arcStartCosAbs);\r\n      const radiusMaxByRight = Math.max(0, (slotBoundsRight - centerX) / arcEndCosAbs);\r\n      const radiusMaxByTop = Math.max(0, centerY - slotBoundsTop);\r\n      const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));\r\n      const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);\r\n      const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);\r\n      slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);\r\n    }\r\n\r\n    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n      const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);\r\n      const angle = arcStart + arcSpan * t;\r\n      const xRaw = centerX + Math.cos(angle) * slotRadius;\r\n      const yRaw = centerY + Math.sin(angle) * slotRadius + allyRingYOffset;\r\n      const x = allowOverflowPositions ? xRaw : clamp(xRaw, slotBoundsLeft, slotBoundsRight);\r\n      const y = allowOverflowPositions ? yRaw : clamp(yRaw, slotBoundsTop, slotBoundsBottom);\r\n      const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);\r\n      const centerProximity = 1 - Math.abs(2 * t - 1);\r\n      const dirY = 1;\r\n      let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14)) + hudXOffset;\r\n      const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58) * hudDepthScale;\r\n      let hudCenterY = y + (\r\n        teamSize * (useSplitRows ? 0.86 : 0.82)\r\n        + teamHudHeight * (useSplitRows ? 0.44 : 0.42)\r\n        + radialDepthOffset\r\n      ) + hudYOffset;\r\n      if (!allowOverflowPositions) {\r\n        hudCenterX = clamp(\r\n          hudCenterX,\r\n          playLeft + teamHudWidth * 0.5 + cardMargin,\r\n          playRight - teamHudWidth * 0.5 - cardMargin,\r\n        );\r\n        hudCenterY = clamp(\r\n          hudCenterY,\r\n          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,\r\n          Math.min(playBottom - teamHudHeight * 0.5 - cardMargin, centerY - enemySize * 0.12),\r\n        );\r\n      }\r\n      const cardTopY = hudCenterY - teamHudHeight * 0.5;\r\n      teamSlots.push({\r\n        x,\r\n        y,\r\n        size: teamSize,\r\n        hudCenterX,\r\n        hudCenterY,\r\n        hudTopY: cardTopY,\r\n        hudWidth: teamHudWidth,\r\n        hudHeight: teamHudHeight,\r\n        hudTypeChipHeight: teamTypeChipHeight,\r\n        hudDirectionX: dirX,\r\n        hudDirectionY: dirY,\r\n      });\r\n    }\r\n  }\r\n\r\n  const hpBarWidth = clamp(\r\n    enemySize * (useSplitRows ? 1.04 : 1.14),\r\n    useSplitRows ? 124 : 154,\r\n    useSplitRows ? 196 : 272,\r\n  );\r\n  const hpBarHeight = clamp(enemySize * 0.06, 9, 14);\r\n  const enemyImpactX = centerX;\r\n  const enemyImpactYRaw = centerY + enemySize * (useSplitRows ? 0.04 : 0.03) + enemyUiYOffset;\r\n  const enemyImpactY = allowOverflowPositions\r\n    ? enemyImpactYRaw\r\n    : clamp(enemyImpactYRaw, playTop + enemySize * 0.22, playBottom - enemySize * 0.22);\r\n  const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62) + enemyUiYOffset;\r\n  const hpBarMinY = centerY + enemySize * 0.42;\r\n  const hpBarMaxY = playBottom - (useSplitRows ? 98 : 114);\r\n  const hpBarY = allowOverflowPositions\r\n    ? enemyUiTop\r\n    : clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));\r\n  const enemyNameMinY = hpBarY + hpBarHeight + 6;\r\n  const enemyNameMaxY = playBottom - (useSplitRows ? 70 : 78);\r\n  const enemyNameTopYRaw = hpBarY + hpBarHeight + (useSplitRows ? 8 : 10);\r\n  const enemyNameTopY = allowOverflowPositions\r\n    ? enemyNameTopYRaw\r\n    : clamp(enemyNameTopYRaw, Math.min(enemyNameMinY, enemyNameMaxY), Math.max(enemyNameMinY, enemyNameMaxY));\r\n  const enemyTypeMinY = enemyNameTopY + 14;\r\n  const enemyTypeMaxY = playBottom - 14;\r\n  const enemyTypeHudYRaw = enemyNameTopY + (useSplitRows ? 22 : 24);\r\n  const enemyTypeHudY = allowOverflowPositions\r\n    ? enemyTypeHudYRaw\r\n    : clamp(enemyTypeHudYRaw, Math.min(enemyTypeMinY, enemyTypeMaxY), Math.max(enemyTypeMinY, enemyTypeMaxY));\r\n\r\n  return {\r\n    centerX,\r\n    centerY,\r\n    enemyImpactX,\r\n    enemyImpactY,\r\n    enemySize,\r\n    hpBarWidth,\r\n    hpBarHeight,\r\n    hpBarY,\r\n    enemyNameTopY,\r\n    enemyNamePlateWidth: clamp(\r\n      useSplitRows\r\n        ? Math.max(hpBarWidth * 0.9, playWidth * 0.56)\r\n        : hpBarWidth * 0.74,\r\n      useSplitRows ? 126 : 108,\r\n      Math.min(useSplitRows ? 236 : 224, Math.max(108, playWidth - 12)),\r\n    ),\r\n    enemyTypeHudY,\r\n    viewportProfile: profile,\r\n    safeBounds: {\r\n      top: playTop,\r\n      bottom: playBottom,\r\n      left: playLeft,\r\n      right: playRight,\r\n      width: playWidth,\r\n      height: playHeight,\r\n    },\r\n    teamSlots,\r\n  };\r\n}\r\n\r\nfunction refreshLayoutIfNeeded(options = {}) {\r\n  const force = options?.force === true;\r\n  const nowMsRaw = options?.nowMs;\r\n  const nowMs = Number.isFinite(nowMsRaw) ? Math.max(0, Number(nowMsRaw)) : Math.max(0, Number(state.timeMs) || 0);\r\n  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);\r\n  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);\r\n  const refresh = state.layoutRefresh || {};\r\n  const viewportChanged =\r\n    viewportWidth !== Math.max(0, Number(refresh.viewportWidth) || 0)\r\n    || viewportHeight !== Math.max(0, Number(refresh.viewportHeight) || 0);\r\n  const dueAt = Math.max(0, Number(refresh.nextRecomputeAtMs) || 0);\r\n  if (!force && state.layout && !viewportChanged && nowMs < dueAt) {\r\n    return state.layout;\r\n  }\r\n\r\n  state.layout = computeLayout();\r\n  state.layoutRefresh = {\r\n    viewportWidth,\r\n    viewportHeight,\r\n    nextRecomputeAtMs: nowMs + LAYOUT_RECOMPUTE_INTERVAL_MS,\r\n  };\r\n  return state.layout;\r\n}\r\n\r\nfunction getShinySparkleCountForQuality() {\r\n  const quality = String(state.performance?.quality || \"medium\");\r\n  if (quality === \"very_low\") {\r\n    return 2;\r\n  }\r\n  if (quality === \"low\") {\r\n    return 3;\r\n  }\r\n  if (quality === \"medium\") {\r\n    return 5;\r\n  }\r\n  return 8;\r\n}\r\n\r\nfunction drawShinySparkles(size, seed = 0, alpha = 1) {\r\n  const sparkleCount = getShinySparkleCountForQuality();\r\n  const safeAlpha = clamp(Number(alpha), 0, 1);\r\n  if (safeAlpha <= 0.02) {\r\n    return;\r\n  }\r\n\r\n  const timeSeconds = state.timeMs / 1000;\r\n  const useSimpleSparkles = sparkleCount <= 3;\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n  for (let i = 0; i < sparkleCount; i += 1) {\r\n    const phase = seed * 0.37 + i * 0.91;\r\n    const orbitX = size * (0.36 + (i % 3) * 0.08);\r\n    const orbitY = size * (0.28 + ((i + 1) % 3) * 0.07);\r\n    const angle = timeSeconds * (0.8 + (i % 4) * 0.17) + phase;\r\n    const px = Math.cos(angle) * orbitX;\r\n    const py = Math.sin(angle * 1.18) * orbitY - size * 0.12;\r\n    const twinkle = 0.4 + 0.6 * Math.sin(timeSeconds * 4.2 + phase * 2.4);\r\n    const radius = 0.9 + twinkle * 1.7;\r\n    const glowRadius = radius * 3.3;\r\n    const color = i % 2 === 0 ? \"255, 240, 174\" : \"212, 243, 255\";\r\n\r\n    if (!useSimpleSparkles) {\r\n      const glow = ctx.createRadialGradient(px, py, 0, px, py, glowRadius);\r\n      glow.addColorStop(0, `rgba(${color}, ${0.75 * safeAlpha})`);\r\n      glow.addColorStop(1, \"rgba(255, 255, 255, 0)\");\r\n      ctx.fillStyle = glow;\r\n      ctx.beginPath();\r\n      ctx.arc(px, py, glowRadius, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    }\r\n\r\n    ctx.fillStyle = `rgba(255, 255, 255, ${0.88 * safeAlpha})`;\r\n    ctx.beginPath();\r\n    ctx.arc(px, py, radius, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction getUltraShinyShaderConfig(seed = 0) {\r\n  const cycleMs = Math.max(400, ULTRA_SHINY_HUE_CYCLE_MS);\r\n  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 193.137) % cycleMs;\r\n  const ratio = ((state.timeMs + seededOffsetMs) % cycleMs) / cycleMs;\r\n  const wave = Math.sin(ratio * Math.PI * 2);\r\n  const pulse = Math.sin(ratio * Math.PI * 4 + 0.8);\r\n  return {\r\n    hueRotateDeg: ratio * 360,\r\n    saturate: clamp(1.38 + wave * 0.2, 1.05, 1.75),\r\n    brightness: clamp(1.06 + pulse * 0.08, 0.95, 1.22),\r\n    contrast: clamp(1.08 + wave * 0.06, 0.96, 1.24),\r\n  };\r\n}\r\n\r\nfunction drawUltraShinyOutline(image, drawX, drawY, drawWidth, drawHeight, outlinePx = ULTRA_SHINY_OUTLINE_PX, alpha = 1) {\r\n  if (!isDrawableImage(image)) {\r\n    return;\r\n  }\r\n  const safeAlpha = clamp(Number(alpha), 0, 1);\r\n  if (safeAlpha <= 0.01) {\r\n    return;\r\n  }\r\n  const rawOutline = Number(outlinePx);\r\n  const safeOutline = Number.isFinite(rawOutline) ? rawOutline : ULTRA_SHINY_OUTLINE_PX;\r\n  // Keep width fully controllable: 0 disables outline, tiny values stay tiny.\r\n  if (safeOutline <= 0.001) {\r\n    return;\r\n  }\r\n  const texture = getUltraShinyOutlineTexture(image, drawWidth, drawHeight, safeOutline);\r\n  if (!texture) {\r\n    return;\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"source-over\";\r\n  ctx.globalAlpha = safeAlpha;\r\n  const wasSmoothing = ctx.imageSmoothingEnabled;\r\n  ctx.imageSmoothingEnabled = false;\r\n  ctx.drawImage(texture.canvas, drawX - texture.pad, drawY - texture.pad);\r\n  ctx.imageSmoothingEnabled = wasSmoothing;\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawMorphingOutline(\r\n  image,\r\n  drawX,\r\n  drawY,\r\n  drawWidth,\r\n  drawHeight,\r\n  options = {},\r\n) {\r\n  if (!isDrawableImage(image) || !spriteOutlineTintBufferCtx) {\r\n    return;\r\n  }\r\n  const safeAlpha = clamp(Number(options.alpha ?? MORPHING_OUTLINE_ALPHA), 0, 1);\r\n  if (safeAlpha <= 0.01) {\r\n    return;\r\n  }\r\n  const safeOutline = Math.max(0, Number(options.outlinePx ?? MORPHING_OUTLINE_PX) || MORPHING_OUTLINE_PX);\r\n  if (safeOutline <= 0.001) {\r\n    return;\r\n  }\r\n  const outlineRgb = normalizeRgbColor(options.color, MORPHING_OUTLINE_RGB);\r\n  const texture = getUltraShinyOutlineTexture(image, drawWidth, drawHeight, safeOutline);\r\n  if (!texture?.canvas) {\r\n    return;\r\n  }\r\n\r\n  const textureCanvas = texture.canvas;\r\n  const textureWidth = Math.max(1, toSafeInt(textureCanvas.width, 1));\r\n  const textureHeight = Math.max(1, toSafeInt(textureCanvas.height, 1));\r\n  if (\r\n    spriteOutlineTintBufferCanvas.width !== textureWidth\r\n    || spriteOutlineTintBufferCanvas.height !== textureHeight\r\n  ) {\r\n    spriteOutlineTintBufferCanvas.width = textureWidth;\r\n    spriteOutlineTintBufferCanvas.height = textureHeight;\r\n  }\r\n\r\n  const tintCtx = spriteOutlineTintBufferCtx;\r\n  const previousTintSmoothing = tintCtx.imageSmoothingEnabled;\r\n  tintCtx.setTransform(1, 0, 0, 1, 0, 0);\r\n  tintCtx.globalAlpha = 1;\r\n  tintCtx.globalCompositeOperation = \"source-over\";\r\n  tintCtx.imageSmoothingEnabled = false;\r\n  tintCtx.clearRect(0, 0, textureWidth, textureHeight);\r\n  tintCtx.drawImage(textureCanvas, 0, 0);\r\n  tintCtx.globalCompositeOperation = \"source-in\";\r\n  tintCtx.fillStyle = `rgba(${outlineRgb[0]}, ${outlineRgb[1]}, ${outlineRgb[2]}, 1)`;\r\n  tintCtx.fillRect(0, 0, textureWidth, textureHeight);\r\n  tintCtx.globalCompositeOperation = \"source-over\";\r\n  tintCtx.imageSmoothingEnabled = previousTintSmoothing;\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"source-over\";\r\n  ctx.globalAlpha = safeAlpha;\r\n  const previousSmoothing = ctx.imageSmoothingEnabled;\r\n  ctx.imageSmoothingEnabled = false;\r\n  ctx.drawImage(spriteOutlineTintBufferCanvas, drawX - texture.pad, drawY - texture.pad);\r\n  ctx.imageSmoothingEnabled = previousSmoothing;\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {\r\n  const safeSize = Number(size) || 0;\r\n  const safeAlpha = clamp(Number(alpha), 0, 1);\r\n  if (safeSize <= 1 || safeAlpha <= 0.01) {\r\n    return;\r\n  }\r\n\r\n  const time = state.timeMs * 0.0032 + Number(seed || 0) * 0.77;\r\n  const motionScale = MORPHING_MOTION_INTENSITY;\r\n  const radiusX = safeSize * 0.29;\r\n  const topY = -safeSize * 0.06;\r\n  const baseY = safeSize * 0.11;\r\n  const dripAmplitude = safeSize * 0.165 * motionScale;\r\n  const segmentCount = 16;\r\n  const bodyAlpha = safeAlpha * MORPHING_SLIME_ALPHA * (0.92 + 0.08 * Math.sin(time * 1.1));\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"source-over\";\r\n  ctx.beginPath();\r\n  ctx.moveTo(-radiusX, topY);\r\n  ctx.quadraticCurveTo(0, -safeSize * 0.22, radiusX, topY);\r\n  for (let i = segmentCount; i >= 0; i -= 1) {\r\n    const ratio = i / segmentCount;\r\n    const x = lerpNumber(-radiusX, radiusX, ratio);\r\n    const wave = Math.sin(time * 1.35 + ratio * Math.PI * 3.6 + seed * 0.19) * safeSize * 0.018 * motionScale;\r\n    const dripNoise = Math.max(0, Math.sin(time * 1.9 + ratio * Math.PI * 7.2 + seed * 0.41));\r\n    const dripShape = dripNoise * dripNoise;\r\n    const edgeBias = 1 - Math.abs(ratio - 0.5) * 2;\r\n    const drip = dripAmplitude * dripShape * (0.42 + edgeBias * 0.58);\r\n    const y = baseY + wave + drip;\r\n    ctx.lineTo(x, y);\r\n  }\r\n  ctx.closePath();\r\n\r\n  const slimeGradient = ctx.createLinearGradient(0, topY - safeSize * 0.12, 0, baseY + dripAmplitude * 1.25);\r\n  slimeGradient.addColorStop(\r\n    0,\r\n    `rgba(${MORPHING_SLIME_HIGHLIGHT_RGB[0]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[1]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[2]}, ${(bodyAlpha * 0.82).toFixed(3)})`,\r\n  );\r\n  slimeGradient.addColorStop(\r\n    1,\r\n    `rgba(${MORPHING_SLIME_BASE_RGB[0]}, ${MORPHING_SLIME_BASE_RGB[1]}, ${MORPHING_SLIME_BASE_RGB[2]}, ${bodyAlpha.toFixed(3)})`,\r\n  );\r\n  ctx.fillStyle = slimeGradient;\r\n  ctx.fill();\r\n  ctx.strokeStyle = `rgba(255, 238, 255, ${(safeAlpha * 0.2).toFixed(3)})`;\r\n  ctx.lineWidth = Math.max(1, safeSize * 0.018);\r\n  ctx.stroke();\r\n\r\n  const dropletCount = 3;\r\n  for (let i = 0; i < dropletCount; i += 1) {\r\n    const ratio = (i + 1) / (dropletCount + 1);\r\n    const drift = Math.sin(time * 1.6 + i * 1.17 + seed * 0.13) * safeSize * 0.012 * motionScale;\r\n    const phase = ((time * 0.37 + i * 0.29 + seed * 0.07) % 1 + 1) % 1;\r\n    const x = lerpNumber(-radiusX * 0.72, radiusX * 0.72, ratio) + drift;\r\n    const y = baseY + safeSize * (0.08 + phase * 0.17 * motionScale);\r\n    const radius = safeSize * (0.027 + (1 - phase) * 0.012);\r\n    const dropAlpha = safeAlpha * 0.2 * (1 - phase * 0.55);\r\n    ctx.beginPath();\r\n    ctx.fillStyle = `rgba(${MORPHING_SLIME_BASE_RGB[0]}, ${MORPHING_SLIME_BASE_RGB[1]}, ${MORPHING_SLIME_BASE_RGB[2]}, ${dropAlpha.toFixed(3)})`;\r\n    ctx.arc(x, y, radius, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.beginPath();\r\n    ctx.fillStyle = `rgba(${MORPHING_SLIME_HIGHLIGHT_RGB[0]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[1]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[2]}, ${(dropAlpha * 0.55).toFixed(3)})`;\r\n    ctx.arc(x - radius * 0.22, y - radius * 0.26, Math.max(0.5, radius * 0.36), 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction getMorphingWobbleTransform(entity, size) {\r\n  const safeSize = Math.max(1, Number(size) || 0);\r\n  const motionScale = MORPHING_MOTION_INTENSITY;\r\n  const seed =\r\n    Number(entity?.id || 0) * 0.71\r\n    + Number(entity?.morphingSourceId || 0) * 1.17\r\n    + hashStringToUnit(String(entity?.spriteVariantId || \"default\")) * 37;\r\n  const t = state.timeMs * 0.0054;\r\n  const primary = Math.sin(t + seed);\r\n  const secondary = Math.sin(t * 1.73 + seed * 0.63);\r\n  const tertiary = Math.sin(t * 2.41 + seed * 1.17);\r\n  const squashWave = primary * 0.7 + secondary * 0.3;\r\n  const scaleX = clamp(1 + (squashWave * MORPHING_WOBBLE_SCALE_AMPLITUDE + tertiary * 0.03) * motionScale, 0.82, 1.28);\r\n  const scaleY = clamp(\r\n    1 - (squashWave * MORPHING_WOBBLE_VERTICAL_COMPENSATION + tertiary * 0.018) * motionScale,\r\n    0.8,\r\n    1.26,\r\n  );\r\n  const offsetX = safeSize * MORPHING_WOBBLE_OFFSET_RATIO * (primary * 0.7 + secondary * 0.3) * motionScale;\r\n  const offsetY =\r\n    safeSize\r\n    * MORPHING_WOBBLE_OFFSET_RATIO\r\n    * 0.62\r\n    * (secondary * 0.65 - Math.abs(primary) * 0.35)\r\n    * motionScale;\r\n  const rotationRad =\r\n    ((primary * 0.65 + tertiary * 0.35) * MORPHING_WOBBLE_ROTATION_DEG * motionScale * Math.PI) / 180;\r\n  const shearX = clamp((secondary * 0.75 + tertiary * 0.25) * MORPHING_WOBBLE_SHEAR * motionScale, -0.24, 0.24);\r\n  return {\r\n    scaleX,\r\n    scaleY,\r\n    offsetX,\r\n    offsetY,\r\n    rotationRad,\r\n    shearX,\r\n  };\r\n}\r\n\r\nfunction drawUltraShinyScintillation(size, seed = 0, alpha = 1) {\r\n  const safeAlpha = clamp(Number(alpha), 0, 1);\r\n  if (safeAlpha <= 0.02) {\r\n    return;\r\n  }\r\n  const periodMs = Math.max(300, ULTRA_SHINY_SCINTILLATION_PERIOD_MS);\r\n  const flashWindowMs = clamp(ULTRA_SHINY_SCINTILLATION_FLASH_MS, 40, periodMs);\r\n  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 151.73) % periodMs;\r\n  const phaseMs = (state.timeMs + seededOffsetMs) % periodMs;\r\n  if (phaseMs > flashWindowMs) {\r\n    return;\r\n  }\r\n\r\n  const ratio = phaseMs / flashWindowMs;\r\n  const pulse = Math.sin(ratio * Math.PI);\r\n  const travelAngle = seed * 0.61 + state.timeMs * 0.0023;\r\n  const px = Math.cos(travelAngle) * size * 0.24;\r\n  const py = Math.sin(travelAngle * 1.29) * size * 0.17 - size * 0.19;\r\n  const glowRadius = size * (0.08 + pulse * 0.11);\r\n  const lineLength = size * (0.09 + pulse * 0.14);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n  ctx.translate(px, py);\r\n  ctx.rotate(seed * 0.17 + state.timeMs * 0.0017);\r\n\r\n  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);\r\n  glow.addColorStop(0, `rgba(255, 255, 255, ${(0.75 + pulse * 0.2) * safeAlpha})`);\r\n  glow.addColorStop(1, \"rgba(255, 255, 255, 0)\");\r\n  ctx.fillStyle = glow;\r\n  ctx.beginPath();\r\n  ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.46 + pulse * 0.52) * safeAlpha})`;\r\n  ctx.lineWidth = Math.max(1.1, size * 0.015 * (0.9 + pulse));\r\n  for (let i = 0; i < 4; i += 1) {\r\n    const angle = (Math.PI / 4) * i;\r\n    const dx = Math.cos(angle) * lineLength;\r\n    const dy = Math.sin(angle) * lineLength;\r\n    ctx.beginPath();\r\n    ctx.moveTo(-dx, -dy);\r\n    ctx.lineTo(dx, dy);\r\n    ctx.stroke();\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction getPokemonBreathTransform(entity, size, slotIndex = 0, options = {}) {\r\n  if (!entity || !Number.isFinite(size) || size <= 0 || options.active === false) {\r\n    return { scaleX: 1, scaleY: 1, offsetY: 0 };\r\n  }\r\n\r\n  const seedKey = `${Number(entity?.id || 0)}:${Number(slotIndex) || 0}:${String(entity?.spriteVariantId || \"default\")}`;\r\n  const periodMs = lerpNumber(\r\n    BREATH_MIN_PERIOD_MS,\r\n    BREATH_MAX_PERIOD_MS,\r\n    hashStringToUnit(`${seedKey}:period`),\r\n  );\r\n  const amplitude = clamp(\r\n    BREATH_BASE_AMPLITUDE + (hashStringToUnit(`${seedKey}:amplitude`) - 0.5) * BREATH_AMPLITUDE_VARIATION,\r\n    0.008,\r\n    0.038,\r\n  );\r\n  const intensity = clamp(Number(options.intensity ?? 1), 0, 1.6);\r\n  const primaryPhase = hashStringToUnit(`${seedKey}:phase_primary`) * Math.PI * 2;\r\n  const secondaryPhase = hashStringToUnit(`${seedKey}:phase_secondary`) * Math.PI * 2;\r\n  const timeRatio = state.timeMs / Math.max(1200, periodMs);\r\n  const primary = Math.sin(timeRatio * Math.PI * 2 + primaryPhase);\r\n  const secondary = Math.sin(timeRatio * Math.PI + secondaryPhase);\r\n\r\n  let breath = primary * (1 - BREATH_SECONDARY_WEIGHT) + secondary * BREATH_SECONDARY_WEIGHT;\r\n  // Slightly asymmetric inhale/exhale so it feels organic.\r\n  breath = breath >= 0 ? Math.pow(breath, 1.3) : -Math.pow(-breath, 0.85);\r\n\r\n  const breathingAmount = amplitude * intensity * breath;\r\n  const inhale = clamp(breath, 0, 1);\r\n  // Keep a uniform pulse on sprites to avoid aspect-ratio distortion on mobile GPUs.\r\n  const uniformScale = clamp(1 + breathingAmount * (1 - BREATH_SIDE_COMPENSATION * 0.25), 0.94, 1.09);\r\n  const offsetY = -size * BREATH_OFFSET_RATIO * inhale * intensity;\r\n  return { scaleX: uniformScale, scaleY: uniformScale, offsetY };\r\n}\r\n\r\nfunction drawPokemonTerrainShadow(size, options = {}) {\r\n  const safeSize = Number(size);\r\n  if (!Number.isFinite(safeSize) || safeSize <= 0) {\r\n    return;\r\n  }\r\n  const profile = String(options.profile || \"team\").trim().toLowerCase();\r\n  const spriteAlpha = clamp(Number(options.spriteAlpha ?? 1), 0, 1);\r\n  const baseAlpha = clamp(Number(options.alpha ?? POKEMON_SHADOW_ALPHA), 0, 1);\r\n  const groundOffsetY = Number.isFinite(options.groundOffsetY) ? Number(options.groundOffsetY) : 0;\r\n  const liftPx = Math.max(0, Number.isFinite(options.liftPx) ? Number(options.liftPx) : 0);\r\n  const liftRatio = clamp(liftPx / Math.max(1, safeSize), 0, 1.5);\r\n\r\n  let radiusXRatio = 0.34;\r\n  let radiusYRatio = 0.16;\r\n  let centerYRatio = 0.3;\r\n  let profileAlpha = 1;\r\n  if (profile === \"enemy\") {\r\n    radiusXRatio = 0.37;\r\n    radiusYRatio = 0.17;\r\n    centerYRatio = 0.31;\r\n    profileAlpha = 1.04;\r\n  } else if (profile === \"drag\") {\r\n    radiusXRatio = 0.31;\r\n    radiusYRatio = 0.145;\r\n    centerYRatio = 0.285;\r\n    profileAlpha = 0.92;\r\n  }\r\n\r\n  const finalAlpha = clamp(baseAlpha * spriteAlpha * profileAlpha * (1 - liftRatio * 0.38), 0, 1);\r\n  if (finalAlpha <= 0.01) {\r\n    return;\r\n  }\r\n\r\n  const centerYOverride = Number.isFinite(options.centerY) ? Number(options.centerY) : null;\n  const centerY = (centerYOverride == null ? safeSize * centerYRatio : centerYOverride) + groundOffsetY + liftPx * 0.2;\r\n  const radiusX = safeSize * radiusXRatio * (1 - liftRatio * 0.08);\r\n  const radiusY = safeSize * radiusYRatio * (1 - liftRatio * 0.42);\r\n  if (!Number.isFinite(radiusX) || !Number.isFinite(radiusY) || radiusX <= 0.01 || radiusY <= 0.01) {\r\n    return;\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"multiply\";\r\n  const gradient = ctx.createRadialGradient(\r\n    0,\r\n    centerY - radiusY * 0.04,\r\n    Math.max(0.1, radiusY * 0.14),\r\n    0,\r\n    centerY,\r\n    Math.max(radiusX, radiusY),\r\n  );\r\n  gradient.addColorStop(0, `rgba(11, 24, 50, ${(finalAlpha * 0.74).toFixed(3)})`);\r\n  gradient.addColorStop(0.68, `rgba(8, 16, 34, ${(finalAlpha * 0.4).toFixed(3)})`);\r\n  gradient.addColorStop(1, \"rgba(5, 9, 18, 0)\");\r\n  ctx.fillStyle = gradient;\r\n  ctx.beginPath();\r\n  ctx.ellipse(0, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawPokemonBackdropCircle(x, y, size, options = {}) {\r\n  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size) || size <= 0) {\r\n    return;\r\n  }\r\n  const alpha = clamp(Number(options.alpha ?? POKEMON_BACKDROP_ALPHA), 0, 1);\r\n  if (alpha <= 0.001) {\r\n    return;\r\n  }\r\n  const radius = size * POKEMON_BACKDROP_RADIUS_RATIO;\r\n  const centerY = y + size * 0.02;\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;\r\n  ctx.beginPath();\r\n  ctx.arc(x, centerY, radius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.restore();\r\n}\r\n\r\nfunction getHoveredTeamSlotPulse(slotIndex) {\r\n  if (state.ui.hoveredTeamSlotIndex !== clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1)) {\r\n    return 0;\r\n  }\r\n  return 0.76 + (Math.sin(state.timeMs * 0.015 + slotIndex) + 1) * 0.12;\r\n}\r\n\r\nfunction drawTeamHoverIndicator(slot, intensity = 1) {\r\n  if (!slot || intensity <= 0.001) {\r\n    return;\r\n  }\r\n  const centerY = slot.y + slot.size * 0.03;\r\n  const radiusX = slot.size * (0.37 + intensity * 0.02);\r\n  const radiusY = slot.size * (0.29 + intensity * 0.02);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  ctx.strokeStyle = `rgba(255, 245, 173, ${(0.18 + intensity * 0.16).toFixed(3)})`;\r\n  ctx.lineWidth = Math.max(1.6, slot.size * 0.038);\r\n  ctx.beginPath();\r\n  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  ctx.fillStyle = `rgba(255, 236, 146, ${(0.09 + intensity * 0.08).toFixed(3)})`;\r\n  ctx.beginPath();\r\n  ctx.ellipse(slot.x, centerY, radiusX * 0.78, radiusY * 0.72, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawTeamDragSwapOverlay(layout) {\r\n  if (!layout || !state.ui.teamDragActive || !state.ui.teamDragMoved) {\r\n    return;\r\n  }\r\n  const sourceSlotIndex = clamp(toSafeInt(state.ui.teamDragSourceSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);\r\n  if (sourceSlotIndex < 0) {\r\n    return;\r\n  }\r\n  const sourceSlot = layout.teamSlots?.[sourceSlotIndex];\r\n  const sourceMember = state.team[sourceSlotIndex];\r\n  if (!sourceSlot || !sourceMember) {\r\n    return;\r\n  }\r\n\r\n  const targetSlotIndex = clamp(toSafeInt(state.ui.teamDragTargetSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);\r\n  const targetSlot = targetSlotIndex >= 0 ? layout.teamSlots?.[targetSlotIndex] : null;\r\n  const pointerXRaw = Number(state.ui.teamDragCurrentWorldX);\r\n  const pointerYRaw = Number(state.ui.teamDragCurrentWorldY);\r\n  const pointerX = Number.isFinite(pointerXRaw) ? pointerXRaw : sourceSlot.x;\r\n  const pointerY = Number.isFinite(pointerYRaw) ? pointerYRaw : sourceSlot.y;\r\n  const ghostSize = sourceSlot.size * getTeamSpriteScale(layout);\r\n  const lineTargetX = targetSlot ? targetSlot.x : pointerX;\r\n  const lineTargetY = targetSlot ? targetSlot.y : pointerY;\r\n  const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();\r\n\r\n  drawTeamHoverIndicator(sourceSlot, 1.05);\r\n  if (targetSlot) {\r\n    drawTeamHoverIndicator(targetSlot, 1.24);\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.strokeStyle = targetSlot ? \"rgba(111, 228, 186, 0.84)\" : \"rgba(143, 200, 255, 0.72)\";\r\n  ctx.lineWidth = Math.max(1.6, sourceSlot.size * 0.038);\r\n  ctx.setLineDash([6, 5]);\r\n  ctx.beginPath();\r\n  ctx.moveTo(sourceSlot.x, sourceSlot.y);\r\n  ctx.lineTo(lineTargetX, lineTargetY);\r\n  ctx.stroke();\r\n  ctx.restore();\r\n\r\n  drawPokemonBackdropCircle(pointerX, pointerY, ghostSize, {\r\n    alpha: 0.32,\r\n  });\r\n  drawPokemonSprite(sourceMember, pointerX, pointerY, ghostSize, {\r\n    alpha: 0.84,\r\n    scaleX: 1.04,\r\n    scaleY: 1.04,\r\n    offsetY: -ghostSize * 0.02,\r\n    minRenderSizePx: getTeamSpriteMinRenderSize(layout, ghostSize),\r\n    shadowProfile: \"drag\",\r\n    shadowAlpha: 0.42,\r\n    shadowGroundOffsetY: 0,\r\n    shadowLiftPx: ghostSize * 0.1,\r\n    flipX: shouldFlipTeamSprite(targetSlotIndex >= 0 ? targetSlotIndex : sourceSlotIndex, layout),\r\n    shinyVisual: Boolean(forceUltraShinyAll || sourceMember.isShiny || sourceMember.isShinyVisual),\r\n    ultraShinyVisual: Boolean(forceUltraShinyAll || sourceMember.isUltraShiny || sourceMember.isUltraShinyVisual),\r\n    tintBlend: 0.1,\r\n    tintColor: [234, 248, 255],\r\n  });\r\n}\r\n\r\nfunction drawTeamAttackChargeGlow(slot, member, slotIndex = 0, intensity = 0) {\r\n  if (!slot || !member || intensity <= 0.001) {\r\n    return;\r\n  }\r\n  const charge = clamp(Number(intensity) || 0, 0, 1);\r\n  if (charge <= 0.001) {\r\n    return;\r\n  }\r\n\r\n  const type = normalizeType(getEntityOffensiveType(member));\r\n  const rgb = getTypeColor(type);\r\n  const centerX = slot.x;\r\n  const centerY = slot.y + slot.size * 0.02;\r\n  const coreRadius = slot.size * (0.34 + charge * 0.08);\r\n  const auraRadius = coreRadius * (1.75 + charge * 0.42);\r\n  const pulse = 0.82 + Math.sin(state.timeMs * 0.02 + slotIndex * 0.73) * 0.18;\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  const aura = ctx.createRadialGradient(centerX, centerY, coreRadius * 0.16, centerX, centerY, auraRadius);\r\n  aura.addColorStop(0, rgba(rgb, (0.2 + charge * 0.34) * pulse));\r\n  aura.addColorStop(0.48, rgba(rgb, (0.12 + charge * 0.24) * pulse));\r\n  aura.addColorStop(1, rgba(rgb, 0));\r\n  ctx.fillStyle = aura;\r\n  ctx.beginPath();\r\n  ctx.arc(centerX, centerY, auraRadius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  ctx.strokeStyle = rgba(rgb, 0.26 + charge * 0.5);\r\n  ctx.lineWidth = Math.max(1.4, slot.size * (0.016 + charge * 0.008));\r\n  ctx.beginPath();\r\n  ctx.ellipse(centerX, centerY + slot.size * 0.02, coreRadius * 1.08, coreRadius * 0.78, 0, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  const sparkCount = 3;\r\n  for (let i = 0; i < sparkCount; i += 1) {\r\n    const angle = state.timeMs * 0.008 + slotIndex * 0.48 + i * ((Math.PI * 2) / sparkCount);\r\n    const orbit = coreRadius * (0.9 + charge * 0.36);\r\n    const px = centerX + Math.cos(angle) * orbit;\r\n    const py = centerY + Math.sin(angle * 1.35) * orbit * 0.62;\r\n    const pointSize = slot.size * (0.016 + charge * 0.01);\r\n    const pointGlow = pointSize * 3.2;\r\n    const sparkle = ctx.createRadialGradient(px, py, 0, px, py, pointGlow);\r\n    sparkle.addColorStop(0, \"rgba(255, 255, 255, 0.92)\");\r\n    sparkle.addColorStop(0.45, rgba(rgb, 0.76));\r\n    sparkle.addColorStop(1, rgba(rgb, 0));\r\n    ctx.fillStyle = sparkle;\r\n    ctx.beginPath();\r\n    ctx.arc(px, py, pointGlow, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawTeamAuraIndicator(slot, member, stackedBonus = 0) {\r\n  if (!slot || !member) {\r\n    return;\r\n  }\r\n  const bonus = Math.max(0, Number(stackedBonus || 0));\r\n  if (bonus <= 0.001) {\r\n    return;\r\n  }\r\n\r\n  const [r, g, b] = getTypeColor(getEntityOffensiveType(member));\r\n  const centerY = slot.y + slot.size * 0.03;\r\n  const pulse = 0.5 + Math.sin(state.timeMs * 0.006 + slot.x * 0.021 + slot.y * 0.014) * 0.5;\r\n  const radiusX = slot.size * (0.43 + pulse * 0.05);\r\n  const radiusY = slot.size * (0.31 + pulse * 0.04);\r\n  const alphaBase = clamp(0.08 + bonus * 0.35, 0.08, 0.4);\r\n  const glowRadius = slot.size * (0.52 + pulse * 0.07);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  const glow = ctx.createRadialGradient(slot.x, centerY, radiusY * 0.25, slot.x, centerY, glowRadius);\r\n  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);\r\n  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);\r\n  ctx.fillStyle = glow;\r\n  ctx.beginPath();\r\n  ctx.ellipse(slot.x, centerY, glowRadius * 0.95, glowRadius * 0.66, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.12).toFixed(3)})`;\r\n  ctx.lineWidth = Math.max(1.3, slot.size * (0.022 + bonus * 0.02));\r\n  ctx.beginPath();\r\n  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawTeamTeleportBoostIndicator(slot, boostMultiplier = 1, visualIntensity = 0) {\r\n  if (!slot) {\r\n    return;\r\n  }\r\n  const boost = Math.max(1, Number(boostMultiplier || 1));\r\n  const extraIntensity = clamp(Number(visualIntensity) || 0, 0, 1);\r\n  if (boost <= 1.001 && extraIntensity <= 0.001) {\r\n    return;\r\n  }\r\n\r\n  const [r, g, b] = getTypeColor(\"psychic\");\r\n  const centerX = slot.x;\r\n  const centerY = slot.y + slot.size * 0.02;\r\n  const pulse = 0.5 + Math.sin(state.timeMs * 0.008 + slot.x * 0.014 + slot.y * 0.017) * 0.5;\r\n  const boostPower = clamp((boost - 1) / 0.5, 0, 1);\r\n  const power = clamp(Math.max(extraIntensity, boostPower), 0, 1);\r\n  const ringRadiusX = slot.size * (0.44 + pulse * 0.06 + power * 0.07);\r\n  const ringRadiusY = slot.size * (0.31 + pulse * 0.05 + power * 0.05);\r\n  const alphaBase = clamp(0.2 + power * 0.34, 0.16, 0.58);\r\n  const glowRadius = slot.size * (0.6 + pulse * 0.08 + power * 0.08);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  const glow = ctx.createRadialGradient(centerX, centerY, ringRadiusY * 0.2, centerX, centerY, glowRadius);\r\n  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);\r\n  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);\r\n  ctx.fillStyle = glow;\r\n  ctx.beginPath();\r\n  ctx.ellipse(centerX, centerY, glowRadius * 0.96, glowRadius * 0.68, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  const lift = slot.size * (0.22 + power * 0.04);\r\n  const beam = ctx.createLinearGradient(centerX, centerY + lift, centerX, centerY - lift);\r\n  beam.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);\r\n  beam.addColorStop(0.25, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);\r\n  beam.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);\r\n  beam.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);\r\n  ctx.strokeStyle = beam;\r\n  ctx.lineWidth = Math.max(2.2, slot.size * (0.032 + power * 0.012));\r\n  ctx.lineCap = \"round\";\r\n  ctx.beginPath();\r\n  ctx.moveTo(centerX, centerY + lift);\r\n  ctx.lineTo(centerX, centerY - lift);\r\n  ctx.stroke();\r\n\r\n  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.16).toFixed(3)})`;\r\n  ctx.lineWidth = Math.max(1.8, slot.size * 0.028);\r\n  ctx.beginPath();\r\n  ctx.ellipse(centerX, centerY, ringRadiusX, ringRadiusY, 0, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  const spinA = state.timeMs * 0.0075;\r\n  const spinB = -state.timeMs * 0.0063;\r\n  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.32 + power * 0.2).toFixed(3)})`;\r\n  ctx.lineWidth = Math.max(1.1, slot.size * 0.018);\r\n  ctx.beginPath();\r\n  ctx.ellipse(centerX, centerY, ringRadiusX * 0.78, ringRadiusY * 0.68, spinA, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n  ctx.beginPath();\r\n  ctx.ellipse(centerX, centerY, ringRadiusX * 0.62, ringRadiusY * 0.52, spinB, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  const sparkCount = 6;\r\n  for (let i = 0; i < sparkCount; i += 1) {\r\n    const angle = state.timeMs * 0.01 + i * ((Math.PI * 2) / sparkCount);\r\n    const px = centerX + Math.cos(angle) * ringRadiusX * 0.92;\r\n    const py = centerY + Math.sin(angle * 1.25) * ringRadiusY * 0.85;\r\n    const sparkRadius = slot.size * (0.028 + power * 0.008);\r\n    const sparkGlow = ctx.createRadialGradient(px, py, 0, px, py, sparkRadius * 2.8);\r\n    sparkGlow.addColorStop(0, \"rgba(255, 255, 255, 0.92)\");\r\n    sparkGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.78)`);\r\n    sparkGlow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);\r\n    ctx.fillStyle = sparkGlow;\r\n    ctx.beginPath();\r\n    ctx.arc(px, py, sparkRadius * 2.8, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction getSpriteSnapFactor() {\r\n  const dpr = Number(state.viewport?.dpr || 1);\r\n  return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;\r\n}\r\n\r\nfunction snapSpriteValue(value) {\r\n  const numericValue = Number(value);\r\n  if (!Number.isFinite(numericValue)) {\r\n    return 0;\r\n  }\r\n  const snapFactor = getSpriteSnapFactor();\r\n  return Math.round(numericValue * snapFactor) / snapFactor;\r\n}\r\n\r\nfunction snapSpriteDimension(value) {\r\n  const numericValue = Number(value);\r\n  if (!Number.isFinite(numericValue) || numericValue <= 0) {\r\n    return 1;\r\n  }\r\n  const snapFactor = getSpriteSnapFactor();\r\n  const snapped = Math.round(numericValue * snapFactor) / snapFactor;\r\n  return Math.max(1 / snapFactor, snapped);\r\n}\r\n\r\nfunction buildSpriteShaderFilter(shader = null) {\r\n  if (!shader || typeof shader !== \"object\") {\r\n    return \"none\";\r\n  }\r\n\r\n  const parts = [];\r\n  const hueRotateDeg = Number(shader.hueRotateDeg);\r\n  if (Number.isFinite(hueRotateDeg)) {\r\n    parts.push(`hue-rotate(${hueRotateDeg.toFixed(2)}deg)`);\r\n  }\r\n  const saturate = Number(shader.saturate);\r\n  if (Number.isFinite(saturate) && Math.abs(saturate - 1) > 0.001) {\r\n    parts.push(`saturate(${saturate.toFixed(3)})`);\r\n  }\r\n  const brightness = Number(shader.brightness);\r\n  if (Number.isFinite(brightness) && Math.abs(brightness - 1) > 0.001) {\r\n    parts.push(`brightness(${brightness.toFixed(3)})`);\r\n  }\r\n  const contrast = Number(shader.contrast);\r\n  if (Number.isFinite(contrast) && Math.abs(contrast - 1) > 0.001) {\r\n    parts.push(`contrast(${contrast.toFixed(3)})`);\r\n  }\r\n  const invert = Number(shader.invert);\r\n  if (Number.isFinite(invert) && Math.abs(invert) > 0.001) {\r\n    parts.push(`invert(${clamp(invert, 0, 1).toFixed(3)})`);\r\n  }\r\n\r\n  return parts.length > 0 ? parts.join(\" \") : \"none\";\r\n}\r\n\r\nfunction mergeSpriteShaderConfig(primaryShader = null, secondaryShader = null) {\r\n  const primary = primaryShader && typeof primaryShader === \"object\" ? primaryShader : null;\r\n  const secondary = secondaryShader && typeof secondaryShader === \"object\" ? secondaryShader : null;\r\n  if (!primary && !secondary) {\r\n    return null;\r\n  }\r\n\r\n  const readNumber = (value) => {\r\n    const numeric = Number(value);\r\n    return Number.isFinite(numeric) ? numeric : null;\r\n  };\r\n  const multiplyOrDefault = (valueA, valueB) => {\r\n    const numericA = readNumber(valueA);\r\n    const numericB = readNumber(valueB);\r\n    if (numericA == null && numericB == null) {\r\n      return null;\r\n    }\r\n    return (numericA == null ? 1 : numericA) * (numericB == null ? 1 : numericB);\r\n  };\r\n\r\n  const huePrimary = readNumber(primary?.hueRotateDeg);\r\n  const hueSecondary = readNumber(secondary?.hueRotateDeg);\r\n  const saturate = multiplyOrDefault(primary?.saturate, secondary?.saturate);\r\n  const brightness = multiplyOrDefault(primary?.brightness, secondary?.brightness);\r\n  const contrast = multiplyOrDefault(primary?.contrast, secondary?.contrast);\r\n  const invertPrimary = readNumber(primary?.invert);\r\n  const invertSecondary = readNumber(secondary?.invert);\r\n  const invert =\r\n    invertPrimary == null && invertSecondary == null\r\n      ? null\r\n      : 1 - (1 - clamp(invertPrimary == null ? 0 : invertPrimary, 0, 1))\r\n        * (1 - clamp(invertSecondary == null ? 0 : invertSecondary, 0, 1));\r\n  const colorizePrimary = Array.isArray(primary?.colorizeRgb) ? normalizeRgbColor(primary.colorizeRgb, null) : null;\r\n  const colorizeSecondary =\r\n    Array.isArray(secondary?.colorizeRgb) ? normalizeRgbColor(secondary.colorizeRgb, null) : null;\r\n  const colorizeBlendPrimary = clamp(readNumber(primary?.colorizeBlend) || 0, 0, 1);\r\n  const colorizeBlendSecondary = clamp(readNumber(secondary?.colorizeBlend) || 0, 0, 1);\r\n  const colorizeBlend = 1 - (1 - colorizeBlendPrimary) * (1 - colorizeBlendSecondary);\r\n  const paletteKind = String(primary?.paletteKind || secondary?.paletteKind || \"\").trim().toLowerCase();\r\n  const paletteStrengthPrimary = readNumber(primary?.paletteStrength);\r\n  const paletteStrengthSecondary = readNumber(secondary?.paletteStrength);\r\n  const paletteStrength =\r\n    paletteStrengthPrimary != null\r\n      ? clamp(paletteStrengthPrimary, 0, 1)\r\n      : paletteStrengthSecondary != null\r\n        ? clamp(paletteStrengthSecondary, 0, 1)\r\n        : 1;\r\n\r\n  const merged = {};\r\n  if (huePrimary != null || hueSecondary != null) {\r\n    merged.hueRotateDeg = (huePrimary || 0) + (hueSecondary || 0);\r\n  }\r\n  if (saturate != null) {\r\n    merged.saturate = saturate;\r\n  }\r\n  if (brightness != null) {\r\n    merged.brightness = brightness;\r\n  }\r\n  if (contrast != null) {\r\n    merged.contrast = contrast;\r\n  }\r\n  if (invert != null && invert > 0.001) {\r\n    merged.invert = clamp(invert, 0, 1);\r\n  }\r\n  const mergedColorize = colorizePrimary || colorizeSecondary || null;\r\n  if (mergedColorize) {\r\n    merged.colorizeRgb = mergedColorize;\r\n  }\r\n  if (colorizeBlend > 0.001 && mergedColorize) {\r\n    merged.colorizeBlend = colorizeBlend;\r\n  }\r\n  if (paletteKind) {\r\n    merged.paletteKind = paletteKind;\r\n    merged.paletteStrength = paletteStrength;\r\n  }\r\n  return Object.keys(merged).length > 0 ? merged : null;\r\n}\r\n\r\nfunction drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend, shader = null) {\r\n  const blend = clamp(Number(tintBlend || 0), 0, 1);\r\n  const snapFactor = getSpriteSnapFactor();\r\n  const snappedDrawX = snapSpriteValue(drawX);\r\n  const snappedDrawY = snapSpriteValue(drawY);\r\n  const snappedDrawWidth = snapSpriteDimension(drawWidth);\r\n  const snappedDrawHeight = snapSpriteDimension(drawHeight);\r\n  const width = Math.max(1, Math.round(snappedDrawWidth * snapFactor));\r\n  const height = Math.max(1, Math.round(snappedDrawHeight * snapFactor));\r\n  const baseColor = normalizeRgbColor(Array.isArray(tintColor) ? tintColor : [255, 255, 255], [255, 255, 255]);\r\n  const shaderPaletteKind = String(shader?.paletteKind || \"\").trim().toLowerCase();\r\n  const shaderPaletteStrength = clamp(Number(shader?.paletteStrength ?? 1), 0, 1);\r\n  const preparedImage =\r\n    shaderPaletteKind === \"metamorph\"\r\n      ? getMorphingPaletteMappedTexture(image, width, height, shaderPaletteStrength)\r\n      : image;\r\n  const shaderColorizeRgb = Array.isArray(shader?.colorizeRgb)\r\n    ? normalizeRgbColor(shader.colorizeRgb, MORPHING_COLORIZE_FALLBACK_RGB)\r\n    : null;\r\n  const shaderColorizeBlend = shaderColorizeRgb ? clamp(Number(shader?.colorizeBlend || 0), 0, 1) : 0;\r\n  const hasShaderColorize = shaderColorizeBlend > 0.001 && Array.isArray(shaderColorizeRgb);\r\n  const wasSmoothing = ctx.imageSmoothingEnabled;\r\n  const shaderFilter = buildSpriteShaderFilter(shader);\r\n  const hasAnyTintPass = blend > 0.001 || hasShaderColorize;\r\n\r\n  if (!hasAnyTintPass || !spriteTintBufferCtx) {\r\n    ctx.imageSmoothingEnabled = false;\r\n    const previousFilter = ctx.filter;\r\n    if (shaderFilter !== \"none\") {\r\n      ctx.filter = shaderFilter;\r\n    }\r\n    ctx.drawImage(preparedImage, snappedDrawX, snappedDrawY, snappedDrawWidth, snappedDrawHeight);\r\n    if (shaderFilter !== \"none\") {\r\n      ctx.filter = previousFilter;\r\n    }\r\n    ctx.imageSmoothingEnabled = wasSmoothing;\r\n    return;\r\n  }\r\n\r\n  if (spriteTintBufferCanvas.width !== width || spriteTintBufferCanvas.height !== height) {\r\n    spriteTintBufferCanvas.width = width;\r\n    spriteTintBufferCanvas.height = height;\r\n  }\r\n\r\n  const bufferCtx = spriteTintBufferCtx;\r\n  const wasBufferSmoothing = bufferCtx.imageSmoothingEnabled;\r\n  bufferCtx.setTransform(1, 0, 0, 1, 0, 0);\r\n  bufferCtx.globalCompositeOperation = \"source-over\";\r\n  bufferCtx.globalAlpha = 1;\r\n  bufferCtx.clearRect(0, 0, width, height);\r\n  bufferCtx.imageSmoothingEnabled = false;\r\n  bufferCtx.drawImage(preparedImage, 0, 0, width, height);\r\n  if (blend > 0.001) {\r\n    bufferCtx.globalCompositeOperation = \"source-atop\";\r\n    bufferCtx.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${blend})`;\r\n    bufferCtx.fillRect(0, 0, width, height);\r\n  }\r\n  if (hasShaderColorize) {\r\n    bufferCtx.globalCompositeOperation = \"source-atop\";\r\n    bufferCtx.fillStyle =\r\n      `rgba(${shaderColorizeRgb[0]}, ${shaderColorizeRgb[1]}, ${shaderColorizeRgb[2]}, ${shaderColorizeBlend})`;\r\n    bufferCtx.fillRect(0, 0, width, height);\r\n  }\r\n  bufferCtx.globalCompositeOperation = \"source-over\";\r\n  bufferCtx.imageSmoothingEnabled = wasBufferSmoothing;\r\n\r\n  ctx.imageSmoothingEnabled = false;\r\n  const previousFilter = ctx.filter;\r\n  if (shaderFilter !== \"none\") {\r\n    ctx.filter = shaderFilter;\r\n  }\r\n  ctx.drawImage(\r\n    spriteTintBufferCanvas,\r\n    0,\r\n    0,\r\n    width,\r\n    height,\r\n    snappedDrawX,\r\n    snappedDrawY,\r\n    snappedDrawWidth,\r\n    snappedDrawHeight,\r\n  );\r\n  if (shaderFilter !== \"none\") {\r\n    ctx.filter = previousFilter;\r\n  }\r\n  ctx.imageSmoothingEnabled = wasSmoothing;\r\n}\r\n\r\nfunction drawPokemonSprite(entity, x, y, size, options = {}) {\r\n  ctx.save();\r\n  const morphingShaderForTransform =\r\n    entity?.spriteShader && typeof entity.spriteShader === \"object\" ? entity.spriteShader : null;\r\n  const morphingVisualActive =\r\n    Number(entity?.morphingSourceId || 0) > 0\r\n    && String(morphingShaderForTransform?.paletteKind || \"\").toLowerCase() === \"metamorph\";\r\n  const morphingWobble = morphingVisualActive ? getMorphingWobbleTransform(entity, size) : null;\r\n  const offsetX = Number.isFinite(options.offsetX) ? options.offsetX : 0;\r\n  const offsetY = Number.isFinite(options.offsetY) ? options.offsetY : 0;\r\n  const wobbleOffsetX = morphingWobble ? Number(morphingWobble.offsetX || 0) : 0;\r\n  const wobbleOffsetY = morphingWobble ? Number(morphingWobble.offsetY || 0) : 0;\r\n  ctx.translate(snapSpriteValue(x + offsetX + wobbleOffsetX), snapSpriteValue(y + offsetY + wobbleOffsetY));\r\n  const drawAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;\r\n  ctx.globalAlpha = drawAlpha;\r\n  const baseScale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;\r\n  const scaleX = Number.isFinite(options.scaleX) ? Math.max(0, options.scaleX) : baseScale;\r\n  const scaleY = Number.isFinite(options.scaleY) ? Math.max(0, options.scaleY) : baseScale;\r\n  const wobbleScaleX = morphingWobble ? Number(morphingWobble.scaleX || 1) : 1;\r\n  const wobbleScaleY = morphingWobble ? Number(morphingWobble.scaleY || 1) : 1;\r\n  const flipX = options.flipX ? -1 : 1;\r\n  const rotationRad = Number.isFinite(options.rotationRad) ? Number(options.rotationRad) : 0;\r\n  ctx.scale(scaleX * wobbleScaleX * flipX, scaleY * wobbleScaleY);\r\n  if (morphingWobble) {\r\n    const wobbleShearX = Number(morphingWobble.shearX || 0);\r\n    const wobbleRotation = Number(morphingWobble.rotationRad || 0);\r\n    if (Math.abs(wobbleShearX) > 0.0001) {\r\n      ctx.transform(1, 0, wobbleShearX, 1, 0, 0);\r\n    }\r\n    if (Math.abs(wobbleRotation) > 0.0001) {\r\n      ctx.rotate(wobbleRotation);\r\n    }\r\n  }\r\n  const shinyVisual = Boolean(options.shinyVisual || entity?.isShinyVisual || entity?.isShiny);\r\n  const ultraShinyVisual = Boolean(options.ultraShinyVisual || entity?.isUltraShinyVisual || entity?.isUltraShiny);\r\n  const shinyNegativeFallbackVisual = Boolean(\r\n    !ultraShinyVisual\r\n    && (options.shinyNegativeFallbackVisual || entity?.isShinyNegativeFallbackVisual),\r\n  );\r\n  const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);\r\n  const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];\r\n  const ultraSeed =\r\n    Number(entity?.id || 0) * 0.73 + hashStringToUnit(String(entity?.spriteVariantId || \"default\")) * 19.7;\r\n  const customShaderConfig =\r\n    options?.shader && typeof options.shader === \"object\"\r\n      ? options.shader\r\n      : entity?.spriteShader && typeof entity.spriteShader === \"object\"\r\n        ? entity.spriteShader\r\n        : null;\r\n  const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;\r\n  const shinyNegativeShaderConfig = shinyNegativeFallbackVisual ? SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG : null;\r\n  const shaderWithUltra = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);\r\n  const shaderConfig = mergeSpriteShaderConfig(shaderWithUltra, shinyNegativeShaderConfig);\r\n  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);\r\n  const spriteImage = resolvedSpriteSource.source;\r\n  const minRenderSizePx = Number.isFinite(options.minRenderSizePx) ? Math.max(0, Number(options.minRenderSizePx)) : 0;\r\n  const renderSize = Math.max(\r\n    minRenderSizePx,\r\n    getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource),\r\n  );\r\n  let spriteDrawX = -renderSize * 0.5;\n  let spriteDrawY = -renderSize * 0.5;\n  let spriteDrawWidth = renderSize;\n  let spriteDrawHeight = renderSize;\n  let spriteUsedImage = false;\n  const shadowProfile = String(options.shadowProfile || \"team\").toLowerCase();\n  const shadowGroundOffsetY = Number.isFinite(options.shadowGroundOffsetY)\n    ? Number(options.shadowGroundOffsetY)\n    : -(offsetY + wobbleOffsetY);\n  const shadowLiftPx = Number.isFinite(options.shadowLiftPx)\n    ? Math.max(0, Number(options.shadowLiftPx))\n    : Math.max(0, -(offsetY + wobbleOffsetY));\n  let predictedShadowSize = renderSize;\n  let predictedShadowCenterY = renderSize * 0.5;\n  if (isDrawableImage(spriteImage)) {\n    const predictedDims = getDrawableImageDimensions(spriteImage);\n    const predictedWidth = predictedDims.width;\n    const predictedHeight = predictedDims.height;\n    const predictedRatio = predictedWidth / Math.max(predictedHeight, 1);\n    let predictedDrawWidth = snapSpriteDimension(renderSize);\n    let predictedDrawHeight = snapSpriteDimension(renderSize);\n    if (predictedRatio > 1) {\n      predictedDrawHeight = snapSpriteDimension(renderSize / predictedRatio);\n    } else {\n      predictedDrawWidth = snapSpriteDimension(renderSize * predictedRatio);\n    }\n    predictedShadowSize = Math.max(predictedDrawWidth, predictedDrawHeight);\n    const predictedDrawY = snapSpriteValue(-predictedDrawHeight * 0.5);\n    predictedShadowCenterY = predictedDrawY + predictedDrawHeight;\n  } else {\n    predictedShadowSize = renderSize * 0.6;\n    predictedShadowCenterY = renderSize * 0.3;\n  }\n  drawPokemonTerrainShadow(predictedShadowSize, {\n    profile: shadowProfile,\n    spriteAlpha: drawAlpha,\n    alpha: Number.isFinite(options.shadowAlpha) ? Number(options.shadowAlpha) : POKEMON_SHADOW_ALPHA,\n    liftPx: shadowLiftPx,\n    groundOffsetY: shadowGroundOffsetY,\n    centerY: predictedShadowCenterY,\n  });\n  if (Math.abs(rotationRad) > 0.0001) {\r\n    ctx.rotate(rotationRad);\r\n  }\r\n\r\n  if (isDrawableImage(spriteImage)) {\r\n    const dims = getDrawableImageDimensions(spriteImage);\r\n    const sourceWidth = dims.width;\r\n    const sourceHeight = dims.height;\r\n    const ratio = sourceWidth / Math.max(sourceHeight, 1);\r\n    let drawWidth = snapSpriteDimension(renderSize);\r\n    let drawHeight = snapSpriteDimension(renderSize);\r\n    if (ratio > 1) {\r\n      drawHeight = snapSpriteDimension(renderSize / ratio);\r\n    } else {\r\n      drawWidth = snapSpriteDimension(renderSize * ratio);\r\n    }\r\n    const wasSmoothing = ctx.imageSmoothingEnabled;\r\n    ctx.imageSmoothingEnabled = false;\r\n    spriteDrawX = snapSpriteValue(-drawWidth * 0.5);\r\n    spriteDrawY = snapSpriteValue(-drawHeight * 0.5);\r\n    spriteDrawWidth = drawWidth;\r\n    spriteDrawHeight = drawHeight;\r\n    spriteUsedImage = true;\r\n    let morphingSeed = 0;\r\n    if (morphingVisualActive) {\r\n      morphingSeed =\r\n        Number(entity?.morphingSourceId || 0) * 0.51\r\n        + Number(entity?.id || 0) * 0.37\r\n        + hashStringToUnit(String(entity?.spriteVariantId || \"default\")) * 9.3;\r\n      drawMorphingSlimeEffect(renderSize, morphingSeed, 1);\r\n      drawMorphingOutline(\r\n        spriteImage,\r\n        spriteDrawX,\r\n        spriteDrawY,\r\n        spriteDrawWidth,\r\n        spriteDrawHeight,\r\n      );\r\n    }\r\n    if (ultraShinyVisual) {\r\n      drawUltraShinyOutline(\r\n        spriteImage,\r\n        spriteDrawX,\r\n        spriteDrawY,\r\n        spriteDrawWidth,\r\n        spriteDrawHeight,\r\n        ULTRA_SHINY_OUTLINE_PX,\r\n        1,\r\n      );\r\n    }\r\n    drawSpriteImageWithTint(\r\n      spriteImage,\r\n      spriteDrawX,\r\n      spriteDrawY,\r\n      drawWidth,\r\n      drawHeight,\r\n      tintColor,\r\n      tintBlend,\r\n      shaderConfig,\r\n    );\r\n    if (morphingVisualActive) {\r\n      drawMorphingSlimeEffect(renderSize * 0.97, morphingSeed + 0.43, 0.72);\r\n    }\r\n    ctx.imageSmoothingEnabled = wasSmoothing;\r\n  } else {\r\n    spriteDrawX = -renderSize * 0.3;\r\n    spriteDrawY = -renderSize * 0.3;\r\n    spriteDrawWidth = renderSize * 0.6;\r\n    spriteDrawHeight = renderSize * 0.6;\r\n    ctx.fillStyle = \"rgba(180, 198, 232, 0.36)\";\r\n    ctx.strokeStyle = \"rgba(226, 238, 255, 0.6)\";\r\n    ctx.lineWidth = 2;\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.stroke();\r\n    const fallbackInitial = String(entity?.nameFr || entity?.nameEn || entity?.name || \"?\").trim().charAt(0) || \"?\";\r\n    ctx.fillStyle = \"#f7fbff\";\r\n    ctx.font = `bold ${Math.round(renderSize * 0.28)}px Trebuchet MS`;\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"middle\";\r\n    ctx.fillText(fallbackInitial.toUpperCase(), 0, 0);\r\n  }\r\n\r\n  if (tintBlend > 0.001 && !spriteUsedImage) {\r\n    // Fallback shape tinting when sprite image is unavailable.\r\n    ctx.fillStyle = `rgba(${tintColor[0]}, ${tintColor[1]}, ${tintColor[2]}, ${(tintBlend * 0.62).toFixed(3)})`;\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n\r\n  if (shinyVisual || ultraShinyVisual) {\r\n    drawShinySparkles(renderSize, Number(entity?.id || 0), drawAlpha);\r\n  }\r\n  if (ultraShinyVisual) {\r\n    drawUltraShinyScintillation(renderSize, ultraSeed, drawAlpha);\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {\r\n  const safeText = String(text || \"\");\r\n  const safeMaxWidth = Math.max(16, Number(maxWidth) || 0);\r\n  let size = clamp(Number(baseSize) || minSize, minSize, 28);\r\n  let measuredWidth = 0;\r\n\r\n  ctx.save();\r\n  while (size > minSize) {\r\n    ctx.font = `700 ${size}px Tahoma`;\r\n    measuredWidth = Math.ceil(ctx.measureText(safeText).width);\r\n    if (measuredWidth <= safeMaxWidth) {\r\n      break;\r\n    }\r\n    size -= 1;\r\n  }\r\n  if (measuredWidth <= 0) {\r\n    ctx.font = `700 ${size}px Tahoma`;\r\n    measuredWidth = Math.ceil(ctx.measureText(safeText).width);\r\n  }\r\n  ctx.restore();\r\n  return { size, width: measuredWidth };\r\n}\r\n\r\nfunction fitTextToWidthWithEllipsis(text, maxWidth, suffix = \"...\") {\r\n  const source = Array.from(String(text || \"\"));\r\n  if (source.length <= 0) {\r\n    return \"\";\r\n  }\r\n  const safeMaxWidth = Math.max(0, Number(maxWidth) || 0);\r\n  if (safeMaxWidth <= 0) {\r\n    return \"\";\r\n  }\r\n\r\n  const fullText = source.join(\"\");\r\n  if (ctx.measureText(fullText).width <= safeMaxWidth) {\r\n    return fullText;\r\n  }\r\n\r\n  const safeSuffix = String(suffix || \"\");\r\n  if (!safeSuffix) {\r\n    return \"\";\r\n  }\r\n  if (ctx.measureText(safeSuffix).width > safeMaxWidth) {\r\n    return \"\";\r\n  }\r\n\r\n  let low = 0;\r\n  let high = source.length;\r\n  while (low < high) {\r\n    const mid = Math.ceil((low + high) * 0.5);\r\n    const candidate = source.slice(0, mid).join(\"\") + safeSuffix;\r\n    if (ctx.measureText(candidate).width <= safeMaxWidth) {\r\n      low = mid;\r\n    } else {\r\n      high = mid - 1;\r\n    }\r\n  }\r\n  if (low <= 0) {\r\n    return safeSuffix;\r\n  }\r\n  return source.slice(0, low).join(\"\") + safeSuffix;\r\n}\r\n\r\nfunction getEnemyOwnershipBadgeState(pokemonId) {\r\n  const id = Number(pokemonId || 0);\r\n  if (id <= 0) {\r\n    return {\r\n      exactOwned: false,\r\n      familyOwned: false,\r\n      exactShiny: false,\r\n      familyShiny: false,\r\n      exactUltraShiny: false,\r\n      familyUltraShiny: false,\r\n    };\r\n  }\r\n\r\n  const record = getPokemonEntityRecord(id);\r\n  const exactOwned = isEntityUnlocked(record);\r\n  const familyOwned = isEvolutionFamilyOwned(id);\r\n  const exactShiny = Math.max(0, toSafeInt(record?.captured_shiny, 0)) > 0;\r\n  const familyShiny = getFamilyShinyCaptureCount(id) > 0;\r\n  const exactUltraShiny = Math.max(0, toSafeInt(record?.captured_ultra_shiny, 0)) > 0;\r\n  const familyUltraShiny = getFamilyUltraShinyCaptureCount(id) > 0;\r\n\r\n  return {\r\n    exactOwned,\r\n    familyOwned,\r\n    exactShiny,\r\n    familyShiny,\r\n    exactUltraShiny,\r\n    familyUltraShiny,\r\n  };\r\n}\r\n\r\nfunction buildEnemyOwnershipBadgeList(pokemonId) {\r\n  const status = getEnemyOwnershipBadgeState(pokemonId);\r\n  const badges = [];\r\n  if (status.exactOwned || status.familyOwned) {\r\n    badges.push({\r\n      type: \"owned\",\r\n      exact: status.exactOwned,\r\n    });\r\n  }\r\n  if (status.exactShiny || status.familyShiny) {\r\n    badges.push({\r\n      type: \"shiny\",\r\n      exact: status.exactShiny,\r\n    });\r\n  }\r\n  if (status.exactUltraShiny || status.familyUltraShiny) {\r\n    badges.push({\r\n      type: \"ultra_shiny\",\r\n      exact: status.exactUltraShiny,\r\n    });\r\n  }\r\n  return badges;\r\n}\r\n\r\nfunction drawEnemyOwnershipBadge(centerX, centerY, size, badge = null) {\r\n  if (!badge) {\r\n    return;\r\n  }\r\n  const safeSize = clamp(Number(size) || 0, 10, 18);\r\n  const exact = badge.exact === true;\r\n\r\n  if (badge.type === \"owned\") {\r\n    drawPokeball(centerX, centerY, safeSize * 0.45, {\r\n      alpha: exact ? 0.98 : 0.52,\r\n      ball_type: \"poke_ball\",\r\n    });\r\n    if (!exact) {\r\n      ctx.save();\r\n      ctx.fillStyle = \"rgba(116, 128, 146, 0.5)\";\r\n      ctx.beginPath();\r\n      ctx.arc(centerX, centerY, safeSize * 0.44, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      ctx.strokeStyle = \"rgba(196, 211, 229, 0.55)\";\r\n      ctx.lineWidth = Math.max(1, safeSize * 0.07);\r\n      ctx.beginPath();\r\n      ctx.arc(centerX, centerY, safeSize * 0.43, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      ctx.restore();\r\n    }\r\n    return;\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.globalAlpha = exact ? 1 : 0.58;\r\n  const radius = safeSize * 0.5;\r\n  const gradient =\r\n    badge.type === \"ultra_shiny\"\r\n      ? ctx.createConicGradient(0, centerX, centerY)\r\n      : ctx.createRadialGradient(\r\n          centerX - radius * 0.2,\r\n          centerY - radius * 0.28,\r\n          Math.max(0.2, radius * 0.06),\r\n          centerX,\r\n          centerY,\r\n          radius,\r\n        );\r\n  if (badge.type === \"ultra_shiny\") {\r\n    gradient.addColorStop(0, \"#ff4f9b\");\r\n    gradient.addColorStop(1 / 6, \"#ff9f3f\");\r\n    gradient.addColorStop(2 / 6, \"#ffe24e\");\r\n    gradient.addColorStop(3 / 6, \"#55d8ff\");\r\n    gradient.addColorStop(4 / 6, \"#7a6dff\");\r\n    gradient.addColorStop(1, \"#ff4f9b\");\r\n  } else {\r\n    gradient.addColorStop(0, \"#ffffff\");\r\n    gradient.addColorStop(0.62, \"#cedef8\");\r\n    gradient.addColorStop(1, \"#93a8cd\");\r\n  }\r\n  ctx.fillStyle = gradient;\r\n  ctx.beginPath();\r\n  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.strokeStyle = \"rgba(238, 248, 255, 0.62)\";\r\n  ctx.lineWidth = Math.max(1, safeSize * 0.075);\r\n  ctx.beginPath();\r\n  ctx.arc(centerX, centerY, radius - ctx.lineWidth * 0.5, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"middle\";\r\n  ctx.lineJoin = \"round\";\r\n  ctx.font = `700 ${Math.max(8, Math.round(safeSize * 0.68))}px \"Trebuchet MS\", \"Verdana\", sans-serif`;\r\n  ctx.lineWidth = Math.max(0.8, safeSize * 0.08);\r\n  ctx.strokeStyle = \"rgba(19, 30, 49, 0.72)\";\r\n  ctx.fillStyle = \"#f8fbff\";\r\n  ctx.strokeText(\"\\u2726\", centerX, centerY + safeSize * 0.02);\r\n  ctx.fillText(\"\\u2726\", centerX, centerY + safeSize * 0.02);\r\n  ctx.restore();\r\n}\r\nfunction drawNameAndLevel(entity, centerX, topY, options = {}) {\r\n  if (!entity) {\r\n    return null;\r\n  }\r\n  const enemy = Boolean(options.enemy);\r\n  const allowOverflow = options.allowOverflow === true;\r\n  const maxWidth = clamp(Number(options.maxWidth) || (enemy ? 220 : 122), 56, state.viewport.width - 16);\r\n  const nameBaseSize = clamp(Number(options.nameFontSize) || (enemy ? 20 : 16), 10, 24);\r\n  const levelBaseSize = clamp(Number(options.levelFontSize) || (enemy ? 13 : 11), 8, 16);\r\n  const levelText = `Lv${entity.level}`;\r\n\r\n  let cardWidth = 0;\r\n  let cardHeight = 0;\r\n  let x = 0;\r\n  let y = 0;\r\n\r\n  ctx.save();\r\n  ctx.lineJoin = \"round\";\r\n  ctx.shadowBlur = 0;\r\n\r\n  if (enemy) {\r\n    const ownershipBadges = buildEnemyOwnershipBadgeList(entity.id);\r\n    const horizontalPadding = 12;\r\n    const verticalPadding = 6;\r\n    const levelGap = maxWidth <= 180 ? 10 : 14;\r\n    const badgeSize = clamp(levelBaseSize + 1, 10, 15);\r\n    const badgeGap = 3;\r\n    const leftBadgeWidth = ownershipBadges.length > 0\r\n      ? ownershipBadges.length * badgeSize + Math.max(0, ownershipBadges.length - 1) * badgeGap\r\n      : 0;\r\n    const badgeNameGap = ownershipBadges.length > 0 ? 7 : 0;\r\n    const levelMetrics = getFittedFontMetrics(levelText, Math.max(34, maxWidth * 0.32), levelBaseSize, 9);\r\n    const reservedRightWidth = levelMetrics.width + levelGap;\r\n    const nameMetrics = getFittedFontMetrics(\r\n      entity.nameFr,\r\n      Math.max(36, maxWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 4),\r\n      nameBaseSize,\r\n      12,\r\n    );\r\n    const contentWidth = leftBadgeWidth + badgeNameGap + nameMetrics.width + reservedRightWidth;\r\n    const minCardWidth = Math.max(84, horizontalPadding * 2 + reservedRightWidth + leftBadgeWidth + 18);\r\n    cardWidth = clamp(\r\n      contentWidth + horizontalPadding * 2 + 8,\r\n      minCardWidth,\r\n      maxWidth,\r\n    );\r\n    cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size, badgeSize - 1) + verticalPadding * 2 + 2);\r\n    const xRaw = centerX - cardWidth * 0.5;\r\n    const yRaw = Number(topY) || 0;\r\n    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);\r\n    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);\r\n\r\n    if (options.card !== false) {\r\n      drawRetroHudPanel(x, y, cardWidth, cardHeight, {\r\n        cut: 14,\r\n        fillTop: \"rgba(28, 39, 58, 0.995)\",\r\n        fillBottom: \"rgba(13, 21, 35, 0.995)\",\r\n        border: \"rgba(82, 109, 143, 0.94)\",\r\n        highlight: \"rgba(157, 186, 219, 0.2)\",\r\n        shadow: \"rgba(0, 0, 0, 0.44)\",\r\n        borderWidth: 2,\r\n      });\r\n    }\r\n\r\n    const midY = y + cardHeight * 0.5;\r\n    const contentStartX = x + horizontalPadding;\r\n\r\n    if (ownershipBadges.length > 0) {\r\n      let badgeCenterX = contentStartX + badgeSize * 0.5;\r\n      for (const badge of ownershipBadges) {\r\n        drawEnemyOwnershipBadge(badgeCenterX, midY, badgeSize, badge);\r\n        badgeCenterX += badgeSize + badgeGap;\r\n      }\r\n    }\r\n\r\n    ctx.textBaseline = \"middle\";\r\n    ctx.textAlign = \"left\";\r\n    ctx.font = `700 ${nameMetrics.size}px Tahoma`;\r\n    ctx.fillStyle = \"#eef6ff\";\r\n    const nameX = contentStartX + leftBadgeWidth + badgeNameGap;\r\n    const nameTextMaxWidth = Math.max(\r\n      22,\r\n      cardWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 2,\r\n    );\r\n    const nameText = fitTextToWidthWithEllipsis(entity.nameFr, nameTextMaxWidth);\r\n    ctx.fillText(nameText, nameX, midY);\r\n\r\n    ctx.textAlign = \"right\";\r\n    ctx.font = `700 ${levelMetrics.size}px Tahoma`;\r\n    ctx.fillStyle = \"#b8cee5\";\r\n    ctx.fillText(levelText, x + cardWidth - horizontalPadding, midY);\r\n  } else {\r\n    const horizontalPadding = 8;\r\n    const verticalPadding = 5;\r\n    const lineGap = 3;\r\n    const nameMetrics = getFittedFontMetrics(entity.nameFr, maxWidth - horizontalPadding * 2, nameBaseSize, 10);\r\n    const levelMetrics = getFittedFontMetrics(levelText, maxWidth - horizontalPadding * 2, levelBaseSize, 8);\r\n    cardWidth = clamp(\r\n      Math.max(nameMetrics.width, levelMetrics.width) + horizontalPadding * 2,\r\n      72,\r\n      maxWidth,\r\n    );\r\n    cardHeight = Math.round(verticalPadding * 2 + nameMetrics.size + lineGap + levelMetrics.size);\r\n    const xRaw = centerX - cardWidth * 0.5;\r\n    const yRaw = Number(topY) || 0;\r\n    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);\r\n    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);\r\n    const cardCenterX = x + cardWidth * 0.5;\r\n\r\n    if (options.card !== false) {\r\n      drawRetroHudPanel(x, y, cardWidth, cardHeight, {\r\n        cut: 10,\r\n        fillTop: \"rgba(26, 37, 56, 0.995)\",\r\n        fillBottom: \"rgba(12, 20, 33, 0.995)\",\r\n        border: \"rgba(78, 106, 140, 0.9)\",\r\n        highlight: \"rgba(154, 184, 218, 0.18)\",\r\n        shadow: \"rgba(0, 0, 0, 0.44)\",\r\n        borderWidth: 1.4,\r\n      });\r\n    }\r\n\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"alphabetic\";\r\n\r\n    const nameBaseline = y + verticalPadding + nameMetrics.size;\r\n    ctx.font = `700 ${nameMetrics.size}px Tahoma`;\r\n    ctx.fillStyle = \"#e8f2ff\";\r\n    ctx.fillText(entity.nameFr, cardCenterX, nameBaseline);\r\n\r\n    const levelBaseline = nameBaseline + lineGap + levelMetrics.size;\r\n    ctx.font = `700 ${levelMetrics.size}px Tahoma`;\r\n    ctx.fillStyle = \"#b2cae3\";\r\n    ctx.fillText(levelText, cardCenterX, levelBaseline);\r\n  }\r\n  ctx.restore();\r\n\r\n  return {\r\n    x,\r\n    y,\r\n    width: cardWidth,\r\n    height: cardHeight,\r\n    centerX: x + cardWidth * 0.5,\r\n    bottom: y + cardHeight,\r\n  };\r\n}\r\nfunction getEnemyHpDisplayRatios(enemy, targetRatio) {\r\n  const key = `${Number(enemy?.id || 0)}:${Math.max(1, toSafeInt(enemy?.hpMax, 1))}`;\r\n  const hud = state.xpHud;\r\n  if (!hud || hud.enemyHpKey !== key || !Number.isFinite(hud.enemyHpFrontRatio)) {\r\n    hud.enemyHpKey = key;\r\n    hud.enemyHpFrontRatio = targetRatio;\r\n    hud.enemyHpLagRatio = targetRatio;\r\n    return { front: targetRatio, lag: targetRatio };\r\n  }\r\n\r\n  if (targetRatio >= 0.995 && hud.enemyHpFrontRatio <= 0.35) {\r\n    hud.enemyHpFrontRatio = targetRatio;\r\n    hud.enemyHpLagRatio = targetRatio;\r\n    return { front: targetRatio, lag: targetRatio };\r\n  }\r\n\r\n  hud.enemyHpFrontRatio += (targetRatio - hud.enemyHpFrontRatio) * 0.34;\r\n  if (targetRatio >= hud.enemyHpLagRatio) {\r\n    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.26;\r\n  } else {\r\n    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.08;\r\n  }\r\n\r\n  if (Math.abs(hud.enemyHpFrontRatio - targetRatio) <= 0.002) {\r\n    hud.enemyHpFrontRatio = targetRatio;\r\n  }\r\n  if (Math.abs(hud.enemyHpLagRatio - targetRatio) <= 0.002) {\r\n    hud.enemyHpLagRatio = targetRatio;\r\n  }\r\n\r\n  hud.enemyHpFrontRatio = clamp(hud.enemyHpFrontRatio, 0, 1);\r\n  hud.enemyHpLagRatio = clamp(hud.enemyHpLagRatio, 0, 1);\r\n  return { front: hud.enemyHpFrontRatio, lag: hud.enemyHpLagRatio };\r\n}\r\n\r\nfunction getEnemyHpPalette(ratio) {\r\n  if (ratio >= 0.55) {\r\n    return {\r\n      start: \"rgba(112, 188, 82, 0.99)\",\r\n      end: \"rgba(149, 208, 95, 0.99)\",\r\n      glow: \"rgba(172, 224, 123, 0.34)\",\r\n    };\r\n  }\r\n  if (ratio >= 0.25) {\r\n    return {\r\n      start: \"rgba(219, 165, 51, 0.99)\",\r\n      end: \"rgba(240, 193, 77, 0.99)\",\r\n      glow: \"rgba(255, 222, 140, 0.34)\",\r\n    };\r\n  }\r\n  return {\r\n    start: \"rgba(197, 98, 77, 0.99)\",\r\n    end: \"rgba(225, 129, 95, 0.99)\",\r\n    glow: \"rgba(239, 162, 122, 0.32)\",\r\n  };\r\n}\r\n\r\nfunction parseRgbaColor(colorText, fallback = { r: 255, g: 255, b: 255, a: 1 }) {\r\n  const match = String(colorText || \"\").match(\r\n    /rgba?\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)(?:\\s*,\\s*([0-9.]+))?\\s*\\)/i,\r\n  );\r\n  if (!match) {\r\n    return { ...fallback };\r\n  }\r\n  return {\r\n    r: clamp(Number.parseFloat(match[1]) || 0, 0, 255),\r\n    g: clamp(Number.parseFloat(match[2]) || 0, 0, 255),\r\n    b: clamp(Number.parseFloat(match[3]) || 0, 0, 255),\r\n    a: clamp(Number.parseFloat(match[4] ?? 1) || 1, 0, 1),\r\n  };\r\n}\r\n\r\nfunction lerpColorChannel(start, end, t) {\r\n  return start + (end - start) * clamp(Number(t) || 0, 0, 1);\r\n}\r\n\r\nfunction getColorLuminance(color) {\r\n  const r = clamp((Number(color?.r) || 0) / 255, 0, 1);\r\n  const g = clamp((Number(color?.g) || 0) / 255, 0, 1);\r\n  const b = clamp((Number(color?.b) || 0) / 255, 0, 1);\r\n  return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);\r\n}\r\n\r\nfunction pickContrastingHudTextColor(baseColor) {\r\n  const luminance = getColorLuminance(baseColor);\r\n  return luminance >= 0.56\r\n    ? { fill: \"rgba(18, 33, 51, 0.98)\", stroke: \"rgba(240, 248, 255, 0.9)\" }\r\n    : { fill: \"rgba(244, 251, 255, 0.98)\", stroke: \"rgba(12, 22, 34, 0.92)\" };\r\n}\r\n\r\nfunction drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {\r\n  const allowOverflow = options.allowOverflow === true;\r\n  const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;\r\n  const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);\r\n  const panelHeight = Math.max(24, height + 10);\r\n  const panelWidth = clamp(width + 96, 180, state.viewport.width - 18);\r\n  const panelXRaw = centerX - panelWidth * 0.5;\r\n  const panelYRaw = (Number(topY) || 0) - 5;\r\n  const panelX = allowOverflow ? panelXRaw : clamp(panelXRaw, 8, state.viewport.width - panelWidth - 8);\r\n  const panelY = allowOverflow ? panelYRaw : clamp(panelYRaw, 3, state.viewport.height - panelHeight - 8);\r\n  const chipX = panelX + 5;\r\n  const chipY = panelY + 4;\r\n  const chipWidth = 26;\r\n  const chipHeight = panelHeight - 8;\r\n  const trackY = panelY + Math.round((panelHeight - height) * 0.5);\r\n  const hpLabel = `${formatCompactNumber(Math.max(0, Math.round(enemy.hpCurrent)), {\r\n    decimalsSmall: 2,\r\n    decimalsMedium: 1,\r\n    decimalsLarge: 0,\r\n  })}/${formatCompactNumber(Math.max(0, Math.round(enemy.hpMax)), {\r\n    decimalsSmall: 2,\r\n    decimalsMedium: 1,\r\n    decimalsLarge: 0,\r\n  })}`;\r\n\r\n  ctx.save();\r\n  ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;\r\n  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;\r\n  const trackX = chipX + chipWidth + 8;\r\n  const trackWidth = Math.max(50, panelX + panelWidth - trackX - 8);\r\n  const trackRadius = Math.max(2, height * 0.32);\r\n\r\n  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {\r\n    cut: 14,\r\n    fillTop: \"rgba(44, 60, 84, 0.99)\",\r\n    fillBottom: \"rgba(25, 36, 54, 0.99)\",\r\n    border: \"rgba(102, 129, 161, 0.98)\",\r\n    highlight: \"rgba(188, 212, 237, 0.3)\",\r\n    shadow: \"rgba(0, 0, 0, 0.36)\",\r\n    borderWidth: 2,\r\n  });\r\n\r\n  drawRetroHudPanel(chipX, chipY, chipWidth, chipHeight, {\r\n    cut: 6,\r\n    fillTop: \"rgba(243, 182, 84, 0.99)\",\r\n    fillBottom: \"rgba(192, 117, 47, 0.99)\",\r\n    border: \"rgba(151, 96, 40, 0.96)\",\r\n    highlight: \"rgba(255, 232, 167, 0.56)\",\r\n    shadow: \"rgba(0, 0, 0, 0)\",\r\n    shadowOffsetY: 0,\r\n    borderWidth: 1.2,\r\n  });\r\n\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"middle\";\r\n  ctx.font = `700 ${Math.max(9, Math.round(chipHeight * 0.45))}px Tahoma`;\r\n  ctx.fillStyle = \"#fff9ef\";\r\n  ctx.fillText(\"HP\", chipX + chipWidth * 0.5 - 0.5, chipY + chipHeight * 0.56);\r\n\r\n  ctx.fillStyle = \"rgba(82, 95, 116, 0.98)\";\r\n  ctx.beginPath();\r\n  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);\r\n  ctx.fill();\r\n\r\n  if (lagRatio > 0.001) {\r\n    ctx.fillStyle = \"rgba(134, 121, 98, 0.68)\";\r\n    ctx.beginPath();\r\n    ctx.roundRect(trackX, trackY, trackWidth * lagRatio, height, trackRadius);\r\n    ctx.fill();\r\n  }\r\n\r\n  if (frontRatio > 0.001) {\r\n    const palette = getEnemyHpPalette(frontRatio);\r\n    const fillGradient = ctx.createLinearGradient(trackX, trackY, trackX + trackWidth, trackY);\r\n    fillGradient.addColorStop(0, palette.start);\r\n    fillGradient.addColorStop(1, palette.end);\r\n    ctx.fillStyle = fillGradient;\r\n    ctx.beginPath();\r\n    ctx.roundRect(trackX, trackY, trackWidth * frontRatio, height, trackRadius);\r\n    ctx.fill();\r\n\r\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.22)\";\r\n    ctx.fillRect(trackX + 1, trackY + 1, Math.max(0, trackWidth * frontRatio - 2), Math.max(1, height * 0.32));\r\n\r\n    ctx.globalCompositeOperation = \"lighter\";\r\n    ctx.fillStyle = palette.glow;\r\n    ctx.fillRect(trackX, trackY - 1, trackWidth * frontRatio, height + 2);\r\n    ctx.globalCompositeOperation = \"source-over\";\r\n  }\r\n\r\n  ctx.strokeStyle = \"rgba(81, 89, 105, 0.96)\";\r\n  ctx.lineWidth = 1.2;\r\n  ctx.beginPath();\r\n  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);\r\n  ctx.stroke();\r\n\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"middle\";\r\n  const hpTextMinSize = 9;\r\n  let hpTextSize = Math.max(hpTextMinSize, Math.round(panelHeight * 0.5));\r\n  ctx.font = `700 ${hpTextSize}px Tahoma`;\r\n  const maxHpLabelWidth = Math.max(24, trackWidth - 10);\r\n  while (hpTextSize > hpTextMinSize && ctx.measureText(hpLabel).width > maxHpLabelWidth) {\r\n    hpTextSize -= 1;\r\n    ctx.font = `700 ${hpTextSize}px Tahoma`;\r\n  }\r\n  const labelX = trackX + trackWidth * 0.5;\r\n  const labelY = trackY + height * 0.52;\r\n  const filledWidth = trackWidth * frontRatio;\r\n  const trackBaseColor = { r: 82, g: 95, b: 116, a: 1 };\r\n  const emptyTextStyle = pickContrastingHudTextColor(trackBaseColor);\r\n\r\n  let fillTextStyle = emptyTextStyle;\r\n  if (frontRatio > 0.001) {\r\n    const palette = getEnemyHpPalette(frontRatio);\r\n    const fillStart = parseRgbaColor(palette.start, trackBaseColor);\r\n    const fillEnd = parseRgbaColor(palette.end, trackBaseColor);\r\n    const sampledFillColor = {\r\n      r: lerpColorChannel(fillStart.r, fillEnd.r, 0.5),\r\n      g: lerpColorChannel(fillStart.g, fillEnd.g, 0.5),\r\n      b: lerpColorChannel(fillStart.b, fillEnd.b, 0.5),\r\n      a: lerpColorChannel(fillStart.a, fillEnd.a, 0.5),\r\n    };\r\n    fillTextStyle = pickContrastingHudTextColor(sampledFillColor);\r\n  }\r\n\r\n  const drawHpText = (style) => {\r\n    ctx.lineJoin = \"round\";\r\n    ctx.lineCap = \"round\";\r\n    ctx.lineWidth = Math.max(1.7, hpTextSize * 0.24);\r\n    ctx.strokeStyle = style.stroke;\r\n    ctx.strokeText(hpLabel, labelX, labelY);\r\n    ctx.fillStyle = style.fill;\r\n    ctx.fillText(hpLabel, labelX, labelY);\r\n  };\r\n\r\n  ctx.save();\r\n  ctx.beginPath();\r\n  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);\r\n  ctx.clip();\r\n  if (filledWidth > 0.25) {\r\n    ctx.save();\r\n    ctx.beginPath();\r\n    ctx.rect(trackX - 1, trackY - 2, filledWidth + 2, height + 4);\r\n    ctx.clip();\r\n    drawHpText(fillTextStyle);\r\n    ctx.restore();\r\n  }\r\n  if (filledWidth < trackWidth - 0.25) {\r\n    ctx.save();\r\n    ctx.beginPath();\r\n    ctx.rect(trackX + filledWidth - 1, trackY - 2, trackWidth - filledWidth + 2, height + 4);\r\n    ctx.clip();\r\n    drawHpText(emptyTextStyle);\r\n    ctx.restore();\r\n  }\r\n  ctx.restore();\r\n  ctx.restore();\r\n}\r\n\r\nfunction getTeamXpDisplayRatios(member, slotIndex, targetRatio) {\r\n  const slotKey = String(Math.max(0, toSafeInt(slotIndex, 0)));\r\n  const bySlot = state.xpHud?.teamXpBySlot || {};\r\n  const memberId = Number(member?.id || 0);\r\n  const memberLevel = Math.max(1, toSafeInt(member?.level, 1));\r\n  let entry = bySlot[slotKey];\r\n\r\n  if (\r\n    !entry\r\n    || Number(entry.memberId || 0) !== memberId\r\n    || Math.max(1, toSafeInt(entry.level, 1)) !== memberLevel\r\n    || !Number.isFinite(entry.front)\r\n    || !Number.isFinite(entry.lag)\r\n  ) {\r\n    entry = {\r\n      memberId,\r\n      level: memberLevel,\r\n      front: targetRatio,\r\n      lag: targetRatio,\r\n    };\r\n    bySlot[slotKey] = entry;\r\n    state.xpHud.teamXpBySlot = bySlot;\r\n    return { front: targetRatio, lag: targetRatio };\r\n  }\r\n\r\n  entry.level = memberLevel;\r\n  entry.front += (targetRatio - entry.front) * 0.26;\r\n  if (targetRatio >= entry.lag) {\r\n    entry.lag += (targetRatio - entry.lag) * 0.18;\r\n  } else {\r\n    entry.lag += (targetRatio - entry.lag) * 0.1;\r\n  }\r\n  if (Math.abs(entry.front - targetRatio) <= 0.0018) {\r\n    entry.front = targetRatio;\r\n  }\r\n  if (Math.abs(entry.lag - targetRatio) <= 0.0018) {\r\n    entry.lag = targetRatio;\r\n  }\r\n  entry.front = clamp(entry.front, 0, 1);\r\n  entry.lag = clamp(entry.lag, 0, 1);\r\n  return { front: entry.front, lag: entry.lag };\r\n}\r\n\r\nfunction drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {\r\n  if (!member || member.level >= MAX_LEVEL) {\r\n    return;\r\n  }\r\n  const allowOverflow = options.allowOverflow === true;\r\n  const currentXp = Math.max(0, toSafeInt(member.xp, 0));\r\n  const requiredXp = Math.max(1, toSafeInt(member.xpToNext, 1));\r\n  const ratio = clamp(currentXp / requiredXp, 0, 1);\r\n  const display = getTeamXpDisplayRatios(member, slotIndex, ratio);\r\n  const width = clamp(Number(options.width) || 72, 40, 96);\r\n  const height = clamp(Number(options.height) || 4, 3, 5);\r\n  const x = centerX - width * 0.5;\r\n  const yRaw = Number(topY) || 0;\r\n  const y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - height - 8);\r\n  const radius = Math.max(2, height * 0.45);\r\n\r\n  ctx.save();\r\n  ctx.fillStyle = \"rgba(19, 29, 44, 0.72)\";\r\n  ctx.beginPath();\r\n  ctx.roundRect(x - 1.5, y - 1.5, width + 3, height + 3, radius + 1);\r\n  ctx.fill();\r\n\r\n  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);\r\n  trackGradient.addColorStop(0, \"rgba(55, 75, 103, 0.98)\");\r\n  trackGradient.addColorStop(1, \"rgba(36, 52, 73, 0.98)\");\r\n  ctx.fillStyle = trackGradient;\r\n  ctx.beginPath();\r\n  ctx.roundRect(x, y, width, height, radius);\r\n  ctx.fill();\r\n\r\n  if (display.lag > 0.001) {\r\n    ctx.fillStyle = \"rgba(95, 129, 167, 0.5)\";\r\n    ctx.beginPath();\r\n    ctx.roundRect(x, y, width * display.lag, height, radius);\r\n    ctx.fill();\r\n  }\r\n\r\n  if (display.front > 0.001) {\r\n    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);\r\n    fillGradient.addColorStop(0, \"rgba(98, 156, 210, 0.99)\");\r\n    fillGradient.addColorStop(1, \"rgba(137, 191, 235, 0.99)\");\r\n    ctx.fillStyle = fillGradient;\r\n    ctx.beginPath();\r\n    ctx.roundRect(x, y, width * display.front, height, radius);\r\n    ctx.fill();\r\n\r\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.22)\";\r\n    ctx.fillRect(x + 1, y + 1, Math.max(0, width * display.front - 2), Math.max(1, height * 0.3));\r\n  }\r\n\r\n  ctx.strokeStyle = \"rgba(129, 163, 201, 0.78)\";\r\n  ctx.lineWidth = 1.1;\r\n  ctx.beginPath();\r\n  ctx.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, radius + 0.5);\r\n  ctx.stroke();\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawRouteDefeatTimerBar(timerState, layout = null) {\r\n  if (!timerState?.running || timerState.duration_ms <= 0) {\r\n    return;\r\n  }\r\n  const isOnlyOneTimer = String(timerState?.style || \"\").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;\r\n  const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;\r\n  const unlockProgressState = getRouteUnlockProgressState(currentRouteId);\r\n  const showDefeatCounter =\r\n    !isOnlyOneTimer &&\r\n    unlockProgressState.unlockMode === \"defeats\" &&\r\n    unlockProgressState.unlockTarget > 0;\r\n  const defeatCounterText = showDefeatCounter\r\n    ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pokemon battus`\r\n    : \"\";\r\n  const remainingMs = Math.max(0, Number(timerState.remaining_ms) || 0);\r\n  const remainingSeconds = Math.max(0, remainingMs / 1000);\r\n  const remainingDisplaySeconds = Math.max(0, Math.ceil(remainingSeconds * 10) / 10);\r\n  const timerText = `${remainingDisplaySeconds.toFixed(1)}s`;\r\n  const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);\r\n  const danger = 1 - ratio;\r\n  const compactHud = isCoarsePointerDevice() || state.viewport.width <= 760;\r\n  const width = compactHud\r\n    ? clamp(state.viewport.width * 0.44, 170, 420)\r\n    : clamp(state.viewport.width * 0.58, 220, 540);\r\n  const height = compactHud\r\n    ? clamp(state.viewport.height * 0.019, 10, 14)\r\n    : clamp(state.viewport.height * 0.028, 14, 20);\r\n  const x = (state.viewport.width - width) * 0.5;\r\n  const safeTop = Number(layout?.safeBounds?.top);\r\n  const verticalOffset = compactHud\r\n    ? clamp(state.viewport.height * 0.01, 8, 12)\r\n    : clamp(state.viewport.height * 0.012, 10, 18);\r\n  const overlayPaddingTop = getOverlayPaddingSnapshot().top;\r\n  const topHudHeight = getElementClientHeight(uiTopbarEl);\r\n  const hudAnchorY = overlayPaddingTop + topHudHeight + (compactHud ? 2 : 4);\r\n  const yFromSafeBounds = Number.isFinite(safeTop)\r\n    ? safeTop + verticalOffset\r\n    : state.viewport.height * 0.025;\r\n  const topHudGap = compactHud ? 4 : 6;\r\n  const preferredY = Number.isFinite(safeTop)\r\n    ? Math.max(yFromSafeBounds, hudAnchorY + topHudGap)\r\n    : state.viewport.height * 0.025;\r\n  const y = Number.isFinite(safeTop)\r\n    ? clamp(\r\n      preferredY,\r\n      compactHud ? 8 : 10,\r\n      state.viewport.height - height - 24,\r\n    )\r\n    : clamp(state.viewport.height * 0.025, compactHud ? 8 : 10, compactHud ? 16 : 20);\r\n  const radius = Math.max(2, height * 0.36);\r\n  const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;\r\n  const panelPaddingX = compactHud ? 4 : 6;\r\n  const panelPaddingY = compactHud ? 3 : 4;\r\n  const panelX = x - panelPaddingX;\r\n  const panelY = y - panelPaddingY;\r\n  const panelWidth = width + panelPaddingX * 2;\r\n  const panelHeight = height + panelPaddingY * 2;\r\n\r\n  ctx.save();\r\n  ctx.globalAlpha = 0.94;\r\n  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {\r\n    cut: 10,\r\n    fillTop: \"rgba(44, 60, 83, 0.99)\",\r\n    fillBottom: \"rgba(26, 37, 54, 0.99)\",\r\n    border: \"rgba(101, 128, 160, 0.98)\",\r\n    highlight: \"rgba(183, 208, 235, 0.24)\",\r\n    shadow: \"rgba(0, 0, 0, 0.34)\",\r\n    borderWidth: 1.7,\r\n  });\r\n\r\n  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);\r\n  trackGradient.addColorStop(0, \"rgba(81, 95, 115, 0.98)\");\r\n  trackGradient.addColorStop(1, \"rgba(57, 69, 86, 0.98)\");\r\n  ctx.fillStyle = trackGradient;\r\n  ctx.beginPath();\r\n  ctx.roundRect(x, y, width, height, radius);\r\n  ctx.fill();\r\n\r\n  if (ratio > 0.001) {\r\n    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);\r\n    if (isOnlyOneTimer) {\r\n      fillGradient.addColorStop(0, \"rgba(197, 126, 255, 0.99)\");\r\n      fillGradient.addColorStop(0.48, \"rgba(162, 95, 237, 0.99)\");\r\n      fillGradient.addColorStop(1, \"rgba(127, 63, 212, 0.99)\");\r\n    } else {\r\n      fillGradient.addColorStop(0, \"rgba(242, 181, 79, 0.98)\");\r\n      fillGradient.addColorStop(0.48, \"rgba(219, 121, 59, 0.98)\");\r\n      fillGradient.addColorStop(1, \"rgba(188, 77, 63, 0.98)\");\r\n    }\r\n    ctx.fillStyle = fillGradient;\r\n    ctx.beginPath();\r\n    ctx.roundRect(x, y, width * ratio, height, radius);\r\n    ctx.fill();\r\n\r\n    ctx.fillStyle = isOnlyOneTimer\r\n      ? `rgba(240, 220, 255, ${(0.12 + pulse).toFixed(3)})`\r\n      : `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;\r\n    ctx.fillRect(x + 1, y + 1, Math.max(0, width * ratio - 2), Math.max(1, height * 0.32));\r\n  }\r\n\r\n  ctx.strokeStyle = isOnlyOneTimer\r\n    ? `rgba(183, 146, 255, ${(0.62 + pulse * 0.4).toFixed(3)})`\r\n    : `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;\r\n  ctx.lineWidth = 1.15;\r\n  ctx.beginPath();\r\n  ctx.roundRect(x, y, width, height, radius);\r\n  ctx.stroke();\r\n\r\n  const timerTextSize = compactHud\r\n    ? Math.max(8, Math.min(12, Math.round(height * 0.64)))\r\n    : Math.max(10, Math.min(15, Math.round(height * 0.7)));\r\n  ctx.font = `700 ${timerTextSize}px Tahoma`;\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"middle\";\r\n  ctx.lineWidth = 2.6;\r\n  ctx.strokeStyle = isOnlyOneTimer ? \"rgba(52, 20, 84, 0.82)\" : \"rgba(45, 22, 18, 0.82)\";\r\n  ctx.fillStyle = \"rgba(255, 250, 242, 0.96)\";\r\n  ctx.strokeText(timerText, x + width * 0.5, y + height * 0.5);\r\n  ctx.fillText(timerText, x + width * 0.5, y + height * 0.5);\r\n\r\n  if (defeatCounterText) {\r\n    const counterTextSize = compactHud\r\n      ? Math.max(8, Math.min(11, Math.round(height * 0.58)))\r\n      : Math.max(10, Math.min(14, Math.round(height * 0.64)));\r\n    const counterY = y + height + (compactHud ? 4 : 6);\r\n    ctx.font = `700 ${counterTextSize}px Tahoma`;\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"top\";\r\n    ctx.lineWidth = 2.8;\r\n    ctx.strokeStyle = \"rgba(14, 20, 30, 0.74)\";\r\n    ctx.fillStyle = \"rgba(236, 244, 252, 0.98)\";\r\n    ctx.strokeText(defeatCounterText, x + width * 0.5, counterY);\r\n    ctx.fillText(defeatCounterText, x + width * 0.5, counterY);\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction getProjectileTypeVfxProfile(typeName) {\r\n  switch (normalizeType(typeName)) {\r\n    case \"fire\":\r\n      return { motif: \"flame\", accent: [255, 217, 146], intensity: 1.12 };\r\n    case \"water\":\r\n      return { motif: \"droplet\", accent: [205, 241, 255], intensity: 1 };\r\n    case \"grass\":\r\n      return { motif: \"leaf\", accent: [232, 255, 196], intensity: 1.02 };\r\n    case \"electric\":\r\n      return { motif: \"bolt\", accent: [255, 247, 166], intensity: 1.18 };\r\n    case \"ice\":\r\n      return { motif: \"crystal\", accent: [236, 251, 255], intensity: 0.96 };\r\n    case \"fighting\":\r\n      return { motif: \"impact\", accent: [255, 211, 189], intensity: 1.05 };\r\n    case \"poison\":\r\n      return { motif: \"bubble\", accent: [234, 196, 255], intensity: 0.96 };\r\n    case \"ground\":\r\n      return { motif: \"dust\", accent: [244, 214, 154], intensity: 0.99 };\r\n    case \"flying\":\r\n      return { motif: \"wind\", accent: [235, 245, 255], intensity: 1 };\r\n    case \"psychic\":\r\n      return { motif: \"orbit\", accent: [255, 224, 242], intensity: 1.08 };\r\n    case \"bug\":\r\n      return { motif: \"wing\", accent: [233, 255, 186], intensity: 0.98 };\r\n    case \"rock\":\r\n      return { motif: \"shard\", accent: [236, 214, 173], intensity: 0.95 };\r\n    case \"ghost\":\r\n      return { motif: \"wisp\", accent: [222, 212, 255], intensity: 1.04 };\r\n    case \"dragon\":\r\n      return { motif: \"rune\", accent: [212, 207, 255], intensity: 1.13 };\r\n    case \"dark\":\r\n      return { motif: \"shadow\", accent: [189, 177, 166], intensity: 0.95 };\r\n    case \"steel\":\r\n      return { motif: \"gear\", accent: [227, 240, 250], intensity: 1 };\r\n    case \"fairy\":\r\n      return { motif: \"sparkle\", accent: [255, 226, 247], intensity: 1.08 };\r\n    case \"normal\":\r\n      return { motif: \"ring\", accent: [244, 236, 220], intensity: 0.9 };\r\n    default:\r\n      return { motif: \"ring\", accent: [232, 240, 255], intensity: 0.94 };\r\n  }\r\n}\r\n\r\nfunction getProjectileTrailTypeVfxProfile(typeName) {\r\n  const typeProfile = getProjectileTypeVfxProfile(typeName);\r\n  const accent = Array.isArray(typeProfile.accent) ? typeProfile.accent : [232, 240, 255];\r\n  switch (typeProfile.motif) {\r\n    case \"flame\":\r\n      return {\r\n        mode: \"ember\",\r\n        accent,\r\n        accentMix: 0.66,\r\n        radiusMul: 0.92,\r\n        stretch: 1.8,\r\n        alphaBase: 0.14,\r\n        alphaLife: 0.31,\r\n        spacingPx: 6.1,\r\n      };\r\n    case \"droplet\":\r\n    case \"bubble\":\r\n      return {\r\n        mode: \"droplet\",\r\n        accent,\r\n        accentMix: 0.54,\r\n        radiusMul: 0.9,\r\n        stretch: 1.4,\r\n        alphaBase: 0.14,\r\n        alphaLife: 0.28,\r\n        spacingPx: 7.1,\r\n      };\r\n    case \"leaf\":\r\n    case \"wing\":\r\n      return {\r\n        mode: \"leaf\",\r\n        accent,\r\n        accentMix: 0.62,\r\n        radiusMul: 0.84,\r\n        stretch: 1.45,\r\n        alphaBase: 0.12,\r\n        alphaLife: 0.29,\r\n        spacingPx: 7.4,\r\n      };\r\n    case \"bolt\":\r\n    case \"impact\":\r\n    case \"gear\":\r\n      return {\r\n        mode: \"spark\",\r\n        accent,\r\n        accentMix: 0.67,\r\n        radiusMul: 0.74,\r\n        stretch: 1.75,\r\n        alphaBase: 0.14,\r\n        alphaLife: 0.33,\r\n        spacingPx: 6.2,\r\n      };\r\n    case \"crystal\":\r\n    case \"shard\":\r\n    case \"rune\":\r\n      return {\r\n        mode: \"shard\",\r\n        accent,\r\n        accentMix: 0.59,\r\n        radiusMul: 0.82,\r\n        stretch: 1.42,\r\n        alphaBase: 0.12,\r\n        alphaLife: 0.29,\r\n        spacingPx: 7.5,\r\n      };\r\n    case \"dust\":\r\n      return {\r\n        mode: \"dust\",\r\n        accent,\r\n        accentMix: 0.44,\r\n        radiusMul: 0.96,\r\n        stretch: 1.22,\r\n        alphaBase: 0.12,\r\n        alphaLife: 0.25,\r\n        spacingPx: 8.4,\r\n      };\r\n    case \"wisp\":\r\n    case \"shadow\":\r\n      return {\r\n        mode: \"wisp\",\r\n        accent,\r\n        accentMix: 0.5,\r\n        radiusMul: 1.02,\r\n        stretch: 1.25,\r\n        alphaBase: 0.1,\r\n        alphaLife: 0.24,\r\n        spacingPx: 8.6,\r\n      };\r\n    case \"sparkle\":\r\n      return {\r\n        mode: \"sparkle\",\r\n        accent,\r\n        accentMix: 0.69,\r\n        radiusMul: 0.78,\r\n        stretch: 1.52,\r\n        alphaBase: 0.12,\r\n        alphaLife: 0.3,\r\n        spacingPx: 7,\r\n      };\r\n    case \"orbit\":\r\n    case \"wind\":\r\n    case \"ring\":\r\n    default:\r\n      return {\r\n        mode: \"streak\",\r\n        accent,\r\n        accentMix: 0.52,\r\n        radiusMul: 0.86,\r\n        stretch: 1.58,\r\n        alphaBase: 0.12,\r\n        alphaLife: 0.27,\r\n        spacingPx: 7.8,\r\n      };\r\n  }\r\n}\r\n\r\nfunction drawProjectileTypeMotif(projectile, rgb, radius) {\r\n  if (!projectile || !Number.isFinite(projectile.x) || !Number.isFinite(projectile.y)) {\r\n    return;\r\n  }\r\n  const profile = getProjectileTypeVfxProfile(projectile.attackType);\r\n  const accent = Array.isArray(profile.accent) ? profile.accent : [255, 255, 255];\r\n  const intensity = clamp(Number(profile.intensity) || 1, 0.7, 1.4);\r\n  const ageMs = Math.max(0, Number(projectile.lifetimeMs) || 0);\r\n  const spin = Number(projectile.spinPhase) || 0;\r\n  const pulse = 0.72 + Math.sin(ageMs * 0.018 + spin) * 0.28;\r\n  const r = radius * intensity;\r\n\r\n  ctx.save();\r\n  ctx.translate(projectile.x, projectile.y);\r\n  ctx.rotate(Number(projectile.rotation) || 0);\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n\r\n  switch (profile.motif) {\r\n    case \"flame\": {\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const fx = -r * (1.05 + i * 0.42);\r\n        const fy = Math.sin(ageMs * 0.026 + i * 1.4) * r * 0.24;\r\n        const fr = r * (0.95 - i * 0.18) * (0.85 + pulse * 0.25);\r\n        const flame = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * 1.9);\r\n        flame.addColorStop(0, rgba(accent, 0.74));\r\n        flame.addColorStop(0.48, rgba(rgb, 0.56));\r\n        flame.addColorStop(1, rgba(rgb, 0));\r\n        ctx.fillStyle = flame;\r\n        ctx.beginPath();\r\n        ctx.arc(fx, fy, fr * 1.9, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n      break;\r\n    }\r\n    case \"droplet\": {\r\n      ctx.strokeStyle = rgba(accent, 0.45 + pulse * 0.12);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.23);\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, r * (1.05 + pulse * 0.2), 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const dx = -r * (0.85 + i * 0.4);\r\n        const dy = Math.sin(ageMs * 0.018 + i * 1.3) * r * 0.32;\r\n        ctx.fillStyle = rgba(accent, 0.68);\r\n        ctx.beginPath();\r\n        ctx.ellipse(dx, dy, r * 0.26, r * 0.38, 0, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n      break;\r\n    }\r\n    case \"leaf\": {\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const angle = (i === 0 ? 0.62 : -0.62) + Math.sin(ageMs * 0.012 + i) * 0.12;\r\n        ctx.save();\r\n        ctx.rotate(angle);\r\n        ctx.fillStyle = rgba(accent, 0.68);\r\n        ctx.beginPath();\r\n        ctx.ellipse(0, 0, r * 0.78, r * 0.36, 0, 0, Math.PI * 2);\r\n        ctx.fill();\r\n        ctx.restore();\r\n      }\r\n      break;\r\n    }\r\n    case \"bolt\": {\r\n      ctx.strokeStyle = rgba(accent, 0.88);\r\n      ctx.lineWidth = Math.max(1.4, r * 0.26);\r\n      ctx.lineCap = \"round\";\r\n      ctx.beginPath();\r\n      ctx.moveTo(-r * 1.05, -r * 0.16);\r\n      ctx.lineTo(-r * 0.32, -r * 0.52);\r\n      ctx.lineTo(-r * 0.18, -r * 0.06);\r\n      ctx.lineTo(r * 0.76, -r * 0.33);\r\n      ctx.stroke();\r\n      ctx.strokeStyle = rgba(rgb, 0.72);\r\n      ctx.lineWidth = Math.max(1, r * 0.13);\r\n      ctx.beginPath();\r\n      ctx.moveTo(-r * 1.05, -r * 0.16);\r\n      ctx.lineTo(-r * 0.32, -r * 0.52);\r\n      ctx.lineTo(-r * 0.18, -r * 0.06);\r\n      ctx.lineTo(r * 0.76, -r * 0.33);\r\n      ctx.stroke();\r\n      break;\r\n    }\r\n    case \"crystal\": {\r\n      ctx.strokeStyle = rgba(accent, 0.78);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.16);\r\n      for (let i = 0; i < 4; i += 1) {\r\n        const angle = (Math.PI / 2) * i;\r\n        const dx = Math.cos(angle) * r * 0.9;\r\n        const dy = Math.sin(angle) * r * 0.9;\r\n        ctx.beginPath();\r\n        ctx.moveTo(0, 0);\r\n        ctx.lineTo(dx, dy);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"impact\": {\r\n      ctx.strokeStyle = rgba(accent, 0.72);\r\n      ctx.lineWidth = Math.max(1.2, r * 0.18);\r\n      for (let i = 0; i < 3; i += 1) {\r\n        const offsetY = (i - 1) * r * 0.28;\r\n        ctx.beginPath();\r\n        ctx.moveTo(-r * 1.1, offsetY);\r\n        ctx.lineTo(r * 0.86, offsetY * 0.45);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"bubble\": {\r\n      for (let i = 0; i < 3; i += 1) {\r\n        const offset = i - 1;\r\n        const bx = offset * r * 0.46;\r\n        const by = Math.sin(ageMs * 0.01 + i * 1.3) * r * 0.28;\r\n        ctx.strokeStyle = rgba(accent, 0.54);\r\n        ctx.lineWidth = Math.max(1, r * 0.11);\r\n        ctx.beginPath();\r\n        ctx.arc(bx, by, r * (0.3 + i * 0.05), 0, Math.PI * 2);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"dust\": {\r\n      for (let i = 0; i < 3; i += 1) {\r\n        const dx = -r * (0.55 + i * 0.35);\r\n        const dy = Math.sin(ageMs * 0.014 + i * 1.1) * r * 0.24;\r\n        ctx.fillStyle = rgba(accent, 0.56);\r\n        ctx.beginPath();\r\n        ctx.arc(dx, dy, r * (0.24 - i * 0.04), 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n      break;\r\n    }\r\n    case \"wind\": {\r\n      ctx.strokeStyle = rgba(accent, 0.7);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.17);\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const stretch = 1 + i * 0.24;\r\n        ctx.beginPath();\r\n        ctx.ellipse(-r * 0.1, 0, r * 0.92 * stretch, r * 0.36, 0, Math.PI * 0.14, Math.PI * 1.74);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"orbit\": {\r\n      ctx.strokeStyle = rgba(accent, 0.52);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.13);\r\n      ctx.beginPath();\r\n      ctx.ellipse(0, 0, r * 1.02, r * 0.52, 0, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const angle = ageMs * 0.012 + i * Math.PI;\r\n        const ox = Math.cos(angle) * r * 1.02;\r\n        const oy = Math.sin(angle) * r * 0.52;\r\n        ctx.fillStyle = rgba(accent, 0.88);\r\n        ctx.beginPath();\r\n        ctx.arc(ox, oy, r * 0.16, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n      break;\r\n    }\r\n    case \"wing\": {\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const sign = i === 0 ? -1 : 1;\r\n        ctx.strokeStyle = rgba(accent, 0.62);\r\n        ctx.lineWidth = Math.max(1, r * 0.14);\r\n        ctx.beginPath();\r\n        ctx.ellipse(sign * r * 0.18, 0, r * 0.58, r * 0.24, sign * 0.28, 0, Math.PI * 2);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"shard\": {\r\n      ctx.fillStyle = rgba(accent, 0.64);\r\n      for (let i = 0; i < 2; i += 1) {\r\n        const shift = i === 0 ? -r * 0.24 : r * 0.2;\r\n        ctx.beginPath();\r\n        ctx.moveTo(shift, -r * 0.48);\r\n        ctx.lineTo(shift + r * 0.3, -r * 0.05);\r\n        ctx.lineTo(shift + r * 0.08, r * 0.5);\r\n        ctx.lineTo(shift - r * 0.24, r * 0.06);\r\n        ctx.closePath();\r\n        ctx.fill();\r\n      }\r\n      break;\r\n    }\r\n    case \"wisp\": {\r\n      const glow = ctx.createRadialGradient(-r * 0.28, 0, 0, -r * 0.28, 0, r * 1.55);\r\n      glow.addColorStop(0, rgba(accent, 0.48 + pulse * 0.18));\r\n      glow.addColorStop(1, rgba(rgb, 0));\r\n      ctx.fillStyle = glow;\r\n      ctx.beginPath();\r\n      ctx.ellipse(-r * 0.28, 0, r * 1.55, r * 0.78, 0, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      break;\r\n    }\r\n    case \"rune\": {\r\n      ctx.strokeStyle = rgba(accent, 0.78);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.16);\r\n      ctx.beginPath();\r\n      ctx.moveTo(0, -r * 0.9);\r\n      ctx.lineTo(r * 0.78, r * 0.44);\r\n      ctx.lineTo(-r * 0.78, r * 0.44);\r\n      ctx.closePath();\r\n      ctx.stroke();\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      break;\r\n    }\r\n    case \"shadow\": {\r\n      ctx.globalCompositeOperation = \"multiply\";\r\n      ctx.fillStyle = \"rgba(25, 24, 34, 0.45)\";\r\n      ctx.beginPath();\r\n      ctx.arc(r * 0.14, 0, r * 1.08, Math.PI * 0.15, Math.PI * 1.85);\r\n      ctx.arc(-r * 0.28, 0, r * 0.8, Math.PI * 1.85, Math.PI * 0.15, true);\r\n      ctx.fill();\r\n      break;\r\n    }\r\n    case \"gear\": {\r\n      ctx.strokeStyle = rgba(accent, 0.74);\r\n      ctx.lineWidth = Math.max(1.2, r * 0.17);\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      ctx.beginPath();\r\n      ctx.moveTo(-r * 0.9, 0);\r\n      ctx.lineTo(r * 0.9, 0);\r\n      ctx.moveTo(0, -r * 0.9);\r\n      ctx.lineTo(0, r * 0.9);\r\n      ctx.stroke();\r\n      break;\r\n    }\r\n    case \"sparkle\": {\r\n      ctx.strokeStyle = rgba(accent, 0.82);\r\n      ctx.lineWidth = Math.max(1.1, r * 0.14);\r\n      for (let i = 0; i < 4; i += 1) {\r\n        const angle = (Math.PI / 4) * i + ageMs * 0.0009;\r\n        const dx = Math.cos(angle) * r * 0.9;\r\n        const dy = Math.sin(angle) * r * 0.9;\r\n        ctx.beginPath();\r\n        ctx.moveTo(-dx, -dy);\r\n        ctx.lineTo(dx, dy);\r\n        ctx.stroke();\r\n      }\r\n      break;\r\n    }\r\n    case \"ring\":\r\n    default: {\r\n      ctx.strokeStyle = rgba(accent, 0.6 + pulse * 0.12);\r\n      ctx.lineWidth = Math.max(1, r * 0.13);\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, r * (0.92 + pulse * 0.16), 0, Math.PI * 2);\r\n      ctx.stroke();\r\n      break;\r\n    }\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawProjectiles(projectiles) {\r\n  const trailStride = Math.max(1, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailStride, 1));\r\n  const trailEnabled = Boolean(PROJECTILE_VISUAL_PROFILE.trailEnabled);\r\n  const trailGlow = Boolean(PROJECTILE_VISUAL_PROFILE.trailGlow);\r\n  const projectileStreak = Boolean(PROJECTILE_VISUAL_PROFILE.streak);\r\n  const projectileAura = Boolean(PROJECTILE_VISUAL_PROFILE.aura);\r\n  const spriteDetail = Boolean(PROJECTILE_VISUAL_PROFILE.spriteDetail);\r\n  const auraScale = clamp(Number(PROJECTILE_VISUAL_PROFILE.auraScale) || 1, 0.45, 1.5);\r\n  for (const projectile of projectiles || []) {\r\n    const rgb = getTypeColor(projectile.attackType);\r\n    const radius = projectile.radius || 8;\r\n    const trailProfile = getProjectileTrailTypeVfxProfile(projectile.attackType);\r\n    const trailAccent = Array.isArray(trailProfile.accent) ? trailProfile.accent : rgb;\r\n    const trailColor = blendRgb(rgb, trailAccent, trailProfile.accentMix);\r\n    const sprite = spriteDetail ? getProjectileSprite(projectile.attackType) : null;\r\n    const auraRadius = radius * 3.3 * auraScale;\r\n    const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];\r\n    const movementX = Number(projectile.x) - Number(projectile.prevX);\r\n    const movementY = Number(projectile.y) - Number(projectile.prevY);\r\n    const movementDistance = Math.hypot(movementX, movementY);\r\n    let trailAngle = Number(projectile.rotation) || 0;\r\n    let trailDirX = Math.cos(trailAngle);\r\n    let trailDirY = Math.sin(trailAngle);\r\n    if (movementDistance > 0.0001) {\r\n      trailDirX = movementX / movementDistance;\r\n      trailDirY = movementY / movementDistance;\r\n      trailAngle = Math.atan2(trailDirY, trailDirX);\r\n    }\r\n    const trailPerpX = -trailDirY;\r\n    const trailPerpY = trailDirX;\r\n\r\n    if (trailPoints.length > 0) {\r\n      ctx.save();\r\n      if (trailGlow) {\r\n        ctx.globalCompositeOperation = \"lighter\";\r\n      }\r\n      for (let pointIndex = 0; pointIndex < trailPoints.length; pointIndex += trailStride) {\r\n        const point = trailPoints[pointIndex];\r\n        if (!point) {\r\n          continue;\r\n        }\r\n        const lifeRatio = clamp(point.lifeMs / Math.max(1, point.maxLifeMs), 0, 1);\r\n        const pointScale = clamp(Number(point.scale) || 1, 0.72, 1.4);\r\n        const pointRadius = radius * trailProfile.radiusMul * (0.5 + lifeRatio * 0.82) * pointScale;\r\n        if (trailGlow) {\r\n          const glow = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pointRadius * 2.6);\r\n          glow.addColorStop(0, rgba(trailColor, 0.24 * lifeRatio));\r\n          glow.addColorStop(1, rgba(trailColor, 0));\r\n          ctx.fillStyle = glow;\r\n          ctx.beginPath();\r\n          ctx.arc(point.x, point.y, pointRadius * 2.6, 0, Math.PI * 2);\r\n          ctx.fill();\r\n        } else {\r\n          const pointPhase = Number(point.phase) || 0;\r\n          const alpha = clamp(\r\n            (trailProfile.alphaBase + lifeRatio * trailProfile.alphaLife) * (0.78 + lifeRatio * 0.24),\r\n            0.04,\r\n            0.72,\r\n          );\r\n          ctx.globalAlpha = alpha;\r\n          switch (trailProfile.mode) {\r\n            case \"ember\": {\r\n              const length = pointRadius * trailProfile.stretch;\r\n              ctx.fillStyle = rgba(trailColor, 0.92);\r\n              ctx.beginPath();\r\n              ctx.ellipse(\r\n                point.x - trailDirX * length * 0.28,\r\n                point.y - trailDirY * length * 0.28,\r\n                pointRadius * trailProfile.stretch,\r\n                Math.max(0.8, pointRadius * 0.54),\r\n                trailAngle,\r\n                0,\r\n                Math.PI * 2,\r\n              );\r\n              ctx.fill();\r\n              ctx.fillStyle = rgba(trailAccent, 0.74);\r\n              ctx.beginPath();\r\n              ctx.arc(point.x, point.y, Math.max(0.5, pointRadius * 0.32), 0, Math.PI * 2);\r\n              ctx.fill();\r\n              break;\r\n            }\r\n            case \"droplet\": {\r\n              const wobbleAngle = trailAngle + Math.sin(pointPhase + (projectile.lifetimeMs || 0) * 0.013) * 0.24;\r\n              ctx.fillStyle = rgba(trailColor, 0.9);\r\n              ctx.beginPath();\r\n              ctx.ellipse(\r\n                point.x - trailDirX * pointRadius * 0.18,\r\n                point.y - trailDirY * pointRadius * 0.18,\r\n                pointRadius * 1.08,\r\n                Math.max(0.8, pointRadius * 0.68),\r\n                wobbleAngle,\r\n                0,\r\n                Math.PI * 2,\r\n              );\r\n              ctx.fill();\r\n              if ((pointIndex & 1) === 0) {\r\n                ctx.strokeStyle = rgba(trailAccent, 0.84);\r\n                ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);\r\n                ctx.beginPath();\r\n                ctx.arc(point.x, point.y, pointRadius * 0.82, 0, Math.PI * 2);\r\n                ctx.stroke();\r\n              }\r\n              break;\r\n            }\r\n            case \"leaf\": {\r\n              const leafAngle = trailAngle + Math.sin(pointPhase) * 0.52;\r\n              ctx.fillStyle = rgba(trailColor, 0.9);\r\n              ctx.beginPath();\r\n              ctx.ellipse(point.x, point.y, pointRadius * 1.2, Math.max(0.72, pointRadius * 0.52), leafAngle, 0, Math.PI * 2);\r\n              ctx.fill();\r\n              break;\r\n            }\r\n            case \"spark\": {\r\n              const length = pointRadius * trailProfile.stretch;\r\n              ctx.strokeStyle = rgba(trailAccent, 0.94);\r\n              ctx.lineWidth = Math.max(1, pointRadius * 0.42);\r\n              ctx.lineCap = \"round\";\r\n              ctx.beginPath();\r\n              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);\r\n              ctx.lineTo(point.x + trailDirX * length * 0.42, point.y + trailDirY * length * 0.42);\r\n              if ((pointIndex & 1) === 0) {\r\n                ctx.moveTo(point.x - trailPerpX * length * 0.42, point.y - trailPerpY * length * 0.42);\r\n                ctx.lineTo(point.x + trailPerpX * length * 0.42, point.y + trailPerpY * length * 0.42);\r\n              }\r\n              ctx.stroke();\r\n              break;\r\n            }\r\n            case \"shard\": {\r\n              const length = pointRadius * trailProfile.stretch;\r\n              const width = Math.max(0.6, pointRadius * 0.66);\r\n              ctx.fillStyle = rgba(trailColor, 0.88);\r\n              ctx.beginPath();\r\n              ctx.moveTo(point.x + trailDirX * length, point.y + trailDirY * length);\r\n              ctx.lineTo(point.x + trailPerpX * width, point.y + trailPerpY * width);\r\n              ctx.lineTo(point.x - trailDirX * length * 0.86, point.y - trailDirY * length * 0.86);\r\n              ctx.lineTo(point.x - trailPerpX * width, point.y - trailPerpY * width);\r\n              ctx.closePath();\r\n              ctx.fill();\r\n              break;\r\n            }\r\n            case \"dust\": {\r\n              const jitterX = Math.sin(pointPhase) * pointRadius * 0.2;\r\n              const jitterY = Math.cos(pointPhase * 1.4) * pointRadius * 0.2;\r\n              ctx.fillStyle = rgba(trailColor, 0.86);\r\n              ctx.beginPath();\r\n              ctx.arc(point.x + jitterX, point.y + jitterY, pointRadius * 1.06, 0, Math.PI * 2);\r\n              ctx.fill();\r\n              break;\r\n            }\r\n            case \"wisp\": {\r\n              ctx.fillStyle = rgba(trailColor, 0.72);\r\n              ctx.beginPath();\r\n              ctx.arc(point.x, point.y, pointRadius * 1.2, 0, Math.PI * 2);\r\n              ctx.fill();\r\n              ctx.fillStyle = rgba(trailAccent, 0.54);\r\n              ctx.beginPath();\r\n              ctx.arc(\r\n                point.x - trailDirX * pointRadius * 0.58,\r\n                point.y - trailDirY * pointRadius * 0.58,\r\n                pointRadius * 0.62,\r\n                0,\r\n                Math.PI * 2,\r\n              );\r\n              ctx.fill();\r\n              break;\r\n            }\r\n            case \"sparkle\": {\r\n              const length = pointRadius * trailProfile.stretch;\r\n              ctx.strokeStyle = rgba(trailAccent, 0.9);\r\n              ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);\r\n              ctx.lineCap = \"round\";\r\n              ctx.beginPath();\r\n              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);\r\n              ctx.lineTo(point.x + trailDirX * length, point.y + trailDirY * length);\r\n              ctx.moveTo(point.x - trailPerpX * length * 0.84, point.y - trailPerpY * length * 0.84);\r\n              ctx.lineTo(point.x + trailPerpX * length * 0.84, point.y + trailPerpY * length * 0.84);\r\n              ctx.stroke();\r\n              break;\r\n            }\r\n            case \"streak\":\r\n            default: {\r\n              ctx.fillStyle = rgba(trailColor, 0.88);\r\n              ctx.beginPath();\r\n              ctx.ellipse(\r\n                point.x - trailDirX * pointRadius * 0.24,\r\n                point.y - trailDirY * pointRadius * 0.24,\r\n                pointRadius * trailProfile.stretch,\r\n                Math.max(0.7, pointRadius * 0.48),\r\n                trailAngle,\r\n                0,\r\n                Math.PI * 2,\r\n              );\r\n              ctx.fill();\r\n              break;\r\n            }\r\n          }\r\n        }\r\n      }\r\n      ctx.restore();\r\n    }\r\n\r\n    if (\r\n      projectileStreak &&\r\n      Number.isFinite(projectile.prevX) &&\r\n      Number.isFinite(projectile.prevY) &&\r\n      (Math.abs(projectile.x - projectile.prevX) > 0.01 || Math.abs(projectile.y - projectile.prevY) > 0.01)\r\n    ) {\r\n      ctx.save();\r\n      ctx.globalCompositeOperation = \"lighter\";\r\n      const streak = ctx.createLinearGradient(projectile.prevX, projectile.prevY, projectile.x, projectile.y);\r\n      streak.addColorStop(0, rgba(rgb, 0));\r\n      streak.addColorStop(1, rgba(rgb, 0.7));\r\n      ctx.strokeStyle = streak;\r\n      ctx.lineWidth = Math.max(2, radius * 1.3);\r\n      ctx.lineCap = \"round\";\r\n      ctx.beginPath();\r\n      ctx.moveTo(projectile.prevX, projectile.prevY);\r\n      ctx.lineTo(projectile.x, projectile.y);\r\n      ctx.stroke();\r\n      ctx.restore();\r\n    }\r\n\r\n    if (projectileAura || spriteDetail) {\r\n      ctx.save();\r\n    }\r\n    if (projectileAura) {\r\n      const aura = ctx.createRadialGradient(\r\n        projectile.x,\r\n        projectile.y,\r\n        Math.max(1, radius * 0.2),\r\n        projectile.x,\r\n        projectile.y,\r\n        auraRadius,\r\n      );\r\n      aura.addColorStop(0, rgba(rgb, 0.72));\r\n      aura.addColorStop(0.45, rgba(rgb, 0.38));\r\n      aura.addColorStop(1, rgba(rgb, 0));\r\n\r\n      ctx.fillStyle = aura;\r\n      ctx.beginPath();\r\n      ctx.arc(projectile.x, projectile.y, auraRadius, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      ctx.globalCompositeOperation = \"lighter\";\r\n      ctx.fillStyle = \"rgba(255, 255, 255, 0.15)\";\r\n      ctx.beginPath();\r\n      ctx.arc(projectile.x, projectile.y, radius * 1.6, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    } else if (spriteDetail) {\r\n      ctx.fillStyle = rgba(rgb, 0.26);\r\n      ctx.beginPath();\r\n      ctx.arc(projectile.x, projectile.y, radius * 1.45, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    }\r\n    if (projectileAura || spriteDetail) {\r\n      ctx.restore();\r\n    }\r\n\r\n    drawProjectileTypeMotif(projectile, rgb, radius);\r\n\r\n    ctx.save();\r\n    ctx.translate(projectile.x, projectile.y);\r\n    ctx.rotate(projectile.rotation || 0);\r\n    if (sprite) {\r\n      const pulse = 1 + Math.sin((projectile.lifetimeMs || 0) * 0.02) * 0.08;\r\n      const size = Math.max(24, radius * 4.6) * pulse;\r\n      ctx.drawImage(sprite, -size * 0.5, -size * 0.5, size, size);\r\n    } else {\r\n      ctx.fillStyle = rgba(rgb, 0.95);\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      ctx.strokeStyle = \"rgba(255, 255, 255, 0.34)\";\r\n      ctx.lineWidth = Math.max(1, radius * 0.2);\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, Math.max(2, radius * 0.42), 0, Math.PI * 2);\r\n      ctx.stroke();\r\n    }\r\n    ctx.restore();\r\n  }\r\n}\r\n\r\nfunction drawEnemyHitEffects(hitEffects) {\r\n  const quality = getRenderQualitySettings();\r\n  const useGlow = Boolean(quality.enemyHitGlow);\r\n  for (const effect of hitEffects || []) {\r\n    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);\r\n    const rgb = Array.isArray(effect.color) ? effect.color : [220, 236, 255];\r\n\r\n    ctx.save();\r\n    if (effect.kind === \"teleport_trail\") {\r\n      const fromX = Number(effect.x) || 0;\r\n      const fromY = Number(effect.y) || 0;\r\n      const toX = Number(effect.toX) || fromX;\r\n      const toY = Number(effect.toY) || fromY;\r\n      const ctrlX = Number(effect.ctrlX);\r\n      const ctrlY = Number(effect.ctrlY);\r\n      const trailGradient = ctx.createLinearGradient(fromX, fromY, toX, toY);\r\n      trailGradient.addColorStop(0, rgba(rgb, 0));\r\n      trailGradient.addColorStop(0.25, rgba(rgb, 0.35 + lifeRatio * 0.3));\r\n      trailGradient.addColorStop(0.5, \"rgba(255, 255, 255, 0.85)\");\r\n      trailGradient.addColorStop(0.75, rgba(rgb, 0.35 + lifeRatio * 0.3));\r\n      trailGradient.addColorStop(1, rgba(rgb, 0));\r\n      ctx.globalCompositeOperation = \"lighter\";\r\n      ctx.globalAlpha = clamp(lifeRatio * 1.1, 0, 1);\r\n      ctx.strokeStyle = trailGradient;\r\n      ctx.lineWidth = (effect.lineWidth || 2.2) * (0.65 + lifeRatio * 0.55);\r\n      ctx.lineCap = \"round\";\r\n      ctx.lineJoin = \"round\";\r\n      ctx.beginPath();\r\n      ctx.moveTo(fromX, fromY);\r\n      if (Number.isFinite(ctrlX) && Number.isFinite(ctrlY)) {\r\n        ctx.quadraticCurveTo(ctrlX, ctrlY, toX, toY);\r\n      } else {\r\n        ctx.lineTo(toX, toY);\r\n      }\r\n      ctx.stroke();\r\n    } else if (effect.kind === \"teleport_flash\") {\r\n      const radius = Math.max(2, Number(effect.radius) || 2);\r\n      ctx.globalCompositeOperation = \"screen\";\r\n      ctx.globalAlpha = clamp(lifeRatio * 1.15, 0, 1);\r\n      const glow = ctx.createRadialGradient(effect.x, effect.y, radius * 0.08, effect.x, effect.y, radius * 1.65);\r\n      glow.addColorStop(0, \"rgba(255, 255, 255, 0.95)\");\r\n      glow.addColorStop(0.35, rgba(rgb, 0.74));\r\n      glow.addColorStop(1, rgba(rgb, 0));\r\n      ctx.fillStyle = glow;\r\n      ctx.beginPath();\r\n      ctx.arc(effect.x, effect.y, radius * 1.65, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    } else if (effect.kind === \"ring\") {\r\n      ctx.globalAlpha = lifeRatio * 0.9;\r\n      ctx.strokeStyle = rgba(rgb, 0.95);\r\n      ctx.lineWidth = (effect.lineWidth || 2) * (0.7 + lifeRatio * 0.9);\r\n      ctx.beginPath();\r\n      ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n    } else {\r\n      const radius = (effect.size || 2) * (0.55 + lifeRatio * 0.9);\r\n      if (useGlow) {\r\n        ctx.globalCompositeOperation = \"lighter\";\r\n        ctx.globalAlpha = lifeRatio;\r\n        const glow = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius * 3);\r\n        glow.addColorStop(0, rgba(rgb, 0.95));\r\n        glow.addColorStop(0.5, rgba(rgb, 0.5));\r\n        glow.addColorStop(1, rgba(rgb, 0));\r\n        ctx.fillStyle = glow;\r\n        ctx.beginPath();\r\n        ctx.arc(effect.x, effect.y, radius * 3, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      } else {\r\n        ctx.globalAlpha = Math.max(0.12, lifeRatio * 0.7);\r\n        ctx.fillStyle = rgba(rgb, 0.54);\r\n        ctx.beginPath();\r\n        ctx.arc(effect.x, effect.y, radius * 1.6, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n\r\n      ctx.fillStyle = rgba(rgb, 1);\r\n      ctx.beginPath();\r\n      ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    }\r\n    ctx.restore();\r\n  }\r\n}\r\n\r\nfunction drawFloatingDamageTexts(floatingTexts) {\r\n  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);\r\n  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);\r\n  const shortestSide = Math.max(220, Math.min(viewportWidth || 220, viewportHeight || 220));\r\n  const phoneLike = shortestSide <= 500;\r\n  const compactScale = phoneLike\r\n    ? clamp(shortestSide / 500, 0.62, 0.86)\r\n    : clamp(shortestSide / 900, 0.82, 0.96);\r\n  for (const text of floatingTexts || []) {\r\n    const lifeRatio = clamp(text.lifeMs / Math.max(1, text.maxLifeMs), 0, 1);\r\n    const tone = String(text.tone || FLOATING_TEXT_TONE_NORMAL);\r\n    const tonePalette = getFloatingTextTonePalette(tone);\r\n    const tweenVisual = text.visualTween?.visual || null;\r\n    const tweenAlpha = clamp(Number(tweenVisual?.alpha ?? 1), 0, 1);\r\n    const tweenPulse = clamp(Number(tweenVisual?.pulse ?? 0), 0, 1);\r\n    const baseScale = clamp(Number(text.scaleFactor ?? 1), 0.72, 1.72);\r\n    const pulseStrength = clamp(Number(text.pulseStrength ?? 0.05), 0, 0.35);\r\n    const scale = clamp((Number(tweenVisual?.scale ?? 1) * baseScale) * (1 + tweenPulse * pulseStrength), 0.52, 1.85);\r\n    const alphaFactor = clamp(Number(text.alphaFactor ?? tonePalette.alpha ?? 1), 0.4, 1);\r\n    const alpha = lifeRatio * tweenAlpha * alphaFactor;\r\n    const rgb = Array.isArray(text.color) ? text.color : tonePalette.main;\r\n    const rgbSecondary = Array.isArray(text.colorSecondary) ? text.colorSecondary : tonePalette.secondary;\r\n    const labelPrimary = String(text.labelPrimary || text.label || \"\").trim();\r\n    const labelSecondary = String(text.labelSecondary || \"\").trim();\r\n    const hasEffectivenessLabel = Boolean(text.hasEffectivenessLabel);\r\n    const hasCriticalLabel = Boolean(text.hasCriticalLabel);\r\n    const numericDamage = Math.max(0, Number(text.damage) || 0);\r\n    const dynamicFontBoost = clamp(Math.log10(numericDamage + 1) * 3.7, 0, 5);\r\n    const mainFontSize = Math.round(((text.isMiss ? 16 : 19) + dynamicFontBoost + (tone === FLOATING_TEXT_TONE_CRITICAL ? 1 : 0)) * compactScale);\r\n    ctx.save();\r\n    ctx.translate(text.x, text.y);\r\n    ctx.scale(scale, scale);\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"middle\";\r\n    ctx.globalAlpha = alpha;\r\n    ctx.lineJoin = \"round\";\r\n\r\n    ctx.font = `700 ${mainFontSize}px Trebuchet MS`;\r\n    ctx.lineWidth = Math.max(2, mainFontSize * 0.16);\r\n    ctx.strokeStyle = \"rgba(8, 15, 28, 0.9)\";\r\n    const mainText = text.isMiss\r\n      ? \"RATE\"\r\n      : tone === FLOATING_TEXT_TONE_MISS && numericDamage <= 0\r\n        ? \"0\"\r\n        : `-${formatCompactNumber(text.damage, {\r\n          decimalsSmall: 2,\r\n          decimalsMedium: 1,\r\n          decimalsLarge: 0,\r\n        })}`;\r\n    ctx.strokeText(mainText, 0, 0);\r\n    if (Array.isArray(rgbSecondary) && (rgbSecondary[0] !== rgb[0] || rgbSecondary[1] !== rgb[1] || rgbSecondary[2] !== rgb[2])) {\r\n      const gradient = ctx.createLinearGradient(0, -mainFontSize * 0.9, 0, mainFontSize * 0.35);\r\n      gradient.addColorStop(0, rgba(rgbSecondary, 1));\r\n      gradient.addColorStop(1, rgba(rgb, 0.98));\r\n      ctx.fillStyle = gradient;\r\n    } else {\r\n      ctx.fillStyle = rgba(rgb, 0.98);\r\n    }\r\n    ctx.fillText(mainText, 0, 0);\r\n\r\n    if (labelPrimary || labelSecondary) {\r\n      const labels = [];\r\n      if (labelPrimary) {\r\n        labels.push(labelPrimary);\r\n      }\r\n      if (labelSecondary) {\r\n        labels.push(labelSecondary);\r\n      }\r\n      let labelY = -Math.round(mainFontSize * (labels.length > 1 ? 1.42 : 0.96));\r\n      labels.forEach((label, index) => {\r\n        const isPrimaryCriticalLine = index === 0 && hasCriticalLabel;\r\n        const isEffectivenessLine = hasEffectivenessLabel && !isPrimaryCriticalLine;\r\n        const size = isPrimaryCriticalLine\r\n          ? Math.max(7, Math.round(mainFontSize * 0.42))\r\n          : isEffectivenessLine\r\n            ? Math.max(6, Math.round(mainFontSize * 0.34))\r\n            : Math.max(7, Math.round(mainFontSize * 0.38));\r\n        ctx.font = `700 ${size}px Trebuchet MS`;\r\n        ctx.lineWidth = Math.max(1.2, size * 0.18);\r\n        ctx.strokeText(label, 0, labelY);\r\n        if (isPrimaryCriticalLine) {\r\n          ctx.fillStyle = rgba(tonePalette.label, 0.9);\r\n        } else if (isEffectivenessLine) {\r\n          ctx.fillStyle = rgba(tonePalette.label, 0.62);\r\n        } else {\r\n          ctx.fillStyle = \"rgba(240, 248, 255, 0.72)\";\r\n        }\r\n        ctx.fillText(label, 0, labelY);\r\n        labelY += Math.round(size * 1.08);\r\n      });\r\n    }\r\n\r\n    ctx.restore();\r\n  }\r\n}\r\n\r\nfunction easeOutCubic(t) {\r\n  const ratio = clamp(t, 0, 1);\r\n  return 1 - (1 - ratio) ** 3;\r\n}\r\n\r\nfunction drawEmptyTeamSlot(slot) {\r\n  if (!slot) {\r\n    return;\r\n  }\r\n  const radius = slot.size * 0.19;\r\n  ctx.save();\r\n  ctx.strokeStyle = \"rgba(215, 231, 255, 0.42)\";\r\n  ctx.lineWidth = 2;\r\n  ctx.setLineDash([6, 6]);\r\n  ctx.beginPath();\r\n  ctx.arc(slot.x, slot.y + slot.size * 0.07, radius, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n  ctx.setLineDash([]);\r\n  ctx.fillStyle = \"rgba(10, 22, 36, 0.38)\";\r\n  ctx.beginPath();\r\n  ctx.ellipse(slot.x, slot.y + slot.size * 0.5, slot.size * 0.25, slot.size * 0.08, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawTurnIndicator(layout, indicator) {\r\n  if (!layout || !indicator) {\r\n    return;\r\n  }\r\n  const canAttack = indicator.can_attack !== false;\r\n  const pulse = 0.72 + Math.sin(state.timeMs * 0.01) * 0.18;\r\n  const radius = indicator.radius * (0.94 + pulse * 0.1);\r\n  const alpha = indicator.has_pokemon ? (canAttack ? 0.22 : 0.16) : 0.13;\r\n\r\n  ctx.save();\r\n  const glow = ctx.createRadialGradient(\r\n    indicator.x,\r\n    indicator.y,\r\n    radius * 0.2,\r\n    indicator.x,\r\n    indicator.y,\r\n    radius * 1.65,\r\n  );\r\n  glow.addColorStop(0, `rgba(255, 255, 255, ${alpha + 0.1})`);\r\n  glow.addColorStop(0.65, `rgba(255, 255, 255, ${alpha})`);\r\n  glow.addColorStop(1, \"rgba(255, 255, 255, 0)\");\r\n  ctx.fillStyle = glow;\r\n  ctx.beginPath();\r\n  ctx.arc(indicator.x, indicator.y, radius * 1.65, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  ctx.strokeStyle = `rgba(255, 255, 255, ${alpha + 0.2})`;\r\n  ctx.lineWidth = indicator.has_pokemon && canAttack ? 2.2 : 1.6;\r\n  if (!indicator.has_pokemon || !canAttack) {\r\n    ctx.setLineDash([5, 5]);\r\n  }\r\n  ctx.beginPath();\r\n  ctx.arc(indicator.x, indicator.y, radius, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n  ctx.setLineDash([]);\r\n  ctx.restore();\r\n}\r\n\r\nfunction normalizeBallTypeForVisual(ballType) {\r\n  const type = String(ballType || \"\").toLowerCase().trim();\r\n  return Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : \"poke_ball\";\r\n}\r\n\r\nfunction getBallRenderTheme(ballType) {\r\n  const type = normalizeBallTypeForVisual(ballType);\r\n  if (type === \"super_ball\") {\r\n    return {\r\n      type,\r\n      shell: [245, 248, 255],\r\n      seam: [15, 20, 34],\r\n      topA: [56, 148, 255],\r\n      topB: [18, 73, 182],\r\n      topHighlight: [190, 225, 255],\r\n      glowCore: [102, 189, 255],\r\n      glowOuter: [56, 112, 255],\r\n      buttonOuter: [31, 48, 81],\r\n      buttonCenter: [213, 233, 255],\r\n      breakColors: [\r\n        [56, 148, 255],\r\n        [228, 68, 88],\r\n        [248, 250, 255],\r\n      ],\r\n      successColors: [\r\n        [103, 188, 255],\r\n        [255, 116, 136],\r\n        [241, 248, 255],\r\n      ],\r\n      criticalSuccessColors: [\r\n        [255, 229, 138],\r\n        [160, 220, 255],\r\n        [223, 191, 255],\r\n      ],\r\n    };\r\n  }\r\n  if (type === \"hyper_ball\") {\r\n    return {\r\n      type,\r\n      shell: [244, 247, 252],\r\n      seam: [12, 16, 25],\r\n      topA: [63, 69, 83],\r\n      topB: [23, 27, 38],\r\n      topHighlight: [152, 161, 183],\r\n      glowCore: [255, 229, 122],\r\n      glowOuter: [88, 98, 146],\r\n      buttonOuter: [32, 38, 58],\r\n      buttonCenter: [250, 220, 112],\r\n      breakColors: [\r\n        [248, 216, 86],\r\n        [63, 69, 83],\r\n        [243, 247, 252],\r\n      ],\r\n      successColors: [\r\n        [255, 220, 122],\r\n        [171, 183, 255],\r\n        [244, 249, 255],\r\n      ],\r\n      criticalSuccessColors: [\r\n        [255, 234, 150],\r\n        [245, 202, 120],\r\n        [203, 177, 255],\r\n      ],\r\n    };\r\n  }\r\n  return {\r\n    type: \"poke_ball\",\r\n    shell: [248, 248, 248],\r\n    seam: [14, 17, 23],\r\n    topA: [232, 68, 82],\r\n    topB: [188, 39, 53],\r\n    topHighlight: [255, 168, 174],\r\n    glowCore: [176, 255, 202],\r\n    glowOuter: [96, 208, 148],\r\n    buttonOuter: [34, 41, 55],\r\n    buttonCenter: [250, 250, 250],\r\n    breakColors: [\r\n      [225, 48, 60],\r\n      [250, 250, 250],\r\n    ],\r\n    successColors: [\r\n      [115, 240, 160],\r\n      [255, 255, 195],\r\n    ],\r\n    criticalSuccessColors: [\r\n      [255, 236, 130],\r\n      [214, 174, 255],\r\n      [184, 231, 255],\r\n    ],\r\n  };\r\n}\r\n\r\nfunction drawPokeball(x, y, radius, options = {}) {\r\n  const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;\r\n  const rotation = Number.isFinite(options.rotation) ? options.rotation : 0;\r\n  const broken = Boolean(options.broken);\r\n  const critical = Boolean(options.critical);\r\n  const ballType = normalizeBallTypeForVisual(options.ball_type);\r\n  const theme = getBallRenderTheme(ballType);\r\n  const crackRatio = clamp(Number(options.crack_ratio || 0), 0, 1);\r\n  const glowRatio = clamp(Number(options.glow_ratio || 0), 0, 1);\r\n\r\n  ctx.save();\r\n  ctx.globalAlpha = alpha;\r\n  ctx.translate(x, y);\r\n  ctx.rotate(rotation);\r\n\r\n  if (glowRatio > 0) {\r\n    const glow = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius * (1.8 + glowRatio * 0.9));\r\n    if (critical) {\r\n      glow.addColorStop(0, rgba([255, 226, 130], 0.52 + glowRatio * 0.42));\r\n      glow.addColorStop(0.62, rgba(theme.glowOuter, 0.22 + glowRatio * 0.24));\r\n    } else {\r\n      glow.addColorStop(0, rgba(theme.glowCore, 0.42 + glowRatio * 0.4));\r\n    }\r\n    glow.addColorStop(1, rgba(theme.glowOuter, 0));\r\n    ctx.fillStyle = glow;\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, radius * (1.8 + glowRatio * 0.9), 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n\r\n  ctx.fillStyle = rgba(theme.shell, 1);\r\n  ctx.beginPath();\r\n  ctx.arc(0, 0, radius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  const topGradient = ctx.createLinearGradient(-radius, -radius * 0.8, radius, radius * 0.22);\r\n  topGradient.addColorStop(0, rgba(theme.topA, 1));\r\n  topGradient.addColorStop(0.7, rgba(theme.topB, 1));\r\n  topGradient.addColorStop(1, rgba(theme.topB, 0.95));\r\n  const topHighlight = ctx.createLinearGradient(-radius * 0.65, -radius * 0.9, radius * 0.4, -radius * 0.2);\r\n  topHighlight.addColorStop(0, rgba(theme.topHighlight, 0.58));\r\n  topHighlight.addColorStop(1, rgba(theme.topHighlight, 0));\r\n\r\n  if (!broken || crackRatio < 0.45) {\r\n    ctx.save();\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);\r\n    ctx.clip();\r\n    ctx.fillStyle = topGradient;\r\n    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);\r\n    ctx.fillStyle = topHighlight;\r\n    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);\r\n    ctx.restore();\r\n  } else {\r\n    const missing = radius * (0.6 + crackRatio * 0.5);\r\n    ctx.save();\r\n    ctx.beginPath();\r\n    ctx.moveTo(0, 0);\r\n    ctx.arc(0, 0, radius + 1, -Math.PI * 0.2, Math.PI * 0.2);\r\n    ctx.closePath();\r\n    ctx.clip();\r\n    ctx.clearRect(-missing, -missing, missing * 2, missing * 2);\r\n    ctx.restore();\r\n\r\n    ctx.save();\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);\r\n    ctx.clip();\r\n    ctx.fillStyle = topGradient;\r\n    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);\r\n    ctx.fillStyle = topHighlight;\r\n    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);\r\n    ctx.restore();\r\n  }\r\n\r\n  if (!broken || crackRatio < 0.9) {\r\n    if (theme.type === \"super_ball\") {\r\n      ctx.fillStyle = \"rgba(227, 64, 86, 0.96)\";\r\n      for (const side of [-1, 1]) {\r\n        const cx = side * radius * 0.52;\r\n        const cy = -radius * 0.53;\r\n        ctx.beginPath();\r\n        ctx.arc(cx, cy, radius * 0.19, 0, Math.PI * 2);\r\n        ctx.fill();\r\n        ctx.fillStyle = \"rgba(249, 231, 235, 0.92)\";\r\n        ctx.beginPath();\r\n        ctx.arc(cx, cy, radius * 0.085, 0, Math.PI * 2);\r\n        ctx.fill();\r\n        ctx.fillStyle = \"rgba(227, 64, 86, 0.96)\";\r\n      }\r\n    } else if (theme.type === \"hyper_ball\") {\r\n      ctx.strokeStyle = \"rgba(246, 214, 80, 0.96)\";\r\n      ctx.lineCap = \"round\";\r\n      ctx.lineWidth = Math.max(1.2, radius * 0.2);\r\n      ctx.beginPath();\r\n      ctx.moveTo(-radius * 0.62, -radius * 0.56);\r\n      ctx.lineTo(-radius * 0.2, -radius * 0.15);\r\n      ctx.lineTo(0, -radius * 0.36);\r\n      ctx.lineTo(radius * 0.2, -radius * 0.15);\r\n      ctx.lineTo(radius * 0.62, -radius * 0.56);\r\n      ctx.stroke();\r\n      ctx.lineWidth = Math.max(1.1, radius * 0.12);\r\n      ctx.beginPath();\r\n      ctx.moveTo(-radius * 0.22, -radius * 0.36);\r\n      ctx.lineTo(radius * 0.22, -radius * 0.36);\r\n      ctx.stroke();\r\n    }\r\n  }\r\n\r\n  if (critical) {\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"screen\";\r\n    const sheen = ctx.createRadialGradient(-radius * 0.2, -radius * 0.45, radius * 0.06, 0, -radius * 0.2, radius * 0.95);\r\n    sheen.addColorStop(0, \"rgba(255, 242, 179, 0.56)\");\r\n    sheen.addColorStop(0.68, \"rgba(210, 183, 255, 0.12)\");\r\n    sheen.addColorStop(1, \"rgba(210, 183, 255, 0)\");\r\n    ctx.fillStyle = sheen;\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, radius * 0.98, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.restore();\r\n  }\r\n\r\n  ctx.strokeStyle = rgba(theme.seam, 0.92);\r\n  ctx.lineWidth = Math.max(1.4, radius * 0.11);\r\n  ctx.beginPath();\r\n  ctx.arc(0, 0, radius, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  ctx.lineWidth = Math.max(1.6, radius * 0.18);\r\n  ctx.beginPath();\r\n  ctx.moveTo(-radius, 0);\r\n  ctx.lineTo(radius, 0);\r\n  ctx.stroke();\r\n\r\n  ctx.fillStyle = rgba(theme.buttonCenter, 1);\r\n  ctx.beginPath();\r\n  ctx.arc(0, 0, radius * 0.33, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  if (critical) {\r\n    ctx.fillStyle = \"rgba(252, 229, 126, 0.8)\";\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, radius * 0.15, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n  ctx.strokeStyle = rgba(theme.buttonOuter, 0.9);\r\n  ctx.lineWidth = Math.max(1.2, radius * 0.09);\r\n  ctx.stroke();\r\n\r\n  if (broken && crackRatio > 0.15) {\r\n    ctx.strokeStyle = `rgba(27, 35, 46, ${0.55 + crackRatio * 0.45})`;\r\n    ctx.lineWidth = Math.max(1, radius * 0.08);\r\n    ctx.beginPath();\r\n    ctx.moveTo(-radius * 0.42, -radius * 0.18);\r\n    ctx.lineTo(-radius * 0.16, radius * 0.12);\r\n    ctx.lineTo(radius * 0.12, -radius * 0.06);\r\n    ctx.lineTo(radius * 0.36, radius * 0.28);\r\n    ctx.stroke();\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction getCaptureEnemyVisual(sequence, phase) {\r\n  if (!sequence || !phase) {\r\n    return { visible: false, alpha: 0, scale: 0 };\r\n  }\r\n\r\n  if (phase === \"throw\") {\r\n    return { visible: true, alpha: 0.7, scale: 0.94 };\r\n  }\r\n\r\n  if (phase === \"reappear\") {\r\n    const timeInPhase = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS + CAPTURE_FAIL_BREAK_MS);\r\n    const ratio = clamp(timeInPhase / CAPTURE_FAIL_REAPPEAR_MS, 0, 1);\r\n    const alpha = ratio < 0.34 ? ratio / 0.34 : 1 - (ratio - 0.34) / 0.66;\r\n    return { visible: alpha > 0.02, alpha: clamp(alpha, 0, 1), scale: 0.78 + Math.sin(ratio * Math.PI) * 0.26 };\r\n  }\r\n\r\n  return { visible: false, alpha: 0, scale: 0 };\r\n}\r\n\r\nfunction drawCaptureSequence(layout, captureSequence, capturePhase) {\r\n  if (!captureSequence || !capturePhase) {\r\n    return;\r\n  }\r\n\r\n  const sequence = captureSequence;\r\n  const criticalCapture = Boolean(sequence.isCritical);\r\n  const ballType = normalizeBallTypeForVisual(sequence.ballType);\r\n  const ballTheme = getBallRenderTheme(ballType);\r\n  const celebrationParticles = shouldRenderCelebrationParticles();\r\n  const throwRatio = CAPTURE_THROW_MS > 0 ? clamp(sequence.elapsedMs / CAPTURE_THROW_MS, 0, 1) : 1;\r\n  const easedThrow = easeOutCubic(throwRatio);\r\n  let ballX = sequence.targetX;\r\n  let ballY = sequence.targetY;\r\n  let ballRotation = 0;\r\n  let ballRadius = 14;\r\n  let broken = false;\r\n  let crackRatio = 0;\r\n  let glowRatio = 0;\r\n\r\n  if (capturePhase === \"throw\") {\r\n    ballX = sequence.startX + (sequence.targetX - sequence.startX) * easedThrow;\r\n    ballY = sequence.startY + (sequence.targetY - sequence.startY) * easedThrow - Math.sin(throwRatio * Math.PI) * 70;\r\n    ballRotation = easedThrow * Math.PI * 2.6;\r\n    ballRadius = 13.2 + Math.sin(throwRatio * Math.PI) * 1.9;\r\n    if (criticalCapture) {\r\n      glowRatio = 0.48 + Math.sin(throwRatio * Math.PI) * 0.38;\r\n    }\r\n  } else if (capturePhase === \"shake\") {\r\n    const localMs = sequence.elapsedMs - CAPTURE_THROW_MS;\r\n    const shakeRatio = clamp(localMs / Math.max(1, CAPTURE_SHAKE_MS), 0, 1);\r\n    const shakeAmpBase = criticalCapture ? 12 : 8;\r\n    const shakeAmp = shakeAmpBase * (1 - shakeRatio * 0.35);\r\n    const shakeWave = Math.sin(localMs * 0.036) * Math.exp(-shakeRatio * 0.5);\r\n    ballX = sequence.targetX + shakeWave * shakeAmp;\r\n    ballY = sequence.targetY + Math.abs(shakeWave) * 1.4;\r\n    ballRotation = shakeWave * 0.34;\r\n    ballRadius = 14.4 - shakeRatio * 0.95;\r\n    if (criticalCapture) {\r\n      glowRatio = 0.4 + Math.sin(localMs * 0.02) * 0.22;\r\n    }\r\n  } else if (capturePhase === \"success\") {\r\n    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);\r\n    const ratio = clamp(localMs / Math.max(1, CAPTURE_SUCCESS_BURST_MS), 0, 1);\r\n    ballX = sequence.targetX;\r\n    ballY = sequence.targetY - Math.sin(ratio * Math.PI) * 3.2;\r\n    ballRotation = Math.sin(localMs * 0.024) * 0.12;\r\n    ballRadius = 14 + Math.sin(ratio * Math.PI * 2.4) * 0.92 * (1 - ratio * 0.65);\r\n    glowRatio = (criticalCapture ? 1.35 : 1) - ratio * (criticalCapture ? 0.16 : 0.25);\r\n  } else if (capturePhase === \"break\") {\r\n    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);\r\n    ballX = sequence.targetX;\r\n    ballY = sequence.targetY + clamp(localMs / 120, 0, 1) * 1.8;\r\n    broken = true;\r\n    crackRatio = clamp(localMs / Math.max(1, CAPTURE_FAIL_BREAK_MS), 0, 1);\r\n    ballRadius = 14 - crackRatio * 0.82;\r\n    if (criticalCapture) {\r\n      glowRatio = 0.3 * (1 - crackRatio);\r\n    }\r\n  } else if (capturePhase === \"reappear\") {\r\n    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS + CAPTURE_FAIL_BREAK_MS);\r\n    const ratio = clamp(localMs / Math.max(1, CAPTURE_FAIL_REAPPEAR_MS), 0, 1);\r\n    ballX = sequence.targetX;\r\n    ballY = sequence.targetY + ratio * 2.4;\r\n    broken = true;\r\n    crackRatio = 1;\r\n    ballRadius = 13.2 - ratio * 0.55;\r\n  } else {\r\n    ballX = sequence.targetX;\r\n    ballY = sequence.targetY;\r\n  }\r\n\r\n  if (capturePhase === \"throw\") {\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"lighter\";\r\n    for (let i = 1; i <= 5; i += 1) {\r\n      const trailT = clamp(throwRatio - i * 0.085, 0, 1);\r\n      if (trailT <= 0) {\r\n        continue;\r\n      }\r\n      const easedTrail = easeOutCubic(trailT);\r\n      const trailX = sequence.startX + (sequence.targetX - sequence.startX) * easedTrail;\r\n      const trailY = sequence.startY + (sequence.targetY - sequence.startY) * easedTrail - Math.sin(trailT * Math.PI) * 70;\r\n      const trailAlpha = (0.17 - i * 0.025) * (criticalCapture ? 1.25 : 1);\r\n      ctx.fillStyle = rgba(ballTheme.glowCore, Math.max(0, trailAlpha));\r\n      ctx.beginPath();\r\n      ctx.arc(trailX, trailY, Math.max(2.2, ballRadius * (0.5 - i * 0.06)), 0, Math.PI * 2);\r\n      ctx.fill();\r\n    }\r\n    ctx.restore();\r\n  }\r\n\r\n  const lift = Math.max(0, sequence.targetY - ballY);\r\n  const shadowScale = clamp(1 - lift / 120, 0.3, 1);\r\n  ctx.save();\r\n  ctx.fillStyle = `rgba(6, 12, 20, ${0.13 + shadowScale * 0.19})`;\r\n  ctx.beginPath();\r\n  ctx.ellipse(ballX, sequence.targetY + ballRadius * 0.88, ballRadius * (0.95 + shadowScale * 0.55), ballRadius * 0.34, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  ctx.restore();\r\n\r\n  if (celebrationParticles) {\r\n    for (const particle of sequence.particles || []) {\r\n      const lifeRatio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);\r\n      ctx.save();\r\n      ctx.globalAlpha = lifeRatio;\r\n      if (particle.kind === \"break\") {\r\n        ctx.translate(particle.x, particle.y);\r\n        ctx.rotate(particle.rotation || 0);\r\n        ctx.fillStyle = rgba(particle.color, 0.95);\r\n        const size = particle.size || 2;\r\n        ctx.fillRect(-size, -size * 0.56, size * 2, size * 1.12);\r\n      } else {\r\n        const glow = ctx.createRadialGradient(\r\n          particle.x,\r\n          particle.y,\r\n          0,\r\n          particle.x,\r\n          particle.y,\r\n          (particle.size || 2) * 3.2,\r\n        );\r\n        glow.addColorStop(0, rgba(particle.color, 1));\r\n        glow.addColorStop(1, rgba(particle.color, 0));\r\n        ctx.fillStyle = glow;\r\n        ctx.beginPath();\r\n        ctx.arc(particle.x, particle.y, (particle.size || 2) * 3.2, 0, Math.PI * 2);\r\n        ctx.fill();\r\n        ctx.fillStyle = rgba(particle.color, 0.98);\r\n        ctx.beginPath();\r\n        ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);\r\n        ctx.fill();\r\n      }\r\n      ctx.restore();\r\n    }\r\n  }\r\n\r\n  drawPokeball(ballX, ballY, ballRadius, {\r\n    rotation: ballRotation,\r\n    broken,\r\n    crack_ratio: crackRatio,\r\n    glow_ratio: glowRatio,\r\n    critical: criticalCapture,\r\n    ball_type: ballType,\r\n  });\r\n\r\n  if (criticalCapture && celebrationParticles) {\r\n    const pulse = 0.5 + Math.sin(state.timeMs * 0.018) * 0.5;\r\n    const auraRadius = 26 + pulse * 8;\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"screen\";\r\n    const aura = ctx.createRadialGradient(ballX, ballY, 2, ballX, ballY, auraRadius);\r\n    aura.addColorStop(0, \"rgba(255, 234, 166, 0.36)\");\r\n    aura.addColorStop(0.6, \"rgba(209, 174, 255, 0.22)\");\r\n    aura.addColorStop(1, \"rgba(209, 174, 255, 0)\");\r\n    ctx.fillStyle = aura;\r\n    ctx.beginPath();\r\n    ctx.arc(ballX, ballY, auraRadius, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.restore();\r\n  }\r\n\r\n  if (capturePhase === \"success\" && celebrationParticles) {\r\n    const pulse = 0.25 + Math.sin(state.timeMs * 0.02) * 0.15;\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"lighter\";\r\n    const ringRadius = layout.enemySize * ((criticalCapture ? 0.36 : 0.28) + pulse);\r\n    const successPrimary = criticalCapture\r\n      ? ballTheme.criticalSuccessColors[0] || [255, 233, 150]\r\n      : ballTheme.successColors[0] || [172, 255, 190];\r\n    const successSecondary = criticalCapture\r\n      ? ballTheme.criticalSuccessColors[1] || [199, 164, 255]\r\n      : ballTheme.successColors[1] || [186, 234, 255];\r\n    ctx.strokeStyle = rgba(successPrimary, criticalCapture ? 0.76 : 0.62);\r\n    ctx.lineWidth = 2.5;\r\n    ctx.beginPath();\r\n    ctx.arc(sequence.targetX, sequence.targetY, ringRadius, 0, Math.PI * 2);\r\n    ctx.stroke();\r\n    if (criticalCapture) {\r\n      ctx.strokeStyle = rgba(successSecondary, 0.54);\r\n      ctx.lineWidth = 2;\r\n      ctx.beginPath();\r\n      ctx.arc(sequence.targetX, sequence.targetY, ringRadius * 0.74, 0, Math.PI * 2);\r\n      ctx.stroke();\r\n    }\r\n    ctx.restore();\r\n  }\r\n\r\n  const chanceDisplay = Number(sequence.chanceDisplay);\r\n  if (Number.isFinite(chanceDisplay) && chanceDisplay > 0) {\r\n    const percent = Math.round(clamp(chanceDisplay, 0, 1) * 100);\r\n    ctx.save();\r\n    ctx.globalAlpha = 0.92;\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"middle\";\r\n    ctx.lineJoin = \"round\";\r\n    ctx.lineWidth = 4;\r\n    ctx.strokeStyle = \"rgba(0, 0, 0, 0.62)\";\r\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.95)\";\r\n    ctx.font = \"700 12px Trebuchet MS\";\r\n    ctx.strokeText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);\r\n    ctx.fillText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);\r\n    ctx.restore();\r\n  }\r\n}\r\n\r\nfunction drawEnemyKoEffect(layout, koTransition) {\r\n  if (!koTransition?.shrink_active) {\r\n    return;\r\n  }\r\n\r\n  const progress = koTransition.shrink_progress || 0;\r\n  const pulse = 0.65 + 0.35 * Math.sin(state.timeMs * 0.06);\r\n  const radius = layout.enemySize * (0.4 + progress * 0.66 + pulse * 0.05);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n\r\n  const burst = ctx.createRadialGradient(\r\n    layout.centerX,\r\n    layout.centerY,\r\n    layout.enemySize * 0.12,\r\n    layout.centerX,\r\n    layout.centerY,\r\n    radius * 1.9,\r\n  );\r\n  burst.addColorStop(0, \"rgba(255, 247, 206, 0.58)\");\r\n  burst.addColorStop(0.45, \"rgba(255, 150, 120, 0.28)\");\r\n  burst.addColorStop(1, \"rgba(255, 120, 120, 0)\");\r\n  ctx.fillStyle = burst;\r\n  ctx.beginPath();\r\n  ctx.arc(layout.centerX, layout.centerY, radius * 1.9, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  ctx.strokeStyle = \"rgba(255, 248, 225, \" + (0.34 * (1 - progress) + 0.16) + \")\";\r\n  ctx.lineWidth = 3;\r\n  ctx.beginPath();\r\n  ctx.arc(layout.centerX, layout.centerY, radius, 0, Math.PI * 2);\r\n  ctx.stroke();\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction activateNextEvolutionAnimationIfNeeded() {\r\n  if (state.evolutionAnimation.current) {\r\n    return;\r\n  }\r\n  if (!Array.isArray(state.evolutionAnimation.queue) || state.evolutionAnimation.queue.length === 0) {\r\n    return;\r\n  }\r\n  while (state.evolutionAnimation.queue.length > 0) {\r\n    const next = state.evolutionAnimation.queue.shift();\r\n    if (!next || !next.fromDef || !next.toDef) {\r\n      continue;\r\n    }\r\n    state.evolutionAnimation.current = {\r\n      ...next,\r\n      elapsedMs: 0,\r\n      totalMs: Math.max(260, toSafeInt(next.totalMs, EVOLUTION_ANIM_TOTAL_MS)),\r\n      particles: Array.isArray(next.particles) ? next.particles : [],\r\n    };\r\n    return;\r\n  }\r\n}\r\n\r\nfunction drawTeamLevelUpEffects() {\r\n  if (!Array.isArray(state.teamLevelUpEffects) || state.teamLevelUpEffects.length <= 0) {\r\n    return;\r\n  }\r\n  const quality = getRenderQualitySettings();\r\n  const particleStride = Math.max(1, toSafeInt(quality.levelUpParticleStride, 1));\r\n  const useGlow = Boolean(quality.enemyHitGlow);\r\n  const celebrationParticles = shouldRenderCelebrationParticles();\r\n\r\n  for (const effect of state.teamLevelUpEffects) {\r\n    const effectRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);\r\n    const ringAlpha = Math.min(1, effectRatio * 1.4);\r\n\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"lighter\";\r\n    ctx.globalAlpha = ringAlpha;\r\n    ctx.strokeStyle = \"rgba(126, 206, 255, 0.9)\";\r\n    ctx.lineWidth = 2.1;\r\n    ctx.beginPath();\r\n    ctx.arc(effect.x, effect.y, effect.ringRadius, 0, Math.PI * 2);\r\n    ctx.stroke();\r\n    ctx.restore();\r\n\r\n    if (celebrationParticles) {\r\n      const particles = Array.isArray(effect.particles) ? effect.particles : [];\r\n      for (let particleIndex = 0; particleIndex < particles.length; particleIndex += particleStride) {\r\n        const particle = particles[particleIndex];\r\n        if (!particle) {\r\n          continue;\r\n        }\r\n        const ratio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);\r\n        const radius = (particle.size || 2) * (0.5 + ratio * 0.9);\r\n        ctx.save();\r\n        if (useGlow) {\r\n          ctx.globalCompositeOperation = \"lighter\";\r\n          const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);\r\n          glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);\r\n          glow.addColorStop(1, \"rgba(166, 224, 255, 0)\");\r\n          ctx.fillStyle = glow;\r\n          ctx.beginPath();\r\n          ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);\r\n          ctx.fill();\r\n        } else {\r\n          ctx.globalAlpha = Math.max(0.12, ratio * 0.7);\r\n          ctx.fillStyle = \"rgba(166, 224, 255, 0.72)\";\r\n          ctx.beginPath();\r\n          ctx.arc(particle.x, particle.y, radius * 1.6, 0, Math.PI * 2);\r\n          ctx.fill();\r\n        }\r\n\r\n        ctx.fillStyle = `rgba(213, 242, 255, ${0.95 * ratio})`;\r\n        ctx.beginPath();\r\n        ctx.arc(particle.x, particle.y, radius, 0, Math.PI * 2);\r\n        ctx.fill();\r\n        ctx.restore();\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\nfunction getTeamXpPulseScale(slotIndex) {\r\n  void slotIndex;\r\n  return 1;\r\n}\r\n\r\nfunction drawTeamXpGainEffects() {\r\n  if (!Array.isArray(state.teamXpGainEffects) || state.teamXpGainEffects.length <= 0) {\r\n    return;\r\n  }\r\n  for (const effect of state.teamXpGainEffects) {\r\n    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);\r\n    const textAlpha = clamp(lifeRatio * 1.25, 0, 1);\r\n    const tone = String(effect.tone || \"defeat\");\r\n    const textColor = tone === \"capture\" ? \"rgba(171, 255, 211, 1)\" : \"rgba(160, 224, 255, 1)\";\r\n    const shadowColor = tone === \"capture\" ? \"rgba(34, 98, 71, 0.82)\" : \"rgba(29, 62, 108, 0.84)\";\r\n\r\n    ctx.save();\r\n    ctx.globalAlpha = textAlpha;\r\n    ctx.textAlign = \"center\";\r\n    ctx.textBaseline = \"middle\";\r\n    ctx.lineJoin = \"round\";\r\n    ctx.lineWidth = 3.4;\r\n    ctx.strokeStyle = shadowColor;\r\n    ctx.fillStyle = textColor;\r\n    ctx.font = \"700 13px Trebuchet MS\";\r\n    ctx.strokeText(effect.text, effect.x, effect.y);\r\n    ctx.fillText(effect.text, effect.x, effect.y);\r\n    ctx.restore();\r\n  }\r\n}\r\n\r\nfunction drawTimeOfDayColorGrade(width, height, environmentSnapshot) {\r\n  const dayLight = clamp(Number(environmentSnapshot?.dayLight) || 0, 0, 1);\r\n  const night = clamp(Number(environmentSnapshot?.night) || 0, 0, 1);\r\n\r\n  ctx.save();\r\n  if (night > 0.001) {\r\n    const nightGradient = ctx.createLinearGradient(0, 0, 0, height);\r\n    nightGradient.addColorStop(0, `rgba(20, 35, 78, ${(0.18 + night * 0.18).toFixed(3)})`);\r\n    nightGradient.addColorStop(1, `rgba(8, 18, 46, ${(0.22 + night * 0.24).toFixed(3)})`);\r\n    ctx.fillStyle = nightGradient;\r\n    ctx.fillRect(0, 0, width, height);\r\n  }\r\n\r\n  if (dayLight > 0.001) {\r\n    ctx.save();\r\n    ctx.globalCompositeOperation = \"screen\";\r\n    const sunX = width * 0.2;\r\n    const sunY = height * 0.02;\r\n    const sunGlow = ctx.createRadialGradient(sunX, sunY, width * 0.06, sunX, sunY, width * 0.86);\r\n    sunGlow.addColorStop(0, `rgba(255, 240, 190, ${(0.07 + dayLight * 0.09).toFixed(3)})`);\r\n    sunGlow.addColorStop(1, \"rgba(255, 240, 190, 0)\");\r\n    ctx.fillStyle = sunGlow;\r\n    ctx.fillRect(0, 0, width, height);\r\n    ctx.restore();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction getScreenPerimeterPoint(width, height, loopRatio, margin = 0) {\r\n  const safeMargin = Math.max(0, Number(margin) || 0);\r\n  const safeWidth = Math.max(1, width - safeMargin * 2);\r\n  const safeHeight = Math.max(1, height - safeMargin * 2);\r\n  const perimeter = safeWidth * 2 + safeHeight * 2;\r\n  if (perimeter <= 0) {\r\n    return {\r\n      x: width * 0.5,\r\n      y: height * 0.5,\r\n      nx: 0,\r\n      ny: 0,\r\n    };\r\n  }\r\n  let distance = (((Number(loopRatio) || 0) % 1) + 1) % 1;\r\n  distance *= perimeter;\r\n  if (distance <= safeWidth) {\r\n    return {\r\n      x: safeMargin + distance,\r\n      y: safeMargin,\r\n      nx: 0,\r\n      ny: 1,\r\n    };\r\n  }\r\n  distance -= safeWidth;\r\n  if (distance <= safeHeight) {\r\n    return {\r\n      x: safeMargin + safeWidth,\r\n      y: safeMargin + distance,\r\n      nx: -1,\r\n      ny: 0,\r\n    };\r\n  }\r\n  distance -= safeHeight;\r\n  if (distance <= safeWidth) {\r\n    return {\r\n      x: safeMargin + safeWidth - distance,\r\n      y: safeMargin + safeHeight,\r\n      nx: 0,\r\n      ny: -1,\r\n    };\r\n  }\r\n  distance -= safeWidth;\r\n  return {\r\n    x: safeMargin,\r\n    y: safeMargin + safeHeight - distance,\r\n    nx: 1,\r\n    ny: 0,\r\n  };\r\n}\r\n\r\nfunction drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulseScale = 1) {\r\n  const edgeThickness = Math.max(14, Math.round(Math.min(width, height) * 0.065));\r\n  const alpha = clamp(Number(theme?.edgeAlpha || 0) * Math.max(0.6, Number(pulseScale) || 1) * intensity, 0, 1);\r\n  if (alpha <= 0.001) {\r\n    return;\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n\r\n  const topGradient = ctx.createLinearGradient(0, 0, 0, edgeThickness);\r\n  topGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.2).toFixed(3)));\r\n  topGradient.addColorStop(1, rgba(theme.edgeColor, 0));\r\n  ctx.fillStyle = topGradient;\r\n  ctx.fillRect(0, 0, width, edgeThickness);\r\n\r\n  const bottomGradient = ctx.createLinearGradient(0, height, 0, height - edgeThickness);\r\n  bottomGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.18).toFixed(3)));\r\n  bottomGradient.addColorStop(1, rgba(theme.edgeColor, 0));\r\n  ctx.fillStyle = bottomGradient;\r\n  ctx.fillRect(0, height - edgeThickness, width, edgeThickness);\r\n\r\n  const leftGradient = ctx.createLinearGradient(0, 0, edgeThickness, 0);\r\n  leftGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));\r\n  leftGradient.addColorStop(1, rgba(theme.edgeColor, 0));\r\n  ctx.fillStyle = leftGradient;\r\n  ctx.fillRect(0, 0, edgeThickness, height);\r\n\r\n  const rightGradient = ctx.createLinearGradient(width, 0, width - edgeThickness, 0);\r\n  rightGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));\r\n  rightGradient.addColorStop(1, rgba(theme.edgeColor, 0));\r\n  ctx.fillStyle = rightGradient;\r\n  ctx.fillRect(width - edgeThickness, 0, edgeThickness, height);\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale) {\r\n  const density = Math.max(0.05, Number(particleScale) || 0);\r\n  const particleCount = Math.round((16 + (width + height) / 120) * intensity * density);\r\n  if (particleCount <= 0) {\r\n    return;\r\n  }\r\n  const margin = Math.max(5, Math.round(Math.min(width, height) * 0.01));\r\n  const time = state.timeMs * 0.00058;\r\n  const color = Array.isArray(theme?.particleColor) ? theme.particleColor : [218, 240, 255];\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n\r\n  for (let i = 0; i < particleCount; i += 1) {\r\n    const seed = i * 17.73 + intensity * 37.1 + color[0] * 0.071;\r\n    const speed = 0.06 + pseudoRandomUnit(seed * 1.73) * 0.16;\r\n    const loopRatio = (pseudoRandomUnit(seed * 2.19) + time * speed) % 1;\r\n    const edgePoint = getScreenPerimeterPoint(width, height, loopRatio, margin);\r\n    const inward = 4 + pseudoRandomUnit(seed * 3.11) * 15;\r\n    const x = edgePoint.x + edgePoint.nx * inward;\r\n    const y = edgePoint.y + edgePoint.ny * inward;\r\n    const phase = state.timeMs * (0.0034 + pseudoRandomUnit(seed * 4.67) * 0.0026) + seed;\r\n    const alpha = (0.22 + pseudoRandomUnit(seed * 5.93) * 0.46) * intensity;\r\n\r\n    if (theme?.key === \"electric\") {\r\n      const length = 4 + pseudoRandomUnit(seed * 7.41) * 8;\r\n      const jitterX = Math.sin(phase * 1.7) * 3.2;\r\n      const jitterY = Math.cos(phase * 1.4) * 2.8;\r\n      ctx.strokeStyle = rgba(color, alpha.toFixed(3));\r\n      ctx.lineWidth = 1 + pseudoRandomUnit(seed * 8.27) * 1.2;\r\n      ctx.beginPath();\r\n      ctx.moveTo(x + jitterX, y + jitterY);\r\n      ctx.lineTo(x + jitterX + edgePoint.nx * length, y + jitterY + edgePoint.ny * length);\r\n      ctx.stroke();\r\n      continue;\r\n    }\r\n\r\n    if (theme?.key === \"ardent\") {\r\n      const radius = 1.4 + pseudoRandomUnit(seed * 6.37) * 2.6;\r\n      const driftX = Math.sin(phase) * 2.4;\r\n      const driftY = Math.cos(phase * 0.8) * 1.9;\r\n      ctx.fillStyle = rgba(color, (alpha * 0.82).toFixed(3));\r\n      ctx.beginPath();\r\n      ctx.arc(x + driftX, y + driftY, radius * 1.35, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      ctx.fillStyle = rgba(theme.pulseColor, clamp(alpha * 1.08, 0, 1).toFixed(3));\r\n      ctx.beginPath();\r\n      ctx.arc(x + driftX, y + driftY, radius * 0.78, 0, Math.PI * 2);\r\n      ctx.fill();\r\n      continue;\r\n    }\r\n\r\n    const radius = 1.1 + pseudoRandomUnit(seed * 6.91) * 2;\r\n    const driftX = Math.sin(phase * 0.85) * 1.4;\r\n    const driftY = Math.cos(phase * 0.9) * 1.4;\r\n    ctx.fillStyle = rgba(color, alpha.toFixed(3));\r\n    ctx.beginPath();\r\n    ctx.moveTo(x + driftX, y + driftY - radius);\r\n    ctx.lineTo(x + driftX + radius, y + driftY);\r\n    ctx.lineTo(x + driftX, y + driftY + radius);\r\n    ctx.lineTo(x + driftX - radius, y + driftY);\r\n    ctx.closePath();\r\n    ctx.fill();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawLegendaryFieldTrinityPulse(width, height, intensity) {\r\n  const pulse = 0.52 + Math.sin(state.timeMs * 0.0023) * 0.48;\r\n  const alpha = clamp((0.07 + pulse * 0.06) * intensity, 0, 1);\r\n  if (alpha <= 0.001) {\r\n    return;\r\n  }\r\n  const centerX = width * 0.5;\r\n  const centerY = height * 0.48;\r\n  const radius = Math.max(width, height) * (0.55 + pulse * 0.08);\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"screen\";\r\n  const glow = ctx.createRadialGradient(centerX, centerY, radius * 0.26, centerX, centerY, radius);\r\n  glow.addColorStop(0, rgba([246, 251, 255], (alpha * 0.64).toFixed(3)));\r\n  glow.addColorStop(0.6, rgba([213, 236, 255], (alpha * 0.28).toFixed(3)));\r\n  glow.addColorStop(1, \"rgba(213, 236, 255, 0)\");\r\n  ctx.fillStyle = glow;\r\n  ctx.fillRect(0, 0, width, height);\r\n\r\n  const borderAlpha = clamp(alpha * 0.42, 0, 1);\r\n  ctx.strokeStyle = rgba([212, 240, 255], borderAlpha.toFixed(3));\r\n  ctx.lineWidth = Math.max(2, Math.round(Math.min(width, height) * 0.0034));\r\n  ctx.strokeRect(1, 1, width - 2, height - 2);\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawLegendaryFieldScreenVfx(width, height, teamMembers) {\r\n  const fields = getLegendaryFieldPresence(teamMembers);\r\n  if (!fields.electric && !fields.ardent && !fields.arctic) {\r\n    return;\r\n  }\r\n  const quality = getRenderQualitySettings();\r\n  const qualityParticleScale = clamp(Number(quality.environmentParticleScale) || 0, 0, 1.5);\r\n  const particleScale = 0.45 + qualityParticleScale * 1.7;\r\n  const activeThemes = [];\r\n  if (fields.electric) {\r\n    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.electric);\r\n  }\r\n  if (fields.ardent) {\r\n    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.ardent);\r\n  }\r\n  if (fields.arctic) {\r\n    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.arctic);\r\n  }\r\n\r\n  const fieldIntensity = clamp(activeThemes.length / 3, 0.45, 1);\r\n  for (let i = 0; i < activeThemes.length; i += 1) {\r\n    const theme = activeThemes[i];\r\n    const pulse = 0.72 + Math.sin(state.timeMs * 0.0022 + i * 1.48) * 0.28;\r\n    const intensity = clamp((0.55 + fieldIntensity * 0.45) * pulse, 0.22, 1);\r\n    drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulse);\r\n    drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale);\r\n  }\r\n\r\n  if (fields.trinityActive) {\r\n    drawLegendaryFieldTrinityPulse(width, height, fieldIntensity);\r\n  }\r\n}\r\n\r\nfunction drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {\r\n  if (!environmentSnapshot) {\r\n    return;\r\n  }\r\n  drawTimeOfDayColorGrade(width, height, environmentSnapshot);\r\n}\r\n\r\nfunction drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {\r\n  if (!environmentSnapshot) {\r\n    return;\r\n  }\r\n  if (!shouldRenderAmbientOverlays()) {\r\n    return;\r\n  }\r\n  void width;\r\n  void height;\r\n  void environmentSnapshot;\r\n}\r\n\r\nfunction updateEvolutionAnimation(deltaMs) {\r\n  activateNextEvolutionAnimationIfNeeded();\r\n  const current = state.evolutionAnimation.current;\r\n  if (!current) {\r\n    return false;\r\n  }\r\n  current.elapsedMs = Math.min(current.totalMs, current.elapsedMs + Math.max(0, Number(deltaMs) || 0));\r\n  if (current.elapsedMs >= current.totalMs) {\r\n    state.evolutionAnimation.current = null;\r\n    activateNextEvolutionAnimationIfNeeded();\r\n  }\r\n  return Boolean(state.evolutionAnimation.current);\r\n}\r\n\r\nfunction drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {\r\n  const alpha = clamp(Number(options.alpha ?? 1), 0, 1);\r\n  const scale = Math.max(0.02, Number(options.scale ?? 1));\r\n  const whiteRatio = clamp(Number(options.whiteRatio ?? 0), 0, 1);\r\n  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);\r\n  const spriteImage = resolvedSpriteSource?.source || entity?.spriteImage || null;\r\n  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);\r\n\r\n  ctx.save();\r\n  ctx.translate(x, y);\r\n  ctx.globalAlpha = alpha;\r\n  ctx.scale(scale, scale);\r\n\r\n  ctx.fillStyle = \"rgba(0, 0, 0, \" + (0.24 + (1 - whiteRatio) * 0.2).toFixed(3) + \")\";\r\n  ctx.beginPath();\r\n  ctx.ellipse(0, renderSize * 0.38, renderSize * 0.32, renderSize * 0.11, 0, 0, Math.PI * 2);\r\n  ctx.fill();\r\n\r\n  if (isDrawableImage(spriteImage)) {\r\n    const dims = getDrawableImageDimensions(spriteImage);\r\n    const ratio = dims.width / Math.max(dims.height, 1);\r\n    let drawWidth = renderSize;\r\n    let drawHeight = renderSize;\r\n    if (ratio > 1) {\r\n      drawHeight = renderSize / ratio;\r\n    } else {\r\n      drawWidth = renderSize * ratio;\r\n    }\r\n    const drawX = -drawWidth * 0.5;\r\n    const drawY = -drawHeight * 0.45;\r\n    const wasSmoothing = ctx.imageSmoothingEnabled;\r\n    ctx.imageSmoothingEnabled = false;\r\n    drawSpriteImageWithTint(spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);\r\n    ctx.imageSmoothingEnabled = wasSmoothing;\r\n  } else {\r\n    ctx.fillStyle = \"rgba(195, 215, 245, 0.45)\";\r\n    ctx.beginPath();\r\n    ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    if (whiteRatio > 0) {\r\n      ctx.fillStyle = \"rgba(255, 255, 255, \" + whiteRatio.toFixed(3) + \")\";\r\n      ctx.beginPath();\r\n      ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);\r\n      ctx.fill();\r\n    }\r\n  }\r\n\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsedMs) {\r\n  const particles = Array.isArray(current?.particles) ? current.particles : [];\r\n  if (particles.length <= 0) {\r\n    return;\r\n  }\r\n\r\n  ctx.save();\r\n  ctx.globalCompositeOperation = \"lighter\";\r\n  for (const particle of particles) {\r\n    const ageMs = elapsedMs - Math.max(0, Number(particle.startMs) || 0);\r\n    const durationMs = Math.max(1, Number(particle.durationMs) || 1);\r\n    if (ageMs < 0 || ageMs > durationMs) {\r\n      continue;\r\n    }\r\n\r\n    const ratio = clamp(ageMs / durationMs, 0, 1);\r\n    const alpha = Math.sin(ratio * Math.PI) * 0.72;\r\n    if (alpha <= 0.01) {\r\n      continue;\r\n    }\r\n    const baseAngle = Number(particle.baseAngle) || 0;\r\n    const angle = baseAngle + ratio * (Number(particle.spinTurns) || 0) * Math.PI * 2;\r\n    const orbitRadius = spriteSize * ((Number(particle.radiusStart) || 0.2) + ratio * (Number(particle.radiusGrow) || 0.12));\r\n    const x = centerX + Math.cos(angle) * orbitRadius;\r\n    const y =\r\n      centerY\r\n      + (Number(particle.heightOffset) || 0) * spriteSize\r\n      + Math.sin(angle * 0.7 + baseAngle) * spriteSize * 0.08\r\n      - ratio * spriteSize * (Number(particle.lift) || 0.14);\r\n    const size = Math.max(0.8, (Number(particle.size) || 2) * (0.82 + (1 - ratio) * 0.35));\r\n    const color = Array.isArray(particle.color) ? particle.color : [190, 225, 255];\r\n\r\n    const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 3.2);\r\n    glow.addColorStop(0, rgba(color, alpha));\r\n    glow.addColorStop(1, rgba(color, 0));\r\n    ctx.fillStyle = glow;\r\n    ctx.beginPath();\r\n    ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);\r\n    ctx.fill();\r\n\r\n    ctx.fillStyle = rgba(color, Math.min(1, alpha + 0.16));\r\n    ctx.beginPath();\r\n    ctx.arc(x, y, size, 0, Math.PI * 2);\r\n    ctx.fill();\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawEvolutionAnimationOverlay(layout) {\r\n  const current = state.evolutionAnimation.current;\r\n  if (!current || !layout) {\r\n    return;\r\n  }\r\n\r\n  const whiteEnd = Math.max(1, EVOLUTION_ANIM_WHITE_MS);\r\n  const flashEnd = whiteEnd + Math.max(1, EVOLUTION_ANIM_FLASH_MS);\r\n  const revealEnd = flashEnd + Math.max(1, EVOLUTION_ANIM_REVEAL_MS);\r\n  const elapsed = clamp(current.elapsedMs, 0, current.totalMs);\r\n  const centerX = layout.centerX;\r\n  const centerY = layout.centerY - layout.enemySize * 0.03;\r\n  const spriteSize = clamp(layout.enemySize * 1.5, 170, 300);\r\n  const growthRatio = clamp(elapsed / whiteEnd, 0, 1);\r\n  const growthEase = easeInOutSine(growthRatio);\r\n  const flashRatio =\r\n    elapsed <= whiteEnd ? 0 : clamp((elapsed - whiteEnd) / Math.max(1, EVOLUTION_ANIM_FLASH_MS), 0, 1);\r\n  const flashEase = easeInOutSine(flashRatio);\r\n  const revealRatio =\r\n    elapsed <= flashEnd ? 0 : clamp((elapsed - flashEnd) / Math.max(1, EVOLUTION_ANIM_REVEAL_MS), 0, 1);\r\n  const revealEase = easeInOutSine(revealRatio);\r\n  const backdropFadeMs = clamp(\r\n    Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, current.totalMs * 0.26),\r\n    120,\r\n    Math.max(120, current.totalMs * 0.5),\r\n  );\r\n  const fadeIn = easeInOutSine(clamp(elapsed / backdropFadeMs, 0, 1));\r\n  const fadeOutStart = Math.max(0, current.totalMs - backdropFadeMs);\r\n  const fadeOut = 1 - easeInOutSine(clamp((elapsed - fadeOutStart) / backdropFadeMs, 0, 1));\r\n  const backdropPresence = clamp(Math.min(fadeIn, fadeOut), 0, 1);\r\n\r\n  ctx.save();\r\n  const baseBackdropAlpha = clamp((0.54 + (1 - revealEase) * 0.16) * backdropPresence, 0, 0.86);\r\n  ctx.fillStyle = `rgba(2, 6, 12, ${baseBackdropAlpha.toFixed(3)})`;\r\n  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);\r\n\r\n  const vignetteRadius = Math.hypot(state.viewport.width, state.viewport.height) * 0.72;\r\n  const vignette = ctx.createRadialGradient(\r\n    centerX,\r\n    centerY,\r\n    spriteSize * 0.34,\r\n    centerX,\r\n    centerY,\r\n    vignetteRadius,\r\n  );\r\n  const vignetteAlpha = clamp((0.36 + (1 - revealEase) * 0.34) * backdropPresence, 0, 0.9);\r\n  vignette.addColorStop(0, `rgba(4, 9, 17, ${(vignetteAlpha * 0.06).toFixed(3)})`);\r\n  vignette.addColorStop(0.52, `rgba(4, 9, 17, ${(vignetteAlpha * 0.4).toFixed(3)})`);\r\n  vignette.addColorStop(1, `rgba(4, 9, 17, ${vignetteAlpha.toFixed(3)})`);\r\n  ctx.fillStyle = vignette;\r\n  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);\r\n\r\n  const focusRadius = spriteSize * 1.3;\r\n  const focus = ctx.createRadialGradient(centerX, centerY, spriteSize * 0.12, centerX, centerY, focusRadius);\r\n  focus.addColorStop(0, `rgba(255, 255, 255, ${(0.18 + (1 - revealEase) * 0.1).toFixed(3)})`);\r\n  focus.addColorStop(1, \"rgba(255, 255, 255, 0)\");\r\n  ctx.fillStyle = focus;\r\n  ctx.beginPath();\r\n  ctx.arc(centerX, centerY, focusRadius, 0, Math.PI * 2);\r\n  ctx.fill();\r\n  drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsed);\r\n\r\n  let title = `${current.fromNameFr} evolue !`;\r\n  let subtitle = \"\";\r\n  const baseOrbRadius = spriteSize * 0.52;\r\n  const maxOrbRadius = spriteSize * 0.64;\r\n  const minOrbRadius = spriteSize * 0.08;\r\n  let orbRadius = baseOrbRadius;\r\n  let orbAlpha = 0;\r\n\r\n  if (elapsed < whiteEnd) {\r\n    const whiteRatio = clamp(0.16 + growthEase * 0.84, 0, 1);\r\n    const scale = lerpNumber(1.03, 0.52, growthEase);\r\n    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {\r\n      alpha: clamp(1 - growthEase * 0.94, 0.05, 1),\r\n      scale,\r\n      whiteRatio,\r\n    });\r\n    orbRadius = lerpNumber(baseOrbRadius, maxOrbRadius, growthEase);\r\n    orbAlpha = clamp(0.82 + growthEase * 0.18, 0, 1);\r\n  } else if (elapsed < flashEnd) {\r\n    const pulse = Math.sin(flashEase * Math.PI);\r\n    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {\r\n      alpha: 0.03,\r\n      scale: 0.5,\r\n      whiteRatio: 1,\r\n    });\r\n    orbRadius = maxOrbRadius * (0.98 + pulse * 0.03);\r\n    orbAlpha = 1;\r\n    const flashAlpha = 0.05 + pulse * 0.12;\r\n    ctx.fillStyle = \"rgba(255, 255, 255, \" + flashAlpha.toFixed(3) + \")\";\r\n    ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);\r\n  } else {\r\n    orbRadius = lerpNumber(maxOrbRadius, minOrbRadius, revealEase);\r\n    orbAlpha = clamp(1 - revealEase * 1.08, 0, 1);\r\n    const whiteRatio = clamp(1 - revealEase * 1.08, 0, 1);\r\n    const scale = lerpNumber(0.82, 1.04, revealEase);\r\n    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {\r\n      alpha: clamp(0.18 + revealEase * 0.82, 0, 1),\r\n      scale,\r\n      whiteRatio,\r\n    });\r\n    if (revealRatio > 0.18) {\r\n      subtitle = `${current.toNameFr} !`;\r\n    }\r\n  }\r\n\r\n  if (orbAlpha > 0.001 && orbRadius > 1) {\r\n    ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, orbAlpha).toFixed(3)})`;\r\n    ctx.beginPath();\r\n    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, 0.88 + orbAlpha * 0.12).toFixed(3)})`;\r\n    ctx.lineWidth = clamp(orbRadius * 0.018, 2.6, 5.6);\r\n    ctx.beginPath();\r\n    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);\r\n    ctx.stroke();\r\n  }\r\n\r\n  if (elapsed >= revealEnd) {\r\n    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {\r\n      alpha: 1,\r\n      scale: 1.04,\r\n      whiteRatio: 0,\r\n    });\r\n    subtitle = `${current.toNameFr} !`;\r\n  }\r\n\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"alphabetic\";\r\n  ctx.lineJoin = \"round\";\r\n  ctx.strokeStyle = \"rgba(6, 10, 19, 0.9)\";\r\n  ctx.fillStyle = \"#f7fbff\";\r\n  ctx.font = \"700 30px Trebuchet MS\";\r\n  ctx.lineWidth = 6;\r\n  ctx.strokeText(title, centerX, centerY - spriteSize * 0.72);\r\n  ctx.fillText(title, centerX, centerY - spriteSize * 0.72);\r\n\r\n  if (subtitle) {\r\n    ctx.font = \"700 34px Trebuchet MS\";\r\n    ctx.lineWidth = 7;\r\n    ctx.strokeText(subtitle, centerX, centerY + spriteSize * 0.72);\r\n    ctx.fillText(subtitle, centerX, centerY + spriteSize * 0.72);\r\n  }\r\n  ctx.restore();\r\n}\r\n\r\nfunction getRouteFallbackPalette(routeId) {\r\n  const parts = String(routeId || \"\").match(/\\d+/g);\r\n  const routeNumber = parts && parts.length > 0 ? Math.max(1, Number(parts[parts.length - 1] || 1)) : 1;\r\n  const hue = (routeNumber * 43) % 360;\r\n  const top = \"hsl(\" + hue + \", 38%, 24%)\";\r\n  const bottom = \"hsl(\" + ((hue + 26) % 360) + \", 44%, 12%)\";\r\n  const accent = \"hsla(\" + ((hue + 52) % 360) + \", 70%, 68%, 0.12)\";\r\n  return { top, bottom, accent, routeNumber };\r\n}\r\n\r\nfunction drawBackground(width, height) {\r\n  if (state.backgroundImage) {\r\n    const image = state.backgroundImage;\r\n    const drift = getBackgroundDriftOffset();\r\n    const driftRange = getBackgroundDriftRangePx();\r\n    const coverPadX = driftRange + Math.abs(drift.x) + 6;\r\n    const coverPadY = driftRange + Math.abs(drift.y) + 6;\r\n    const scale = Math.max((width + coverPadX * 2) / image.width, (height + coverPadY * 2) / image.height);\r\n    const drawWidth = image.width * scale;\r\n    const drawHeight = image.height * scale;\r\n    const drawX = (width - drawWidth) * 0.5 + drift.x;\r\n    const drawY = (height - drawHeight) * 0.5 + drift.y;\r\n\r\n    const wasSmoothing = ctx.imageSmoothingEnabled;\r\n    ctx.imageSmoothingEnabled = false;\r\n    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);\r\n    ctx.imageSmoothingEnabled = wasSmoothing;\r\n    return;\r\n  }\r\n\r\n  const routeId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;\r\n  const routeName = state.routeData?.route_name_fr || getRouteDisplayName(routeId);\r\n  const palette = getRouteFallbackPalette(routeId);\r\n\r\n  const gradient = ctx.createLinearGradient(0, 0, 0, height);\r\n  gradient.addColorStop(0, palette.top);\r\n  gradient.addColorStop(1, palette.bottom);\r\n  ctx.fillStyle = gradient;\r\n  ctx.fillRect(0, 0, width, height);\r\n\r\n  ctx.save();\r\n  ctx.strokeStyle = palette.accent;\r\n  ctx.lineWidth = 2;\r\n  const bandStep = Math.max(38, Math.min(84, 28 + palette.routeNumber * 3));\r\n  for (let x = -height; x < width + height; x += bandStep) {\r\n    ctx.beginPath();\r\n    ctx.moveTo(x, 0);\r\n    ctx.lineTo(x - height * 0.5, height);\r\n    ctx.stroke();\r\n  }\r\n\r\n  ctx.fillStyle = \"rgba(235, 247, 255, 0.78)\";\r\n  ctx.font = \"700 15px Trebuchet MS\";\r\n  ctx.textAlign = \"left\";\r\n  ctx.textBaseline = \"top\";\r\n  ctx.fillText(routeName, 18, 16);\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawLoadingOrError(text) {\r\n  const { width, height } = state.viewport;\r\n  ctx.fillStyle = \"#000\";\r\n  ctx.fillRect(0, 0, width, height);\r\n  ctx.fillStyle = \"#f7fbff\";\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"middle\";\r\n  ctx.font = \"700 30px Trebuchet MS\";\r\n  ctx.fillText(text, width * 0.5, height * 0.48);\r\n}\r\n\r\nfunction drawBallInventoryOverlay(layout) {\r\n  state.ui.ballOverlayHitboxes = [];\r\n  const rows = getBallInventoryOverlayRows();\r\n  if (rows.length <= 0) {\r\n    return;\r\n  }\r\n\r\n  const safeBounds = layout?.safeBounds || {\r\n    left: 8,\r\n    top: 8,\r\n    right: Math.max(8, state.viewport.width - 8),\r\n    bottom: Math.max(8, state.viewport.height - 8),\r\n  };\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const isPhone = Boolean(viewportProfile.phone);\r\n  const compact = Boolean(isPhone || viewportProfile.compact);\r\n  const iconSize = isPhone ? 14 : compact ? 16 : 22;\r\n  const rowGap = isPhone ? 3 : compact ? 4 : 6;\r\n  const panelPaddingX = isPhone ? 5 : 6;\r\n  const panelPaddingY = isPhone ? 5 : 6;\r\n  const iconTextGap = isPhone ? 5 : compact ? 6 : 8;\r\n  const valueFontSize = isPhone ? 12 : compact ? 13 : 16;\r\n  const rowHeight = isPhone ? 30 : compact ? 34 : 44;\r\n  const rightInset = isPhone ? 6 : compact ? 8 : 12;\r\n\r\n  ctx.save();\r\n  ctx.font = `800 ${valueFontSize}px Tahoma`;\r\n  ctx.textAlign = \"left\";\r\n  ctx.textBaseline = \"alphabetic\";\r\n\r\n  let maxValueWidth = 0;\r\n  for (const row of rows) {\r\n    const value = String(Math.max(0, toSafeInt(row.count, 0)));\r\n    maxValueWidth = Math.max(maxValueWidth, Math.ceil(ctx.measureText(value).width));\r\n  }\r\n  const dynamicPanelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxValueWidth + rightInset);\r\n  const targetDesktopRowWidth = 220;\r\n  const targetCompactRowWidth = isPhone ? 102 : 116;\r\n  const panelWidth = Math.max(dynamicPanelWidth, (compact ? targetCompactRowWidth : targetDesktopRowWidth) + 6);\r\n  const panelHeight = Math.ceil(panelPaddingY * 2 + rows.length * rowHeight + Math.max(0, rows.length - 1) * rowGap);\r\n  const panelX = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);\r\n  const overlayPaddingTop = getOverlayPaddingSnapshot().top;\r\n  const panelTopDefault = safeBounds.top + 6;\r\n  const panelTopDesktopAligned = overlayPaddingTop + 6;\r\n  const panelTop = compact ? panelTopDefault : panelTopDesktopAligned;\r\n  const panelY = clamp(panelTop, 6, state.viewport.height - panelHeight - 6);\r\n\r\n  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {\r\n    cut: compact ? 8 : 10,\r\n    fillTop: \"rgba(36, 51, 72, 0.92)\",\r\n    fillBottom: \"rgba(20, 31, 47, 0.92)\",\r\n    border: \"rgba(142, 176, 210, 0.88)\",\r\n    highlight: \"rgba(198, 223, 248, 0.22)\",\r\n    shadow: \"rgba(0, 0, 0, 0.34)\",\r\n    borderWidth: 1.3,\r\n  });\r\n\r\n  const hitboxes = [];\r\n  const hoveredType = String(state.ui.hoveredBallOverlayType || \"\").toLowerCase().trim();\r\n  const timeMs = Number(state.timeMs) || 0;\r\n  for (let i = 0; i < rows.length; i += 1) {\r\n    const row = rows[i];\r\n    const style = BALL_OVERLAY_UI_STYLE_BY_TYPE[row.type] || BALL_OVERLAY_UI_STYLE_DEFAULT;\r\n    const isHovered = hoveredType === row.type;\r\n    const hoverPulse = isHovered\r\n      ? (Math.sin(timeMs * 0.018 + Number(style.phaseOffset || 0)) + 1) * 0.5\r\n      : 0;\r\n    const baseRowY = panelY + panelPaddingY + i * (rowHeight + rowGap);\r\n    const baseRowX = panelX + 3;\r\n    const baseRowWidth = panelWidth - 6;\r\n    const baseRowHeight = rowHeight;\r\n    const rowScale = isHovered ? 1.03 + hoverPulse * 0.02 : 1;\r\n    const rowWidth = baseRowWidth * rowScale;\r\n    const rowVisualHeight = baseRowHeight * rowScale;\r\n    const rowX = baseRowX - (rowWidth - baseRowWidth) * 0.5;\r\n    const rowY = baseRowY - (rowVisualHeight - baseRowHeight) * 0.5;\r\n    const centerY = rowY + rowVisualHeight * 0.5;\r\n    const rowTop = rowY;\r\n    const rowBottom = rowY + rowVisualHeight;\r\n    const iconCenterX = rowX + panelPaddingX + iconSize * 0.5;\r\n    const image = row.spritePath ? getCachedSpriteImage(row.spritePath) : null;\r\n    const valueText = String(Math.max(0, toSafeInt(row.count, 0)));\r\n\r\n    drawRetroHudPanel(rowX, rowY, rowWidth, rowVisualHeight, {\r\n      cut: compact ? 6 : 8,\r\n      fillTop: style.rowFillTop,\r\n      fillBottom: style.rowFillBottom,\r\n      border: style.rowBorder,\r\n      highlight: \"rgba(255, 255, 255, 0.2)\",\r\n      shadow: isHovered ? style.glow : \"rgba(0, 0, 0, 0.3)\",\r\n      borderWidth: isHovered ? 1.5 : 1.15,\r\n    });\r\n\r\n    const badgeRadius = iconSize * 0.6;\r\n    const badgeGradient = ctx.createLinearGradient(\r\n      iconCenterX - badgeRadius,\r\n      centerY - badgeRadius,\r\n      iconCenterX,\r\n      centerY + badgeRadius,\r\n    );\r\n    badgeGradient.addColorStop(0, style.iconTop || BALL_OVERLAY_UI_STYLE_DEFAULT.iconTop);\r\n    badgeGradient.addColorStop(1, style.iconBottom || BALL_OVERLAY_UI_STYLE_DEFAULT.iconBottom);\r\n    ctx.fillStyle = badgeGradient;\r\n    ctx.beginPath();\r\n    ctx.arc(iconCenterX, centerY, badgeRadius, 0, Math.PI * 2);\r\n    ctx.fill();\r\n    ctx.strokeStyle = \"rgba(255, 255, 255, 0.34)\";\r\n    ctx.lineWidth = 1;\r\n    ctx.stroke();\r\n\r\n    const iconScale = isHovered ? 1 + 0.04 + hoverPulse * 0.05 : 1;\r\n    const iconDrawSize = iconSize * iconScale * 0.95;\r\n    if (isDrawableImage(image)) {\r\n      const drawX = snapSpriteValue(iconCenterX - iconDrawSize * 0.5);\r\n      const drawY = snapSpriteValue(centerY - iconDrawSize * 0.5);\r\n      const drawSize = snapSpriteDimension(iconDrawSize);\r\n      const wasSmoothing = ctx.imageSmoothingEnabled;\r\n      ctx.imageSmoothingEnabled = false;\r\n      ctx.drawImage(image, drawX, drawY, drawSize, drawSize);\r\n      ctx.imageSmoothingEnabled = wasSmoothing;\r\n    } else {\r\n      drawPokeball(iconCenterX, centerY, iconDrawSize * 0.48, {\r\n        alpha: 0.92,\r\n      });\r\n    }\r\n\r\n    const textX = rowX + panelPaddingX + iconSize + iconTextGap;\r\n    const valueY = rowY + (compact ? 21 : 24);\r\n    ctx.strokeStyle = \"rgba(6, 12, 20, 0.84)\";\r\n    ctx.lineWidth = 2.8;\r\n    ctx.fillStyle = style.text;\r\n    if (isHovered) {\r\n      ctx.shadowColor = style.glow;\r\n      ctx.shadowBlur = 10 + hoverPulse * 8;\r\n    } else {\r\n      ctx.shadowBlur = 0;\r\n      ctx.shadowColor = \"transparent\";\r\n    }\r\n    ctx.font = `800 ${valueFontSize}px Tahoma`;\r\n    ctx.strokeText(valueText, textX, valueY);\r\n    ctx.fillText(valueText, textX, valueY);\r\n\r\n    ctx.shadowBlur = 0;\r\n    ctx.shadowColor = \"transparent\";\r\n    hitboxes.push({\r\n      ballType: row.type,\r\n      x: panelX + 2,\r\n      y: Math.max(panelY + 2, rowTop),\r\n      width: Math.max(8, panelWidth - 4),\r\n      height: Math.max(8, rowBottom - rowTop),\r\n    });\r\n  }\r\n\r\n  state.ui.ballOverlayHitboxes = hitboxes;\r\n  ctx.restore();\r\n}\r\n\r\nfunction drawBattleUiOverlay(layout, options = {}) {\r\n  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();\r\n  if (options.showEnemyUi && state.enemy) {\r\n    drawEnemyHpBar(\r\n      state.enemy,\r\n      layout.centerX,\r\n      layout.hpBarY,\r\n      layout.hpBarWidth,\r\n      layout.hpBarHeight,\r\n      { allowOverflow: allowOverflowPositions },\r\n    );\r\n    const viewportProfile = layout.viewportProfile || {};\r\n    const isPhoneViewport = Boolean(viewportProfile.phone);\r\n    const isCompactViewport = Boolean(viewportProfile.compact);\r\n    const enemyNameCard = drawNameAndLevel(state.enemy, layout.centerX, layout.enemyNameTopY, {\r\n      enemy: true,\r\n      maxWidth: layout.enemyNamePlateWidth,\r\n      nameFontSize: isPhoneViewport ? 16 : isCompactViewport ? 18 : 20,\r\n      levelFontSize: isPhoneViewport ? 11 : isCompactViewport ? 12 : 13,\r\n      allowOverflow: allowOverflowPositions,\r\n    });\r\n    const enemyTypeHudY = Math.max(\r\n      Number(layout.enemyTypeHudY) || 0,\r\n      Number(enemyNameCard?.bottom || layout.enemyNameTopY) + 14,\r\n    );\r\n    drawEnemyDefensiveTypeHud(state.enemy, {\r\n      ...layout,\r\n      enemyTypeHudY,\r\n    }, {\r\n      allowOverflow: allowOverflowPositions,\r\n    });\r\n  }\r\n\r\n  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n    const member = state.team[i];\r\n    const slot = layout.teamSlots[i];\r\n    if (!member || !slot) {\r\n      continue;\r\n    }\r\n    const viewportProfile = layout.viewportProfile || {};\r\n    const isPhoneViewport = Boolean(viewportProfile.phone);\r\n    const isCompactViewport = Boolean(viewportProfile.compact);\r\n    const nameCard = drawNameAndLevel(member, slot.hudCenterX, slot.hudTopY, {\r\n      maxWidth: slot.hudWidth,\r\n      nameFontSize: isPhoneViewport ? 9 : isCompactViewport ? 15 : 19,\r\n      levelFontSize: isPhoneViewport ? 7 : isCompactViewport ? 11 : 13,\r\n      allowOverflow: allowOverflowPositions,\r\n    });\r\n    drawTeamTypeHud(member, i, {\r\n      ...slot,\r\n      hudCenterX: nameCard?.centerX ?? slot.hudCenterX,\r\n      hudTopY: nameCard?.y ?? slot.hudTopY,\r\n    }, state.enemy, {\r\n      allowOverflow: allowOverflowPositions,\r\n    });\r\n    drawTeamXpBar(member, i, nameCard?.centerX ?? slot.hudCenterX, (nameCard?.bottom ?? slot.hudTopY) + 4, {\r\n      width: Math.max(40, (nameCard?.width ?? slot.hudWidth) - 16),\r\n      height: isPhoneViewport ? 3.5 : isCompactViewport ? 4.4 : 5.2,\r\n      allowOverflow: allowOverflowPositions,\r\n    });\r\n  }\r\n}\r\n\r\nfunction drawNonCombatZoneOverlay(layout) {\r\n  const zoneId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;\r\n  const zoneType = getRouteZoneType(zoneId);\r\n  const nextRouteId = getNextRouteId(zoneId);\r\n  const title = zoneType === \"town\" ? \"Ville paisible\" : \"Zone sans combat\";\r\n  const subtitle = zoneType === \"town\"\r\n    ? \"Aucun combat ici. Passe a la zone suivante.\"\r\n    : \"Aucun Pokemon sauvage dans cette zone.\";\r\n  const nextLabel = nextRouteId\r\n    ? `Suivante: ${getRouteDisplayName(nextRouteId)}`\r\n    : \"Derniere zone debloquee.\";\r\n\r\n  ctx.save();\r\n  const width = clamp(state.viewport.width * 0.52, 300, 640);\r\n  const height = 102;\r\n  const x = layout.centerX - width * 0.5;\r\n  const y = layout.centerY - height * 0.5;\r\n  drawRetroHudPanel(x, y, width, height, {\r\n    cut: 18,\r\n    fillTop: \"rgba(46, 62, 86, 0.98)\",\r\n    fillBottom: \"rgba(27, 39, 56, 0.98)\",\r\n    border: \"rgba(103, 132, 164, 0.98)\",\r\n    highlight: \"rgba(186, 210, 237, 0.25)\",\r\n    shadow: \"rgba(0, 0, 0, 0.36)\",\r\n    borderWidth: 2,\r\n  });\r\n\r\n  ctx.textAlign = \"center\";\r\n  ctx.textBaseline = \"alphabetic\";\r\n  ctx.font = \"700 24px Tahoma\";\r\n  ctx.fillStyle = \"#e6f0fe\";\r\n  ctx.fillText(title, layout.centerX, y + 36);\r\n  ctx.font = \"700 13px Tahoma\";\r\n  ctx.fillStyle = \"#aec2d9\";\r\n  ctx.fillText(subtitle, layout.centerX, y + 62);\r\n  ctx.fillStyle = \"#e6b55d\";\r\n  ctx.fillText(nextLabel, layout.centerX, y + 84);\r\n  ctx.restore();\r\n}\r\n\r\nfunction getBottomHudSafeEdge(layout = state.layout) {\r\n  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);\r\n  if (viewportHeight <= 0) {\r\n    return 0;\r\n  }\r\n\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const margin = viewportProfile.phone ? 6 : 8;\r\n  return clamp(viewportHeight - margin, 24, viewportHeight);\r\n}\r\n\r\nfunction drawVersionOverlay() {\r\n  const layout = state.layout;\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const label = `v${DISPLAY_APP_VERSION}`;\r\n  const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;\r\n  const paddingX = 8;\r\n  const paddingY = 5;\r\n  const x = viewportProfile.phone ? 8 : 12;\r\n  const bottom = getBottomHudSafeEdge(layout);\r\n\r\n  ctx.save();\r\n  ctx.font = `700 ${fontSize}px Tahoma`;\r\n  ctx.textAlign = \"left\";\r\n  ctx.textBaseline = \"bottom\";\r\n  const textWidth = Math.ceil(ctx.measureText(label).width);\r\n  const pillWidth = textWidth + paddingX * 2;\r\n  const pillHeight = fontSize + paddingY * 2;\r\n  const y = bottom - pillHeight;\r\n  drawRetroHudPanel(x, y, pillWidth, pillHeight, {\r\n    cut: 8,\r\n    fillTop: \"rgba(45, 61, 84, 0.95)\",\r\n    fillBottom: \"rgba(26, 37, 54, 0.95)\",\r\n    border: \"rgba(103, 130, 161, 0.88)\",\r\n    highlight: \"rgba(184, 208, 236, 0.22)\",\r\n    shadow: \"rgba(0, 0, 0, 0.34)\",\r\n    borderWidth: 1.3,\r\n  });\r\n  ctx.fillStyle = \"rgba(224, 238, 252, 0.94)\";\r\n  ctx.fillText(label, x + paddingX, bottom - paddingY);\r\n  ctx.restore();\r\n\r\n  drawFpsOverlay(layout, bottom);\r\n}\r\n\r\nfunction drawFpsOverlay(layout = state.layout, bottomLimit = null) {\r\n  const frameMs = Number(state.performance?.renderFrameMsEma) || Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS;\r\n  const fps = Math.round(1000 / Math.max(1, frameMs));\r\n  const label = `${fps} FPS`;\r\n  const viewportProfile = layout?.viewportProfile || {};\r\n  const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;\r\n  const paddingX = 7;\r\n  const paddingY = 5;\r\n  const margin = viewportProfile.phone ? 8 : 12;\r\n\r\n  ctx.save();\r\n  ctx.font = `700 ${fontSize}px Tahoma`;\r\n  ctx.textAlign = \"right\";\r\n  ctx.textBaseline = \"bottom\";\r\n  const textWidth = Math.ceil(ctx.measureText(label).width);\r\n  const pillWidth = textWidth + paddingX * 2;\r\n  const pillHeight = fontSize + paddingY * 2;\r\n  const right = Math.max(8, state.viewport.width - margin);\r\n  const maxBottom = Math.max(8, state.viewport.height - (viewportProfile.phone ? 6 : 8));\r\n  const bottom = Number.isFinite(bottomLimit) ? Math.min(maxBottom, bottomLimit) : Math.min(maxBottom, getBottomHudSafeEdge(layout));\r\n  const x = right - pillWidth;\r\n  const y = bottom - pillHeight;\r\n  drawRetroHudPanel(x, y, pillWidth, pillHeight, {\r\n    cut: 7,\r\n    fillTop: \"rgba(45, 61, 84, 0.84)\",\r\n    fillBottom: \"rgba(26, 37, 54, 0.84)\",\r\n    border: \"rgba(103, 130, 161, 0.78)\",\r\n    highlight: \"rgba(184, 208, 236, 0.2)\",\r\n    shadow: \"rgba(0, 0, 0, 0.3)\",\r\n    borderWidth: 1.2,\r\n  });\r\n  ctx.fillStyle = \"rgba(224, 238, 252, 0.92)\";\r\n  ctx.fillText(label, right - paddingX, bottom - paddingY);\r\n  ctx.restore();\r\n}\r\n\r\nfunction render() {\r\n  const { width, height } = state.viewport;\r\n  ctx.clearRect(0, 0, width, height);\r\n\r\n  if (state.mode === \"loading\") {\r\n    ctx.fillStyle = \"#000\";\r\n    ctx.fillRect(0, 0, width, height);\r\n    return;\r\n  }\r\n  if (state.mode === \"error\") {\r\n    drawLoadingOrError(state.error || \"Erreur de chargement\");\r\n    drawVersionOverlay();\r\n    return;\r\n  }\r\n\r\n  const layout = refreshLayoutIfNeeded({ nowMs: state.timeMs });\r\n  const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();\r\n  const routeCombatEnabled = isCurrentRouteCombatEnabled();\r\n  const hasTeamMembers = state.team.length > 0;\r\n  const koTransition = state.battle ? state.battle.getKoTransition() : null;\r\n  const enemyHitPulse = state.battle ? state.battle.getEnemyHitPulseRatio() : 0;\r\n  const enemyEnterAnim = state.battle ? state.battle.getEnemyEnterAnimationState() : null;\r\n  const captureSequence = state.battle ? state.battle.getCaptureSequenceState() : null;\r\n  const captureSnapshot = state.battle ? state.battle.getCaptureSequence() : null;\r\n  const capturePhase = captureSnapshot?.phase || null;\r\n  const captureEnemyVisual = getCaptureEnemyVisual(captureSequence, capturePhase);\r\n  const enemyDamageTintBlend = state.battle ? state.battle.getEnemyDamageFlashBlend() : 0;\r\n  const routeDefeatTimer = state.battle ? state.battle.getEnemyTimerState() : null;\r\n  const environmentSnapshot = getEnvironmentSnapshotForRender();\r\n\r\n  drawBackground(width, height);\r\n  drawEnvironmentBackgroundLayer(width, height, environmentSnapshot);\r\n  if (hasTeamMembers) {\r\n    const teamSpriteScale = getTeamSpriteScale(layout);\r\n    const enemySpriteSize = getEnemySpriteRenderSize(layout, layout.enemySize);\r\n    const teamDrawPositions = [];\r\n    const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);\r\n    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n      const slot = layout.teamSlots[i];\r\n      if (!slot) {\r\n        continue;\r\n      }\r\n      const member = state.team[i];\r\n      const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };\r\n      const hoverPulse = getHoveredTeamSlotPulse(i);\r\n      const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;\r\n      const teleportScale = state.battle ? state.battle.getSlotTeleportScale(i) : 1;\r\n      const skipTurnVisual = state.battle ? state.battle.getSlotSkipTurnVisual(i) : null;\r\n      const spriteSize = slot.size * teamSpriteScale;\r\n      const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;\r\n      const drawX = slot.x + recoilOffset.x + Number(skipTurnVisual?.offsetX || 0);\r\n      const drawY = slot.y + recoilOffset.y + Number(skipTurnVisual?.offsetY || 0) - hoverLift;\r\n      const teamBreath = member\r\n        ? getPokemonBreathTransform(member, spriteSize, i, { active: true })\r\n        : { scaleX: 1, scaleY: 1, offsetY: 0 };\r\n      teamDrawPositions[i] = {\r\n        x: drawX,\r\n        y: drawY,\r\n        size: spriteSize,\r\n        breath: teamBreath,\r\n        hoverPulse,\r\n        chargeGlow,\r\n        teleportScale,\r\n        skipScaleX: Number(skipTurnVisual?.scaleX || 1),\r\n        skipScaleY: Number(skipTurnVisual?.scaleY || 1),\r\n        skipGrayscaleBlend: clamp(Number(skipTurnVisual?.grayscaleBlend || 0), 0, 1),\r\n        hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,\r\n        chargeScale: chargeGlow > 0 ? 1 + chargeGlow * 0.042 : 1,\r\n      };\r\n    }\r\n\r\n    let enemyRenderState = null;\r\n    if (state.enemy) {\r\n      const isKo = koTransition?.active;\r\n      const shrinkProgress = isKo ? koTransition?.shrink_progress || 0 : 0;\r\n      const shrinkActive = Boolean(koTransition?.shrink_active);\r\n      const enterActive = Boolean(enemyEnterAnim?.active);\r\n      const enterOffsetX = Number(enemyEnterAnim?.offset_x || 0);\r\n      const enterRotationRad = Number(enemyEnterAnim?.rotation_rad || 0);\r\n      const enterAlpha = clamp(Number(enemyEnterAnim?.alpha ?? 1), 0, 1);\r\n      const enemyBreath = getPokemonBreathTransform(\r\n        state.enemy,\r\n        enemySpriteSize,\r\n        -1,\r\n        {\r\n          active: !captureSequence && !isKo && !enterActive,\r\n        },\r\n      );\r\n      const defaultEnemyScale = isKo\r\n        ? (shrinkActive ? clamp(1 - shrinkProgress * 0.96, 0.04, 1) : 0)\r\n        : 1 + enemyHitPulse * 0.06;\r\n      const defaultEnemyAlpha = (\r\n        isKo\r\n          ? (shrinkActive ? clamp(1 - shrinkProgress * 0.85, 0.12, 1) : 0)\r\n          : 1\r\n      ) * enterAlpha;\r\n      const enemyScale = captureSequence ? captureEnemyVisual.scale : defaultEnemyScale;\r\n      const enemyAlpha = captureSequence ? captureEnemyVisual.alpha : defaultEnemyAlpha;\r\n      const enemyVisible = captureSequence ? captureEnemyVisual.visible : enemyAlpha > 0.01 && enemyScale > 0.01;\r\n      enemyRenderState = {\r\n        visible: enemyVisible,\r\n        alpha: enemyAlpha,\r\n        scaleX: enemyScale * enemyBreath.scaleX,\r\n        scaleY: enemyScale * enemyBreath.scaleY,\r\n        offsetX: enterOffsetX,\r\n        offsetY: enemyBreath.offsetY,\r\n        rotationRad: enterRotationRad,\r\n      };\r\n    }\r\n\r\n    if (enemyRenderState?.visible) {\r\n      drawPokemonBackdropCircle(layout.centerX, layout.centerY, enemySpriteSize);\r\n    }\r\n    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n      const member = state.team[i];\r\n      const slot = layout.teamSlots[i];\r\n      const drawPosition = teamDrawPositions[i];\r\n      if (!member || !slot) {\r\n        continue;\r\n      }\r\n      const hoverPulse = getHoveredTeamSlotPulse(i);\r\n      const chargeGlow = clamp(Number(drawPosition?.chargeGlow || 0), 0, 1);\r\n      const spriteSize = slot.size * teamSpriteScale;\r\n      const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));\r\n      const teleportBoostMultiplier = state.battle ? state.battle.getTeleportDamageBoostForSlot(i) : 1;\r\n      const teleportBoostVisualIntensity = state.battle\r\n        ? state.battle.getTeleportBoostVisualIntensityForSlot(i)\r\n        : 0;\r\n      drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {\r\n        alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11 + chargeGlow * 0.14,\r\n      });\r\n      if (auraBonus > 0.001) {\r\n        drawTeamAuraIndicator(slot, member, auraBonus);\r\n      }\r\n      if (teleportBoostMultiplier > 1.001 || teleportBoostVisualIntensity > 0.001) {\r\n        drawTeamTeleportBoostIndicator(slot, teleportBoostMultiplier, teleportBoostVisualIntensity);\r\n      }\r\n      if (chargeGlow > 0.001) {\r\n        drawTeamAttackChargeGlow(slot, member, i, chargeGlow);\r\n      }\r\n      if (hoverPulse > 0) {\r\n        drawTeamHoverIndicator(slot, hoverPulse);\r\n      }\r\n    }\r\n\r\n    drawProjectiles(state.battle ? state.battle.getProjectiles() : []);\r\n    if (!captureSequence) {\r\n      drawEnemyKoEffect(layout, koTransition);\r\n    }\r\n\r\n    if (state.enemy && enemyRenderState?.visible) {\r\n        drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, enemySpriteSize, {\r\n          alpha: enemyRenderState.alpha,\r\n          scaleX: enemyRenderState.scaleX,\r\n          scaleY: enemyRenderState.scaleY,\r\n          offsetX: enemyRenderState.offsetX,\r\n          offsetY: enemyRenderState.offsetY,\r\n          rotationRad: enemyRenderState.rotationRad,\r\n          shadowProfile: \"enemy\",\r\n          shadowAlpha: 0.58,\r\n          shinyVisual: Boolean(forceUltraShinyAll || state.enemy.isShiny || state.enemy.isShinyVisual),\r\n          ultraShinyVisual: Boolean(forceUltraShinyAll || state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual),\r\n          tintBlend: enemyDamageTintBlend,\r\n          tintColor: [255, 84, 84],\r\n        });\r\n    }\r\n\r\n    drawEnemyHitEffects(state.battle ? state.battle.getHitEffects() : []);\r\n    drawCaptureSequence(layout, captureSequence, capturePhase);\r\n\r\n    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {\r\n      const member = state.team[i];\r\n      const slot = layout.teamSlots[i];\r\n      const drawPosition = teamDrawPositions[i];\r\n      if (!slot) {\r\n        continue;\r\n      }\r\n      if (!member) {\r\n        drawEmptyTeamSlot(slot);\r\n        continue;\r\n      }\r\n      if (!drawPosition) {\r\n        continue;\r\n      }\r\n      const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };\r\n      const hoverScale = drawPosition.hoverScale || 1;\r\n      const chargeScale = drawPosition.chargeScale || 1;\r\n      const teleportScale = drawPosition.teleportScale || 1;\r\n      const skipScaleX = drawPosition.skipScaleX || 1;\r\n      const skipScaleY = drawPosition.skipScaleY || 1;\r\n      const skipGrayscaleBlend = clamp(Number(drawPosition.skipGrayscaleBlend || 0), 0, 1);\r\n      const skipShader = skipGrayscaleBlend > 0.001\r\n        ? {\r\n            saturate: lerpNumber(1, 0, skipGrayscaleBlend),\r\n            brightness: lerpNumber(1, 0.82, skipGrayscaleBlend),\r\n            contrast: lerpNumber(1, 1.08, skipGrayscaleBlend),\r\n          }\r\n        : null;\r\n      const memberShader = member?.spriteShader && typeof member.spriteShader === \"object\" ? member.spriteShader : null;\r\n      const teamMinRenderSize = getTeamSpriteMinRenderSize(layout, drawPosition.size || slot.size);\r\n      drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {\r\n        scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale * skipScaleX,\r\n        scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale * skipScaleY,\r\n        offsetY: teamBreath.offsetY,\r\n        minRenderSizePx: teamMinRenderSize,\r\n        shadowProfile: \"team\",\r\n        shadowAlpha: 0.52,\r\n        flipX: shouldFlipTeamSprite(i),\r\n        shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),\r\n        ultraShinyVisual: Boolean(forceUltraShinyAll || member.isUltraShiny || member.isUltraShinyVisual),\r\n        tintBlend: state.battle ? state.battle.getSlotAttackFlashBlend(i) : 0,\r\n        tintColor: [255, 255, 255],\r\n        shader: skipShader ? mergeSpriteShaderConfig(memberShader, skipShader) : null,\r\n      });\r\n    }\r\n    drawTeamDragSwapOverlay(layout);\r\n\r\n    if (!captureSequence) {\r\n      drawTeamXpGainEffects();\r\n      drawTeamLevelUpEffects();\r\n    }\r\n    drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);\r\n    drawBattleUiOverlay(layout, {\r\n      showEnemyUi: Boolean(state.enemy) && !koTransition?.active && !captureSequence,\r\n      teamDrawPositions,\r\n    });\r\n  }\r\n  if (!routeCombatEnabled) {\r\n    drawNonCombatZoneOverlay(layout);\r\n  }\r\n  drawEnvironmentForegroundLayer(width, height, environmentSnapshot);\r\n  drawLegendaryFieldScreenVfx(width, height, state.team);\r\n  drawRouteDefeatTimerBar(routeDefeatTimer, layout);\r\n  drawEvolutionAnimationOverlay(layout);\r\n  drawBallInventoryOverlay(layout);\r\n  drawVersionOverlay();\r\n}";
+import {
+  enrichRuntimeLayout,
+  enrichViewportProfile,
+  resolveProductLayoutMode,
+} from '../../lib/runtime-stage-layout.js';
 
-const runtimeRenderFactory = new Function(
-  "scope",
-  "with (scope) {\n" + RUNTIME_RENDER_CHUNK + "\nreturn { getBattleViewportProfile, getTeamSpriteScale, getEnemySpriteRenderSize, getTeamSpriteMinRenderSize, computeLayout, refreshLayoutIfNeeded, render };\n}",
-);
+function getRuntimeSystemBindings(options = {}) {
+  const scope = {};
+  if (options && typeof options === 'object' && options.bindings && typeof options.bindings === 'object') {
+    Object.assign(scope, options.bindings);
+  } else if (options && typeof options === 'object') {
+    Object.assign(scope, options);
+  }
+  for (const key of Reflect.ownKeys(globalThis)) {
+    if (Object.prototype.hasOwnProperty.call(scope, key)) {
+      continue;
+    }
+    const descriptor = Reflect.getOwnPropertyDescriptor(globalThis, key);
+    if (!descriptor) {
+      continue;
+    }
+    Object.defineProperty(scope, key, {
+      configurable: true,
+      enumerable: Boolean(descriptor.enumerable),
+      get() {
+        return Reflect.get(globalThis, key, globalThis);
+      },
+    });
+  }
+  return scope;
+}
 
-function createScopeProxy({ bindings = {}, resolveBinding = null } = {}) {
-  const cache = { ...bindings };
-  return new Proxy(cache, {
-    has() {
-      return true;
-    },
-    get(target, key) {
-      if (key === Symbol.unscopables) {
-        return undefined;
+export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
+  "BALL_CONFIG_BY_TYPE",
+  "BALL_OVERLAY_UI_STYLE_BY_TYPE",
+  "BALL_OVERLAY_UI_STYLE_DEFAULT",
+  "BREATH_AMPLITUDE_VARIATION",
+  "BREATH_BASE_AMPLITUDE",
+  "BREATH_MAX_PERIOD_MS",
+  "BREATH_MIN_PERIOD_MS",
+  "BREATH_OFFSET_RATIO",
+  "BREATH_SECONDARY_WEIGHT",
+  "BREATH_SIDE_COMPENSATION",
+  "CAPTURE_FAIL_BREAK_MS",
+  "CAPTURE_FAIL_REAPPEAR_MS",
+  "CAPTURE_SHAKE_MS",
+  "CAPTURE_SUCCESS_BURST_MS",
+  "CAPTURE_THROW_MS",
+  "DEFAULT_ROUTE_ID",
+  "DEV_LAYOUT_SETTINGS_DEFAULTS",
+  "DISPLAY_APP_VERSION",
+  "ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER",
+  "ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER",
+  "ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER",
+  "ENEMY_TIMER_STYLE_ONLY_ONE",
+  "EVOLUTION_ANIM_BACKDROP_FADE_MS",
+  "EVOLUTION_ANIM_FLASH_MS",
+  "EVOLUTION_ANIM_REVEAL_MS",
+  "EVOLUTION_ANIM_TOTAL_MS",
+  "EVOLUTION_ANIM_WHITE_MS",
+  "FLOATING_TEXT_TONE_CRITICAL",
+  "FLOATING_TEXT_TONE_MISS",
+  "FLOATING_TEXT_TONE_NORMAL",
+  "LAYOUT_RECOMPUTE_INTERVAL_MS",
+  "LEGENDARY_FIELD_VFX_THEME_BY_KEY",
+  "MAX_LEVEL",
+  "MAX_TEAM_SIZE",
+  "MORPHING_COLORIZE_FALLBACK_RGB",
+  "MORPHING_MOTION_INTENSITY",
+  "MORPHING_OUTLINE_ALPHA",
+  "MORPHING_OUTLINE_PX",
+  "MORPHING_OUTLINE_RGB",
+  "MORPHING_SLIME_ALPHA",
+  "MORPHING_SLIME_BASE_RGB",
+  "MORPHING_SLIME_HIGHLIGHT_RGB",
+  "MORPHING_WOBBLE_OFFSET_RATIO",
+  "MORPHING_WOBBLE_ROTATION_DEG",
+  "MORPHING_WOBBLE_SCALE_AMPLITUDE",
+  "MORPHING_WOBBLE_SHEAR",
+  "MORPHING_WOBBLE_VERTICAL_COMPENSATION",
+  "POKEMON_BACKDROP_ALPHA",
+  "POKEMON_BACKDROP_RADIUS_RATIO",
+  "POKEMON_SHADOW_ALPHA",
+  "PROJECTILE_VISUAL_PROFILE",
+  "SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG",
+  "TARGET_FRAME_MS",
+  "TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT",
+  "TEAM_SPRITE_MIN_RENDER_RATIO_PHONE",
+  "TEAM_SPRITE_SCALE",
+  "TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER",
+  "TEAM_SPRITE_SCALE_PHONE_MULTIPLIER",
+  "ULTRA_SHINY_HUE_CYCLE_MS",
+  "ULTRA_SHINY_OUTLINE_PX",
+  "ULTRA_SHINY_SCINTILLATION_FLASH_MS",
+  "ULTRA_SHINY_SCINTILLATION_PERIOD_MS",
+  "actionDockEl",
+  "blendRgb",
+  "clamp",
+  "ctx",
+  "drawEnemyDefensiveTypeHud",
+  "drawRetroHudPanel",
+  "drawTeamTypeHud",
+  "easeInOutSine",
+  "formatCompactNumber",
+  "gameOverlayEl",
+  "getBackgroundDriftOffset",
+  "getBackgroundDriftRangePx",
+  "getBallInventoryOverlayRows",
+  "getCachedSpriteImage",
+  "getDrawableImageDimensions",
+  "getEntityOffensiveType",
+  "getEnvironmentSnapshotForRender",
+  "getFamilyShinyCaptureCount",
+  "getFamilyUltraShinyCaptureCount",
+  "getFloatingTextTonePalette",
+  "getLegendaryFieldPresence",
+  "getMorphingPaletteMappedTexture",
+  "getNextRouteId",
+  "getPokemonEntityRecord",
+  "getPokemonSpriteRenderSize",
+  "getProjectileSprite",
+  "getRenderQualitySettings",
+  "getRouteDisplayName",
+  "getRouteUnlockProgressState",
+  "getRouteZoneType",
+  "getTeamAuraAttackBonusBySlot",
+  "getTypeColor",
+  "getUltraShinyOutlineTexture",
+  "hashStringToUnit",
+  "isCoarsePointerDevice",
+  "isCurrentRouteCombatEnabled",
+  "isDrawableImage",
+  "isEntityUnlocked",
+  "isEvolutionFamilyOwned",
+  "isLikelySmartphoneBrowser",
+  "lerpNumber",
+  "normalizeRgbColor",
+  "normalizeType",
+  "pseudoRandomUnit",
+  "resolveEntitySpriteDrawSource",
+  "rgba",
+  "shouldAllowDevLayoutOverflowPositions",
+  "shouldFlipTeamSprite",
+  "shouldForceUltraShinyAllPokemon",
+  "shouldRenderAmbientOverlays",
+  "shouldRenderCelebrationParticles",
+  "spriteOutlineTintBufferCanvas",
+  "spriteOutlineTintBufferCtx",
+  "spriteTintBufferCanvas",
+  "spriteTintBufferCtx",
+  "state",
+  "toSafeInt",
+  "uiTopbarEl",
+]);
+
+export function createRuntimeRenderSystem(options = {}) {
+  const scope = getRuntimeSystemBindings(options);
+  const {
+    Array,
+    BALL_CONFIG_BY_TYPE,
+    BALL_OVERLAY_UI_STYLE_BY_TYPE,
+    BALL_OVERLAY_UI_STYLE_DEFAULT,
+    BREATH_AMPLITUDE_VARIATION,
+    BREATH_BASE_AMPLITUDE,
+    BREATH_MAX_PERIOD_MS,
+    BREATH_MIN_PERIOD_MS,
+    BREATH_OFFSET_RATIO,
+    BREATH_SECONDARY_WEIGHT,
+    BREATH_SIDE_COMPENSATION,
+    Boolean,
+    CAPTURE_FAIL_BREAK_MS,
+    CAPTURE_FAIL_REAPPEAR_MS,
+    CAPTURE_SHAKE_MS,
+    CAPTURE_SUCCESS_BURST_MS,
+    CAPTURE_THROW_MS,
+    DEFAULT_ROUTE_ID,
+    DEV_LAYOUT_SETTINGS_DEFAULTS,
+    DISPLAY_APP_VERSION,
+    ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER,
+    ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER,
+    ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER,
+    ENEMY_TIMER_STYLE_ONLY_ONE,
+    EVOLUTION_ANIM_BACKDROP_FADE_MS,
+    EVOLUTION_ANIM_FLASH_MS,
+    EVOLUTION_ANIM_REVEAL_MS,
+    EVOLUTION_ANIM_TOTAL_MS,
+    EVOLUTION_ANIM_WHITE_MS,
+    Element,
+    FLOATING_TEXT_TONE_CRITICAL,
+    FLOATING_TEXT_TONE_MISS,
+    FLOATING_TEXT_TONE_NORMAL,
+    LAYOUT_RECOMPUTE_INTERVAL_MS,
+    LEGENDARY_FIELD_VFX_THEME_BY_KEY,
+    MAX_LEVEL,
+    MAX_TEAM_SIZE,
+    MORPHING_COLORIZE_FALLBACK_RGB,
+    MORPHING_MOTION_INTENSITY,
+    MORPHING_OUTLINE_ALPHA,
+    MORPHING_OUTLINE_PX,
+    MORPHING_OUTLINE_RGB,
+    MORPHING_SLIME_ALPHA,
+    MORPHING_SLIME_BASE_RGB,
+    MORPHING_SLIME_HIGHLIGHT_RGB,
+    MORPHING_WOBBLE_OFFSET_RATIO,
+    MORPHING_WOBBLE_ROTATION_DEG,
+    MORPHING_WOBBLE_SCALE_AMPLITUDE,
+    MORPHING_WOBBLE_SHEAR,
+    MORPHING_WOBBLE_VERTICAL_COMPENSATION,
+    Math,
+    Number,
+    Object,
+    OffscreenCanvas,
+    POKEMON_BACKDROP_ALPHA,
+    POKEMON_BACKDROP_RADIUS_RATIO,
+    POKEMON_SHADOW_ALPHA,
+    PROJECTILE_VISUAL_PROFILE,
+    SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG,
+    String,
+    TARGET_FRAME_MS,
+    TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT,
+    TEAM_SPRITE_MIN_RENDER_RATIO_PHONE,
+    TEAM_SPRITE_SCALE,
+    TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER,
+    TEAM_SPRITE_SCALE_PHONE_MULTIPLIER,
+    ULTRA_SHINY_HUE_CYCLE_MS,
+    ULTRA_SHINY_OUTLINE_PX,
+    ULTRA_SHINY_SCINTILLATION_FLASH_MS,
+    ULTRA_SHINY_SCINTILLATION_PERIOD_MS,
+    actionDockEl,
+    blendRgb,
+    clamp,
+    ctx,
+    document,
+    drawEnemyDefensiveTypeHud,
+    drawRetroHudPanel,
+    drawTeamTypeHud,
+    easeInOutSine,
+    formatCompactNumber,
+    gameOverlayEl,
+    getBackgroundDriftOffset,
+    getBackgroundDriftRangePx,
+    getBallInventoryOverlayRows,
+    getCachedSpriteImage,
+    getDrawableImageDimensions,
+    getEntityOffensiveType,
+    getEnvironmentSnapshotForRender,
+    getFamilyShinyCaptureCount,
+    getFamilyUltraShinyCaptureCount,
+    getFloatingTextTonePalette,
+    getLegendaryFieldPresence,
+    getMorphingPaletteMappedTexture,
+    getNextRouteId,
+    getPokemonEntityRecord,
+    getPokemonSpriteRenderSize,
+    getProjectileSprite,
+    getRenderQualitySettings,
+    getRouteDisplayName,
+    getRouteUnlockProgressState,
+    getRouteZoneType,
+    getTeamAuraAttackBonusBySlot,
+    getTypeColor,
+    getUltraShinyOutlineTexture,
+    hashStringToUnit,
+    isCoarsePointerDevice,
+    isCurrentRouteCombatEnabled,
+    isDrawableImage,
+    isEntityUnlocked,
+    isEvolutionFamilyOwned,
+    isLikelySmartphoneBrowser,
+    lerpNumber,
+    normalizeRgbColor,
+    normalizeType,
+    parseFloat,
+    pseudoRandomUnit,
+    resolveEntitySpriteDrawSource,
+    rgba,
+    shouldAllowDevLayoutOverflowPositions,
+    shouldFlipTeamSprite,
+    shouldForceUltraShinyAllPokemon,
+    shouldRenderAmbientOverlays,
+    shouldRenderCelebrationParticles,
+    spriteOutlineTintBufferCanvas,
+    spriteOutlineTintBufferCtx,
+    spriteTintBufferCanvas,
+    spriteTintBufferCtx,
+    state,
+    toSafeInt,
+    uiTopbarEl,
+    undefined,
+    window
+  } = scope;
+
+function getBattleViewportProfile(width, height) {
+  const safeWidth = Math.max(1, Number(width) || 0);
+  const safeHeight = Math.max(1, Number(height) || 0);
+  const portrait = safeHeight > safeWidth * 1.05;
+  const coarsePointer = isCoarsePointerDevice();
+  const runtimeSmartphone = typeof isLikelySmartphoneBrowser === "function" && isLikelySmartphoneBrowser();
+  const minSide = Math.min(safeWidth, safeHeight);
+  const maxSide = Math.max(safeWidth, safeHeight);
+  const compact = coarsePointer || runtimeSmartphone || safeWidth <= 900 || safeHeight <= 640;
+  const phoneLikeViewport = minSide <= 500
+    || (portrait && safeWidth <= 620 && safeHeight <= 1180)
+    || (runtimeSmartphone && minSide <= 640 && maxSide <= 1280);
+  const phone = compact && phoneLikeViewport;
+  return {
+    coarsePointer,
+    compact,
+    phone,
+    portrait,
+  };
+}
+
+function getTeamSpriteScale(layout = state.layout) {
+  const viewportProfile = layout?.viewportProfile || {};
+  const multiplier = viewportProfile.phone
+    ? TEAM_SPRITE_SCALE_PHONE_MULTIPLIER
+    : viewportProfile.compact
+      ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER
+      : 1;
+  const devScale = viewportProfile.phone
+    ? 1
+    : Math.max(0.2, Number(state.devLayout?.settings?.allySpriteScale || 1));
+  return TEAM_SPRITE_SCALE * multiplier * devScale;
+}
+
+function getEnemySpriteRenderSize(layout = state.layout, baseSize = 0) {
+  const safeBaseSize = Math.max(0, Number(baseSize) || 0);
+  if (safeBaseSize <= 0) {
+    return 0;
+  }
+  const viewportProfile = layout?.viewportProfile || {};
+  const multiplier = viewportProfile.phone
+    ? ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER
+    : viewportProfile.compact
+      ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER
+      : 1;
+  const devScale = viewportProfile.phone
+    ? 1
+    : Math.max(0.2, Number(state.devLayout?.settings?.enemySpriteScale || 1));
+  return safeBaseSize * multiplier * ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER * devScale;
+}
+
+function getTeamSpriteMinRenderSize(layout = state.layout, slotSize = 0) {
+  const safeSlotSize = Math.max(0, Number(slotSize) || 0);
+  if (safeSlotSize <= 0) {
+    return 0;
+  }
+  const viewportProfile = layout?.viewportProfile || {};
+  const ratio = viewportProfile.phone
+    ? TEAM_SPRITE_MIN_RENDER_RATIO_PHONE
+    : viewportProfile.compact
+      ? TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT
+      : 0;
+  return safeSlotSize * ratio;
+}
+
+function getOverlayPaddingSnapshot() {
+  if (!gameOverlayEl || typeof window.getComputedStyle !== "function") {
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  }
+  const styles = window.getComputedStyle(gameOverlayEl);
+  return {
+    top: Math.max(0, parseFloat(styles.paddingTop || "0") || 0),
+    right: Math.max(0, parseFloat(styles.paddingRight || "0") || 0),
+    bottom: Math.max(0, parseFloat(styles.paddingBottom || "0") || 0),
+    left: Math.max(0, parseFloat(styles.paddingLeft || "0") || 0),
+  };
+}
+
+function getElementClientHeight(element) {
+  if (!(element instanceof Element)) {
+    return 0;
+  }
+  const rect = element.getBoundingClientRect();
+  return Math.max(0, Number(rect?.height) || 0);
+}
+
+function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY }) {
+  const positions = [];
+  if (count <= 0) {
+    return positions;
+  }
+  const steps = [];
+  if (count === 1) {
+    steps.push(0);
+  } else {
+    for (let i = 0; i < count; i += 1) {
+      steps.push((i / (count - 1)) * 2 - 1);
+    }
+  }
+  for (let i = 0; i < count; i += 1) {
+    const t = steps[i] ?? 0;
+    if (axis === "x") {
+      positions.push({
+        x: baseX + (Number(spreadMain) || 0) * t,
+        y: baseY + (Number(arcDepth) || 0) * (1 - Math.abs(t)),
+      });
+    } else {
+      positions.push({
+        x: baseX + (Number(arcDepth) || 0) * (1 - Math.abs(t)),
+        y: baseY + (Number(spreadMain) || 0) * t,
+      });
+    }
+  }
+  return positions;
+}
+
+function computeLayout() {
+  const width = Math.max(260, Number(state.viewport.width) || 0);
+  const height = Math.max(220, Number(state.viewport.height) || 0);
+  const profile = getBattleViewportProfile(width, height);
+  const overlayPadding = getOverlayPaddingSnapshot();
+  const topHudHeight =
+    getElementClientHeight(uiTopbarEl)
+    || clamp(height * (profile.phone ? 0.17 : profile.compact ? 0.13 : 0.1), 54, profile.phone ? 122 : 92);
+  const bottomHudHeight =
+    getElementClientHeight(actionDockEl)
+    || clamp(height * (profile.phone ? 0.1 : profile.compact ? 0.085 : 0.072), 44, profile.phone ? 74 : 64);
+
+  let safeTop = overlayPadding.top + topHudHeight + (profile.phone ? 8 : profile.compact ? 12 : 14);
+  let safeBottom = overlayPadding.bottom + bottomHudHeight + (profile.phone ? 8 : profile.compact ? 10 : 12);
+  const maxReservedVertical = height * (profile.phone ? 0.4 : profile.compact ? 0.34 : 0.29);
+  const reservedVertical = safeTop + safeBottom;
+  if (reservedVertical > maxReservedVertical && reservedVertical > 0) {
+    const ratio = maxReservedVertical / reservedVertical;
+    safeTop *= ratio;
+    safeBottom *= ratio;
+  }
+
+  safeTop = clamp(safeTop, 40, height * (profile.phone ? 0.25 : 0.2));
+  safeBottom = clamp(safeBottom, 40, height * (profile.phone ? 0.27 : 0.2));
+
+  const sideInset = profile.phone ? 8 : profile.compact ? 12 : 18;
+  const leftInset = clamp(overlayPadding.left + sideInset, 8, width * 0.14);
+  const rightInset = clamp(overlayPadding.right + sideInset, 8, width * 0.14);
+  const playLeft = leftInset;
+  const playRight = Math.max(playLeft + 180, width - rightInset);
+  const playTop = safeTop;
+  const playBottom = Math.max(playTop + 180, height - safeBottom);
+  const playWidth = Math.max(180, playRight - playLeft);
+  const playHeight = Math.max(180, playBottom - playTop);
+  const centerX = playLeft + playWidth * 0.5;
+  let centerY = playTop + playHeight * 0.5;
+  const useSplitRows = profile.phone || (profile.compact && profile.portrait);
+  let enemySize = clamp(
+    Math.min(playWidth, playHeight) * (useSplitRows ? 0.236 : profile.compact ? 0.278 : 0.305),
+    useSplitRows ? 84 : 118,
+    useSplitRows ? 168 : 236,
+  );
+  if (profile.phone) {
+    enemySize = Math.min(196, enemySize * 1.16);
+  }
+  const teamSize = clamp(
+    enemySize * (useSplitRows ? 0.58 : profile.compact ? 0.6 : 0.62),
+    useSplitRows ? 56 : 72,
+    useSplitRows ? 106 : 130,
+  );
+  const teamHudScale = profile.phone ? 1 : profile.compact ? 1.05 : profile.portrait ? 1.18 : 1.34;
+  const teamHudBaseWidth = teamSize * (useSplitRows ? 1.14 : profile.compact ? 1.2 : 1.27);
+  const teamHudBaseHeight = teamSize * (useSplitRows ? 0.5 : 0.52);
+  const teamHudWidth = clamp(
+    teamHudBaseWidth * teamHudScale,
+    64,
+    useSplitRows ? 86 : 172,
+  );
+  const teamHudHeight = clamp(
+    teamHudBaseHeight * teamHudScale,
+    24,
+    useSplitRows ? 34 : 66,
+  );
+  const teamTypeChipHeight = clamp(teamSize * 0.17, 11, 18);
+  const cardMargin = 6;
+  const teamSlots = [];
+  const devLayoutSettings = state.devLayout?.settings || DEV_LAYOUT_SETTINGS_DEFAULTS;
+  const usePhoneRowsLayout = Boolean(profile.phone);
+  const enemyCenterYOffset = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.enemyCenterYOffset || 0);
+  const allyRingYOffset = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.allyRingYOffset || 0);
+  const arcRotationDeg = usePhoneRowsLayout
+    ? 0
+    : Number(devLayoutSettings.arcRotationDeg || 0);
+  const arcSpreadScale = Math.max(
+    0.2,
+    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcSpreadScale || 1)),
+  );
+  const arcRadiusScale = Math.max(
+    0.2,
+    Number(usePhoneRowsLayout ? 1 : (devLayoutSettings.arcRadiusScale || 1)),
+  );
+  const hudXOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudXOffset || 0);
+  const hudYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.hudYOffset || 0);
+  const hudDepthScale = usePhoneRowsLayout ? 1 : Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));
+  const enemyUiYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.enemyUiYOffset || 0);
+  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
+
+  const centerYBaseRatio = useSplitRows
+    ? 0.64
+    : profile.compact
+      ? 0.62
+      : 0.6;
+  const centerYRaw = usePhoneRowsLayout
+    ? height * 0.49 + enemyCenterYOffset
+    : playTop + playHeight * centerYBaseRatio + enemyCenterYOffset;
+  centerY = usePhoneRowsLayout
+    ? centerYRaw
+    : allowOverflowPositions
+      ? centerYRaw
+      : clamp(centerYRaw, playTop + enemySize * 1.02, playBottom - enemySize * 0.9);
+
+  if (usePhoneRowsLayout) {
+    const rowCount = Math.ceil(MAX_TEAM_SIZE / 2);
+    const halfSpread = Math.min(playWidth * 0.34, enemySize * 1.95 + teamSize * 0.85);
+    const topRowY = height * 0.34;
+    const bottomRowY = height * 0.74;
+    const slotBoundsLeft = playLeft + teamSize * 0.6;
+    const slotBoundsRight = playRight - teamSize * 0.6;
+    const slotBoundsTop = playTop + teamSize * 0.56;
+    const slotBoundsBottom = playBottom - teamSize * 0.56;
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const row = i < rowCount ? 0 : 1;
+      const col = i % rowCount;
+      const t = rowCount <= 1 ? 0 : (col / (rowCount - 1)) * 2 - 1;
+      const xRaw = centerX + t * halfSpread;
+      const yRaw = row === 0 ? topRowY : bottomRowY;
+      const x = xRaw;
+      const y = yRaw;
+      const dirX = t === 0 ? (row === 0 ? -1 : 1) : Math.sign(t);
+      const dirY = row === 0 ? -1 : 1;
+      let hudCenterX = x + dirX * (teamSize * 0.16) + hudXOffset;
+      let hudCenterY = y + (
+        row === 0
+          ? -(teamSize * 0.86 + teamHudHeight * 0.58)
+          : (teamSize * 0.8 + teamHudHeight * 0.42)
+      ) + hudYOffset;
+      if (!allowOverflowPositions) {
+        hudCenterX = clamp(
+          hudCenterX,
+          playLeft + teamHudWidth * 0.5 + cardMargin,
+          playRight - teamHudWidth * 0.5 - cardMargin,
+        );
+        hudCenterY = clamp(
+          hudCenterY,
+          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+          playBottom - teamHudHeight * 0.5 - cardMargin,
+        );
       }
-      if (Object.prototype.hasOwnProperty.call(target, key)) {
-        return target[key];
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
+  } else {
+    const slotBoundsLeft = playLeft + teamSize * 0.6;
+    const slotBoundsRight = playRight - teamSize * 0.6;
+    const slotBoundsTop = playTop + teamSize * 0.56;
+    const slotBoundsBottom = centerY - enemySize * 0.58;
+    const baseArcStartDeg = useSplitRows ? 204 : profile.compact ? 206 : 208;
+    const baseArcEndDeg = useSplitRows ? 336 : profile.compact ? 334 : 332;
+    const baseArcCenterDeg = (baseArcStartDeg + baseArcEndDeg) * 0.5;
+    const baseArcSpreadDeg = baseArcEndDeg - baseArcStartDeg;
+    const arcCenterDeg = baseArcCenterDeg + arcRotationDeg;
+    const arcSpreadDegRaw = baseArcSpreadDeg * arcSpreadScale;
+    const arcSpreadDeg = allowOverflowPositions ? Math.max(4, arcSpreadDegRaw) : clamp(arcSpreadDegRaw, 48, 178);
+    const arcStartDeg = arcCenterDeg - arcSpreadDeg * 0.5;
+    const arcEndDeg = arcCenterDeg + arcSpreadDeg * 0.5;
+    const arcStart = (arcStartDeg * Math.PI) / 180;
+    const arcEnd = (arcEndDeg * Math.PI) / 180;
+    const arcSpan = Math.max(0.01, arcEnd - arcStart);
+    const preferredRadius = enemySize * (useSplitRows ? 1.58 : profile.compact ? 1.54 : 1.5) * arcRadiusScale;
+    let slotRadius = Math.max(teamSize * 0.2, preferredRadius);
+    if (!allowOverflowPositions) {
+      const arcStartCosAbs = Math.max(0.001, Math.abs(Math.cos(arcStart)));
+      const arcEndCosAbs = Math.max(0.001, Math.abs(Math.cos(arcEnd)));
+      const arcEdgeSinAbs = Math.max(0.001, Math.abs(Math.sin(arcStart)));
+      const radiusMaxByLeft = Math.max(0, (centerX - slotBoundsLeft) / arcStartCosAbs);
+      const radiusMaxByRight = Math.max(0, (slotBoundsRight - centerX) / arcEndCosAbs);
+      const radiusMaxByTop = Math.max(0, centerY - slotBoundsTop);
+      const radiusCap = Math.max(teamSize * 1.35, Math.min(radiusMaxByLeft, radiusMaxByRight, radiusMaxByTop));
+      const radiusMinByEnemyClearance = Math.max(0, (centerY - slotBoundsBottom) / arcEdgeSinAbs);
+      const radiusFloor = Math.max(enemySize * 1.15, teamSize * 1.8, radiusMinByEnemyClearance);
+      slotRadius = radiusFloor > radiusCap ? radiusCap : clamp(preferredRadius, radiusFloor, radiusCap);
+    }
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const t = MAX_TEAM_SIZE <= 1 ? 0.5 : i / (MAX_TEAM_SIZE - 1);
+      const angle = arcStart + arcSpan * t;
+      const xRaw = centerX + Math.cos(angle) * slotRadius;
+      const yRaw = centerY + Math.sin(angle) * slotRadius + allyRingYOffset;
+      const x = allowOverflowPositions ? xRaw : clamp(xRaw, slotBoundsLeft, slotBoundsRight);
+      const y = allowOverflowPositions ? yRaw : clamp(yRaw, slotBoundsTop, slotBoundsBottom);
+      const dirX = Math.sign(Math.cos(angle)) || (i < MAX_TEAM_SIZE * 0.5 ? -1 : 1);
+      const centerProximity = 1 - Math.abs(2 * t - 1);
+      const dirY = 1;
+      let hudCenterX = x + dirX * (teamSize * (useSplitRows ? 0.2 : 0.14)) + hudXOffset;
+      const radialDepthOffset = (1 - centerProximity) * teamHudHeight * (useSplitRows ? 1.15 : 0.58) * hudDepthScale;
+      let hudCenterY = y + (
+        teamSize * (useSplitRows ? 0.86 : 0.82)
+        + teamHudHeight * (useSplitRows ? 0.44 : 0.42)
+        + radialDepthOffset
+      ) + hudYOffset;
+      if (!allowOverflowPositions) {
+        hudCenterX = clamp(
+          hudCenterX,
+          playLeft + teamHudWidth * 0.5 + cardMargin,
+          playRight - teamHudWidth * 0.5 - cardMargin,
+        );
+        hudCenterY = clamp(
+          hudCenterY,
+          playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+          Math.min(playBottom - teamHudHeight * 0.5 - cardMargin, centerY - enemySize * 0.12),
+        );
       }
-      if (typeof resolveBinding === "function" && typeof key === "string") {
-        const resolvedValue = resolveBinding(key);
-        if (resolvedValue !== undefined) {
-          target[key] = resolvedValue;
-          return resolvedValue;
-        }
-      }
-      return undefined;
+      const cardTopY = hudCenterY - teamHudHeight * 0.5;
+      teamSlots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: cardTopY,
+        hudWidth: teamHudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: dirX,
+        hudDirectionY: dirY,
+      });
+    }
+  }
+
+  const hpBarWidth = clamp(
+    enemySize * (useSplitRows ? 1.04 : 1.14),
+    useSplitRows ? 124 : 154,
+    useSplitRows ? 196 : 272,
+  );
+  const hpBarHeight = clamp(enemySize * 0.06, 9, 14);
+  const enemyImpactX = centerX;
+  const enemyImpactYRaw = centerY + enemySize * (useSplitRows ? 0.04 : 0.03) + enemyUiYOffset;
+  const enemyImpactY = allowOverflowPositions
+    ? enemyImpactYRaw
+    : clamp(enemyImpactYRaw, playTop + enemySize * 0.22, playBottom - enemySize * 0.22);
+  const enemyUiTop = centerY + enemySize * (useSplitRows ? 0.66 : 0.62) + enemyUiYOffset;
+  const hpBarMinY = centerY + enemySize * 0.42;
+  const hpBarMaxY = playBottom - (useSplitRows ? 98 : 114);
+  const hpBarY = allowOverflowPositions
+    ? enemyUiTop
+    : clamp(enemyUiTop, Math.min(hpBarMinY, hpBarMaxY), Math.max(hpBarMinY, hpBarMaxY));
+  const enemyNameMinY = hpBarY + hpBarHeight + 6;
+  const enemyNameMaxY = playBottom - (useSplitRows ? 70 : 78);
+  const enemyNameTopYRaw = hpBarY + hpBarHeight + (useSplitRows ? 8 : 10);
+  const enemyNameTopY = allowOverflowPositions
+    ? enemyNameTopYRaw
+    : clamp(enemyNameTopYRaw, Math.min(enemyNameMinY, enemyNameMaxY), Math.max(enemyNameMinY, enemyNameMaxY));
+  const enemyTypeMinY = enemyNameTopY + 14;
+  const enemyTypeMaxY = playBottom - 14;
+  const enemyTypeHudYRaw = enemyNameTopY + (useSplitRows ? 22 : 24);
+  const enemyTypeHudY = allowOverflowPositions
+    ? enemyTypeHudYRaw
+    : clamp(enemyTypeHudYRaw, Math.min(enemyTypeMinY, enemyTypeMaxY), Math.max(enemyTypeMinY, enemyTypeMaxY));
+
+  return {
+    centerX,
+    centerY,
+    enemyImpactX,
+    enemyImpactY,
+    enemySize,
+    hpBarWidth,
+    hpBarHeight,
+    hpBarY,
+    enemyNameTopY,
+    enemyNamePlateWidth: clamp(
+      useSplitRows
+        ? Math.max(hpBarWidth * 0.9, playWidth * 0.56)
+        : hpBarWidth * 0.74,
+      useSplitRows ? 126 : 108,
+      Math.min(useSplitRows ? 236 : 224, Math.max(108, playWidth - 12)),
+    ),
+    enemyTypeHudY,
+    viewportProfile: profile,
+    safeBounds: {
+      top: playTop,
+      bottom: playBottom,
+      left: playLeft,
+      right: playRight,
+      width: playWidth,
+      height: playHeight,
     },
-    set(target, key, value) {
-      target[key] = value;
-      return true;
-    },
+    teamSlots,
+  };
+}
+
+function refreshLayoutIfNeeded(options = {}) {
+  const force = options?.force === true;
+  const nowMsRaw = options?.nowMs;
+  const nowMs = Number.isFinite(nowMsRaw) ? Math.max(0, Number(nowMsRaw)) : Math.max(0, Number(state.timeMs) || 0);
+  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);
+  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
+  const refresh = state.layoutRefresh || {};
+  const viewportChanged =
+    viewportWidth !== Math.max(0, Number(refresh.viewportWidth) || 0)
+    || viewportHeight !== Math.max(0, Number(refresh.viewportHeight) || 0);
+  const dueAt = Math.max(0, Number(refresh.nextRecomputeAtMs) || 0);
+  if (!force && state.layout && !viewportChanged && nowMs < dueAt) {
+    return state.layout;
+  }
+
+  state.layout = computeLayout();
+  state.layoutRefresh = {
+    viewportWidth,
+    viewportHeight,
+    nextRecomputeAtMs: nowMs + LAYOUT_RECOMPUTE_INTERVAL_MS,
+  };
+  return state.layout;
+}
+
+function getShinySparkleCountForQuality() {
+  const quality = String(state.performance?.quality || "medium");
+  if (quality === "very_low") {
+    return 2;
+  }
+  if (quality === "low") {
+    return 3;
+  }
+  if (quality === "medium") {
+    return 5;
+  }
+  return 8;
+}
+
+function drawShinySparkles(size, seed = 0, alpha = 1) {
+  const sparkleCount = getShinySparkleCountForQuality();
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.02) {
+    return;
+  }
+
+  const timeSeconds = state.timeMs / 1000;
+  const useSimpleSparkles = sparkleCount <= 3;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < sparkleCount; i += 1) {
+    const phase = seed * 0.37 + i * 0.91;
+    const orbitX = size * (0.36 + (i % 3) * 0.08);
+    const orbitY = size * (0.28 + ((i + 1) % 3) * 0.07);
+    const angle = timeSeconds * (0.8 + (i % 4) * 0.17) + phase;
+    const px = Math.cos(angle) * orbitX;
+    const py = Math.sin(angle * 1.18) * orbitY - size * 0.12;
+    const twinkle = 0.4 + 0.6 * Math.sin(timeSeconds * 4.2 + phase * 2.4);
+    const radius = 0.9 + twinkle * 1.7;
+    const glowRadius = radius * 3.3;
+    const color = i % 2 === 0 ? "255, 240, 174" : "212, 243, 255";
+
+    if (!useSimpleSparkles) {
+      const glow = ctx.createRadialGradient(px, py, 0, px, py, glowRadius);
+      glow.addColorStop(0, `rgba(${color}, ${0.75 * safeAlpha})`);
+      glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px, py, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.88 * safeAlpha})`;
+    ctx.beginPath();
+    ctx.arc(px, py, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function getUltraShinyShaderConfig(seed = 0) {
+  const cycleMs = Math.max(400, ULTRA_SHINY_HUE_CYCLE_MS);
+  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 193.137) % cycleMs;
+  const ratio = ((state.timeMs + seededOffsetMs) % cycleMs) / cycleMs;
+  const wave = Math.sin(ratio * Math.PI * 2);
+  const pulse = Math.sin(ratio * Math.PI * 4 + 0.8);
+  return {
+    hueRotateDeg: ratio * 360,
+    saturate: clamp(1.38 + wave * 0.2, 1.05, 1.75),
+    brightness: clamp(1.06 + pulse * 0.08, 0.95, 1.22),
+    contrast: clamp(1.08 + wave * 0.06, 0.96, 1.24),
+  };
+}
+
+function drawUltraShinyOutline(image, drawX, drawY, drawWidth, drawHeight, outlinePx = ULTRA_SHINY_OUTLINE_PX, alpha = 1) {
+  if (!isDrawableImage(image)) {
+    return;
+  }
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.01) {
+    return;
+  }
+  const rawOutline = Number(outlinePx);
+  const safeOutline = Number.isFinite(rawOutline) ? rawOutline : ULTRA_SHINY_OUTLINE_PX;
+  // Keep width fully controllable: 0 disables outline, tiny values stay tiny.
+  if (safeOutline <= 0.001) {
+    return;
+  }
+  const texture = getUltraShinyOutlineTexture(image, drawWidth, drawHeight, safeOutline);
+  if (!texture) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = safeAlpha;
+  const wasSmoothing = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(texture.canvas, drawX - texture.pad, drawY - texture.pad);
+  ctx.imageSmoothingEnabled = wasSmoothing;
+  ctx.restore();
+}
+
+function drawMorphingOutline(
+  image,
+  drawX,
+  drawY,
+  drawWidth,
+  drawHeight,
+  options = {},
+) {
+  if (!isDrawableImage(image) || !spriteOutlineTintBufferCtx) {
+    return;
+  }
+  const safeAlpha = clamp(Number(options.alpha ?? MORPHING_OUTLINE_ALPHA), 0, 1);
+  if (safeAlpha <= 0.01) {
+    return;
+  }
+  const safeOutline = Math.max(0, Number(options.outlinePx ?? MORPHING_OUTLINE_PX) || MORPHING_OUTLINE_PX);
+  if (safeOutline <= 0.001) {
+    return;
+  }
+  const outlineRgb = normalizeRgbColor(options.color, MORPHING_OUTLINE_RGB);
+  const texture = getUltraShinyOutlineTexture(image, drawWidth, drawHeight, safeOutline);
+  if (!texture?.canvas) {
+    return;
+  }
+
+  const textureCanvas = texture.canvas;
+  const textureWidth = Math.max(1, toSafeInt(textureCanvas.width, 1));
+  const textureHeight = Math.max(1, toSafeInt(textureCanvas.height, 1));
+  if (
+    spriteOutlineTintBufferCanvas.width !== textureWidth
+    || spriteOutlineTintBufferCanvas.height !== textureHeight
+  ) {
+    spriteOutlineTintBufferCanvas.width = textureWidth;
+    spriteOutlineTintBufferCanvas.height = textureHeight;
+  }
+
+  const tintCtx = spriteOutlineTintBufferCtx;
+  const previousTintSmoothing = tintCtx.imageSmoothingEnabled;
+  tintCtx.setTransform(1, 0, 0, 1, 0, 0);
+  tintCtx.globalAlpha = 1;
+  tintCtx.globalCompositeOperation = "source-over";
+  tintCtx.imageSmoothingEnabled = false;
+  tintCtx.clearRect(0, 0, textureWidth, textureHeight);
+  tintCtx.drawImage(textureCanvas, 0, 0);
+  tintCtx.globalCompositeOperation = "source-in";
+  tintCtx.fillStyle = `rgba(${outlineRgb[0]}, ${outlineRgb[1]}, ${outlineRgb[2]}, 1)`;
+  tintCtx.fillRect(0, 0, textureWidth, textureHeight);
+  tintCtx.globalCompositeOperation = "source-over";
+  tintCtx.imageSmoothingEnabled = previousTintSmoothing;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = safeAlpha;
+  const previousSmoothing = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(spriteOutlineTintBufferCanvas, drawX - texture.pad, drawY - texture.pad);
+  ctx.imageSmoothingEnabled = previousSmoothing;
+  ctx.restore();
+}
+
+function drawMorphingSlimeEffect(size, seed = 0, alpha = 1) {
+  const safeSize = Number(size) || 0;
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeSize <= 1 || safeAlpha <= 0.01) {
+    return;
+  }
+
+  const time = state.timeMs * 0.0032 + Number(seed || 0) * 0.77;
+  const motionScale = MORPHING_MOTION_INTENSITY;
+  const radiusX = safeSize * 0.29;
+  const topY = -safeSize * 0.06;
+  const baseY = safeSize * 0.11;
+  const dripAmplitude = safeSize * 0.165 * motionScale;
+  const segmentCount = 16;
+  const bodyAlpha = safeAlpha * MORPHING_SLIME_ALPHA * (0.92 + 0.08 * Math.sin(time * 1.1));
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.beginPath();
+  ctx.moveTo(-radiusX, topY);
+  ctx.quadraticCurveTo(0, -safeSize * 0.22, radiusX, topY);
+  for (let i = segmentCount; i >= 0; i -= 1) {
+    const ratio = i / segmentCount;
+    const x = lerpNumber(-radiusX, radiusX, ratio);
+    const wave = Math.sin(time * 1.35 + ratio * Math.PI * 3.6 + seed * 0.19) * safeSize * 0.018 * motionScale;
+    const dripNoise = Math.max(0, Math.sin(time * 1.9 + ratio * Math.PI * 7.2 + seed * 0.41));
+    const dripShape = dripNoise * dripNoise;
+    const edgeBias = 1 - Math.abs(ratio - 0.5) * 2;
+    const drip = dripAmplitude * dripShape * (0.42 + edgeBias * 0.58);
+    const y = baseY + wave + drip;
+    ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+
+  const slimeGradient = ctx.createLinearGradient(0, topY - safeSize * 0.12, 0, baseY + dripAmplitude * 1.25);
+  slimeGradient.addColorStop(
+    0,
+    `rgba(${MORPHING_SLIME_HIGHLIGHT_RGB[0]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[1]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[2]}, ${(bodyAlpha * 0.82).toFixed(3)})`,
+  );
+  slimeGradient.addColorStop(
+    1,
+    `rgba(${MORPHING_SLIME_BASE_RGB[0]}, ${MORPHING_SLIME_BASE_RGB[1]}, ${MORPHING_SLIME_BASE_RGB[2]}, ${bodyAlpha.toFixed(3)})`,
+  );
+  ctx.fillStyle = slimeGradient;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(255, 238, 255, ${(safeAlpha * 0.2).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1, safeSize * 0.018);
+  ctx.stroke();
+
+  const dropletCount = 3;
+  for (let i = 0; i < dropletCount; i += 1) {
+    const ratio = (i + 1) / (dropletCount + 1);
+    const drift = Math.sin(time * 1.6 + i * 1.17 + seed * 0.13) * safeSize * 0.012 * motionScale;
+    const phase = ((time * 0.37 + i * 0.29 + seed * 0.07) % 1 + 1) % 1;
+    const x = lerpNumber(-radiusX * 0.72, radiusX * 0.72, ratio) + drift;
+    const y = baseY + safeSize * (0.08 + phase * 0.17 * motionScale);
+    const radius = safeSize * (0.027 + (1 - phase) * 0.012);
+    const dropAlpha = safeAlpha * 0.2 * (1 - phase * 0.55);
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${MORPHING_SLIME_BASE_RGB[0]}, ${MORPHING_SLIME_BASE_RGB[1]}, ${MORPHING_SLIME_BASE_RGB[2]}, ${dropAlpha.toFixed(3)})`;
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${MORPHING_SLIME_HIGHLIGHT_RGB[0]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[1]}, ${MORPHING_SLIME_HIGHLIGHT_RGB[2]}, ${(dropAlpha * 0.55).toFixed(3)})`;
+    ctx.arc(x - radius * 0.22, y - radius * 0.26, Math.max(0.5, radius * 0.36), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function getMorphingWobbleTransform(entity, size) {
+  const safeSize = Math.max(1, Number(size) || 0);
+  const motionScale = MORPHING_MOTION_INTENSITY;
+  const seed =
+    Number(entity?.id || 0) * 0.71
+    + Number(entity?.morphingSourceId || 0) * 1.17
+    + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 37;
+  const t = state.timeMs * 0.0054;
+  const primary = Math.sin(t + seed);
+  const secondary = Math.sin(t * 1.73 + seed * 0.63);
+  const tertiary = Math.sin(t * 2.41 + seed * 1.17);
+  const squashWave = primary * 0.7 + secondary * 0.3;
+  const scaleX = clamp(1 + (squashWave * MORPHING_WOBBLE_SCALE_AMPLITUDE + tertiary * 0.03) * motionScale, 0.82, 1.28);
+  const scaleY = clamp(
+    1 - (squashWave * MORPHING_WOBBLE_VERTICAL_COMPENSATION + tertiary * 0.018) * motionScale,
+    0.8,
+    1.26,
+  );
+  const offsetX = safeSize * MORPHING_WOBBLE_OFFSET_RATIO * (primary * 0.7 + secondary * 0.3) * motionScale;
+  const offsetY =
+    safeSize
+    * MORPHING_WOBBLE_OFFSET_RATIO
+    * 0.62
+    * (secondary * 0.65 - Math.abs(primary) * 0.35)
+    * motionScale;
+  const rotationRad =
+    ((primary * 0.65 + tertiary * 0.35) * MORPHING_WOBBLE_ROTATION_DEG * motionScale * Math.PI) / 180;
+  const shearX = clamp((secondary * 0.75 + tertiary * 0.25) * MORPHING_WOBBLE_SHEAR * motionScale, -0.24, 0.24);
+  return {
+    scaleX,
+    scaleY,
+    offsetX,
+    offsetY,
+    rotationRad,
+    shearX,
+  };
+}
+
+function drawUltraShinyScintillation(size, seed = 0, alpha = 1) {
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.02) {
+    return;
+  }
+  const periodMs = Math.max(300, ULTRA_SHINY_SCINTILLATION_PERIOD_MS);
+  const flashWindowMs = clamp(ULTRA_SHINY_SCINTILLATION_FLASH_MS, 40, periodMs);
+  const seededOffsetMs = (Math.abs(Number(seed) || 0) * 151.73) % periodMs;
+  const phaseMs = (state.timeMs + seededOffsetMs) % periodMs;
+  if (phaseMs > flashWindowMs) {
+    return;
+  }
+
+  const ratio = phaseMs / flashWindowMs;
+  const pulse = Math.sin(ratio * Math.PI);
+  const travelAngle = seed * 0.61 + state.timeMs * 0.0023;
+  const px = Math.cos(travelAngle) * size * 0.24;
+  const py = Math.sin(travelAngle * 1.29) * size * 0.17 - size * 0.19;
+  const glowRadius = size * (0.08 + pulse * 0.11);
+  const lineLength = size * (0.09 + pulse * 0.14);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.translate(px, py);
+  ctx.rotate(seed * 0.17 + state.timeMs * 0.0017);
+
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
+  glow.addColorStop(0, `rgba(255, 255, 255, ${(0.75 + pulse * 0.2) * safeAlpha})`);
+  glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.46 + pulse * 0.52) * safeAlpha})`;
+  ctx.lineWidth = Math.max(1.1, size * 0.015 * (0.9 + pulse));
+  for (let i = 0; i < 4; i += 1) {
+    const angle = (Math.PI / 4) * i;
+    const dx = Math.cos(angle) * lineLength;
+    const dy = Math.sin(angle) * lineLength;
+    ctx.beginPath();
+    ctx.moveTo(-dx, -dy);
+    ctx.lineTo(dx, dy);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function getPokemonBreathTransform(entity, size, slotIndex = 0, options = {}) {
+  if (!entity || !Number.isFinite(size) || size <= 0 || options.active === false) {
+    return { scaleX: 1, scaleY: 1, offsetY: 0 };
+  }
+
+  const seedKey = `${Number(entity?.id || 0)}:${Number(slotIndex) || 0}:${String(entity?.spriteVariantId || "default")}`;
+  const periodMs = lerpNumber(
+    BREATH_MIN_PERIOD_MS,
+    BREATH_MAX_PERIOD_MS,
+    hashStringToUnit(`${seedKey}:period`),
+  );
+  const amplitude = clamp(
+    BREATH_BASE_AMPLITUDE + (hashStringToUnit(`${seedKey}:amplitude`) - 0.5) * BREATH_AMPLITUDE_VARIATION,
+    0.008,
+    0.038,
+  );
+  const intensity = clamp(Number(options.intensity ?? 1), 0, 1.6);
+  const primaryPhase = hashStringToUnit(`${seedKey}:phase_primary`) * Math.PI * 2;
+  const secondaryPhase = hashStringToUnit(`${seedKey}:phase_secondary`) * Math.PI * 2;
+  const timeRatio = state.timeMs / Math.max(1200, periodMs);
+  const primary = Math.sin(timeRatio * Math.PI * 2 + primaryPhase);
+  const secondary = Math.sin(timeRatio * Math.PI + secondaryPhase);
+
+  let breath = primary * (1 - BREATH_SECONDARY_WEIGHT) + secondary * BREATH_SECONDARY_WEIGHT;
+  // Slightly asymmetric inhale/exhale so it feels organic.
+  breath = breath >= 0 ? Math.pow(breath, 1.3) : -Math.pow(-breath, 0.85);
+
+  const breathingAmount = amplitude * intensity * breath;
+  const inhale = clamp(breath, 0, 1);
+  // Keep a uniform pulse on sprites to avoid aspect-ratio distortion on mobile GPUs.
+  const uniformScale = clamp(1 + breathingAmount * (1 - BREATH_SIDE_COMPENSATION * 0.25), 0.94, 1.09);
+  const offsetY = -size * BREATH_OFFSET_RATIO * inhale * intensity;
+  return { scaleX: uniformScale, scaleY: uniformScale, offsetY };
+}
+
+function drawPokemonTerrainShadow(size, options = {}) {
+  const safeSize = Number(size);
+  if (!Number.isFinite(safeSize) || safeSize <= 0) {
+    return;
+  }
+  const profile = String(options.profile || "team").trim().toLowerCase();
+  const spriteAlpha = clamp(Number(options.spriteAlpha ?? 1), 0, 1);
+  const baseAlpha = clamp(Number(options.alpha ?? POKEMON_SHADOW_ALPHA), 0, 1);
+  const groundOffsetY = Number.isFinite(options.groundOffsetY) ? Number(options.groundOffsetY) : 0;
+  const liftPx = Math.max(0, Number.isFinite(options.liftPx) ? Number(options.liftPx) : 0);
+  const liftRatio = clamp(liftPx / Math.max(1, safeSize), 0, 1.5);
+
+  let radiusXRatio = 0.34;
+  let radiusYRatio = 0.16;
+  let centerYRatio = 0.3;
+  let profileAlpha = 1;
+  if (profile === "enemy") {
+    radiusXRatio = 0.37;
+    radiusYRatio = 0.17;
+    centerYRatio = 0.31;
+    profileAlpha = 1.04;
+  } else if (profile === "drag") {
+    radiusXRatio = 0.31;
+    radiusYRatio = 0.145;
+    centerYRatio = 0.285;
+    profileAlpha = 0.92;
+  }
+
+  const finalAlpha = clamp(baseAlpha * spriteAlpha * profileAlpha * (1 - liftRatio * 0.38), 0, 1);
+  if (finalAlpha <= 0.01) {
+    return;
+  }
+
+  const centerYOverride = Number.isFinite(options.centerY) ? Number(options.centerY) : null;
+  const centerY = (centerYOverride == null ? safeSize * centerYRatio : centerYOverride) + groundOffsetY + liftPx * 0.2;
+  const radiusX = safeSize * radiusXRatio * (1 - liftRatio * 0.08);
+  const radiusY = safeSize * radiusYRatio * (1 - liftRatio * 0.42);
+  if (!Number.isFinite(radiusX) || !Number.isFinite(radiusY) || radiusX <= 0.01 || radiusY <= 0.01) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  const gradient = ctx.createRadialGradient(
+    0,
+    centerY - radiusY * 0.04,
+    Math.max(0.1, radiusY * 0.14),
+    0,
+    centerY,
+    Math.max(radiusX, radiusY),
+  );
+  gradient.addColorStop(0, `rgba(11, 24, 50, ${(finalAlpha * 0.74).toFixed(3)})`);
+  gradient.addColorStop(0.68, `rgba(8, 16, 34, ${(finalAlpha * 0.4).toFixed(3)})`);
+  gradient.addColorStop(1, "rgba(5, 9, 18, 0)");
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.ellipse(0, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPokemonBackdropCircle(x, y, size, options = {}) {
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(size) || size <= 0) {
+    return;
+  }
+  const alpha = clamp(Number(options.alpha ?? POKEMON_BACKDROP_ALPHA), 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+  const radius = size * POKEMON_BACKDROP_RADIUS_RATIO;
+  const centerY = y + size * 0.02;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+  ctx.beginPath();
+  ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function getHoveredTeamSlotPulse(slotIndex) {
+  if (state.ui.hoveredTeamSlotIndex !== clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1)) {
+    return 0;
+  }
+  return 0.76 + (Math.sin(state.timeMs * 0.015 + slotIndex) + 1) * 0.12;
+}
+
+function drawTeamHoverIndicator(slot, intensity = 1) {
+  if (!slot || intensity <= 0.001) {
+    return;
+  }
+  const centerY = slot.y + slot.size * 0.03;
+  const radiusX = slot.size * (0.37 + intensity * 0.02);
+  const radiusY = slot.size * (0.29 + intensity * 0.02);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.strokeStyle = `rgba(255, 245, 173, ${(0.18 + intensity * 0.16).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.6, slot.size * 0.038);
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = `rgba(255, 236, 146, ${(0.09 + intensity * 0.08).toFixed(3)})`;
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX * 0.78, radiusY * 0.72, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawTeamDragSwapOverlay(layout) {
+  if (!layout || !state.ui.teamDragActive || !state.ui.teamDragMoved) {
+    return;
+  }
+  const sourceSlotIndex = clamp(toSafeInt(state.ui.teamDragSourceSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  if (sourceSlotIndex < 0) {
+    return;
+  }
+  const sourceSlot = layout.teamSlots?.[sourceSlotIndex];
+  const sourceMember = state.team[sourceSlotIndex];
+  if (!sourceSlot || !sourceMember) {
+    return;
+  }
+
+  const targetSlotIndex = clamp(toSafeInt(state.ui.teamDragTargetSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+  const targetSlot = targetSlotIndex >= 0 ? layout.teamSlots?.[targetSlotIndex] : null;
+  const pointerXRaw = Number(state.ui.teamDragCurrentWorldX);
+  const pointerYRaw = Number(state.ui.teamDragCurrentWorldY);
+  const pointerX = Number.isFinite(pointerXRaw) ? pointerXRaw : sourceSlot.x;
+  const pointerY = Number.isFinite(pointerYRaw) ? pointerYRaw : sourceSlot.y;
+  const ghostSize = sourceSlot.size * getTeamSpriteScale(layout);
+  const lineTargetX = targetSlot ? targetSlot.x : pointerX;
+  const lineTargetY = targetSlot ? targetSlot.y : pointerY;
+  const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();
+
+  drawTeamHoverIndicator(sourceSlot, 1.05);
+  if (targetSlot) {
+    drawTeamHoverIndicator(targetSlot, 1.24);
+  }
+
+  ctx.save();
+  ctx.strokeStyle = targetSlot ? "rgba(111, 228, 186, 0.84)" : "rgba(143, 200, 255, 0.72)";
+  ctx.lineWidth = Math.max(1.6, sourceSlot.size * 0.038);
+  ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  ctx.moveTo(sourceSlot.x, sourceSlot.y);
+  ctx.lineTo(lineTargetX, lineTargetY);
+  ctx.stroke();
+  ctx.restore();
+
+  drawPokemonBackdropCircle(pointerX, pointerY, ghostSize, {
+    alpha: 0.32,
+  });
+  drawPokemonSprite(sourceMember, pointerX, pointerY, ghostSize, {
+    alpha: 0.84,
+    scaleX: 1.04,
+    scaleY: 1.04,
+    offsetY: -ghostSize * 0.02,
+    minRenderSizePx: getTeamSpriteMinRenderSize(layout, ghostSize),
+    shadowProfile: "drag",
+    shadowAlpha: 0.42,
+    shadowGroundOffsetY: 0,
+    shadowLiftPx: ghostSize * 0.1,
+    flipX: shouldFlipTeamSprite(targetSlotIndex >= 0 ? targetSlotIndex : sourceSlotIndex, layout),
+    shinyVisual: Boolean(forceUltraShinyAll || sourceMember.isShiny || sourceMember.isShinyVisual),
+    ultraShinyVisual: Boolean(forceUltraShinyAll || sourceMember.isUltraShiny || sourceMember.isUltraShinyVisual),
+    tintBlend: 0.1,
+    tintColor: [234, 248, 255],
   });
 }
 
-export function createRuntimeRenderSystem(options = {}) {
-  const resolveBinding =
-    typeof options.resolveBinding === "function" ? options.resolveBinding : null;
-  const bindings =
-    resolveBinding || options.bindings
-      ? options.bindings || {}
-      : options;
-  const stateRef =
-    bindings?.state
-    || (typeof resolveBinding === "function" ? resolveBinding("state") : null);
-  const runtimeSystem = runtimeRenderFactory(createScopeProxy({ bindings, resolveBinding }));
+function drawTeamAttackChargeGlow(slot, member, slotIndex = 0, intensity = 0) {
+  if (!slot || !member || intensity <= 0.001) {
+    return;
+  }
+  const charge = clamp(Number(intensity) || 0, 0, 1);
+  if (charge <= 0.001) {
+    return;
+  }
+
+  const type = normalizeType(getEntityOffensiveType(member));
+  const rgb = getTypeColor(type);
+  const centerX = slot.x;
+  const centerY = slot.y + slot.size * 0.02;
+  const coreRadius = slot.size * (0.34 + charge * 0.08);
+  const auraRadius = coreRadius * (1.75 + charge * 0.42);
+  const pulse = 0.82 + Math.sin(state.timeMs * 0.02 + slotIndex * 0.73) * 0.18;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const aura = ctx.createRadialGradient(centerX, centerY, coreRadius * 0.16, centerX, centerY, auraRadius);
+  aura.addColorStop(0, rgba(rgb, (0.2 + charge * 0.34) * pulse));
+  aura.addColorStop(0.48, rgba(rgb, (0.12 + charge * 0.24) * pulse));
+  aura.addColorStop(1, rgba(rgb, 0));
+  ctx.fillStyle = aura;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, auraRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = rgba(rgb, 0.26 + charge * 0.5);
+  ctx.lineWidth = Math.max(1.4, slot.size * (0.016 + charge * 0.008));
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY + slot.size * 0.02, coreRadius * 1.08, coreRadius * 0.78, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const sparkCount = 3;
+  for (let i = 0; i < sparkCount; i += 1) {
+    const angle = state.timeMs * 0.008 + slotIndex * 0.48 + i * ((Math.PI * 2) / sparkCount);
+    const orbit = coreRadius * (0.9 + charge * 0.36);
+    const px = centerX + Math.cos(angle) * orbit;
+    const py = centerY + Math.sin(angle * 1.35) * orbit * 0.62;
+    const pointSize = slot.size * (0.016 + charge * 0.01);
+    const pointGlow = pointSize * 3.2;
+    const sparkle = ctx.createRadialGradient(px, py, 0, px, py, pointGlow);
+    sparkle.addColorStop(0, "rgba(255, 255, 255, 0.92)");
+    sparkle.addColorStop(0.45, rgba(rgb, 0.76));
+    sparkle.addColorStop(1, rgba(rgb, 0));
+    ctx.fillStyle = sparkle;
+    ctx.beginPath();
+    ctx.arc(px, py, pointGlow, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawTeamAuraIndicator(slot, member, stackedBonus = 0) {
+  if (!slot || !member) {
+    return;
+  }
+  const bonus = Math.max(0, Number(stackedBonus || 0));
+  if (bonus <= 0.001) {
+    return;
+  }
+
+  const [r, g, b] = getTypeColor(getEntityOffensiveType(member));
+  const centerY = slot.y + slot.size * 0.03;
+  const pulse = 0.5 + Math.sin(state.timeMs * 0.006 + slot.x * 0.021 + slot.y * 0.014) * 0.5;
+  const radiusX = slot.size * (0.43 + pulse * 0.05);
+  const radiusY = slot.size * (0.31 + pulse * 0.04);
+  const alphaBase = clamp(0.08 + bonus * 0.35, 0.08, 0.4);
+  const glowRadius = slot.size * (0.52 + pulse * 0.07);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(slot.x, centerY, radiusY * 0.25, slot.x, centerY, glowRadius);
+  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);
+  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, glowRadius * 0.95, glowRadius * 0.66, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.12).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.3, slot.size * (0.022 + bonus * 0.02));
+  ctx.beginPath();
+  ctx.ellipse(slot.x, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawTeamTeleportBoostIndicator(slot, boostMultiplier = 1, visualIntensity = 0) {
+  if (!slot) {
+    return;
+  }
+  const boost = Math.max(1, Number(boostMultiplier || 1));
+  const extraIntensity = clamp(Number(visualIntensity) || 0, 0, 1);
+  if (boost <= 1.001 && extraIntensity <= 0.001) {
+    return;
+  }
+
+  const [r, g, b] = getTypeColor("psychic");
+  const centerX = slot.x;
+  const centerY = slot.y + slot.size * 0.02;
+  const pulse = 0.5 + Math.sin(state.timeMs * 0.008 + slot.x * 0.014 + slot.y * 0.017) * 0.5;
+  const boostPower = clamp((boost - 1) / 0.5, 0, 1);
+  const power = clamp(Math.max(extraIntensity, boostPower), 0, 1);
+  const ringRadiusX = slot.size * (0.44 + pulse * 0.06 + power * 0.07);
+  const ringRadiusY = slot.size * (0.31 + pulse * 0.05 + power * 0.05);
+  const alphaBase = clamp(0.2 + power * 0.34, 0.16, 0.58);
+  const glowRadius = slot.size * (0.6 + pulse * 0.08 + power * 0.08);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(centerX, centerY, ringRadiusY * 0.2, centerX, centerY, glowRadius);
+  glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(alphaBase * 0.95).toFixed(3)})`);
+  glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, glowRadius * 0.96, glowRadius * 0.68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const lift = slot.size * (0.22 + power * 0.04);
+  const beam = ctx.createLinearGradient(centerX, centerY + lift, centerX, centerY - lift);
+  beam.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+  beam.addColorStop(0.25, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);
+  beam.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, ${(0.2 + power * 0.22).toFixed(3)})`);
+  beam.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+  ctx.strokeStyle = beam;
+  ctx.lineWidth = Math.max(2.2, slot.size * (0.032 + power * 0.012));
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY + lift);
+  ctx.lineTo(centerX, centerY - lift);
+  ctx.stroke();
+
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(alphaBase + pulse * 0.16).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.8, slot.size * 0.028);
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, ringRadiusX, ringRadiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const spinA = state.timeMs * 0.0075;
+  const spinB = -state.timeMs * 0.0063;
+  ctx.strokeStyle = `rgba(255, 255, 255, ${(0.32 + power * 0.2).toFixed(3)})`;
+  ctx.lineWidth = Math.max(1.1, slot.size * 0.018);
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, ringRadiusX * 0.78, ringRadiusY * 0.68, spinA, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, ringRadiusX * 0.62, ringRadiusY * 0.52, spinB, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const sparkCount = 6;
+  for (let i = 0; i < sparkCount; i += 1) {
+    const angle = state.timeMs * 0.01 + i * ((Math.PI * 2) / sparkCount);
+    const px = centerX + Math.cos(angle) * ringRadiusX * 0.92;
+    const py = centerY + Math.sin(angle * 1.25) * ringRadiusY * 0.85;
+    const sparkRadius = slot.size * (0.028 + power * 0.008);
+    const sparkGlow = ctx.createRadialGradient(px, py, 0, px, py, sparkRadius * 2.8);
+    sparkGlow.addColorStop(0, "rgba(255, 255, 255, 0.92)");
+    sparkGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.78)`);
+    sparkGlow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    ctx.fillStyle = sparkGlow;
+    ctx.beginPath();
+    ctx.arc(px, py, sparkRadius * 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function getSpriteSnapFactor() {
+  const dpr = Number(state.viewport?.dpr || 1);
+  return Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+}
+
+function snapSpriteValue(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  return Math.round(numericValue * snapFactor) / snapFactor;
+}
+
+function snapSpriteDimension(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return 1;
+  }
+  const snapFactor = getSpriteSnapFactor();
+  const snapped = Math.round(numericValue * snapFactor) / snapFactor;
+  return Math.max(1 / snapFactor, snapped);
+}
+
+function buildSpriteShaderFilter(shader = null) {
+  if (!shader || typeof shader !== "object") {
+    return "none";
+  }
+
+  const parts = [];
+  const hueRotateDeg = Number(shader.hueRotateDeg);
+  if (Number.isFinite(hueRotateDeg)) {
+    parts.push(`hue-rotate(${hueRotateDeg.toFixed(2)}deg)`);
+  }
+  const saturate = Number(shader.saturate);
+  if (Number.isFinite(saturate) && Math.abs(saturate - 1) > 0.001) {
+    parts.push(`saturate(${saturate.toFixed(3)})`);
+  }
+  const brightness = Number(shader.brightness);
+  if (Number.isFinite(brightness) && Math.abs(brightness - 1) > 0.001) {
+    parts.push(`brightness(${brightness.toFixed(3)})`);
+  }
+  const contrast = Number(shader.contrast);
+  if (Number.isFinite(contrast) && Math.abs(contrast - 1) > 0.001) {
+    parts.push(`contrast(${contrast.toFixed(3)})`);
+  }
+  const invert = Number(shader.invert);
+  if (Number.isFinite(invert) && Math.abs(invert) > 0.001) {
+    parts.push(`invert(${clamp(invert, 0, 1).toFixed(3)})`);
+  }
+
+  return parts.length > 0 ? parts.join(" ") : "none";
+}
+
+function mergeSpriteShaderConfig(primaryShader = null, secondaryShader = null) {
+  const primary = primaryShader && typeof primaryShader === "object" ? primaryShader : null;
+  const secondary = secondaryShader && typeof secondaryShader === "object" ? secondaryShader : null;
+  if (!primary && !secondary) {
+    return null;
+  }
+
+  const readNumber = (value) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+  const multiplyOrDefault = (valueA, valueB) => {
+    const numericA = readNumber(valueA);
+    const numericB = readNumber(valueB);
+    if (numericA == null && numericB == null) {
+      return null;
+    }
+    return (numericA == null ? 1 : numericA) * (numericB == null ? 1 : numericB);
+  };
+
+  const huePrimary = readNumber(primary?.hueRotateDeg);
+  const hueSecondary = readNumber(secondary?.hueRotateDeg);
+  const saturate = multiplyOrDefault(primary?.saturate, secondary?.saturate);
+  const brightness = multiplyOrDefault(primary?.brightness, secondary?.brightness);
+  const contrast = multiplyOrDefault(primary?.contrast, secondary?.contrast);
+  const invertPrimary = readNumber(primary?.invert);
+  const invertSecondary = readNumber(secondary?.invert);
+  const invert =
+    invertPrimary == null && invertSecondary == null
+      ? null
+      : 1 - (1 - clamp(invertPrimary == null ? 0 : invertPrimary, 0, 1))
+        * (1 - clamp(invertSecondary == null ? 0 : invertSecondary, 0, 1));
+  const colorizePrimary = Array.isArray(primary?.colorizeRgb) ? normalizeRgbColor(primary.colorizeRgb, null) : null;
+  const colorizeSecondary =
+    Array.isArray(secondary?.colorizeRgb) ? normalizeRgbColor(secondary.colorizeRgb, null) : null;
+  const colorizeBlendPrimary = clamp(readNumber(primary?.colorizeBlend) || 0, 0, 1);
+  const colorizeBlendSecondary = clamp(readNumber(secondary?.colorizeBlend) || 0, 0, 1);
+  const colorizeBlend = 1 - (1 - colorizeBlendPrimary) * (1 - colorizeBlendSecondary);
+  const paletteKind = String(primary?.paletteKind || secondary?.paletteKind || "").trim().toLowerCase();
+  const paletteStrengthPrimary = readNumber(primary?.paletteStrength);
+  const paletteStrengthSecondary = readNumber(secondary?.paletteStrength);
+  const paletteStrength =
+    paletteStrengthPrimary != null
+      ? clamp(paletteStrengthPrimary, 0, 1)
+      : paletteStrengthSecondary != null
+        ? clamp(paletteStrengthSecondary, 0, 1)
+        : 1;
+
+  const merged = {};
+  if (huePrimary != null || hueSecondary != null) {
+    merged.hueRotateDeg = (huePrimary || 0) + (hueSecondary || 0);
+  }
+  if (saturate != null) {
+    merged.saturate = saturate;
+  }
+  if (brightness != null) {
+    merged.brightness = brightness;
+  }
+  if (contrast != null) {
+    merged.contrast = contrast;
+  }
+  if (invert != null && invert > 0.001) {
+    merged.invert = clamp(invert, 0, 1);
+  }
+  const mergedColorize = colorizePrimary || colorizeSecondary || null;
+  if (mergedColorize) {
+    merged.colorizeRgb = mergedColorize;
+  }
+  if (colorizeBlend > 0.001 && mergedColorize) {
+    merged.colorizeBlend = colorizeBlend;
+  }
+  if (paletteKind) {
+    merged.paletteKind = paletteKind;
+    merged.paletteStrength = paletteStrength;
+  }
+  return Object.keys(merged).length > 0 ? merged : null;
+}
+
+function drawSpriteImageWithTint(image, drawX, drawY, drawWidth, drawHeight, tintColor, tintBlend, shader = null) {
+  const blend = clamp(Number(tintBlend || 0), 0, 1);
+  const snapFactor = getSpriteSnapFactor();
+  const snappedDrawX = snapSpriteValue(drawX);
+  const snappedDrawY = snapSpriteValue(drawY);
+  const snappedDrawWidth = snapSpriteDimension(drawWidth);
+  const snappedDrawHeight = snapSpriteDimension(drawHeight);
+  const width = Math.max(1, Math.round(snappedDrawWidth * snapFactor));
+  const height = Math.max(1, Math.round(snappedDrawHeight * snapFactor));
+  const baseColor = normalizeRgbColor(Array.isArray(tintColor) ? tintColor : [255, 255, 255], [255, 255, 255]);
+  const shaderPaletteKind = String(shader?.paletteKind || "").trim().toLowerCase();
+  const shaderPaletteStrength = clamp(Number(shader?.paletteStrength ?? 1), 0, 1);
+  const preparedImage =
+    shaderPaletteKind === "metamorph"
+      ? getMorphingPaletteMappedTexture(image, width, height, shaderPaletteStrength)
+      : image;
+  const shaderColorizeRgb = Array.isArray(shader?.colorizeRgb)
+    ? normalizeRgbColor(shader.colorizeRgb, MORPHING_COLORIZE_FALLBACK_RGB)
+    : null;
+  const shaderColorizeBlend = shaderColorizeRgb ? clamp(Number(shader?.colorizeBlend || 0), 0, 1) : 0;
+  const hasShaderColorize = shaderColorizeBlend > 0.001 && Array.isArray(shaderColorizeRgb);
+  const wasSmoothing = ctx.imageSmoothingEnabled;
+  const shaderFilter = buildSpriteShaderFilter(shader);
+  const hasAnyTintPass = blend > 0.001 || hasShaderColorize;
+
+  if (!hasAnyTintPass || !spriteTintBufferCtx) {
+    ctx.imageSmoothingEnabled = false;
+    const previousFilter = ctx.filter;
+    if (shaderFilter !== "none") {
+      ctx.filter = shaderFilter;
+    }
+    ctx.drawImage(preparedImage, snappedDrawX, snappedDrawY, snappedDrawWidth, snappedDrawHeight);
+    if (shaderFilter !== "none") {
+      ctx.filter = previousFilter;
+    }
+    ctx.imageSmoothingEnabled = wasSmoothing;
+    return;
+  }
+
+  if (spriteTintBufferCanvas.width !== width || spriteTintBufferCanvas.height !== height) {
+    spriteTintBufferCanvas.width = width;
+    spriteTintBufferCanvas.height = height;
+  }
+
+  const bufferCtx = spriteTintBufferCtx;
+  const wasBufferSmoothing = bufferCtx.imageSmoothingEnabled;
+  bufferCtx.setTransform(1, 0, 0, 1, 0, 0);
+  bufferCtx.globalCompositeOperation = "source-over";
+  bufferCtx.globalAlpha = 1;
+  bufferCtx.clearRect(0, 0, width, height);
+  bufferCtx.imageSmoothingEnabled = false;
+  bufferCtx.drawImage(preparedImage, 0, 0, width, height);
+  if (blend > 0.001) {
+    bufferCtx.globalCompositeOperation = "source-atop";
+    bufferCtx.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${blend})`;
+    bufferCtx.fillRect(0, 0, width, height);
+  }
+  if (hasShaderColorize) {
+    bufferCtx.globalCompositeOperation = "source-atop";
+    bufferCtx.fillStyle =
+      `rgba(${shaderColorizeRgb[0]}, ${shaderColorizeRgb[1]}, ${shaderColorizeRgb[2]}, ${shaderColorizeBlend})`;
+    bufferCtx.fillRect(0, 0, width, height);
+  }
+  bufferCtx.globalCompositeOperation = "source-over";
+  bufferCtx.imageSmoothingEnabled = wasBufferSmoothing;
+
+  ctx.imageSmoothingEnabled = false;
+  const previousFilter = ctx.filter;
+  if (shaderFilter !== "none") {
+    ctx.filter = shaderFilter;
+  }
+  ctx.drawImage(
+    spriteTintBufferCanvas,
+    0,
+    0,
+    width,
+    height,
+    snappedDrawX,
+    snappedDrawY,
+    snappedDrawWidth,
+    snappedDrawHeight,
+  );
+  if (shaderFilter !== "none") {
+    ctx.filter = previousFilter;
+  }
+  ctx.imageSmoothingEnabled = wasSmoothing;
+}
+
+function drawPokemonSprite(entity, x, y, size, options = {}) {
+  ctx.save();
+  const morphingShaderForTransform =
+    entity?.spriteShader && typeof entity.spriteShader === "object" ? entity.spriteShader : null;
+  const morphingVisualActive =
+    Number(entity?.morphingSourceId || 0) > 0
+    && String(morphingShaderForTransform?.paletteKind || "").toLowerCase() === "metamorph";
+  const morphingWobble = morphingVisualActive ? getMorphingWobbleTransform(entity, size) : null;
+  const offsetX = Number.isFinite(options.offsetX) ? options.offsetX : 0;
+  const offsetY = Number.isFinite(options.offsetY) ? options.offsetY : 0;
+  const wobbleOffsetX = morphingWobble ? Number(morphingWobble.offsetX || 0) : 0;
+  const wobbleOffsetY = morphingWobble ? Number(morphingWobble.offsetY || 0) : 0;
+  ctx.translate(snapSpriteValue(x + offsetX + wobbleOffsetX), snapSpriteValue(y + offsetY + wobbleOffsetY));
+  const drawAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+  ctx.globalAlpha = drawAlpha;
+  const baseScale = Number.isFinite(options.scale) ? Math.max(0, options.scale) : 1;
+  const scaleX = Number.isFinite(options.scaleX) ? Math.max(0, options.scaleX) : baseScale;
+  const scaleY = Number.isFinite(options.scaleY) ? Math.max(0, options.scaleY) : baseScale;
+  const wobbleScaleX = morphingWobble ? Number(morphingWobble.scaleX || 1) : 1;
+  const wobbleScaleY = morphingWobble ? Number(morphingWobble.scaleY || 1) : 1;
+  const flipX = options.flipX ? -1 : 1;
+  const rotationRad = Number.isFinite(options.rotationRad) ? Number(options.rotationRad) : 0;
+  ctx.scale(scaleX * wobbleScaleX * flipX, scaleY * wobbleScaleY);
+  if (morphingWobble) {
+    const wobbleShearX = Number(morphingWobble.shearX || 0);
+    const wobbleRotation = Number(morphingWobble.rotationRad || 0);
+    if (Math.abs(wobbleShearX) > 0.0001) {
+      ctx.transform(1, 0, wobbleShearX, 1, 0, 0);
+    }
+    if (Math.abs(wobbleRotation) > 0.0001) {
+      ctx.rotate(wobbleRotation);
+    }
+  }
+  const shinyVisual = Boolean(options.shinyVisual || entity?.isShinyVisual || entity?.isShiny);
+  const ultraShinyVisual = Boolean(options.ultraShinyVisual || entity?.isUltraShinyVisual || entity?.isUltraShiny);
+  const shinyNegativeFallbackVisual = Boolean(
+    !ultraShinyVisual
+    && (options.shinyNegativeFallbackVisual || entity?.isShinyNegativeFallbackVisual),
+  );
+  const tintBlend = clamp(Number(options.tintBlend || 0), 0, 1);
+  const tintColor = Array.isArray(options.tintColor) ? options.tintColor : [255, 255, 255];
+  const ultraSeed =
+    Number(entity?.id || 0) * 0.73 + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 19.7;
+  const customShaderConfig =
+    options?.shader && typeof options.shader === "object"
+      ? options.shader
+      : entity?.spriteShader && typeof entity.spriteShader === "object"
+        ? entity.spriteShader
+        : null;
+  const ultraShaderConfig = ultraShinyVisual ? getUltraShinyShaderConfig(ultraSeed) : null;
+  const shinyNegativeShaderConfig = shinyNegativeFallbackVisual ? SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG : null;
+  const shaderWithUltra = mergeSpriteShaderConfig(customShaderConfig, ultraShaderConfig);
+  const shaderConfig = mergeSpriteShaderConfig(shaderWithUltra, shinyNegativeShaderConfig);
+  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
+  const spriteImage = resolvedSpriteSource.source;
+  const minRenderSizePx = Number.isFinite(options.minRenderSizePx) ? Math.max(0, Number(options.minRenderSizePx)) : 0;
+  const renderSize = Math.max(
+    minRenderSizePx,
+    getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource),
+  );
+  let spriteDrawX = -renderSize * 0.5;
+  let spriteDrawY = -renderSize * 0.5;
+  let spriteDrawWidth = renderSize;
+  let spriteDrawHeight = renderSize;
+  let spriteUsedImage = false;
+  const shadowProfile = String(options.shadowProfile || "team").toLowerCase();
+  const shadowGroundOffsetY = Number.isFinite(options.shadowGroundOffsetY)
+    ? Number(options.shadowGroundOffsetY)
+    : -(offsetY + wobbleOffsetY);
+  const shadowLiftPx = Number.isFinite(options.shadowLiftPx)
+    ? Math.max(0, Number(options.shadowLiftPx))
+    : Math.max(0, -(offsetY + wobbleOffsetY));
+  let predictedShadowSize = renderSize;
+  let predictedShadowCenterY = renderSize * 0.5;
+  if (isDrawableImage(spriteImage)) {
+    const predictedDims = getDrawableImageDimensions(spriteImage);
+    const predictedWidth = predictedDims.width;
+    const predictedHeight = predictedDims.height;
+    const predictedRatio = predictedWidth / Math.max(predictedHeight, 1);
+    let predictedDrawWidth = snapSpriteDimension(renderSize);
+    let predictedDrawHeight = snapSpriteDimension(renderSize);
+    if (predictedRatio > 1) {
+      predictedDrawHeight = snapSpriteDimension(renderSize / predictedRatio);
+    } else {
+      predictedDrawWidth = snapSpriteDimension(renderSize * predictedRatio);
+    }
+    predictedShadowSize = Math.max(predictedDrawWidth, predictedDrawHeight);
+    const predictedDrawY = snapSpriteValue(-predictedDrawHeight * 0.5);
+    predictedShadowCenterY = predictedDrawY + predictedDrawHeight;
+  } else {
+    predictedShadowSize = renderSize * 0.6;
+    predictedShadowCenterY = renderSize * 0.3;
+  }
+  drawPokemonTerrainShadow(predictedShadowSize, {
+    profile: shadowProfile,
+    spriteAlpha: drawAlpha,
+    alpha: Number.isFinite(options.shadowAlpha) ? Number(options.shadowAlpha) : POKEMON_SHADOW_ALPHA,
+    liftPx: shadowLiftPx,
+    groundOffsetY: shadowGroundOffsetY,
+    centerY: predictedShadowCenterY,
+  });
+  if (Math.abs(rotationRad) > 0.0001) {
+    ctx.rotate(rotationRad);
+  }
+
+  if (isDrawableImage(spriteImage)) {
+    const dims = getDrawableImageDimensions(spriteImage);
+    const sourceWidth = dims.width;
+    const sourceHeight = dims.height;
+    const ratio = sourceWidth / Math.max(sourceHeight, 1);
+    let drawWidth = snapSpriteDimension(renderSize);
+    let drawHeight = snapSpriteDimension(renderSize);
+    if (ratio > 1) {
+      drawHeight = snapSpriteDimension(renderSize / ratio);
+    } else {
+      drawWidth = snapSpriteDimension(renderSize * ratio);
+    }
+    const wasSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    spriteDrawX = snapSpriteValue(-drawWidth * 0.5);
+    spriteDrawY = snapSpriteValue(-drawHeight * 0.5);
+    spriteDrawWidth = drawWidth;
+    spriteDrawHeight = drawHeight;
+    spriteUsedImage = true;
+    let morphingSeed = 0;
+    if (morphingVisualActive) {
+      morphingSeed =
+        Number(entity?.morphingSourceId || 0) * 0.51
+        + Number(entity?.id || 0) * 0.37
+        + hashStringToUnit(String(entity?.spriteVariantId || "default")) * 9.3;
+      drawMorphingSlimeEffect(renderSize, morphingSeed, 1);
+      drawMorphingOutline(
+        spriteImage,
+        spriteDrawX,
+        spriteDrawY,
+        spriteDrawWidth,
+        spriteDrawHeight,
+      );
+    }
+    if (ultraShinyVisual) {
+      drawUltraShinyOutline(
+        spriteImage,
+        spriteDrawX,
+        spriteDrawY,
+        spriteDrawWidth,
+        spriteDrawHeight,
+        ULTRA_SHINY_OUTLINE_PX,
+        1,
+      );
+    }
+    drawSpriteImageWithTint(
+      spriteImage,
+      spriteDrawX,
+      spriteDrawY,
+      drawWidth,
+      drawHeight,
+      tintColor,
+      tintBlend,
+      shaderConfig,
+    );
+    if (morphingVisualActive) {
+      drawMorphingSlimeEffect(renderSize * 0.97, morphingSeed + 0.43, 0.72);
+    }
+    ctx.imageSmoothingEnabled = wasSmoothing;
+  } else {
+    spriteDrawX = -renderSize * 0.3;
+    spriteDrawY = -renderSize * 0.3;
+    spriteDrawWidth = renderSize * 0.6;
+    spriteDrawHeight = renderSize * 0.6;
+    ctx.fillStyle = "rgba(180, 198, 232, 0.36)";
+    ctx.strokeStyle = "rgba(226, 238, 255, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    const fallbackInitial = String(entity?.nameFr || entity?.nameEn || entity?.name || "?").trim().charAt(0) || "?";
+    ctx.fillStyle = "#f7fbff";
+    ctx.font = `bold ${Math.round(renderSize * 0.28)}px Trebuchet MS`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fallbackInitial.toUpperCase(), 0, 0);
+  }
+
+  if (tintBlend > 0.001 && !spriteUsedImage) {
+    // Fallback shape tinting when sprite image is unavailable.
+    ctx.fillStyle = `rgba(${tintColor[0]}, ${tintColor[1]}, ${tintColor[2]}, ${(tintBlend * 0.62).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, renderSize * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (shinyVisual || ultraShinyVisual) {
+    drawShinySparkles(renderSize, Number(entity?.id || 0), drawAlpha);
+  }
+  if (ultraShinyVisual) {
+    drawUltraShinyScintillation(renderSize, ultraSeed, drawAlpha);
+  }
+
+  ctx.restore();
+}
+
+function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
+  const safeText = String(text || "");
+  const safeMaxWidth = Math.max(16, Number(maxWidth) || 0);
+  let size = clamp(Number(baseSize) || minSize, minSize, 28);
+  let measuredWidth = 0;
+
+  ctx.save();
+  while (size > minSize) {
+    ctx.font = `700 ${size}px Tahoma`;
+    measuredWidth = Math.ceil(ctx.measureText(safeText).width);
+    if (measuredWidth <= safeMaxWidth) {
+      break;
+    }
+    size -= 1;
+  }
+  if (measuredWidth <= 0) {
+    ctx.font = `700 ${size}px Tahoma`;
+    measuredWidth = Math.ceil(ctx.measureText(safeText).width);
+  }
+  ctx.restore();
+  return { size, width: measuredWidth };
+}
+
+function fitTextToWidthWithEllipsis(text, maxWidth, suffix = "...") {
+  const source = Array.from(String(text || ""));
+  if (source.length <= 0) {
+    return "";
+  }
+  const safeMaxWidth = Math.max(0, Number(maxWidth) || 0);
+  if (safeMaxWidth <= 0) {
+    return "";
+  }
+
+  const fullText = source.join("");
+  if (ctx.measureText(fullText).width <= safeMaxWidth) {
+    return fullText;
+  }
+
+  const safeSuffix = String(suffix || "");
+  if (!safeSuffix) {
+    return "";
+  }
+  if (ctx.measureText(safeSuffix).width > safeMaxWidth) {
+    return "";
+  }
+
+  let low = 0;
+  let high = source.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) * 0.5);
+    const candidate = source.slice(0, mid).join("") + safeSuffix;
+    if (ctx.measureText(candidate).width <= safeMaxWidth) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  if (low <= 0) {
+    return safeSuffix;
+  }
+  return source.slice(0, low).join("") + safeSuffix;
+}
+
+function getEnemyOwnershipBadgeState(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0) {
+    return {
+      exactOwned: false,
+      familyOwned: false,
+      exactShiny: false,
+      familyShiny: false,
+      exactUltraShiny: false,
+      familyUltraShiny: false,
+    };
+  }
+
+  const record = getPokemonEntityRecord(id);
+  const exactOwned = isEntityUnlocked(record);
+  const familyOwned = isEvolutionFamilyOwned(id);
+  const exactShiny = Math.max(0, toSafeInt(record?.captured_shiny, 0)) > 0;
+  const familyShiny = getFamilyShinyCaptureCount(id) > 0;
+  const exactUltraShiny = Math.max(0, toSafeInt(record?.captured_ultra_shiny, 0)) > 0;
+  const familyUltraShiny = getFamilyUltraShinyCaptureCount(id) > 0;
+
+  return {
+    exactOwned,
+    familyOwned,
+    exactShiny,
+    familyShiny,
+    exactUltraShiny,
+    familyUltraShiny,
+  };
+}
+
+function buildEnemyOwnershipBadgeList(pokemonId) {
+  const status = getEnemyOwnershipBadgeState(pokemonId);
+  const badges = [];
+  if (status.exactOwned || status.familyOwned) {
+    badges.push({
+      type: "owned",
+      exact: status.exactOwned,
+    });
+  }
+  if (status.exactShiny || status.familyShiny) {
+    badges.push({
+      type: "shiny",
+      exact: status.exactShiny,
+    });
+  }
+  if (status.exactUltraShiny || status.familyUltraShiny) {
+    badges.push({
+      type: "ultra_shiny",
+      exact: status.exactUltraShiny,
+    });
+  }
+  return badges;
+}
+
+function drawEnemyOwnershipBadge(centerX, centerY, size, badge = null) {
+  if (!badge) {
+    return;
+  }
+  const safeSize = clamp(Number(size) || 0, 10, 18);
+  const exact = badge.exact === true;
+
+  if (badge.type === "owned") {
+    drawPokeball(centerX, centerY, safeSize * 0.45, {
+      alpha: exact ? 0.98 : 0.52,
+      ball_type: "poke_ball",
+    });
+    if (!exact) {
+      ctx.save();
+      ctx.fillStyle = "rgba(116, 128, 146, 0.5)";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, safeSize * 0.44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(196, 211, 229, 0.55)";
+      ctx.lineWidth = Math.max(1, safeSize * 0.07);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, safeSize * 0.43, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
+
+  ctx.save();
+  ctx.globalAlpha = exact ? 1 : 0.58;
+  const radius = safeSize * 0.5;
+  const gradient =
+    badge.type === "ultra_shiny"
+      ? ctx.createConicGradient(0, centerX, centerY)
+      : ctx.createRadialGradient(
+          centerX - radius * 0.2,
+          centerY - radius * 0.28,
+          Math.max(0.2, radius * 0.06),
+          centerX,
+          centerY,
+          radius,
+        );
+  if (badge.type === "ultra_shiny") {
+    gradient.addColorStop(0, "#ff4f9b");
+    gradient.addColorStop(1 / 6, "#ff9f3f");
+    gradient.addColorStop(2 / 6, "#ffe24e");
+    gradient.addColorStop(3 / 6, "#55d8ff");
+    gradient.addColorStop(4 / 6, "#7a6dff");
+    gradient.addColorStop(1, "#ff4f9b");
+  } else {
+    gradient.addColorStop(0, "#ffffff");
+    gradient.addColorStop(0.62, "#cedef8");
+    gradient.addColorStop(1, "#93a8cd");
+  }
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(238, 248, 255, 0.62)";
+  ctx.lineWidth = Math.max(1, safeSize * 0.075);
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius - ctx.lineWidth * 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.font = `700 ${Math.max(8, Math.round(safeSize * 0.68))}px "Trebuchet MS", "Verdana", sans-serif`;
+  ctx.lineWidth = Math.max(0.8, safeSize * 0.08);
+  ctx.strokeStyle = "rgba(19, 30, 49, 0.72)";
+  ctx.fillStyle = "#f8fbff";
+  ctx.strokeText("\u2726", centerX, centerY + safeSize * 0.02);
+  ctx.fillText("\u2726", centerX, centerY + safeSize * 0.02);
+  ctx.restore();
+}
+function drawNameAndLevel(entity, centerX, topY, options = {}) {
+  if (!entity) {
+    return null;
+  }
+  const enemy = Boolean(options.enemy);
+  const allowOverflow = options.allowOverflow === true;
+  const maxWidth = clamp(Number(options.maxWidth) || (enemy ? 220 : 122), 56, state.viewport.width - 16);
+  const nameBaseSize = clamp(Number(options.nameFontSize) || (enemy ? 20 : 16), 10, 24);
+  const levelBaseSize = clamp(Number(options.levelFontSize) || (enemy ? 13 : 11), 8, 16);
+  const levelText = `Lv${entity.level}`;
+
+  let cardWidth = 0;
+  let cardHeight = 0;
+  let x = 0;
+  let y = 0;
+
+  ctx.save();
+  ctx.lineJoin = "round";
+  ctx.shadowBlur = 0;
+
+  if (enemy) {
+    const ownershipBadges = buildEnemyOwnershipBadgeList(entity.id);
+    const horizontalPadding = 12;
+    const verticalPadding = 6;
+    const levelGap = maxWidth <= 180 ? 10 : 14;
+    const badgeSize = clamp(levelBaseSize + 1, 10, 15);
+    const badgeGap = 3;
+    const leftBadgeWidth = ownershipBadges.length > 0
+      ? ownershipBadges.length * badgeSize + Math.max(0, ownershipBadges.length - 1) * badgeGap
+      : 0;
+    const badgeNameGap = ownershipBadges.length > 0 ? 7 : 0;
+    const levelMetrics = getFittedFontMetrics(levelText, Math.max(34, maxWidth * 0.32), levelBaseSize, 9);
+    const reservedRightWidth = levelMetrics.width + levelGap;
+    const nameMetrics = getFittedFontMetrics(
+      entity.nameFr,
+      Math.max(36, maxWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 4),
+      nameBaseSize,
+      12,
+    );
+    const contentWidth = leftBadgeWidth + badgeNameGap + nameMetrics.width + reservedRightWidth;
+    const minCardWidth = Math.max(84, horizontalPadding * 2 + reservedRightWidth + leftBadgeWidth + 18);
+    cardWidth = clamp(
+      contentWidth + horizontalPadding * 2 + 8,
+      minCardWidth,
+      maxWidth,
+    );
+    cardHeight = Math.round(Math.max(nameMetrics.size, levelMetrics.size, badgeSize - 1) + verticalPadding * 2 + 2);
+    const xRaw = centerX - cardWidth * 0.5;
+    const yRaw = Number(topY) || 0;
+    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);
+    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);
+
+    if (options.card !== false) {
+      drawRetroHudPanel(x, y, cardWidth, cardHeight, {
+        cut: 14,
+        fillTop: "rgba(28, 39, 58, 0.995)",
+        fillBottom: "rgba(13, 21, 35, 0.995)",
+        border: "rgba(82, 109, 143, 0.94)",
+        highlight: "rgba(157, 186, 219, 0.2)",
+        shadow: "rgba(0, 0, 0, 0.44)",
+        borderWidth: 2,
+      });
+    }
+
+    const midY = y + cardHeight * 0.5;
+    const contentStartX = x + horizontalPadding;
+
+    if (ownershipBadges.length > 0) {
+      let badgeCenterX = contentStartX + badgeSize * 0.5;
+      for (const badge of ownershipBadges) {
+        drawEnemyOwnershipBadge(badgeCenterX, midY, badgeSize, badge);
+        badgeCenterX += badgeSize + badgeGap;
+      }
+    }
+
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#eef6ff";
+    const nameX = contentStartX + leftBadgeWidth + badgeNameGap;
+    const nameTextMaxWidth = Math.max(
+      22,
+      cardWidth - horizontalPadding * 2 - leftBadgeWidth - badgeNameGap - reservedRightWidth - 2,
+    );
+    const nameText = fitTextToWidthWithEllipsis(entity.nameFr, nameTextMaxWidth);
+    ctx.fillText(nameText, nameX, midY);
+
+    ctx.textAlign = "right";
+    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#b8cee5";
+    ctx.fillText(levelText, x + cardWidth - horizontalPadding, midY);
+  } else {
+    const horizontalPadding = 8;
+    const verticalPadding = 5;
+    const lineGap = 3;
+    const nameMetrics = getFittedFontMetrics(entity.nameFr, maxWidth - horizontalPadding * 2, nameBaseSize, 10);
+    const levelMetrics = getFittedFontMetrics(levelText, maxWidth - horizontalPadding * 2, levelBaseSize, 8);
+    cardWidth = clamp(
+      Math.max(nameMetrics.width, levelMetrics.width) + horizontalPadding * 2,
+      72,
+      maxWidth,
+    );
+    cardHeight = Math.round(verticalPadding * 2 + nameMetrics.size + lineGap + levelMetrics.size);
+    const xRaw = centerX - cardWidth * 0.5;
+    const yRaw = Number(topY) || 0;
+    x = allowOverflow ? xRaw : clamp(xRaw, 8, state.viewport.width - cardWidth - 8);
+    y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - cardHeight - 8);
+    const cardCenterX = x + cardWidth * 0.5;
+
+    if (options.card !== false) {
+      drawRetroHudPanel(x, y, cardWidth, cardHeight, {
+        cut: 10,
+        fillTop: "rgba(26, 37, 56, 0.995)",
+        fillBottom: "rgba(12, 20, 33, 0.995)",
+        border: "rgba(78, 106, 140, 0.9)",
+        highlight: "rgba(154, 184, 218, 0.18)",
+        shadow: "rgba(0, 0, 0, 0.44)",
+        borderWidth: 1.4,
+      });
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    const nameBaseline = y + verticalPadding + nameMetrics.size;
+    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#e8f2ff";
+    ctx.fillText(entity.nameFr, cardCenterX, nameBaseline);
+
+    const levelBaseline = nameBaseline + lineGap + levelMetrics.size;
+    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
+    ctx.fillStyle = "#b2cae3";
+    ctx.fillText(levelText, cardCenterX, levelBaseline);
+  }
+  ctx.restore();
+
+  return {
+    x,
+    y,
+    width: cardWidth,
+    height: cardHeight,
+    centerX: x + cardWidth * 0.5,
+    bottom: y + cardHeight,
+  };
+}
+function getEnemyHpDisplayRatios(enemy, targetRatio) {
+  const key = `${Number(enemy?.id || 0)}:${Math.max(1, toSafeInt(enemy?.hpMax, 1))}`;
+  const hud = state.xpHud;
+  if (!hud || hud.enemyHpKey !== key || !Number.isFinite(hud.enemyHpFrontRatio)) {
+    hud.enemyHpKey = key;
+    hud.enemyHpFrontRatio = targetRatio;
+    hud.enemyHpLagRatio = targetRatio;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  if (targetRatio >= 0.995 && hud.enemyHpFrontRatio <= 0.35) {
+    hud.enemyHpFrontRatio = targetRatio;
+    hud.enemyHpLagRatio = targetRatio;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  hud.enemyHpFrontRatio += (targetRatio - hud.enemyHpFrontRatio) * 0.34;
+  if (targetRatio >= hud.enemyHpLagRatio) {
+    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.26;
+  } else {
+    hud.enemyHpLagRatio += (targetRatio - hud.enemyHpLagRatio) * 0.08;
+  }
+
+  if (Math.abs(hud.enemyHpFrontRatio - targetRatio) <= 0.002) {
+    hud.enemyHpFrontRatio = targetRatio;
+  }
+  if (Math.abs(hud.enemyHpLagRatio - targetRatio) <= 0.002) {
+    hud.enemyHpLagRatio = targetRatio;
+  }
+
+  hud.enemyHpFrontRatio = clamp(hud.enemyHpFrontRatio, 0, 1);
+  hud.enemyHpLagRatio = clamp(hud.enemyHpLagRatio, 0, 1);
+  return { front: hud.enemyHpFrontRatio, lag: hud.enemyHpLagRatio };
+}
+
+function getEnemyHpPalette(ratio) {
+  if (ratio >= 0.55) {
+    return {
+      start: "rgba(112, 188, 82, 0.99)",
+      end: "rgba(149, 208, 95, 0.99)",
+      glow: "rgba(172, 224, 123, 0.34)",
+    };
+  }
+  if (ratio >= 0.25) {
+    return {
+      start: "rgba(219, 165, 51, 0.99)",
+      end: "rgba(240, 193, 77, 0.99)",
+      glow: "rgba(255, 222, 140, 0.34)",
+    };
+  }
+  return {
+    start: "rgba(197, 98, 77, 0.99)",
+    end: "rgba(225, 129, 95, 0.99)",
+    glow: "rgba(239, 162, 122, 0.32)",
+  };
+}
+
+function parseRgbaColor(colorText, fallback = { r: 255, g: 255, b: 255, a: 1 }) {
+  const match = String(colorText || "").match(
+    /rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)/i,
+  );
+  if (!match) {
+    return { ...fallback };
+  }
+  return {
+    r: clamp(Number.parseFloat(match[1]) || 0, 0, 255),
+    g: clamp(Number.parseFloat(match[2]) || 0, 0, 255),
+    b: clamp(Number.parseFloat(match[3]) || 0, 0, 255),
+    a: clamp(Number.parseFloat(match[4] ?? 1) || 1, 0, 1),
+  };
+}
+
+function lerpColorChannel(start, end, t) {
+  return start + (end - start) * clamp(Number(t) || 0, 0, 1);
+}
+
+function getColorLuminance(color) {
+  const r = clamp((Number(color?.r) || 0) / 255, 0, 1);
+  const g = clamp((Number(color?.g) || 0) / 255, 0, 1);
+  const b = clamp((Number(color?.b) || 0) / 255, 0, 1);
+  return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
+
+function pickContrastingHudTextColor(baseColor) {
+  const luminance = getColorLuminance(baseColor);
+  return luminance >= 0.56
+    ? { fill: "rgba(18, 33, 51, 0.98)", stroke: "rgba(240, 248, 255, 0.9)" }
+    : { fill: "rgba(244, 251, 255, 0.98)", stroke: "rgba(12, 22, 34, 0.92)" };
+}
+
+function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
+  const allowOverflow = options.allowOverflow === true;
+  const targetRatio = enemy.hpMax > 0 ? clamp(enemy.hpCurrent / enemy.hpMax, 0, 1) : 0;
+  const { front: frontRatio, lag: lagRatio } = getEnemyHpDisplayRatios(enemy, targetRatio);
+  const panelHeight = Math.max(24, height + 10);
+  const panelWidth = clamp(width + 96, 180, state.viewport.width - 18);
+  const panelXRaw = centerX - panelWidth * 0.5;
+  const panelYRaw = (Number(topY) || 0) - 5;
+  const panelX = allowOverflow ? panelXRaw : clamp(panelXRaw, 8, state.viewport.width - panelWidth - 8);
+  const panelY = allowOverflow ? panelYRaw : clamp(panelYRaw, 3, state.viewport.height - panelHeight - 8);
+  const chipX = panelX + 5;
+  const chipY = panelY + 4;
+  const chipWidth = 26;
+  const chipHeight = panelHeight - 8;
+  const trackY = panelY + Math.round((panelHeight - height) * 0.5);
+  const hpLabel = `${formatCompactNumber(Math.max(0, Math.round(enemy.hpCurrent)), {
+    decimalsSmall: 2,
+    decimalsMedium: 1,
+    decimalsLarge: 0,
+  })}/${formatCompactNumber(Math.max(0, Math.round(enemy.hpMax)), {
+    decimalsSmall: 2,
+    decimalsMedium: 1,
+    decimalsLarge: 0,
+  })}`;
+
+  ctx.save();
+  ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
+  const trackX = chipX + chipWidth + 8;
+  const trackWidth = Math.max(50, panelX + panelWidth - trackX - 8);
+  const trackRadius = Math.max(2, height * 0.32);
+
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: 14,
+    fillTop: "rgba(44, 60, 84, 0.99)",
+    fillBottom: "rgba(25, 36, 54, 0.99)",
+    border: "rgba(102, 129, 161, 0.98)",
+    highlight: "rgba(188, 212, 237, 0.3)",
+    shadow: "rgba(0, 0, 0, 0.36)",
+    borderWidth: 2,
+  });
+
+  drawRetroHudPanel(chipX, chipY, chipWidth, chipHeight, {
+    cut: 6,
+    fillTop: "rgba(243, 182, 84, 0.99)",
+    fillBottom: "rgba(192, 117, 47, 0.99)",
+    border: "rgba(151, 96, 40, 0.96)",
+    highlight: "rgba(255, 232, 167, 0.56)",
+    shadow: "rgba(0, 0, 0, 0)",
+    shadowOffsetY: 0,
+    borderWidth: 1.2,
+  });
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `700 ${Math.max(9, Math.round(chipHeight * 0.45))}px Tahoma`;
+  ctx.fillStyle = "#fff9ef";
+  ctx.fillText("HP", chipX + chipWidth * 0.5 - 0.5, chipY + chipHeight * 0.56);
+
+  ctx.fillStyle = "rgba(82, 95, 116, 0.98)";
+  ctx.beginPath();
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
+  ctx.fill();
+
+  if (lagRatio > 0.001) {
+    ctx.fillStyle = "rgba(134, 121, 98, 0.68)";
+    ctx.beginPath();
+    ctx.roundRect(trackX, trackY, trackWidth * lagRatio, height, trackRadius);
+    ctx.fill();
+  }
+
+  if (frontRatio > 0.001) {
+    const palette = getEnemyHpPalette(frontRatio);
+    const fillGradient = ctx.createLinearGradient(trackX, trackY, trackX + trackWidth, trackY);
+    fillGradient.addColorStop(0, palette.start);
+    fillGradient.addColorStop(1, palette.end);
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(trackX, trackY, trackWidth * frontRatio, height, trackRadius);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.fillRect(trackX + 1, trackY + 1, Math.max(0, trackWidth * frontRatio - 2), Math.max(1, height * 0.32));
+
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = palette.glow;
+    ctx.fillRect(trackX, trackY - 1, trackWidth * frontRatio, height + 2);
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  ctx.strokeStyle = "rgba(81, 89, 105, 0.96)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const hpTextMinSize = 9;
+  let hpTextSize = Math.max(hpTextMinSize, Math.round(panelHeight * 0.5));
+  ctx.font = `700 ${hpTextSize}px Tahoma`;
+  const maxHpLabelWidth = Math.max(24, trackWidth - 10);
+  while (hpTextSize > hpTextMinSize && ctx.measureText(hpLabel).width > maxHpLabelWidth) {
+    hpTextSize -= 1;
+    ctx.font = `700 ${hpTextSize}px Tahoma`;
+  }
+  const labelX = trackX + trackWidth * 0.5;
+  const labelY = trackY + height * 0.52;
+  const filledWidth = trackWidth * frontRatio;
+  const trackBaseColor = { r: 82, g: 95, b: 116, a: 1 };
+  const emptyTextStyle = pickContrastingHudTextColor(trackBaseColor);
+
+  let fillTextStyle = emptyTextStyle;
+  if (frontRatio > 0.001) {
+    const palette = getEnemyHpPalette(frontRatio);
+    const fillStart = parseRgbaColor(palette.start, trackBaseColor);
+    const fillEnd = parseRgbaColor(palette.end, trackBaseColor);
+    const sampledFillColor = {
+      r: lerpColorChannel(fillStart.r, fillEnd.r, 0.5),
+      g: lerpColorChannel(fillStart.g, fillEnd.g, 0.5),
+      b: lerpColorChannel(fillStart.b, fillEnd.b, 0.5),
+      a: lerpColorChannel(fillStart.a, fillEnd.a, 0.5),
+    };
+    fillTextStyle = pickContrastingHudTextColor(sampledFillColor);
+  }
+
+  const drawHpText = (style) => {
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(1.7, hpTextSize * 0.24);
+    ctx.strokeStyle = style.stroke;
+    ctx.strokeText(hpLabel, labelX, labelY);
+    ctx.fillStyle = style.fill;
+    ctx.fillText(hpLabel, labelX, labelY);
+  };
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
+  ctx.clip();
+  if (filledWidth > 0.25) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(trackX - 1, trackY - 2, filledWidth + 2, height + 4);
+    ctx.clip();
+    drawHpText(fillTextStyle);
+    ctx.restore();
+  }
+  if (filledWidth < trackWidth - 0.25) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(trackX + filledWidth - 1, trackY - 2, trackWidth - filledWidth + 2, height + 4);
+    ctx.clip();
+    drawHpText(emptyTextStyle);
+    ctx.restore();
+  }
+  ctx.restore();
+  ctx.restore();
+}
+
+function getTeamXpDisplayRatios(member, slotIndex, targetRatio) {
+  const slotKey = String(Math.max(0, toSafeInt(slotIndex, 0)));
+  const bySlot = state.xpHud?.teamXpBySlot || {};
+  const memberId = Number(member?.id || 0);
+  const memberLevel = Math.max(1, toSafeInt(member?.level, 1));
+  let entry = bySlot[slotKey];
+
+  if (
+    !entry
+    || Number(entry.memberId || 0) !== memberId
+    || Math.max(1, toSafeInt(entry.level, 1)) !== memberLevel
+    || !Number.isFinite(entry.front)
+    || !Number.isFinite(entry.lag)
+  ) {
+    entry = {
+      memberId,
+      level: memberLevel,
+      front: targetRatio,
+      lag: targetRatio,
+    };
+    bySlot[slotKey] = entry;
+    state.xpHud.teamXpBySlot = bySlot;
+    return { front: targetRatio, lag: targetRatio };
+  }
+
+  entry.level = memberLevel;
+  entry.front += (targetRatio - entry.front) * 0.26;
+  if (targetRatio >= entry.lag) {
+    entry.lag += (targetRatio - entry.lag) * 0.18;
+  } else {
+    entry.lag += (targetRatio - entry.lag) * 0.1;
+  }
+  if (Math.abs(entry.front - targetRatio) <= 0.0018) {
+    entry.front = targetRatio;
+  }
+  if (Math.abs(entry.lag - targetRatio) <= 0.0018) {
+    entry.lag = targetRatio;
+  }
+  entry.front = clamp(entry.front, 0, 1);
+  entry.lag = clamp(entry.lag, 0, 1);
+  return { front: entry.front, lag: entry.lag };
+}
+
+function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
+  if (!member || member.level >= MAX_LEVEL) {
+    return;
+  }
+  const allowOverflow = options.allowOverflow === true;
+  const currentXp = Math.max(0, toSafeInt(member.xp, 0));
+  const requiredXp = Math.max(1, toSafeInt(member.xpToNext, 1));
+  const ratio = clamp(currentXp / requiredXp, 0, 1);
+  const display = getTeamXpDisplayRatios(member, slotIndex, ratio);
+  const width = clamp(Number(options.width) || 72, 40, 96);
+  const height = clamp(Number(options.height) || 4, 3, 5);
+  const x = centerX - width * 0.5;
+  const yRaw = Number(topY) || 0;
+  const y = allowOverflow ? yRaw : clamp(yRaw, 8, state.viewport.height - height - 8);
+  const radius = Math.max(2, height * 0.45);
+
+  ctx.save();
+  ctx.fillStyle = "rgba(19, 29, 44, 0.72)";
+  ctx.beginPath();
+  ctx.roundRect(x - 1.5, y - 1.5, width + 3, height + 3, radius + 1);
+  ctx.fill();
+
+  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
+  trackGradient.addColorStop(0, "rgba(55, 75, 103, 0.98)");
+  trackGradient.addColorStop(1, "rgba(36, 52, 73, 0.98)");
+  ctx.fillStyle = trackGradient;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.fill();
+
+  if (display.lag > 0.001) {
+    ctx.fillStyle = "rgba(95, 129, 167, 0.5)";
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * display.lag, height, radius);
+    ctx.fill();
+  }
+
+  if (display.front > 0.001) {
+    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    fillGradient.addColorStop(0, "rgba(98, 156, 210, 0.99)");
+    fillGradient.addColorStop(1, "rgba(137, 191, 235, 0.99)");
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * display.front, height, radius);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.fillRect(x + 1, y + 1, Math.max(0, width * display.front - 2), Math.max(1, height * 0.3));
+  }
+
+  ctx.strokeStyle = "rgba(129, 163, 201, 0.78)";
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  ctx.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, radius + 0.5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawRouteDefeatTimerBar(timerState, layout = null) {
+  if (!timerState?.running || timerState.duration_ms <= 0) {
+    return;
+  }
+  const isOnlyOneTimer = String(timerState?.style || "").toLowerCase() === ENEMY_TIMER_STYLE_ONLY_ONE;
+  const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const unlockProgressState = getRouteUnlockProgressState(currentRouteId);
+  const showDefeatCounter =
+    !isOnlyOneTimer &&
+    unlockProgressState.unlockMode === "defeats" &&
+    unlockProgressState.unlockTarget > 0;
+  const defeatCounterText = showDefeatCounter
+    ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pokemon battus`
+    : "";
+  const remainingMs = Math.max(0, Number(timerState.remaining_ms) || 0);
+  const remainingSeconds = Math.max(0, remainingMs / 1000);
+  const remainingDisplaySeconds = Math.max(0, Math.ceil(remainingSeconds * 10) / 10);
+  const timerText = `${remainingDisplaySeconds.toFixed(1)}s`;
+  const ratio = clamp(Number(timerState.remaining_ratio) || 0, 0, 1);
+  const danger = 1 - ratio;
+  const compactHud = isCoarsePointerDevice() || state.viewport.width <= 760;
+  const width = compactHud
+    ? clamp(state.viewport.width * 0.44, 170, 420)
+    : clamp(state.viewport.width * 0.58, 220, 540);
+  const height = compactHud
+    ? clamp(state.viewport.height * 0.019, 10, 14)
+    : clamp(state.viewport.height * 0.028, 14, 20);
+  const x = (state.viewport.width - width) * 0.5;
+  const safeTop = Number(layout?.safeBounds?.top);
+  const verticalOffset = compactHud
+    ? clamp(state.viewport.height * 0.01, 8, 12)
+    : clamp(state.viewport.height * 0.012, 10, 18);
+  const overlayPaddingTop = getOverlayPaddingSnapshot().top;
+  const topHudHeight = getElementClientHeight(uiTopbarEl);
+  const hudAnchorY = overlayPaddingTop + topHudHeight + (compactHud ? 2 : 4);
+  const yFromSafeBounds = Number.isFinite(safeTop)
+    ? safeTop + verticalOffset
+    : state.viewport.height * 0.025;
+  const topHudGap = compactHud ? 4 : 6;
+  const preferredY = Number.isFinite(safeTop)
+    ? Math.max(yFromSafeBounds, hudAnchorY + topHudGap)
+    : state.viewport.height * 0.025;
+  const y = Number.isFinite(safeTop)
+    ? clamp(
+      preferredY,
+      compactHud ? 8 : 10,
+      state.viewport.height - height - 24,
+    )
+    : clamp(state.viewport.height * 0.025, compactHud ? 8 : 10, compactHud ? 16 : 20);
+  const radius = Math.max(2, height * 0.36);
+  const pulse = ratio < 0.35 ? (0.5 + 0.5 * Math.sin(state.timeMs * 0.016)) * (0.08 + danger * 0.18) : 0;
+  const panelPaddingX = compactHud ? 4 : 6;
+  const panelPaddingY = compactHud ? 3 : 4;
+  const panelX = x - panelPaddingX;
+  const panelY = y - panelPaddingY;
+  const panelWidth = width + panelPaddingX * 2;
+  const panelHeight = height + panelPaddingY * 2;
+
+  ctx.save();
+  ctx.globalAlpha = 0.94;
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: 10,
+    fillTop: "rgba(44, 60, 83, 0.99)",
+    fillBottom: "rgba(26, 37, 54, 0.99)",
+    border: "rgba(101, 128, 160, 0.98)",
+    highlight: "rgba(183, 208, 235, 0.24)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.7,
+  });
+
+  const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
+  trackGradient.addColorStop(0, "rgba(81, 95, 115, 0.98)");
+  trackGradient.addColorStop(1, "rgba(57, 69, 86, 0.98)");
+  ctx.fillStyle = trackGradient;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.fill();
+
+  if (ratio > 0.001) {
+    const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
+    if (isOnlyOneTimer) {
+      fillGradient.addColorStop(0, "rgba(197, 126, 255, 0.99)");
+      fillGradient.addColorStop(0.48, "rgba(162, 95, 237, 0.99)");
+      fillGradient.addColorStop(1, "rgba(127, 63, 212, 0.99)");
+    } else {
+      fillGradient.addColorStop(0, "rgba(242, 181, 79, 0.98)");
+      fillGradient.addColorStop(0.48, "rgba(219, 121, 59, 0.98)");
+      fillGradient.addColorStop(1, "rgba(188, 77, 63, 0.98)");
+    }
+    ctx.fillStyle = fillGradient;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width * ratio, height, radius);
+    ctx.fill();
+
+    ctx.fillStyle = isOnlyOneTimer
+      ? `rgba(240, 220, 255, ${(0.12 + pulse).toFixed(3)})`
+      : `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;
+    ctx.fillRect(x + 1, y + 1, Math.max(0, width * ratio - 2), Math.max(1, height * 0.32));
+  }
+
+  ctx.strokeStyle = isOnlyOneTimer
+    ? `rgba(183, 146, 255, ${(0.62 + pulse * 0.4).toFixed(3)})`
+    : `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;
+  ctx.lineWidth = 1.15;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.stroke();
+
+  const timerTextSize = compactHud
+    ? Math.max(8, Math.min(12, Math.round(height * 0.64)))
+    : Math.max(10, Math.min(15, Math.round(height * 0.7)));
+  ctx.font = `700 ${timerTextSize}px Tahoma`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = isOnlyOneTimer ? "rgba(52, 20, 84, 0.82)" : "rgba(45, 22, 18, 0.82)";
+  ctx.fillStyle = "rgba(255, 250, 242, 0.96)";
+  ctx.strokeText(timerText, x + width * 0.5, y + height * 0.5);
+  ctx.fillText(timerText, x + width * 0.5, y + height * 0.5);
+
+  if (defeatCounterText) {
+    const counterTextSize = compactHud
+      ? Math.max(8, Math.min(11, Math.round(height * 0.58)))
+      : Math.max(10, Math.min(14, Math.round(height * 0.64)));
+    const counterY = y + height + (compactHud ? 4 : 6);
+    ctx.font = `700 ${counterTextSize}px Tahoma`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.lineWidth = 2.8;
+    ctx.strokeStyle = "rgba(14, 20, 30, 0.74)";
+    ctx.fillStyle = "rgba(236, 244, 252, 0.98)";
+    ctx.strokeText(defeatCounterText, x + width * 0.5, counterY);
+    ctx.fillText(defeatCounterText, x + width * 0.5, counterY);
+  }
+  ctx.restore();
+}
+
+function getProjectileTypeVfxProfile(typeName) {
+  switch (normalizeType(typeName)) {
+    case "fire":
+      return { motif: "flame", accent: [255, 217, 146], intensity: 1.12 };
+    case "water":
+      return { motif: "droplet", accent: [205, 241, 255], intensity: 1 };
+    case "grass":
+      return { motif: "leaf", accent: [232, 255, 196], intensity: 1.02 };
+    case "electric":
+      return { motif: "bolt", accent: [255, 247, 166], intensity: 1.18 };
+    case "ice":
+      return { motif: "crystal", accent: [236, 251, 255], intensity: 0.96 };
+    case "fighting":
+      return { motif: "impact", accent: [255, 211, 189], intensity: 1.05 };
+    case "poison":
+      return { motif: "bubble", accent: [234, 196, 255], intensity: 0.96 };
+    case "ground":
+      return { motif: "dust", accent: [244, 214, 154], intensity: 0.99 };
+    case "flying":
+      return { motif: "wind", accent: [235, 245, 255], intensity: 1 };
+    case "psychic":
+      return { motif: "orbit", accent: [255, 224, 242], intensity: 1.08 };
+    case "bug":
+      return { motif: "wing", accent: [233, 255, 186], intensity: 0.98 };
+    case "rock":
+      return { motif: "shard", accent: [236, 214, 173], intensity: 0.95 };
+    case "ghost":
+      return { motif: "wisp", accent: [222, 212, 255], intensity: 1.04 };
+    case "dragon":
+      return { motif: "rune", accent: [212, 207, 255], intensity: 1.13 };
+    case "dark":
+      return { motif: "shadow", accent: [189, 177, 166], intensity: 0.95 };
+    case "steel":
+      return { motif: "gear", accent: [227, 240, 250], intensity: 1 };
+    case "fairy":
+      return { motif: "sparkle", accent: [255, 226, 247], intensity: 1.08 };
+    case "normal":
+      return { motif: "ring", accent: [244, 236, 220], intensity: 0.9 };
+    default:
+      return { motif: "ring", accent: [232, 240, 255], intensity: 0.94 };
+  }
+}
+
+function getProjectileTrailTypeVfxProfile(typeName) {
+  const typeProfile = getProjectileTypeVfxProfile(typeName);
+  const accent = Array.isArray(typeProfile.accent) ? typeProfile.accent : [232, 240, 255];
+  switch (typeProfile.motif) {
+    case "flame":
+      return {
+        mode: "ember",
+        accent,
+        accentMix: 0.66,
+        radiusMul: 0.92,
+        stretch: 1.8,
+        alphaBase: 0.14,
+        alphaLife: 0.31,
+        spacingPx: 6.1,
+      };
+    case "droplet":
+    case "bubble":
+      return {
+        mode: "droplet",
+        accent,
+        accentMix: 0.54,
+        radiusMul: 0.9,
+        stretch: 1.4,
+        alphaBase: 0.14,
+        alphaLife: 0.28,
+        spacingPx: 7.1,
+      };
+    case "leaf":
+    case "wing":
+      return {
+        mode: "leaf",
+        accent,
+        accentMix: 0.62,
+        radiusMul: 0.84,
+        stretch: 1.45,
+        alphaBase: 0.12,
+        alphaLife: 0.29,
+        spacingPx: 7.4,
+      };
+    case "bolt":
+    case "impact":
+    case "gear":
+      return {
+        mode: "spark",
+        accent,
+        accentMix: 0.67,
+        radiusMul: 0.74,
+        stretch: 1.75,
+        alphaBase: 0.14,
+        alphaLife: 0.33,
+        spacingPx: 6.2,
+      };
+    case "crystal":
+    case "shard":
+    case "rune":
+      return {
+        mode: "shard",
+        accent,
+        accentMix: 0.59,
+        radiusMul: 0.82,
+        stretch: 1.42,
+        alphaBase: 0.12,
+        alphaLife: 0.29,
+        spacingPx: 7.5,
+      };
+    case "dust":
+      return {
+        mode: "dust",
+        accent,
+        accentMix: 0.44,
+        radiusMul: 0.96,
+        stretch: 1.22,
+        alphaBase: 0.12,
+        alphaLife: 0.25,
+        spacingPx: 8.4,
+      };
+    case "wisp":
+    case "shadow":
+      return {
+        mode: "wisp",
+        accent,
+        accentMix: 0.5,
+        radiusMul: 1.02,
+        stretch: 1.25,
+        alphaBase: 0.1,
+        alphaLife: 0.24,
+        spacingPx: 8.6,
+      };
+    case "sparkle":
+      return {
+        mode: "sparkle",
+        accent,
+        accentMix: 0.69,
+        radiusMul: 0.78,
+        stretch: 1.52,
+        alphaBase: 0.12,
+        alphaLife: 0.3,
+        spacingPx: 7,
+      };
+    case "orbit":
+    case "wind":
+    case "ring":
+    default:
+      return {
+        mode: "streak",
+        accent,
+        accentMix: 0.52,
+        radiusMul: 0.86,
+        stretch: 1.58,
+        alphaBase: 0.12,
+        alphaLife: 0.27,
+        spacingPx: 7.8,
+      };
+  }
+}
+
+function drawProjectileTypeMotif(projectile, rgb, radius) {
+  if (!projectile || !Number.isFinite(projectile.x) || !Number.isFinite(projectile.y)) {
+    return;
+  }
+  const profile = getProjectileTypeVfxProfile(projectile.attackType);
+  const accent = Array.isArray(profile.accent) ? profile.accent : [255, 255, 255];
+  const intensity = clamp(Number(profile.intensity) || 1, 0.7, 1.4);
+  const ageMs = Math.max(0, Number(projectile.lifetimeMs) || 0);
+  const spin = Number(projectile.spinPhase) || 0;
+  const pulse = 0.72 + Math.sin(ageMs * 0.018 + spin) * 0.28;
+  const r = radius * intensity;
+
+  ctx.save();
+  ctx.translate(projectile.x, projectile.y);
+  ctx.rotate(Number(projectile.rotation) || 0);
+  ctx.globalCompositeOperation = "lighter";
+
+  switch (profile.motif) {
+    case "flame": {
+      for (let i = 0; i < 2; i += 1) {
+        const fx = -r * (1.05 + i * 0.42);
+        const fy = Math.sin(ageMs * 0.026 + i * 1.4) * r * 0.24;
+        const fr = r * (0.95 - i * 0.18) * (0.85 + pulse * 0.25);
+        const flame = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * 1.9);
+        flame.addColorStop(0, rgba(accent, 0.74));
+        flame.addColorStop(0.48, rgba(rgb, 0.56));
+        flame.addColorStop(1, rgba(rgb, 0));
+        ctx.fillStyle = flame;
+        ctx.beginPath();
+        ctx.arc(fx, fy, fr * 1.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "droplet": {
+      ctx.strokeStyle = rgba(accent, 0.45 + pulse * 0.12);
+      ctx.lineWidth = Math.max(1.1, r * 0.23);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.05 + pulse * 0.2), 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 2; i += 1) {
+        const dx = -r * (0.85 + i * 0.4);
+        const dy = Math.sin(ageMs * 0.018 + i * 1.3) * r * 0.32;
+        ctx.fillStyle = rgba(accent, 0.68);
+        ctx.beginPath();
+        ctx.ellipse(dx, dy, r * 0.26, r * 0.38, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "leaf": {
+      for (let i = 0; i < 2; i += 1) {
+        const angle = (i === 0 ? 0.62 : -0.62) + Math.sin(ageMs * 0.012 + i) * 0.12;
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.fillStyle = rgba(accent, 0.68);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r * 0.78, r * 0.36, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      break;
+    }
+    case "bolt": {
+      ctx.strokeStyle = rgba(accent, 0.88);
+      ctx.lineWidth = Math.max(1.4, r * 0.26);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-r * 1.05, -r * 0.16);
+      ctx.lineTo(-r * 0.32, -r * 0.52);
+      ctx.lineTo(-r * 0.18, -r * 0.06);
+      ctx.lineTo(r * 0.76, -r * 0.33);
+      ctx.stroke();
+      ctx.strokeStyle = rgba(rgb, 0.72);
+      ctx.lineWidth = Math.max(1, r * 0.13);
+      ctx.beginPath();
+      ctx.moveTo(-r * 1.05, -r * 0.16);
+      ctx.lineTo(-r * 0.32, -r * 0.52);
+      ctx.lineTo(-r * 0.18, -r * 0.06);
+      ctx.lineTo(r * 0.76, -r * 0.33);
+      ctx.stroke();
+      break;
+    }
+    case "crystal": {
+      ctx.strokeStyle = rgba(accent, 0.78);
+      ctx.lineWidth = Math.max(1.1, r * 0.16);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = (Math.PI / 2) * i;
+        const dx = Math.cos(angle) * r * 0.9;
+        const dy = Math.sin(angle) * r * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "impact": {
+      ctx.strokeStyle = rgba(accent, 0.72);
+      ctx.lineWidth = Math.max(1.2, r * 0.18);
+      for (let i = 0; i < 3; i += 1) {
+        const offsetY = (i - 1) * r * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(-r * 1.1, offsetY);
+        ctx.lineTo(r * 0.86, offsetY * 0.45);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "bubble": {
+      for (let i = 0; i < 3; i += 1) {
+        const offset = i - 1;
+        const bx = offset * r * 0.46;
+        const by = Math.sin(ageMs * 0.01 + i * 1.3) * r * 0.28;
+        ctx.strokeStyle = rgba(accent, 0.54);
+        ctx.lineWidth = Math.max(1, r * 0.11);
+        ctx.beginPath();
+        ctx.arc(bx, by, r * (0.3 + i * 0.05), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "dust": {
+      for (let i = 0; i < 3; i += 1) {
+        const dx = -r * (0.55 + i * 0.35);
+        const dy = Math.sin(ageMs * 0.014 + i * 1.1) * r * 0.24;
+        ctx.fillStyle = rgba(accent, 0.56);
+        ctx.beginPath();
+        ctx.arc(dx, dy, r * (0.24 - i * 0.04), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "wind": {
+      ctx.strokeStyle = rgba(accent, 0.7);
+      ctx.lineWidth = Math.max(1.1, r * 0.17);
+      for (let i = 0; i < 2; i += 1) {
+        const stretch = 1 + i * 0.24;
+        ctx.beginPath();
+        ctx.ellipse(-r * 0.1, 0, r * 0.92 * stretch, r * 0.36, 0, Math.PI * 0.14, Math.PI * 1.74);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "orbit": {
+      ctx.strokeStyle = rgba(accent, 0.52);
+      ctx.lineWidth = Math.max(1.1, r * 0.13);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.02, r * 0.52, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 2; i += 1) {
+        const angle = ageMs * 0.012 + i * Math.PI;
+        const ox = Math.cos(angle) * r * 1.02;
+        const oy = Math.sin(angle) * r * 0.52;
+        ctx.fillStyle = rgba(accent, 0.88);
+        ctx.beginPath();
+        ctx.arc(ox, oy, r * 0.16, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case "wing": {
+      for (let i = 0; i < 2; i += 1) {
+        const sign = i === 0 ? -1 : 1;
+        ctx.strokeStyle = rgba(accent, 0.62);
+        ctx.lineWidth = Math.max(1, r * 0.14);
+        ctx.beginPath();
+        ctx.ellipse(sign * r * 0.18, 0, r * 0.58, r * 0.24, sign * 0.28, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "shard": {
+      ctx.fillStyle = rgba(accent, 0.64);
+      for (let i = 0; i < 2; i += 1) {
+        const shift = i === 0 ? -r * 0.24 : r * 0.2;
+        ctx.beginPath();
+        ctx.moveTo(shift, -r * 0.48);
+        ctx.lineTo(shift + r * 0.3, -r * 0.05);
+        ctx.lineTo(shift + r * 0.08, r * 0.5);
+        ctx.lineTo(shift - r * 0.24, r * 0.06);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case "wisp": {
+      const glow = ctx.createRadialGradient(-r * 0.28, 0, 0, -r * 0.28, 0, r * 1.55);
+      glow.addColorStop(0, rgba(accent, 0.48 + pulse * 0.18));
+      glow.addColorStop(1, rgba(rgb, 0));
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.28, 0, r * 1.55, r * 0.78, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case "rune": {
+      ctx.strokeStyle = rgba(accent, 0.78);
+      ctx.lineWidth = Math.max(1.1, r * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(r * 0.78, r * 0.44);
+      ctx.lineTo(-r * 0.78, r * 0.44);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+    }
+    case "shadow": {
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "rgba(25, 24, 34, 0.45)";
+      ctx.beginPath();
+      ctx.arc(r * 0.14, 0, r * 1.08, Math.PI * 0.15, Math.PI * 1.85);
+      ctx.arc(-r * 0.28, 0, r * 0.8, Math.PI * 1.85, Math.PI * 0.15, true);
+      ctx.fill();
+      break;
+    }
+    case "gear": {
+      ctx.strokeStyle = rgba(accent, 0.74);
+      ctx.lineWidth = Math.max(1.2, r * 0.17);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.9, 0);
+      ctx.lineTo(r * 0.9, 0);
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(0, r * 0.9);
+      ctx.stroke();
+      break;
+    }
+    case "sparkle": {
+      ctx.strokeStyle = rgba(accent, 0.82);
+      ctx.lineWidth = Math.max(1.1, r * 0.14);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = (Math.PI / 4) * i + ageMs * 0.0009;
+        const dx = Math.cos(angle) * r * 0.9;
+        const dy = Math.sin(angle) * r * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-dx, -dy);
+        ctx.lineTo(dx, dy);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "ring":
+    default: {
+      ctx.strokeStyle = rgba(accent, 0.6 + pulse * 0.12);
+      ctx.lineWidth = Math.max(1, r * 0.13);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (0.92 + pulse * 0.16), 0, Math.PI * 2);
+      ctx.stroke();
+      break;
+    }
+  }
+
+  ctx.restore();
+}
+
+function getLaserVisualProfile(attackType, pulse, distance) {
+  const type = String(attackType || "normal");
+  const rgb = getTypeColor(type);
+  let accentRgb = blendRgb(rgb, [255, 255, 255], 0.24);
+  let fringeRgb = blendRgb(rgb, [255, 255, 255], 0.58);
+  let waveAmplitude = clamp(distance * 0.014, 1.8, 10);
+  let waveFrequency = 1.2;
+  let secondaryWave = 0.32;
+  let waveSpeed = 0.011;
+  let particleSpeed = 0.00052;
+  let particleCount = clamp(Math.round(distance / 54) + 2, 4, 10);
+  let particleSize = 1;
+  let particleShape = "orb";
+  let ribbonAlpha = 0.18;
+  let ribbonOffset = 3.2;
+  let ribbonDrift = 0.85;
+  let jaggedness = 0;
+  let widthBoost = 1;
+  let coreBoost = 0;
+  let sourceGlowBoost = 1;
+  let impactGlowBoost = 1;
+  let emitterSpin = 0.002;
+  let impactRingAlpha = 0.24;
+  let impactRayCount = 4;
+  switch (type) {
+    case "fire":
+      accentRgb = [255, 136, 76];
+      fringeRgb = [255, 244, 196];
+      waveAmplitude *= 1.45;
+      waveFrequency = 1.84;
+      secondaryWave = 0.56;
+      waveSpeed = 0.013;
+      particleSpeed = 0.0007;
+      particleCount += 2;
+      particleSize = 1.08;
+      particleShape = "ember";
+      ribbonAlpha = 0.28;
+      ribbonOffset = 4.8;
+      widthBoost = 1.08;
+      sourceGlowBoost = 1.18;
+      impactGlowBoost = 1.2;
+      impactRingAlpha = 0.36;
+      impactRayCount = 7;
+      break;
+    case "water":
+      accentRgb = [96, 223, 255];
+      fringeRgb = [220, 246, 255];
+      waveAmplitude *= 0.86;
+      waveFrequency = 1.08;
+      secondaryWave = 0.48;
+      waveSpeed = 0.009;
+      particleSpeed = 0.00042;
+      particleCount += 1;
+      particleShape = "droplet";
+      ribbonAlpha = 0.36;
+      ribbonOffset = 5.8;
+      ribbonDrift = 0.58;
+      widthBoost = 1.06;
+      sourceGlowBoost = 1.05;
+      impactGlowBoost = 1.08;
+      break;
+    case "grass":
+      accentRgb = [176, 255, 118];
+      fringeRgb = [244, 255, 224];
+      waveAmplitude *= 1.22;
+      waveFrequency = 1.42;
+      secondaryWave = 0.54;
+      particleCount += 1;
+      particleSize = 1.05;
+      particleShape = "leaf";
+      ribbonAlpha = 0.22;
+      ribbonOffset = 4.2;
+      widthBoost = 1.04;
+      impactRingAlpha = 0.3;
+      impactRayCount = 5;
+      break;
+    case "electric":
+      accentRgb = [255, 235, 110];
+      fringeRgb = [255, 249, 196];
+      waveAmplitude *= 1.82;
+      waveFrequency = 2.36;
+      secondaryWave = 0.18;
+      waveSpeed = 0.017;
+      particleSpeed = 0.00086;
+      particleCount += 3;
+      particleSize = 0.92;
+      particleShape = "spark";
+      ribbonAlpha = 0.12;
+      ribbonOffset = 2.8;
+      ribbonDrift = 0.35;
+      jaggedness = 0.74;
+      widthBoost = 0.96;
+      coreBoost = 0.3;
+      sourceGlowBoost = 1.08;
+      impactGlowBoost = 1.22;
+      impactRingAlpha = 0.38;
+      impactRayCount = 9;
+      break;
+    case "ice":
+      accentRgb = [166, 241, 255];
+      fringeRgb = [255, 255, 255];
+      waveAmplitude = clamp(distance * 0.006, 0.8, 3.2);
+      waveFrequency = 0.94;
+      secondaryWave = 0.12;
+      waveSpeed = 0.008;
+      particleSpeed = 0.00034;
+      particleShape = "crystal";
+      ribbonAlpha = 0.24;
+      ribbonOffset = 3.6;
+      widthBoost = 0.98;
+      sourceGlowBoost = 1.12;
+      impactGlowBoost = 1.18;
+      impactRayCount = 6;
+      break;
+    case "psychic":
+      accentRgb = [255, 126, 226];
+      fringeRgb = [255, 228, 248];
+      waveAmplitude *= 1.18;
+      waveFrequency = 1.34;
+      secondaryWave = 0.42;
+      waveSpeed = 0.01;
+      particleSpeed = 0.00046;
+      particleCount += 1;
+      particleShape = "ring";
+      ribbonAlpha = 0.28;
+      ribbonOffset = 5.2;
+      ribbonDrift = 0.74;
+      widthBoost = 1.02;
+      emitterSpin = 0.0028;
+      sourceGlowBoost = 1.1;
+      impactGlowBoost = 1.16;
+      impactRayCount = 5;
+      break;
+    case "dark":
+      accentRgb = [164, 130, 218];
+      fringeRgb = [225, 214, 255];
+      waveAmplitude *= 1.04;
+      waveFrequency = 1.04;
+      secondaryWave = 0.38;
+      waveSpeed = 0.008;
+      particleSpeed = 0.00038;
+      particleShape = "wisp";
+      ribbonAlpha = 0.16;
+      ribbonOffset = 4.4;
+      widthBoost = 1.08;
+      sourceGlowBoost = 1.06;
+      impactGlowBoost = 1.12;
+      break;
+    case "ghost":
+      accentRgb = [168, 198, 255];
+      fringeRgb = [231, 238, 255];
+      waveAmplitude *= 1.08;
+      waveFrequency = 1.16;
+      secondaryWave = 0.34;
+      waveSpeed = 0.009;
+      particleSpeed = 0.0004;
+      particleShape = "wisp";
+      ribbonAlpha = 0.22;
+      ribbonOffset = 4.6;
+      sourceGlowBoost = 1.08;
+      impactGlowBoost = 1.14;
+      break;
+    case "fairy":
+      accentRgb = [255, 182, 230];
+      fringeRgb = [255, 240, 252];
+      waveAmplitude *= 0.96;
+      waveFrequency = 1.24;
+      secondaryWave = 0.4;
+      particleCount += 2;
+      particleShape = "star";
+      ribbonAlpha = 0.26;
+      ribbonOffset = 4.8;
+      sourceGlowBoost = 1.1;
+      impactGlowBoost = 1.16;
+      break;
+    case "dragon":
+      accentRgb = [132, 218, 255];
+      fringeRgb = [232, 247, 255];
+      waveAmplitude *= 1.32;
+      waveFrequency = 1.62;
+      secondaryWave = 0.34;
+      particleCount += 1;
+      particleShape = "shard";
+      ribbonAlpha = 0.2;
+      ribbonOffset = 3.8;
+      widthBoost = 1.08;
+      impactRayCount = 6;
+      break;
+    case "ground":
+    case "rock":
+      accentRgb = type === "ground" ? [231, 194, 92] : [214, 184, 154];
+      fringeRgb = type === "ground" ? [255, 236, 188] : [246, 232, 220];
+      waveAmplitude *= 0.62;
+      waveFrequency = 0.94;
+      secondaryWave = 0.18;
+      waveSpeed = 0.007;
+      particleSpeed = 0.00032;
+      particleShape = "dust";
+      ribbonAlpha = 0.14;
+      ribbonOffset = 2.6;
+      widthBoost = 1.12;
+      coreBoost = 0.4;
+      sourceGlowBoost = 0.98;
+      impactGlowBoost = 1.18;
+      impactRayCount = 4;
+      break;
+    case "steel":
+      accentRgb = [202, 228, 246];
+      fringeRgb = [255, 255, 255];
+      waveAmplitude *= 0.52;
+      waveFrequency = 1;
+      secondaryWave = 0.1;
+      waveSpeed = 0.01;
+      particleSpeed = 0.00048;
+      particleShape = "shard";
+      ribbonAlpha = 0.18;
+      ribbonOffset = 2.8;
+      widthBoost = 0.96;
+      coreBoost = 0.6;
+      sourceGlowBoost = 1.02;
+      impactGlowBoost = 1.06;
+      break;
+    case "poison":
+      accentRgb = [206, 122, 255];
+      fringeRgb = [244, 214, 255];
+      waveAmplitude *= 1.1;
+      waveFrequency = 1.18;
+      secondaryWave = 0.46;
+      waveSpeed = 0.009;
+      particleSpeed = 0.00038;
+      particleCount += 1;
+      particleShape = "droplet";
+      ribbonAlpha = 0.24;
+      ribbonOffset = 4.8;
+      widthBoost = 1.06;
+      impactGlowBoost = 1.16;
+      break;
+    case "bug":
+      accentRgb = [190, 236, 102];
+      fringeRgb = [244, 255, 210];
+      waveAmplitude *= 0.92;
+      waveFrequency = 1.46;
+      secondaryWave = 0.32;
+      particleShape = "leaf";
+      ribbonAlpha = 0.18;
+      ribbonOffset = 3.8;
+      impactRayCount = 5;
+      break;
+    case "fighting":
+      accentRgb = [255, 144, 114];
+      fringeRgb = [255, 229, 213];
+      waveAmplitude *= 0.88;
+      waveFrequency = 1.52;
+      secondaryWave = 0.22;
+      waveSpeed = 0.015;
+      particleSpeed = 0.00068;
+      particleShape = "spark";
+      ribbonAlpha = 0.1;
+      ribbonOffset = 2.2;
+      jaggedness = 0.18;
+      widthBoost = 1.08;
+      impactRingAlpha = 0.34;
+      impactRayCount = 8;
+      break;
+    case "flying":
+      accentRgb = [204, 242, 255];
+      fringeRgb = [255, 255, 255];
+      waveAmplitude *= 1.08;
+      waveFrequency = 1.56;
+      secondaryWave = 0.28;
+      particleShape = "feather";
+      ribbonAlpha = 0.24;
+      ribbonOffset = 5;
+      widthBoost = 0.98;
+      sourceGlowBoost = 1.02;
+      impactGlowBoost = 1.08;
+      break;
+    default:
+      break;
+  }
+  return {
+    type,
+    rgb,
+    accentRgb,
+    fringeRgb,
+    waveAmplitude,
+    waveFrequency,
+    secondaryWave,
+    waveSpeed,
+    particleSpeed,
+    particleCount,
+    particleSize,
+    particleShape,
+    ribbonAlpha,
+    ribbonOffset,
+    ribbonDrift,
+    jaggedness,
+    widthBoost,
+    coreBoost,
+    sourceGlowBoost,
+    impactGlowBoost,
+    emitterSpin,
+    impactRingAlpha,
+    impactRayCount,
+  };
+}
+
+function drawLaserParticleShape(shape, x, y, size, angle, fillStyle, alpha, outlineStyle) {
+  const safeAlpha = clamp(Number(alpha), 0, 1);
+  if (safeAlpha <= 0.01 || size <= 0.05) {
+    return;
+  }
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.globalAlpha = safeAlpha;
+  ctx.fillStyle = fillStyle;
+  ctx.strokeStyle = outlineStyle || fillStyle;
+  ctx.lineWidth = Math.max(0.7, size * 0.14);
+  switch (shape) {
+    case "ember":
+      ctx.beginPath();
+      ctx.moveTo(size * 0.75, 0);
+      ctx.lineTo(0, -size * 0.52);
+      ctx.lineTo(-size * 0.8, 0);
+      ctx.lineTo(0, size * 0.48);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.92, 0);
+      ctx.lineTo(-size * 1.45, -size * 0.18);
+      ctx.lineTo(-size * 1.18, size * 0.14);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case "droplet":
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.9);
+      ctx.quadraticCurveTo(size * 0.72, -size * 0.18, size * 0.34, size * 0.86);
+      ctx.quadraticCurveTo(0, size * 1.08, -size * 0.34, size * 0.86);
+      ctx.quadraticCurveTo(-size * 0.72, -size * 0.18, 0, -size * 0.9);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case "leaf":
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.96, size * 0.54, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = outlineStyle || fillStyle;
+      ctx.lineWidth = Math.max(0.5, size * 0.1);
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.7, 0);
+      ctx.lineTo(size * 0.72, 0);
+      ctx.stroke();
+      break;
+    case "spark":
+      ctx.strokeStyle = outlineStyle || fillStyle;
+      ctx.lineWidth = Math.max(0.8, size * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.9, -size * 0.22);
+      ctx.lineTo(-size * 0.08, -size * 0.3);
+      ctx.lineTo(-size * 0.36, size * 0.84);
+      ctx.lineTo(size * 0.9, size * 0.08);
+      ctx.lineTo(size * 0.1, size * 0.2);
+      ctx.lineTo(size * 0.34, -size * 0.84);
+      ctx.stroke();
+      break;
+    case "crystal":
+    case "shard":
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size * 0.58, -size * 0.14);
+      ctx.lineTo(size * 0.18, size * 0.96);
+      ctx.lineTo(-size * 0.48, size * 0.24);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      break;
+    case "ring":
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.72, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(size * 0.08, 0, size * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case "wisp":
+      ctx.beginPath();
+      ctx.arc(size * 0.1, 0, size * 0.58, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-size * 0.46, size * 0.08, size * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-size * 0.8, size * 0.14, size * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case "star":
+      ctx.beginPath();
+      for (let i = 0; i < 5; i += 1) {
+        const outerAngle = -Math.PI * 0.5 + i * (Math.PI * 2 / 5);
+        const innerAngle = outerAngle + Math.PI / 5;
+        const outerRadius = size;
+        const innerRadius = size * 0.42;
+        const ox = Math.cos(outerAngle) * outerRadius;
+        const oy = Math.sin(outerAngle) * outerRadius;
+        const ix = Math.cos(innerAngle) * innerRadius;
+        const iy = Math.sin(innerAngle) * innerRadius;
+        if (i === 0) {
+          ctx.moveTo(ox, oy);
+        } else {
+          ctx.lineTo(ox, oy);
+        }
+        ctx.lineTo(ix, iy);
+      }
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case "dust":
+      ctx.beginPath();
+      ctx.arc(-size * 0.36, size * 0.1, size * 0.32, 0, Math.PI * 2);
+      ctx.arc(size * 0.18, -size * 0.06, size * 0.44, 0, Math.PI * 2);
+      ctx.arc(size * 0.66, size * 0.12, size * 0.24, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case "feather":
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 0.98, size * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = outlineStyle || fillStyle;
+      ctx.lineWidth = Math.max(0.5, size * 0.1);
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.88, 0);
+      ctx.lineTo(size * 0.92, 0);
+      ctx.stroke();
+      break;
+    default:
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.66, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+  }
+  ctx.restore();
+}
+
+function getLaserOffsetAtT(t, timeMs, phase, profile) {
+  const taper = Math.sin(t * Math.PI);
+  let offset = Math.sin(
+    t * Math.PI * (1.18 + profile.waveFrequency * 1.68)
+    - timeMs * profile.waveSpeed
+    + phase
+  ) * profile.waveAmplitude * taper;
+  if (profile.secondaryWave > 0.001) {
+    offset += Math.cos(
+      t * Math.PI * (2.2 + profile.waveFrequency)
+      + timeMs * profile.waveSpeed * 0.68
+      + phase * 1.7
+    ) * profile.waveAmplitude * profile.secondaryWave * taper;
+  }
+  if (profile.jaggedness > 0.001) {
+    const tooth = Math.sin(t * Math.PI * 13 + phase * 1.4 + timeMs * profile.waveSpeed * 0.5);
+    offset += (tooth >= 0 ? 1 : -1) * profile.waveAmplitude * profile.jaggedness * taper;
+  }
+  return offset;
+}
+
+function sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, profile, t) {
+  const offset = getLaserOffsetAtT(t, timeMs, phase, profile);
+  return {
+    x: sourceX + (targetX - sourceX) * t + normalX * offset,
+    y: sourceY + (targetY - sourceY) * t + normalY * offset,
+    offset,
+  };
+}
+
+function traceLaserCurve(points) {
+  if (!Array.isArray(points) || points.length <= 0) {
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  if (points.length === 1) {
+    return;
+  }
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const nextPoint = points[i + 1];
+    const midX = (points[i].x + nextPoint.x) * 0.5;
+    const midY = (points[i].y + nextPoint.y) * 0.5;
+    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+  }
+  const lastPoint = points[points.length - 1];
+  ctx.lineTo(lastPoint.x, lastPoint.y);
+}
+
+function traceLaserSegment(sourceX, sourceY, targetX, targetY) {
+  ctx.beginPath();
+  ctx.moveTo(sourceX, sourceY);
+  ctx.lineTo(targetX, targetY);
+}
+
+function createLaserRuntimeCanvas(width, height) {
+  const safeWidth = Math.max(1, Math.round(Number(width) || 0));
+  const safeHeight = Math.max(1, Math.round(Number(height) || 0));
+  if (typeof OffscreenCanvas === "function") {
+    return new OffscreenCanvas(safeWidth, safeHeight);
+  }
+  if (typeof document === "object" && document && typeof document.createElement === "function") {
+    const canvasEl = document.createElement("canvas");
+    canvasEl.width = safeWidth;
+    canvasEl.height = safeHeight;
+    return canvasEl;
+  }
+  return null;
+}
+
+const packedLaserBeamTextureCache = {};
+
+function drawPackedLaserTextureBands(textureCtx, profile, width, height) {
+  const centerY = height * 0.5;
+  textureCtx.save();
+  textureCtx.lineCap = "round";
+  textureCtx.lineJoin = "round";
+  switch (profile.type) {
+    case "fire":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.18);
+      textureCtx.lineWidth = 2.4;
+      for (let i = 0; i < 4; i += 1) {
+        const startX = width * (0.08 + i * 0.22);
+        textureCtx.beginPath();
+        textureCtx.moveTo(startX, centerY + (i % 2 === 0 ? 5 : -5));
+        textureCtx.quadraticCurveTo(startX + width * 0.07, centerY + (i % 2 === 0 ? -7 : 7), startX + width * 0.16, centerY);
+        textureCtx.stroke();
+      }
+      break;
+    case "water":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.17);
+      textureCtx.lineWidth = 1.8;
+      for (let i = 0; i < 3; i += 1) {
+        const yOffset = (i - 1) * 5;
+        textureCtx.beginPath();
+        textureCtx.moveTo(0, centerY + yOffset);
+        textureCtx.bezierCurveTo(width * 0.22, centerY + yOffset - 3, width * 0.56, centerY + yOffset + 3, width, centerY + yOffset);
+        textureCtx.stroke();
+      }
+      break;
+    case "grass":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.16);
+      textureCtx.lineWidth = 1.9;
+      for (let i = 0; i < 5; i += 1) {
+        const x = width * (0.12 + i * 0.17);
+        textureCtx.beginPath();
+        textureCtx.moveTo(x, centerY + 6);
+        textureCtx.lineTo(x + 8, centerY - 6);
+        textureCtx.stroke();
+      }
+      break;
+    case "electric":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.24);
+      textureCtx.lineWidth = 2.1;
+      for (let i = 0; i < 4; i += 1) {
+        const startX = width * (0.06 + i * 0.23);
+        textureCtx.beginPath();
+        textureCtx.moveTo(startX, centerY - 5);
+        textureCtx.lineTo(startX + 9, centerY - 1);
+        textureCtx.lineTo(startX + 4, centerY + 1);
+        textureCtx.lineTo(startX + 16, centerY + 6);
+        textureCtx.stroke();
+      }
+      break;
+    case "ice":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.18);
+      textureCtx.lineWidth = 1.4;
+      for (let i = 0; i < 6; i += 1) {
+        const x = width * (0.1 + i * 0.14);
+        textureCtx.beginPath();
+        textureCtx.moveTo(x, centerY - 6);
+        textureCtx.lineTo(x + 6, centerY);
+        textureCtx.lineTo(x, centerY + 6);
+        textureCtx.stroke();
+      }
+      break;
+    case "psychic":
+    case "ghost":
+    case "dark":
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.12);
+      textureCtx.lineWidth = 2.2;
+      for (let i = 0; i < 3; i += 1) {
+        textureCtx.beginPath();
+        textureCtx.arc(width * (0.22 + i * 0.26), centerY, 6 + i * 2, Math.PI * 0.15, Math.PI * 1.85);
+        textureCtx.stroke();
+      }
+      break;
+    default:
+      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.12);
+      textureCtx.lineWidth = 1.8;
+      for (let i = 0; i < 4; i += 1) {
+        const x = width * (0.14 + i * 0.2);
+        textureCtx.beginPath();
+        textureCtx.moveTo(x, centerY - 5);
+        textureCtx.lineTo(x + 8, centerY + 5);
+        textureCtx.stroke();
+      }
+      break;
+  }
+  textureCtx.restore();
+}
+
+function buildPackedLaserBeamTexture(profile) {
+  const texture = createLaserRuntimeCanvas(160, 48);
+  const textureCtx = texture?.getContext?.("2d");
+  if (!textureCtx) {
+    return null;
+  }
+  const width = Number(texture.width) || 160;
+  const height = Number(texture.height) || 48;
+  const centerY = height * 0.5;
+  textureCtx.clearRect(0, 0, width, height);
+  const bodyGradient = textureCtx.createLinearGradient(0, 0, width, 0);
+  bodyGradient.addColorStop(0, rgba(profile.accentRgb, 0));
+  bodyGradient.addColorStop(0.08, rgba(profile.accentRgb, 0.34));
+  bodyGradient.addColorStop(0.24, rgba(profile.accentRgb, 0.72));
+  bodyGradient.addColorStop(0.72, rgba(profile.fringeRgb, 0.92));
+  bodyGradient.addColorStop(1, rgba(profile.fringeRgb, 0.76));
+  textureCtx.fillStyle = bodyGradient;
+  textureCtx.fillRect(0, 0, width, height);
+
+  const haloGradient = textureCtx.createLinearGradient(0, 0, 0, height);
+  haloGradient.addColorStop(0, rgba(profile.accentRgb, 0));
+  haloGradient.addColorStop(0.16, rgba(profile.accentRgb, 0.1));
+  haloGradient.addColorStop(0.36, rgba(profile.accentRgb, 0.5));
+  haloGradient.addColorStop(0.5, rgba(profile.fringeRgb, 0.9));
+  haloGradient.addColorStop(0.64, rgba(profile.accentRgb, 0.5));
+  haloGradient.addColorStop(0.84, rgba(profile.accentRgb, 0.1));
+  haloGradient.addColorStop(1, rgba(profile.accentRgb, 0));
+  textureCtx.fillStyle = haloGradient;
+  textureCtx.fillRect(0, 0, width, height);
+
+  textureCtx.fillStyle = rgba(profile.fringeRgb, 0.82);
+  textureCtx.fillRect(0, centerY - 2.2, width, 4.4);
+  textureCtx.fillStyle = rgba([255, 255, 255], 0.32);
+  textureCtx.fillRect(0, centerY - 0.9, width, 1.8);
+  drawPackedLaserTextureBands(textureCtx, profile, width, height);
+  return texture;
+}
+
+function getPackedLaserBeamTexture(profile) {
+  const cacheKey = String(profile?.type || "normal");
+  if (packedLaserBeamTextureCache[cacheKey] !== undefined) {
+    return packedLaserBeamTextureCache[cacheKey];
+  }
+  const texture = buildPackedLaserBeamTexture(profile);
+  packedLaserBeamTextureCache[cacheKey] = texture;
+  return texture;
+}
+
+function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget) {
+  const texture = getPackedLaserBeamTexture(profile);
+  if (!texture) {
+    return false;
+  }
+  const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
+  const beamHeight = clamp(
+    haloWidth * (profile.type === "electric" ? 1.7 : profile.type === "water" ? 1.9 : 1.82),
+    9,
+    30,
+  );
+  const beamAlpha = clamp(0.72 + pulse * 0.2, 0.28, 1);
+  ctx.save();
+  ctx.globalCompositeOperation = budget.composite;
+  ctx.globalAlpha = beamAlpha;
+  ctx.translate(sourceX, sourceY);
+  ctx.rotate(angle);
+  ctx.drawImage(texture, 0, -beamHeight * 0.5, distance, beamHeight);
+  ctx.restore();
+  return true;
+}
+
+function getLaserRenderBudget(qualityKey, laserCount, distance) {
+  const safeLaserCount = Math.max(1, Number(laserCount) || 1);
+  const crowdPenalty = safeLaserCount >= 5 ? 2 : safeLaserCount >= 3 ? 1 : 0;
+  const packedCrowd = safeLaserCount >= 4;
+  const crowded = safeLaserCount >= 5;
+  switch (String(qualityKey || "medium")) {
+    case "very_low":
+      return {
+        simple: true,
+        curved: false,
+        segmentDivisor: 999,
+        minSegments: 1,
+        maxSegments: 1,
+        waveAmplitudeMul: 0,
+        secondaryWaveMul: 0,
+        jaggednessMul: 0,
+        ribbonEnabled: false,
+        ribbonAlphaMul: 0,
+        beamParticles: 0,
+        sourceParticles: 0,
+        impactParticles: 0,
+        impactRayCountMax: 0,
+        useLinearGradients: false,
+        useRadialGradients: false,
+        useShadowBlur: false,
+        shadowBlurMul: 0,
+        useSheath: false,
+        useFilament: false,
+        composite: "source-over",
+        widthMul: crowded ? 0.68 : 0.78,
+        sourceGlowScale: 0.72,
+        impactGlowScale: 0.78,
+        electricDash: false,
+        renderImpactRing: false,
+        renderEndpoints: false,
+      };
+    case "low":
+      return {
+        simple: true,
+        curved: false,
+        segmentDivisor: 84,
+        minSegments: 1,
+        maxSegments: 1,
+        waveAmplitudeMul: crowded ? 0 : 0.18,
+        secondaryWaveMul: crowded ? 0 : 0.1,
+        jaggednessMul: crowded ? 0 : 0.2,
+        ribbonEnabled: false,
+        ribbonAlphaMul: 0,
+        beamParticles: safeLaserCount === 1 && distance > 120 ? 1 : 0,
+        sourceParticles: 0,
+        impactParticles: 0,
+        impactRayCountMax: 0,
+        useLinearGradients: false,
+        useRadialGradients: false,
+        useShadowBlur: false,
+        shadowBlurMul: 0,
+        useSheath: false,
+        useFilament: false,
+        composite: packedCrowd ? "source-over" : "lighter",
+        widthMul: crowded ? 0.74 : 0.82,
+        sourceGlowScale: 0.8,
+        impactGlowScale: 0.84,
+        electricDash: safeLaserCount <= 2,
+        renderImpactRing: false,
+        renderEndpoints: safeLaserCount <= 2,
+      };
+    case "medium":
+      return {
+        simple: packedCrowd || distance <= 110,
+        curved: !packedCrowd && distance > 110,
+        segmentDivisor: 52 + crowdPenalty * 10,
+        minSegments: packedCrowd ? 1 : 4,
+        maxSegments: packedCrowd ? 1 : Math.max(4, 8 - crowdPenalty),
+        waveAmplitudeMul: packedCrowd ? 0.14 : 0.56,
+        secondaryWaveMul: packedCrowd ? 0.08 : 0.38,
+        jaggednessMul: packedCrowd ? 0.16 : 0.75,
+        ribbonEnabled: !packedCrowd && safeLaserCount <= 2,
+        ribbonAlphaMul: 0.65,
+        beamParticles: packedCrowd ? 0 : Math.max(1, 3 - crowdPenalty),
+        sourceParticles: packedCrowd ? 0 : Math.max(1, 2 - crowdPenalty),
+        impactParticles: packedCrowd ? 0 : Math.max(1, 2 - crowdPenalty),
+        impactRayCountMax: packedCrowd ? 0 : 3,
+        useLinearGradients: !packedCrowd,
+        useRadialGradients: false,
+        useShadowBlur: !packedCrowd && safeLaserCount <= 2,
+        shadowBlurMul: 0.28,
+        useSheath: !packedCrowd,
+        useFilament: !packedCrowd,
+        composite: packedCrowd ? "source-over" : "lighter",
+        widthMul: packedCrowd ? 0.82 : 0.94,
+        sourceGlowScale: packedCrowd ? 0.84 : 0.96,
+        impactGlowScale: packedCrowd ? 0.88 : 0.98,
+        electricDash: !packedCrowd,
+        renderImpactRing: !packedCrowd,
+        renderEndpoints: !crowded,
+      };
+    case "high":
+      return {
+        simple: packedCrowd,
+        curved: !packedCrowd,
+        segmentDivisor: 34 + crowdPenalty * 6,
+        minSegments: packedCrowd ? 1 : 5,
+        maxSegments: packedCrowd ? 1 : Math.max(5, 11 - crowdPenalty),
+        waveAmplitudeMul: packedCrowd ? 0.18 : 0.82,
+        secondaryWaveMul: packedCrowd ? 0.1 : 0.7,
+        jaggednessMul: packedCrowd ? 0.2 : 0.9,
+        ribbonEnabled: !packedCrowd && safeLaserCount <= 3,
+        ribbonAlphaMul: 0.88,
+        beamParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
+        sourceParticles: packedCrowd ? 0 : Math.max(1, 3 - crowdPenalty),
+        impactParticles: packedCrowd ? 0 : Math.max(2, 3 - crowdPenalty),
+        impactRayCountMax: packedCrowd ? 0 : 5,
+        useLinearGradients: !packedCrowd,
+        useRadialGradients: !packedCrowd && safeLaserCount <= 2,
+        useShadowBlur: !packedCrowd,
+        shadowBlurMul: 0.62,
+        useSheath: !packedCrowd,
+        useFilament: !packedCrowd,
+        composite: packedCrowd ? "source-over" : "lighter",
+        widthMul: packedCrowd ? 0.84 : 1,
+        sourceGlowScale: packedCrowd ? 0.86 : 1,
+        impactGlowScale: packedCrowd ? 0.9 : 1,
+        electricDash: !packedCrowd,
+        renderImpactRing: !packedCrowd,
+        renderEndpoints: !crowded,
+      };
+    case "ultra":
+    default:
+      return {
+        simple: packedCrowd,
+        curved: !packedCrowd,
+        segmentDivisor: 24 + crowdPenalty * 4,
+        minSegments: packedCrowd ? 1 : 6,
+        maxSegments: packedCrowd ? 1 : Math.max(6, 14 - crowdPenalty),
+        waveAmplitudeMul: packedCrowd ? 0.2 : 1,
+        secondaryWaveMul: packedCrowd ? 0.12 : 1,
+        jaggednessMul: packedCrowd ? 0.24 : 1,
+        ribbonEnabled: !packedCrowd,
+        ribbonAlphaMul: 1,
+        beamParticles: packedCrowd ? 0 : Math.max(3, 5 - crowdPenalty),
+        sourceParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
+        impactParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
+        impactRayCountMax: packedCrowd ? 0 : 7,
+        useLinearGradients: !packedCrowd,
+        useRadialGradients: !packedCrowd,
+        useShadowBlur: !packedCrowd,
+        shadowBlurMul: 1,
+        useSheath: !packedCrowd,
+        useFilament: !packedCrowd,
+        composite: packedCrowd ? "source-over" : "lighter",
+        widthMul: packedCrowd ? 0.88 : 1.04,
+        sourceGlowScale: packedCrowd ? 0.88 : 1.02,
+        impactGlowScale: packedCrowd ? 0.92 : 1.02,
+        electricDash: !packedCrowd,
+        renderImpactRing: !packedCrowd,
+        renderEndpoints: !crowded,
+      };
+  }
+}
+
+function drawLasers(lasers) {
+  const laserList = Array.isArray(lasers) ? lasers : [];
+  if (laserList.length <= 0) {
+    return;
+  }
+  const timeMs = Math.max(0, Number(state.timeMs) || 0);
+  const qualityKey = String(state.performance?.quality || "medium");
+  const activeLaserCount = laserList.length;
+  for (const laser of laserList) {
+    const sourceX = Number(laser?.sourceX || 0);
+    const sourceY = Number(laser?.sourceY || 0);
+    const targetX = Number(laser?.targetX || 0);
+    const targetY = Number(laser?.targetY || 0);
+    const dx = targetX - sourceX;
+    const dy = targetY - sourceY;
+    const distance = Math.hypot(dx, dy);
+    if (distance <= 0.01) {
+      continue;
+    }
+    const phase = Number(laser?.phaseOffset || 0);
+    const pulse = 0.5 + 0.5 * Math.sin(timeMs * 0.011 + phase);
+    const flowPulse = 0.5 + 0.5 * Math.sin(timeMs * 0.0065 + phase * 1.9);
+    const unitX = dx / distance;
+    const unitY = dy / distance;
+    const normalX = -dy / distance;
+    const normalY = dx / distance;
+    const profile = getLaserVisualProfile(laser?.attackType || "normal", pulse, distance);
+    const budget = getLaserRenderBudget(qualityKey, activeLaserCount, distance);
+    const haloWidth = clamp((6.2 + distance * 0.008 + pulse * 2.6) * profile.widthBoost * budget.widthMul, 4.8, 20);
+    const coreWidth = Math.max(1.8, haloWidth * 0.24 + profile.coreBoost);
+    const sourceRadius = Math.max(3.2, coreWidth * (1.26 + profile.sourceGlowBoost * 0.24) * budget.sourceGlowScale);
+    const impactRadius = Math.max(4.2, coreWidth * (1.55 + profile.impactGlowBoost * 0.28) * budget.impactGlowScale);
+
+    if (budget.simple) {
+      if (activeLaserCount >= 4 && drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget)) {
+        continue;
+      }
+      ctx.save();
+      ctx.globalCompositeOperation = budget.composite;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.setLineDash([]);
+      ctx.strokeStyle = rgba(profile.accentRgb, 0.24 + pulse * 0.08);
+      ctx.lineWidth = haloWidth;
+      traceLaserSegment(sourceX, sourceY, targetX, targetY);
+      ctx.stroke();
+      if (profile.type === "electric" && budget.electricDash) {
+        ctx.setLineDash([haloWidth * 0.62, haloWidth * 0.4]);
+        ctx.lineDashOffset = -timeMs * 0.06;
+      }
+      ctx.strokeStyle = rgba(profile.fringeRgb, 0.96);
+      ctx.lineWidth = Math.max(1.4, coreWidth);
+      traceLaserSegment(sourceX, sourceY, targetX, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (budget.renderEndpoints !== false) {
+        ctx.fillStyle = rgba(profile.accentRgb, 0.34 + pulse * 0.12);
+        ctx.beginPath();
+        ctx.arc(sourceX, sourceY, sourceRadius * 1.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(profile.fringeRgb, 0.52 + flowPulse * 0.14);
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, impactRadius * 1.52, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (budget.renderImpactRing) {
+        ctx.strokeStyle = rgba(profile.fringeRgb, 0.28 + flowPulse * 0.1);
+        ctx.lineWidth = Math.max(0.8, coreWidth * 0.16);
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, impactRadius * 1.16, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+      continue;
+    }
+
+    const renderProfile = {
+      ...profile,
+      waveAmplitude: profile.waveAmplitude * budget.waveAmplitudeMul,
+      secondaryWave: profile.secondaryWave * budget.secondaryWaveMul,
+      jaggedness: profile.jaggedness * budget.jaggednessMul,
+      ribbonAlpha: budget.ribbonEnabled ? profile.ribbonAlpha * budget.ribbonAlphaMul : 0,
+    };
+    const segments = budget.curved
+      ? clamp(
+          Math.round(distance / budget.segmentDivisor),
+          budget.minSegments,
+          Math.max(budget.minSegments, budget.maxSegments),
+        )
+      : 1;
+    const points = [];
+    for (let i = 0; i <= segments; i += 1) {
+      points.push(
+        sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, renderProfile, i / segments),
+      );
+    }
+    const shouldRenderRibbon = renderProfile.ribbonAlpha > 0.01;
+    const ribbonOffset = renderProfile.ribbonOffset * (0.8 + pulse * 0.5);
+    const ribbonShift = Math.sin(timeMs * renderProfile.waveSpeed * 0.42 + phase * 1.3) * renderProfile.ribbonDrift * ribbonOffset;
+    const ribbonPoints = shouldRenderRibbon
+      ? points.map((point, index) => {
+          const t = segments <= 0 ? 0 : index / segments;
+          const taper = Math.sin(t * Math.PI);
+          return {
+            x: point.x + normalX * (ribbonShift + ribbonOffset * taper * 0.35),
+            y: point.y + normalY * (ribbonShift + ribbonOffset * taper * 0.35),
+          };
+        })
+      : [];
+    const mirrorRibbonPoints = shouldRenderRibbon
+      ? points.map((point, index) => {
+          const t = segments <= 0 ? 0 : index / segments;
+          const taper = Math.sin(t * Math.PI);
+          return {
+            x: point.x - normalX * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24),
+            y: point.y - normalY * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24),
+          };
+        })
+      : [];
+    let haloStrokeStyle = rgba(profile.accentRgb, 0.42 + pulse * 0.1);
+    let coreStrokeStyle = rgba(profile.fringeRgb, 0.94);
+    let sheathStrokeStyle = rgba(profile.accentRgb, 0.76);
+    let filamentStrokeStyle = rgba(profile.fringeRgb, 0.64);
+    if (budget.useLinearGradients) {
+      const haloGradient = ctx.createLinearGradient(sourceX, sourceY, targetX, targetY);
+      haloGradient.addColorStop(0, rgba(profile.rgb, 0.14 + pulse * 0.04));
+      haloGradient.addColorStop(0.34, rgba(profile.accentRgb, 0.38 + pulse * 0.08));
+      haloGradient.addColorStop(0.72, rgba(profile.fringeRgb, 0.44 + flowPulse * 0.08));
+      haloGradient.addColorStop(1, rgba(profile.accentRgb, 0.86));
+      haloStrokeStyle = haloGradient;
+      const coreGradient = ctx.createLinearGradient(sourceX, sourceY, targetX, targetY);
+      coreGradient.addColorStop(0, rgba(profile.accentRgb, 0.56));
+      coreGradient.addColorStop(0.18, rgba(profile.fringeRgb, 0.96));
+      coreGradient.addColorStop(0.6, rgba(blendRgb(profile.accentRgb, [255, 255, 255], 0.22), 0.92));
+      coreGradient.addColorStop(1, rgba(profile.fringeRgb, 0.94));
+      coreStrokeStyle = coreGradient;
+      if (budget.useSheath) {
+        const sheathGradient = ctx.createLinearGradient(sourceX, sourceY, targetX, targetY);
+        sheathGradient.addColorStop(0, rgba(profile.rgb, 0.18));
+        sheathGradient.addColorStop(0.22, rgba(profile.accentRgb, 0.72));
+        sheathGradient.addColorStop(0.74, rgba(profile.accentRgb, 0.84));
+        sheathGradient.addColorStop(1, rgba(profile.fringeRgb, 0.78));
+        sheathStrokeStyle = sheathGradient;
+      }
+      if (budget.useFilament) {
+        const filamentGradient = ctx.createLinearGradient(sourceX, sourceY, targetX, targetY);
+        filamentGradient.addColorStop(0, rgba([255, 255, 255], 0.18));
+        filamentGradient.addColorStop(0.28, rgba([255, 255, 255], 0.86));
+        filamentGradient.addColorStop(1, rgba(profile.fringeRgb, 0.56));
+        filamentStrokeStyle = filamentGradient;
+      }
+    }
+    let sourceFillStyle = rgba(profile.accentRgb, 0.28 + pulse * 0.12);
+    let impactFillStyle = rgba(profile.fringeRgb, 0.44 + flowPulse * 0.16);
+    if (budget.useRadialGradients) {
+      const sourceGradient = ctx.createRadialGradient(sourceX, sourceY, 0, sourceX, sourceY, sourceRadius * 2.2);
+      sourceGradient.addColorStop(0, rgba([255, 255, 255], 0.88));
+      sourceGradient.addColorStop(0.38, rgba(profile.fringeRgb, 0.52 + pulse * 0.1));
+      sourceGradient.addColorStop(1, rgba(profile.accentRgb, 0));
+      sourceFillStyle = sourceGradient;
+      const impactGradient = ctx.createRadialGradient(targetX, targetY, 0, targetX, targetY, impactRadius * 2.45);
+      impactGradient.addColorStop(0, rgba([255, 255, 255], 0.94));
+      impactGradient.addColorStop(0.32, rgba(profile.fringeRgb, 0.68));
+      impactGradient.addColorStop(0.72, rgba(profile.accentRgb, 0.34 + pulse * 0.08));
+      impactGradient.addColorStop(1, rgba(profile.accentRgb, 0));
+      impactFillStyle = impactGradient;
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = budget.composite;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.shadowColor = budget.useShadowBlur ? rgba(profile.accentRgb, 0.28 + pulse * 0.1) : "rgba(0, 0, 0, 0)";
+    ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * (1.2 + pulse * 0.35) : 0;
+    ctx.strokeStyle = haloStrokeStyle;
+    ctx.lineWidth = haloWidth;
+    ctx.setLineDash([]);
+    traceLaserCurve(points);
+    ctx.stroke();
+    if (shouldRenderRibbon) {
+      ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.7 : 0;
+      ctx.strokeStyle = rgba(profile.accentRgb, renderProfile.ribbonAlpha + pulse * 0.06);
+      ctx.lineWidth = haloWidth * 0.5;
+      traceLaserCurve(ribbonPoints);
+      ctx.stroke();
+      ctx.strokeStyle = rgba(profile.fringeRgb, renderProfile.ribbonAlpha * 0.56 + flowPulse * 0.05);
+      ctx.lineWidth = haloWidth * 0.28;
+      traceLaserCurve(mirrorRibbonPoints);
+      ctx.stroke();
+    }
+    ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.45 : 0;
+    ctx.strokeStyle = coreStrokeStyle;
+    ctx.lineWidth = coreWidth;
+    if (profile.type === "electric" && budget.electricDash) {
+      ctx.setLineDash([haloWidth * 0.72, haloWidth * 0.45]);
+      ctx.lineDashOffset = -timeMs * 0.08;
+    } else {
+      ctx.setLineDash([]);
+    }
+    traceLaserCurve(points);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (budget.useSheath) {
+      ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.36 : 0;
+      ctx.strokeStyle = sheathStrokeStyle;
+      ctx.lineWidth = Math.max(1.2, coreWidth * 0.66);
+      traceLaserCurve(points);
+      ctx.stroke();
+    }
+    if (budget.useFilament) {
+      ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.24 : 0;
+      ctx.strokeStyle = filamentStrokeStyle;
+      ctx.lineWidth = Math.max(1, coreWidth * 0.34);
+      traceLaserCurve(points);
+      ctx.stroke();
+    }
+    if (budget.renderEndpoints !== false) {
+      ctx.fillStyle = sourceFillStyle;
+      ctx.beginPath();
+      ctx.arc(sourceX, sourceY, budget.useRadialGradients ? sourceRadius * 2.2 : sourceRadius * 1.55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = impactFillStyle;
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, budget.useRadialGradients ? impactRadius * 2.45 : impactRadius * 1.68, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (budget.renderImpactRing) {
+      ctx.strokeStyle = rgba(profile.fringeRgb, profile.impactRingAlpha + flowPulse * 0.1);
+      ctx.lineWidth = Math.max(0.9, coreWidth * 0.24);
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, impactRadius * (1.16 + flowPulse * 0.1), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    const impactRayCount = Math.max(0, Math.min(Math.round(profile.impactRayCount), budget.impactRayCountMax));
+    for (let rayIndex = 0; rayIndex < impactRayCount; rayIndex += 1) {
+      const rayAngle = phase * 1.3 + rayIndex * ((Math.PI * 2) / Math.max(1, impactRayCount)) + timeMs * 0.0018;
+      const innerRadius = impactRadius * (0.5 + flowPulse * 0.05);
+      const outerRadius = impactRadius * (1.02 + (rayIndex % 2 === 0 ? 0.22 : 0.06));
+      ctx.strokeStyle = rgba(profile.accentRgb, 0.22 + pulse * 0.08);
+      ctx.lineWidth = Math.max(0.7, coreWidth * 0.1);
+      ctx.beginPath();
+      ctx.moveTo(targetX + Math.cos(rayAngle) * innerRadius, targetY + Math.sin(rayAngle) * innerRadius);
+      ctx.lineTo(targetX + Math.cos(rayAngle) * outerRadius, targetY + Math.sin(rayAngle) * outerRadius);
+      ctx.stroke();
+    }
+    const beamParticleCount = Math.max(0, Math.round(budget.beamParticles));
+    for (let particleIndex = 0; particleIndex < beamParticleCount; particleIndex += 1) {
+      const travel = (particleIndex / beamParticleCount + timeMs * profile.particleSpeed + phase * 0.11) % 1;
+      const beamPoint = sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, renderProfile, travel);
+      const sideSway = Math.sin(travel * Math.PI * 10 + phase + timeMs * profile.waveSpeed * 1.2) * haloWidth * 0.12;
+      const px = beamPoint.x + normalX * sideSway;
+      const py = beamPoint.y + normalY * sideSway;
+      const size = (1.18 + Math.sin(travel * Math.PI) * 0.72) * profile.particleSize * (0.74 + pulse * 0.24);
+      const angle = Math.atan2(unitY, unitX) + Math.sin(travel * Math.PI * 8 + phase) * 0.2;
+      drawLaserParticleShape(
+        profile.particleShape,
+        px,
+        py,
+        size,
+        angle,
+        rgba(profile.accentRgb, 0.94),
+        0.5 + 0.22 * Math.sin(travel * Math.PI + flowPulse),
+        rgba(profile.fringeRgb, 0.9)
+      );
+    }
+    const sourceParticleCount = Math.max(0, Math.round(budget.sourceParticles));
+    for (let emitterIndex = 0; emitterIndex < sourceParticleCount; emitterIndex += 1) {
+      const orbit = phase + emitterIndex * ((Math.PI * 2) / sourceParticleCount) + timeMs * profile.emitterSpin * (0.8 + emitterIndex * 0.22);
+      const orbitDistance = sourceRadius * (0.96 + 0.24 * Math.sin(timeMs * 0.005 + emitterIndex));
+      const px = sourceX + Math.cos(orbit) * orbitDistance - unitX * sourceRadius * 0.22;
+      const py = sourceY + Math.sin(orbit) * orbitDistance - unitY * sourceRadius * 0.22;
+      drawLaserParticleShape(
+        profile.particleShape,
+        px,
+        py,
+        profile.particleSize * (1.04 + emitterIndex * 0.14),
+        orbit,
+        rgba(profile.fringeRgb, 0.94),
+        0.46 + pulse * 0.14,
+        rgba(profile.accentRgb, 0.88)
+      );
+    }
+    const impactParticleCount = Math.max(0, Math.round(budget.impactParticles));
+    for (let impactIndex = 0; impactIndex < impactParticleCount; impactIndex += 1) {
+      const arcAngle = phase * 1.8 + impactIndex * ((Math.PI * 2) / impactParticleCount) - timeMs * 0.0016;
+      const arcDistance = impactRadius * (0.94 + (impactIndex % 2 === 0 ? 0.34 : 0.12));
+      const px = targetX + Math.cos(arcAngle) * arcDistance;
+      const py = targetY + Math.sin(arcAngle) * arcDistance;
+      drawLaserParticleShape(
+        profile.particleShape,
+        px,
+        py,
+        profile.particleSize * (1.04 + impactIndex * 0.1),
+        arcAngle + Math.PI * 0.5,
+        rgba(profile.accentRgb, 0.96),
+        0.4 + flowPulse * 0.16,
+        rgba(profile.fringeRgb, 0.92)
+      );
+    }
+    ctx.restore();
+  }
+}
+
+function drawProjectiles(projectiles) {
+  const trailStride = Math.max(1, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailStride, 1));
+  const trailEnabled = Boolean(PROJECTILE_VISUAL_PROFILE.trailEnabled);
+  const trailGlow = Boolean(PROJECTILE_VISUAL_PROFILE.trailGlow);
+  const projectileStreak = Boolean(PROJECTILE_VISUAL_PROFILE.streak);
+  const projectileAura = Boolean(PROJECTILE_VISUAL_PROFILE.aura);
+  const spriteDetail = Boolean(PROJECTILE_VISUAL_PROFILE.spriteDetail);
+  const auraScale = clamp(Number(PROJECTILE_VISUAL_PROFILE.auraScale) || 1, 0.45, 1.5);
+  for (const projectile of projectiles || []) {
+    const rgb = getTypeColor(projectile.attackType);
+    const radius = projectile.radius || 8;
+    const trailProfile = getProjectileTrailTypeVfxProfile(projectile.attackType);
+    const trailAccent = Array.isArray(trailProfile.accent) ? trailProfile.accent : rgb;
+    const trailColor = blendRgb(rgb, trailAccent, trailProfile.accentMix);
+    const sprite = spriteDetail ? getProjectileSprite(projectile.attackType) : null;
+    const auraRadius = radius * 3.3 * auraScale;
+    const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];
+    const movementX = Number(projectile.x) - Number(projectile.prevX);
+    const movementY = Number(projectile.y) - Number(projectile.prevY);
+    const movementDistance = Math.hypot(movementX, movementY);
+    let trailAngle = Number(projectile.rotation) || 0;
+    let trailDirX = Math.cos(trailAngle);
+    let trailDirY = Math.sin(trailAngle);
+    if (movementDistance > 0.0001) {
+      trailDirX = movementX / movementDistance;
+      trailDirY = movementY / movementDistance;
+      trailAngle = Math.atan2(trailDirY, trailDirX);
+    }
+    const trailPerpX = -trailDirY;
+    const trailPerpY = trailDirX;
+
+    if (trailPoints.length > 0) {
+      ctx.save();
+      if (trailGlow) {
+        ctx.globalCompositeOperation = "lighter";
+      }
+      for (let pointIndex = 0; pointIndex < trailPoints.length; pointIndex += trailStride) {
+        const point = trailPoints[pointIndex];
+        if (!point) {
+          continue;
+        }
+        const lifeRatio = clamp(point.lifeMs / Math.max(1, point.maxLifeMs), 0, 1);
+        const pointScale = clamp(Number(point.scale) || 1, 0.72, 1.4);
+        const pointRadius = radius * trailProfile.radiusMul * (0.5 + lifeRatio * 0.82) * pointScale;
+        if (trailGlow) {
+          const glow = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pointRadius * 2.6);
+          glow.addColorStop(0, rgba(trailColor, 0.24 * lifeRatio));
+          glow.addColorStop(1, rgba(trailColor, 0));
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, pointRadius * 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const pointPhase = Number(point.phase) || 0;
+          const alpha = clamp(
+            (trailProfile.alphaBase + lifeRatio * trailProfile.alphaLife) * (0.78 + lifeRatio * 0.24),
+            0.04,
+            0.72,
+          );
+          ctx.globalAlpha = alpha;
+          switch (trailProfile.mode) {
+            case "ember": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.fillStyle = rgba(trailColor, 0.92);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * length * 0.28,
+                point.y - trailDirY * length * 0.28,
+                pointRadius * trailProfile.stretch,
+                Math.max(0.8, pointRadius * 0.54),
+                trailAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              ctx.fillStyle = rgba(trailAccent, 0.74);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, Math.max(0.5, pointRadius * 0.32), 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "droplet": {
+              const wobbleAngle = trailAngle + Math.sin(pointPhase + (projectile.lifetimeMs || 0) * 0.013) * 0.24;
+              ctx.fillStyle = rgba(trailColor, 0.9);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * pointRadius * 0.18,
+                point.y - trailDirY * pointRadius * 0.18,
+                pointRadius * 1.08,
+                Math.max(0.8, pointRadius * 0.68),
+                wobbleAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              if ((pointIndex & 1) === 0) {
+                ctx.strokeStyle = rgba(trailAccent, 0.84);
+                ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pointRadius * 0.82, 0, Math.PI * 2);
+                ctx.stroke();
+              }
+              break;
+            }
+            case "leaf": {
+              const leafAngle = trailAngle + Math.sin(pointPhase) * 0.52;
+              ctx.fillStyle = rgba(trailColor, 0.9);
+              ctx.beginPath();
+              ctx.ellipse(point.x, point.y, pointRadius * 1.2, Math.max(0.72, pointRadius * 0.52), leafAngle, 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "spark": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.strokeStyle = rgba(trailAccent, 0.94);
+              ctx.lineWidth = Math.max(1, pointRadius * 0.42);
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);
+              ctx.lineTo(point.x + trailDirX * length * 0.42, point.y + trailDirY * length * 0.42);
+              if ((pointIndex & 1) === 0) {
+                ctx.moveTo(point.x - trailPerpX * length * 0.42, point.y - trailPerpY * length * 0.42);
+                ctx.lineTo(point.x + trailPerpX * length * 0.42, point.y + trailPerpY * length * 0.42);
+              }
+              ctx.stroke();
+              break;
+            }
+            case "shard": {
+              const length = pointRadius * trailProfile.stretch;
+              const width = Math.max(0.6, pointRadius * 0.66);
+              ctx.fillStyle = rgba(trailColor, 0.88);
+              ctx.beginPath();
+              ctx.moveTo(point.x + trailDirX * length, point.y + trailDirY * length);
+              ctx.lineTo(point.x + trailPerpX * width, point.y + trailPerpY * width);
+              ctx.lineTo(point.x - trailDirX * length * 0.86, point.y - trailDirY * length * 0.86);
+              ctx.lineTo(point.x - trailPerpX * width, point.y - trailPerpY * width);
+              ctx.closePath();
+              ctx.fill();
+              break;
+            }
+            case "dust": {
+              const jitterX = Math.sin(pointPhase) * pointRadius * 0.2;
+              const jitterY = Math.cos(pointPhase * 1.4) * pointRadius * 0.2;
+              ctx.fillStyle = rgba(trailColor, 0.86);
+              ctx.beginPath();
+              ctx.arc(point.x + jitterX, point.y + jitterY, pointRadius * 1.06, 0, Math.PI * 2);
+              ctx.fill();
+              break;
+            }
+            case "wisp": {
+              ctx.fillStyle = rgba(trailColor, 0.72);
+              ctx.beginPath();
+              ctx.arc(point.x, point.y, pointRadius * 1.2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = rgba(trailAccent, 0.54);
+              ctx.beginPath();
+              ctx.arc(
+                point.x - trailDirX * pointRadius * 0.58,
+                point.y - trailDirY * pointRadius * 0.58,
+                pointRadius * 0.62,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              break;
+            }
+            case "sparkle": {
+              const length = pointRadius * trailProfile.stretch;
+              ctx.strokeStyle = rgba(trailAccent, 0.9);
+              ctx.lineWidth = Math.max(0.9, pointRadius * 0.24);
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(point.x - trailDirX * length, point.y - trailDirY * length);
+              ctx.lineTo(point.x + trailDirX * length, point.y + trailDirY * length);
+              ctx.moveTo(point.x - trailPerpX * length * 0.84, point.y - trailPerpY * length * 0.84);
+              ctx.lineTo(point.x + trailPerpX * length * 0.84, point.y + trailPerpY * length * 0.84);
+              ctx.stroke();
+              break;
+            }
+            case "streak":
+            default: {
+              ctx.fillStyle = rgba(trailColor, 0.88);
+              ctx.beginPath();
+              ctx.ellipse(
+                point.x - trailDirX * pointRadius * 0.24,
+                point.y - trailDirY * pointRadius * 0.24,
+                pointRadius * trailProfile.stretch,
+                Math.max(0.7, pointRadius * 0.48),
+                trailAngle,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+              break;
+            }
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    if (
+      projectileStreak &&
+      Number.isFinite(projectile.prevX) &&
+      Number.isFinite(projectile.prevY) &&
+      (Math.abs(projectile.x - projectile.prevX) > 0.01 || Math.abs(projectile.y - projectile.prevY) > 0.01)
+    ) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const streak = ctx.createLinearGradient(projectile.prevX, projectile.prevY, projectile.x, projectile.y);
+      streak.addColorStop(0, rgba(rgb, 0));
+      streak.addColorStop(1, rgba(rgb, 0.7));
+      ctx.strokeStyle = streak;
+      ctx.lineWidth = Math.max(2, radius * 1.3);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(projectile.prevX, projectile.prevY);
+      ctx.lineTo(projectile.x, projectile.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (projectileAura || spriteDetail) {
+      ctx.save();
+    }
+    if (projectileAura) {
+      const aura = ctx.createRadialGradient(
+        projectile.x,
+        projectile.y,
+        Math.max(1, radius * 0.2),
+        projectile.x,
+        projectile.y,
+        auraRadius,
+      );
+      aura.addColorStop(0, rgba(rgb, 0.72));
+      aura.addColorStop(0.45, rgba(rgb, 0.38));
+      aura.addColorStop(1, rgba(rgb, 0));
+
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, auraRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, radius * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (spriteDetail) {
+      ctx.fillStyle = rgba(rgb, 0.26);
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, radius * 1.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (projectileAura || spriteDetail) {
+      ctx.restore();
+    }
+
+    drawProjectileTypeMotif(projectile, rgb, radius);
+
+    ctx.save();
+    ctx.translate(projectile.x, projectile.y);
+    ctx.rotate(projectile.rotation || 0);
+    if (sprite) {
+      const pulse = 1 + Math.sin((projectile.lifetimeMs || 0) * 0.02) * 0.08;
+      const size = Math.max(24, radius * 4.6) * pulse;
+      ctx.drawImage(sprite, -size * 0.5, -size * 0.5, size, size);
+    } else {
+      ctx.fillStyle = rgba(rgb, 0.95);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.34)";
+      ctx.lineWidth = Math.max(1, radius * 0.2);
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(2, radius * 0.42), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawEnemyHitEffects(hitEffects) {
+  const quality = getRenderQualitySettings();
+  const useGlow = Boolean(quality.enemyHitGlow);
+  for (const effect of hitEffects || []) {
+    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    const rgb = Array.isArray(effect.color) ? effect.color : [220, 236, 255];
+
+    ctx.save();
+    if (effect.kind === "teleport_trail") {
+      const fromX = Number(effect.x) || 0;
+      const fromY = Number(effect.y) || 0;
+      const toX = Number(effect.toX) || fromX;
+      const toY = Number(effect.toY) || fromY;
+      const ctrlX = Number(effect.ctrlX);
+      const ctrlY = Number(effect.ctrlY);
+      const trailGradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
+      trailGradient.addColorStop(0, rgba(rgb, 0));
+      trailGradient.addColorStop(0.25, rgba(rgb, 0.35 + lifeRatio * 0.3));
+      trailGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.85)");
+      trailGradient.addColorStop(0.75, rgba(rgb, 0.35 + lifeRatio * 0.3));
+      trailGradient.addColorStop(1, rgba(rgb, 0));
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = clamp(lifeRatio * 1.1, 0, 1);
+      ctx.strokeStyle = trailGradient;
+      ctx.lineWidth = (effect.lineWidth || 2.2) * (0.65 + lifeRatio * 0.55);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      if (Number.isFinite(ctrlX) && Number.isFinite(ctrlY)) {
+        ctx.quadraticCurveTo(ctrlX, ctrlY, toX, toY);
+      } else {
+        ctx.lineTo(toX, toY);
+      }
+      ctx.stroke();
+    } else if (effect.kind === "teleport_flash") {
+      const radius = Math.max(2, Number(effect.radius) || 2);
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = clamp(lifeRatio * 1.15, 0, 1);
+      const glow = ctx.createRadialGradient(effect.x, effect.y, radius * 0.08, effect.x, effect.y, radius * 1.65);
+      glow.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      glow.addColorStop(0.35, rgba(rgb, 0.74));
+      glow.addColorStop(1, rgba(rgb, 0));
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius * 1.65, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (effect.kind === "ring") {
+      ctx.globalAlpha = lifeRatio * 0.9;
+      ctx.strokeStyle = rgba(rgb, 0.95);
+      ctx.lineWidth = (effect.lineWidth || 2) * (0.7 + lifeRatio * 0.9);
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      const radius = (effect.size || 2) * (0.55 + lifeRatio * 0.9);
+      if (useGlow) {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = lifeRatio;
+        const glow = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius * 3);
+        glow.addColorStop(0, rgba(rgb, 0.95));
+        glow.addColorStop(0.5, rgba(rgb, 0.5));
+        glow.addColorStop(1, rgba(rgb, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, radius * 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = Math.max(0.12, lifeRatio * 0.7);
+        ctx.fillStyle = rgba(rgb, 0.54);
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, radius * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = rgba(rgb, 1);
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawFloatingDamageTexts(floatingTexts) {
+  const viewportWidth = Math.max(0, Number(state.viewport?.width) || 0);
+  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
+  const shortestSide = Math.max(220, Math.min(viewportWidth || 220, viewportHeight || 220));
+  const phoneLike = shortestSide <= 500;
+  const compactScale = phoneLike
+    ? clamp(shortestSide / 500, 0.62, 0.86)
+    : clamp(shortestSide / 900, 0.82, 0.96);
+  for (const text of floatingTexts || []) {
+    const lifeRatio = clamp(text.lifeMs / Math.max(1, text.maxLifeMs), 0, 1);
+    const tone = String(text.tone || FLOATING_TEXT_TONE_NORMAL);
+    const tonePalette = getFloatingTextTonePalette(tone);
+    const tweenVisual = text.visualTween?.visual || null;
+    const tweenAlpha = clamp(Number(tweenVisual?.alpha ?? 1), 0, 1);
+    const tweenPulse = clamp(Number(tweenVisual?.pulse ?? 0), 0, 1);
+    const baseScale = clamp(Number(text.scaleFactor ?? 1), 0.72, 1.72);
+    const pulseStrength = clamp(Number(text.pulseStrength ?? 0.05), 0, 0.35);
+    const scale = clamp((Number(tweenVisual?.scale ?? 1) * baseScale) * (1 + tweenPulse * pulseStrength), 0.52, 1.85);
+    const alphaFactor = clamp(Number(text.alphaFactor ?? tonePalette.alpha ?? 1), 0.4, 1);
+    const alpha = lifeRatio * tweenAlpha * alphaFactor;
+    const rgb = Array.isArray(text.color) ? text.color : tonePalette.main;
+    const rgbSecondary = Array.isArray(text.colorSecondary) ? text.colorSecondary : tonePalette.secondary;
+    const labelPrimary = String(text.labelPrimary || text.label || "").trim();
+    const labelSecondary = String(text.labelSecondary || "").trim();
+    const hasEffectivenessLabel = Boolean(text.hasEffectivenessLabel);
+    const hasCriticalLabel = Boolean(text.hasCriticalLabel);
+    const numericDamage = Math.max(0, Number(text.damage) || 0);
+    const dynamicFontBoost = clamp(Math.log10(numericDamage + 1) * 3.7, 0, 5);
+    const mainFontSize = Math.round(((text.isMiss ? 16 : 19) + dynamicFontBoost + (tone === FLOATING_TEXT_TONE_CRITICAL ? 1 : 0)) * compactScale);
+    ctx.save();
+    ctx.translate(text.x, text.y);
+    ctx.scale(scale, scale);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.globalAlpha = alpha;
+    ctx.lineJoin = "round";
+
+    ctx.font = `700 ${mainFontSize}px Trebuchet MS`;
+    ctx.lineWidth = Math.max(2, mainFontSize * 0.16);
+    ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
+    const mainText = text.isMiss
+      ? "RATE"
+      : tone === FLOATING_TEXT_TONE_MISS && numericDamage <= 0
+        ? "0"
+        : `-${formatCompactNumber(text.damage, {
+          decimalsSmall: 2,
+          decimalsMedium: 1,
+          decimalsLarge: 0,
+        })}`;
+    ctx.strokeText(mainText, 0, 0);
+    if (Array.isArray(rgbSecondary) && (rgbSecondary[0] !== rgb[0] || rgbSecondary[1] !== rgb[1] || rgbSecondary[2] !== rgb[2])) {
+      const gradient = ctx.createLinearGradient(0, -mainFontSize * 0.9, 0, mainFontSize * 0.35);
+      gradient.addColorStop(0, rgba(rgbSecondary, 1));
+      gradient.addColorStop(1, rgba(rgb, 0.98));
+      ctx.fillStyle = gradient;
+    } else {
+      ctx.fillStyle = rgba(rgb, 0.98);
+    }
+    ctx.fillText(mainText, 0, 0);
+
+    if (labelPrimary || labelSecondary) {
+      const labels = [];
+      if (labelPrimary) {
+        labels.push(labelPrimary);
+      }
+      if (labelSecondary) {
+        labels.push(labelSecondary);
+      }
+      let labelY = -Math.round(mainFontSize * (labels.length > 1 ? 1.42 : 0.96));
+      labels.forEach((label, index) => {
+        const isPrimaryCriticalLine = index === 0 && hasCriticalLabel;
+        const isEffectivenessLine = hasEffectivenessLabel && !isPrimaryCriticalLine;
+        const size = isPrimaryCriticalLine
+          ? Math.max(7, Math.round(mainFontSize * 0.42))
+          : isEffectivenessLine
+            ? Math.max(6, Math.round(mainFontSize * 0.34))
+            : Math.max(7, Math.round(mainFontSize * 0.38));
+        ctx.font = `700 ${size}px Trebuchet MS`;
+        ctx.lineWidth = Math.max(1.2, size * 0.18);
+        ctx.strokeText(label, 0, labelY);
+        if (isPrimaryCriticalLine) {
+          ctx.fillStyle = rgba(tonePalette.label, 0.9);
+        } else if (isEffectivenessLine) {
+          ctx.fillStyle = rgba(tonePalette.label, 0.62);
+        } else {
+          ctx.fillStyle = "rgba(240, 248, 255, 0.72)";
+        }
+        ctx.fillText(label, 0, labelY);
+        labelY += Math.round(size * 1.08);
+      });
+    }
+
+    ctx.restore();
+  }
+}
+
+function easeOutCubic(t) {
+  const ratio = clamp(t, 0, 1);
+  return 1 - (1 - ratio) ** 3;
+}
+
+function drawEmptyTeamSlot(slot) {
+  if (!slot) {
+    return;
+  }
+  const radius = slot.size * 0.19;
+  ctx.save();
+  ctx.strokeStyle = "rgba(215, 231, 255, 0.42)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath();
+  ctx.arc(slot.x, slot.y + slot.size * 0.07, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(10, 22, 36, 0.38)";
+  ctx.beginPath();
+  ctx.ellipse(slot.x, slot.y + slot.size * 0.5, slot.size * 0.25, slot.size * 0.08, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawTurnIndicator(layout, indicator) {
+  if (!layout || !indicator) {
+    return;
+  }
+  const canAttack = indicator.can_attack !== false;
+  const pulse = 0.72 + Math.sin(state.timeMs * 0.01) * 0.18;
+  const radius = indicator.radius * (0.94 + pulse * 0.1);
+  const alpha = indicator.has_pokemon ? (canAttack ? 0.22 : 0.16) : 0.13;
+
+  ctx.save();
+  const glow = ctx.createRadialGradient(
+    indicator.x,
+    indicator.y,
+    radius * 0.2,
+    indicator.x,
+    indicator.y,
+    radius * 1.65,
+  );
+  glow.addColorStop(0, `rgba(255, 255, 255, ${alpha + 0.1})`);
+  glow.addColorStop(0.65, `rgba(255, 255, 255, ${alpha})`);
+  glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(indicator.x, indicator.y, radius * 1.65, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${alpha + 0.2})`;
+  ctx.lineWidth = indicator.has_pokemon && canAttack ? 2.2 : 1.6;
+  if (!indicator.has_pokemon || !canAttack) {
+    ctx.setLineDash([5, 5]);
+  }
+  ctx.beginPath();
+  ctx.arc(indicator.x, indicator.y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function normalizeBallTypeForVisual(ballType) {
+  const type = String(ballType || "").toLowerCase().trim();
+  return Object.prototype.hasOwnProperty.call(BALL_CONFIG_BY_TYPE, type) ? type : "poke_ball";
+}
+
+function getBallRenderTheme(ballType) {
+  const type = normalizeBallTypeForVisual(ballType);
+  if (type === "super_ball") {
+    return {
+      type,
+      shell: [245, 248, 255],
+      seam: [15, 20, 34],
+      topA: [56, 148, 255],
+      topB: [18, 73, 182],
+      topHighlight: [190, 225, 255],
+      glowCore: [102, 189, 255],
+      glowOuter: [56, 112, 255],
+      buttonOuter: [31, 48, 81],
+      buttonCenter: [213, 233, 255],
+      breakColors: [
+        [56, 148, 255],
+        [228, 68, 88],
+        [248, 250, 255],
+      ],
+      successColors: [
+        [103, 188, 255],
+        [255, 116, 136],
+        [241, 248, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 229, 138],
+        [160, 220, 255],
+        [223, 191, 255],
+      ],
+    };
+  }
+  if (type === "hyper_ball") {
+    return {
+      type,
+      shell: [244, 247, 252],
+      seam: [12, 16, 25],
+      topA: [63, 69, 83],
+      topB: [23, 27, 38],
+      topHighlight: [152, 161, 183],
+      glowCore: [255, 229, 122],
+      glowOuter: [88, 98, 146],
+      buttonOuter: [32, 38, 58],
+      buttonCenter: [250, 220, 112],
+      breakColors: [
+        [248, 216, 86],
+        [63, 69, 83],
+        [243, 247, 252],
+      ],
+      successColors: [
+        [255, 220, 122],
+        [171, 183, 255],
+        [244, 249, 255],
+      ],
+      criticalSuccessColors: [
+        [255, 234, 150],
+        [245, 202, 120],
+        [203, 177, 255],
+      ],
+    };
+  }
+  return {
+    type: "poke_ball",
+    shell: [248, 248, 248],
+    seam: [14, 17, 23],
+    topA: [232, 68, 82],
+    topB: [188, 39, 53],
+    topHighlight: [255, 168, 174],
+    glowCore: [176, 255, 202],
+    glowOuter: [96, 208, 148],
+    buttonOuter: [34, 41, 55],
+    buttonCenter: [250, 250, 250],
+    breakColors: [
+      [225, 48, 60],
+      [250, 250, 250],
+    ],
+    successColors: [
+      [115, 240, 160],
+      [255, 255, 195],
+    ],
+    criticalSuccessColors: [
+      [255, 236, 130],
+      [214, 174, 255],
+      [184, 231, 255],
+    ],
+  };
+}
+
+function drawPokeball(x, y, radius, options = {}) {
+  const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+  const rotation = Number.isFinite(options.rotation) ? options.rotation : 0;
+  const broken = Boolean(options.broken);
+  const critical = Boolean(options.critical);
+  const ballType = normalizeBallTypeForVisual(options.ball_type);
+  const theme = getBallRenderTheme(ballType);
+  const crackRatio = clamp(Number(options.crack_ratio || 0), 0, 1);
+  const glowRatio = clamp(Number(options.glow_ratio || 0), 0, 1);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+
+  if (glowRatio > 0) {
+    const glow = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius * (1.8 + glowRatio * 0.9));
+    if (critical) {
+      glow.addColorStop(0, rgba([255, 226, 130], 0.52 + glowRatio * 0.42));
+      glow.addColorStop(0.62, rgba(theme.glowOuter, 0.22 + glowRatio * 0.24));
+    } else {
+      glow.addColorStop(0, rgba(theme.glowCore, 0.42 + glowRatio * 0.4));
+    }
+    glow.addColorStop(1, rgba(theme.glowOuter, 0));
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * (1.8 + glowRatio * 0.9), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = rgba(theme.shell, 1);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  const topGradient = ctx.createLinearGradient(-radius, -radius * 0.8, radius, radius * 0.22);
+  topGradient.addColorStop(0, rgba(theme.topA, 1));
+  topGradient.addColorStop(0.7, rgba(theme.topB, 1));
+  topGradient.addColorStop(1, rgba(theme.topB, 0.95));
+  const topHighlight = ctx.createLinearGradient(-radius * 0.65, -radius * 0.9, radius * 0.4, -radius * 0.2);
+  topHighlight.addColorStop(0, rgba(theme.topHighlight, 0.58));
+  topHighlight.addColorStop(1, rgba(theme.topHighlight, 0));
+
+  if (!broken || crackRatio < 0.45) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.fillStyle = topHighlight;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.restore();
+  } else {
+    const missing = radius * (0.6 + crackRatio * 0.5);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius + 1, -Math.PI * 0.2, Math.PI * 0.2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.clearRect(-missing, -missing, missing * 2, missing * 2);
+    ctx.restore();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, Math.PI, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.fillStyle = topHighlight;
+    ctx.fillRect(-radius - 1, -radius - 1, radius * 2 + 2, radius + 2);
+    ctx.restore();
+  }
+
+  if (!broken || crackRatio < 0.9) {
+    if (theme.type === "super_ball") {
+      ctx.fillStyle = "rgba(227, 64, 86, 0.96)";
+      for (const side of [-1, 1]) {
+        const cx = side * radius * 0.52;
+        const cy = -radius * 0.53;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.19, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(249, 231, 235, 0.92)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.085, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(227, 64, 86, 0.96)";
+      }
+    } else if (theme.type === "hyper_ball") {
+      ctx.strokeStyle = "rgba(246, 214, 80, 0.96)";
+      ctx.lineCap = "round";
+      ctx.lineWidth = Math.max(1.2, radius * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.62, -radius * 0.56);
+      ctx.lineTo(-radius * 0.2, -radius * 0.15);
+      ctx.lineTo(0, -radius * 0.36);
+      ctx.lineTo(radius * 0.2, -radius * 0.15);
+      ctx.lineTo(radius * 0.62, -radius * 0.56);
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1.1, radius * 0.12);
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.22, -radius * 0.36);
+      ctx.lineTo(radius * 0.22, -radius * 0.36);
+      ctx.stroke();
+    }
+  }
+
+  if (critical) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const sheen = ctx.createRadialGradient(-radius * 0.2, -radius * 0.45, radius * 0.06, 0, -radius * 0.2, radius * 0.95);
+    sheen.addColorStop(0, "rgba(255, 242, 179, 0.56)");
+    sheen.addColorStop(0.68, "rgba(210, 183, 255, 0.12)");
+    sheen.addColorStop(1, "rgba(210, 183, 255, 0)");
+    ctx.fillStyle = sheen;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.98, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.strokeStyle = rgba(theme.seam, 0.92);
+  ctx.lineWidth = Math.max(1.4, radius * 0.11);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.lineWidth = Math.max(1.6, radius * 0.18);
+  ctx.beginPath();
+  ctx.moveTo(-radius, 0);
+  ctx.lineTo(radius, 0);
+  ctx.stroke();
+
+  ctx.fillStyle = rgba(theme.buttonCenter, 1);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.33, 0, Math.PI * 2);
+  ctx.fill();
+  if (critical) {
+    ctx.fillStyle = "rgba(252, 229, 126, 0.8)";
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = rgba(theme.buttonOuter, 0.9);
+  ctx.lineWidth = Math.max(1.2, radius * 0.09);
+  ctx.stroke();
+
+  if (broken && crackRatio > 0.15) {
+    ctx.strokeStyle = `rgba(27, 35, 46, ${0.55 + crackRatio * 0.45})`;
+    ctx.lineWidth = Math.max(1, radius * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(-radius * 0.42, -radius * 0.18);
+    ctx.lineTo(-radius * 0.16, radius * 0.12);
+    ctx.lineTo(radius * 0.12, -radius * 0.06);
+    ctx.lineTo(radius * 0.36, radius * 0.28);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function getCaptureEnemyVisual(sequence, phase) {
+  if (!sequence || !phase) {
+    return { visible: false, alpha: 0, scale: 0 };
+  }
+
+  if (phase === "throw") {
+    return { visible: true, alpha: 0.7, scale: 0.94 };
+  }
+
+  if (phase === "reappear") {
+    const timeInPhase = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS + CAPTURE_FAIL_BREAK_MS);
+    const ratio = clamp(timeInPhase / CAPTURE_FAIL_REAPPEAR_MS, 0, 1);
+    const alpha = ratio < 0.34 ? ratio / 0.34 : 1 - (ratio - 0.34) / 0.66;
+    return { visible: alpha > 0.02, alpha: clamp(alpha, 0, 1), scale: 0.78 + Math.sin(ratio * Math.PI) * 0.26 };
+  }
+
+  return { visible: false, alpha: 0, scale: 0 };
+}
+
+function drawCaptureSequence(layout, captureSequence, capturePhase) {
+  if (!captureSequence || !capturePhase) {
+    return;
+  }
+
+  const sequence = captureSequence;
+  const criticalCapture = Boolean(sequence.isCritical);
+  const ballType = normalizeBallTypeForVisual(sequence.ballType);
+  const ballTheme = getBallRenderTheme(ballType);
+  const celebrationParticles = shouldRenderCelebrationParticles();
+  const throwRatio = CAPTURE_THROW_MS > 0 ? clamp(sequence.elapsedMs / CAPTURE_THROW_MS, 0, 1) : 1;
+  const easedThrow = easeOutCubic(throwRatio);
+  let ballX = sequence.targetX;
+  let ballY = sequence.targetY;
+  let ballRotation = 0;
+  let ballRadius = 14;
+  let broken = false;
+  let crackRatio = 0;
+  let glowRatio = 0;
+
+  if (capturePhase === "throw") {
+    ballX = sequence.startX + (sequence.targetX - sequence.startX) * easedThrow;
+    ballY = sequence.startY + (sequence.targetY - sequence.startY) * easedThrow - Math.sin(throwRatio * Math.PI) * 70;
+    ballRotation = easedThrow * Math.PI * 2.6;
+    ballRadius = 13.2 + Math.sin(throwRatio * Math.PI) * 1.9;
+    if (criticalCapture) {
+      glowRatio = 0.48 + Math.sin(throwRatio * Math.PI) * 0.38;
+    }
+  } else if (capturePhase === "shake") {
+    const localMs = sequence.elapsedMs - CAPTURE_THROW_MS;
+    const shakeRatio = clamp(localMs / Math.max(1, CAPTURE_SHAKE_MS), 0, 1);
+    const shakeAmpBase = criticalCapture ? 12 : 8;
+    const shakeAmp = shakeAmpBase * (1 - shakeRatio * 0.35);
+    const shakeWave = Math.sin(localMs * 0.036) * Math.exp(-shakeRatio * 0.5);
+    ballX = sequence.targetX + shakeWave * shakeAmp;
+    ballY = sequence.targetY + Math.abs(shakeWave) * 1.4;
+    ballRotation = shakeWave * 0.34;
+    ballRadius = 14.4 - shakeRatio * 0.95;
+    if (criticalCapture) {
+      glowRatio = 0.4 + Math.sin(localMs * 0.02) * 0.22;
+    }
+  } else if (capturePhase === "success") {
+    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);
+    const ratio = clamp(localMs / Math.max(1, CAPTURE_SUCCESS_BURST_MS), 0, 1);
+    ballX = sequence.targetX;
+    ballY = sequence.targetY - Math.sin(ratio * Math.PI) * 3.2;
+    ballRotation = Math.sin(localMs * 0.024) * 0.12;
+    ballRadius = 14 + Math.sin(ratio * Math.PI * 2.4) * 0.92 * (1 - ratio * 0.65);
+    glowRatio = (criticalCapture ? 1.35 : 1) - ratio * (criticalCapture ? 0.16 : 0.25);
+  } else if (capturePhase === "break") {
+    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS);
+    ballX = sequence.targetX;
+    ballY = sequence.targetY + clamp(localMs / 120, 0, 1) * 1.8;
+    broken = true;
+    crackRatio = clamp(localMs / Math.max(1, CAPTURE_FAIL_BREAK_MS), 0, 1);
+    ballRadius = 14 - crackRatio * 0.82;
+    if (criticalCapture) {
+      glowRatio = 0.3 * (1 - crackRatio);
+    }
+  } else if (capturePhase === "reappear") {
+    const localMs = sequence.elapsedMs - (CAPTURE_THROW_MS + CAPTURE_SHAKE_MS + CAPTURE_FAIL_BREAK_MS);
+    const ratio = clamp(localMs / Math.max(1, CAPTURE_FAIL_REAPPEAR_MS), 0, 1);
+    ballX = sequence.targetX;
+    ballY = sequence.targetY + ratio * 2.4;
+    broken = true;
+    crackRatio = 1;
+    ballRadius = 13.2 - ratio * 0.55;
+  } else {
+    ballX = sequence.targetX;
+    ballY = sequence.targetY;
+  }
+
+  if (capturePhase === "throw") {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 1; i <= 5; i += 1) {
+      const trailT = clamp(throwRatio - i * 0.085, 0, 1);
+      if (trailT <= 0) {
+        continue;
+      }
+      const easedTrail = easeOutCubic(trailT);
+      const trailX = sequence.startX + (sequence.targetX - sequence.startX) * easedTrail;
+      const trailY = sequence.startY + (sequence.targetY - sequence.startY) * easedTrail - Math.sin(trailT * Math.PI) * 70;
+      const trailAlpha = (0.17 - i * 0.025) * (criticalCapture ? 1.25 : 1);
+      ctx.fillStyle = rgba(ballTheme.glowCore, Math.max(0, trailAlpha));
+      ctx.beginPath();
+      ctx.arc(trailX, trailY, Math.max(2.2, ballRadius * (0.5 - i * 0.06)), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  const lift = Math.max(0, sequence.targetY - ballY);
+  const shadowScale = clamp(1 - lift / 120, 0.3, 1);
+  ctx.save();
+  ctx.fillStyle = `rgba(6, 12, 20, ${0.13 + shadowScale * 0.19})`;
+  ctx.beginPath();
+  ctx.ellipse(ballX, sequence.targetY + ballRadius * 0.88, ballRadius * (0.95 + shadowScale * 0.55), ballRadius * 0.34, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  if (celebrationParticles) {
+    for (const particle of sequence.particles || []) {
+      const lifeRatio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
+      ctx.save();
+      ctx.globalAlpha = lifeRatio;
+      if (particle.kind === "break") {
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation || 0);
+        ctx.fillStyle = rgba(particle.color, 0.95);
+        const size = particle.size || 2;
+        ctx.fillRect(-size, -size * 0.56, size * 2, size * 1.12);
+      } else {
+        const glow = ctx.createRadialGradient(
+          particle.x,
+          particle.y,
+          0,
+          particle.x,
+          particle.y,
+          (particle.size || 2) * 3.2,
+        );
+        glow.addColorStop(0, rgba(particle.color, 1));
+        glow.addColorStop(1, rgba(particle.color, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, (particle.size || 2) * 3.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(particle.color, 0.98);
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  drawPokeball(ballX, ballY, ballRadius, {
+    rotation: ballRotation,
+    broken,
+    crack_ratio: crackRatio,
+    glow_ratio: glowRatio,
+    critical: criticalCapture,
+    ball_type: ballType,
+  });
+
+  if (criticalCapture && celebrationParticles) {
+    const pulse = 0.5 + Math.sin(state.timeMs * 0.018) * 0.5;
+    const auraRadius = 26 + pulse * 8;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const aura = ctx.createRadialGradient(ballX, ballY, 2, ballX, ballY, auraRadius);
+    aura.addColorStop(0, "rgba(255, 234, 166, 0.36)");
+    aura.addColorStop(0.6, "rgba(209, 174, 255, 0.22)");
+    aura.addColorStop(1, "rgba(209, 174, 255, 0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, auraRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (capturePhase === "success" && celebrationParticles) {
+    const pulse = 0.25 + Math.sin(state.timeMs * 0.02) * 0.15;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const ringRadius = layout.enemySize * ((criticalCapture ? 0.36 : 0.28) + pulse);
+    const successPrimary = criticalCapture
+      ? ballTheme.criticalSuccessColors[0] || [255, 233, 150]
+      : ballTheme.successColors[0] || [172, 255, 190];
+    const successSecondary = criticalCapture
+      ? ballTheme.criticalSuccessColors[1] || [199, 164, 255]
+      : ballTheme.successColors[1] || [186, 234, 255];
+    ctx.strokeStyle = rgba(successPrimary, criticalCapture ? 0.76 : 0.62);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(sequence.targetX, sequence.targetY, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    if (criticalCapture) {
+      ctx.strokeStyle = rgba(successSecondary, 0.54);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(sequence.targetX, sequence.targetY, ringRadius * 0.74, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  const chanceDisplay = Number(sequence.chanceDisplay);
+  if (Number.isFinite(chanceDisplay) && chanceDisplay > 0) {
+    const percent = Math.round(clamp(chanceDisplay, 0, 1) * 100);
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.62)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    ctx.font = "700 12px Trebuchet MS";
+    ctx.strokeText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);
+    ctx.fillText(`Chance de capture : ${percent}%`, sequence.targetX, sequence.targetY - layout.enemySize * 0.52);
+    ctx.restore();
+  }
+}
+
+function drawEnemyKoEffect(layout, koTransition) {
+  if (!koTransition?.shrink_active) {
+    return;
+  }
+
+  const progress = koTransition.shrink_progress || 0;
+  const pulse = 0.65 + 0.35 * Math.sin(state.timeMs * 0.06);
+  const radius = layout.enemySize * (0.4 + progress * 0.66 + pulse * 0.05);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  const burst = ctx.createRadialGradient(
+    layout.centerX,
+    layout.centerY,
+    layout.enemySize * 0.12,
+    layout.centerX,
+    layout.centerY,
+    radius * 1.9,
+  );
+  burst.addColorStop(0, "rgba(255, 247, 206, 0.58)");
+  burst.addColorStop(0.45, "rgba(255, 150, 120, 0.28)");
+  burst.addColorStop(1, "rgba(255, 120, 120, 0)");
+  ctx.fillStyle = burst;
+  ctx.beginPath();
+  ctx.arc(layout.centerX, layout.centerY, radius * 1.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255, 248, 225, " + (0.34 * (1 - progress) + 0.16) + ")";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(layout.centerX, layout.centerY, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function activateNextEvolutionAnimationIfNeeded() {
+  if (state.evolutionAnimation.current) {
+    return;
+  }
+  if (!Array.isArray(state.evolutionAnimation.queue) || state.evolutionAnimation.queue.length === 0) {
+    return;
+  }
+  while (state.evolutionAnimation.queue.length > 0) {
+    const next = state.evolutionAnimation.queue.shift();
+    if (!next || !next.fromDef || !next.toDef) {
+      continue;
+    }
+    state.evolutionAnimation.current = {
+      ...next,
+      elapsedMs: 0,
+      totalMs: Math.max(260, toSafeInt(next.totalMs, EVOLUTION_ANIM_TOTAL_MS)),
+      particles: Array.isArray(next.particles) ? next.particles : [],
+    };
+    return;
+  }
+}
+
+function drawTeamLevelUpEffects() {
+  if (!Array.isArray(state.teamLevelUpEffects) || state.teamLevelUpEffects.length <= 0) {
+    return;
+  }
+  const quality = getRenderQualitySettings();
+  const particleStride = Math.max(1, toSafeInt(quality.levelUpParticleStride, 1));
+  const useGlow = Boolean(quality.enemyHitGlow);
+  const celebrationParticles = shouldRenderCelebrationParticles();
+
+  for (const effect of state.teamLevelUpEffects) {
+    const effectRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    const ringAlpha = Math.min(1, effectRatio * 1.4);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = ringAlpha;
+    ctx.strokeStyle = "rgba(126, 206, 255, 0.9)";
+    ctx.lineWidth = 2.1;
+    ctx.beginPath();
+    ctx.arc(effect.x, effect.y, effect.ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    if (celebrationParticles) {
+      const particles = Array.isArray(effect.particles) ? effect.particles : [];
+      for (let particleIndex = 0; particleIndex < particles.length; particleIndex += particleStride) {
+        const particle = particles[particleIndex];
+        if (!particle) {
+          continue;
+        }
+        const ratio = clamp(particle.lifeMs / Math.max(1, particle.maxLifeMs), 0, 1);
+        const radius = (particle.size || 2) * (0.5 + ratio * 0.9);
+        ctx.save();
+        if (useGlow) {
+          ctx.globalCompositeOperation = "lighter";
+          const glow = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, radius * 3.1);
+          glow.addColorStop(0, `rgba(166, 224, 255, ${0.85 * ratio})`);
+          glow.addColorStop(1, "rgba(166, 224, 255, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, radius * 3.1, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.globalAlpha = Math.max(0.12, ratio * 0.7);
+          ctx.fillStyle = "rgba(166, 224, 255, 0.72)";
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, radius * 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = `rgba(213, 242, 255, ${0.95 * ratio})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+}
+
+function getTeamXpPulseScale(slotIndex) {
+  void slotIndex;
+  return 1;
+}
+
+function drawTeamXpGainEffects() {
+  if (!Array.isArray(state.teamXpGainEffects) || state.teamXpGainEffects.length <= 0) {
+    return;
+  }
+  for (const effect of state.teamXpGainEffects) {
+    const lifeRatio = clamp(effect.lifeMs / Math.max(1, effect.maxLifeMs), 0, 1);
+    const textAlpha = clamp(lifeRatio * 1.25, 0, 1);
+    const tone = String(effect.tone || "defeat");
+    const textColor = tone === "capture" ? "rgba(171, 255, 211, 1)" : "rgba(160, 224, 255, 1)";
+    const shadowColor = tone === "capture" ? "rgba(34, 98, 71, 0.82)" : "rgba(29, 62, 108, 0.84)";
+
+    ctx.save();
+    ctx.globalAlpha = textAlpha;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 3.4;
+    ctx.strokeStyle = shadowColor;
+    ctx.fillStyle = textColor;
+    ctx.font = "700 13px Trebuchet MS";
+    ctx.strokeText(effect.text, effect.x, effect.y);
+    ctx.fillText(effect.text, effect.x, effect.y);
+    ctx.restore();
+  }
+}
+
+function drawTimeOfDayColorGrade(width, height, environmentSnapshot) {
+  const dayLight = clamp(Number(environmentSnapshot?.dayLight) || 0, 0, 1);
+  const night = clamp(Number(environmentSnapshot?.night) || 0, 0, 1);
+
+  ctx.save();
+  if (night > 0.001) {
+    const nightGradient = ctx.createLinearGradient(0, 0, 0, height);
+    nightGradient.addColorStop(0, `rgba(20, 35, 78, ${(0.18 + night * 0.18).toFixed(3)})`);
+    nightGradient.addColorStop(1, `rgba(8, 18, 46, ${(0.22 + night * 0.24).toFixed(3)})`);
+    ctx.fillStyle = nightGradient;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  if (dayLight > 0.001) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const sunX = width * 0.2;
+    const sunY = height * 0.02;
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, width * 0.06, sunX, sunY, width * 0.86);
+    sunGlow.addColorStop(0, `rgba(255, 240, 190, ${(0.07 + dayLight * 0.09).toFixed(3)})`);
+    sunGlow.addColorStop(1, "rgba(255, 240, 190, 0)");
+    ctx.fillStyle = sunGlow;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function getScreenPerimeterPoint(width, height, loopRatio, margin = 0) {
+  const safeMargin = Math.max(0, Number(margin) || 0);
+  const safeWidth = Math.max(1, width - safeMargin * 2);
+  const safeHeight = Math.max(1, height - safeMargin * 2);
+  const perimeter = safeWidth * 2 + safeHeight * 2;
+  if (perimeter <= 0) {
+    return {
+      x: width * 0.5,
+      y: height * 0.5,
+      nx: 0,
+      ny: 0,
+    };
+  }
+  let distance = (((Number(loopRatio) || 0) % 1) + 1) % 1;
+  distance *= perimeter;
+  if (distance <= safeWidth) {
+    return {
+      x: safeMargin + distance,
+      y: safeMargin,
+      nx: 0,
+      ny: 1,
+    };
+  }
+  distance -= safeWidth;
+  if (distance <= safeHeight) {
+    return {
+      x: safeMargin + safeWidth,
+      y: safeMargin + distance,
+      nx: -1,
+      ny: 0,
+    };
+  }
+  distance -= safeHeight;
+  if (distance <= safeWidth) {
+    return {
+      x: safeMargin + safeWidth - distance,
+      y: safeMargin + safeHeight,
+      nx: 0,
+      ny: -1,
+    };
+  }
+  distance -= safeWidth;
+  return {
+    x: safeMargin,
+    y: safeMargin + safeHeight - distance,
+    nx: 1,
+    ny: 0,
+  };
+}
+
+function drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulseScale = 1) {
+  const edgeThickness = Math.max(14, Math.round(Math.min(width, height) * 0.065));
+  const alpha = clamp(Number(theme?.edgeAlpha || 0) * Math.max(0.6, Number(pulseScale) || 1) * intensity, 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  const topGradient = ctx.createLinearGradient(0, 0, 0, edgeThickness);
+  topGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.2).toFixed(3)));
+  topGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = topGradient;
+  ctx.fillRect(0, 0, width, edgeThickness);
+
+  const bottomGradient = ctx.createLinearGradient(0, height, 0, height - edgeThickness);
+  bottomGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.18).toFixed(3)));
+  bottomGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = bottomGradient;
+  ctx.fillRect(0, height - edgeThickness, width, edgeThickness);
+
+  const leftGradient = ctx.createLinearGradient(0, 0, edgeThickness, 0);
+  leftGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));
+  leftGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = leftGradient;
+  ctx.fillRect(0, 0, edgeThickness, height);
+
+  const rightGradient = ctx.createLinearGradient(width, 0, width - edgeThickness, 0);
+  rightGradient.addColorStop(0, rgba(theme.edgeColor, (alpha * 1.02).toFixed(3)));
+  rightGradient.addColorStop(1, rgba(theme.edgeColor, 0));
+  ctx.fillStyle = rightGradient;
+  ctx.fillRect(width - edgeThickness, 0, edgeThickness, height);
+  ctx.restore();
+}
+
+function drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale) {
+  const density = Math.max(0.05, Number(particleScale) || 0);
+  const particleCount = Math.round((16 + (width + height) / 120) * intensity * density);
+  if (particleCount <= 0) {
+    return;
+  }
+  const margin = Math.max(5, Math.round(Math.min(width, height) * 0.01));
+  const time = state.timeMs * 0.00058;
+  const color = Array.isArray(theme?.particleColor) ? theme.particleColor : [218, 240, 255];
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+
+  for (let i = 0; i < particleCount; i += 1) {
+    const seed = i * 17.73 + intensity * 37.1 + color[0] * 0.071;
+    const speed = 0.06 + pseudoRandomUnit(seed * 1.73) * 0.16;
+    const loopRatio = (pseudoRandomUnit(seed * 2.19) + time * speed) % 1;
+    const edgePoint = getScreenPerimeterPoint(width, height, loopRatio, margin);
+    const inward = 4 + pseudoRandomUnit(seed * 3.11) * 15;
+    const x = edgePoint.x + edgePoint.nx * inward;
+    const y = edgePoint.y + edgePoint.ny * inward;
+    const phase = state.timeMs * (0.0034 + pseudoRandomUnit(seed * 4.67) * 0.0026) + seed;
+    const alpha = (0.22 + pseudoRandomUnit(seed * 5.93) * 0.46) * intensity;
+
+    if (theme?.key === "electric") {
+      const length = 4 + pseudoRandomUnit(seed * 7.41) * 8;
+      const jitterX = Math.sin(phase * 1.7) * 3.2;
+      const jitterY = Math.cos(phase * 1.4) * 2.8;
+      ctx.strokeStyle = rgba(color, alpha.toFixed(3));
+      ctx.lineWidth = 1 + pseudoRandomUnit(seed * 8.27) * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x + jitterX, y + jitterY);
+      ctx.lineTo(x + jitterX + edgePoint.nx * length, y + jitterY + edgePoint.ny * length);
+      ctx.stroke();
+      continue;
+    }
+
+    if (theme?.key === "ardent") {
+      const radius = 1.4 + pseudoRandomUnit(seed * 6.37) * 2.6;
+      const driftX = Math.sin(phase) * 2.4;
+      const driftY = Math.cos(phase * 0.8) * 1.9;
+      ctx.fillStyle = rgba(color, (alpha * 0.82).toFixed(3));
+      ctx.beginPath();
+      ctx.arc(x + driftX, y + driftY, radius * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = rgba(theme.pulseColor, clamp(alpha * 1.08, 0, 1).toFixed(3));
+      ctx.beginPath();
+      ctx.arc(x + driftX, y + driftY, radius * 0.78, 0, Math.PI * 2);
+      ctx.fill();
+      continue;
+    }
+
+    const radius = 1.1 + pseudoRandomUnit(seed * 6.91) * 2;
+    const driftX = Math.sin(phase * 0.85) * 1.4;
+    const driftY = Math.cos(phase * 0.9) * 1.4;
+    ctx.fillStyle = rgba(color, alpha.toFixed(3));
+    ctx.beginPath();
+    ctx.moveTo(x + driftX, y + driftY - radius);
+    ctx.lineTo(x + driftX + radius, y + driftY);
+    ctx.lineTo(x + driftX, y + driftY + radius);
+    ctx.lineTo(x + driftX - radius, y + driftY);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLegendaryFieldTrinityPulse(width, height, intensity) {
+  const pulse = 0.52 + Math.sin(state.timeMs * 0.0023) * 0.48;
+  const alpha = clamp((0.07 + pulse * 0.06) * intensity, 0, 1);
+  if (alpha <= 0.001) {
+    return;
+  }
+  const centerX = width * 0.5;
+  const centerY = height * 0.48;
+  const radius = Math.max(width, height) * (0.55 + pulse * 0.08);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const glow = ctx.createRadialGradient(centerX, centerY, radius * 0.26, centerX, centerY, radius);
+  glow.addColorStop(0, rgba([246, 251, 255], (alpha * 0.64).toFixed(3)));
+  glow.addColorStop(0.6, rgba([213, 236, 255], (alpha * 0.28).toFixed(3)));
+  glow.addColorStop(1, "rgba(213, 236, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+
+  const borderAlpha = clamp(alpha * 0.42, 0, 1);
+  ctx.strokeStyle = rgba([212, 240, 255], borderAlpha.toFixed(3));
+  ctx.lineWidth = Math.max(2, Math.round(Math.min(width, height) * 0.0034));
+  ctx.strokeRect(1, 1, width - 2, height - 2);
+  ctx.restore();
+}
+
+function drawLegendaryFieldScreenVfx(width, height, teamMembers) {
+  const fields = getLegendaryFieldPresence(teamMembers);
+  if (!fields.electric && !fields.ardent && !fields.arctic) {
+    return;
+  }
+  const quality = getRenderQualitySettings();
+  const qualityParticleScale = clamp(Number(quality.environmentParticleScale) || 0, 0, 1.5);
+  const particleScale = 0.45 + qualityParticleScale * 1.7;
+  const activeThemes = [];
+  if (fields.electric) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.electric);
+  }
+  if (fields.ardent) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.ardent);
+  }
+  if (fields.arctic) {
+    activeThemes.push(LEGENDARY_FIELD_VFX_THEME_BY_KEY.arctic);
+  }
+
+  const fieldIntensity = clamp(activeThemes.length / 3, 0.45, 1);
+  for (let i = 0; i < activeThemes.length; i += 1) {
+    const theme = activeThemes[i];
+    const pulse = 0.72 + Math.sin(state.timeMs * 0.0022 + i * 1.48) * 0.28;
+    const intensity = clamp((0.55 + fieldIntensity * 0.45) * pulse, 0.22, 1);
+    drawLegendaryFieldEdgeAura(width, height, theme, intensity, pulse);
+    drawLegendaryFieldPerimeterParticles(width, height, theme, intensity, particleScale);
+  }
+
+  if (fields.trinityActive) {
+    drawLegendaryFieldTrinityPulse(width, height, fieldIntensity);
+  }
+}
+
+function drawEnvironmentBackgroundLayer(width, height, environmentSnapshot) {
+  if (!environmentSnapshot) {
+    return;
+  }
+  drawTimeOfDayColorGrade(width, height, environmentSnapshot);
+}
+
+function drawEnvironmentForegroundLayer(width, height, environmentSnapshot) {
+  if (!environmentSnapshot) {
+    return;
+  }
+  if (!shouldRenderAmbientOverlays()) {
+    return;
+  }
+  void width;
+  void height;
+  void environmentSnapshot;
+}
+
+function updateEvolutionAnimation(deltaMs) {
+  activateNextEvolutionAnimationIfNeeded();
+  const current = state.evolutionAnimation.current;
+  if (!current) {
+    return false;
+  }
+  current.elapsedMs = Math.min(current.totalMs, current.elapsedMs + Math.max(0, Number(deltaMs) || 0));
+  if (current.elapsedMs >= current.totalMs) {
+    state.evolutionAnimation.current = null;
+    activateNextEvolutionAnimationIfNeeded();
+  }
+  return Boolean(state.evolutionAnimation.current);
+}
+
+function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
+  const alpha = clamp(Number(options.alpha ?? 1), 0, 1);
+  const scale = Math.max(0.02, Number(options.scale ?? 1));
+  const whiteRatio = clamp(Number(options.whiteRatio ?? 0), 0, 1);
+  const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
+  const spriteImage = resolvedSpriteSource?.source || entity?.spriteImage || null;
+  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = alpha;
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "rgba(0, 0, 0, " + (0.24 + (1 - whiteRatio) * 0.2).toFixed(3) + ")";
+  ctx.beginPath();
+  ctx.ellipse(0, renderSize * 0.38, renderSize * 0.32, renderSize * 0.11, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (isDrawableImage(spriteImage)) {
+    const dims = getDrawableImageDimensions(spriteImage);
+    const ratio = dims.width / Math.max(dims.height, 1);
+    let drawWidth = renderSize;
+    let drawHeight = renderSize;
+    if (ratio > 1) {
+      drawHeight = renderSize / ratio;
+    } else {
+      drawWidth = renderSize * ratio;
+    }
+    const drawX = -drawWidth * 0.5;
+    const drawY = -drawHeight * 0.45;
+    const wasSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    drawSpriteImageWithTint(spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);
+    ctx.imageSmoothingEnabled = wasSmoothing;
+  } else {
+    ctx.fillStyle = "rgba(195, 215, 245, 0.45)";
+    ctx.beginPath();
+    ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+    if (whiteRatio > 0) {
+      ctx.fillStyle = "rgba(255, 255, 255, " + whiteRatio.toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.arc(0, 0, renderSize * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsedMs) {
+  const particles = Array.isArray(current?.particles) ? current.particles : [];
+  if (particles.length <= 0) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const particle of particles) {
+    const ageMs = elapsedMs - Math.max(0, Number(particle.startMs) || 0);
+    const durationMs = Math.max(1, Number(particle.durationMs) || 1);
+    if (ageMs < 0 || ageMs > durationMs) {
+      continue;
+    }
+
+    const ratio = clamp(ageMs / durationMs, 0, 1);
+    const alpha = Math.sin(ratio * Math.PI) * 0.72;
+    if (alpha <= 0.01) {
+      continue;
+    }
+    const baseAngle = Number(particle.baseAngle) || 0;
+    const angle = baseAngle + ratio * (Number(particle.spinTurns) || 0) * Math.PI * 2;
+    const orbitRadius = spriteSize * ((Number(particle.radiusStart) || 0.2) + ratio * (Number(particle.radiusGrow) || 0.12));
+    const x = centerX + Math.cos(angle) * orbitRadius;
+    const y =
+      centerY
+      + (Number(particle.heightOffset) || 0) * spriteSize
+      + Math.sin(angle * 0.7 + baseAngle) * spriteSize * 0.08
+      - ratio * spriteSize * (Number(particle.lift) || 0.14);
+    const size = Math.max(0.8, (Number(particle.size) || 2) * (0.82 + (1 - ratio) * 0.35));
+    const color = Array.isArray(particle.color) ? particle.color : [190, 225, 255];
+
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 3.2);
+    glow.addColorStop(0, rgba(color, alpha));
+    glow.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = rgba(color, Math.min(1, alpha + 0.16));
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawEvolutionAnimationOverlay(layout) {
+  const current = state.evolutionAnimation.current;
+  if (!current || !layout) {
+    return;
+  }
+
+  const whiteEnd = Math.max(1, EVOLUTION_ANIM_WHITE_MS);
+  const flashEnd = whiteEnd + Math.max(1, EVOLUTION_ANIM_FLASH_MS);
+  const revealEnd = flashEnd + Math.max(1, EVOLUTION_ANIM_REVEAL_MS);
+  const elapsed = clamp(current.elapsedMs, 0, current.totalMs);
+  const centerX = layout.centerX;
+  const centerY = layout.centerY - layout.enemySize * 0.03;
+  const spriteSize = clamp(layout.enemySize * 1.5, 170, 300);
+  const growthRatio = clamp(elapsed / whiteEnd, 0, 1);
+  const growthEase = easeInOutSine(growthRatio);
+  const flashRatio =
+    elapsed <= whiteEnd ? 0 : clamp((elapsed - whiteEnd) / Math.max(1, EVOLUTION_ANIM_FLASH_MS), 0, 1);
+  const flashEase = easeInOutSine(flashRatio);
+  const revealRatio =
+    elapsed <= flashEnd ? 0 : clamp((elapsed - flashEnd) / Math.max(1, EVOLUTION_ANIM_REVEAL_MS), 0, 1);
+  const revealEase = easeInOutSine(revealRatio);
+  const backdropFadeMs = clamp(
+    Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, current.totalMs * 0.26),
+    120,
+    Math.max(120, current.totalMs * 0.5),
+  );
+  const fadeIn = easeInOutSine(clamp(elapsed / backdropFadeMs, 0, 1));
+  const fadeOutStart = Math.max(0, current.totalMs - backdropFadeMs);
+  const fadeOut = 1 - easeInOutSine(clamp((elapsed - fadeOutStart) / backdropFadeMs, 0, 1));
+  const backdropPresence = clamp(Math.min(fadeIn, fadeOut), 0, 1);
+
+  ctx.save();
+  const baseBackdropAlpha = clamp((0.54 + (1 - revealEase) * 0.16) * backdropPresence, 0, 0.86);
+  ctx.fillStyle = `rgba(2, 6, 12, ${baseBackdropAlpha.toFixed(3)})`;
+  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+
+  const vignetteRadius = Math.hypot(state.viewport.width, state.viewport.height) * 0.72;
+  const vignette = ctx.createRadialGradient(
+    centerX,
+    centerY,
+    spriteSize * 0.34,
+    centerX,
+    centerY,
+    vignetteRadius,
+  );
+  const vignetteAlpha = clamp((0.36 + (1 - revealEase) * 0.34) * backdropPresence, 0, 0.9);
+  vignette.addColorStop(0, `rgba(4, 9, 17, ${(vignetteAlpha * 0.06).toFixed(3)})`);
+  vignette.addColorStop(0.52, `rgba(4, 9, 17, ${(vignetteAlpha * 0.4).toFixed(3)})`);
+  vignette.addColorStop(1, `rgba(4, 9, 17, ${vignetteAlpha.toFixed(3)})`);
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+
+  const focusRadius = spriteSize * 1.3;
+  const focus = ctx.createRadialGradient(centerX, centerY, spriteSize * 0.12, centerX, centerY, focusRadius);
+  focus.addColorStop(0, `rgba(255, 255, 255, ${(0.18 + (1 - revealEase) * 0.1).toFixed(3)})`);
+  focus.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = focus;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, focusRadius, 0, Math.PI * 2);
+  ctx.fill();
+  drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsed);
+
+  let title = `${current.fromNameFr} evolue !`;
+  let subtitle = "";
+  const baseOrbRadius = spriteSize * 0.52;
+  const maxOrbRadius = spriteSize * 0.64;
+  const minOrbRadius = spriteSize * 0.08;
+  let orbRadius = baseOrbRadius;
+  let orbAlpha = 0;
+
+  if (elapsed < whiteEnd) {
+    const whiteRatio = clamp(0.16 + growthEase * 0.84, 0, 1);
+    const scale = lerpNumber(1.03, 0.52, growthEase);
+    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
+      alpha: clamp(1 - growthEase * 0.94, 0.05, 1),
+      scale,
+      whiteRatio,
+    });
+    orbRadius = lerpNumber(baseOrbRadius, maxOrbRadius, growthEase);
+    orbAlpha = clamp(0.82 + growthEase * 0.18, 0, 1);
+  } else if (elapsed < flashEnd) {
+    const pulse = Math.sin(flashEase * Math.PI);
+    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
+      alpha: 0.03,
+      scale: 0.5,
+      whiteRatio: 1,
+    });
+    orbRadius = maxOrbRadius * (0.98 + pulse * 0.03);
+    orbAlpha = 1;
+    const flashAlpha = 0.05 + pulse * 0.12;
+    ctx.fillStyle = "rgba(255, 255, 255, " + flashAlpha.toFixed(3) + ")";
+    ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
+  } else {
+    orbRadius = lerpNumber(maxOrbRadius, minOrbRadius, revealEase);
+    orbAlpha = clamp(1 - revealEase * 1.08, 0, 1);
+    const whiteRatio = clamp(1 - revealEase * 1.08, 0, 1);
+    const scale = lerpNumber(0.82, 1.04, revealEase);
+    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {
+      alpha: clamp(0.18 + revealEase * 0.82, 0, 1),
+      scale,
+      whiteRatio,
+    });
+    if (revealRatio > 0.18) {
+      subtitle = `${current.toNameFr} !`;
+    }
+  }
+
+  if (orbAlpha > 0.001 && orbRadius > 1) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, orbAlpha).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, 0.88 + orbAlpha * 0.12).toFixed(3)})`;
+    ctx.lineWidth = clamp(orbRadius * 0.018, 2.6, 5.6);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, orbRadius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  if (elapsed >= revealEnd) {
+    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {
+      alpha: 1,
+      scale: 1.04,
+      whiteRatio: 0,
+    });
+    subtitle = `${current.toNameFr} !`;
+  }
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(6, 10, 19, 0.9)";
+  ctx.fillStyle = "#f7fbff";
+  ctx.font = "700 30px Trebuchet MS";
+  ctx.lineWidth = 6;
+  ctx.strokeText(title, centerX, centerY - spriteSize * 0.72);
+  ctx.fillText(title, centerX, centerY - spriteSize * 0.72);
+
+  if (subtitle) {
+    ctx.font = "700 34px Trebuchet MS";
+    ctx.lineWidth = 7;
+    ctx.strokeText(subtitle, centerX, centerY + spriteSize * 0.72);
+    ctx.fillText(subtitle, centerX, centerY + spriteSize * 0.72);
+  }
+  ctx.restore();
+}
+
+function getRouteFallbackPalette(routeId) {
+  const parts = String(routeId || "").match(/\d+/g);
+  const routeNumber = parts && parts.length > 0 ? Math.max(1, Number(parts[parts.length - 1] || 1)) : 1;
+  const hue = (routeNumber * 43) % 360;
+  const top = "hsl(" + hue + ", 38%, 24%)";
+  const bottom = "hsl(" + ((hue + 26) % 360) + ", 44%, 12%)";
+  const accent = "hsla(" + ((hue + 52) % 360) + ", 70%, 68%, 0.12)";
+  return { top, bottom, accent, routeNumber };
+}
+
+function drawBackground(width, height) {
+  if (state.backgroundImage) {
+    const image = state.backgroundImage;
+    const drift = getBackgroundDriftOffset();
+    const driftRange = getBackgroundDriftRangePx();
+    const coverPadX = driftRange + Math.abs(drift.x) + 6;
+    const coverPadY = driftRange + Math.abs(drift.y) + 6;
+    const scale = Math.max((width + coverPadX * 2) / image.width, (height + coverPadY * 2) / image.height);
+    const drawWidth = image.width * scale;
+    const drawHeight = image.height * scale;
+    const drawX = (width - drawWidth) * 0.5 + drift.x;
+    const drawY = (height - drawHeight) * 0.5 + drift.y;
+
+    const wasSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    ctx.imageSmoothingEnabled = wasSmoothing;
+    return;
+  }
+
+  const routeId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const routeName = state.routeData?.route_name_fr || getRouteDisplayName(routeId);
+  const palette = getRouteFallbackPalette(routeId);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, palette.top);
+  gradient.addColorStop(1, palette.bottom);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.strokeStyle = palette.accent;
+  ctx.lineWidth = 2;
+  const bandStep = Math.max(38, Math.min(84, 28 + palette.routeNumber * 3));
+  for (let x = -height; x < width + height; x += bandStep) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x - height * 0.5, height);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "rgba(235, 247, 255, 0.78)";
+  ctx.font = "700 15px Trebuchet MS";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText(routeName, 18, 16);
+  ctx.restore();
+}
+
+function drawLoadingOrError(text) {
+  const { width, height } = state.viewport;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = "#f7fbff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "700 30px Trebuchet MS";
+  ctx.fillText(text, width * 0.5, height * 0.48);
+}
+
+function drawBallInventoryOverlay(layout) {
+  state.ui.ballOverlayHitboxes = [];
+  const rows = getBallInventoryOverlayRows();
+  if (rows.length <= 0) {
+    return;
+  }
+
+  const safeBounds = layout?.safeBounds || {
+    left: 8,
+    top: 8,
+    right: Math.max(8, state.viewport.width - 8),
+    bottom: Math.max(8, state.viewport.height - 8),
+  };
+  const viewportProfile = layout?.viewportProfile || {};
+  const isPhone = Boolean(viewportProfile.phone);
+  const compact = Boolean(isPhone || viewportProfile.compact);
+  const iconSize = isPhone ? 14 : compact ? 16 : 22;
+  const rowGap = isPhone ? 3 : compact ? 4 : 6;
+  const panelPaddingX = isPhone ? 5 : 6;
+  const panelPaddingY = isPhone ? 5 : 6;
+  const iconTextGap = isPhone ? 5 : compact ? 6 : 8;
+  const valueFontSize = isPhone ? 12 : compact ? 13 : 16;
+  const rowHeight = isPhone ? 30 : compact ? 34 : 44;
+  const rightInset = isPhone ? 6 : compact ? 8 : 12;
+
+  ctx.save();
+  ctx.font = `800 ${valueFontSize}px Tahoma`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+
+  let maxValueWidth = 0;
+  for (const row of rows) {
+    const value = String(Math.max(0, toSafeInt(row.count, 0)));
+    maxValueWidth = Math.max(maxValueWidth, Math.ceil(ctx.measureText(value).width));
+  }
+  const dynamicPanelWidth = Math.ceil(panelPaddingX * 2 + iconSize + iconTextGap + maxValueWidth + rightInset);
+  const targetDesktopRowWidth = 220;
+  const targetCompactRowWidth = isPhone ? 102 : 116;
+  const panelWidth = Math.max(dynamicPanelWidth, (compact ? targetCompactRowWidth : targetDesktopRowWidth) + 6);
+  const panelHeight = Math.ceil(panelPaddingY * 2 + rows.length * rowHeight + Math.max(0, rows.length - 1) * rowGap);
+  const panelX = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
+  const overlayPaddingTop = getOverlayPaddingSnapshot().top;
+  const panelTopDefault = safeBounds.top + 6;
+  const panelTopDesktopAligned = overlayPaddingTop + 6;
+  const panelTop = compact ? panelTopDefault : panelTopDesktopAligned;
+  const panelY = clamp(panelTop, 6, state.viewport.height - panelHeight - 6);
+
+  drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
+    cut: compact ? 8 : 10,
+    fillTop: "rgba(36, 51, 72, 0.92)",
+    fillBottom: "rgba(20, 31, 47, 0.92)",
+    border: "rgba(142, 176, 210, 0.88)",
+    highlight: "rgba(198, 223, 248, 0.22)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.3,
+  });
+
+  const hitboxes = [];
+  const hoveredType = String(state.ui.hoveredBallOverlayType || "").toLowerCase().trim();
+  const timeMs = Number(state.timeMs) || 0;
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i];
+    const style = BALL_OVERLAY_UI_STYLE_BY_TYPE[row.type] || BALL_OVERLAY_UI_STYLE_DEFAULT;
+    const isHovered = hoveredType === row.type;
+    const hoverPulse = isHovered
+      ? (Math.sin(timeMs * 0.018 + Number(style.phaseOffset || 0)) + 1) * 0.5
+      : 0;
+    const baseRowY = panelY + panelPaddingY + i * (rowHeight + rowGap);
+    const baseRowX = panelX + 3;
+    const baseRowWidth = panelWidth - 6;
+    const baseRowHeight = rowHeight;
+    const rowScale = isHovered ? 1.03 + hoverPulse * 0.02 : 1;
+    const rowWidth = baseRowWidth * rowScale;
+    const rowVisualHeight = baseRowHeight * rowScale;
+    const rowX = baseRowX - (rowWidth - baseRowWidth) * 0.5;
+    const rowY = baseRowY - (rowVisualHeight - baseRowHeight) * 0.5;
+    const centerY = rowY + rowVisualHeight * 0.5;
+    const rowTop = rowY;
+    const rowBottom = rowY + rowVisualHeight;
+    const iconCenterX = rowX + panelPaddingX + iconSize * 0.5;
+    const image = row.spritePath ? getCachedSpriteImage(row.spritePath) : null;
+    const valueText = String(Math.max(0, toSafeInt(row.count, 0)));
+
+    drawRetroHudPanel(rowX, rowY, rowWidth, rowVisualHeight, {
+      cut: compact ? 6 : 8,
+      fillTop: style.rowFillTop,
+      fillBottom: style.rowFillBottom,
+      border: style.rowBorder,
+      highlight: "rgba(255, 255, 255, 0.2)",
+      shadow: isHovered ? style.glow : "rgba(0, 0, 0, 0.3)",
+      borderWidth: isHovered ? 1.5 : 1.15,
+    });
+
+    const badgeRadius = iconSize * 0.6;
+    const badgeGradient = ctx.createLinearGradient(
+      iconCenterX - badgeRadius,
+      centerY - badgeRadius,
+      iconCenterX,
+      centerY + badgeRadius,
+    );
+    badgeGradient.addColorStop(0, style.iconTop || BALL_OVERLAY_UI_STYLE_DEFAULT.iconTop);
+    badgeGradient.addColorStop(1, style.iconBottom || BALL_OVERLAY_UI_STYLE_DEFAULT.iconBottom);
+    ctx.fillStyle = badgeGradient;
+    ctx.beginPath();
+    ctx.arc(iconCenterX, centerY, badgeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.34)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const iconScale = isHovered ? 1 + 0.04 + hoverPulse * 0.05 : 1;
+    const iconDrawSize = iconSize * iconScale * 0.95;
+    if (isDrawableImage(image)) {
+      const drawX = snapSpriteValue(iconCenterX - iconDrawSize * 0.5);
+      const drawY = snapSpriteValue(centerY - iconDrawSize * 0.5);
+      const drawSize = snapSpriteDimension(iconDrawSize);
+      const wasSmoothing = ctx.imageSmoothingEnabled;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(image, drawX, drawY, drawSize, drawSize);
+      ctx.imageSmoothingEnabled = wasSmoothing;
+    } else {
+      drawPokeball(iconCenterX, centerY, iconDrawSize * 0.48, {
+        alpha: 0.92,
+      });
+    }
+
+    const textX = rowX + panelPaddingX + iconSize + iconTextGap;
+    const valueY = rowY + (compact ? 21 : 24);
+    ctx.strokeStyle = "rgba(6, 12, 20, 0.84)";
+    ctx.lineWidth = 2.8;
+    ctx.fillStyle = style.text;
+    if (isHovered) {
+      ctx.shadowColor = style.glow;
+      ctx.shadowBlur = 10 + hoverPulse * 8;
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+    }
+    ctx.font = `800 ${valueFontSize}px Tahoma`;
+    ctx.strokeText(valueText, textX, valueY);
+    ctx.fillText(valueText, textX, valueY);
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
+    hitboxes.push({
+      ballType: row.type,
+      x: panelX + 2,
+      y: Math.max(panelY + 2, rowTop),
+      width: Math.max(8, panelWidth - 4),
+      height: Math.max(8, rowBottom - rowTop),
+    });
+  }
+
+  state.ui.ballOverlayHitboxes = hitboxes;
+  ctx.restore();
+}
+
+function drawBattleUiOverlay(layout, options = {}) {
+  const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
+  if (options.showEnemyUi && state.enemy) {
+    drawEnemyHpBar(
+      state.enemy,
+      layout.centerX,
+      layout.hpBarY,
+      layout.hpBarWidth,
+      layout.hpBarHeight,
+      { allowOverflow: allowOverflowPositions },
+    );
+    const viewportProfile = layout.viewportProfile || {};
+    const isPhoneViewport = Boolean(viewportProfile.phone);
+    const isCompactViewport = Boolean(viewportProfile.compact);
+    const enemyNameCard = drawNameAndLevel(state.enemy, layout.centerX, layout.enemyNameTopY, {
+      enemy: true,
+      maxWidth: layout.enemyNamePlateWidth,
+      nameFontSize: isPhoneViewport ? 16 : isCompactViewport ? 18 : 20,
+      levelFontSize: isPhoneViewport ? 11 : isCompactViewport ? 12 : 13,
+      allowOverflow: allowOverflowPositions,
+    });
+    const enemyTypeHudY = Math.max(
+      Number(layout.enemyTypeHudY) || 0,
+      Number(enemyNameCard?.bottom || layout.enemyNameTopY) + 14,
+    );
+    drawEnemyDefensiveTypeHud(state.enemy, {
+      ...layout,
+      enemyTypeHudY,
+    }, {
+      allowOverflow: allowOverflowPositions,
+    });
+  }
+
+  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+    const member = state.team[i];
+    const slot = layout.teamSlots[i];
+    if (!member || !slot) {
+      continue;
+    }
+    const viewportProfile = layout.viewportProfile || {};
+    const isPhoneViewport = Boolean(viewportProfile.phone);
+    const isCompactViewport = Boolean(viewportProfile.compact);
+    const nameCard = drawNameAndLevel(member, slot.hudCenterX, slot.hudTopY, {
+      maxWidth: slot.hudWidth,
+      nameFontSize: isPhoneViewport ? 9 : isCompactViewport ? 15 : 19,
+      levelFontSize: isPhoneViewport ? 7 : isCompactViewport ? 11 : 13,
+      allowOverflow: allowOverflowPositions,
+    });
+    drawTeamTypeHud(member, i, {
+      ...slot,
+      hudCenterX: nameCard?.centerX ?? slot.hudCenterX,
+      hudTopY: nameCard?.y ?? slot.hudTopY,
+    }, state.enemy, {
+      allowOverflow: allowOverflowPositions,
+    });
+    drawTeamXpBar(member, i, nameCard?.centerX ?? slot.hudCenterX, (nameCard?.bottom ?? slot.hudTopY) + 4, {
+      width: Math.max(40, (nameCard?.width ?? slot.hudWidth) - 16),
+      height: isPhoneViewport ? 3.5 : isCompactViewport ? 4.4 : 5.2,
+      allowOverflow: allowOverflowPositions,
+    });
+  }
+}
+
+function drawNonCombatZoneOverlay(layout) {
+  const zoneId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
+  const zoneType = getRouteZoneType(zoneId);
+  const nextRouteId = getNextRouteId(zoneId);
+  const title = zoneType === "town" ? "Ville paisible" : "Zone sans combat";
+  const subtitle = zoneType === "town"
+    ? "Aucun combat ici. Passe a la zone suivante."
+    : "Aucun Pokemon sauvage dans cette zone.";
+  const nextLabel = nextRouteId
+    ? `Suivante: ${getRouteDisplayName(nextRouteId)}`
+    : "Derniere zone debloquee.";
+
+  ctx.save();
+  const width = clamp(state.viewport.width * 0.52, 300, 640);
+  const height = 102;
+  const x = layout.centerX - width * 0.5;
+  const y = layout.centerY - height * 0.5;
+  drawRetroHudPanel(x, y, width, height, {
+    cut: 18,
+    fillTop: "rgba(46, 62, 86, 0.98)",
+    fillBottom: "rgba(27, 39, 56, 0.98)",
+    border: "rgba(103, 132, 164, 0.98)",
+    highlight: "rgba(186, 210, 237, 0.25)",
+    shadow: "rgba(0, 0, 0, 0.36)",
+    borderWidth: 2,
+  });
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "700 24px Tahoma";
+  ctx.fillStyle = "#e6f0fe";
+  ctx.fillText(title, layout.centerX, y + 36);
+  ctx.font = "700 13px Tahoma";
+  ctx.fillStyle = "#aec2d9";
+  ctx.fillText(subtitle, layout.centerX, y + 62);
+  ctx.fillStyle = "#e6b55d";
+  ctx.fillText(nextLabel, layout.centerX, y + 84);
+  ctx.restore();
+}
+
+function getBottomHudSafeEdge(layout = state.layout) {
+  const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
+  if (viewportHeight <= 0) {
+    return 0;
+  }
+
+  const viewportProfile = layout?.viewportProfile || {};
+  const margin = viewportProfile.phone ? 6 : 8;
+  return clamp(viewportHeight - margin, 24, viewportHeight);
+}
+
+function drawVersionOverlay() {
+  const layout = state.layout;
+  const viewportProfile = layout?.viewportProfile || {};
+  const label = `v${DISPLAY_APP_VERSION}`;
+  const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;
+  const paddingX = 8;
+  const paddingY = 5;
+  const x = viewportProfile.phone ? 8 : 12;
+  const bottom = getBottomHudSafeEdge(layout);
+
+  ctx.save();
+  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  const textWidth = Math.ceil(ctx.measureText(label).width);
+  const pillWidth = textWidth + paddingX * 2;
+  const pillHeight = fontSize + paddingY * 2;
+  const y = bottom - pillHeight;
+  drawRetroHudPanel(x, y, pillWidth, pillHeight, {
+    cut: 8,
+    fillTop: "rgba(45, 61, 84, 0.95)",
+    fillBottom: "rgba(26, 37, 54, 0.95)",
+    border: "rgba(103, 130, 161, 0.88)",
+    highlight: "rgba(184, 208, 236, 0.22)",
+    shadow: "rgba(0, 0, 0, 0.34)",
+    borderWidth: 1.3,
+  });
+  ctx.fillStyle = "rgba(224, 238, 252, 0.94)";
+  ctx.fillText(label, x + paddingX, bottom - paddingY);
+  ctx.restore();
+
+  drawFpsOverlay(layout, bottom);
+}
+
+function drawFpsOverlay(layout = state.layout, bottomLimit = null) {
+  const frameMs = Number(state.performance?.renderFrameMsEma) || Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS;
+  const fps = Math.round(1000 / Math.max(1, frameMs));
+  const label = `${fps} FPS`;
+  const viewportProfile = layout?.viewportProfile || {};
+  const fontSize = viewportProfile.phone ? 11 : state.viewport.width <= 760 ? 10 : 11;
+  const paddingX = 7;
+  const paddingY = 5;
+  const margin = viewportProfile.phone ? 8 : 12;
+
+  ctx.save();
+  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  const textWidth = Math.ceil(ctx.measureText(label).width);
+  const pillWidth = textWidth + paddingX * 2;
+  const pillHeight = fontSize + paddingY * 2;
+  const right = Math.max(8, state.viewport.width - margin);
+  const maxBottom = Math.max(8, state.viewport.height - (viewportProfile.phone ? 6 : 8));
+  const bottom = Number.isFinite(bottomLimit) ? Math.min(maxBottom, bottomLimit) : Math.min(maxBottom, getBottomHudSafeEdge(layout));
+  const x = right - pillWidth;
+  const y = bottom - pillHeight;
+  drawRetroHudPanel(x, y, pillWidth, pillHeight, {
+    cut: 7,
+    fillTop: "rgba(45, 61, 84, 0.84)",
+    fillBottom: "rgba(26, 37, 54, 0.84)",
+    border: "rgba(103, 130, 161, 0.78)",
+    highlight: "rgba(184, 208, 236, 0.2)",
+    shadow: "rgba(0, 0, 0, 0.3)",
+    borderWidth: 1.2,
+  });
+  ctx.fillStyle = "rgba(224, 238, 252, 0.92)";
+  ctx.fillText(label, right - paddingX, bottom - paddingY);
+  ctx.restore();
+}
+
+function render() {
+  const { width, height } = state.viewport;
+  ctx.clearRect(0, 0, width, height);
+
+  if (state.mode === "loading") {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+    return;
+  }
+  if (state.mode === "error") {
+    drawLoadingOrError(state.error || "Erreur de chargement");
+    drawVersionOverlay();
+    return;
+  }
+
+  const layout = refreshLayoutIfNeeded({ nowMs: state.timeMs });
+  const forceUltraShinyAll = shouldForceUltraShinyAllPokemon();
+  const routeCombatEnabled = isCurrentRouteCombatEnabled();
+  const hasTeamMembers = state.team.length > 0;
+  const koTransition = state.battle ? state.battle.getKoTransition() : null;
+  const enemyHitPulse = state.battle ? state.battle.getEnemyHitPulseRatio() : 0;
+  const enemyEnterAnim = state.battle ? state.battle.getEnemyEnterAnimationState() : null;
+  const captureSequence = state.battle ? state.battle.getCaptureSequenceState() : null;
+  const captureSnapshot = state.battle ? state.battle.getCaptureSequence() : null;
+  const capturePhase = captureSnapshot?.phase || null;
+  const captureEnemyVisual = getCaptureEnemyVisual(captureSequence, capturePhase);
+  const enemyDamageTintBlend = state.battle ? state.battle.getEnemyDamageFlashBlend() : 0;
+  const routeDefeatTimer = state.battle ? state.battle.getEnemyTimerState() : null;
+  const environmentSnapshot = getEnvironmentSnapshotForRender();
+
+  drawBackground(width, height);
+  drawEnvironmentBackgroundLayer(width, height, environmentSnapshot);
+  if (hasTeamMembers) {
+    const teamSpriteScale = getTeamSpriteScale(layout);
+    const enemySpriteSize = getEnemySpriteRenderSize(layout, layout.enemySize);
+    const teamDrawPositions = [];
+    const teamAuraAttackBonusBySlot = getTeamAuraAttackBonusBySlot(state.team);
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const slot = layout.teamSlots[i];
+      if (!slot) {
+        continue;
+      }
+      const member = state.team[i];
+      const recoilOffset = state.battle ? state.battle.getSlotRecoilOffset(i, layout) : { x: 0, y: 0 };
+      const hoverPulse = getHoveredTeamSlotPulse(i);
+      const chargeGlow = state.battle ? state.battle.getSlotChargeGlow(i) : 0;
+      const teleportScale = state.battle ? state.battle.getSlotTeleportScale(i) : 1;
+      const skipTurnVisual = state.battle ? state.battle.getSlotSkipTurnVisual(i) : null;
+      const spriteSize = slot.size * teamSpriteScale;
+      const hoverLift = hoverPulse > 0 ? slot.size * (0.045 + hoverPulse * 0.01) : 0;
+      const drawX = slot.x + recoilOffset.x + Number(skipTurnVisual?.offsetX || 0);
+      const drawY = slot.y + recoilOffset.y + Number(skipTurnVisual?.offsetY || 0) - hoverLift;
+      const teamBreath = member
+        ? getPokemonBreathTransform(member, spriteSize, i, { active: true })
+        : { scaleX: 1, scaleY: 1, offsetY: 0 };
+      teamDrawPositions[i] = {
+        x: drawX,
+        y: drawY,
+        size: spriteSize,
+        breath: teamBreath,
+        hoverPulse,
+        chargeGlow,
+        teleportScale,
+        skipScaleX: Number(skipTurnVisual?.scaleX || 1),
+        skipScaleY: Number(skipTurnVisual?.scaleY || 1),
+        skipGrayscaleBlend: clamp(Number(skipTurnVisual?.grayscaleBlend || 0), 0, 1),
+        hoverScale: hoverPulse > 0 ? 1.03 + hoverPulse * 0.015 : 1,
+        chargeScale: chargeGlow > 0 ? 1 + chargeGlow * 0.042 : 1,
+      };
+    }
+
+    let enemyRenderState = null;
+    if (state.enemy) {
+      const isKo = koTransition?.active;
+      const shrinkProgress = isKo ? koTransition?.shrink_progress || 0 : 0;
+      const shrinkActive = Boolean(koTransition?.shrink_active);
+      const enterActive = Boolean(enemyEnterAnim?.active);
+      const enterOffsetX = Number(enemyEnterAnim?.offset_x || 0);
+      const enterRotationRad = Number(enemyEnterAnim?.rotation_rad || 0);
+      const enterAlpha = clamp(Number(enemyEnterAnim?.alpha ?? 1), 0, 1);
+      const enemyBreath = getPokemonBreathTransform(
+        state.enemy,
+        enemySpriteSize,
+        -1,
+        {
+          active: !captureSequence && !isKo && !enterActive,
+        },
+      );
+      const defaultEnemyScale = isKo
+        ? (shrinkActive ? clamp(1 - shrinkProgress * 0.96, 0.04, 1) : 0)
+        : 1 + enemyHitPulse * 0.06;
+      const defaultEnemyAlpha = (
+        isKo
+          ? (shrinkActive ? clamp(1 - shrinkProgress * 0.85, 0.12, 1) : 0)
+          : 1
+      ) * enterAlpha;
+      const enemyScale = captureSequence ? captureEnemyVisual.scale : defaultEnemyScale;
+      const enemyAlpha = captureSequence ? captureEnemyVisual.alpha : defaultEnemyAlpha;
+      const enemyVisible = captureSequence ? captureEnemyVisual.visible : enemyAlpha > 0.01 && enemyScale > 0.01;
+      enemyRenderState = {
+        visible: enemyVisible,
+        alpha: enemyAlpha,
+        scaleX: enemyScale * enemyBreath.scaleX,
+        scaleY: enemyScale * enemyBreath.scaleY,
+        offsetX: enterOffsetX,
+        offsetY: enemyBreath.offsetY,
+        rotationRad: enterRotationRad,
+      };
+    }
+
+    if (enemyRenderState?.visible) {
+      drawPokemonBackdropCircle(layout.centerX, layout.centerY, enemySpriteSize);
+    }
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const member = state.team[i];
+      const slot = layout.teamSlots[i];
+      const drawPosition = teamDrawPositions[i];
+      if (!member || !slot) {
+        continue;
+      }
+      const hoverPulse = getHoveredTeamSlotPulse(i);
+      const chargeGlow = clamp(Number(drawPosition?.chargeGlow || 0), 0, 1);
+      const spriteSize = slot.size * teamSpriteScale;
+      const auraBonus = Math.max(0, Number(teamAuraAttackBonusBySlot[i] || 0));
+      const teleportBoostMultiplier = state.battle ? state.battle.getTeleportDamageBoostForSlot(i) : 1;
+      const teleportBoostVisualIntensity = state.battle
+        ? state.battle.getTeleportBoostVisualIntensityForSlot(i)
+        : 0;
+      drawPokemonBackdropCircle(slot.x, slot.y, spriteSize, {
+        alpha: POKEMON_BACKDROP_ALPHA + hoverPulse * 0.11 + chargeGlow * 0.14,
+      });
+      if (auraBonus > 0.001) {
+        drawTeamAuraIndicator(slot, member, auraBonus);
+      }
+      if (teleportBoostMultiplier > 1.001 || teleportBoostVisualIntensity > 0.001) {
+        drawTeamTeleportBoostIndicator(slot, teleportBoostMultiplier, teleportBoostVisualIntensity);
+      }
+      if (chargeGlow > 0.001) {
+        drawTeamAttackChargeGlow(slot, member, i, chargeGlow);
+      }
+      if (hoverPulse > 0) {
+        drawTeamHoverIndicator(slot, hoverPulse);
+      }
+    }
+
+    drawLasers(state.battle ? state.battle.getLasers() : []);
+    drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
+    if (!captureSequence) {
+      drawEnemyKoEffect(layout, koTransition);
+    }
+
+    if (state.enemy && enemyRenderState?.visible) {
+        drawPokemonSprite(state.enemy, layout.centerX, layout.centerY, enemySpriteSize, {
+          alpha: enemyRenderState.alpha,
+          scaleX: enemyRenderState.scaleX,
+          scaleY: enemyRenderState.scaleY,
+          offsetX: enemyRenderState.offsetX,
+          offsetY: enemyRenderState.offsetY,
+          rotationRad: enemyRenderState.rotationRad,
+          shadowProfile: "enemy",
+          shadowAlpha: 0.58,
+          shinyVisual: Boolean(forceUltraShinyAll || state.enemy.isShiny || state.enemy.isShinyVisual),
+          ultraShinyVisual: Boolean(forceUltraShinyAll || state.enemy.isUltraShiny || state.enemy.isUltraShinyVisual),
+          tintBlend: enemyDamageTintBlend,
+          tintColor: [255, 84, 84],
+        });
+    }
+
+    drawEnemyHitEffects(state.battle ? state.battle.getHitEffects() : []);
+    drawCaptureSequence(layout, captureSequence, capturePhase);
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const member = state.team[i];
+      const slot = layout.teamSlots[i];
+      const drawPosition = teamDrawPositions[i];
+      if (!slot) {
+        continue;
+      }
+      if (!member) {
+        drawEmptyTeamSlot(slot);
+        continue;
+      }
+      if (!drawPosition) {
+        continue;
+      }
+      const teamBreath = drawPosition.breath || { scaleX: 1, scaleY: 1, offsetY: 0 };
+      const hoverScale = drawPosition.hoverScale || 1;
+      const chargeScale = drawPosition.chargeScale || 1;
+      const teleportScale = drawPosition.teleportScale || 1;
+      const skipScaleX = drawPosition.skipScaleX || 1;
+      const skipScaleY = drawPosition.skipScaleY || 1;
+      const skipGrayscaleBlend = clamp(Number(drawPosition.skipGrayscaleBlend || 0), 0, 1);
+      const skipShader = skipGrayscaleBlend > 0.001
+        ? {
+            saturate: lerpNumber(1, 0, skipGrayscaleBlend),
+            brightness: lerpNumber(1, 0.82, skipGrayscaleBlend),
+            contrast: lerpNumber(1, 1.08, skipGrayscaleBlend),
+          }
+        : null;
+      const memberShader = member?.spriteShader && typeof member.spriteShader === "object" ? member.spriteShader : null;
+      const teamMinRenderSize = getTeamSpriteMinRenderSize(layout, drawPosition.size || slot.size);
+      drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
+        scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale * skipScaleX,
+        scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale * skipScaleY,
+        offsetY: teamBreath.offsetY,
+        minRenderSizePx: teamMinRenderSize,
+        shadowProfile: "team",
+        shadowAlpha: 0.52,
+        flipX: shouldFlipTeamSprite(i),
+        shinyVisual: Boolean(forceUltraShinyAll || member.isShiny || member.isShinyVisual),
+        ultraShinyVisual: Boolean(forceUltraShinyAll || member.isUltraShiny || member.isUltraShinyVisual),
+        tintBlend: state.battle ? state.battle.getSlotAttackFlashBlend(i) : 0,
+        tintColor: [255, 255, 255],
+        shader: skipShader ? mergeSpriteShaderConfig(memberShader, skipShader) : null,
+      });
+    }
+    drawTeamDragSwapOverlay(layout);
+
+    if (!captureSequence) {
+      drawTeamXpGainEffects();
+      drawTeamLevelUpEffects();
+    }
+    drawFloatingDamageTexts(state.battle ? state.battle.getFloatingTexts() : []);
+    drawBattleUiOverlay(layout, {
+      showEnemyUi: Boolean(state.enemy) && !koTransition?.active && !captureSequence,
+      teamDrawPositions,
+    });
+  }
+  if (!routeCombatEnabled) {
+    drawNonCombatZoneOverlay(layout);
+  }
+  drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
+  drawLegendaryFieldScreenVfx(width, height, state.team);
+  drawRouteDefeatTimerBar(routeDefeatTimer, layout);
+  drawEvolutionAnimationOverlay(layout);
+  drawBallInventoryOverlay(layout);
+  drawVersionOverlay();
+}
+
+  const stateRef = state;
+  const runtimeSystem = {
+    getBattleViewportProfile,
+    getTeamSpriteScale,
+    getEnemySpriteRenderSize,
+    getTeamSpriteMinRenderSize,
+    computeLayout,
+    refreshLayoutIfNeeded,
+    render,
+  };
   const enrichLayout = (layout) => enrichRuntimeLayout(layout, { viewport: stateRef?.viewport });
 
   return {
@@ -70,8 +6581,3 @@ export function createRuntimeRenderSystem(options = {}) {
     },
   };
 }
-import {
-  enrichRuntimeLayout,
-  enrichViewportProfile,
-  resolveProductLayoutMode,
-} from "../../lib/runtime-stage-layout.js";

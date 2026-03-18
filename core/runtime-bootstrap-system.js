@@ -1,45 +1,608 @@
-const RUNTIME_BOOTSTRAP_CHUNK = "async function loadPokemonDefinitions(routeDataInput, options = {}) {\r\n  const append = options?.append !== false;\r\n  const defsById = append ? new Map(state.pokemonDefsById) : new Map();\r\n  const queuedIds = new Set();\r\n  const queue = [];\r\n\r\n  const enqueueTarget = (idRaw, nameEnRaw) => {\r\n    const id = Number(idRaw || 0);\r\n    const nameEn = String(nameEnRaw || \"\").toLowerCase().trim();\r\n    if (id <= 0 || !nameEn || defsById.has(id) || queuedIds.has(id)) {\r\n      return;\r\n    }\r\n    queuedIds.add(id);\r\n    queue.push({ id, nameEn });\r\n  };\r\n\r\n  for (const target of getPokemonLoadTargets(routeDataInput)) {\r\n    enqueueTarget(target.id, target.nameEn);\r\n  }\r\n\r\n  while (queue.length > 0) {\r\n    const batch = queue.splice(0, Math.min(18, queue.length));\r\n    const loadedBatch = await Promise.all(\r\n      batch.map(async (entry) => {\r\n        try {\r\n          return await loadPokemonEntity(buildPokemonJsonPath(entry.id, entry.nameEn));\r\n        } catch {\r\n          return null;\r\n        }\r\n      }),\r\n    );\r\n\r\n    for (const def of loadedBatch) {\r\n      if (!def || defsById.has(def.id)) {\r\n        continue;\r\n      }\r\n      defsById.set(def.id, def);\r\n\r\n      if (def.evolvesFrom?.id > 0 && def.evolvesFrom.nameEn) {\r\n        enqueueTarget(def.evolvesFrom.id, def.evolvesFrom.nameEn);\r\n      }\r\n      for (const target of Array.isArray(def.evolvesTo) ? def.evolvesTo : []) {\r\n        if (target?.id > 0 && target.nameEn) {\r\n          enqueueTarget(target.id, target.nameEn);\r\n        }\r\n      }\r\n    }\r\n  }\r\n\r\n  applyPokemonTalentCsvToDefinitions(defsById);\r\n  state.pokemonDefsById = defsById;\r\n}\r\n\r\nasync function initializeScene() {\r\n  state.mode = \"loading\";\r\n  showLoadingScreen(LOADING_SCREEN_DEFAULT_TEXT);\r\n  state.pendingSimMs = 0;\r\n  state.deferredSaveDirty = false;\r\n  state.environment.nextUpdateAtMs = 0;\r\n  updateEnvironment(Date.now(), true);\r\n  await initializeWindowsNotificationSystem();\r\n  resetNotificationSystem();\r\n  state.ui.shopTab = [SHOP_TAB_POKEBALLS, SHOP_TAB_COMBAT, SHOP_TAB_EVOLUTIONS].includes(state.ui.shopTab)\r\n    ? state.ui.shopTab\r\n    : SHOP_TAB_POKEBALLS;\r\n  state.ui.shopQuantityMode = normalizeShopQuantityMode(state.ui.shopQuantityMode || \"1\");\r\n  state.ui.shopCustomQuantity = clamp(toSafeInt(state.ui.shopCustomQuantity, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);\r\n  state.teamLevelUpEffects = [];\r\n  state.teamXpGainEffects = [];\r\n  state.teamXpPulseMsBySlot = {};\r\n  state.xpHud.teamXpBySlot = {};\r\n  state.xpHud.enemyHpKey = null;\r\n  state.xpHud.enemyHpFrontRatio = 1;\r\n  state.xpHud.enemyHpLagRatio = 1;\r\n  state.moneyHud.initialized = false;\r\n  state.moneyHud.targetValue = 0;\r\n  state.moneyHud.displayValue = 0;\r\n  state.moneyHud.lastRawValue = 0;\r\n  state.moneyHud.pulseMs = 0;\r\n  clearMoneyGainFloaters();\r\n  state.evolutionAnimation.current = null;\r\n  state.evolutionAnimation.queue = [];\r\n  state.tutorial.queue = [];\r\n  state.tutorial.active = null;\r\n  state.ui.tutorialOpen = false;\r\n  if (tutorialModalEl) {\r\n    tutorialModalEl.classList.add(\"hidden\");\r\n  }\r\n  setBallConfigState(null);\r\n  setShopItemConfigState(null);\r\n  setZoneEncounterCsvState(null);\r\n  setPokemonTalentCsvState(null);\r\n  stopBackgroundTicker();\r\n  clearTeamDragState();\r\n  closeTeamContextMenu();\r\n  clearCanvasHoverState();\r\n  closeRenameModal();\r\n  closeBoxesModal();\r\n  closePokedexModal();\r\n  closeAppearanceModal();\r\n  closeGachaModal({ force: true });\r\n  setMapOpen(false);\r\n  setShopOpen(false);\r\n  try {\r\n    let offlineCatchupMs = 0;\r\n    const [ballCsvResult, shopItemCsvResult, zoneCsvResult, talentCsvResult] =\r\n      await Promise.allSettled([\r\n        loadBallConfigCsv(BALL_CONFIG_CSV_PATH),\r\n        loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),\r\n        loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),\r\n        loadPokemonTalentCsv(POKEMON_TALENTS_CSV_PATH),\r\n      ]);\r\n\r\n    if (ballCsvResult.status === \"fulfilled\") {\r\n      setBallConfigState(ballCsvResult.value);\r\n    } else {\r\n      setBallConfigState(null);\r\n      console.warn(\"Ball CSV indisponible, fallback config interne:\", ballCsvResult.reason?.message || ballCsvResult.reason);\r\n    }\r\n\r\n    if (shopItemCsvResult.status === \"fulfilled\") {\r\n      setShopItemConfigState(shopItemCsvResult.value);\r\n    } else {\r\n      setShopItemConfigState(null);\r\n      console.warn(\r\n        \"Item CSV indisponible, fallback config interne:\",\r\n        shopItemCsvResult.reason?.message || shopItemCsvResult.reason,\r\n      );\r\n    }\r\n\r\n    if (zoneCsvResult.status === \"fulfilled\") {\r\n      setZoneEncounterCsvState(zoneCsvResult.value);\r\n    } else {\r\n      setZoneEncounterCsvState(null);\r\n      console.warn(\"Zone CSV indisponible, fallback JSON:\", zoneCsvResult.reason?.message || zoneCsvResult.reason);\r\n    }\r\n\r\n    if (talentCsvResult.status === \"fulfilled\") {\r\n      setPokemonTalentCsvState(talentCsvResult.value);\r\n      if (Array.isArray(talentCsvResult.value?.unresolvedTalentIds) && talentCsvResult.value.unresolvedTalentIds.length > 0) {\r\n        console.warn(\r\n          \"Talents sans comportement passif code:\",\r\n          talentCsvResult.value.unresolvedTalentIds.join(\", \"),\r\n        );\r\n      }\r\n    } else {\r\n      setPokemonTalentCsvState(null);\r\n      console.warn(\"Talent CSV indisponible, fallback JSON:\", talentCsvResult.reason?.message || talentCsvResult.reason);\r\n    }\r\n    state.saveData = await loadSaveData();\r\n    state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);\r\n    refreshOrderedCatalogRouteIds();\r\n    const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();\r\n    const preferredRouteId = typeof state.saveData.current_route_id === \"string\" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;\r\n    const initialRouteId = unlockedRouteIds.includes(preferredRouteId) ? preferredRouteId : unlockedRouteIds[0];\r\n    const initialAssetRouteIds = getInitialAssetRouteIds();\r\n    const initialAssetRouteData = getRouteDataByIds(initialAssetRouteIds);\r\n    await loadPokemonDefinitions(initialAssetRouteData, { append: false });\r\n    const unlockStateReconciled = reconcileEntityUnlockStates();\r\n    const appearanceStateReconciled = reconcileEntityAppearanceStates();\r\n    const runtimeSaveRepair = repairRuntimeSaveAfterDefinitionsLoaded();\r\n    const tutorialProgressBefore = JSON.stringify(state.saveData.tutorials || {});\r\n    getTutorialProgress();\r\n    const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();\r\n    const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});\r\n    const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;\r\n    const routeBackgroundsById = await preloadRouteBackgrounds(getRouteDataByIds([initialRouteId]));\r\n    state.routeBackgroundsById = routeBackgroundsById;\r\n    Promise.allSettled([preloadTypeIcons(), preloadSelectedAppearanceAssetsForTeam()])\r\n      .then(([typeIconResult, appearanceResult]) => {\r\n        if (typeIconResult.status === \"fulfilled\" && typeIconResult.value instanceof Map) {\r\n          state.typeIconImages = typeIconResult.value;\r\n        } else if (typeIconResult.status === \"rejected\") {\r\n          console.warn(\"Impossible de precharger les icones de type:\", typeIconResult.reason?.message || typeIconResult.reason);\r\n        }\r\n        if (appearanceResult.status === \"rejected\") {\r\n          console.warn(\r\n            \"Impossible de precharger les apparences d'equipe:\",\r\n            appearanceResult.reason?.message || appearanceResult.reason,\r\n          );\r\n        }\r\n        if (state.mode === \"ready\") {\r\n          render();\r\n        }\r\n      });\r\n\r\n    setActiveRoute(initialRouteId, { announceUnlock: false });\r\n\r\n    ensureMoneyAndItems();\r\n    syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });\r\n    rebuildTeamAndSyncBattle();\r\n    if (\r\n      unlockStateReconciled\r\n      || appearanceStateReconciled\r\n      || runtimeSaveRepair.changed\r\n      || tutorialProgressChanged\r\n    ) {\r\n      persistSaveData();\r\n    }\r\n    offlineCatchupMs = queueOfflineCatchupFromSave(Date.now());\r\n\r\n    renderStarterChoices();\r\n    updateHud();\r\n\r\n    if (state.saveData.starter_chosen && state.team.length === 0) {\r\n      throw new Error(\"La sauvegarde est incoherente: impossible de reconstruire une equipe jouable.\");\r\n    }\r\n\r\n    if (!state.saveData.starter_chosen) {\r\n      state.team = [];\r\n      state.battle = null;\r\n      state.enemy = null;\r\n      state.pendingSimMs = 0;\r\n      showStarterModal();\r\n      setTopMessage(\"Choisis ton starter pour debuter sur Route 1.\", 2200);\r\n    } else {\r\n      hideStarterModal();\r\n      startBattle();\r\n      if (runtimeSaveRepair.recoveredTeam) {\r\n        setTopMessage(\"Sauvegarde reparee: equipe restauree automatiquement.\", 2600);\r\n      } else if (runtimeSaveRepair.hardResetApplied) {\r\n        setTopMessage(\"Sauvegarde incoherente nettoyee. Une nouvelle partie est prete.\", 2600);\r\n      }\r\n    }\r\n\r\n    if (runtimeSaveRepair.hardResetApplied && !state.saveData.starter_chosen) {\r\n      setTopMessage(\"Sauvegarde incoherente nettoyee. Choisis un starter pour repartir proprement.\", 3200);\r\n    }\r\n\r\n    state.mode = \"ready\";\r\n    hideLoadingScreen();\r\n    queueDeferredRouteAssetWarmup(initialAssetRouteIds);\r\n    queueAppearanceTutorialIfNeeded();\r\n    tryOpenPendingTutorialFlow();\r\n    if (offlineCatchupMs > 0 && state.battle) {\r\n      consumePendingSimulation({\r\n        forceIdleMode: true,\r\n        budgetMs: HIDDEN_SIM_BUDGET_MS,\r\n      });\r\n    }\r\n  } catch (error) {\r\n    state.mode = \"error\";\r\n    state.error = error instanceof Error ? error.message : \"Erreur inconnue\";\r\n    hideLoadingScreen({ immediate: true });\r\n  }\r\n  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });\r\n  if (document.hidden) {\r\n    ensureBackgroundTicker();\r\n  }\r\n  render();\r\n}\r\n\r\nasync function resetSaveAndRestart() {\r\n  const shouldReset = window.confirm(\"Supprimer toute la sauvegarde locale et recommencer ?\");\r\n  if (!shouldReset) {\r\n    return;\r\n  }\r\n\r\n  state.saveBackend.pendingSerializedSave = null;\r\n  state.saveBackend.pendingDesktopSerializedSave = null;\r\n  clearBrowserSaveRetry();\r\n  clearDesktopSaveRetry();\r\n  const removedLocalStorage = removeSaveDataFromStorageKey(\"localStorage\", SAVE_KEY);\r\n  const removedSessionStorage = removeSaveDataFromStorageKey(\"sessionStorage\", SAVE_SESSION_KEY);\r\n  const removedIndexedDb = await deleteSaveDataFromIndexedDb();\r\n  const removedDesktopSave = await deleteSaveDataFromDesktopBridge();\r\n  if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb && !removedDesktopSave) {\r\n    window.alert(\"Impossible de supprimer la sauvegarde locale.\");\r\n    updateSaveBackendIndicator();\r\n    return;\r\n  }\r\n\r\n  state.saveData = createEmptySave();\r\n  syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });\r\n  state.team = [];\r\n  state.enemy = null;\r\n  state.battle = null;\r\n  state.pendingSimMs = 0;\r\n  state.deferredSaveDirty = false;\r\n  state.teamLevelUpEffects = [];\r\n  state.teamXpGainEffects = [];\r\n  state.teamXpPulseMsBySlot = {};\r\n  state.xpHud.teamXpBySlot = {};\r\n  state.xpHud.enemyHpKey = null;\r\n  state.xpHud.enemyHpFrontRatio = 1;\r\n  state.xpHud.enemyHpLagRatio = 1;\r\n  state.moneyHud.initialized = false;\r\n  state.moneyHud.targetValue = 0;\r\n  state.moneyHud.displayValue = 0;\r\n  state.moneyHud.lastRawValue = 0;\r\n  state.moneyHud.pulseMs = 0;\r\n  clearMoneyGainFloaters();\r\n  state.evolutionAnimation.current = null;\r\n  state.evolutionAnimation.queue = [];\r\n  state.tutorial.queue = [];\r\n  state.tutorial.active = null;\r\n  state.ui.tutorialOpen = false;\r\n  if (tutorialModalEl) {\r\n    tutorialModalEl.classList.add(\"hidden\");\r\n  }\r\n  state.ui.shopTab = SHOP_TAB_POKEBALLS;\r\n  state.ui.shopQuantityMode = \"1\";\r\n  state.ui.shopCustomQuantity = 1;\r\n  state.realClockLastMs = Date.now();\r\n  state.environment.nextUpdateAtMs = 0;\r\n  updateEnvironment(Date.now(), true);\r\n  stopBackgroundTicker();\r\n  setMapOpen(false);\r\n  setShopOpen(false);\r\n  closeGachaModal({ force: true });\r\n  closeRenameModal();\r\n  closeBoxesModal();\r\n  closePokedexModal();\r\n  closeAppearanceModal();\r\n  setActionDockFullscreenMenuOpen(false, { animate: false });\r\n  closeTeamContextMenu();\r\n  clearTeamDragState();\r\n  persistSaveData();\r\n  updateHud();\r\n  clearCanvasHoverState();\r\n  hideStarterModal();\r\n  initializeScene().catch(() => {});\r\n}\r\n\r\nasync function toggleFullscreen() {\r\n  const fullscreenTarget = gameStageEl || canvas;\r\n  if (!document.fullscreenElement) {\r\n    await fullscreenTarget.requestFullscreen();\r\n    return;\r\n  }\r\n  await document.exitFullscreen();\r\n}\r\n\r\nlet actionDockFullscreenMenuOpenTimeoutId = 0;\r\n\r\nfunction triggerActionDockPokeballSpin(direction) {\r\n  if (!(actionDockPokeballVisualEl instanceof HTMLElement)) {\r\n    return;\r\n  }\r\n  const spinClass = direction === \"ccw\" ? \"is-spin-ccw\" : \"is-spin-cw\";\r\n  actionDockPokeballVisualEl.classList.remove(\"is-spin-cw\", \"is-spin-ccw\");\r\n  // Force reflow so repeated hover/unhover can replay the same animation reliably.\r\n  void actionDockPokeballVisualEl.offsetWidth;\r\n  actionDockPokeballVisualEl.classList.add(spinClass);\r\n}\r\n\r\nfunction setActionDockFullscreenMenuOpen(nextOpen, options = {}) {\r\n  if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {\r\n    return;\r\n  }\r\n  const shouldAnimate = options?.animate !== false;\r\n  const shouldOpen = Boolean(nextOpen);\r\n  const currentlyOpen = isActionDockFullscreenMenuOpen();\r\n  const isClosing = actionDockFullscreenMenuEl.classList.contains(\"is-closing\");\r\n  if (actionDockFullscreenMenuOpenTimeoutId) {\r\n    clearTimeout(actionDockFullscreenMenuOpenTimeoutId);\r\n    actionDockFullscreenMenuOpenTimeoutId = 0;\r\n  }\r\n\r\n  if (shouldOpen === currentlyOpen && !isClosing) {\r\n    if (actionDockPokeballToggleButtonEl) {\r\n      actionDockPokeballToggleButtonEl.setAttribute(\"aria-expanded\", shouldOpen ? \"true\" : \"false\");\r\n      actionDockPokeballToggleButtonEl.setAttribute(\r\n        \"aria-label\",\r\n        shouldOpen ? \"Masquer le menu principal\" : \"Afficher le menu principal\",\r\n      );\r\n    }\r\n    return;\r\n  }\r\n\r\n  if (shouldAnimate) {\r\n    triggerActionDockPokeballSpin(shouldOpen ? \"cw\" : \"ccw\");\r\n  }\r\n\r\n  if (shouldOpen) {\r\n    actionDockFullscreenMenuEl.classList.remove(\"hidden\", \"is-closing\");\r\n    requestAnimationFrame(() => {\r\n      actionDockFullscreenMenuEl.classList.add(\"is-open\");\r\n    });\r\n  } else {\r\n    actionDockFullscreenMenuEl.classList.remove(\"is-open\");\r\n    actionDockFullscreenMenuEl.classList.add(\"is-closing\");\r\n    actionDockFullscreenMenuOpenTimeoutId = setTimeout(() => {\r\n      if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {\r\n        return;\r\n      }\r\n      actionDockFullscreenMenuEl.classList.add(\"hidden\");\r\n      actionDockFullscreenMenuEl.classList.remove(\"is-closing\");\r\n      actionDockFullscreenMenuOpenTimeoutId = 0;\r\n    }, ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS);\r\n  }\r\n\r\n  if (actionDockPokeballToggleButtonEl) {\r\n    actionDockPokeballToggleButtonEl.setAttribute(\"aria-expanded\", shouldOpen ? \"true\" : \"false\");\r\n    actionDockPokeballToggleButtonEl.setAttribute(\r\n      \"aria-label\",\r\n      shouldOpen ? \"Masquer le menu principal\" : \"Afficher le menu principal\",\r\n    );\r\n  }\r\n}\r\n\r\nfunction isActionDockFullscreenMenuOpen() {\r\n  if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {\r\n    return false;\r\n  }\r\n  return !actionDockFullscreenMenuEl.classList.contains(\"hidden\");\r\n}\r\n\r\nfunction toggleActionDockFullscreenMenu() {\r\n  setActionDockFullscreenMenuOpen(!isActionDockFullscreenMenuOpen());\r\n}";
-
-const runtimeBootstrapFactory = new Function(
-  "scope",
-  "with (scope) {\n" + RUNTIME_BOOTSTRAP_CHUNK + "\nreturn { loadPokemonDefinitions, initializeScene, resetSaveAndRestart, toggleFullscreen, triggerActionDockPokeballSpin, setActionDockFullscreenMenuOpen, isActionDockFullscreenMenuOpen, toggleActionDockFullscreenMenu };\n}",
-);
-
-function createScopeProxy({ bindings = {}, resolveBinding = null } = {}) {
-  const cache = { ...bindings };
-  return new Proxy(cache, {
-    has() {
-      return true;
-    },
-    get(target, key) {
-      if (key === Symbol.unscopables) {
-        return undefined;
-      }
-      if (Object.prototype.hasOwnProperty.call(target, key)) {
-        return target[key];
-      }
-      if (typeof resolveBinding === "function" && typeof key === "string") {
-        const resolvedValue = resolveBinding(key);
-        if (resolvedValue !== undefined) {
-          target[key] = resolvedValue;
-          return resolvedValue;
-        }
-      }
-      return undefined;
-    },
-    set(target, key, value) {
-      target[key] = value;
-      return true;
-    },
-  });
+function getDefaultDocument() {
+  if (typeof document !== "undefined") {
+    return document;
+  }
+  return null;
 }
 
-export function createRuntimeBootstrapSystem(options = {}) {
+function getDefaultWindow() {
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  return null;
+}
+
+function asFunction(value, fallback = () => {}) {
+  return typeof value === "function" ? value : fallback;
+}
+
+function asAsyncFunction(value, fallback = async () => {}) {
+  return typeof value === "function" ? value : fallback;
+}
+
+function createDependencyReader(options = {}) {
   const resolveBinding =
     typeof options.resolveBinding === "function" ? options.resolveBinding : null;
   const bindings =
-    resolveBinding || options.bindings
-      ? options.bindings || {}
+    options.bindings && typeof options.bindings === "object"
+      ? options.bindings
       : options;
-  return runtimeBootstrapFactory(createScopeProxy({ bindings, resolveBinding }));
+
+  return function readDependency(name, fallbackValue = undefined) {
+    if (bindings && Object.prototype.hasOwnProperty.call(bindings, name)) {
+      return bindings[name];
+    }
+    if (resolveBinding) {
+      const resolvedValue = resolveBinding(name);
+      if (resolvedValue !== undefined) {
+        return resolvedValue;
+      }
+    }
+    return fallbackValue;
+  };
+}
+
+export function createRuntimeBootstrapSystem(options = {}) {
+  const read = createDependencyReader(options);
+
+  const state = read("state", null);
+  const documentRef = read("document", getDefaultDocument());
+  const windowRef = read("window", getDefaultWindow());
+  const requestAnimationFrameFn =
+    typeof windowRef?.requestAnimationFrame === "function"
+      ? windowRef.requestAnimationFrame.bind(windowRef)
+      : (callback) => setTimeout(callback, 0);
+  const setTimeoutFn =
+    typeof windowRef?.setTimeout === "function"
+      ? windowRef.setTimeout.bind(windowRef)
+      : setTimeout;
+  const clearTimeoutFn =
+    typeof windowRef?.clearTimeout === "function"
+      ? windowRef.clearTimeout.bind(windowRef)
+      : clearTimeout;
+
+  const getPokemonLoadTargets = asFunction(read("getPokemonLoadTargets"));
+  const loadPokemonEntity = asAsyncFunction(read("loadPokemonEntity"), async () => null);
+  const buildPokemonJsonPath = asFunction(read("buildPokemonJsonPath"), () => "");
+  const applyPokemonTalentCsvToDefinitions = asFunction(read("applyPokemonTalentCsvToDefinitions"));
+
+  const showLoadingScreen = asFunction(read("showLoadingScreen"));
+  const hideLoadingScreen = asFunction(read("hideLoadingScreen"));
+  const render = asFunction(read("render"));
+  const updateEnvironment = asFunction(read("updateEnvironment"));
+  const initializeWindowsNotificationSystem = asAsyncFunction(read("initializeWindowsNotificationSystem"));
+  const resetNotificationSystem = asFunction(read("resetNotificationSystem"));
+  const normalizeShopQuantityMode = asFunction(read("normalizeShopQuantityMode"), (mode) => String(mode || "1"));
+  const clamp = asFunction(read("clamp"), (value, min, max) => Math.min(max, Math.max(min, value)));
+  const toSafeInt = asFunction(
+    read("toSafeInt"),
+    (value, fallback = 0) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? Math.floor(numeric) : fallback;
+    },
+  );
+  const clearMoneyGainFloaters = asFunction(read("clearMoneyGainFloaters"));
+  const setBallConfigState = asFunction(read("setBallConfigState"));
+  const setShopItemConfigState = asFunction(read("setShopItemConfigState"));
+  const setZoneEncounterCsvState = asFunction(read("setZoneEncounterCsvState"));
+  const setPokemonTalentCsvState = asFunction(read("setPokemonTalentCsvState"));
+  const stopBackgroundTicker = asFunction(read("stopBackgroundTicker"));
+  const clearTeamDragState = asFunction(read("clearTeamDragState"));
+  const closeTeamContextMenu = asFunction(read("closeTeamContextMenu"));
+  const clearCanvasHoverState = asFunction(read("clearCanvasHoverState"));
+  const closeRenameModal = asFunction(read("closeRenameModal"));
+  const closeBoxesModal = asFunction(read("closeBoxesModal"));
+  const closePokedexModal = asFunction(read("closePokedexModal"));
+  const closeAppearanceModal = asFunction(read("closeAppearanceModal"));
+  const closeGachaModal = asFunction(read("closeGachaModal"));
+  const setMapOpen = asFunction(read("setMapOpen"));
+  const setShopOpen = asFunction(read("setShopOpen"));
+  const loadBallConfigCsv = asAsyncFunction(read("loadBallConfigCsv"), async () => null);
+  const loadShopItemConfigCsv = asAsyncFunction(read("loadShopItemConfigCsv"), async () => null);
+  const loadZoneEncounterCsv = asAsyncFunction(read("loadZoneEncounterCsv"), async () => null);
+  const loadPokemonTalentCsv = asAsyncFunction(read("loadPokemonTalentCsv"), async () => null);
+  const loadSaveData = asAsyncFunction(read("loadSaveData"), async () => null);
+  const loadRouteCatalog = asAsyncFunction(read("loadRouteCatalog"), async () => new Map());
+  const refreshOrderedCatalogRouteIds = asFunction(read("refreshOrderedCatalogRouteIds"));
+  const ensureUnlockedRoutesForCurrentCatalog = asFunction(
+    read("ensureUnlockedRoutesForCurrentCatalog"),
+    () => [],
+  );
+  const getInitialAssetRouteIds = asFunction(read("getInitialAssetRouteIds"), () => []);
+  const getRouteDataByIds = asFunction(read("getRouteDataByIds"), () => []);
+  const reconcileEntityUnlockStates = asFunction(read("reconcileEntityUnlockStates"), () => false);
+  const reconcileEntityAppearanceStates = asFunction(read("reconcileEntityAppearanceStates"), () => false);
+  const repairRuntimeSaveAfterDefinitionsLoaded = asFunction(
+    read("repairRuntimeSaveAfterDefinitionsLoaded"),
+    () => ({ changed: false, recoveredTeam: false, hardResetApplied: false }),
+  );
+  const getTutorialProgress = asFunction(read("getTutorialProgress"), () => ({}));
+  const ensureAppearanceEditorUnlockedFromProgress = asFunction(
+    read("ensureAppearanceEditorUnlockedFromProgress"),
+    () => false,
+  );
+  const preloadRouteBackgrounds = asAsyncFunction(read("preloadRouteBackgrounds"), async () => new Map());
+  const preloadTypeIcons = asAsyncFunction(read("preloadTypeIcons"), async () => new Map());
+  const preloadSelectedAppearanceAssetsForTeam = asAsyncFunction(
+    read("preloadSelectedAppearanceAssetsForTeam"),
+    async () => null,
+  );
+  const setActiveRoute = asFunction(read("setActiveRoute"), () => false);
+  const ensureMoneyAndItems = asFunction(read("ensureMoneyAndItems"));
+  const syncWindowsPokeballInventoryTracking = asFunction(read("syncWindowsPokeballInventoryTracking"));
+  const rebuildTeamAndSyncBattle = asFunction(read("rebuildTeamAndSyncBattle"));
+  const persistSaveData = asFunction(read("persistSaveData"));
+  const queueOfflineCatchupFromSave = asFunction(read("queueOfflineCatchupFromSave"), () => 0);
+  const renderStarterChoices = asFunction(read("renderStarterChoices"));
+  const updateHud = asFunction(read("updateHud"));
+  const showStarterModal = asFunction(read("showStarterModal"));
+  const setTopMessage = asFunction(read("setTopMessage"));
+  const hideStarterModal = asFunction(read("hideStarterModal"));
+  const startBattle = asFunction(read("startBattle"));
+  const queueDeferredRouteAssetWarmup = asFunction(read("queueDeferredRouteAssetWarmup"));
+  const queueAppearanceTutorialIfNeeded = asFunction(read("queueAppearanceTutorialIfNeeded"));
+  const tryOpenPendingTutorialFlow = asFunction(read("tryOpenPendingTutorialFlow"));
+  const consumePendingSimulation = asFunction(read("consumePendingSimulation"), () => 0);
+  const refreshLayoutIfNeeded = asFunction(read("refreshLayoutIfNeeded"));
+  const ensureBackgroundTicker = asFunction(read("ensureBackgroundTicker"));
+
+  const clearBrowserSaveRetry = asFunction(read("clearBrowserSaveRetry"));
+  const clearDesktopSaveRetry = asFunction(read("clearDesktopSaveRetry"));
+  const removeSaveDataFromStorageKey = asFunction(read("removeSaveDataFromStorageKey"), () => false);
+  const deleteSaveDataFromIndexedDb = asAsyncFunction(read("deleteSaveDataFromIndexedDb"), async () => false);
+  const deleteSaveDataFromDesktopBridge = asAsyncFunction(
+    read("deleteSaveDataFromDesktopBridge"),
+    async () => false,
+  );
+  const updateSaveBackendIndicator = asFunction(read("updateSaveBackendIndicator"));
+  const createEmptySave = asFunction(read("createEmptySave"), () => ({}));
+
+  const gameStageEl = read("gameStageEl", null);
+  const canvas = read("canvas", null);
+  const tutorialModalEl = read("tutorialModalEl", null);
+  const actionDockFullscreenMenuEl = read("actionDockFullscreenMenuEl", null);
+  const actionDockPokeballToggleButtonEl = read("actionDockPokeballToggleButtonEl", null);
+  const actionDockPokeballVisualEl = read("actionDockPokeballVisualEl", null);
+
+  const LOADING_SCREEN_DEFAULT_TEXT = read("LOADING_SCREEN_DEFAULT_TEXT", "");
+  const SHOP_TAB_POKEBALLS = read("SHOP_TAB_POKEBALLS", "");
+  const SHOP_TAB_COMBAT = read("SHOP_TAB_COMBAT", "");
+  const SHOP_TAB_EVOLUTIONS = read("SHOP_TAB_EVOLUTIONS", "");
+  const BALL_INVENTORY_MAX_PER_TYPE = Number(read("BALL_INVENTORY_MAX_PER_TYPE", 999));
+  const BALL_CONFIG_CSV_PATH = read("BALL_CONFIG_CSV_PATH", "");
+  const SHOP_ITEMS_CSV_PATH = read("SHOP_ITEMS_CSV_PATH", "");
+  const ROUTE_ENCOUNTERS_CSV_PATH = read("ROUTE_ENCOUNTERS_CSV_PATH", "");
+  const POKEMON_TALENTS_CSV_PATH = read("POKEMON_TALENTS_CSV_PATH", "");
+  const ROUTE_ID_ORDER = read("ROUTE_ID_ORDER", []);
+  const DEFAULT_ROUTE_ID = read("DEFAULT_ROUTE_ID", "");
+  const HIDDEN_SIM_BUDGET_MS = Number(read("HIDDEN_SIM_BUDGET_MS", 1));
+  const SAVE_KEY = read("SAVE_KEY", "");
+  const SAVE_SESSION_KEY = read("SAVE_SESSION_KEY", "");
+  const ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS = Number(
+    read("ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS", 0),
+  );
+
+  let actionDockFullscreenMenuOpenTimeoutId = 0;
+
+  async function loadPokemonDefinitions(routeDataInput, runtimeOptions = {}) {
+    const append = runtimeOptions?.append !== false;
+    const defsById = append ? new Map(state?.pokemonDefsById) : new Map();
+    const queuedIds = new Set();
+    const queue = [];
+
+    const enqueueTarget = (idRaw, nameEnRaw) => {
+      const id = Number(idRaw || 0);
+      const nameEn = String(nameEnRaw || "").toLowerCase().trim();
+      if (id <= 0 || !nameEn || defsById.has(id) || queuedIds.has(id)) {
+        return;
+      }
+      queuedIds.add(id);
+      queue.push({ id, nameEn });
+    };
+
+    for (const target of getPokemonLoadTargets(routeDataInput)) {
+      enqueueTarget(target.id, target.nameEn);
+    }
+
+    while (queue.length > 0) {
+      const batch = queue.splice(0, Math.min(18, queue.length));
+      const loadedBatch = await Promise.all(
+        batch.map(async (entry) => {
+          try {
+            return await loadPokemonEntity(buildPokemonJsonPath(entry.id, entry.nameEn));
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      for (const def of loadedBatch) {
+        if (!def || defsById.has(def.id)) {
+          continue;
+        }
+        defsById.set(def.id, def);
+
+        if (def.evolvesFrom?.id > 0 && def.evolvesFrom.nameEn) {
+          enqueueTarget(def.evolvesFrom.id, def.evolvesFrom.nameEn);
+        }
+        for (const target of Array.isArray(def.evolvesTo) ? def.evolvesTo : []) {
+          if (target?.id > 0 && target.nameEn) {
+            enqueueTarget(target.id, target.nameEn);
+          }
+        }
+      }
+    }
+
+    applyPokemonTalentCsvToDefinitions(defsById);
+    if (state) {
+      state.pokemonDefsById = defsById;
+    }
+  }
+
+  async function initializeScene() {
+    state.mode = "loading";
+    showLoadingScreen(LOADING_SCREEN_DEFAULT_TEXT);
+    state.pendingSimMs = 0;
+    state.deferredSaveDirty = false;
+    state.environment.nextUpdateAtMs = 0;
+    updateEnvironment(Date.now(), true);
+    await initializeWindowsNotificationSystem();
+    resetNotificationSystem();
+    state.ui.shopTab = [SHOP_TAB_POKEBALLS, SHOP_TAB_COMBAT, SHOP_TAB_EVOLUTIONS].includes(state.ui.shopTab)
+      ? state.ui.shopTab
+      : SHOP_TAB_POKEBALLS;
+    state.ui.shopQuantityMode = normalizeShopQuantityMode(state.ui.shopQuantityMode || "1");
+    state.ui.shopCustomQuantity = clamp(toSafeInt(state.ui.shopCustomQuantity, 1), 1, BALL_INVENTORY_MAX_PER_TYPE);
+    state.teamLevelUpEffects = [];
+    state.teamXpGainEffects = [];
+    state.teamXpPulseMsBySlot = {};
+    state.xpHud.teamXpBySlot = {};
+    state.xpHud.enemyHpKey = null;
+    state.xpHud.enemyHpFrontRatio = 1;
+    state.xpHud.enemyHpLagRatio = 1;
+    state.moneyHud.initialized = false;
+    state.moneyHud.targetValue = 0;
+    state.moneyHud.displayValue = 0;
+    state.moneyHud.lastRawValue = 0;
+    state.moneyHud.pulseMs = 0;
+    clearMoneyGainFloaters();
+    state.evolutionAnimation.current = null;
+    state.evolutionAnimation.queue = [];
+    state.tutorial.queue = [];
+    state.tutorial.active = null;
+    state.ui.tutorialOpen = false;
+    if (tutorialModalEl) {
+      tutorialModalEl.classList.add("hidden");
+    }
+    setBallConfigState(null);
+    setShopItemConfigState(null);
+    setZoneEncounterCsvState(null);
+    setPokemonTalentCsvState(null);
+    stopBackgroundTicker();
+    clearTeamDragState();
+    closeTeamContextMenu();
+    clearCanvasHoverState();
+    closeRenameModal();
+    closeBoxesModal();
+    closePokedexModal();
+    closeAppearanceModal();
+    closeGachaModal({ force: true });
+    setMapOpen(false);
+    setShopOpen(false);
+    try {
+      let offlineCatchupMs = 0;
+      const [ballCsvResult, shopItemCsvResult, zoneCsvResult, talentCsvResult] =
+        await Promise.allSettled([
+          loadBallConfigCsv(BALL_CONFIG_CSV_PATH),
+          loadShopItemConfigCsv(SHOP_ITEMS_CSV_PATH),
+          loadZoneEncounterCsv(ROUTE_ENCOUNTERS_CSV_PATH),
+          loadPokemonTalentCsv(POKEMON_TALENTS_CSV_PATH),
+        ]);
+
+      if (ballCsvResult.status === "fulfilled") {
+        setBallConfigState(ballCsvResult.value);
+      } else {
+        setBallConfigState(null);
+        console.warn("Ball CSV indisponible, fallback config interne:", ballCsvResult.reason?.message || ballCsvResult.reason);
+      }
+
+      if (shopItemCsvResult.status === "fulfilled") {
+        setShopItemConfigState(shopItemCsvResult.value);
+      } else {
+        setShopItemConfigState(null);
+        console.warn(
+          "Item CSV indisponible, fallback config interne:",
+          shopItemCsvResult.reason?.message || shopItemCsvResult.reason,
+        );
+      }
+
+      if (zoneCsvResult.status === "fulfilled") {
+        setZoneEncounterCsvState(zoneCsvResult.value);
+      } else {
+        setZoneEncounterCsvState(null);
+        console.warn("Zone CSV indisponible, fallback JSON:", zoneCsvResult.reason?.message || zoneCsvResult.reason);
+      }
+
+      if (talentCsvResult.status === "fulfilled") {
+        setPokemonTalentCsvState(talentCsvResult.value);
+        if (Array.isArray(talentCsvResult.value?.unresolvedTalentIds) && talentCsvResult.value.unresolvedTalentIds.length > 0) {
+          console.warn(
+            "Talents sans comportement passif code:",
+            talentCsvResult.value.unresolvedTalentIds.join(", "),
+          );
+        }
+      } else {
+        setPokemonTalentCsvState(null);
+        console.warn("Talent CSV indisponible, fallback JSON:", talentCsvResult.reason?.message || talentCsvResult.reason);
+      }
+      state.saveData = await loadSaveData();
+      state.routeCatalog = await loadRouteCatalog(ROUTE_ID_ORDER);
+      refreshOrderedCatalogRouteIds();
+      const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();
+      const preferredRouteId = typeof state.saveData.current_route_id === "string" ? state.saveData.current_route_id : DEFAULT_ROUTE_ID;
+      const initialRouteId = unlockedRouteIds.includes(preferredRouteId) ? preferredRouteId : unlockedRouteIds[0];
+      const initialAssetRouteIds = getInitialAssetRouteIds();
+      const initialAssetRouteData = getRouteDataByIds(initialAssetRouteIds);
+      await loadPokemonDefinitions(initialAssetRouteData, { append: false });
+      const unlockStateReconciled = reconcileEntityUnlockStates();
+      const appearanceStateReconciled = reconcileEntityAppearanceStates();
+      const runtimeSaveRepair = repairRuntimeSaveAfterDefinitionsLoaded();
+      const tutorialProgressBefore = JSON.stringify(state.saveData.tutorials || {});
+      getTutorialProgress();
+      const appearanceUnlockedFromProgress = ensureAppearanceEditorUnlockedFromProgress();
+      const tutorialProgressAfter = JSON.stringify(state.saveData.tutorials || {});
+      const tutorialProgressChanged = tutorialProgressBefore !== tutorialProgressAfter || appearanceUnlockedFromProgress;
+      const routeBackgroundsById = await preloadRouteBackgrounds(getRouteDataByIds([initialRouteId]));
+      state.routeBackgroundsById = routeBackgroundsById;
+      Promise.allSettled([preloadTypeIcons(), preloadSelectedAppearanceAssetsForTeam()])
+        .then(([typeIconResult, appearanceResult]) => {
+          if (typeIconResult.status === "fulfilled" && typeIconResult.value instanceof Map) {
+            state.typeIconImages = typeIconResult.value;
+          } else if (typeIconResult.status === "rejected") {
+            console.warn("Impossible de precharger les icones de type:", typeIconResult.reason?.message || typeIconResult.reason);
+          }
+          if (appearanceResult.status === "rejected") {
+            console.warn(
+              "Impossible de precharger les apparences d'equipe:",
+              appearanceResult.reason?.message || appearanceResult.reason,
+            );
+          }
+          if (state.mode === "ready") {
+            render();
+          }
+        });
+
+      setActiveRoute(initialRouteId, { announceUnlock: false });
+
+      ensureMoneyAndItems();
+      syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
+      rebuildTeamAndSyncBattle();
+      if (
+        unlockStateReconciled
+        || appearanceStateReconciled
+        || runtimeSaveRepair.changed
+        || tutorialProgressChanged
+      ) {
+        persistSaveData();
+      }
+      offlineCatchupMs = queueOfflineCatchupFromSave(Date.now());
+
+      renderStarterChoices();
+      updateHud();
+
+      if (state.saveData.starter_chosen && state.team.length === 0) {
+        throw new Error("La sauvegarde est incoherente: impossible de reconstruire une equipe jouable.");
+      }
+
+      if (!state.saveData.starter_chosen) {
+        state.team = [];
+        state.battle = null;
+        state.enemy = null;
+        state.pendingSimMs = 0;
+        showStarterModal();
+        setTopMessage("Choisis ton starter pour debuter sur Route 1.", 2200);
+      } else {
+        hideStarterModal();
+        startBattle();
+        if (runtimeSaveRepair.recoveredTeam) {
+          setTopMessage("Sauvegarde reparee: equipe restauree automatiquement.", 2600);
+        } else if (runtimeSaveRepair.hardResetApplied) {
+          setTopMessage("Sauvegarde incoherente nettoyee. Une nouvelle partie est prete.", 2600);
+        }
+      }
+
+      if (runtimeSaveRepair.hardResetApplied && !state.saveData.starter_chosen) {
+        setTopMessage("Sauvegarde incoherente nettoyee. Choisis un starter pour repartir proprement.", 3200);
+      }
+
+      state.mode = "ready";
+      hideLoadingScreen();
+      queueDeferredRouteAssetWarmup(initialAssetRouteIds);
+      queueAppearanceTutorialIfNeeded();
+      tryOpenPendingTutorialFlow();
+      if (offlineCatchupMs > 0 && state.battle) {
+        consumePendingSimulation({
+          forceIdleMode: true,
+          budgetMs: HIDDEN_SIM_BUDGET_MS,
+        });
+      }
+    } catch (error) {
+      state.mode = "error";
+      state.error = error instanceof Error ? error.message : "Erreur inconnue";
+      hideLoadingScreen({ immediate: true });
+    }
+    refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
+    if (documentRef?.hidden) {
+      ensureBackgroundTicker();
+    }
+    render();
+  }
+
+  async function resetSaveAndRestart() {
+    const shouldReset = windowRef?.confirm?.("Supprimer toute la sauvegarde locale et recommencer ?");
+    if (!shouldReset) {
+      return;
+    }
+
+    state.saveBackend.pendingSerializedSave = null;
+    state.saveBackend.pendingDesktopSerializedSave = null;
+    clearBrowserSaveRetry();
+    clearDesktopSaveRetry();
+    const removedLocalStorage = removeSaveDataFromStorageKey("localStorage", SAVE_KEY);
+    const removedSessionStorage = removeSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY);
+    const removedIndexedDb = await deleteSaveDataFromIndexedDb();
+    const removedDesktopSave = await deleteSaveDataFromDesktopBridge();
+    if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb && !removedDesktopSave) {
+      windowRef?.alert?.("Impossible de supprimer la sauvegarde locale.");
+      updateSaveBackendIndicator();
+      return;
+    }
+
+    state.saveData = createEmptySave();
+    syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
+    state.team = [];
+    state.enemy = null;
+    state.battle = null;
+    state.pendingSimMs = 0;
+    state.deferredSaveDirty = false;
+    state.teamLevelUpEffects = [];
+    state.teamXpGainEffects = [];
+    state.teamXpPulseMsBySlot = {};
+    state.xpHud.teamXpBySlot = {};
+    state.xpHud.enemyHpKey = null;
+    state.xpHud.enemyHpFrontRatio = 1;
+    state.xpHud.enemyHpLagRatio = 1;
+    state.moneyHud.initialized = false;
+    state.moneyHud.targetValue = 0;
+    state.moneyHud.displayValue = 0;
+    state.moneyHud.lastRawValue = 0;
+    state.moneyHud.pulseMs = 0;
+    clearMoneyGainFloaters();
+    state.evolutionAnimation.current = null;
+    state.evolutionAnimation.queue = [];
+    state.tutorial.queue = [];
+    state.tutorial.active = null;
+    state.ui.tutorialOpen = false;
+    if (tutorialModalEl) {
+      tutorialModalEl.classList.add("hidden");
+    }
+    state.ui.shopTab = SHOP_TAB_POKEBALLS;
+    state.ui.shopQuantityMode = "1";
+    state.ui.shopCustomQuantity = 1;
+    state.realClockLastMs = Date.now();
+    state.environment.nextUpdateAtMs = 0;
+    updateEnvironment(Date.now(), true);
+    stopBackgroundTicker();
+    setMapOpen(false);
+    setShopOpen(false);
+    closeGachaModal({ force: true });
+    closeRenameModal();
+    closeBoxesModal();
+    closePokedexModal();
+    closeAppearanceModal();
+    setActionDockFullscreenMenuOpen(false, { animate: false });
+    closeTeamContextMenu();
+    clearTeamDragState();
+    persistSaveData();
+    updateHud();
+    clearCanvasHoverState();
+    hideStarterModal();
+    initializeScene().catch(() => {});
+  }
+
+  async function toggleFullscreen() {
+    const fullscreenTarget = gameStageEl || canvas;
+    if (!documentRef?.fullscreenElement) {
+      await fullscreenTarget.requestFullscreen();
+      return;
+    }
+    await documentRef.exitFullscreen();
+  }
+
+  function triggerActionDockPokeballSpin(direction) {
+    if (!(actionDockPokeballVisualEl instanceof HTMLElement)) {
+      return;
+    }
+    const spinClass = direction === "ccw" ? "is-spin-ccw" : "is-spin-cw";
+    actionDockPokeballVisualEl.classList.remove("is-spin-cw", "is-spin-ccw");
+    void actionDockPokeballVisualEl.offsetWidth;
+    actionDockPokeballVisualEl.classList.add(spinClass);
+  }
+
+  function setActionDockFullscreenMenuOpen(nextOpen, runtimeOptions = {}) {
+    if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+      return;
+    }
+    const shouldAnimate = runtimeOptions?.animate !== false;
+    const shouldOpen = Boolean(nextOpen);
+    const currentlyOpen = isActionDockFullscreenMenuOpen();
+    const isClosing = actionDockFullscreenMenuEl.classList.contains("is-closing");
+    if (actionDockFullscreenMenuOpenTimeoutId) {
+      clearTimeoutFn(actionDockFullscreenMenuOpenTimeoutId);
+      actionDockFullscreenMenuOpenTimeoutId = 0;
+    }
+
+    if (shouldOpen === currentlyOpen && !isClosing) {
+      if (actionDockPokeballToggleButtonEl) {
+        actionDockPokeballToggleButtonEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+        actionDockPokeballToggleButtonEl.setAttribute(
+          "aria-label",
+          shouldOpen ? "Masquer le menu principal" : "Afficher le menu principal",
+        );
+      }
+      return;
+    }
+
+    if (shouldAnimate) {
+      triggerActionDockPokeballSpin(shouldOpen ? "cw" : "ccw");
+    }
+
+    if (shouldOpen) {
+      actionDockFullscreenMenuEl.classList.remove("hidden", "is-closing");
+      requestAnimationFrameFn(() => {
+        actionDockFullscreenMenuEl.classList.add("is-open");
+      });
+    } else {
+      actionDockFullscreenMenuEl.classList.remove("is-open");
+      actionDockFullscreenMenuEl.classList.add("is-closing");
+      actionDockFullscreenMenuOpenTimeoutId = setTimeoutFn(() => {
+        if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+          return;
+        }
+        actionDockFullscreenMenuEl.classList.add("hidden");
+        actionDockFullscreenMenuEl.classList.remove("is-closing");
+        actionDockFullscreenMenuOpenTimeoutId = 0;
+      }, ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS);
+    }
+
+    if (actionDockPokeballToggleButtonEl) {
+      actionDockPokeballToggleButtonEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      actionDockPokeballToggleButtonEl.setAttribute(
+        "aria-label",
+        shouldOpen ? "Masquer le menu principal" : "Afficher le menu principal",
+      );
+    }
+  }
+
+  function isActionDockFullscreenMenuOpen() {
+    if (!(actionDockFullscreenMenuEl instanceof HTMLElement)) {
+      return false;
+    }
+    return !actionDockFullscreenMenuEl.classList.contains("hidden");
+  }
+
+  function toggleActionDockFullscreenMenu() {
+    setActionDockFullscreenMenuOpen(!isActionDockFullscreenMenuOpen());
+  }
+
+  return {
+    loadPokemonDefinitions,
+    initializeScene,
+    resetSaveAndRestart,
+    toggleFullscreen,
+    triggerActionDockPokeballSpin,
+    setActionDockFullscreenMenuOpen,
+    isActionDockFullscreenMenuOpen,
+    toggleActionDockFullscreenMenu,
+  };
 }

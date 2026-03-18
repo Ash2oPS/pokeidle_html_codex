@@ -13,17 +13,8 @@ const runtimeRenderSystemPath = path.resolve(__dirname, "../systems/ui/runtime-r
 function createRenderSystem(overrides = {}) {
   return createRuntimeRenderSystem({
     bindings: {
-      Math,
-      Number,
-    },
-    resolveBinding(name) {
-      if (name === "isCoarsePointerDevice") {
-        return overrides.isCoarsePointerDevice ?? (() => false);
-      }
-      if (name === "isLikelySmartphoneBrowser") {
-        return overrides.isLikelySmartphoneBrowser;
-      }
-      return undefined;
+      isCoarsePointerDevice: overrides.isCoarsePointerDevice ?? (() => false),
+      isLikelySmartphoneBrowser: overrides.isLikelySmartphoneBrowser,
     },
   });
 }
@@ -86,4 +77,30 @@ test("drawPokemonSprite fallback no longer slices nameFr directly when sprites a
 
   assert.ok(source.includes("fallbackInitial"));
   assert.doesNotMatch(source, /entity\\.nameFr\\.slice\\(0,\\s*1\\)/);
+});
+
+test("runtime render system materializes the laser renderer without dynamic code injection", () => {
+  const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.match(source, /function drawLasers\(/);
+  assert.match(source, /function drawPackedLaserBeam\(/);
+  assert.match(source, /const packedLaserBeamTextureCache = \{\};/);
+  assert.match(source, /drawLasers\(state\.battle \? state\.battle\.getLasers\(\) : \[\]\);/);
+  assert.doesNotMatch(source, /new Function/);
+  assert.doesNotMatch(source, /with \(scope\)/);
+  assert.doesNotMatch(source, /RUNTIME_RENDER_CHUNK/);
+  assert.doesNotMatch(source, /injectRuntimeRenderLaserSupport/);
+});
+
+test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {
+  const renderSystem = createRuntimeRenderSystem({
+    bindings: {
+      isCoarsePointerDevice: () => false,
+    },
+  });
+
+  const profile = renderSystem.getBattleViewportProfile(540, 960);
+
+  assert.equal(profile.layoutMode, "mobilePortrait");
+  assert.equal(profile.phone, true);
 });

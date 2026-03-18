@@ -38,6 +38,16 @@
   - KO visual transition (flash/ring), plus delayed enemy respawn timer before replacement.
 - Validated KO transition behavior with iterative Playwright run (`output/web-game-ko`):
   - Captured KO freeze state with `ko_transition.active: true` and `enemy.hp_current: 0`.
+- Added Windows/Desktop/Android system notifications for evolution-ready Pokemon:
+  - New designer setting `notifications.evolutionReadySystemEnabled` in `game-settings.json`.
+  - Runtime now stores loaded game settings and reuses the existing notification bridge when an evolution-ready card is enqueued.
+  - Notification button copy now mentions shiny, empty Pokeballs, and evolution-ready alerts.
+  - Added source/test coverage for the new notification hook and settings sanitizer.
+- Verification after the evolution-ready notification patch:
+  - `node --test tests/game-settings-runtime.test.mjs tests/runtime-evolution-ready-system-notification.test.mjs` passes.
+  - `npm run test:node` passes (`146/146`).
+  - Playwright skill client run against a local `http.server` capture confirms the game still boots/render correctly.
+  - Useful visual artifact: `output/evolution-notif-visual-poke-2/shot-1.png`.
   - Captured post-delay respawn with next enemy loaded and combat resumed.
   - No console/page errors reported.
 
@@ -78,22 +88,6 @@
 - `node --check game.js`: PASS.
 - `run_playwright_check.ps1`: PASS (starter modal visible in text state; no console/page error).
 - Playwright run with starter click (`output/web-game-starter`): PASS.
-
-## Additional progress (temporary Mewtwo rename easter egg)
-- Added a temporary one-off easter egg for this build:
-  - Renaming Mewtwo to exactly `Armand` unlocks Lugia shiny in the save data.
-  - The first-time shiny capture notification now falls back to `species_name_en` from the save if the species definition is not loaded yet, avoiding the old `Pokemon 249` text.
-- Added coverage:
-  - `tests/easter-egg-rules.test.mjs`
-  - `tests/runtime-mewtwo-rename-easter-egg-wireup.test.mjs`
-- Validation:
-  - `node --check game-runtime.js`: PASS
-  - `node --test tests/easter-egg-rules.test.mjs tests/runtime-mewtwo-rename-easter-egg-wireup.test.mjs`: PASS
-  - End-to-end Playwright smoke on `http://127.0.0.1:8911/index.html`: PASS
-    - Save seed: `output/easter-egg-smoke/mewtwo-rename-seed.json`
-    - Positive screenshot (`Armand`): `output/easter-egg-smoke/mewtwo-armand-lugia-shiny-notif.png`
-    - Negative screenshot (`MiaouTwo`): `output/easter-egg-smoke/mewtwo-miaoutwo-no-lugia.png`
-    - Final notification text: `Lugia capturé pour la première fois en shiny.`
 
 ## Additional progress (semver alpha + UI badge)
 - Added a dedicated `version.js` bootstrap with the current app version set to `0.1.0-alpha.0`.
@@ -224,6 +218,29 @@
   - No console/page errors in the targeted hover/context runs.
 
 ## Additional progress (reset + slot timing + capture animation)
+
+## Additional progress (laser perf pass without dynamic quality fallback)
+- Removed the previous runtime fallback that lowered global render quality / render scale based on laser crowding.
+  - `lib/game-runtime-state.js`: runtime auto quality adjustment now defaults to disabled.
+  - `lib/render-quality-utils.js`: runtime quality switching now early-outs unless explicitly re-enabled.
+  - `game-runtime.js`: removed the laser-specific dynamic quality and render-scale penalty hooks entirely.
+- Investigated the actual laser hot path instead of masking it:
+  - verified laser micro-ticks already suppress most impact/floating-text visuals between cadence turns;
+  - confirmed the main remaining cost was the crowded simple laser render path itself.
+- Optimized crowded laser rendering in `systems/ui/runtime-render-system.js`:
+  - added cached pre-rendered beam textures per offensive type for packed laser fights;
+  - when 4+ lasers are active, the renderer now uses cached beam sprites via `drawImage` instead of rebuilding thick canvas stroke paths each frame;
+  - kept elemental differentiation through per-type beam palettes and subtle cached pattern bands.
+- Validation:
+  - `node --test tests/runtime-render-system.test.mjs tests/render-quality-utils.test.mjs tests/pokemon-battle-runtime.test.mjs`: PASS.
+  - Concrete 6-active-laser Playwright perf run using seeded save `tmp/laser-perf-probe-6active/PokeIdle/save_main.json`:
+    - artifacts: `output/perf-laser-6active-packed/`
+    - `active_lasers`: 6 in `state-3.json`
+    - final sample: `frame_ms_estimate: 16.67`, `render_frame_ms_estimate: 16.67`, `cpu_frame_ms_estimate: 4.18`
+    - aggregate (`validate-runtime-performance.mjs`): `meanFrameMs: 18.653`, `meanRenderFrameMs: 18.668`, `meanCpuFrameMs: 4.72`, `meanFps: 54.225`
+  - Screenshot reviewed: `output/perf-laser-6active-packed/stage-3.png`.
+- Notes / caveats:
+  - A later 5-laser comparison run (`output/perf-laser-static-quality-after-packed/`) produced one obviously noisy capture sample during the wrapper timeout, so that dataset should not be treated as authoritative.
 - Added a top-right save reset button in UI:
   - `index.html`: `#reset-save-btn`.
   - `styles.css`: `.reset-save-btn` styling.
@@ -6471,3 +6488,88 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/playwright/hoenn-smoke/hoenn_city_sootopolis_city/stage.png`
     - `output/playwright/hoenn-smoke/hoenn_dungeon_sky_pillar/stage.png`
   - All Hoenn smoke `errors.json` files were empty.
+
+## Additional progress (laser attack mode - 2026-03-18)
+- Refactored `systems/combat/pokemon-battle-manager.js` so attack delivery mode is now separate from elemental offensive type:
+  - new runtime `attackMode` support (`projectile` / `laser`)
+  - manager-level `defaultAttackMode` currently set to `laser` for this test pass
+  - per-Pokemon `attackMode` overrides still work, so mixed projectile + laser teams remain supported
+- Added per-slot continuous laser state:
+  - `laserStates` track source/target positions, type, phase offset, next tick timer, and fractional damage carry
+  - laser tick cadence is `attackIntervalMs / 2`
+  - laser damage uses the projectile reference hit pipeline scaled to `projectileDamage / 12`
+  - fractional carry preserves exact long-run damage even when per-tick rounded damage would be zero
+- Shared hit resolution/logging now covers both projectiles and lasers:
+  - miss / crit / type multiplier
+  - aura attack bonus
+  - teleport damage boost
+  - `lastTurnEvent.attack_mode`
+- Guarded cadence-sensitive talents so they are not multiplied by micro-ticks:
+  - `MIND_CONTROL` follow-ups are gated to the cadence turn and do not fire on every laser tick
+- Added laser cleanup to battle reset points:
+  - enemy respawn/spawn
+  - team sync
+  - idle combat flush
+  - route-change cleanup in `systems/combat/battle-lifecycle-system.js`
+- Added runtime render/debug support without rewriting the giant chunk sources directly:
+  - `systems/ui/runtime-render-system.js` injects a dedicated `drawLasers(...)` pass before projectile rendering
+  - `systems/ui/runtime-ui-interaction-system.js` injects `active_lasers` into `render_game_to_text`
+- Added regression coverage:
+  - default laser fallback vs projectile override
+  - half-interval laser cadence
+  - fractional damage carry
+  - laser cleanup on enemy spawn
+  - mixed projectile + laser coexistence
+  - `MIND_CONTROL` non-regression on repeated laser ticks
+- Validation:
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS
+  - `node --test tests/runtime-render-system.test.mjs`: PASS
+  - `node --test tests/runtime-ui-interaction-system.test.mjs`: PASS
+  - `npm test`: PASS
+  - Playwright desktop gallery smoke: PASS for runtime text state (`active_lasers` present, `active_projectiles` empty on seeded single-Pokemon team)
+  - Direct canvas capture for visual confirmation:
+    - `output/ui-state-gallery/laser-canvas-capture/canvas.png`
+    - `output/ui-state-gallery/laser-canvas-capture/state.json`
+
+## Additional progress (laser visual polish - 2026-03-18)
+- Upgraded laser positioning so beams now run from ally sprite center to enemy sprite center instead of the old slightly offset launch point.
+- Reworked injected laser rendering in `systems/ui/runtime-render-system.js`:
+  - animated curved beam path with inner core + colored sheath + halo
+  - animated source/impact glows
+  - moving beam particles plus source and impact particle bursts
+  - type-flavored profiles for fire, water, grass, electric, ice, psychic, dark, ghost, fairy, dragon, ground, rock, steel, poison, bug, fighting, and flying
+- Added regression checks:
+  - battle runtime test for center-to-center laser anchoring
+  - render-system source test for particle helper + type-profile injection
+- Visual validation refreshed:
+  - skill Playwright smoke rerun on seeded save (`output/playwright/laser-visual-smoke/state-0.json`)
+  - refreshed canvas capture:
+    - `output/ui-state-gallery/laser-canvas-capture/canvas.png`
+    - `output/ui-state-gallery/laser-canvas-capture/page.png`
+    - `output/ui-state-gallery/laser-canvas-capture/state.json`
+
+## Additional progress (laser performance optimization - 2026-03-18)
+- Added an aggressive laser render LOD in `systems/ui/runtime-render-system.js`:
+  - `very_low`: straight minimal beam, no particles, no ribbons, no gradients, no blur
+  - `low`: mostly simple beam, tiny particle budget, no radial gradients, no blur
+  - `medium+`: progressively restore curves, ribbons, particles, gradients, and glow only when the active laser count and quality budget allow it
+- Added crowd-aware degradation so multiple simultaneous lasers automatically reduce segment counts, particles, ribbons, and impact rays instead of stacking full-fat effects on every beam.
+- Added helper coverage in `tests/runtime-render-system.test.mjs` to lock the new laser render budget path.
+- Lowered actual low-end render cadence in `lib/gameplay-ui-config.js`:
+  - `low.renderFrameIntervalMs = 20`
+  - `very_low.renderFrameIntervalMs = 24`
+- Added config coverage in `tests/render-quality-utils.test.mjs` so low-end tiers keep slower render intervals than the default 16 ms loop.
+- Validation / perf smoke:
+  - `node --check systems/ui/runtime-render-system.js`: PASS
+  - `node --check lib/gameplay-ui-config.js`: PASS
+  - `node --test tests/runtime-render-system.test.mjs`: PASS
+  - `node --test tests/render-quality-utils.test.mjs`: PASS
+  - seeded Playwright smoke after optimization:
+    - `output/playwright/laser-perf-optimized/state-0.json`
+    - key change at `render_quality: "low"`:
+      - before: `frame_ms_estimate 50.97`, `render_frame_ms_estimate 102.4`, `render_fps_estimate 9.8`
+      - after: `frame_ms_estimate 17.34`, `render_frame_ms_estimate 31.67`, `render_fps_estimate 31.6`
+  - refreshed canvas capture at `render_quality: "very_low"`:
+    - `output/ui-state-gallery/laser-perf-optimized-canvas/canvas.png`
+    - `output/ui-state-gallery/laser-perf-optimized-canvas/state.json`
+    - observed `render_frame_ms_estimate 25.04` and `render_fps_estimate 39.9`

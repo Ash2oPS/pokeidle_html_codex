@@ -118,6 +118,7 @@ body {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
   touch-action: none;
+  -webkit-touch-callout: none;
   user-select: none;
 }
 

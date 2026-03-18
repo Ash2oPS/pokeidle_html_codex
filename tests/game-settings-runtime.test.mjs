@@ -16,6 +16,9 @@ test("sanitizeGameSettings keeps required store redirect fields and default mirr
       blockedVersions: ["0.1.28", "0.1.28", "  "],
       message: "Maintenance en cours",
     },
+    notifications: {
+      evolutionReadySystemEnabled: false,
+    },
     store: {
       playStoreUrl: " https://play.google.com/store/apps/details?id=com.demo ",
       appStoreUrl: "https://apps.apple.com/app/id123",
@@ -24,6 +27,8 @@ test("sanitizeGameSettings keeps required store redirect fields and default mirr
     },
   });
 
+  assert.equal(settings.notifications.evolutionReadySystemEnabled, false);
+  assert.equal(settings.default.notifications.evolutionReadySystemEnabled, false);
   assert.equal(settings.store.redirectAfterClicks, 3);
   assert.equal(settings.store.redirectAfterClickDelayMs, 4500);
   assert.equal(settings.default.store.redirectAfterClicks, 3);
@@ -82,6 +87,7 @@ test("loadGameSettings returns safe fallback when fetch fails", async () => {
   assert.equal(loaded.loaded, false);
   assert.equal(loaded.source, "./missing-settings.json");
   assert.equal(isGameMaintenanceActive(loaded.settings, "0.1.28"), false);
+  assert.equal(loaded.settings.notifications.evolutionReadySystemEnabled, true);
   assert.equal(loaded.settings.store.redirectAfterClicks, -1);
   assert.equal(loaded.settings.store.redirectAfterClickDelayMs, -1);
 });

@@ -202,6 +202,19 @@ export function createPokemonBattleRuntime(deps = {}) {
   } = deps;
 
   const projectileSpriteCache = new Map();
+  const ATTACK_MODE_PROJECTILE = "projectile";
+  const ATTACK_MODE_LASER = "laser";
+
+  function normalizeAttackMode(mode, fallback = ATTACK_MODE_PROJECTILE) {
+    const normalized = String(mode || "").toLowerCase().trim();
+    if (normalized === ATTACK_MODE_LASER) {
+      return ATTACK_MODE_LASER;
+    }
+    if (normalized === ATTACK_MODE_PROJECTILE) {
+      return ATTACK_MODE_PROJECTILE;
+    }
+    return fallback;
+  }
 
 function drawProjectileGlyph(spriteCtx, typeName, size) {
   const mid = size * 0.5;
@@ -481,6 +494,7 @@ function getProjectileSprite(typeName) {
     getEnemyTimerConfig,
     onEnemyTimerExpired,
     canTeamAttack,
+    defaultAttackMode = ATTACK_MODE_LASER,
   }) {
     this.team = Array.isArray(team) ? team : [];
     this.attackIntervalMs = attackIntervalMs;
@@ -495,8 +509,11 @@ function getProjectileSprite(typeName) {
         : () => ({ enabled: false, style: ENEMY_TIMER_STYLE_ROUTE });
     this.onEnemyTimerExpired = typeof onEnemyTimerExpired === "function" ? onEnemyTimerExpired : () => {};
     this.canTeamAttack = typeof canTeamAttack === "function" ? canTeamAttack : () => true;
+    this.defaultAttackMode = normalizeAttackMode(defaultAttackMode, ATTACK_MODE_LASER);
     this.turnIndex = 0;
     this.projectiles = [];
+    this.laserStates = Array.from({ length: MAX_TEAM_SIZE }, (_, slotIndex) => this.createLaserState(slotIndex));
+    this.activeLaserView = [];
     this.floatingTexts = [];
     this.hitEffects = [];
     this.enemyHitPulse = { remainingMs: 0, tween: null };
@@ -537,6 +554,65 @@ function getProjectileSprite(typeName) {
     this.spawnEnemy();
   }
 
+  createLaserState(slotIndex, overrides = {}) {
+    return {
+      slotIndex: clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1),
+      active: false,
+      attackType: "normal",
+      attackerNameFr: null,
+      sourceX: 0,
+      sourceY: 0,
+      targetX: 0,
+      targetY: 0,
+      tickTimerMs: this.getLaserTickIntervalMs(),
+      damageCarry: 0,
+      phaseOffset: randomRange(0, Math.PI * 2),
+      talentGateReady: false,
+      pendingTurnDecision: null,
+      ...overrides,
+    };
+  }
+
+  getLaserTickIntervalMs() {
+    return Math.max(1, Number(this.attackIntervalMs) || ATTACK_INTERVAL_MS) * 0.5;
+  }
+
+  clearLasers(options = {}) {
+    const preserveDamageCarry = options.preserveDamageCarry === true;
+    const preserveTickTimers = options.preserveTickTimers === true;
+    this.laserStates = Array.from({ length: MAX_TEAM_SIZE }, (_, slotIndex) => {
+      const previous = this.laserStates?.[slotIndex];
+      return this.createLaserState(slotIndex, {
+        damageCarry: preserveDamageCarry ? Math.max(0, Number(previous?.damageCarry) || 0) : 0,
+        tickTimerMs: preserveTickTimers
+          ? Math.max(0, Number(previous?.tickTimerMs) || this.getLaserTickIntervalMs())
+          : this.getLaserTickIntervalMs(),
+      });
+    });
+  }
+
+  getLasers() {
+    const activeLaserView = Array.isArray(this.activeLaserView) ? this.activeLaserView : [];
+    activeLaserView.length = 0;
+    for (const laser of this.laserStates || []) {
+      if (laser?.active) {
+        activeLaserView.push(laser);
+      }
+    }
+    this.activeLaserView = activeLaserView;
+    return activeLaserView;
+  }
+
+  getActiveLaserCount() {
+    let count = 0;
+    for (const laser of this.laserStates || []) {
+      if (laser?.active) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
   getEffectiveAttackIntervalMs() {
     const dynamicValue = this.getAttackIntervalMs ? Number(this.getAttackIntervalMs()) : NaN;
     if (Number.isFinite(dynamicValue) && dynamicValue > 0) {
@@ -548,15 +624,35 @@ function getProjectileSprite(typeName) {
   setAttackInterval(nextIntervalMs) {
     const nextInterval = Math.max(65, toSafeInt(nextIntervalMs, ATTACK_INTERVAL_MS));
     const prevInterval = Math.max(65, toSafeInt(this.attackIntervalMs, ATTACK_INTERVAL_MS));
+    const prevLaserInterval = Math.max(1, prevInterval * 0.5);
+    const nextLaserInterval = Math.max(1, nextInterval * 0.5);
     const timer = Number(this.attackTimerMs);
     if (!Number.isFinite(timer)) {
       this.attackIntervalMs = nextInterval;
       this.attackTimerMs = nextInterval;
+      for (const laserState of this.laserStates || []) {
+        if (!laserState) {
+          continue;
+        }
+        laserState.tickTimerMs = nextLaserInterval;
+      }
       return;
     }
     if (Math.abs(nextInterval - prevInterval) > 0.01) {
       const remainingRatio = clamp(timer / prevInterval, 0, 1);
       this.attackTimerMs = nextInterval * remainingRatio;
+      for (const laserState of this.laserStates || []) {
+        if (!laserState) {
+          continue;
+        }
+        const tickTimer = Number(laserState.tickTimerMs);
+        if (!Number.isFinite(tickTimer)) {
+          laserState.tickTimerMs = nextLaserInterval;
+          continue;
+        }
+        const tickRemainingRatio = clamp(tickTimer / prevLaserInterval, 0, 1);
+        laserState.tickTimerMs = nextLaserInterval * tickRemainingRatio;
+      }
     }
     this.attackIntervalMs = nextInterval;
   }
@@ -614,6 +710,7 @@ function getProjectileSprite(typeName) {
     this.slotTeleportScale = Array.from({ length: MAX_TEAM_SIZE }, () => null);
     this.teleportDamageBoostBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 1);
     this.teleportBoostVisualBySlot = Array.from({ length: MAX_TEAM_SIZE }, () => 0);
+    this.clearLasers();
     for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
       const member = this.team[i];
       const pokemonId = Number(member?.id || 0);
@@ -638,6 +735,13 @@ function getProjectileSprite(typeName) {
     return this.projectiles;
   }
 
+  resolveAttackModeForAttacker(attackerIndex, attacker = this.team[attackerIndex] || null) {
+    if (!attacker) {
+      return normalizeAttackMode(this.defaultAttackMode, ATTACK_MODE_LASER);
+    }
+    return normalizeAttackMode(attacker.attackMode, this.defaultAttackMode);
+  }
+
   getFloatingTexts() {
     return this.floatingTexts;
   }
@@ -658,6 +762,20 @@ function getProjectileSprite(typeName) {
 
   getHitEffects() {
     return this.hitEffects;
+  }
+
+  buildAttackerSnapshot(attacker) {
+    if (!attacker || typeof attacker !== "object") {
+      return null;
+    }
+    return {
+      id: Number(attacker.id || 0),
+      nameFr: String(attacker.nameFr || ""),
+      talent: attacker.talent || null,
+      offensiveType: attacker.offensiveType || null,
+      defensiveTypes: Array.isArray(attacker.defensiveTypes) ? [...attacker.defensiveTypes] : [],
+      attackMode: attacker.attackMode || null,
+    };
   }
 
   stopEnemyHitPulseTween() {
@@ -1053,6 +1171,287 @@ function getProjectileSprite(typeName) {
     };
   }
 
+  buildHitResolution(attackPayload) {
+    const attackerSnapshot = attackPayload?.attackerSnapshot && typeof attackPayload.attackerSnapshot === "object"
+      ? attackPayload.attackerSnapshot
+      : null;
+    const attacker = attackerSnapshot || this.team[attackPayload?.attackerIndex];
+    if (!attacker || !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return null;
+    }
+    const decision = attackPayload?.turnDecision && typeof attackPayload.turnDecision === "object"
+      ? attackPayload.turnDecision
+      : this.resolveTurnDecisionForSlot(attackPayload.attackerIndex, attacker);
+    const precomputedHit = attackPayload?.precomputedHit && typeof attackPayload.precomputedHit === "object"
+      ? attackPayload.precomputedHit
+      : this.buildPrecomputedHitOutcome(
+        attackPayload.attackerIndex,
+        attacker,
+        attackPayload?.attackType || this.resolveAttackTypeForAttacker(attackPayload.attackerIndex, attacker),
+      );
+    const attackType = String(
+      precomputedHit?.attackType
+      || attackPayload?.attackType
+      || attacker.offensiveType
+      || attacker.defensiveTypes?.[0]
+      || "normal"
+    );
+    return {
+      attacker,
+      attackerIndex: clamp(toSafeInt(attackPayload?.attackerIndex, -1), -1, MAX_TEAM_SIZE - 1),
+      attackerNameFr: String(attackPayload?.attackerNameFr || attacker.nameFr || ""),
+      targetX: Number(attackPayload?.targetX) || 0,
+      targetY: Number(attackPayload?.targetY) || 0,
+      attackMode: normalizeAttackMode(
+        attackPayload?.attackMode,
+        this.resolveAttackModeForAttacker(attackPayload?.attackerIndex, attacker),
+      ),
+      decision,
+      attackType,
+      missed: Boolean(precomputedHit?.missed),
+      typeMultiplier: Number(precomputedHit?.typeMultiplier || 1),
+      teamAuraAttackBonus: Math.max(0, Number(precomputedHit?.teamAuraAttackBonus) || 0),
+      teleportDamageBoost: Math.max(1, Number(precomputedHit?.teleportDamageBoost || 1)),
+      isCriticalHit: Boolean(precomputedHit?.isCritical),
+      referenceDamage: Math.max(0, Number(precomputedHit?.damage || 0)),
+    };
+  }
+
+  finalizeResolvedHit(attackPayload, hitResolution, options = {}) {
+    const idleMode = Boolean(options.idleMode);
+    const suppressTurnEvent = Boolean(options.suppressTurnEvent);
+    const suppressImpactVisuals = Boolean(options.suppressImpactVisuals);
+    const suppressDamageFlash = Boolean(options.suppressDamageFlash);
+    const allowTalentTriggers = options.allowTalentTriggers !== false;
+    if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || !hitResolution) {
+      return false;
+    }
+
+    const damageOverride = Number(options.damageOverride);
+    const damage = hitResolution.missed
+      ? 0
+      : Number.isFinite(damageOverride)
+        ? Math.max(0, Math.round(damageOverride))
+        : Math.max(0, Math.round(hitResolution.referenceDamage));
+    if (!hitResolution.missed && options.skipZeroDamage === true && damage <= 0) {
+      return false;
+    }
+
+    if (hitResolution.missed) {
+      this.lastImpact = {
+        attackerNameFr: hitResolution.attacker.nameFr,
+        attackType: hitResolution.attackType,
+        damage: 0,
+        typeMultiplier: 1,
+        enemyNameFr: this.enemy.nameFr,
+        isCritical: false,
+        missed: true,
+      };
+      if (!suppressTurnEvent) {
+        this.recordTurnEvent(hitResolution.attackerIndex, hitResolution.attacker, {
+          action: TURN_ACTION_ATTACK,
+          reason: "hit_missed",
+          talentId: hitResolution.decision.talentId,
+          passiveBehaviorId: hitResolution.decision.passiveBehaviorId,
+        }, {
+          attack_mode: hitResolution.attackMode,
+          damage: 0,
+          type_multiplier: 1,
+          is_critical: false,
+          missed: true,
+        });
+      }
+      if (!idleMode && !suppressImpactVisuals) {
+        const enemyVisualSize = Math.max(
+          0,
+          Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
+        );
+        this.addFloatingDamageText({
+          damage: 0,
+          attackType: hitResolution.attackType,
+          typeMultiplier: 1,
+          isCritical: false,
+          targetX: hitResolution.targetX,
+          targetY: hitResolution.targetY,
+          isMiss: true,
+          targetVisualSize: enemyVisualSize,
+        });
+      }
+      if (allowTalentTriggers) {
+        const teleportSwapResult = this.tryApplyTeleportSwap(
+          hitResolution.attackerIndex,
+          hitResolution.attacker,
+          {
+            ...hitResolution.decision,
+            action: TURN_ACTION_ATTACK,
+          },
+          options.layout,
+          { idleMode },
+        );
+        if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
+          this.lastTurnEvent.teleport_swap = true;
+          this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
+          this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
+          this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
+        }
+      }
+      return true;
+    }
+
+    this.enemy.hpCurrent = clamp(this.enemy.hpCurrent - damage, 0, this.enemy.hpMax);
+    if (damage > 0 && !suppressDamageFlash) {
+      this.triggerEnemyDamageFlash(ENEMY_DAMAGE_FLASH_DURATION_MS);
+    }
+    this.lastImpact = {
+      attackerNameFr: hitResolution.attacker.nameFr,
+      attackType: hitResolution.attackType,
+      damage,
+      typeMultiplier: hitResolution.typeMultiplier,
+      enemyNameFr: this.enemy.nameFr,
+      isCritical: hitResolution.isCriticalHit,
+      missed: false,
+    };
+    if (!suppressTurnEvent) {
+      this.recordTurnEvent(hitResolution.attackerIndex, hitResolution.attacker, {
+        action: TURN_ACTION_ATTACK,
+        reason: "hit_resolved",
+        talentId: hitResolution.decision.talentId,
+        passiveBehaviorId: hitResolution.decision.passiveBehaviorId,
+      }, {
+        attack_mode: hitResolution.attackMode,
+        damage,
+        type_multiplier: Math.round(hitResolution.typeMultiplier * 1000) / 1000,
+        is_critical: hitResolution.isCriticalHit,
+        missed: false,
+        team_aura_attack_bonus_pct: Math.round(Math.max(0, hitResolution.teamAuraAttackBonus) * 10000) / 100,
+        teleport_damage_boost_pct: Math.round((Math.max(1, hitResolution.teleportDamageBoost) - 1) * 10000) / 100,
+      });
+    }
+    if (!idleMode && !suppressImpactVisuals) {
+      const enemyVisualSize = Math.max(
+        0,
+        Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
+      );
+      this.addFloatingDamageText({
+        damage,
+        attackType: hitResolution.attackType,
+        typeMultiplier: hitResolution.typeMultiplier,
+        isCritical: hitResolution.isCriticalHit,
+        targetX: hitResolution.targetX,
+        targetY: hitResolution.targetY,
+        targetVisualSize: enemyVisualSize,
+      });
+      this.addEnemyHitEffects({
+        damage,
+        attackType: hitResolution.attackType,
+        typeMultiplier: hitResolution.typeMultiplier,
+        isCritical: hitResolution.isCriticalHit,
+        targetX: hitResolution.targetX,
+        targetY: hitResolution.targetY,
+      });
+    }
+
+    if (allowTalentTriggers) {
+      const enemyDefeatedByThisHit = Boolean(this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning());
+      if (enemyDefeatedByThisHit) {
+        const deferredTeleportPlan = this.buildTeleportSwapPlan(
+          hitResolution.attackerIndex,
+          hitResolution.attacker,
+          {
+            ...hitResolution.decision,
+            action: TURN_ACTION_ATTACK,
+          },
+        );
+        if (deferredTeleportPlan) {
+          this.queueTeleportSwapAfterRespawn(deferredTeleportPlan);
+          if (!suppressTurnEvent && this.lastTurnEvent) {
+            this.lastTurnEvent.teleport_swap = true;
+            this.lastTurnEvent.teleport_swap_from_slot = deferredTeleportPlan.attackerSlotIndex;
+            this.lastTurnEvent.teleport_swap_to_slot = deferredTeleportPlan.allySlotIndex;
+            this.lastTurnEvent.teleport_boosted_slot = deferredTeleportPlan.teleportPlusPlus
+              ? deferredTeleportPlan.attackerSlotIndex
+              : -1;
+            this.lastTurnEvent.teleport_swap_deferred_until_next_spawn = true;
+          }
+        }
+      } else {
+        const teleportSwapResult = this.tryApplyTeleportSwap(
+          hitResolution.attackerIndex,
+          hitResolution.attacker,
+          {
+            ...hitResolution.decision,
+            action: TURN_ACTION_ATTACK,
+          },
+          options.layout,
+          { idleMode },
+        );
+        if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
+          this.lastTurnEvent.teleport_swap = true;
+          this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
+          this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
+          this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
+        }
+      }
+    }
+
+    if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
+      const defeatedEnemy = this.enemy;
+      this.resetQueuedAttackState();
+      this.clearLasers();
+      this.enemiesDefeated += 1;
+      this.defeatedEnemyName = this.enemy.nameFr;
+      let captureResult = { captured: false, capture_attempted: false };
+      try {
+        captureResult = this.onEnemyDefeated(defeatedEnemy) || captureResult;
+      } catch {
+        captureResult = { captured: false, capture_attempted: false };
+      }
+
+      const captured = Boolean(captureResult?.captured);
+      const captureAttempted = Boolean(captureResult?.capture_attempted);
+      const captureCritical = Boolean(captureResult?.capture_critical);
+      if (idleMode) {
+        this.captureSequence = null;
+        this.pendingRespawnMs = 0;
+        this.koAnimMs = 0;
+        if (!this.enemy || this.enemy.hpCurrent <= 0) {
+          this.spawnEnemy();
+        }
+      } else if (captured && captureAttempted) {
+        const captureChanceDisplay = Number(captureResult?.capture_chance_display);
+        const captureOnComplete = captureResult?.capture_on_complete;
+        const captureBallType = normalizeBallTypeForVisual(captureResult?.capture_ball_type || "poke_ball");
+        this.captureSequence = {
+          captured,
+          isCritical: captureCritical,
+          ballType: captureBallType,
+          chanceDisplay: Number.isFinite(captureChanceDisplay) ? clamp(captureChanceDisplay, 0, 1) : null,
+          onComplete: typeof captureOnComplete === "function" ? captureOnComplete : null,
+          elapsedMs: 0,
+          totalMs: this.buildCaptureTotalMs(captured),
+          targetX: hitResolution.targetX,
+          targetY: hitResolution.targetY,
+          startX: hitResolution.targetX + 220,
+          startY: hitResolution.targetY + 120,
+          burstSpawned: false,
+          breakSpawned: false,
+          particles: [],
+        };
+        this.pendingRespawnMs = this.captureSequence.totalMs;
+        this.koAnimMs = 0;
+      } else {
+        this.captureSequence = null;
+        this.pendingRespawnMs = this.enemyRespawnDelayMs;
+        this.koAnimMs = KO_ANIMATION_DURATION_MS;
+      }
+      this.clearProjectiles();
+      this.clearLasers();
+      this.resetCombatVisualTweens();
+      this.hitEffects = [];
+    }
+    return true;
+  }
+
   consumeTurnSlot() {
     const slotIndex = ((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) % MAX_TEAM_SIZE;
     const attacker = this.team[slotIndex] || null;
@@ -1123,6 +1522,72 @@ function getProjectileSprite(typeName) {
     return String(copiedType || defaultType || "normal");
   }
 
+  getLaserState(slotIndex) {
+    const safeSlotIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    if (safeSlotIndex < 0) {
+      return null;
+    }
+    if (!this.laserStates?.[safeSlotIndex]) {
+      this.laserStates[safeSlotIndex] = this.createLaserState(safeSlotIndex);
+    }
+    return this.laserStates[safeSlotIndex];
+  }
+
+  updateLaserStateVisual(slotIndex, attacker, layout, options = {}) {
+    const laserState = this.getLaserState(slotIndex);
+    if (!laserState) {
+      return null;
+    }
+    const attackType = String(options.attackType || laserState.attackType || "normal");
+    const slot = layout?.teamSlots?.[slotIndex];
+    const impactPoint = this.getEnemyImpactPoint(layout);
+    const enemyCenterX = Number(layout?.centerX);
+    const enemyCenterY = Number(layout?.centerY);
+    laserState.attackType = attackType;
+    laserState.attackerNameFr = attacker?.nameFr || laserState.attackerNameFr || null;
+    if (slot) {
+      laserState.sourceX = Number(slot.x) || 0;
+      laserState.sourceY = Number(slot.y) || 0;
+    }
+    laserState.targetX = Number.isFinite(enemyCenterX) ? enemyCenterX : (Number(impactPoint.x) || 0);
+    laserState.targetY = Number.isFinite(enemyCenterY) ? enemyCenterY : (Number(impactPoint.y) || 0);
+    return laserState;
+  }
+
+  refreshLaserStates(layout) {
+    const laserIntervalMs = this.getLaserTickIntervalMs();
+    const battleActive = Boolean(
+      this.enemy
+      && this.enemy.hpCurrent > 0
+      && !this.isEnemyRespawning()
+      && !this.captureSequence
+      && this.canTeamAttack(),
+    );
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const laserState = this.getLaserState(i);
+      const attacker = this.team[i] || null;
+      const attackMode = this.resolveAttackModeForAttacker(i, attacker);
+      const decision = this.resolveTurnDecisionForSlot(i, attacker);
+      const active = Boolean(attacker && battleActive && attackMode === ATTACK_MODE_LASER && decision.action === TURN_ACTION_ATTACK);
+      if (!active) {
+        laserState.active = false;
+        laserState.attackerNameFr = attacker?.nameFr || null;
+        laserState.sourceX = 0;
+        laserState.sourceY = 0;
+        laserState.targetX = 0;
+        laserState.targetY = 0;
+        laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || laserIntervalMs), laserIntervalMs);
+        laserState.talentGateReady = false;
+        laserState.pendingTurnDecision = null;
+        continue;
+      }
+      laserState.active = true;
+      laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || laserIntervalMs), laserIntervalMs);
+      const attackType = this.resolveAttackTypeForAttacker(i, attacker);
+      this.updateLaserStateVisual(i, attacker, layout, { attackType });
+    }
+  }
+
   getTeamAuraAttackBonusForAttacker(attackerIndex, attacker = this.team[attackerIndex] || null) {
     if (!attacker) {
       return 0;
@@ -1180,23 +1645,39 @@ function getProjectileSprite(typeName) {
   }
 
   getNextAttackSlotTimeline() {
-    const preview = this.getNextTurnPreview();
-    if (!preview) {
-      return null;
-    }
     const interval = Math.max(1, this.attackIntervalMs);
     const normalizedTimer = ((this.attackTimerMs % interval) + interval) % interval;
-    const progressToNextAttack = 1 - normalizedTimer / interval;
-    const canAttack = preview.action === TURN_ACTION_ATTACK;
-    const timeUntilAttackMs = normalizedTimer + preview.skipped_empty_slots * interval;
-    return {
-      preview,
-      interval,
-      normalizedTimer,
-      progressToNextAttack,
-      canAttack,
-      timeUntilAttackMs: Math.max(0, timeUntilAttackMs),
-    };
+    for (let offset = 0; offset < MAX_TEAM_SIZE; offset += 1) {
+      const slotIndex = (((this.turnIndex % MAX_TEAM_SIZE) + MAX_TEAM_SIZE) + offset) % MAX_TEAM_SIZE;
+      const attacker = this.team[slotIndex] || null;
+      if (!attacker) {
+        continue;
+      }
+      const preview = this.resolveTurnDecisionForSlot(slotIndex, attacker);
+      const attackMode = this.resolveAttackModeForAttacker(slotIndex, attacker);
+      if (preview.action !== TURN_ACTION_ATTACK || attackMode !== ATTACK_MODE_PROJECTILE) {
+        continue;
+      }
+      const progressToNextAttack = 1 - normalizedTimer / interval;
+      const timeUntilAttackMs = normalizedTimer + offset * interval;
+      return {
+        preview: {
+          slot_index: slotIndex,
+          skipped_empty_slots: offset,
+          attacker_name_fr: attacker?.nameFr || null,
+          action: preview.action,
+          reason: preview.reason,
+          talent_id: preview.talentId,
+          passive_behavior_id: preview.passiveBehaviorId,
+        },
+        interval,
+        normalizedTimer,
+        progressToNextAttack,
+        canAttack: true,
+        timeUntilAttackMs: Math.max(0, timeUntilAttackMs),
+      };
+    }
+    return null;
   }
 
   getTurnIndicator(layout) {
@@ -1522,6 +2003,15 @@ function getProjectileSprite(typeName) {
     const tempTeleportBoostVisual = this.teleportBoostVisualBySlot[a];
     this.teleportBoostVisualBySlot[a] = this.teleportBoostVisualBySlot[b];
     this.teleportBoostVisualBySlot[b] = tempTeleportBoostVisual;
+    const tempLaserState = this.laserStates[a];
+    this.laserStates[a] = this.laserStates[b];
+    this.laserStates[b] = tempLaserState;
+    if (this.laserStates[a]) {
+      this.laserStates[a].slotIndex = a;
+    }
+    if (this.laserStates[b]) {
+      this.laserStates[b].slotIndex = b;
+    }
 
     if (Array.isArray(state.team) && state.team !== this.team && a < state.team.length && b < state.team.length) {
       const tempStateMember = state.team[a];
@@ -1837,66 +2327,13 @@ function getProjectileSprite(typeName) {
   }
 
   simulateAttackTickInstant(layout) {
-    const turn = this.consumeTurnSlot();
-    const attackerIndex = turn.slotIndex;
-    const attacker = turn.attacker;
-    const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
-    this.recordTurnEvent(attackerIndex, attacker, decision);
-    if (decision.action !== TURN_ACTION_ATTACK) {
-      if (attacker) {
-        this.triggerSlotSkipTurnEffect(attackerIndex);
-      }
-      return;
-    }
-
-    const attackType = this.resolveAttackTypeForAttacker(attackerIndex, attacker);
-    const impactPoint = this.getEnemyImpactPoint(layout);
-    const queuedHits = [
-      {
-        attackType,
-        attackerIndex,
-        attackerNameFr: attacker.nameFr,
-        targetX: impactPoint.x,
-        targetY: impactPoint.y,
-        suppressTurnEvent: false,
-      },
-    ];
-    if (decision.talentId === TALENT_MIND_CONTROL_ID) {
-      const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
-      const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
-      if (supportAttacker) {
-        queuedHits.push({
-          attackType: this.resolveAttackTypeForAttacker(supportSlotIndex, supportAttacker),
-          attackerIndex: supportSlotIndex,
-          attackerNameFr: supportAttacker.nameFr,
-          targetX: impactPoint.x,
-          targetY: impactPoint.y,
-          suppressTurnEvent: true,
-        });
-      }
-    }
-    for (const hit of queuedHits) {
-      this.applyHit(
-        {
-          attackType: hit.attackType,
-          attackerIndex: hit.attackerIndex,
-          attackerNameFr: hit.attackerNameFr,
-          targetX: hit.targetX,
-          targetY: hit.targetY,
-        },
-        {
-          idleMode: true,
-          suppressTurnEvent: hit.suppressTurnEvent,
-          layout,
-        },
-      );
-    }
+    this.processAttackCadenceTick(layout, { idleMode: true });
   }
 
   updateIdleCombat(deltaMs, layout) {
     let remainingMs = Math.max(0, Number(deltaMs) || 0);
     let safety = 0;
-    const safetyMax = Math.max(24, Math.ceil(remainingMs / Math.max(1, Math.min(this.attackIntervalMs, 250))) + 24);
+    const safetyMax = Math.max(48, Math.ceil(remainingMs / Math.max(1, Math.min(this.getLaserTickIntervalMs(), 210))) + 48);
 
     while (remainingMs > 0.01 && safety < safetyMax) {
       this.flushRespawnForIdleMode();
@@ -1904,7 +2341,15 @@ function getProjectileSprite(typeName) {
         break;
       }
 
+      this.refreshLaserStates(layout);
       const timeToAttack = Math.max(0, Number(this.attackTimerMs) || 0);
+      let timeToLaserTick = Number.POSITIVE_INFINITY;
+      for (const laserState of this.laserStates || []) {
+        if (!laserState?.active) {
+          continue;
+        }
+        timeToLaserTick = Math.min(timeToLaserTick, Math.max(0, Number(laserState.tickTimerMs) || 0));
+      }
       const timerRunning = this.isEnemyTimerRunning();
       const timeToTimeout = timerRunning ? Math.max(0, Number(this.enemyTimerMs) || 0) : Number.POSITIVE_INFINITY;
       let advanceMs = remainingMs;
@@ -1912,6 +2357,13 @@ function getProjectileSprite(typeName) {
         advanceMs = 0;
       } else {
         advanceMs = Math.min(advanceMs, timeToAttack);
+      }
+      if (Number.isFinite(timeToLaserTick)) {
+        if (timeToLaserTick <= 0) {
+          advanceMs = 0;
+        } else {
+          advanceMs = Math.min(advanceMs, timeToLaserTick);
+        }
       }
       if (timerRunning) {
         if (timeToTimeout <= 0) {
@@ -1924,14 +2376,36 @@ function getProjectileSprite(typeName) {
       if (advanceMs > 0) {
         this.attackTimerMs -= advanceMs;
         this.advanceEnemyTimer(advanceMs);
+        for (const laserState of this.laserStates || []) {
+          if (!laserState?.active) {
+            continue;
+          }
+          laserState.tickTimerMs = Math.max(0, Number(laserState.tickTimerMs || 0) - advanceMs);
+        }
         remainingMs -= advanceMs;
       }
 
       let eventHandled = false;
       if (this.attackTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
-        this.simulateAttackTickInstant(layout);
+        this.processAttackCadenceTick(layout, { idleMode: true });
         this.attackTimerMs += this.attackIntervalMs;
         eventHandled = true;
+      }
+      if (this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
+        for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+          const laserState = this.laserStates?.[i];
+          while (
+            laserState?.active
+            && laserState.tickTimerMs <= 0
+            && this.enemy
+            && this.enemy.hpCurrent > 0
+            && !this.isEnemyRespawning()
+          ) {
+            this.applyLaserTick(i, layout, { idleMode: true });
+            laserState.tickTimerMs += this.getLaserTickIntervalMs();
+            eventHandled = true;
+          }
+        }
       }
       if (this.isEnemyTimerRunning() && this.enemyTimerMs <= 0 && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
         this.expireEnemyFromTimer();
@@ -1963,6 +2437,8 @@ function getProjectileSprite(typeName) {
       return;
     }
 
+    this.refreshLaserStates(layout);
+
     if (idleMode) {
       this.resetQueuedAttackState();
       this.updateIdleCombat(safeDeltaMs, layout);
@@ -1974,6 +2450,7 @@ function getProjectileSprite(typeName) {
     }
 
     if (downtimeAtStart) {
+      this.clearLasers();
       this.advanceAttackTimerDuringDowntime(safeDeltaMs);
       return;
     }
@@ -1989,8 +2466,26 @@ function getProjectileSprite(typeName) {
         this.attackTimerMs = 0;
         break;
       }
-      this.spawnNextProjectile(layout);
+      this.processAttackCadenceTick(layout);
       this.attackTimerMs += this.attackIntervalMs;
+    }
+
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const laserState = this.laserStates?.[i];
+      if (!laserState?.active) {
+        continue;
+      }
+      laserState.tickTimerMs = Math.max(0, Number(laserState.tickTimerMs || 0) - safeDeltaMs);
+      while (
+        laserState.active
+        && laserState.tickTimerMs <= 0
+        && this.enemy
+        && this.enemy.hpCurrent > 0
+        && !this.isEnemyRespawning()
+      ) {
+        this.applyLaserTick(i, layout);
+        laserState.tickTimerMs += this.getLaserTickIntervalMs();
+      }
     }
 
     this.updateProjectiles(safeDeltaMs, layout);
@@ -2226,13 +2721,8 @@ function getProjectileSprite(typeName) {
       attackType,
       attackerIndex,
       attackerNameFr: attacker.nameFr,
-      attackerSnapshot: {
-        id: Number(attacker.id || 0),
-        nameFr: String(attacker.nameFr || ""),
-        talent: attacker.talent || null,
-        offensiveType: attacker.offensiveType || null,
-        defensiveTypes: Array.isArray(attacker.defensiveTypes) ? [...attacker.defensiveTypes] : [],
-      },
+      attackerSnapshot: this.buildAttackerSnapshot(attacker),
+      attackMode: ATTACK_MODE_PROJECTILE,
       turnDecision,
       spinPhase: Math.random() * Math.PI * 2,
       spinVelocity: (1.8 + Math.random() * 2.2) * (Math.random() < 0.5 ? -1 : 1),
@@ -2250,7 +2740,60 @@ function getProjectileSprite(typeName) {
     return projectile;
   }
 
-  spawnNextProjectile(layout) {
+  triggerMindControlFollowup(attackerIndex, layout, options = {}) {
+    const decision = options?.decision && typeof options.decision === "object" ? options.decision : null;
+    if (decision?.talentId !== TALENT_MIND_CONTROL_ID) {
+      return false;
+    }
+    const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
+    const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
+    if (!supportAttacker || !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return false;
+    }
+    const supportDecision = this.resolveTurnDecisionForSlot(supportSlotIndex, supportAttacker);
+    const supportMode = this.resolveAttackModeForAttacker(supportSlotIndex, supportAttacker);
+    if (supportMode === ATTACK_MODE_PROJECTILE) {
+      if (options.idleMode) {
+        const impactPoint = this.getEnemyImpactPoint(layout);
+        const payload = {
+          attackType: this.resolveAttackTypeForAttacker(supportSlotIndex, supportAttacker),
+          attackMode: ATTACK_MODE_PROJECTILE,
+          attackerIndex: supportSlotIndex,
+          attackerNameFr: supportAttacker.nameFr,
+          attackerSnapshot: this.buildAttackerSnapshot(supportAttacker),
+          targetX: impactPoint.x,
+          targetY: impactPoint.y,
+          turnDecision: supportDecision,
+        };
+        const hitResolution = this.buildHitResolution(payload);
+        if (!hitResolution) {
+          return false;
+        }
+        this.finalizeResolvedHit(payload, hitResolution, {
+          idleMode: true,
+          suppressTurnEvent: true,
+          allowTalentTriggers: false,
+          layout,
+        });
+        return true;
+      }
+      this.enqueueAttackProjectile(layout, supportSlotIndex, supportAttacker, {
+        targetOffsetX: randomRange(-7, 7),
+        targetOffsetY: randomRange(-5, 5),
+        turnDecision: supportDecision,
+      });
+      return true;
+    }
+    return this.applyLaserTick(supportSlotIndex, layout, {
+      idleMode: Boolean(options.idleMode),
+      suppressTurnEvent: true,
+      allowTalentTriggers: false,
+      forcedDecision: supportDecision,
+      forceImmediateResolution: true,
+    });
+  }
+
+  processAttackCadenceTick(layout, options = {}) {
     if (this.isEnemyDefeatReserved()) {
       return;
     }
@@ -2258,7 +2801,6 @@ function getProjectileSprite(typeName) {
     const attackerIndex = turn.slotIndex;
     const attacker = turn.attacker;
     const decision = this.resolveTurnDecisionForSlot(attackerIndex, attacker);
-    this.recordTurnEvent(attackerIndex, attacker, decision);
     if (decision.action !== TURN_ACTION_ATTACK || !attacker) {
       if (attacker && decision.action !== TURN_ACTION_ATTACK) {
         this.triggerSlotSkipTurnEffect(attackerIndex);
@@ -2266,23 +2808,117 @@ function getProjectileSprite(typeName) {
       return;
     }
 
+    const attackMode = this.resolveAttackModeForAttacker(attackerIndex, attacker);
+    if (attackMode === ATTACK_MODE_LASER) {
+      const laserState = this.getLaserState(attackerIndex);
+      const attackType = this.resolveAttackTypeForAttacker(attackerIndex, attacker);
+      this.updateLaserStateVisual(attackerIndex, attacker, layout, { attackType });
+      laserState.active = true;
+      laserState.talentGateReady = true;
+      laserState.pendingTurnDecision = decision;
+      return;
+    }
+
+    this.recordTurnEvent(attackerIndex, attacker, {
+      ...decision,
+      attackMode,
+    });
     const mainProjectile = this.enqueueAttackProjectile(layout, attackerIndex, attacker, { turnDecision: decision });
     if (!mainProjectile) {
       return;
     }
+    this.triggerMindControlFollowup(attackerIndex, layout, {
+      decision,
+      idleMode: Boolean(options.idleMode),
+    });
+  }
 
-    if (decision.talentId === TALENT_MIND_CONTROL_ID && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyDefeatReserved()) {
-      const supportSlotIndex = this.getRandomAllySlotIndex(attackerIndex, { requireAttackReady: true });
-      const supportAttacker = supportSlotIndex >= 0 ? this.team[supportSlotIndex] : null;
-      if (supportAttacker) {
-        const supportDecision = this.resolveTurnDecisionForSlot(supportSlotIndex, supportAttacker);
-        this.enqueueAttackProjectile(layout, supportSlotIndex, supportAttacker, {
-          targetOffsetX: randomRange(-7, 7),
-          targetOffsetY: randomRange(-5, 5),
-          turnDecision: supportDecision,
+  spawnNextProjectile(layout) {
+    this.processAttackCadenceTick(layout);
+  }
+
+  applyLaserTick(slotIndex, layout, options = {}) {
+    const attackerIndex = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
+    const attacker = attackerIndex >= 0 ? this.team[attackerIndex] : null;
+    const laserState = this.getLaserState(attackerIndex);
+    if (!attacker || !laserState || !this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
+      return false;
+    }
+    const decision = options?.forcedDecision && typeof options.forcedDecision === "object"
+      ? options.forcedDecision
+      : laserState.pendingTurnDecision || this.resolveTurnDecisionForSlot(attackerIndex, attacker);
+    if (decision.action !== TURN_ACTION_ATTACK) {
+      return false;
+    }
+
+    const attackType = this.resolveAttackTypeForAttacker(attackerIndex, attacker);
+    this.updateLaserStateVisual(attackerIndex, attacker, layout, { attackType });
+    const payload = {
+      attackType,
+      attackMode: ATTACK_MODE_LASER,
+      attackerIndex,
+      attackerNameFr: attacker.nameFr,
+      attackerSnapshot: this.buildAttackerSnapshot(attacker),
+      targetX: laserState.targetX,
+      targetY: laserState.targetY,
+      turnDecision: decision,
+    };
+    const hitResolution = this.buildHitResolution(payload);
+    if (!hitResolution) {
+      return false;
+    }
+
+    const talentGateReady = options.forceImmediateResolution === true || Boolean(laserState.talentGateReady);
+    const suppressLaserMicroTickVisuals =
+      !talentGateReady
+      && options.forceImmediateResolution !== true
+      && options.allowMicrotickVisuals !== true;
+    const suppressImpactVisuals = Boolean(options.suppressImpactVisuals) || suppressLaserMicroTickVisuals;
+    const suppressDamageFlash = Boolean(options.suppressDamageFlash) || suppressLaserMicroTickVisuals;
+    if (!hitResolution.missed) {
+      const scaledDamage = Math.max(0, hitResolution.referenceDamage / 12);
+      const combinedDamage = Math.max(0, Number(laserState.damageCarry || 0)) + scaledDamage;
+      const resolvedDamage = Math.floor(combinedDamage + 0.000001);
+      laserState.damageCarry = Math.max(0, combinedDamage - resolvedDamage);
+      if (resolvedDamage <= 0 && options.forceImmediateResolution !== true) {
+        return false;
+      }
+      const applied = this.finalizeResolvedHit(payload, hitResolution, {
+        idleMode: Boolean(options.idleMode),
+        suppressTurnEvent: options.suppressTurnEvent === true ? true : !talentGateReady,
+        suppressImpactVisuals,
+        suppressDamageFlash,
+        allowTalentTriggers: options.allowTalentTriggers === false ? false : talentGateReady,
+        damageOverride: options.forceImmediateResolution === true && resolvedDamage <= 0 ? 1 : resolvedDamage,
+        skipZeroDamage: options.forceImmediateResolution !== true,
+        layout,
+      });
+      if (applied && talentGateReady && decision.talentId === TALENT_MIND_CONTROL_ID && this.enemy && this.enemy.hpCurrent > 0 && !this.isEnemyRespawning()) {
+        this.triggerMindControlFollowup(attackerIndex, layout, {
+          decision,
+          idleMode: Boolean(options.idleMode),
         });
       }
+      if (applied && talentGateReady) {
+        laserState.talentGateReady = false;
+        laserState.pendingTurnDecision = null;
+      }
+      return applied;
     }
+
+    const appliedMiss = this.finalizeResolvedHit(payload, hitResolution, {
+      idleMode: Boolean(options.idleMode),
+      suppressTurnEvent: options.suppressTurnEvent === true ? true : !talentGateReady,
+      suppressImpactVisuals,
+      suppressDamageFlash,
+      allowTalentTriggers: options.allowTalentTriggers === false ? false : talentGateReady,
+      layout,
+    });
+    if (appliedMiss && talentGateReady) {
+      laserState.talentGateReady = false;
+      laserState.pendingTurnDecision = null;
+    }
+    return appliedMiss;
   }
 
   addAttackLaunchEffects({ attackType, startX, startY }) {
@@ -2540,279 +3176,26 @@ function getProjectileSprite(typeName) {
   }
 
   applyHit(projectile, options = {}) {
-    const idleMode = Boolean(options.idleMode);
-    const suppressTurnEvent = Boolean(options.suppressTurnEvent);
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
       this.consumeQueuedProjectileDamage(projectile);
       return;
     }
-
-    const attackerSnapshot = projectile?.attackerSnapshot && typeof projectile.attackerSnapshot === "object"
-      ? projectile.attackerSnapshot
-      : null;
-    const attacker = attackerSnapshot || this.team[projectile.attackerIndex];
-    if (!attacker) {
-      this.consumeQueuedProjectileDamage(projectile);
-      return;
-    }
-    const decision = projectile?.turnDecision && typeof projectile.turnDecision === "object"
-      ? projectile.turnDecision
-      : this.resolveTurnDecisionForSlot(projectile.attackerIndex, attacker);
-
-    const precomputedHit = projectile?.precomputedHit && typeof projectile.precomputedHit === "object"
-      ? projectile.precomputedHit
-      : null;
-    const attackType = String(
-      precomputedHit?.attackType
-      || projectile?.attackType
-      || attacker.offensiveType
-      || attacker.defensiveTypes?.[0]
-      || "normal",
-    );
-    const missed = precomputedHit
-      ? Boolean(precomputedHit.missed)
-      : (!hasAlwaysHitTalent(attacker?.talent, attacker?.id) && Math.random() < ATTACK_MISS_CHANCE);
-    if (missed) {
-      this.consumeQueuedProjectileDamage(projectile);
-      this.lastImpact = {
-        attackerNameFr: attacker.nameFr,
-        attackType,
-        damage: 0,
-        typeMultiplier: 1,
-        enemyNameFr: this.enemy.nameFr,
-        isCritical: false,
-        missed: true,
-      };
-      if (!suppressTurnEvent) {
-        this.recordTurnEvent(projectile.attackerIndex, attacker, {
-          action: TURN_ACTION_ATTACK,
-          reason: "hit_missed",
-          talentId: decision.talentId,
-          passiveBehaviorId: decision.passiveBehaviorId,
-        }, {
-          damage: 0,
-          type_multiplier: 1,
-          is_critical: false,
-          missed: true,
-        });
-      }
-      if (!idleMode) {
-        const enemyVisualSize = Math.max(
-          0,
-          Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
-        );
-        this.addFloatingDamageText({
-          damage: 0,
-          attackType,
-          typeMultiplier: 1,
-          isCritical: false,
-          targetX: projectile.targetX,
-          targetY: projectile.targetY,
-          isMiss: true,
-          targetVisualSize: enemyVisualSize,
-        });
-      }
-      const teleportSwapResult = this.tryApplyTeleportSwap(
-        projectile.attackerIndex,
-        attacker,
-        {
-          ...decision,
-          action: TURN_ACTION_ATTACK,
-        },
-        options.layout,
-        { idleMode },
-      );
-      if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
-        this.lastTurnEvent.teleport_swap = true;
-        this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
-        this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
-        this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
-      }
-      return;
-    }
-
-    let typeMultiplier;
-    let teamAuraAttackBonus;
-    let teleportDamageBoost;
-    let isCriticalHit;
-    let baseDamage;
-    if (precomputedHit) {
-      typeMultiplier = Number(precomputedHit.typeMultiplier || 1);
-      teamAuraAttackBonus = Math.max(0, Number(precomputedHit.teamAuraAttackBonus) || 0);
-      teleportDamageBoost = Math.max(1, Number(precomputedHit.teleportDamageBoost || 1));
-      isCriticalHit = Boolean(precomputedHit.isCritical);
-      baseDamage = Math.max(0, Number(precomputedHit.damage || 0));
-    } else {
-      typeMultiplier = getTypeMultiplier(attackType, this.enemy.defensiveTypes);
-      const critChanceBonus = getTalentCritBonusChance(attacker?.talent, attacker?.id);
-      teamAuraAttackBonus = this.getTeamAuraAttackBonusForAttacker(projectile.attackerIndex, attacker);
-      teleportDamageBoost = this.consumeTeleportDamageBoostForSlot(projectile.attackerIndex);
-      const damageOutcome = computeDamage(attacker, this.enemy, attackType, typeMultiplier, {
-        critChanceBonus,
-        damageMultiplier: (1 + teamAuraAttackBonus) * teleportDamageBoost,
-      });
-      baseDamage = Math.max(0, Number(damageOutcome?.damage || 0));
-      isCriticalHit = Boolean(damageOutcome?.isCritical);
-    }
-    const damage = baseDamage <= 0 ? 0 : Math.max(1, Math.round(baseDamage));
-
     this.consumeQueuedProjectileDamage(projectile);
-    this.enemy.hpCurrent = clamp(this.enemy.hpCurrent - damage, 0, this.enemy.hpMax);
-    if (damage > 0) {
-      this.triggerEnemyDamageFlash(ENEMY_DAMAGE_FLASH_DURATION_MS);
+    const hitResolution = this.buildHitResolution({
+      ...projectile,
+      attackMode: ATTACK_MODE_PROJECTILE,
+    });
+    if (!hitResolution) {
+      return;
     }
-    this.lastImpact = {
-      attackerNameFr: attacker.nameFr,
-      attackType,
-      damage,
-      typeMultiplier,
-      enemyNameFr: this.enemy.nameFr,
-      isCritical: isCriticalHit,
-      missed: false,
-    };
-    if (!suppressTurnEvent) {
-      this.recordTurnEvent(projectile.attackerIndex, attacker, {
-        action: TURN_ACTION_ATTACK,
-        reason: "hit_resolved",
-        talentId: decision.talentId,
-        passiveBehaviorId: decision.passiveBehaviorId,
-      }, {
-        damage,
-        type_multiplier: Math.round(typeMultiplier * 1000) / 1000,
-        is_critical: isCriticalHit,
-        missed: false,
-        team_aura_attack_bonus_pct: Math.round(Math.max(0, teamAuraAttackBonus) * 10000) / 100,
-        teleport_damage_boost_pct: Math.round((Math.max(1, teleportDamageBoost) - 1) * 10000) / 100,
-      });
-    }
-    if (!idleMode) {
-      const enemyVisualSize = Math.max(
-        0,
-        Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
-      );
-      this.addFloatingDamageText({
-        damage,
-        attackType,
-        typeMultiplier,
-        isCritical: isCriticalHit,
-        targetX: projectile.targetX,
-        targetY: projectile.targetY,
-        targetVisualSize: enemyVisualSize,
-      });
-      this.addEnemyHitEffects({
-        damage,
-        attackType,
-        typeMultiplier,
-        isCritical: isCriticalHit,
-        targetX: projectile.targetX,
-        targetY: projectile.targetY,
-      });
-    }
-    const enemyDefeatedByThisHit = Boolean(this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning());
-    if (enemyDefeatedByThisHit) {
-      const deferredTeleportPlan = this.buildTeleportSwapPlan(
-        projectile.attackerIndex,
-        attacker,
-        {
-          ...decision,
-          action: TURN_ACTION_ATTACK,
-        },
-      );
-      if (deferredTeleportPlan) {
-        this.queueTeleportSwapAfterRespawn(deferredTeleportPlan);
-        if (!suppressTurnEvent && this.lastTurnEvent) {
-          this.lastTurnEvent.teleport_swap = true;
-          this.lastTurnEvent.teleport_swap_from_slot = deferredTeleportPlan.attackerSlotIndex;
-          this.lastTurnEvent.teleport_swap_to_slot = deferredTeleportPlan.allySlotIndex;
-          this.lastTurnEvent.teleport_boosted_slot = deferredTeleportPlan.teleportPlusPlus
-            ? deferredTeleportPlan.attackerSlotIndex
-            : -1;
-          this.lastTurnEvent.teleport_swap_deferred_until_next_spawn = true;
-        }
-      }
-    } else {
-      const teleportSwapResult = this.tryApplyTeleportSwap(
-        projectile.attackerIndex,
-        attacker,
-        {
-          ...decision,
-          action: TURN_ACTION_ATTACK,
-        },
-        options.layout,
-        { idleMode },
-      );
-      if (!suppressTurnEvent && teleportSwapResult?.swapped && this.lastTurnEvent) {
-        this.lastTurnEvent.teleport_swap = true;
-        this.lastTurnEvent.teleport_swap_from_slot = teleportSwapResult.fromSlotIndex;
-        this.lastTurnEvent.teleport_swap_to_slot = teleportSwapResult.toSlotIndex;
-        this.lastTurnEvent.teleport_boosted_slot = teleportSwapResult.boostedSlotIndex;
-      }
-    }
-
-    if (this.enemy && this.enemy.hpCurrent <= 0 && !this.isEnemyRespawning()) {
-      const defeatedEnemy = this.enemy;
-      this.resetQueuedAttackState();
-      this.enemiesDefeated += 1;
-      this.defeatedEnemyName = this.enemy.nameFr;
-      let captureResult = { captured: false, capture_attempted: false };
-      try {
-        captureResult = this.onEnemyDefeated(defeatedEnemy) || captureResult;
-      } catch {
-        captureResult = { captured: false, capture_attempted: false };
-      }
-
-      const captured = Boolean(captureResult?.captured);
-      const captureAttempted = Boolean(captureResult?.capture_attempted);
-      const captureCritical = Boolean(captureResult?.capture_critical);
-      if (idleMode) {
-        this.captureSequence = null;
-        this.pendingRespawnMs = 0;
-        this.koAnimMs = 0;
-        this.clearProjectiles();
-        this.resetCombatVisualTweens();
-        this.hitEffects = [];
-        this.clearFloatingTexts();
-        this.spawnEnemy();
-        return;
-      }
-
-       if (captureAttempted) {
-         const captureChanceDisplay = Number(captureResult?.capture_chance_display);
-         const captureOnComplete = captureResult?.capture_on_complete;
-         const captureBallType = normalizeBallTypeForVisual(captureResult?.capture_ball_type || "poke_ball");
-         this.captureSequence = {
-           captured,
-           isCritical: captureCritical,
-           ballType: captureBallType,
-           chanceDisplay: Number.isFinite(captureChanceDisplay) ? clamp(captureChanceDisplay, 0, 1) : null,
-           onComplete: typeof captureOnComplete === "function" ? captureOnComplete : null,
-           elapsedMs: 0,
-           totalMs: this.buildCaptureTotalMs(captured),
-           targetX: projectile.targetX,
-           targetY: projectile.targetY,
-           startX: projectile.targetX + 220,
-          startY: projectile.targetY + 120,
-          burstSpawned: false,
-          breakSpawned: false,
-          particles: [],
-        };
-        this.pendingRespawnMs = this.captureSequence.totalMs;
-        this.koAnimMs = 0;
-      } else {
-        this.captureSequence = null;
-        this.pendingRespawnMs = this.enemyRespawnDelayMs;
-        this.koAnimMs = KO_ANIMATION_DURATION_MS;
-      }
-      this.clearProjectiles();
-      this.resetCombatVisualTweens();
-      this.hitEffects = [];
-    }
+    this.finalizeResolvedHit(projectile, hitResolution, options);
   }
 
   spawnEnemy() {
     const source = this.createEnemy();
     if (!source) {
       this.enemy = null;
+      this.clearLasers();
       this.resetEnemyEnterAnimation();
       this.resetCombatVisualTweens();
       this.resetQueuedAttackState();
@@ -2828,6 +3211,7 @@ function getProjectileSprite(typeName) {
       hpCurrent: source.hpMax,
     };
     this.clearProjectiles();
+    this.clearLasers();
     this.hitEffects = [];
     this.resetCombatVisualTweens();
     this.pendingRespawnMs = 0;

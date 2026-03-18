@@ -67,6 +67,16 @@ function createAttacker(overrides = {}) {
   };
 }
 
+function createAttackDecision(overrides = {}) {
+  return {
+    action: "attack",
+    reason: "test",
+    passiveBehaviorId: "NONE",
+    talentId: "NONE",
+    ...overrides,
+  };
+}
+
 test("PokemonBattleManager recoil tween uses provided tween group", () => {
   const state = { timeMs: 0 };
   const tweenGroupToken = { tag: "group" };
@@ -128,6 +138,7 @@ test("PokemonBattleManager keeps attack cadence running through non-capture resp
     respawnDelayMs: 100,
     createEnemy,
     onEnemyDefeated: () => ({ captured: false, capture_attempted: false }),
+    defaultAttackMode: "projectile",
   });
 
   manager.attackTimerMs = 150;
@@ -192,4 +203,265 @@ test("PokemonBattleManager pauses attack cadence during capture sequence", () =>
   manager.update(60, state.layout);
   assert.equal(manager.attackTimerMs, 150);
   assert.equal(manager.pendingRespawnMs, 40);
+});
+
+test("PokemonBattleManager defaults to laser mode but preserves projectile overrides", () => {
+  const runtime = createPokemonBattleRuntime({
+    state: { timeMs: 0 },
+    Tween: MockTween,
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [
+      createAttacker(),
+      createAttacker({
+        id: 4,
+        nameFr: "Salameche",
+        offensiveType: "fire",
+        defensiveTypes: ["fire"],
+        attackMode: "projectile",
+      }),
+    ],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  assert.equal(manager.resolveAttackModeForAttacker(0), "laser");
+  assert.equal(manager.resolveAttackModeForAttacker(1), "projectile");
+});
+
+test("PokemonBattleManager laser visuals anchor from ally center to enemy center", () => {
+  const layout = createLayout();
+  layout.centerX = 188;
+  layout.centerY = 116;
+  layout.enemyImpactX = 180;
+  layout.enemyImpactY = 146;
+  const state = { timeMs: 0, layout };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  const laser = manager.updateLaserStateVisual(0, manager.team[0], layout, { attackType: "grass" });
+
+  assert.equal(laser.sourceX, layout.teamSlots[0].x);
+  assert.equal(laser.sourceY, layout.teamSlots[0].y);
+  assert.equal(laser.targetX, layout.centerX);
+  assert.equal(laser.targetY, layout.centerY);
+});
+
+test("PokemonBattleManager laser attacks tick every half interval without spawning projectiles", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 24, isCritical: false }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+
+  assert.equal(manager.getLaserTickIntervalMs(), 210);
+  assert.equal(manager.getProjectiles().length, 0);
+  assert.equal(manager.getLasers().length, 1);
+
+  const enemyHpBefore = manager.enemy.hpCurrent;
+  const applied = manager.applyLaserTick(0, state.layout);
+
+  assert.equal(applied, true);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 2);
+  assert.equal(manager.getProjectiles().length, 0);
+});
+
+test("PokemonBattleManager exposes active laser states without cloning them every frame", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 24, isCritical: false }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+
+  const lasers = manager.getLasers();
+  assert.equal(manager.getActiveLaserCount(), 1);
+  assert.equal(lasers.length, 1);
+  assert.equal(lasers[0], manager.getLaserState(0));
+});
+
+test("PokemonBattleManager laser attacks accumulate fractional damage carry across ticks", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 5, isCritical: false }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+  const enemyHpBefore = manager.enemy.hpCurrent;
+
+  assert.equal(manager.applyLaserTick(0, state.layout), false);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (5 / 12)) < 0.000001);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), false);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (10 / 12)) < 0.000001);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 1);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (3 / 12)) < 0.000001);
+});
+
+test("PokemonBattleManager laser micro-ticks do not spam impact visuals between cadence turns", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 24, isCritical: false }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.getFloatingTexts().length, 1);
+  assert.equal(manager.getHitEffects().length > 0, true);
+
+  manager.clearFloatingTexts();
+  manager.hitEffects = [];
+  manager.setEnemyDamageFlashMs(0);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.getFloatingTexts().length, 0);
+  assert.equal(manager.getHitEffects().length, 0);
+  assert.equal(manager.getEnemyDamageFlashBlend(), 0);
+});
+
+test("PokemonBattleManager clears laser states when a new enemy spawns", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 5, isCritical: false }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+  manager.applyLaserTick(0, state.layout);
+  assert.equal(manager.getLasers().length, 1);
+  assert.ok(manager.getLasers()[0].damageCarry > 0);
+
+  manager.spawnEnemy();
+
+  assert.equal(manager.getLasers().length, 0);
+  assert.equal(manager.getLaserState(0).damageCarry, 0);
+});
+
+test("PokemonBattleManager supports projectile and laser attackers in the same team", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 12, isCritical: false }),
+    getProjectileTrailTypeVfxProfile: () => ({ spacingPx: 16 }),
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [
+      createAttacker({ attackMode: "projectile" }),
+      createAttacker({
+        id: 4,
+        nameFr: "Salameche",
+        offensiveType: "fire",
+        defensiveTypes: ["fire"],
+        attackMode: "laser",
+      }),
+    ],
+    attackIntervalMs: 420,
+    createEnemy,
+    defaultAttackMode: "projectile",
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+  manager.processAttackCadenceTick(state.layout);
+
+  assert.equal(manager.getProjectiles().length, 1);
+  assert.equal(manager.getLasers().length, 1);
+  assert.equal(manager.getLasers()[0].attackerNameFr, "Salameche");
+});
+
+test("PokemonBattleManager gates laser mind control follow-ups to cadence instead of every tick", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 12, isCritical: false }),
+    resolveCombatTurnDecision: ({ attacker }) => (
+      attacker?.id === 1
+        ? createAttackDecision({ talentId: "MIND_CONTROL" })
+        : createAttackDecision()
+    ),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [
+      createAttacker(),
+      createAttacker({
+        id: 4,
+        nameFr: "Salameche",
+        offensiveType: "fire",
+        defensiveTypes: ["fire"],
+      }),
+    ],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.enemy.hpCurrent, 18);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.enemy.hpCurrent, 17);
 });

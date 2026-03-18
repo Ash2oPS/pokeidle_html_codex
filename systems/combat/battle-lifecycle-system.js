@@ -84,6 +84,9 @@ export function createBattleLifecycleSystem({
       if (typeof state.battle.clearProjectiles === "function") {
         state.battle.clearProjectiles();
       }
+      if (typeof state.battle.clearLasers === "function") {
+        state.battle.clearLasers();
+      }
       if (typeof state.battle.clearFloatingTexts === "function") {
         state.battle.clearFloatingTexts();
       }
