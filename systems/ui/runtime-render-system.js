@@ -4613,10 +4613,6 @@ function drawFloatingDamageTexts(floatingTexts) {
     const alpha = lifeRatio * tweenAlpha * alphaFactor;
     const rgb = Array.isArray(text.color) ? text.color : tonePalette.main;
     const rgbSecondary = Array.isArray(text.colorSecondary) ? text.colorSecondary : tonePalette.secondary;
-    const labelPrimary = String(text.labelPrimary || text.label || "").trim();
-    const labelSecondary = String(text.labelSecondary || "").trim();
-    const hasEffectivenessLabel = Boolean(text.hasEffectivenessLabel);
-    const hasCriticalLabel = Boolean(text.hasCriticalLabel);
     const numericDamage = Math.max(0, Number(text.damage) || 0);
     const dynamicFontBoost = clamp(Math.log10(numericDamage + 1) * 3.7, 0, 5);
     const mainFontSize = Math.round(((text.isMiss ? 16 : 19) + dynamicFontBoost + (tone === FLOATING_TEXT_TONE_CRITICAL ? 1 : 0)) * compactScale);
@@ -4631,15 +4627,13 @@ function drawFloatingDamageTexts(floatingTexts) {
     ctx.font = `700 ${mainFontSize}px Trebuchet MS`;
     ctx.lineWidth = Math.max(2, mainFontSize * 0.16);
     ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
-    const mainText = text.isMiss
-      ? "RATE"
-      : tone === FLOATING_TEXT_TONE_MISS && numericDamage <= 0
-        ? "0"
-        : `-${formatCompactNumber(text.damage, {
-          decimalsSmall: 2,
-          decimalsMedium: 1,
-          decimalsLarge: 0,
-        })}`;
+    const mainText = tone === FLOATING_TEXT_TONE_MISS && numericDamage <= 0
+      ? "0"
+      : `-${formatCompactNumber(text.damage, {
+        decimalsSmall: 2,
+        decimalsMedium: 1,
+        decimalsLarge: 0,
+      })}`;
     ctx.strokeText(mainText, 0, 0);
     if (Array.isArray(rgbSecondary) && (rgbSecondary[0] !== rgb[0] || rgbSecondary[1] !== rgb[1] || rgbSecondary[2] !== rgb[2])) {
       const gradient = ctx.createLinearGradient(0, -mainFontSize * 0.9, 0, mainFontSize * 0.35);
@@ -4650,38 +4644,6 @@ function drawFloatingDamageTexts(floatingTexts) {
       ctx.fillStyle = rgba(rgb, 0.98);
     }
     ctx.fillText(mainText, 0, 0);
-
-    if (labelPrimary || labelSecondary) {
-      const labels = [];
-      if (labelPrimary) {
-        labels.push(labelPrimary);
-      }
-      if (labelSecondary) {
-        labels.push(labelSecondary);
-      }
-      let labelY = -Math.round(mainFontSize * (labels.length > 1 ? 1.42 : 0.96));
-      labels.forEach((label, index) => {
-        const isPrimaryCriticalLine = index === 0 && hasCriticalLabel;
-        const isEffectivenessLine = hasEffectivenessLabel && !isPrimaryCriticalLine;
-        const size = isPrimaryCriticalLine
-          ? Math.max(7, Math.round(mainFontSize * 0.42))
-          : isEffectivenessLine
-            ? Math.max(6, Math.round(mainFontSize * 0.34))
-            : Math.max(7, Math.round(mainFontSize * 0.38));
-        ctx.font = `700 ${size}px Trebuchet MS`;
-        ctx.lineWidth = Math.max(1.2, size * 0.18);
-        ctx.strokeText(label, 0, labelY);
-        if (isPrimaryCriticalLine) {
-          ctx.fillStyle = rgba(tonePalette.label, 0.9);
-        } else if (isEffectivenessLine) {
-          ctx.fillStyle = rgba(tonePalette.label, 0.62);
-        } else {
-          ctx.fillStyle = "rgba(240, 248, 255, 0.72)";
-        }
-        ctx.fillText(label, 0, labelY);
-        labelY += Math.round(size * 1.08);
-      });
-    }
 
     ctx.restore();
   }

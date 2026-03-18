@@ -1,7 +1,6 @@
 import {
   POKEIDLE_APP_VERSION,
   getDisplayedAppVersion,
-  isLocalDevelopmentServerLocation,
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "./version.js";
@@ -80,6 +79,7 @@ import {
   RUNTIME_UI_INTERACTION_BINDING_KEYS,
 } from "./systems/ui/runtime-ui-interaction-system.js";
 import { createRuntimeInputSystem } from "./systems/ui/runtime-input-system.js";
+import { mountRuntimeUi, assertRuntimeUiDomInvariants } from "./systems/ui/runtime-ui-dom-factory.js";
 import { createPokemonBattleRuntime } from "./systems/combat/pokemon-battle-manager.js";
 import {
   STARTER_CHOICES,
@@ -509,7 +509,153 @@ function rebuildShopItemConfigState() {
   });
 }
 
-const canvas = document.getElementById("game-canvas");
+const runtimeUiDom = mountRuntimeUi(document);
+assertRuntimeUiDomInvariants(runtimeUiDom);
+
+const {
+  canvas,
+  captureRootEl,
+  gameStageEl,
+  worldUiLayerEl,
+  gameOverlayEl,
+  loadingScreenEl,
+  loadingScreenTextEl,
+  uiTopbarEl,
+  actionDockEl,
+  actionDockPokeballToggleButtonEl,
+  actionDockPokeballVisualEl,
+  actionDockFullscreenMenuEl,
+  actionDockFullscreenGridEl,
+  starterModalEl,
+  starterChoicesEl,
+  hoverPopupEl,
+  teamContextMenuEl,
+  teamContextMenuTitleEl,
+  teamContextMenuRenameButtonEl,
+  teamContextMenuBoxesButtonEl,
+  teamContextMenuAppearanceButtonEl,
+  ballCaptureMenuEl,
+  ballCaptureMenuTitleEl,
+  ballCaptureToggleAllButtonEl,
+  ballCaptureToggleUnownedButtonEl,
+  ballCaptureToggleOwnedButtonEl,
+  ballCaptureToggleShinyButtonEl,
+  ballCaptureToggleUltraButtonEl,
+  renameModalEl,
+  renameTitleEl,
+  renameSubtitleEl,
+  renameFormEl,
+  renameInputEl,
+  renameCharCountEl,
+  renameCloseButtonEl,
+  renameResetButtonEl,
+  resetSaveButtonEl,
+  mapButtonEl,
+  pokedexButtonEl,
+  mapModalEl,
+  mapCloseButtonEl,
+  mapStageEl,
+  mapImageEl,
+  mapMarkersEl,
+  mapModalTitleEl,
+  mapModalSubtitleEl,
+  shopButtonEl,
+  gachaButtonEl,
+  windowsNotificationButtonEl,
+  windowsNotificationButtonLabelEl,
+  shopModalEl,
+  shopModalSubtitleEl,
+  shopGridEl,
+  shopPokeballQtyPanelEl,
+  shopCustomQtyInputEl,
+  shopTabPokeballsButtonEl,
+  shopTabCombatButtonEl,
+  shopTabEvolutionsButtonEl,
+  shopWalletMoneyValueEl,
+  shopWalletPokeballsValueEl,
+  shopWalletQtyItemEl,
+  shopWalletQtyValueEl,
+  shopTabButtonEls,
+  shopQtyPresetButtonEls,
+  closeShopButtonEl,
+  gachaModalEl,
+  gachaCardEl,
+  gachaCloseButtonEl,
+  gachaSubtitleEl,
+  gachaWalletCoinsEl,
+  gachaWalletCostEl,
+  gachaWalletRemainingEl,
+  gachaMachineEl,
+  gachaReelWindowEl,
+  gachaReelTrackEl,
+  gachaBatchRevealEl,
+  gachaBatchSpotlightEl,
+  gachaStatusEl,
+  gachaResultEl,
+  gachaResultKickerEl,
+  gachaResultNameEl,
+  gachaResultSkinEl,
+  gachaResultPreviewEl,
+  gachaResultListEl,
+  gachaSpinButtonEl,
+  gachaSpin10ButtonEl,
+  evolutionItemModalEl,
+  evolutionItemTitleEl,
+  evolutionItemSubtitleEl,
+  evolutionItemListEl,
+  evolutionItemCloseButtonEl,
+  moneyPillEl,
+  moneyValueEl,
+  moneyAnimLayerEl,
+  coinsValueEl,
+  saveBackendValueEl,
+  routeNavCurrentEl,
+  routeNavProgressEl,
+  routePrevButtonEl,
+  routeNextButtonEl,
+  boxesModalEl,
+  boxesGridEl,
+  boxesInfoPanelEl,
+  boxesCloseButtonEl,
+  boxesSubtitleEl,
+  boxesShinyCounterEl,
+  pokedexModalEl,
+  pokedexGridEl,
+  pokedexInfoPanelEl,
+  pokedexCloseButtonEl,
+  pokedexSubtitleEl,
+  pokedexGlobalCompletionEl,
+  pokedexEncounteredStatEl,
+  pokedexCapturedStatEl,
+  pokedexShinyStatEl,
+  pokedexUltraShinyStatEl,
+  appearanceModalEl,
+  appearanceTitleEl,
+  appearanceSubtitleEl,
+  appearanceCloseButtonEl,
+  appearanceShinyToggleButtonEl,
+  appearanceUltraShinyToggleButtonEl,
+  appearanceShinyStatusEl,
+  appearanceGridEl,
+  notificationStackEl,
+  tutorialModalEl,
+  tutorialTitleEl,
+  tutorialPageTitleEl,
+  tutorialBodyEl,
+  tutorialProgressEl,
+  tutorialPrevButtonEl,
+  tutorialNextButtonEl,
+  tutorialCloseButtonEl,
+  devLayoutPanelEl,
+  devLayoutControlsEl,
+  devLayoutCloseButtonEl,
+  devLayoutResetButtonEl,
+} = runtimeUiDom;
+
+if (!canvas || typeof canvas.getContext !== "function") {
+  throw new Error("Runtime UI mount failed: #game-canvas is missing or invalid.");
+}
+
 const ctx =
   canvas.getContext("2d", { alpha: false, desynchronized: true }) ||
   canvas.getContext("2d");
@@ -525,36 +671,6 @@ const spriteColorSampleCtx =
   spriteColorSampleCanvas.getContext("2d");
 const spriteOutlineTintBufferCanvas = document.createElement("canvas");
 const spriteOutlineTintBufferCtx = spriteOutlineTintBufferCanvas.getContext("2d");
-const captureRootEl = document.getElementById("game-capture-root");
-const gameStageEl = document.getElementById("game-stage");
-const worldUiLayerEl = document.getElementById("world-ui-layer");
-const gameOverlayEl = document.querySelector(".game-overlay");
-const loadingScreenEl = document.getElementById("loading-screen");
-const loadingScreenTextEl = document.getElementById("loading-screen-text");
-const uiTopbarEl = document.querySelector(".ui-topbar");
-const actionDockEl = document.querySelector(".action-dock");
-const actionDockPokeballToggleButtonEl = document.getElementById("action-dock-pokeball-toggle");
-const actionDockPokeballVisualEl =
-  actionDockPokeballToggleButtonEl instanceof Element
-    ? actionDockPokeballToggleButtonEl.querySelector(".action-dock-loading-pokeball")
-    : null;
-const actionDockFullscreenMenuEl = document.getElementById("action-dock-fullscreen-menu");
-const actionDockFullscreenGridEl = document.getElementById("action-dock-fullscreen-grid");
-const starterModalEl = document.getElementById("starter-modal");
-const starterChoicesEl = document.getElementById("starter-choices");
-const hoverPopupEl = document.getElementById("hover-popup");
-const teamContextMenuEl = document.getElementById("team-context-menu");
-const teamContextMenuTitleEl = document.getElementById("team-context-menu-title");
-const teamContextMenuRenameButtonEl = document.getElementById("team-context-menu-rename");
-const teamContextMenuBoxesButtonEl = document.getElementById("team-context-menu-boxes");
-const teamContextMenuAppearanceButtonEl = document.getElementById("team-context-menu-appearance");
-const ballCaptureMenuEl = document.getElementById("ball-capture-menu");
-const ballCaptureMenuTitleEl = document.getElementById("ball-capture-menu-title");
-const ballCaptureToggleAllButtonEl = document.getElementById("ball-capture-toggle-all");
-const ballCaptureToggleUnownedButtonEl = document.getElementById("ball-capture-toggle-unowned");
-const ballCaptureToggleOwnedButtonEl = document.getElementById("ball-capture-toggle-owned");
-const ballCaptureToggleShinyButtonEl = document.getElementById("ball-capture-toggle-shiny");
-const ballCaptureToggleUltraButtonEl = document.getElementById("ball-capture-toggle-ultra");
 const BALL_CAPTURE_TOGGLE_DEFINITIONS = createBallCaptureToggleDefinitions({
   allButtonEl: ballCaptureToggleAllButtonEl,
   unownedButtonEl: ballCaptureToggleUnownedButtonEl,
@@ -562,115 +678,6 @@ const BALL_CAPTURE_TOGGLE_DEFINITIONS = createBallCaptureToggleDefinitions({
   shinyButtonEl: ballCaptureToggleShinyButtonEl,
   ultraButtonEl: ballCaptureToggleUltraButtonEl,
 });
-const renameModalEl = document.getElementById("rename-modal");
-const renameTitleEl = document.getElementById("rename-title");
-const renameSubtitleEl = document.getElementById("rename-subtitle");
-const renameFormEl = document.getElementById("rename-form");
-const renameInputEl = document.getElementById("rename-input");
-const renameCharCountEl = document.getElementById("rename-char-count");
-const renameCloseButtonEl = document.getElementById("rename-close-btn");
-const renameResetButtonEl = document.getElementById("rename-reset-btn");
-const resetSaveButtonEl = document.getElementById("reset-save-btn");
-const mapButtonEl = document.getElementById("map-btn");
-const pokedexButtonEl = document.getElementById("pokedex-btn");
-const mapModalEl = document.getElementById("map-modal");
-const mapCloseButtonEl = document.getElementById("map-close-btn");
-const mapStageEl = document.querySelector(".map-stage");
-const mapImageEl = document.getElementById("map-image");
-const mapMarkersEl = document.getElementById("map-markers");
-const mapModalTitleEl = document.getElementById("map-modal-title");
-const mapModalSubtitleEl = mapModalEl instanceof Element ? mapModalEl.querySelector(".map-modal-subtitle") : null;
-const shopButtonEl = document.getElementById("shop-btn");
-const gachaButtonEl = document.getElementById("gacha-btn");
-const windowsNotificationButtonEl = document.getElementById("windows-notification-btn");
-const windowsNotificationButtonLabelEl = document.getElementById("windows-notification-btn-label");
-const shopModalEl = document.getElementById("shop-modal");
-const shopModalSubtitleEl = document.getElementById("shop-modal-subtitle");
-const shopGridEl = document.getElementById("shop-grid");
-const shopPokeballQtyPanelEl = document.getElementById("shop-pokeball-qty-panel");
-const shopCustomQtyInputEl = document.getElementById("shop-custom-qty-input");
-const shopTabPokeballsButtonEl = document.getElementById("shop-tab-pokeballs");
-const shopTabCombatButtonEl = document.getElementById("shop-tab-combat");
-const shopTabEvolutionsButtonEl = document.getElementById("shop-tab-evolutions");
-const shopWalletMoneyValueEl = document.getElementById("shop-wallet-money-value");
-const shopWalletPokeballsValueEl = document.getElementById("shop-wallet-pokeballs-value");
-const shopWalletQtyItemEl = document.getElementById("shop-wallet-qty-item");
-const shopWalletQtyValueEl = document.getElementById("shop-wallet-qty-value");
-const shopTabButtonEls = Array.from(document.querySelectorAll("[data-shop-tab]"));
-const shopQtyPresetButtonEls = Array.from(document.querySelectorAll("[data-shop-qty]"));
-const closeShopButtonEl = document.getElementById("close-shop-btn");
-const gachaModalEl = document.getElementById("gacha-modal");
-const gachaCardEl = document.getElementById("gacha-card");
-const gachaCloseButtonEl = document.getElementById("gacha-close-btn");
-const gachaSubtitleEl = document.getElementById("gacha-subtitle");
-const gachaWalletCoinsEl = document.getElementById("gacha-wallet-coins");
-const gachaWalletCostEl = document.getElementById("gacha-wallet-cost");
-const gachaWalletRemainingEl = document.getElementById("gacha-wallet-remaining");
-const gachaMachineEl = document.getElementById("gacha-machine");
-const gachaReelWindowEl = document.getElementById("gacha-reel-window");
-const gachaReelTrackEl = document.getElementById("gacha-reel-track");
-const gachaBatchRevealEl = document.getElementById("gacha-batch-reveal");
-const gachaBatchSpotlightEl = document.getElementById("gacha-batch-spotlight");
-const gachaStatusEl = document.getElementById("gacha-status");
-const gachaResultEl = document.getElementById("gacha-result");
-const gachaResultKickerEl = document.getElementById("gacha-result-kicker");
-const gachaResultNameEl = document.getElementById("gacha-result-name");
-const gachaResultSkinEl = document.getElementById("gacha-result-skin");
-const gachaResultPreviewEl = document.getElementById("gacha-result-preview");
-const gachaResultListEl = document.getElementById("gacha-result-list");
-const gachaSpinButtonEl = document.getElementById("gacha-spin-btn");
-const gachaSpin10ButtonEl = document.getElementById("gacha-spin-10-btn");
-const evolutionItemModalEl = document.getElementById("evolution-item-modal");
-const evolutionItemTitleEl = document.getElementById("evolution-item-title");
-const evolutionItemSubtitleEl = document.getElementById("evolution-item-subtitle");
-const evolutionItemListEl = document.getElementById("evolution-item-list");
-const evolutionItemCloseButtonEl = document.getElementById("evolution-item-close-btn");
-const moneyPillEl = document.getElementById("money-pill");
-const moneyValueEl = document.getElementById("money-value");
-const moneyAnimLayerEl = document.getElementById("money-anim-layer");
-const coinsValueEl = document.getElementById("coins-value");
-const saveBackendValueEl = document.getElementById("save-backend-value");
-const routeNavCurrentEl = document.getElementById("route-nav-current");
-const routeNavProgressEl = document.getElementById("route-nav-progress");
-const routePrevButtonEl = document.getElementById("route-prev-btn");
-const routeNextButtonEl = document.getElementById("route-next-btn");
-const boxesModalEl = document.getElementById("boxes-modal");
-const boxesGridEl = document.getElementById("boxes-grid");
-const boxesInfoPanelEl = document.getElementById("boxes-info-panel");
-const boxesCloseButtonEl = document.getElementById("boxes-close-btn");
-const boxesSubtitleEl = document.getElementById("boxes-subtitle");
-const boxesShinyCounterEl = document.getElementById("boxes-shiny-counter");
-const pokedexModalEl = document.getElementById("pokedex-modal");
-const pokedexGridEl = document.getElementById("pokedex-grid");
-const pokedexInfoPanelEl = document.getElementById("pokedex-info-panel");
-const pokedexCloseButtonEl = document.getElementById("pokedex-close-btn");
-const pokedexSubtitleEl = document.getElementById("pokedex-subtitle");
-const pokedexGlobalCompletionEl = document.getElementById("pokedex-global-completion");
-const pokedexEncounteredStatEl = document.getElementById("pokedex-stat-encountered");
-const pokedexCapturedStatEl = document.getElementById("pokedex-stat-captured");
-const pokedexShinyStatEl = document.getElementById("pokedex-stat-shiny");
-const pokedexUltraShinyStatEl = document.getElementById("pokedex-stat-ultra");
-const appearanceModalEl = document.getElementById("appearance-modal");
-const appearanceTitleEl = document.getElementById("appearance-title");
-const appearanceSubtitleEl = document.getElementById("appearance-subtitle");
-const appearanceCloseButtonEl = document.getElementById("appearance-close-btn");
-const appearanceShinyToggleButtonEl = document.getElementById("appearance-shiny-toggle-btn");
-const appearanceUltraShinyToggleButtonEl = document.getElementById("appearance-ultra-shiny-toggle-btn");
-const appearanceShinyStatusEl = document.getElementById("appearance-shiny-status");
-const appearanceGridEl = document.getElementById("appearance-grid");
-const notificationStackEl = document.getElementById("notification-stack");
-const tutorialModalEl = document.getElementById("tutorial-modal");
-const tutorialTitleEl = document.getElementById("tutorial-title");
-const tutorialPageTitleEl = document.getElementById("tutorial-page-title");
-const tutorialBodyEl = document.getElementById("tutorial-body");
-const tutorialProgressEl = document.getElementById("tutorial-progress");
-const tutorialPrevButtonEl = document.getElementById("tutorial-prev-btn");
-const tutorialNextButtonEl = document.getElementById("tutorial-next-btn");
-const tutorialCloseButtonEl = document.getElementById("tutorial-close-btn");
-const devLayoutPanelEl = document.getElementById("dev-layout-panel");
-const devLayoutControlsEl = document.getElementById("dev-layout-controls");
-const devLayoutCloseButtonEl = document.getElementById("dev-layout-close-btn");
-const devLayoutResetButtonEl = document.getElementById("dev-layout-reset-btn");
 const devLayoutControlInputByKey = new Map();
 const devLayoutControlValueByKey = new Map();
 const tweenGroup = new Group();
@@ -7737,34 +7744,11 @@ function resolveFloatingDamageTone({ isMiss = false, typeMultiplier = 1, isCriti
 }
 
 function buildFloatingDamageLabels({ isMiss = false, typeMultiplier = 1, isCritical = false } = {}) {
-  const effectLabel = resolveFloatingDamageEffectLabel({ isMiss, typeMultiplier });
-  const multiplier = Number(typeMultiplier);
-  const immuneLike = !Number.isFinite(multiplier) || multiplier <= 0.001;
-  if (isMiss || immuneLike) {
-    return {
-      primary: effectLabel,
-      secondary: "",
-      summary: effectLabel,
-      hasEffectivenessLabel: effectLabel !== "RATE",
-      hasCriticalLabel: false,
-    };
-  }
-  if (isCritical) {
-    const secondary = effectLabel || "";
-    const summary = secondary ? `COUP CRITIQUE ${secondary}` : "COUP CRITIQUE";
-    return {
-      primary: "COUP CRITIQUE",
-      secondary,
-      summary,
-      hasEffectivenessLabel: Boolean(secondary),
-      hasCriticalLabel: true,
-    };
-  }
   return {
-    primary: effectLabel,
+    primary: "",
     secondary: "",
-    summary: effectLabel,
-    hasEffectivenessLabel: Boolean(effectLabel),
+    summary: "",
+    hasEffectivenessLabel: false,
     hasCriticalLabel: false,
   };
 }
@@ -11898,19 +11882,20 @@ state.lastSimulationPumpAtMs = state.realClockLastMs;
 async function bootstrapRuntimeStartup() {
   const gameSettingsLoad = await loadGameSettings();
   state.gameSettings = gameSettingsLoad.settings;
-  const isLocalDevServer = isLocalDevelopmentServerLocation(window.location);
-  if (!isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
+  const isProductionRuntime = isProductionGithubPagesLocation(window.location);
+  const maintenanceActive = isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION);
+  if (isProductionRuntime && maintenanceActive) {
     state.mode = "loading";
     const maintenanceMessage = getMaintenanceMessage(gameSettingsLoad.settings);
     showLoadingScreen(maintenanceMessage, { disablePokeballSpin: true });
     console.warn("[pokeidle:maintenance]", maintenanceMessage);
     return;
   }
-  if (isLocalDevServer && isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION)) {
-    console.info("[pokeidle:maintenance] mode local detecte, maintenance ignoree sur serveur dev.");
+  if (!isProductionRuntime && maintenanceActive) {
+    console.info("[pokeidle:maintenance] mode dev detecte (non-prod), maintenance ignoree.");
   }
 
-  if (isProductionGithubPagesLocation(window.location)) {
+  if (isProductionRuntime) {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
   initializeScene();

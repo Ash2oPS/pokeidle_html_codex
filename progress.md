@@ -6573,3 +6573,93 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/ui-state-gallery/laser-perf-optimized-canvas/canvas.png`
     - `output/ui-state-gallery/laser-perf-optimized-canvas/state.json`
     - observed `render_frame_ms_estimate 25.04` and `render_fps_estimate 39.9`
+## Additional progress (2026-03-18, maintenance gate scoped to production only)
+- Updated runtime startup maintenance behavior in `game-runtime.js`:
+  - maintenance gate now blocks bootstrap only when `isProductionGithubPagesLocation(window.location)` is `true`.
+  - non-production contexts (dev-mode builds) now always bypass maintenance lock, with explicit info log.
+  - reused `isProductionRuntime` for update-checker initialization to keep startup logic consistent.
+- Updated bootstrap guard test:
+  - `tests/runtime-startup-maintenance-gate.test.mjs` now asserts production-based gating (`isProductionGithubPagesLocation` + `isProductionRuntime && maintenanceActive`).
+- Targeted validation (no Playwright run because change is non-visual and logic-only):
+  - `node --test tests/runtime-startup-maintenance-gate.test.mjs` -> PASS
+  - `node --test tests/version-environment.test.mjs` -> PASS
+  - `node --test tests/game-settings-runtime.test.mjs` -> PASS
+
+## Additional progress (2026-03-18, laser damage snapshot stat fix)
+- Root cause identified in `systems/combat/pokemon-battle-manager.js`:
+  - `applyLaserTick(...)` builds a hit payload with `attackerSnapshot`.
+  - `buildHitResolution(...)` prefers this snapshot for damage computation when no precomputed hit is provided.
+  - Snapshot previously omitted `level` + `stats`, so `computeDamage(...)` fell back to level 1 / attack 1 behavior and laser scaling often collapsed to tiny values (frequently visible as `1`).
+- Fix applied:
+  - `buildAttackerSnapshot(...)` now includes `level` and a cloned `stats` object.
+  - This restores expected reference damage for continuous laser ticks before `/12` scaling.
+- Added regression test:
+  - `tests/pokemon-battle-runtime.test.mjs`
+  - New test: `PokemonBattleManager laser hit resolution preserves attacker combat stats in snapshots`.
+- Validation:
+  - `node --check systems/combat/pokemon-battle-manager.js`: PASS
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS (14/14)
+- Playwright note:
+  - Not run for this patch (logic-only combat calculation, no UI/visual change), per project guidance.
+
+## Additional progress (2026-03-18, laser tick jitter pacing)
+- Updated `systems/combat/pokemon-battle-manager.js` to keep laser cadence anchored to `attackIntervalMs / 2` while adding per-laser, per-tick jitter.
+- Added new runtime controls:
+  - `LASER_TICK_JITTER_MS` dependency (default `100` ms)
+  - jitter helpers for bounds/normalization/roll
+  - per-laser `tickIntervalMs` persisted in laser state
+- Tick scheduling behavior now:
+  - each laser tick re-rolls its next delay in `[base - 100ms, base + 100ms]`
+  - `tickTimerMs` is advanced by that rolled delay (overshoot-safe)
+  - refresh no longer clamps timers back to base half-interval, so positive jitter is preserved
+- Attack interval scaling update:
+  - when `attackIntervalMs` changes, per-laser jittered interval and remaining timer are proportionally remapped instead of reset to a fixed base.
+- Added regression coverage in `tests/pokemon-battle-runtime.test.mjs`:
+  - jitter window and per-tick reschedule (`+/-100ms` around half interval)
+  - refresh pass keeps jittered timers and does not clamp them back to base
+- Validation:
+  - `node --check systems/combat/pokemon-battle-manager.js`: PASS
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS (16/16)
+- Playwright note:
+  - Not run (logic-only pacing change, no visual/UI modification), matching project guidance.
+
+## Additional progress (2026-03-18, laser damage text synchronization)
+- Investigated desync between continuous laser damage and floating damage text in `systems/combat/pokemon-battle-manager.js`.
+- Root cause:
+  - microtick path in `applyLaserTick(...)` set `suppressImpactVisuals` for non-cadence laser ticks.
+  - `finalizeResolvedHit(...)` used that single flag to suppress both heavy impact VFX and floating damage text, so valid laser damage could be applied without matching text feedback.
+- Fix implemented:
+  - split visual suppression in `finalizeResolvedHit(...)` into:
+    - `suppressFloatingText`
+    - `suppressHitEffects`
+    - while keeping backward compatibility with `suppressImpactVisuals` (still suppresses both).
+  - updated laser microtick resolution to:
+    - keep floating damage text enabled for damaging microticks,
+    - keep heavy impact effects and damage flash suppressed between cadence turns.
+  - miss-text remains suppressed on microticks to avoid `RATE` spam.
+- Regression test updated:
+  - renamed/updated test now asserts second microtick still creates a floating damage text while hit effects and flash remain suppressed.
+- Validation:
+  - `node --check systems/combat/pokemon-battle-manager.js`: PASS
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS (16/16)
+- Playwright note:
+  - Not run (logic-only feedback synchronization, no layout/visual asset change), per project guidance.
+
+## Additional progress (2026-03-18, floating damage text labels removed)
+- Removed all floating combat text labels such as effectiveness/critical words (e.g. super effective, not very effective, critical, RATE).
+- `systems/combat/pokemon-battle-manager.js`:
+  - floating damage payload no longer includes textual label fields (`label`, `labelPrimary`, `labelSecondary`, effectiveness/critical flags).
+- `systems/ui/runtime-render-system.js`:
+  - renderer now draws only the numeric damage value for floating damage texts.
+  - miss/zero-miss display is numeric `0` (no word labels).
+  - removed secondary label line rendering above damage numbers.
+- `game-runtime.js`:
+  - `buildFloatingDamageLabels(...)` now returns empty labels to keep runtime behavior aligned.
+- Added regression assertion in `tests/pokemon-battle-runtime.test.mjs` ensuring floating damage text objects no longer expose label fields.
+- Validation:
+  - `node --check systems/combat/pokemon-battle-manager.js`: PASS
+  - `node --check systems/ui/runtime-render-system.js`: PASS
+  - `node --test tests/pokemon-battle-runtime.test.mjs tests/runtime-render-system.test.mjs`: PASS
+  - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS
+- Playwright note:
+  - Not run for this patch (small text-render behavior change validated by targeted runtime tests), per project guidance.

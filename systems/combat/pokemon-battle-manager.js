@@ -154,6 +154,7 @@ export function createPokemonBattleRuntime(deps = {}) {
     getProjectileTrailTypeVfxProfile = () => null,
     computeLayout = () => null,
     ATTACK_INTERVAL_MS = 1000,
+    LASER_TICK_JITTER_MS = 100,
     ATTACK_MISS_CHANCE = 0,
     TURN_ACTION_ATTACK = 'attack',
     TURN_ACTION_SKIP = 'skip',
@@ -555,6 +556,7 @@ function getProjectileSprite(typeName) {
   }
 
   createLaserState(slotIndex, overrides = {}) {
+    const initialTickIntervalMs = this.rollLaserTickIntervalMs();
     return {
       slotIndex: clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1),
       active: false,
@@ -564,7 +566,8 @@ function getProjectileSprite(typeName) {
       sourceY: 0,
       targetX: 0,
       targetY: 0,
-      tickTimerMs: this.getLaserTickIntervalMs(),
+      tickIntervalMs: initialTickIntervalMs,
+      tickTimerMs: initialTickIntervalMs,
       damageCarry: 0,
       phaseOffset: randomRange(0, Math.PI * 2),
       talentGateReady: false,
@@ -573,8 +576,59 @@ function getProjectileSprite(typeName) {
     };
   }
 
+  getLaserTickJitterMs() {
+    return Math.max(0, Number(LASER_TICK_JITTER_MS) || 0);
+  }
+
+  getLaserTickIntervalBoundsMs(attackIntervalMs = this.attackIntervalMs) {
+    const baseIntervalMs = Math.max(1, Number(attackIntervalMs) || ATTACK_INTERVAL_MS) * 0.5;
+    const jitterMs = this.getLaserTickJitterMs();
+    const minIntervalMs = Math.max(1, baseIntervalMs - jitterMs);
+    const maxIntervalMs = Math.max(minIntervalMs, baseIntervalMs + jitterMs);
+    return {
+      baseIntervalMs,
+      minIntervalMs,
+      maxIntervalMs,
+    };
+  }
+
   getLaserTickIntervalMs() {
-    return Math.max(1, Number(this.attackIntervalMs) || ATTACK_INTERVAL_MS) * 0.5;
+    return this.getLaserTickIntervalBoundsMs().baseIntervalMs;
+  }
+
+  normalizeLaserTickIntervalMs(intervalMs, attackIntervalMs = this.attackIntervalMs) {
+    const bounds = this.getLaserTickIntervalBoundsMs(attackIntervalMs);
+    const numeric = Number(intervalMs);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      return bounds.baseIntervalMs;
+    }
+    return clamp(numeric, bounds.minIntervalMs, bounds.maxIntervalMs);
+  }
+
+  rollLaserTickIntervalMs(attackIntervalMs = this.attackIntervalMs) {
+    const bounds = this.getLaserTickIntervalBoundsMs(attackIntervalMs);
+    if (bounds.maxIntervalMs - bounds.minIntervalMs <= 0.000001) {
+      return bounds.baseIntervalMs;
+    }
+    const rolled = Number(randomRange(bounds.minIntervalMs, bounds.maxIntervalMs));
+    if (!Number.isFinite(rolled)) {
+      return bounds.baseIntervalMs;
+    }
+    return clamp(rolled, bounds.minIntervalMs, bounds.maxIntervalMs);
+  }
+
+  scheduleNextLaserTick(laserState) {
+    if (!laserState) {
+      return;
+    }
+    const nextTickIntervalMs = this.rollLaserTickIntervalMs();
+    laserState.tickIntervalMs = nextTickIntervalMs;
+    const timer = Number(laserState.tickTimerMs);
+    if (!Number.isFinite(timer)) {
+      laserState.tickTimerMs = nextTickIntervalMs;
+      return;
+    }
+    laserState.tickTimerMs = timer + nextTickIntervalMs;
   }
 
   clearLasers(options = {}) {
@@ -582,11 +636,18 @@ function getProjectileSprite(typeName) {
     const preserveTickTimers = options.preserveTickTimers === true;
     this.laserStates = Array.from({ length: MAX_TEAM_SIZE }, (_, slotIndex) => {
       const previous = this.laserStates?.[slotIndex];
+      const preservedTickIntervalMs = preserveTickTimers
+        ? this.normalizeLaserTickIntervalMs(previous?.tickIntervalMs)
+        : this.rollLaserTickIntervalMs();
       return this.createLaserState(slotIndex, {
         damageCarry: preserveDamageCarry ? Math.max(0, Number(previous?.damageCarry) || 0) : 0,
+        tickIntervalMs: preservedTickIntervalMs,
         tickTimerMs: preserveTickTimers
-          ? Math.max(0, Number(previous?.tickTimerMs) || this.getLaserTickIntervalMs())
-          : this.getLaserTickIntervalMs(),
+          ? Math.min(
+            Math.max(0, Number(previous?.tickTimerMs) || preservedTickIntervalMs),
+            preservedTickIntervalMs,
+          )
+          : preservedTickIntervalMs,
       });
     });
   }
@@ -624,8 +685,10 @@ function getProjectileSprite(typeName) {
   setAttackInterval(nextIntervalMs) {
     const nextInterval = Math.max(65, toSafeInt(nextIntervalMs, ATTACK_INTERVAL_MS));
     const prevInterval = Math.max(65, toSafeInt(this.attackIntervalMs, ATTACK_INTERVAL_MS));
-    const prevLaserInterval = Math.max(1, prevInterval * 0.5);
-    const nextLaserInterval = Math.max(1, nextInterval * 0.5);
+    const prevBounds = this.getLaserTickIntervalBoundsMs(prevInterval);
+    const nextBounds = this.getLaserTickIntervalBoundsMs(nextInterval);
+    const prevRange = Math.max(0, prevBounds.maxIntervalMs - prevBounds.minIntervalMs);
+    const nextRange = Math.max(0, nextBounds.maxIntervalMs - nextBounds.minIntervalMs);
     const timer = Number(this.attackTimerMs);
     if (!Number.isFinite(timer)) {
       this.attackIntervalMs = nextInterval;
@@ -634,7 +697,8 @@ function getProjectileSprite(typeName) {
         if (!laserState) {
           continue;
         }
-        laserState.tickTimerMs = nextLaserInterval;
+        laserState.tickIntervalMs = nextBounds.baseIntervalMs;
+        laserState.tickTimerMs = nextBounds.baseIntervalMs;
       }
       return;
     }
@@ -645,13 +709,21 @@ function getProjectileSprite(typeName) {
         if (!laserState) {
           continue;
         }
+        const prevTickIntervalMs = this.normalizeLaserTickIntervalMs(laserState.tickIntervalMs, prevInterval);
+        const intervalRatio = prevRange <= 0.000001
+          ? 0.5
+          : clamp((prevTickIntervalMs - prevBounds.minIntervalMs) / prevRange, 0, 1);
+        const nextTickIntervalMs = nextRange <= 0.000001
+          ? nextBounds.baseIntervalMs
+          : nextBounds.minIntervalMs + nextRange * intervalRatio;
+        laserState.tickIntervalMs = this.normalizeLaserTickIntervalMs(nextTickIntervalMs, nextInterval);
         const tickTimer = Number(laserState.tickTimerMs);
         if (!Number.isFinite(tickTimer)) {
-          laserState.tickTimerMs = nextLaserInterval;
+          laserState.tickTimerMs = laserState.tickIntervalMs;
           continue;
         }
-        const tickRemainingRatio = clamp(tickTimer / prevLaserInterval, 0, 1);
-        laserState.tickTimerMs = nextLaserInterval * tickRemainingRatio;
+        const tickRemainingRatio = clamp(tickTimer / Math.max(1, prevTickIntervalMs), 0, 1);
+        laserState.tickTimerMs = laserState.tickIntervalMs * tickRemainingRatio;
       }
     }
     this.attackIntervalMs = nextInterval;
@@ -771,6 +843,10 @@ function getProjectileSprite(typeName) {
     return {
       id: Number(attacker.id || 0),
       nameFr: String(attacker.nameFr || ""),
+      level: Math.max(1, Number(attacker.level || 1)),
+      stats: attacker.stats && typeof attacker.stats === "object"
+        ? { ...attacker.stats }
+        : null,
       talent: attacker.talent || null,
       offensiveType: attacker.offensiveType || null,
       defensiveTypes: Array.isArray(attacker.defensiveTypes) ? [...attacker.defensiveTypes] : [],
@@ -1221,6 +1297,8 @@ function getProjectileSprite(typeName) {
     const idleMode = Boolean(options.idleMode);
     const suppressTurnEvent = Boolean(options.suppressTurnEvent);
     const suppressImpactVisuals = Boolean(options.suppressImpactVisuals);
+    const suppressFloatingText = suppressImpactVisuals || Boolean(options.suppressFloatingText);
+    const suppressHitEffects = suppressImpactVisuals || Boolean(options.suppressHitEffects);
     const suppressDamageFlash = Boolean(options.suppressDamageFlash);
     const allowTalentTriggers = options.allowTalentTriggers !== false;
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning() || !hitResolution) {
@@ -1261,7 +1339,7 @@ function getProjectileSprite(typeName) {
           missed: true,
         });
       }
-      if (!idleMode && !suppressImpactVisuals) {
+      if (!idleMode && !suppressFloatingText) {
         const enemyVisualSize = Math.max(
           0,
           Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
@@ -1327,7 +1405,7 @@ function getProjectileSprite(typeName) {
         teleport_damage_boost_pct: Math.round((Math.max(1, hitResolution.teleportDamageBoost) - 1) * 10000) / 100,
       });
     }
-    if (!idleMode && !suppressImpactVisuals) {
+    if (!idleMode && !suppressFloatingText) {
       const enemyVisualSize = Math.max(
         0,
         Number(options.layout?.enemySize) || Number(state.layout?.enemySize) || 0,
@@ -1341,6 +1419,8 @@ function getProjectileSprite(typeName) {
         targetY: hitResolution.targetY,
         targetVisualSize: enemyVisualSize,
       });
+    }
+    if (!idleMode && !suppressHitEffects) {
       this.addEnemyHitEffects({
         damage,
         attackType: hitResolution.attackType,
@@ -1555,7 +1635,6 @@ function getProjectileSprite(typeName) {
   }
 
   refreshLaserStates(layout) {
-    const laserIntervalMs = this.getLaserTickIntervalMs();
     const battleActive = Boolean(
       this.enemy
       && this.enemy.hpCurrent > 0
@@ -1569,6 +1648,8 @@ function getProjectileSprite(typeName) {
       const attackMode = this.resolveAttackModeForAttacker(i, attacker);
       const decision = this.resolveTurnDecisionForSlot(i, attacker);
       const active = Boolean(attacker && battleActive && attackMode === ATTACK_MODE_LASER && decision.action === TURN_ACTION_ATTACK);
+      const tickIntervalMs = this.normalizeLaserTickIntervalMs(laserState.tickIntervalMs);
+      laserState.tickIntervalMs = tickIntervalMs;
       if (!active) {
         laserState.active = false;
         laserState.attackerNameFr = attacker?.nameFr || null;
@@ -1576,13 +1657,13 @@ function getProjectileSprite(typeName) {
         laserState.sourceY = 0;
         laserState.targetX = 0;
         laserState.targetY = 0;
-        laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || laserIntervalMs), laserIntervalMs);
+        laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || tickIntervalMs), tickIntervalMs);
         laserState.talentGateReady = false;
         laserState.pendingTurnDecision = null;
         continue;
       }
       laserState.active = true;
-      laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || laserIntervalMs), laserIntervalMs);
+      laserState.tickTimerMs = Math.min(Math.max(0, Number(laserState.tickTimerMs) || tickIntervalMs), tickIntervalMs);
       const attackType = this.resolveAttackTypeForAttacker(i, attacker);
       this.updateLaserStateVisual(i, attacker, layout, { attackType });
     }
@@ -2402,7 +2483,7 @@ function getProjectileSprite(typeName) {
             && !this.isEnemyRespawning()
           ) {
             this.applyLaserTick(i, layout, { idleMode: true });
-            laserState.tickTimerMs += this.getLaserTickIntervalMs();
+            this.scheduleNextLaserTick(laserState);
             eventHandled = true;
           }
         }
@@ -2484,7 +2565,7 @@ function getProjectileSprite(typeName) {
         && !this.isEnemyRespawning()
       ) {
         this.applyLaserTick(i, layout);
-        laserState.tickTimerMs += this.getLaserTickIntervalMs();
+        this.scheduleNextLaserTick(laserState);
       }
     }
 
@@ -2873,7 +2954,12 @@ function getProjectileSprite(typeName) {
       !talentGateReady
       && options.forceImmediateResolution !== true
       && options.allowMicrotickVisuals !== true;
-    const suppressImpactVisuals = Boolean(options.suppressImpactVisuals) || suppressLaserMicroTickVisuals;
+    const suppressImpactVisuals = Boolean(options.suppressImpactVisuals);
+    const suppressFloatingText = suppressImpactVisuals || Boolean(options.suppressFloatingText);
+    const suppressHitEffects =
+      suppressImpactVisuals
+      || Boolean(options.suppressHitEffects)
+      || suppressLaserMicroTickVisuals;
     const suppressDamageFlash = Boolean(options.suppressDamageFlash) || suppressLaserMicroTickVisuals;
     if (!hitResolution.missed) {
       const scaledDamage = Math.max(0, hitResolution.referenceDamage / 12);
@@ -2887,6 +2973,8 @@ function getProjectileSprite(typeName) {
         idleMode: Boolean(options.idleMode),
         suppressTurnEvent: options.suppressTurnEvent === true ? true : !talentGateReady,
         suppressImpactVisuals,
+        suppressFloatingText,
+        suppressHitEffects,
         suppressDamageFlash,
         allowTalentTriggers: options.allowTalentTriggers === false ? false : talentGateReady,
         damageOverride: options.forceImmediateResolution === true && resolvedDamage <= 0 ? 1 : resolvedDamage,
@@ -2910,6 +2998,8 @@ function getProjectileSprite(typeName) {
       idleMode: Boolean(options.idleMode),
       suppressTurnEvent: options.suppressTurnEvent === true ? true : !talentGateReady,
       suppressImpactVisuals,
+      suppressFloatingText: suppressFloatingText || suppressLaserMicroTickVisuals,
+      suppressHitEffects,
       suppressDamageFlash,
       allowTalentTriggers: options.allowTalentTriggers === false ? false : talentGateReady,
       layout,
@@ -3069,11 +3159,6 @@ function getProjectileSprite(typeName) {
       typeMultiplier: safeMultiplier,
       isCritical,
     });
-    const labels = buildFloatingDamageLabels({
-      isMiss,
-      typeMultiplier: safeMultiplier,
-      isCritical,
-    });
     const palette = getFloatingTextTonePalette(tone);
     const toneStyle = getFloatingTextToneVisualStyle(tone);
     const damageValue = isMiss ? 0 : Math.max(0, Number(damage) || 0);
@@ -3104,11 +3189,6 @@ function getProjectileSprite(typeName) {
       maxLifeMs: FLOATING_TEXT_LIFETIME_MS,
       damage: isMiss ? 0 : damage,
       isMiss,
-      label: labels.summary,
-      labelPrimary: labels.primary,
-      labelSecondary: labels.secondary,
-      hasEffectivenessLabel: Boolean(labels.hasEffectivenessLabel),
-      hasCriticalLabel: Boolean(labels.hasCriticalLabel),
       attackType,
       tone,
       color: palette.main,

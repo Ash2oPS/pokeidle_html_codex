@@ -285,6 +285,72 @@ test("PokemonBattleManager laser attacks tick every half interval without spawni
   assert.equal(manager.getProjectiles().length, 0);
 });
 
+test("PokemonBattleManager laser ticks use per-tick +/-100ms jitter around half attack interval", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const pendingRolls = [];
+  const observedJitterRanges = [];
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    randomRange: (min, max) => {
+      if (pendingRolls.length > 0) {
+        observedJitterRanges.push([min, max]);
+        return pendingRolls.shift();
+      }
+      return (Number(min) + Number(max)) * 0.5;
+    },
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 800,
+    createEnemy,
+  });
+
+  const laserState = manager.getLaserState(0);
+  assert.equal(manager.getLaserTickIntervalMs(), 400);
+
+  pendingRolls.push(300, 500);
+  laserState.tickTimerMs = 0;
+  manager.scheduleNextLaserTick(laserState);
+  assert.equal(laserState.tickIntervalMs, 300);
+  assert.equal(laserState.tickTimerMs, 300);
+
+  laserState.tickTimerMs = -20;
+  manager.scheduleNextLaserTick(laserState);
+  assert.equal(laserState.tickIntervalMs, 500);
+  assert.equal(laserState.tickTimerMs, 480);
+  assert.deepEqual(observedJitterRanges, [
+    [300, 500],
+    [300, 500],
+  ]);
+});
+
+test("PokemonBattleManager keeps jittered laser timers across refresh without clamping back to base", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 800,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+  const laserState = manager.getLaserState(0);
+  laserState.tickIntervalMs = 500;
+  laserState.tickTimerMs = 480;
+
+  manager.refreshLaserStates(state.layout);
+
+  assert.equal(laserState.tickIntervalMs, 500);
+  assert.equal(laserState.tickTimerMs, 480);
+});
+
 test("PokemonBattleManager exposes active laser states without cloning them every frame", () => {
   const state = { timeMs: 0, layout: createLayout() };
   const runtime = createPokemonBattleRuntime({
@@ -339,7 +405,47 @@ test("PokemonBattleManager laser attacks accumulate fractional damage carry acro
   assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (3 / 12)) < 0.000001);
 });
 
-test("PokemonBattleManager laser micro-ticks do not spam impact visuals between cadence turns", () => {
+test("PokemonBattleManager laser hit resolution preserves attacker combat stats in snapshots", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  let observedAttacker = null;
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: (attacker) => {
+      observedAttacker = attacker;
+      return { damage: 72, isCritical: false };
+    },
+    resolveCombatTurnDecision: () => createAttackDecision(),
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [
+      createAttacker({
+        level: 37,
+        stats: {
+          hp: 120,
+          attack: 84,
+          defense: 63,
+          "special-attack": 58,
+          "special-defense": 61,
+          speed: 72,
+        },
+      }),
+    ],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  manager.processAttackCadenceTick(state.layout);
+  const enemyHpBefore = manager.enemy.hpCurrent;
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 6);
+  assert.equal(observedAttacker?.level, 37);
+  assert.equal(observedAttacker?.stats?.attack, 84);
+});
+
+test("PokemonBattleManager laser micro-ticks keep damage text in sync without spamming heavy impact visuals", () => {
   const state = { timeMs: 0, layout: createLayout() };
   const runtime = createPokemonBattleRuntime({
     state,
@@ -359,13 +465,16 @@ test("PokemonBattleManager laser micro-ticks do not spam impact visuals between 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
   assert.equal(manager.getFloatingTexts().length, 1);
   assert.equal(manager.getHitEffects().length > 0, true);
+  assert.equal(Object.prototype.hasOwnProperty.call(manager.getFloatingTexts()[0], "labelPrimary"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(manager.getFloatingTexts()[0], "labelSecondary"), false);
 
   manager.clearFloatingTexts();
   manager.hitEffects = [];
   manager.setEnemyDamageFlashMs(0);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.getFloatingTexts().length, 0);
+  assert.equal(manager.getFloatingTexts().length, 1);
+  assert.equal(manager.getFloatingTexts()[0].damage, 2);
   assert.equal(manager.getHitEffects().length, 0);
   assert.equal(manager.getEnemyDamageFlashBlend(), 0);
 });
