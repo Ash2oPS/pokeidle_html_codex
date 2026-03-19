@@ -7,6 +7,7 @@
     "fairy"
   ],
   "offensive_type": "water",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 298,
     "name_en": "azurill",

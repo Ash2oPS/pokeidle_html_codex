@@ -1,6 +1,12 @@
 ﻿Original prompt: creons un jeu web en utilisant la data qu'on a dans le projet. Creons un fan game pokemon idle. voici comment il se presente : on a un ennemi au centre de l'ecran et nous avons notre team de 6 pokemon max qui encerclent l'ennemi. L'ennemi est le seul ennemi a avoir une barre de vie. sinon tous les poke ont leur nom (fr pour l'instant) et leur lvl d'affiche. Pour l'instant fais ca.
 
 ## Progress log
+- Repaired French accents / special characters across the runtime UI:
+  - Added shared DOM text normalization runtime for static and dynamic UI copy.
+  - Strengthened `normalizeUiDisplayText(..., { frenchTypography: true })` coverage for common FR UI labels.
+  - Cleaned major template/config copy sources and normalized top-message delivery.
+  - Added `tests/ui-copy-encoding-guard.test.mjs` plus targeted UI/text normalization coverage to block mojibake regressions.
+  - Verified with `npm test` and a fresh desktop Playwright capture in `output/web-game-poke/desktop-landscape/stage.png`.
 - Created a minimal web game scaffold with `index.html`, `styles.css`, and `game.js`.
 - Implemented a single-canvas arena layout:
   - One enemy centered on screen.
@@ -39,12 +45,11 @@
 - Validated KO transition behavior with iterative Playwright run (`output/web-game-ko`):
   - Captured KO freeze state with `ko_transition.active: true` and `enemy.hp_current: 0`.
 - Added Windows/Desktop/Android system notifications for evolution-ready Pokemon:
-  - New designer setting `notifications.evolutionReadySystemEnabled` in `game-settings.json`.
-  - Runtime now stores loaded game settings and reuses the existing notification bridge when an evolution-ready card is enqueued.
+  - Runtime now reuses the existing notification bridge when an evolution-ready card is enqueued.
   - Notification button copy now mentions shiny, empty Pokeballs, and evolution-ready alerts.
-  - Added source/test coverage for the new notification hook and settings sanitizer.
+  - Added source/test coverage for the new notification hook.
 - Verification after the evolution-ready notification patch:
-  - `node --test tests/game-settings-runtime.test.mjs tests/runtime-evolution-ready-system-notification.test.mjs` passes.
+  - `node --test tests/runtime-evolution-ready-system-notification.test.mjs` passes.
   - `npm run test:node` passes (`146/146`).
   - Playwright skill client run against a local `http.server` capture confirms the game still boots/render correctly.
   - Useful visual artifact: `output/evolution-notif-visual-poke-2/shot-1.png`.
@@ -55,6 +60,42 @@
 - Validate a dedicated mobile viewport pass (small width) and tune text spacing if needed.
 - Add configurable team/enemy selection in a future iteration (instead of fixed starter set).
 - Add crit-specific floating text style and optional screen-shake toggle.
+
+## Additional progress (laser rendering stability + optimization)
+- Standardized laser rendering so the visual budget no longer downgrades based on the number of simultaneous lasers:
+  - Removed crowd-dependent laser render budget scaling from `runtime-render-system`.
+  - Each laser now uses the same per-quality rendering path regardless of how many other lasers are active.
+- Reduced hot-path GC / per-frame work in the laser renderer:
+  - Added reusable point buffers for laser curves and ribbon paths.
+  - Reused sampled point objects instead of allocating new arrays/objects every frame.
+  - Cached the base beam angle per laser instead of recomputing it inside the beam-particle loop.
+- Added small combat-side laser runtime optimizations:
+  - Avoid redundant laser refresh before idle simulation (idle branch already refreshes internally).
+  - Avoid repeated `clearLasers()` churn during downtime when no live laser runtime state remains.
+- Verification:
+  - `node --test tests/runtime-render-system.test.mjs tests/pokemon-battle-runtime.test.mjs tests/runtime-ui-interaction-system.test.mjs` passes (`34/34`).
+  - Browser Playwright pass still boots, starts Route 1 combat, and renders the live laser with no console/page errors.
+  - Useful artifacts: `output/web-game-poke/laser-opt-check/03-combat-live.png` and matching `.json`.
+
+## Additional progress (attack mode families -> gameplay)
+- Added `attack_mode` to every Pokemon data file:
+  - Family-average rule for all evolution families.
+  - Eevee family handled per-species from the member's own `attack` vs `special-attack`.
+- Wired runtime data loading so Pokemon definitions keep `attackMode` from JSON.
+- Applied `attackMode` through gameplay state:
+  - Team members inherit it from loaded definitions.
+  - Route enemies inherit it from encounter definitions.
+  - Morphing talent overrides now preserve/restore the correct attack mode instead of leaking the previous one.
+- Updated debug/runtime text export to expose:
+  - `team[].attack_mode`
+  - `enemy.attack_mode`
+  - `active_projectiles[].attack_mode`
+  - `active_lasers[].attack_mode`
+- Verification:
+  - `node --test tests/pokemon-battle-runtime.test.mjs tests/runtime-ui-interaction-system.test.mjs` passes (`24/24`).
+  - Browser Playwright flow verified starter selection -> Route 1 combat.
+  - Live capture confirms Bulbizarre uses `laser` in gameplay while enemy Roucool carries `projectiles` in exported runtime state.
+  - Useful artifacts: `output/web-game-poke/attack-mode-check/03-combat-live.png` and matching `.json`.
 
 ## Additional progress (starter/save/Route 1 update)
 - Migrated game bootstrap to Route 1 flow with persistent save state (`pokeidle_save_v3`):
@@ -77,6 +118,22 @@
   - Automatic Pokeball resolution with chance based on species catch rate.
   - Captured Pokemon can join team (max 6, no duplicate same species+shiny flag).
   - Save is persisted on enemy spawn and capture flow updates.
+
+## Additional progress (compact Pokédex header alignment)
+- Refined the Pokédex modal header to be more centered and compact without hiding key progress metrics.
+- Desktop layout now keeps the title, completion card, and 4 progress cards visually centered while preserving the close button on the right.
+- Mobile portrait layout now keeps the header compact with the close button anchored top-right and the metric cards still visible in a readable 2-column grid.
+- Tightened the compact pass after visual review:
+  - Moved Pokédex completion into the same metric strip as the other counters.
+  - Reduced the header from a stacked dashboard layout to a low-height capsule row on desktop.
+  - Kept a condensed full-width completion capsule plus 2x2 stat grid on phone portrait.
+- Verification:
+  - `npm test` passes.
+  - `npm run test:visual:gallery:desktop` passes.
+  - `npm run test:visual:gallery:mobile` passes.
+  - Targeted Pokédex captures refreshed and visually reviewed:
+    - `output/ui-type-panels/desktop-landscape/pokedex-types.png`
+    - `output/ui-type-panels/mobile-portrait/pokedex-types.png`
 - Added hover stats popup:
   - On hover enemy/team, popup shows rencontres / battus / captures with normal+shiny detail.
 - UI updates requested:
@@ -218,6 +275,35 @@
   - No console/page errors in the targeted hover/context runs.
 
 ## Additional progress (reset + slot timing + capture animation)
+
+## Additional progress (designer config + AI guardrails)
+- Added a new designer-facing global config file: `game-design-config.js`.
+  - Centralizes editable tuning for rarity, combat, capture, progression, economy, route unlock, gacha, UI timings, and runtime metrics.
+  - Keeps content tables in existing CSV/JSON sources instead of flattening them into the global config.
+- Added `lib/game-design-config-runtime.js`.
+  - Sanitizes, clamps, derives, and deep-freezes the raw design config.
+  - Exposes a compact `GAME_DESIGN_SNAPSHOT` for runtime debug/export usage.
+- Converted current config modules into compatibility facades backed by the sanitized design config:
+  - `lib/runtime-version-config.js`
+  - `lib/combat-balance-config.js`
+  - `lib/gameplay-ui-config.js`
+  - selected tuning exports in `lib/game-world-config.js`
+- Extended `render_game_to_text` payload with `design_config_snapshot`.
+- Added repo-level AI guardrail docs:
+  - `AGENTS.md`
+  - `docs/ai-guidelines.md`
+- Added hard-gate tests:
+  - `tests/game-design-config-runtime.test.mjs`
+  - `tests/game-design-architecture-guard.test.mjs`
+  - updated `tests/runtime-ui-interaction-system.test.mjs`
+- Validation:
+  - `node --check` on all modified config/runtime files: PASS
+  - targeted node tests for config/runtime guards: PASS
+  - `npm test`: PASS
+
+## Next ideas
+- Continue migrating visual-only tuning that is still intentionally left in code (`team/enemy sprite scale`, `breath`, some shader-only values) if we want an even fatter designer surface.
+- Add a tiny in-game dev panel later that reads from `design_config_snapshot` for faster balancing/debug loops.
 
 ## Additional progress (laser perf pass without dynamic quality fallback)
 - Removed the previous runtime fallback that lowered global render quality / render scale based on laser crowding.
@@ -5921,15 +6007,6 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - `npm run test:perf:web-game:regression`: PASS (`cpu_regression_ratio: 1`).
 - `npm test`: PASS (Node 66/66 + Vitest 8/8).
 
-## Additional progress (maintenance gate by version)
-- Added designer-friendly runtime settings file `game-settings.json` with mirrored `default`, `tooltips`, and required `store` redirect keys.
-- Added `lib/game-settings-runtime.js` mapper/sanitizer for maintenance/store settings with safe fallback when JSON is missing/invalid.
-- Added startup maintenance gate in `game-runtime.js`:
-  - loads `game-settings.json` before scene init;
-  - blocks bootstrap when maintenance is active (`enabled`, `blockCurrentVersion`, or listed version);
-  - keeps loading screen visible with a custom maintenance message.
-- Added automated coverage in `tests/game-settings-runtime.test.mjs` for sanitization and maintenance activation rules.
-
 ## Additional progress (runtime TDZ boot fix - 2026-03-16)
 - Fixed runtime bootstrap crash from console (`Cannot access 'getPokemonDisplayNameById' before initialization`):
   - changed composition-root dependency wiring to lazy wrappers via `runtimeUiInteractionFacade` for early-initialized deps.
@@ -5948,31 +6025,6 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - `powershell -ExecutionPolicy Bypass -File run_playwright_check.ps1`: PASS (no new Playwright pageerror artifact generated).
 - Visual artifact review:
   - `output/web-game-poke/shot-0.png` now no longer shows the previous `getPokemonDisplayNameById` crash.
-  - Current capture stays in loading mode (black screen) due the existing maintenance-gate/bootstrap state, but the targeted initialization ReferenceError is resolved.
-
-## Additional progress (maintenance gate validation + fetch binding fix - 2026-03-16)
-- Fixed a startup error in settings loader:
-  - `lib/game-settings-runtime.js` now calls `globalThis.fetch(...)` through a safe wrapper to avoid browser `Illegal invocation` when loading `game-settings.json`.
-- Validated maintenance gate behavior with temporary config toggle (`maintenance.blockCurrentVersion = true`) and visual capture:
-  - Full-page maintenance screenshot: `output/maintenance-gate-check/maintenance-fullpage.png`.
-  - Playwright state check under maintenance: `output/maintenance-gate-check/state-0.json` reports `"mode":"loading"` (scene bootstrap blocked as expected).
-- Restored default settings after validation:
-  - `game-settings.json` back to maintenance disabled (`enabled=false`, `blockCurrentVersion=false`).
-- Re-ran targeted tests:
-  - `node --test tests/game-settings-runtime.test.mjs`: PASS (4/4).
-- Re-ran standard Playwright smoke script:
-  - Existing unrelated runtime page error still present in normal bootstrap: `ReferenceError: createRuntimeUiInteractionSystem is not defined` (from `output/web-game-poke/errors-0.json`).
-  - This pre-existing issue does not affect maintenance lock flow because bootstrap exits early when maintenance is active.
-- Added local-dev maintenance bypass:
-  - New helper `isLocalDevelopmentServerLocation(...)` in `version.js`.
-  - Runtime bootstrap now ignores maintenance gating when served from localhost/127.0.0.1/::1 (local HTTP servers), while keeping maintenance active for non-local environments.
-- Added test coverage in `tests/version-environment.test.mjs` for localhost host variants.
-- Validation:
-  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
-- Maintenance message behavior tightened in tests:
-  - Added explicit assertion that `maintenance.message = ""` falls back to default maintenance text.
-- Validation:
-  - `node --test tests/game-settings-runtime.test.mjs`: PASS (4/4).
 
 ## Additional progress (runtime fetch resolver binding fix - 2026-03-16)
 - Root cause traced in runtime binding proxy:
@@ -5988,26 +6040,7 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
 - Visual/state validation:
   - `output/web-game-poke/shot-0.png` now renders the game scene (no fetch illegal invocation screen).
   - `output/web-game-poke/state-0.json` now reports `"mode":"ready"`.
-- Maintenance UX tweak:
-  - Loading-screen Pokeball can now be forced static via `showLoadingScreen(message, { disablePokeballSpin: true })`.
-  - Added CSS class gate `.loading-screen.is-static-pokeball .loading-pokeball { animation: none; }`.
-  - Maintenance bootstrap now uses static Pokeball mode when showing maintenance lock.
-- Validation:
-  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
-  - Browser check wrote `output/maintenance-gate-check/maintenance-static-anim.json` with `"animationName": "none"`.
-  - Visual capture: `output/maintenance-gate-check/maintenance-static-pokeball.png`.
-- Maintenance visual polish:
-  - Updated `.loading-screen.is-static-pokeball .loading-pokeball` to a grey palette (top/bottom + center button accents).
-  - Added subtle maintenance-only glow pulse animation `loading-pokeball-maintenance-glow` (no rotation).
-- Visual validation:
-  - Screenshot: `output/maintenance-gate-check/maintenance-grey-glow.png`.
-  - Computed style check: `output/maintenance-gate-check/maintenance-grey-glow-anim.json` confirms `"animationName": "loading-pokeball-maintenance-glow"`.
-- Maintenance disabled for functional release:
-  - `game-settings.json` switched back to `maintenance.enabled=false` and `maintenance.blockCurrentVersion=false` at root and mirrored `default`.
-  - Maintenance message reset to default fallback text.
-- Validation:
-  - `node --test tests/version-environment.test.mjs tests/game-settings-runtime.test.mjs`: PASS (10/10).
-  - `run_playwright_check.ps1` completed and latest `output/web-game-poke/state-0.json` reports `"mode":"ready"`.
+- `run_playwright_check.ps1` completed and latest `output/web-game-poke/state-0.json` reports `"mode":"ready"`.
 
 ## Additional progress (battle runtime visual ball helpers restore - 2026-03-16)
 - Fixed runtime crash `ReferenceError: normalizeBallTypeForVisual is not defined` during battle manager initialization.
@@ -6028,17 +6061,6 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `output/web-game-poke/state-0.json` (`"mode":"ready"`, no runtime crash).
 
 - 2026-03-16: Fixed lost phone-layout detection in `systems/ui/runtime-render-system.js` by widening `getBattleViewportProfile()` to account for modern smartphone portrait widths and `isLikelySmartphoneBrowser()`. Added `tests/runtime-render-system.test.mjs` to lock narrow portrait, wide smartphone, tablet, and landscape-phone cases. Verified with Playwright iPhone viewport smoke (`output/playwright/mobile-mode-restore/shot-0.png`) and `runtime_client: browser_smartphone` / no console errors.
-## Additional progress (2026-03-16, maintenance gate regression patch)
-- Restored runtime maintenance controls removed by recent `wip` commit:
-  - re-added `game-settings.json` and `lib/game-settings-runtime.js`.
-  - restored startup gate in `game-runtime.js` (`loadGameSettings` + maintenance blocking outside localhost).
-- Restored loading-screen maintenance visual behavior:
-  - `showLoadingScreen(message, { disablePokeballSpin: true })` now re-enables static maintenance Pokeball mode.
-  - reintroduced `.loading-screen.is-static-pokeball` and `loading-pokeball-maintenance-glow` styles in `styles.css`.
-- Added regression tests to reduce rollback risk:
-  - `tests/game-settings-runtime.test.mjs` (settings sanitization + maintenance activation rules).
-  - `tests/ui-animation-runtime.test.mjs` (static Pokeball class toggle/cleanup behavior).
-  - `tests/runtime-startup-maintenance-gate.test.mjs` (bootstrap maintenance flow guard in `game-runtime.js`).
 ## Additional progress (2026-03-16, evolution animation wire fix)
 - Fixed evolution animation update wiring in `game-runtime.js`:
   - before: update loop called `updateEvolutionAnimation` on `runtimeUiInteraction` (method absent there).
@@ -6573,18 +6595,6 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/ui-state-gallery/laser-perf-optimized-canvas/canvas.png`
     - `output/ui-state-gallery/laser-perf-optimized-canvas/state.json`
     - observed `render_frame_ms_estimate 25.04` and `render_fps_estimate 39.9`
-## Additional progress (2026-03-18, maintenance gate scoped to production only)
-- Updated runtime startup maintenance behavior in `game-runtime.js`:
-  - maintenance gate now blocks bootstrap only when `isProductionGithubPagesLocation(window.location)` is `true`.
-  - non-production contexts (dev-mode builds) now always bypass maintenance lock, with explicit info log.
-  - reused `isProductionRuntime` for update-checker initialization to keep startup logic consistent.
-- Updated bootstrap guard test:
-  - `tests/runtime-startup-maintenance-gate.test.mjs` now asserts production-based gating (`isProductionGithubPagesLocation` + `isProductionRuntime && maintenanceActive`).
-- Targeted validation (no Playwright run because change is non-visual and logic-only):
-  - `node --test tests/runtime-startup-maintenance-gate.test.mjs` -> PASS
-  - `node --test tests/version-environment.test.mjs` -> PASS
-  - `node --test tests/game-settings-runtime.test.mjs` -> PASS
-
 ## Additional progress (2026-03-18, laser damage snapshot stat fix)
 - Root cause identified in `systems/combat/pokemon-battle-manager.js`:
   - `applyLaserTick(...)` builds a hit payload with `attackerSnapshot`.
@@ -6663,3 +6673,128 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
   - `node --test tests/pokemon-battle-runtime.test.mjs`: PASS
 - Playwright note:
   - Not run for this patch (small text-render behavior change validated by targeted runtime tests), per project guidance.
+
+## Additional progress (2026-03-19, UI accents and special characters normalization)
+- Goal:
+  - repair French accents / special characters across the runtime UI and prevent recurrence in future AI edits.
+- Runtime/text fixes:
+  - rebuilt `lib/text-normalization.js` as the shared mojibake + French typography normalizer.
+  - added `lib/ui-text-normalization-runtime.js` to normalize existing DOM text plus future `textContent` / `innerHTML` / `aria-label` / `title` / `placeholder` / `alt` mutations.
+  - wired the shared runtime normalizer from `game-runtime.js` right after the runtime UI mount.
+  - normalized designer-facing UI copy at source in `lib/gameplay-ui-config.js` and `lib/game-world-config.js`.
+  - patched canvas/runtime-only labels that would not be fixed by DOM observation alone, including gacha status text and combat/zone overlay strings in `systems/ui/runtime-render-system.js`.
+- Guardrails:
+  - strengthened `AGENTS.md` and `docs/ai-guidelines.md` with strict UTF-8 / Unicode-escape / HTML-entity rules for UI copy.
+  - added `tests/ui-copy-encoding-guard.test.mjs` so critical runtime UI sources fail fast if raw mojibake markers come back.
+  - expanded `tests/text-normalization.test.mjs`, `tests/ui-text-normalization-runtime.test.mjs`, and `tests/runtime-ui-dom-factory.test.mjs`.
+- Validation:
+  - `npm test`: PASS
+  - `npm run test:visual:gallery:desktop`: PASS
+  - visually inspected:
+    - `output/ui-state-gallery/desktop-landscape/fullpage.png`
+    - `output/ui-state-gallery/desktop-landscape/shop.png`
+    - `output/ui-state-gallery/desktop-landscape/gacha.png`
+- Follow-up note:
+  - if more UI copy is added directly inside canvas renderers, prefer fixing it at source there as well; MutationObserver cannot repair text drawn straight to canvas.
+
+## Additional progress (2026-03-19, UI screenshot validation guardrail)
+- Updated AI guardrails so every UI change now requires screenshot-based validation on both reference formats:
+  - desktop / PC
+  - mobile portrait / telephone
+- `AGENTS.md` now makes this non-negotiable, with mandatory review of generated captures and an explicit done-checklist item.
+- `docs/ai-guidelines.md` now documents:
+  - exact commands to run:
+    - `npm run test:visual:gallery:desktop`
+    - `npm run test:visual:gallery:mobile`
+  - when to fall back to extra scenarios (`npm run test:visual:desktop` / `npm run test:visual:mobile` or dedicated flows)
+  - the rule that unit tests alone are not enough to close a UI task
+- Validation:
+  - `node --test tests/ui-copy-encoding-guard.test.mjs`: PASS
+
+## Additional progress (6-laser gameplay validation)
+- Built a seeded browser runtime check with a 6-Pokemon all-laser team using `dev_seed_save`.
+- Confirmed a live combat snapshot with:
+  - `team.length = 6`
+  - `active_lasers.length = 6`
+  - all six team members exporting `attack_mode: "laser"`
+- Validation artifacts stored in `output/web-game-poke/laser-6-check/`:
+  - `06-six-lasers-live.json`
+  - `06-six-lasers-live.png`
+  - `result.json`
+  - `summary.json`
+  - `errors.json` (empty)
+- Notes:
+  - Seeded saves must include a compatible `app_build_version`, otherwise the dev seed loader ignores them.
+  - The browser validation required a temporary custom Node harness because the usual PowerShell wrapper was blocked by command policy in this environment.
+- Follow-up on the 6-laser validation:
+  - The earlier Playwright screenshot was misleading because the browser game loop kept advancing between exported text-state capture and page screenshot.
+  - Added a renderer tweak so lasers draw above combat sprites and get a light contrast underlay for better visibility on bright route backgrounds.
+  - Added render regression coverage in `tests/runtime-render-system.test.mjs` for laser layering/contrast helpers.
+  - Revalidated with an exact canvas capture taken in the same browser evaluation tick as `render_game_to_text`.
+  - Exact artifact proving `active_lasers = 6` with visible beams: `output/web-game-poke/laser-6-check/08-six-lasers-exact.png` and matching `.json`.
+
+## Additional progress (2026-03-19, laser visual endpoint trimming)
+- Goal:
+  - make laser beams start farther away from the attacking Pokemon and stop before the enemy sprite, matching the annotated visual reference more closely.
+- Runtime/combat changes:
+  - `systems/combat/pokemon-battle-manager.js`
+    - laser state now carries `visualSourceInsetPx` / `visualTargetInsetPx` metadata.
+    - tuned the current visual inset values upward so the beam clears the attacker sprite more aggressively and lands short of the target.
+  - `systems/ui/runtime-render-system.js`
+    - added `getVisibleLaserSegment(laser)` to trim laser rendering locally from the raw logical endpoints.
+    - all beam branches now render from the trimmed endpoints (packed beam, simple beam, curved beam, endpoints, impact ring, particles, ribbons).
+    - logical `sourceX/sourceY/targetX/targetY` remain untouched for combat/debug consistency.
+- Tests:
+  - expanded `tests/pokemon-battle-runtime.test.mjs` to assert the raw anchors are preserved while visual insets are present.
+  - added a renderer source regression in `tests/runtime-render-system.test.mjs` for the new trimmed laser segment helper.
+  - `node --test tests/runtime-render-system.test.mjs tests/pokemon-battle-runtime.test.mjs tests/runtime-ui-interaction-system.test.mjs`: PASS (43/43).
+- Browser validation:
+  - ran the project Playwright client flow against a seeded 6-laser save (`tmp/pokeidle-test-appdata-6laser-v2/PokeIdle/save_main.json`) to keep the standard browser loop covered.
+  - generated an exact synchronized canvas capture with a temporary harness (`tmp/laser-offset-exact-capture.mjs`) so the screenshot matches the same `render_game_to_text` tick.
+  - exact artifacts:
+    - `output/web-game-poke/laser-offset-check/exact/01-six-lasers-offset-exact.png`
+    - `output/web-game-poke/laser-offset-check/exact/01-six-lasers-offset-exact.json`
+    - `output/web-game-poke/laser-offset-check/exact/01-six-lasers-offset-timeline.json`
+  - verified in the exact capture that `active_lasers = 6` and the beams visibly start away from the attackers and stop before the enemy.
+- Smartphone browser emulation layout check:
+  - tightened `isPhoneLikeViewport(...)` so touch/mobile browser signals still promote tall portrait smartphone emulation to phone mode without broad-brushing portrait tablets into the same bucket.
+  - added targeted coverage in:
+    - `tests/runtime-stage-layout.test.mjs`
+    - `tests/runtime-render-system.test.mjs`
+  - validation:
+    - `npm run test:node -- tests/runtime-stage-layout.test.mjs tests/runtime-render-system.test.mjs` -> PASS
+    - `npm run test:visual:gallery:desktop` -> PASS
+    - `npm run test:visual:gallery:mobile` -> PASS
+    - targeted browser-emulation capture reviewed:
+      - `output/mobile-emulation-check/smartphone-emulation-810x1620.png`
+      - `output/mobile-emulation-check/smartphone-emulation-810x1620.json`
+  - reviewed screenshots:
+    - desktop gallery remained readable and functional (`idle`, `map`, `shop`).
+    - mobile portrait gallery remained readable and functional (`idle`, `map`, `shop`).
+    - targeted `810x1620` touch/mobile emulation reported `runtime_client = browser_smartphone`, `layoutMode = mobilePortrait`, enemy center at `(405, 794)`, first team member at `(139, 551)`.
+
+## Additional progress (2026-03-19, browser PC -> smartphone test mode)
+- Goal:
+  - ensure the browser build switches cleanly into smartphone behavior when a tall portrait smartphone test viewport is enabled from a desktop browser.
+- Runtime changes:
+  - `lib/runtime-stage-layout.js`
+    - added a shared `isPhoneLikeViewport(...)` helper so phone heuristics are centralized for runtime layout decisions.
+  - `systems/ui/runtime-render-system.js`
+    - `getBattleViewportProfile(...)` now treats tall portrait test viewports (example: `810x1620`) as real phone profiles instead of only generic portrait/compact layouts.
+  - `lib/runtime-platform-utils.js`
+    - browser runtime detection now reuses the same viewport heuristic, so desktop-browser smartphone test viewports export `runtime_client: "browser_smartphone"` consistently.
+- Tests:
+  - added regression coverage in `tests/runtime-platform-utils.test.mjs` for a desktop-browser portrait test viewport (`810x1620`).
+  - added regression coverage in `tests/runtime-render-system.test.mjs` for the same tall portrait viewport so it stays in `phone` mode.
+  - `node --test tests/runtime-platform-utils.test.mjs tests/runtime-render-system.test.mjs`: PASS.
+  - `npm test`: PASS.
+- Visual validation:
+  - `npm run test:visual:gallery:desktop`: PASS.
+  - `npm run test:visual:gallery:mobile`: PASS.
+  - inspected desktop/mobile screenshots again, plus the targeted browser portrait artifacts in `output/ui-state-gallery/browser-smartphone-test/`.
+  - validated readable, non-overlapping smartphone-oriented layout in:
+    - `output/ui-state-gallery/desktop-landscape/idle.png`
+    - `output/ui-state-gallery/mobile-portrait/idle.png`
+    - `output/ui-state-gallery/browser-smartphone-test/idle.png`
+    - `output/ui-state-gallery/browser-smartphone-test/menu.png`
+  - confirmed the targeted browser portrait artifact exports `runtime_client: "browser_smartphone"` with `viewport.width = 810` / `viewport.height = 1620` in `output/ui-state-gallery/browser-smartphone-test/idle.json`.

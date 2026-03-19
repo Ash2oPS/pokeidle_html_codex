@@ -6,6 +6,7 @@
     "ground"
   ],
   "offensive_type": "ground",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 449,
     "name_en": "hippopotas",

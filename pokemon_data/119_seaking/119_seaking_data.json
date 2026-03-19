@@ -6,6 +6,7 @@
     "water"
   ],
   "offensive_type": "water",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 118,
     "name_en": "goldeen",

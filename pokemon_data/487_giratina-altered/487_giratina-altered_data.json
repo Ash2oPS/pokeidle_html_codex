@@ -7,6 +7,7 @@
     "dragon"
   ],
   "offensive_type": "ghost",
+  "attack_mode": "projectiles",
   "evolves_from": null,
   "evolves_to": [],
   "stats": {

@@ -7,6 +7,7 @@
     "fairy"
   ],
   "offensive_type": "water",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 183,
     "name_en": "marill",

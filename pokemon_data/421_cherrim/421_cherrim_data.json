@@ -6,6 +6,7 @@
     "grass"
   ],
   "offensive_type": "grass",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 420,
     "name_en": "cherubi",

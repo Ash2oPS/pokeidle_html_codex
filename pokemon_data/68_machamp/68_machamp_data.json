@@ -6,6 +6,7 @@
     "fighting"
   ],
   "offensive_type": "fighting",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 67,
     "name_en": "machoke",

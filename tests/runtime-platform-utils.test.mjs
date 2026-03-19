@@ -87,3 +87,24 @@ test("createRuntimePlatformUtils falls back to browser detection without a deskt
     },
   );
 });
+
+test("createRuntimePlatformUtils treats tall portrait browser test viewports as smartphone mode", () => {
+  withWindow(
+    {
+      navigator: {
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        userAgentData: { mobile: false },
+        maxTouchPoints: 0,
+      },
+      innerWidth: 810,
+      innerHeight: 1620,
+      matchMedia: () => ({ matches: false }),
+    },
+    () => {
+      const utils = createUtils();
+      assert.equal(utils.isDesktopRuntime(), false);
+      assert.equal(utils.isLikelySmartphoneBrowser(), true);
+      assert.equal(utils.getRuntimeClientType(), "browser_smartphone");
+    },
+  );
+});

@@ -7,6 +7,7 @@
     "dragon"
   ],
   "offensive_type": "water",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 117,
     "name_en": "seadra",

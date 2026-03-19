@@ -7,6 +7,7 @@
     "poison"
   ],
   "offensive_type": "ghost",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 92,
     "name_en": "gastly",

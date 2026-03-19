@@ -230,6 +230,79 @@ test("PokemonBattleManager defaults to laser mode but preserves projectile overr
   assert.equal(manager.resolveAttackModeForAttacker(1), "projectile");
 });
 
+test("PokemonBattleManager normalizes plural projectile attack mode values from data", () => {
+  const runtime = createPokemonBattleRuntime({
+    state: { timeMs: 0 },
+    Tween: MockTween,
+  });
+
+  const manager = new runtime.PokemonBattleManager({
+    team: [
+      createAttacker({
+        attackMode: "projectiles",
+      }),
+    ],
+    attackIntervalMs: 420,
+    createEnemy,
+  });
+
+  assert.equal(manager.resolveAttackModeForAttacker(0), "projectile");
+});
+
+test("PokemonBattleManager lets morphing overrides copy and restore attack modes", () => {
+  const state = { timeMs: 0, team: null };
+  let morphCopiesSource = true;
+  const morphBaseAttackMode = "projectile";
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    applyTeamTalentOverrides: (teamMembers) => {
+      const morphingMember = teamMembers?.[0];
+      if (!morphingMember) {
+        return;
+      }
+      if (morphCopiesSource) {
+        const source = teamMembers?.[1];
+        morphingMember.attackMode = source?.attackMode || morphingMember.attackMode || morphBaseAttackMode;
+        morphingMember.morphingSourceId = Number(source?.id || 0) || null;
+        return;
+      }
+      morphingMember.attackMode = morphBaseAttackMode;
+      morphingMember.morphingSourceId = null;
+    },
+  });
+
+  const team = [
+    createAttacker({
+      id: 132,
+      nameFr: "Metamorph",
+      offensiveType: "normal",
+      defensiveTypes: ["normal"],
+      attackMode: morphBaseAttackMode,
+    }),
+    createAttacker({
+      id: 1,
+      nameFr: "Bulbizarre",
+      attackMode: "laser",
+    }),
+  ];
+  state.team = team;
+
+  const manager = new runtime.PokemonBattleManager({
+    team,
+    attackIntervalMs: 420,
+    createEnemy,
+    defaultAttackMode: morphBaseAttackMode,
+  });
+
+  manager.syncTeam(team);
+  assert.equal(manager.resolveAttackModeForAttacker(0), "laser");
+
+  morphCopiesSource = false;
+  manager.refreshPlacementDependentTalentOverrides();
+  assert.equal(manager.resolveAttackModeForAttacker(0), "projectile");
+});
+
 test("PokemonBattleManager laser visuals anchor from ally center to enemy center", () => {
   const layout = createLayout();
   layout.centerX = 188;
@@ -254,6 +327,8 @@ test("PokemonBattleManager laser visuals anchor from ally center to enemy center
   assert.equal(laser.sourceY, layout.teamSlots[0].y);
   assert.equal(laser.targetX, layout.centerX);
   assert.equal(laser.targetY, layout.centerY);
+  assert.ok(laser.visualSourceInsetPx > 0);
+  assert.ok(laser.visualTargetInsetPx > 0);
 });
 
 test("PokemonBattleManager laser attacks tick every half interval without spawning projectiles", () => {

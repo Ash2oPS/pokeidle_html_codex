@@ -36,3 +36,18 @@ test("mountRuntimeUi remounts without duplicating root runtime stage nodes", () 
   assert.equal(document.querySelectorAll("#game-canvas").length, 1);
   assert.equal(document.querySelectorAll("#notification-stack").length, 1);
 });
+
+test("mountRuntimeUi normalizes static French copy and labels", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.canvas?.getAttribute("aria-label"), "Zone de jeu Pok\u00e9mon idle");
+  assert.equal(refs.teamContextMenuTitleEl?.textContent?.trim(), "Pok\u00e9mon");
+  assert.equal(refs.ballCaptureMenuEl?.getAttribute("aria-label"), "R\u00e9glages de capture par ball");
+  assert.equal(refs.moneyValueEl?.closest("#money-pill")?.querySelector(".currency-pill-icon")?.textContent, "\u20bd");
+  assert.equal(refs.pokedexButtonEl?.querySelector(".btn-label")?.textContent, "Pok\u00e9dex");
+  assert.equal(
+    refs.actionDockFullscreenMenuEl?.getAttribute("aria-label"),
+    "Menu principal plein \u00e9cran",
+  );
+});

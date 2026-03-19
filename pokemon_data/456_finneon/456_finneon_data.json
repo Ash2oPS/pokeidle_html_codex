@@ -6,6 +6,7 @@
     "water"
   ],
   "offensive_type": "water",
+  "attack_mode": "projectiles",
   "evolves_from": null,
   "evolves_to": [
     {

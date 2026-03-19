@@ -6,6 +6,7 @@
     "dark"
   ],
   "offensive_type": "dark",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 261,
     "name_en": "poochyena",

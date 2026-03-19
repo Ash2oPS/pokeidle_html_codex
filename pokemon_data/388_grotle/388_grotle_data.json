@@ -6,6 +6,7 @@
     "grass"
   ],
   "offensive_type": "grass",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 387,
     "name_en": "turtwig",

@@ -12,6 +12,7 @@ test("loadStepsFromSource accepts object payloads with steps", () => {
       steps: [
         { waitMs: 250 },
         { clickSelector: "#map-btn" },
+        { setScrollTop: { selector: "#pokedex-grid", top: 1500 } },
       ],
     }),
   );
@@ -19,6 +20,7 @@ test("loadStepsFromSource accepts object payloads with steps", () => {
   assert.deepEqual(steps, [
     { waitMs: 250 },
     { clickSelector: "#map-btn" },
+    { setScrollTop: { selector: "#pokedex-grid", top: 1500 } },
   ]);
 });
 

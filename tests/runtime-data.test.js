@@ -76,6 +76,7 @@ describe("runtime-data", () => {
         name_en: "pidgey",
         defensive_types: ["normal", "flying"],
         offensive_type: "flying",
+        attack_mode: "projectiles",
         stats: {
           hp: 40,
           attack: 45,
@@ -97,6 +98,7 @@ describe("runtime-data", () => {
     expect(route.encounters).toHaveLength(1);
     expect(pokemon.pokedex_number).toBe(16);
     expect(pokemon.name_en).toBe("pidgey");
+    expect(pokemon.attack_mode).toBe("projectiles");
   });
 
   it("valide la configuration normalisee des balls", () => {

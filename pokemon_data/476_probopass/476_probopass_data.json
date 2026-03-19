@@ -7,6 +7,7 @@
     "steel"
   ],
   "offensive_type": "rock",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 299,
     "name_en": "nosepass",

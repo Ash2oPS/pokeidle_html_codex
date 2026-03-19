@@ -1,0 +1,61 @@
+{
+  "steps": [
+    {
+      "waitMs": 1800
+    },
+    {
+      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 2200
+    },
+    {
+      "clickSelectorIfVisible": "#tutorial-close-btn",
+      "waitMs": 900
+    },
+    {
+      "clickSelector": "#action-dock-pokeball-toggle"
+    },
+    {
+      "waitForSelector": "#action-dock-fullscreen-menu:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "clickSelector": "#action-dock-fullscreen-menu [data-action-target='gacha-btn']"
+    },
+    {
+      "waitForSelector": "#gacha-modal:not(.hidden)",
+      "waitMs": 4500
+    },
+    {
+      "clickSelectorIfVisible": "#gacha-close-btn",
+      "waitMs": 700
+    },
+    {
+      "clickSelector": "#action-dock-pokeball-toggle"
+    },
+    {
+      "waitForSelector": "#action-dock-fullscreen-menu:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "clickSelector": "#action-dock-fullscreen-menu [data-action-target='pokedex-btn']"
+    },
+    {
+      "waitForSelector": "#pokedex-modal:not(.hidden)",
+      "waitMs": 1200
+    },
+    {
+      "setScrollTop": {
+        "selector": "#pokedex-grid",
+        "top": 1500
+      },
+      "waitMs": 800
+    },
+    {
+      "clickSelector": ".pokedex-mon-btn[data-pokedex-id='35']",
+      "waitMs": 1600
+    },
+    {
+      "captureName": "pokedex-types"
+    }
+  ]
+}

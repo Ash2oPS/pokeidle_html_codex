@@ -7,6 +7,7 @@
     "poison"
   ],
   "offensive_type": "grass",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 1,
     "name_en": "bulbasaur",

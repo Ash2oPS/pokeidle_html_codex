@@ -6,6 +6,7 @@
     "fairy"
   ],
   "offensive_type": "fairy",
+  "attack_mode": "laser",
   "evolves_from": null,
   "evolves_to": [
     {

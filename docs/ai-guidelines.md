@@ -1,0 +1,189 @@
+# AI Implementation Guidelines
+
+Ce document detaille les regles de `AGENTS.md`. Si une regle ici contredit `AGENTS.md`, `AGENTS.md` gagne.
+
+## Goal
+
+L'IA doit produire des changements fiables, incrementaux, et compatibles avec le jeu existant.
+
+## Source Of Truth
+
+### Designer-facing tuning
+
+- Va dans `game-design-config.js`.
+- Doit etre documente.
+- Doit rester en plain data.
+- Ne doit pas contenir de logique metier opaque.
+
+### Runtime-safe tuning
+
+- Va dans `lib/game-design-config-runtime.js`.
+- Doit:
+  - lire la config brute
+  - normaliser les types
+  - appliquer des bornes
+  - calculer les derives
+  - freezer le resultat
+
+### Content data
+
+- Reste dans:
+  - `item_data/`
+  - `map_data/`
+  - `pokemon_data/`
+- Exemples:
+  - une nouvelle ball
+  - une nouvelle route
+  - une table de talents
+  - des encounters
+
+## Import Rules
+
+- Autorise:
+  - `lib/game-design-config-runtime.js` -> `game-design-config.js`
+- Interdit:
+  - `game-runtime.js` -> `game-design-config.js`
+  - `systems/*` -> `game-design-config.js`
+  - `domain/*` -> `game-design-config.js`
+  - `tests/*` -> `game-design-config.js` sauf test explicite du runtime adapter
+
+## Architectural Rules
+
+### UI text and encoding
+
+- Toute copy UI user-facing doit etre propre en UTF-8.
+- Si tu ne peux pas garantir l'encodage du fichier, utilise des escapes Unicode (`\u00e9`) ou des entites HTML valides.
+- Ne laisse jamais passer de mojibake dans le runtime:
+  - prefixes U+00C3 / U+00C2
+  - replacement char U+FFFD
+  - fragments CP1252 de guillemets ou tirets
+  - toute sequence visiblement casse
+- Les templates HTML JS, labels, titres, placeholders, `aria-label`, `title` et `alt` doivent etre normalises.
+- Les textes FR injectes dans l'UI doivent passer par `normalizeUiDisplayText(..., { frenchTypography: true })` ou par la couche de normalisation UI partagee du runtime.
+- Quand tu ajoutes une nouvelle copy FR:
+  - prefere la source correcte directement
+  - garde la normalisation comme filet de securite
+  - n'utilise pas la normalisation comme excuse pour laisser de la copy casse a la source
+  - n'importe jamais de texte user-facing depuis un terminal ou un copier-coller douteux sans le reecrire proprement
+
+### UI
+
+- La structure DOM se gere en JS.
+- Ne reintroduis pas de gros HTML statique pour des ecrans runtime.
+- Garde la separation:
+  - DOM factory
+  - interaction system
+  - render system
+  - CSS
+- L'UI doit garder un style visuel coherent sur l'ensemble du jeu.
+- Chaque nouvel ecran, modal, panneau, carte ou refonte doit sembler appartenir au meme produit que le reste du jeu.
+- Avant d'inventer un nouveau style, reutilise d'abord les patterns existants:
+  - palette et niveaux de contraste
+  - typographies et echelles de taille
+  - rayons, bordures et ombres
+  - densite d'espacement
+  - formes de boutons, pills, cartes, modales et panneaux d'info
+  - principes d'etat visuel: hover, actif, selection, rarete, desactive
+- N'introduis une nouvelle variante visuelle que si elle est justifiee par une hierarchie UX claire, un role gameplay distinct ou une demande explicite.
+- Interdit:
+  - donner a un ecran un look isole qui casse l'identite du jeu
+  - multiplier les styles de boutons/cartes sans raison
+  - changer police, rayon, ombre ou palette localement "parce que ca rend bien ici"
+  - melanger des niveaux de densite tres differents entre panneaux voisins
+- Toute modification UI doit etre validee sur les deux formats de reference:
+  - desktop / PC
+  - mobile portrait / telephone
+- Validation obligatoire pour chaque changement UI:
+  - lance `npm run test:visual:gallery:desktop`
+  - lance `npm run test:visual:gallery:mobile`
+  - ouvre et inspecte les screenshots generes dans `output/ui-state-gallery/desktop-landscape/` et `output/ui-state-gallery/mobile-portrait/`
+  - verifie lisibilite, tailles de texte, overlap, clipping, safe areas, boutons atteignables, modales, et etats importants
+  - compare aussi le rendu aux panneaux et ecrans voisins pour confirmer la coherence visuelle globale
+- Si la galerie existante ne montre pas le flow touche:
+  - lance aussi `npm run test:visual:desktop` et `npm run test:visual:mobile`
+  - ou ajoute un scenario visuel adapte
+  - puis ouvre les nouvelles captures et controle le resultat
+- Une modif UI n'est pas consideree validee tant que les captures desktop et mobile portrait n'ont pas ete relues. Les tests unitaires seuls sont insuffisants pour cloturer une tache UI.
+
+### Domain
+
+- `domain/` contient des regles pures.
+- Les fonctions doivent preferer des parametres explicites a des imports globaux.
+- Pas d'acces `window`, `document`, storage, audio, fetch, save state.
+
+### Systems
+
+- Les systems branchent les modules entre eux.
+- Ils ne doivent pas cacher des constantes de balance dans leur corps.
+- Ils peuvent recevoir une config sanitisee ou des facades stables.
+
+### Save compatibility
+
+- Toute evolution du save schema est hors scope par defaut.
+- Si tu crois devoir toucher au save schema, stoppe et attends une demande explicite.
+
+## Forbidden Changes
+
+- Reintroduire `game-settings.json`
+- Reintroduire `lib/game-settings-runtime.js`
+- Reintroduire des redirects Play Store / App Store
+- Ajouter des nombres magiques de tuning dans le runtime
+- Aspirer des CSV/JSON de contenu dans le fichier global de design
+- Changer des hooks publics runtime sans demande explicite
+- Introduire un texte UI mojibake ou une string FR user-facing non normalisee
+
+## Naming And Docs
+
+- Les cles restent stables.
+- Une cle = un effet comprehensible.
+- La doc doit repondre a:
+  - a quoi sert la valeur
+  - quel est son impact
+  - quelle unite elle utilise
+
+## Required Tests
+
+Chaque changement de config design doit couvrir au minimum:
+
+1. Sanitization
+2. Compatibilite facade
+3. Regle metier ou integration touchee
+4. Si de la copy UI est touchee, test anti-mojibake / normalisation sur le flux concerne
+5. Si l'UI est touchee, validation screenshots desktop + mobile portrait avec relecture effective
+
+Tests utiles:
+
+- clamp / fallback invalides
+- derives calcules
+- `render_game_to_text` si la valeur doit etre visible en debug
+- garde d'architecture sur les imports interdits
+- `tests/ui-copy-encoding-guard.test.mjs` pour la copy UI runtime
+
+## Practical Playbook
+
+Quand tu veux exposer une valeur editable:
+
+1. Identifie si c'est du tuning global ou du contenu data-driven.
+2. Si c'est global, ajoute la cle dans `game-design-config.js`.
+3. Ajoute la version sanitisee dans `lib/game-design-config-runtime.js`.
+4. Branche la facade de compatibilite existante.
+5. Supprime le nombre magique source.
+6. Ajoute les tests.
+7. Verifie que `npm test` reste vert.
+
+Quand tu touches de la copy UI:
+
+1. Corrige la source du texte.
+2. Assure-toi que le flux passe par la normalisation UI partagee.
+3. Garde `tests/ui-copy-encoding-guard.test.mjs` vert.
+4. Ajoute un test si tu touches un template, un normalizer ou une couche d'injection UI.
+
+Quand tu touches de l'UI au sens large:
+
+1. Termine la modif.
+2. Lance `npm run test:visual:gallery:desktop`.
+3. Lance `npm run test:visual:gallery:mobile`.
+4. Ouvre et relis les screenshots desktop et mobile portrait.
+5. Verifie explicitement que le composant touche reste coherent avec les autres UI proches du jeu.
+6. Si le flow touche n'apparait pas assez dans la galerie, execute un scenario visuel cible supplementaire.
+7. Ne cloture pas la tache tant que les deux formats ne sont pas lisibles, fonctionnels, et visuellement coherents.

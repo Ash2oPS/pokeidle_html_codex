@@ -7,6 +7,7 @@
     "fighting"
   ],
   "offensive_type": "bug",
+  "attack_mode": "projectiles",
   "evolves_from": null,
   "evolves_to": [],
   "stats": {

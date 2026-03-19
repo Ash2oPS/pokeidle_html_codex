@@ -6,6 +6,7 @@
     "poison"
   ],
   "offensive_type": "poison",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 88,
     "name_en": "grimer",

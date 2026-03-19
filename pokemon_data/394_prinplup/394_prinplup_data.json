@@ -6,6 +6,7 @@
     "water"
   ],
   "offensive_type": "water",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 393,
     "name_en": "piplup",

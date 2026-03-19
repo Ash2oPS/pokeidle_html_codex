@@ -103,12 +103,11 @@ function createFixture(overrides = {}) {
   };
 }
 
-test("showLoadingScreen enables static pokeball class when requested", () => {
+test("showLoadingScreen trims the message and makes the loading screen visible", () => {
   const fixture = createFixture();
   try {
-    fixture.runtime.showLoadingScreen("  Maintenance en cours  ", { disablePokeballSpin: true });
-    assert.equal(fixture.loadingScreenTextEl.textContent, "Maintenance en cours");
-    assert.equal(fixture.loadingScreenEl.classList.contains("is-static-pokeball"), true);
+    fixture.runtime.showLoadingScreen("  Chargement custom  ");
+    assert.equal(fixture.loadingScreenTextEl.textContent, "Chargement custom");
     assert.equal(fixture.loadingScreenEl.classList.contains("is-visible"), true);
   } finally {
     fixture.restoreWindow();
@@ -183,12 +182,11 @@ test("createProjectileTravelTween uses cubic out easing", () => {
   }
 });
 
-test("hideLoadingScreen immediate clears static pokeball class", () => {
+test("hideLoadingScreen immediate hides the loading screen", () => {
   const fixture = createFixture();
   try {
-    fixture.runtime.showLoadingScreen("Maintenance", { disablePokeballSpin: true });
+    fixture.runtime.showLoadingScreen("Chargement");
     fixture.runtime.hideLoadingScreen({ immediate: true });
-    assert.equal(fixture.loadingScreenEl.classList.contains("is-static-pokeball"), false);
     assert.equal(fixture.loadingScreenEl.classList.contains("is-hidden"), true);
   } finally {
     fixture.restoreWindow();

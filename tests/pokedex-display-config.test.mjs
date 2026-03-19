@@ -9,6 +9,9 @@ import {
   DEFAULT_POKEMON_SPRITE_VARIANT_PREFERENCE,
   POKEDEX_VARIANT_PREFERENCE_GEN_1_TO_3,
   POKEDEX_VARIANT_PREFERENCE_GEN_4,
+  TYPE_ICON_ASSET_DIR,
+  TYPE_ICON_TYPES,
+  TYPE_LABELS_FR,
 } from "../lib/pokedex-display-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,4 +30,12 @@ test("game runtime drops deprecated sprite variants during normalization and loo
 
   assert.match(source, /function normalizeSpriteVariantEntry[\s\S]*isDeprecatedSpriteVariantId\(id\)/);
   assert.match(source, /function getSpriteVariantsForDef\(def\)[\s\S]*!isDeprecatedSpriteVariantId\(entry\.id\)/);
+});
+
+test("french type labels preserve accented names and icon coverage", () => {
+  assert.equal(TYPE_ICON_ASSET_DIR, "assets/type-icons");
+  assert.equal(TYPE_ICON_TYPES.includes("fairy"), true);
+  assert.equal(TYPE_LABELS_FR.electric, "\u00c9lectrik");
+  assert.equal(TYPE_LABELS_FR.dark, "T\u00e9n\u00e8bres");
+  assert.equal(TYPE_LABELS_FR.fairy, "F\u00e9e");
 });

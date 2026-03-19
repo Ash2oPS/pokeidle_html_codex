@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   enrichRuntimeLayout,
   enrichViewportProfile,
+  isPhoneLikeViewport,
   projectWorldToStage,
   resolveProductLayoutMode,
 } from "../lib/runtime-stage-layout.js";
@@ -79,4 +80,12 @@ test("projectWorldToStage clamps to the configured world safe rect", () => {
   assert.equal(projection.stageX, 32);
   assert.equal(projection.stageY, 64);
   assert.equal(projection.clamped, true);
+});
+
+test("isPhoneLikeViewport keeps tall smartphone emulation in phone mode", () => {
+  assert.equal(isPhoneLikeViewport(810, 1620, { mobileSignal: true }), true);
+});
+
+test("isPhoneLikeViewport keeps portrait tablets out of phone mode even with mobile signal", () => {
+  assert.equal(isPhoneLikeViewport(768, 1024, { mobileSignal: true }), false);
 });

@@ -6,6 +6,7 @@
     "ghost"
   ],
   "offensive_type": "ghost",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 353,
     "name_en": "shuppet",

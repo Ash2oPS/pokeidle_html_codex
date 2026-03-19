@@ -1,10 +1,12 @@
+import { normalizeUiDisplayText } from "../../lib/text-normalization.js";
+
 const RUNTIME_UI_MOUNT_ROOT_ID = "runtime-ui-root";
 
 export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" class="game-capture-root" data-layout-mode="desktopLandscape">
     <div class="app-root">
       <main class="app-shell">
         <div id="game-stage" class="game-stage">
-          <canvas id="game-canvas" aria-label="Zone de jeu Pokemon idle"></canvas>
+          <canvas id="game-canvas" aria-label="Zone de jeu Pok&eacute;mon idle"></canvas>
           <section id="loading-screen" class="loading-screen is-visible" aria-live="polite" aria-label="Chargement">
             <div class="loading-screen-core">
               <div class="loading-pokeball" aria-hidden="true"></div>
@@ -16,19 +18,19 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           </section>
           <div id="world-ui-layer" class="world-ui-layer" aria-live="polite">
             <div id="hover-popup" class="hover-popup hidden" aria-live="polite"></div>
-            <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pokemon">
-              <div id="team-context-menu-title" class="team-context-menu-title">Pokemon</div>
+            <div id="team-context-menu" class="team-context-menu hidden" role="menu" aria-label="Actions du Pok&eacute;mon">
+              <div id="team-context-menu-title" class="team-context-menu-title">Pok&eacute;mon</div>
               <button id="team-context-menu-rename" class="team-context-menu-btn" type="button" role="menuitem">
                 Renommer
               </button>
               <button id="team-context-menu-boxes" class="team-context-menu-btn" type="button" role="menuitem">
-                Echanger avec la boite
+                &Eacute;changer avec la bo&icirc;te
               </button>
               <button id="team-context-menu-appearance" class="team-context-menu-btn" type="button" role="menuitem">
                 Changer l'apparence
               </button>
             </div>
-            <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="Reglages de capture par ball">
+            <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="R&eacute;glages de capture par ball">
               <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
               <button
                 id="ball-capture-toggle-all"
@@ -71,16 +73,16 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             <header class="ui-topbar">
               <div class="route-nav-wrap">
                 <section class="route-nav" aria-label="Navigation des zones">
-                  <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route precedente">
+                  <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route pr&eacute;c&eacute;dente">
                     <span class="btn-icon" aria-hidden="true">&#8592;</span>
                   </button>
                   <div class="route-nav-center">
                     <div class="route-nav-meta">
                       <span class="route-nav-kicker">Exploration active</span>
-                      <span class="route-nav-hint">F plein ecran</span>
+                      <span class="route-nav-hint">F plein &eacute;cran</span>
                     </div>
                     <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
-                    <div id="route-nav-progress" class="route-nav-progress">1/47 zones debloquees</div>
+                    <div id="route-nav-progress" class="route-nav-progress">1/47 zones d&eacute;bloqu&eacute;es</div>
                   </div>
                   <button id="route-next-btn" class="route-nav-btn" type="button" aria-label="Route suivante">
                     <span class="btn-icon" aria-hidden="true">&#8594;</span>
@@ -93,7 +95,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                   <span class="currency-pill-icon" aria-hidden="true">₽</span>
                   <span class="currency-pill-content">
                     <span id="money-value" class="currency-pill-value">0</span>
-                    <span class="currency-pill-caption">Pokedollars</span>
+                    <span class="currency-pill-caption">Pok&eacute;dollars</span>
                   </span>
                   <span id="money-anim-layer" class="money-anim-layer" aria-hidden="true"></span>
                 </div>
@@ -114,7 +116,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
               </aside>
             </header>
 
-            <footer class="action-dock is-temporary-disabled" aria-label="Menu principal temporairement desactive">
+            <footer class="action-dock is-temporary-disabled" aria-label="Menu principal temporairement d&eacute;sactiv&eacute;">
               <button id="map-btn" class="map-btn action-btn" type="button">
                 <span class="btn-icon" aria-hidden="true">M</span>
                 <span class="btn-label">Map</span>
@@ -153,7 +155,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
               </div>
             </footer>
 
-            <section id="action-dock-fullscreen-menu" class="action-dock-fullscreen-menu hidden" aria-label="Menu principal plein ecran">
+            <section id="action-dock-fullscreen-menu" class="action-dock-fullscreen-menu hidden" aria-label="Menu principal plein &eacute;cran">
               <div class="action-dock-fullscreen-shell">
                 <div id="action-dock-fullscreen-grid" class="action-dock-fullscreen-grid" role="menu" aria-label="Actions du menu">
                   <button class="action-dock-fullscreen-btn" type="button" data-action-kind="map" data-action-target="map-btn" role="menuitem">
@@ -182,8 +184,8 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       </svg>
                     </span>
                     <span class="action-dock-fullscreen-texts">
-                      <span class="action-dock-fullscreen-label">Pokedex</span>
-                      <span class="action-dock-fullscreen-sub">Fiches Pokemon</span>
+                      <span class="action-dock-fullscreen-label">Pok&eacute;dex</span>
+                      <span class="action-dock-fullscreen-sub">Fiches Pok&eacute;mon</span>
                     </span>
                   </button>
                   <button class="action-dock-fullscreen-btn" type="button" data-action-kind="shop" data-action-target="shop-btn" role="menuitem">
@@ -207,8 +209,8 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       </svg>
                     </span>
                     <span class="action-dock-fullscreen-texts">
-                      <span class="action-dock-fullscreen-label">Machine a Skins</span>
-                      <span class="action-dock-fullscreen-sub">Recompenses visuelles</span>
+                      <span class="action-dock-fullscreen-label">Machine &agrave; skins</span>
+                      <span class="action-dock-fullscreen-sub">R&eacute;compenses visuelles</span>
                     </span>
                   </button>
                   <button
@@ -243,8 +245,8 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       </svg>
                     </span>
                     <span class="action-dock-fullscreen-texts">
-                      <span class="action-dock-fullscreen-label">Reinitialiser la save</span>
-                      <span class="action-dock-fullscreen-sub">Action irreversible</span>
+                      <span class="action-dock-fullscreen-label">R&eacute;initialiser la save</span>
+                      <span class="action-dock-fullscreen-sub">Action irr&eacute;versible</span>
                     </span>
                   </button>
                 </div>
@@ -261,7 +263,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <div class="map-modal-header">
           <div>
             <h2 id="map-modal-title" class="map-modal-title">Carte</h2>
-            <p class="map-modal-subtitle">Clique une zone debloquee pour t'y rendre.</p>
+            <p class="map-modal-subtitle">Clique une zone d&eacute;bloqu&eacute;e pour t'y rendre.</p>
           </div>
           <button id="map-close-btn" class="map-close-btn" type="button">Fermer</button>
         </div>
@@ -283,14 +285,14 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <div class="shop-modal-header">
           <div>
             <h2 class="shop-modal-title">Shop</h2>
-            <p id="shop-modal-subtitle" class="shop-modal-subtitle">Achete des objets utiles pour progresser.</p>
+            <p id="shop-modal-subtitle" class="shop-modal-subtitle">Ach&egrave;te des objets utiles pour progresser.</p>
           </div>
           <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
         </div>
 
         <div id="shop-wallet-panel" class="shop-wallet-panel" aria-live="polite">
           <div class="shop-wallet-item">
-            <span class="shop-wallet-label">Pokedollars</span>
+            <span class="shop-wallet-label">Pok&eacute;dollars</span>
             <span id="shop-wallet-money-value" class="shop-wallet-value">0 Poke$</span>
           </div>
           <div class="shop-wallet-item">
@@ -311,12 +313,12 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             Combats
           </button>
           <button id="shop-tab-evolutions" class="shop-tab-btn" type="button" data-shop-tab="evolutions">
-            Evolutions
+            &Eacute;volutions
           </button>
         </div>
 
         <div id="shop-pokeball-qty-panel" class="shop-qty-panel">
-          <div class="shop-qty-label">Quantite a acheter</div>
+          <div class="shop-qty-label">Quantit&eacute; &agrave; acheter</div>
           <div class="shop-qty-presets">
             <button class="shop-qty-btn is-active" type="button" data-shop-qty="1">x1</button>
             <button class="shop-qty-btn" type="button" data-shop-qty="5">x5</button>
@@ -341,7 +343,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <div class="gacha-header">
           <div>
             <h2 class="gacha-title">Machine Gacha Skins</h2>
-            <p id="gacha-subtitle" class="gacha-subtitle">Capsules en silhouettes noires. Le skin obtenu est revele uniquement a la fin du tirage.</p>
+            <p id="gacha-subtitle" class="gacha-subtitle">Capsules en silhouettes noires. Le skin obtenu est r&eacute;v&eacute;l&eacute; uniquement &agrave; la fin du tirage.</p>
           </div>
           <button id="gacha-close-btn" class="gacha-close-btn" type="button">Fermer</button>
         </div>
@@ -373,7 +375,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <p id="gacha-status" class="gacha-status" aria-live="polite"></p>
 
         <div id="gacha-result" class="gacha-result hidden">
-          <div id="gacha-result-kicker" class="gacha-result-kicker">Nouveau skin debloque</div>
+          <div id="gacha-result-kicker" class="gacha-result-kicker">Nouveau skin d&eacute;bloqu&eacute;</div>
           <div id="gacha-result-name" class="gacha-result-name">-</div>
           <div id="gacha-result-skin" class="gacha-result-skin">-</div>
           <div id="gacha-result-preview" class="gacha-result-preview"></div>
@@ -381,7 +383,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         </div>
 
         <div class="gacha-spin-buttons">
-          <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin aleatoire (10 Coins)</button>
+          <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin al&eacute;atoire (10 Coins)</button>
           <button id="gacha-spin-10-btn" class="gacha-spin-btn gacha-spin-btn-batch" type="button">Obtenir 10 skins (100 Coins)</button>
         </div>
       </div>
@@ -392,14 +394,14 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       class="evolution-item-modal hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Choix de l'evolution"
+      aria-label="Choix de l'&eacute;volution"
     >
       <div class="evolution-item-card">
         <div class="evolution-item-header">
           <div>
-            <h2 id="evolution-item-title" class="evolution-item-title">Objet d'evolution</h2>
+            <h2 id="evolution-item-title" class="evolution-item-title">Objet d'&eacute;volution</h2>
             <p id="evolution-item-subtitle" class="evolution-item-subtitle">
-              Choisis un Pokemon compatible.
+              Choisis un Pok&eacute;mon compatible.
             </p>
           </div>
           <button id="evolution-item-close-btn" class="evolution-item-close-btn" type="button">Annuler</button>
@@ -408,12 +410,12 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       </div>
     </section>
 
-    <section id="boxes-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Boites Pokemon">
+    <section id="boxes-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Bo&icirc;tes Pok&eacute;mon">
       <div class="boxes-card">
         <div class="boxes-header">
           <div>
-            <h2 class="boxes-title">Boites</h2>
-            <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pokemon pour remplacer ton slot d'equipe.</p>
+            <h2 class="boxes-title">Bo&icirc;tes</h2>
+            <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pok&eacute;mon pour remplacer ton slot d'&eacute;quipe.</p>
             <p id="boxes-shiny-counter" class="boxes-shiny-counter">Captures shiny (global): 0</p>
           </div>
           <button id="boxes-close-btn" class="boxes-close-btn" type="button">Fermer</button>
@@ -421,7 +423,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <div class="boxes-layout">
           <div id="boxes-grid" class="boxes-grid"></div>
           <aside id="boxes-info-panel" class="boxes-info-panel">
-            Survole un Pokemon de la boite pour voir ses infos detaillees.
+            Survole un Pok&eacute;mon de la bo&icirc;te pour voir ses infos d&eacute;taill&eacute;es.
           </aside>
         </div>
       </div>
@@ -433,10 +435,10 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           <div class="pokedex-header-copy">
             <h2 class="boxes-title">Pokédex</h2>
             <p id="pokedex-subtitle" class="boxes-subtitle">Toutes les espèces du jeu.</p>
-            <p id="pokedex-global-completion" class="pokedex-global-completion">
-              Complétion générale du Pokédex: 0%.
-            </p>
             <div id="pokedex-counter" class="pokedex-header-stats" aria-live="polite">
+              <p id="pokedex-global-completion" class="pokedex-global-completion">
+                Complétion générale du Pokédex: 0%.
+              </p>
               <p id="pokedex-stat-encountered" class="pokedex-header-stat">
                 Espèces rencontrées: 0 sur 0 (0%).
               </p>
@@ -467,13 +469,13 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       class="appearance-modal hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Apparence du Pokemon"
+      aria-label="Apparence du Pok&eacute;mon"
     >
       <div class="appearance-card">
         <div class="appearance-header">
           <div>
             <h2 id="appearance-title" class="appearance-title">Apparence</h2>
-            <p id="appearance-subtitle" class="appearance-subtitle">Choisis un sprite pour ce Pokemon.</p>
+            <p id="appearance-subtitle" class="appearance-subtitle">Choisis un sprite pour ce Pok&eacute;mon.</p>
           </div>
           <button id="appearance-close-btn" class="appearance-close-btn" type="button">Fermer</button>
         </div>
@@ -491,7 +493,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             </button>
           </div>
           <span id="appearance-shiny-status" class="appearance-shiny-status">
-            Capture un shiny de la famille evolutive pour debloquer ce mode.
+            Capture un shiny de la famille &eacute;volutive pour d&eacute;bloquer ce mode.
           </span>
         </div>
         <div id="appearance-grid" class="appearance-grid"></div>
@@ -531,7 +533,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       <div class="starter-modal-card">
         <h1 class="starter-title">Choisis ton starter</h1>
         <p class="starter-subtitle">
-          Tu commences sans equipe. Prends un Pokemon niveau 1 pour debuter Route 1.
+          Tu commences sans &eacute;quipe. Prends un Pok&eacute;mon niveau 1 pour d&eacute;buter Route 1.
         </p>
         <div id="starter-choices" class="starter-choices"></div>
       </div>
@@ -548,7 +550,7 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
         <div class="rename-header">
           <div>
             <h2 id="rename-title" class="rename-title">Renommer</h2>
-            <p id="rename-subtitle" class="rename-subtitle">Choisis un surnom pour ton Pokemon.</p>
+            <p id="rename-subtitle" class="rename-subtitle">Choisis un surnom pour ton Pok&eacute;mon.</p>
           </div>
           <button id="rename-close-btn" class="rename-close-btn" type="button">Annuler</button>
         </div>
@@ -561,11 +563,11 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             inputmode="text"
             autocomplete="off"
             maxlength="14"
-            placeholder="Nom du Pokemon"
+            placeholder="Nom du Pok&eacute;mon"
           />
           <div class="rename-meta">
             <span id="rename-char-count" class="rename-char-count">0/14</span>
-            <span class="rename-hint">14 caracteres max. Vide = nom d'origine pour la famille.</span>
+            <span class="rename-hint">14 caract&egrave;res max. Vide = nom d'origine pour la famille.</span>
           </div>
           <div class="rename-actions">
             <button id="rename-reset-btn" class="rename-action-btn is-secondary" type="button">
@@ -961,7 +963,7 @@ export function mountRuntimeUi(documentRef = typeof document !== "undefined" ? d
   }
 
   const mountRoot = ensureMountRoot(documentRef, options.mountRootId || RUNTIME_UI_MOUNT_ROOT_ID);
-  mountRoot.innerHTML = RUNTIME_UI_TEMPLATE_HTML;
+  mountRoot.innerHTML = normalizeUiDisplayText(RUNTIME_UI_TEMPLATE_HTML, { frenchTypography: true });
   const uiDom = resolveRuntimeUiDomRefs(documentRef);
 
   if (options.assertInvariants !== false) {

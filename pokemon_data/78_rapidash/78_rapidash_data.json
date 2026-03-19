@@ -6,6 +6,7 @@
     "fire"
   ],
   "offensive_type": "fire",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 77,
     "name_en": "ponyta",

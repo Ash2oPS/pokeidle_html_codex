@@ -7,6 +7,7 @@
     "ground"
   ],
   "offensive_type": "steel",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 95,
     "name_en": "onix",

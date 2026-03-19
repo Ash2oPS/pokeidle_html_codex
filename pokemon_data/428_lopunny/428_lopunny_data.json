@@ -6,6 +6,7 @@
     "normal"
   ],
   "offensive_type": "normal",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 427,
     "name_en": "buneary",

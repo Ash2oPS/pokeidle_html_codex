@@ -1,6 +1,7 @@
 import {
   enrichRuntimeLayout,
   enrichViewportProfile,
+  isPhoneLikeViewport,
   resolveProductLayoutMode,
 } from '../../lib/runtime-stage-layout.js';
 
@@ -28,6 +29,66 @@ function getRuntimeSystemBindings(options = {}) {
     });
   }
   return scope;
+}
+
+export function computeSpriteOpaqueDrawPlacement({
+  renderSize = 0,
+  sourceWidth = 1,
+  sourceHeight = 1,
+  opaqueMinX = 0,
+  opaqueMinY = 0,
+  opaqueWidth = sourceWidth,
+  opaqueHeight = sourceHeight,
+} = {}) {
+  const safeRenderSize = Math.max(0, Number(renderSize) || 0);
+  const safeSourceWidth = Math.max(1, Number(sourceWidth) || 1);
+  const safeSourceHeight = Math.max(1, Number(sourceHeight) || 1);
+  const safeOpaqueMinX = Math.min(
+    safeSourceWidth - 1,
+    Math.max(0, Math.round(Number(opaqueMinX) || 0)),
+  );
+  const safeOpaqueMinY = Math.min(
+    safeSourceHeight - 1,
+    Math.max(0, Math.round(Number(opaqueMinY) || 0)),
+  );
+  const safeOpaqueWidth = Math.min(
+    safeSourceWidth - safeOpaqueMinX,
+    Math.max(1, Math.round(Number(opaqueWidth) || safeSourceWidth)),
+  );
+  const safeOpaqueHeight = Math.min(
+    safeSourceHeight - safeOpaqueMinY,
+    Math.max(1, Math.round(Number(opaqueHeight) || safeSourceHeight)),
+  );
+  const ratio = safeSourceWidth / Math.max(safeSourceHeight, 1);
+  let drawWidth = safeRenderSize;
+  let drawHeight = safeRenderSize;
+  if (ratio > 1) {
+    drawHeight = safeRenderSize / ratio;
+  } else {
+    drawWidth = safeRenderSize * ratio;
+  }
+
+  const imageCenterX = safeSourceWidth * 0.5;
+  const imageCenterY = safeSourceHeight * 0.5;
+  const opaqueCenterX = safeOpaqueMinX + safeOpaqueWidth * 0.5;
+  const opaqueCenterY = safeOpaqueMinY + safeOpaqueHeight * 0.5;
+  const centerOffsetX = ((imageCenterX - opaqueCenterX) / safeSourceWidth) * drawWidth;
+  const centerOffsetY = ((imageCenterY - opaqueCenterY) / safeSourceHeight) * drawHeight;
+  const drawX = -drawWidth * 0.5 + centerOffsetX;
+  const drawY = -drawHeight * 0.5 + centerOffsetY;
+  const visibleWidth = drawWidth * (safeOpaqueWidth / safeSourceWidth);
+  const visibleHeight = drawHeight * (safeOpaqueHeight / safeSourceHeight);
+  const visibleBottomY = drawY + ((safeOpaqueMinY + safeOpaqueHeight) / safeSourceHeight) * drawHeight;
+
+  return {
+    drawWidth,
+    drawHeight,
+    drawX,
+    drawY,
+    visibleWidth,
+    visibleHeight,
+    visibleBottomY,
+  };
 }
 
 export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
@@ -289,6 +350,18 @@ export function createRuntimeRenderSystem(options = {}) {
     undefined,
     window
   } = scope;
+const laserCurvePointBuffer = [];
+const laserRibbonPointBuffer = [];
+const laserMirrorRibbonPointBuffer = [];
+const laserRenderBudgetScratch = {};
+const laserVisibleSegmentScratch = {};
+
+function getReusableLaserPoint(buffer, index) {
+  if (!buffer[index]) {
+    buffer[index] = { x: 0, y: 0, offset: 0 };
+  }
+  return buffer[index];
+}
 
 function getBattleViewportProfile(width, height) {
   const safeWidth = Math.max(1, Number(width) || 0);
@@ -296,12 +369,8 @@ function getBattleViewportProfile(width, height) {
   const portrait = safeHeight > safeWidth * 1.05;
   const coarsePointer = isCoarsePointerDevice();
   const runtimeSmartphone = typeof isLikelySmartphoneBrowser === "function" && isLikelySmartphoneBrowser();
-  const minSide = Math.min(safeWidth, safeHeight);
-  const maxSide = Math.max(safeWidth, safeHeight);
   const compact = coarsePointer || runtimeSmartphone || safeWidth <= 900 || safeHeight <= 640;
-  const phoneLikeViewport = minSide <= 500
-    || (portrait && safeWidth <= 620 && safeHeight <= 1180)
-    || (runtimeSmartphone && minSide <= 640 && maxSide <= 1280);
+  const phoneLikeViewport = isPhoneLikeViewport(safeWidth, safeHeight, { mobileSignal: runtimeSmartphone });
   const phone = compact && phoneLikeViewport;
   return {
     coarsePointer,
@@ -1715,19 +1784,17 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   let predictedShadowCenterY = renderSize * 0.5;
   if (isDrawableImage(spriteImage)) {
     const predictedDims = getDrawableImageDimensions(spriteImage);
-    const predictedWidth = predictedDims.width;
-    const predictedHeight = predictedDims.height;
-    const predictedRatio = predictedWidth / Math.max(predictedHeight, 1);
-    let predictedDrawWidth = snapSpriteDimension(renderSize);
-    let predictedDrawHeight = snapSpriteDimension(renderSize);
-    if (predictedRatio > 1) {
-      predictedDrawHeight = snapSpriteDimension(renderSize / predictedRatio);
-    } else {
-      predictedDrawWidth = snapSpriteDimension(renderSize * predictedRatio);
-    }
-    predictedShadowSize = Math.max(predictedDrawWidth, predictedDrawHeight);
-    const predictedDrawY = snapSpriteValue(-predictedDrawHeight * 0.5);
-    predictedShadowCenterY = predictedDrawY + predictedDrawHeight;
+    const predictedPlacement = computeSpriteOpaqueDrawPlacement({
+      renderSize,
+      sourceWidth: predictedDims.width,
+      sourceHeight: predictedDims.height,
+      opaqueMinX: resolvedSpriteSource?.opaqueMinX,
+      opaqueMinY: resolvedSpriteSource?.opaqueMinY,
+      opaqueWidth: resolvedSpriteSource?.opaqueWidth,
+      opaqueHeight: resolvedSpriteSource?.opaqueHeight,
+    });
+    predictedShadowSize = Math.max(predictedPlacement.visibleWidth, predictedPlacement.visibleHeight);
+    predictedShadowCenterY = predictedPlacement.visibleBottomY;
   } else {
     predictedShadowSize = renderSize * 0.6;
     predictedShadowCenterY = renderSize * 0.3;
@@ -1746,20 +1813,21 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
 
   if (isDrawableImage(spriteImage)) {
     const dims = getDrawableImageDimensions(spriteImage);
-    const sourceWidth = dims.width;
-    const sourceHeight = dims.height;
-    const ratio = sourceWidth / Math.max(sourceHeight, 1);
-    let drawWidth = snapSpriteDimension(renderSize);
-    let drawHeight = snapSpriteDimension(renderSize);
-    if (ratio > 1) {
-      drawHeight = snapSpriteDimension(renderSize / ratio);
-    } else {
-      drawWidth = snapSpriteDimension(renderSize * ratio);
-    }
+    const placement = computeSpriteOpaqueDrawPlacement({
+      renderSize,
+      sourceWidth: dims.width,
+      sourceHeight: dims.height,
+      opaqueMinX: resolvedSpriteSource?.opaqueMinX,
+      opaqueMinY: resolvedSpriteSource?.opaqueMinY,
+      opaqueWidth: resolvedSpriteSource?.opaqueWidth,
+      opaqueHeight: resolvedSpriteSource?.opaqueHeight,
+    });
+    const drawWidth = snapSpriteDimension(placement.drawWidth);
+    const drawHeight = snapSpriteDimension(placement.drawHeight);
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
-    spriteDrawX = snapSpriteValue(-drawWidth * 0.5);
-    spriteDrawY = snapSpriteValue(-drawHeight * 0.5);
+    spriteDrawX = snapSpriteValue(placement.drawX);
+    spriteDrawY = snapSpriteValue(placement.drawY);
     spriteDrawWidth = drawWidth;
     spriteDrawHeight = drawHeight;
     spriteUsedImage = true;
@@ -2542,7 +2610,7 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
     unlockProgressState.unlockMode === "defeats" &&
     unlockProgressState.unlockTarget > 0;
   const defeatCounterText = showDefeatCounter
-    ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pokemon battus`
+    ? `${formatCompactNumber(unlockProgressState.currentDefeats)} / ${formatCompactNumber(unlockProgressState.unlockTarget)} Pok\u00e9mon battus`
     : "";
   const remainingMs = Math.max(0, Number(timerState.remaining_ms) || 0);
   const remainingSeconds = Math.max(0, remainingMs / 1000);
@@ -3553,13 +3621,13 @@ function getLaserOffsetAtT(t, timeMs, phase, profile) {
   return offset;
 }
 
-function sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, profile, t) {
+function sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, profile, t, output = null) {
   const offset = getLaserOffsetAtT(t, timeMs, phase, profile);
-  return {
-    x: sourceX + (targetX - sourceX) * t + normalX * offset,
-    y: sourceY + (targetY - sourceY) * t + normalY * offset,
-    offset,
-  };
+  const point = output || { x: 0, y: 0, offset: 0 };
+  point.x = sourceX + (targetX - sourceX) * t + normalX * offset;
+  point.y = sourceY + (targetY - sourceY) * t + normalY * offset;
+  point.offset = offset;
+  return point;
 }
 
 function traceLaserCurve(points) {
@@ -3764,164 +3832,247 @@ function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profi
   return true;
 }
 
-function getLaserRenderBudget(qualityKey, laserCount, distance) {
-  const safeLaserCount = Math.max(1, Number(laserCount) || 1);
-  const crowdPenalty = safeLaserCount >= 5 ? 2 : safeLaserCount >= 3 ? 1 : 0;
-  const packedCrowd = safeLaserCount >= 4;
-  const crowded = safeLaserCount >= 5;
+function drawLaserContrastSegment(sourceX, sourceY, targetX, targetY, haloWidth, coreWidth, profile, pulse, flowPulse) {
+  const contrastHaloRgb = blendRgb(profile.accentRgb, [8, 12, 22], 0.84);
+  const contrastCoreRgb = blendRgb(profile.fringeRgb, [10, 16, 28], 0.76);
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.setLineDash([]);
+  ctx.strokeStyle = rgba(contrastHaloRgb, 0.14 + pulse * 0.04);
+  ctx.lineWidth = Math.max(2.2, haloWidth * 0.52);
+  traceLaserSegment(sourceX, sourceY, targetX, targetY);
+  ctx.stroke();
+  ctx.strokeStyle = rgba(contrastCoreRgb, 0.2 + flowPulse * 0.04);
+  ctx.lineWidth = Math.max(1.2, coreWidth * 0.92);
+  traceLaserSegment(sourceX, sourceY, targetX, targetY);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLaserContrastCurve(points, haloWidth, coreWidth, profile, pulse, flowPulse) {
+  const contrastHaloRgb = blendRgb(profile.accentRgb, [8, 12, 22], 0.84);
+  const contrastCoreRgb = blendRgb(profile.fringeRgb, [10, 16, 28], 0.76);
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.setLineDash([]);
+  ctx.strokeStyle = rgba(contrastHaloRgb, 0.16 + pulse * 0.04);
+  ctx.lineWidth = Math.max(2.4, haloWidth * 0.54);
+  traceLaserCurve(points);
+  ctx.stroke();
+  ctx.strokeStyle = rgba(contrastCoreRgb, 0.22 + flowPulse * 0.04);
+  ctx.lineWidth = Math.max(1.3, coreWidth * 0.96);
+  traceLaserCurve(points);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function getLaserRenderBudget(qualityKey, distance) {
+  const safeDistance = Math.max(0, Number(distance) || 0);
+  const budget = laserRenderBudgetScratch;
   switch (String(qualityKey || "medium")) {
     case "very_low":
-      return {
-        simple: true,
-        curved: false,
-        segmentDivisor: 999,
-        minSegments: 1,
-        maxSegments: 1,
-        waveAmplitudeMul: 0,
-        secondaryWaveMul: 0,
-        jaggednessMul: 0,
-        ribbonEnabled: false,
-        ribbonAlphaMul: 0,
-        beamParticles: 0,
-        sourceParticles: 0,
-        impactParticles: 0,
-        impactRayCountMax: 0,
-        useLinearGradients: false,
-        useRadialGradients: false,
-        useShadowBlur: false,
-        shadowBlurMul: 0,
-        useSheath: false,
-        useFilament: false,
-        composite: "source-over",
-        widthMul: crowded ? 0.68 : 0.78,
-        sourceGlowScale: 0.72,
-        impactGlowScale: 0.78,
-        electricDash: false,
-        renderImpactRing: false,
-        renderEndpoints: false,
-      };
+      budget.simple = true;
+      budget.curved = false;
+      budget.segmentDivisor = 999;
+      budget.minSegments = 1;
+      budget.maxSegments = 1;
+      budget.waveAmplitudeMul = 0;
+      budget.secondaryWaveMul = 0;
+      budget.jaggednessMul = 0;
+      budget.ribbonEnabled = false;
+      budget.ribbonAlphaMul = 0;
+      budget.beamParticles = 0;
+      budget.sourceParticles = 0;
+      budget.impactParticles = 0;
+      budget.impactRayCountMax = 0;
+      budget.useLinearGradients = false;
+      budget.useRadialGradients = false;
+      budget.useShadowBlur = false;
+      budget.shadowBlurMul = 0;
+      budget.useSheath = false;
+      budget.useFilament = false;
+      budget.composite = "source-over";
+      budget.widthMul = 0.78;
+      budget.sourceGlowScale = 0.72;
+      budget.impactGlowScale = 0.78;
+      budget.electricDash = false;
+      budget.renderImpactRing = false;
+      budget.renderEndpoints = false;
+      budget.preferPackedBeam = true;
+      return budget;
     case "low":
-      return {
-        simple: true,
-        curved: false,
-        segmentDivisor: 84,
-        minSegments: 1,
-        maxSegments: 1,
-        waveAmplitudeMul: crowded ? 0 : 0.18,
-        secondaryWaveMul: crowded ? 0 : 0.1,
-        jaggednessMul: crowded ? 0 : 0.2,
-        ribbonEnabled: false,
-        ribbonAlphaMul: 0,
-        beamParticles: safeLaserCount === 1 && distance > 120 ? 1 : 0,
-        sourceParticles: 0,
-        impactParticles: 0,
-        impactRayCountMax: 0,
-        useLinearGradients: false,
-        useRadialGradients: false,
-        useShadowBlur: false,
-        shadowBlurMul: 0,
-        useSheath: false,
-        useFilament: false,
-        composite: packedCrowd ? "source-over" : "lighter",
-        widthMul: crowded ? 0.74 : 0.82,
-        sourceGlowScale: 0.8,
-        impactGlowScale: 0.84,
-        electricDash: safeLaserCount <= 2,
-        renderImpactRing: false,
-        renderEndpoints: safeLaserCount <= 2,
-      };
+      budget.simple = true;
+      budget.curved = false;
+      budget.segmentDivisor = 84;
+      budget.minSegments = 1;
+      budget.maxSegments = 1;
+      budget.waveAmplitudeMul = 0.18;
+      budget.secondaryWaveMul = 0.1;
+      budget.jaggednessMul = 0.2;
+      budget.ribbonEnabled = false;
+      budget.ribbonAlphaMul = 0;
+      budget.beamParticles = safeDistance > 120 ? 1 : 0;
+      budget.sourceParticles = 0;
+      budget.impactParticles = 0;
+      budget.impactRayCountMax = 0;
+      budget.useLinearGradients = false;
+      budget.useRadialGradients = false;
+      budget.useShadowBlur = false;
+      budget.shadowBlurMul = 0;
+      budget.useSheath = false;
+      budget.useFilament = false;
+      budget.composite = "lighter";
+      budget.widthMul = 0.82;
+      budget.sourceGlowScale = 0.8;
+      budget.impactGlowScale = 0.84;
+      budget.electricDash = true;
+      budget.renderImpactRing = false;
+      budget.renderEndpoints = true;
+      budget.preferPackedBeam = false;
+      return budget;
     case "medium":
-      return {
-        simple: packedCrowd || distance <= 110,
-        curved: !packedCrowd && distance > 110,
-        segmentDivisor: 52 + crowdPenalty * 10,
-        minSegments: packedCrowd ? 1 : 4,
-        maxSegments: packedCrowd ? 1 : Math.max(4, 8 - crowdPenalty),
-        waveAmplitudeMul: packedCrowd ? 0.14 : 0.56,
-        secondaryWaveMul: packedCrowd ? 0.08 : 0.38,
-        jaggednessMul: packedCrowd ? 0.16 : 0.75,
-        ribbonEnabled: !packedCrowd && safeLaserCount <= 2,
-        ribbonAlphaMul: 0.65,
-        beamParticles: packedCrowd ? 0 : Math.max(1, 3 - crowdPenalty),
-        sourceParticles: packedCrowd ? 0 : Math.max(1, 2 - crowdPenalty),
-        impactParticles: packedCrowd ? 0 : Math.max(1, 2 - crowdPenalty),
-        impactRayCountMax: packedCrowd ? 0 : 3,
-        useLinearGradients: !packedCrowd,
-        useRadialGradients: false,
-        useShadowBlur: !packedCrowd && safeLaserCount <= 2,
-        shadowBlurMul: 0.28,
-        useSheath: !packedCrowd,
-        useFilament: !packedCrowd,
-        composite: packedCrowd ? "source-over" : "lighter",
-        widthMul: packedCrowd ? 0.82 : 0.94,
-        sourceGlowScale: packedCrowd ? 0.84 : 0.96,
-        impactGlowScale: packedCrowd ? 0.88 : 0.98,
-        electricDash: !packedCrowd,
-        renderImpactRing: !packedCrowd,
-        renderEndpoints: !crowded,
-      };
+      budget.simple = safeDistance <= 110;
+      budget.curved = !budget.simple;
+      budget.segmentDivisor = 52;
+      budget.minSegments = budget.simple ? 1 : 4;
+      budget.maxSegments = budget.simple ? 1 : 8;
+      budget.waveAmplitudeMul = budget.simple ? 0.14 : 0.56;
+      budget.secondaryWaveMul = budget.simple ? 0.08 : 0.38;
+      budget.jaggednessMul = budget.simple ? 0.16 : 0.75;
+      budget.ribbonEnabled = !budget.simple;
+      budget.ribbonAlphaMul = 0.65;
+      budget.beamParticles = budget.simple ? 0 : 2;
+      budget.sourceParticles = budget.simple ? 0 : 1;
+      budget.impactParticles = budget.simple ? 0 : 1;
+      budget.impactRayCountMax = budget.simple ? 0 : 3;
+      budget.useLinearGradients = !budget.simple;
+      budget.useRadialGradients = false;
+      budget.useShadowBlur = !budget.simple;
+      budget.shadowBlurMul = 0.28;
+      budget.useSheath = !budget.simple;
+      budget.useFilament = !budget.simple;
+      budget.composite = "lighter";
+      budget.widthMul = budget.simple ? 0.82 : 0.94;
+      budget.sourceGlowScale = budget.simple ? 0.84 : 0.96;
+      budget.impactGlowScale = budget.simple ? 0.88 : 0.98;
+      budget.electricDash = true;
+      budget.renderImpactRing = !budget.simple;
+      budget.renderEndpoints = true;
+      budget.preferPackedBeam = false;
+      return budget;
     case "high":
-      return {
-        simple: packedCrowd,
-        curved: !packedCrowd,
-        segmentDivisor: 34 + crowdPenalty * 6,
-        minSegments: packedCrowd ? 1 : 5,
-        maxSegments: packedCrowd ? 1 : Math.max(5, 11 - crowdPenalty),
-        waveAmplitudeMul: packedCrowd ? 0.18 : 0.82,
-        secondaryWaveMul: packedCrowd ? 0.1 : 0.7,
-        jaggednessMul: packedCrowd ? 0.2 : 0.9,
-        ribbonEnabled: !packedCrowd && safeLaserCount <= 3,
-        ribbonAlphaMul: 0.88,
-        beamParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
-        sourceParticles: packedCrowd ? 0 : Math.max(1, 3 - crowdPenalty),
-        impactParticles: packedCrowd ? 0 : Math.max(2, 3 - crowdPenalty),
-        impactRayCountMax: packedCrowd ? 0 : 5,
-        useLinearGradients: !packedCrowd,
-        useRadialGradients: !packedCrowd && safeLaserCount <= 2,
-        useShadowBlur: !packedCrowd,
-        shadowBlurMul: 0.62,
-        useSheath: !packedCrowd,
-        useFilament: !packedCrowd,
-        composite: packedCrowd ? "source-over" : "lighter",
-        widthMul: packedCrowd ? 0.84 : 1,
-        sourceGlowScale: packedCrowd ? 0.86 : 1,
-        impactGlowScale: packedCrowd ? 0.9 : 1,
-        electricDash: !packedCrowd,
-        renderImpactRing: !packedCrowd,
-        renderEndpoints: !crowded,
-      };
+      budget.simple = false;
+      budget.curved = true;
+      budget.segmentDivisor = 34;
+      budget.minSegments = 5;
+      budget.maxSegments = 11;
+      budget.waveAmplitudeMul = 0.82;
+      budget.secondaryWaveMul = 0.7;
+      budget.jaggednessMul = 0.9;
+      budget.ribbonEnabled = true;
+      budget.ribbonAlphaMul = 0.88;
+      budget.beamParticles = 3;
+      budget.sourceParticles = 2;
+      budget.impactParticles = 2;
+      budget.impactRayCountMax = 5;
+      budget.useLinearGradients = true;
+      budget.useRadialGradients = true;
+      budget.useShadowBlur = true;
+      budget.shadowBlurMul = 0.62;
+      budget.useSheath = true;
+      budget.useFilament = true;
+      budget.composite = "lighter";
+      budget.widthMul = 1;
+      budget.sourceGlowScale = 1;
+      budget.impactGlowScale = 1;
+      budget.electricDash = true;
+      budget.renderImpactRing = true;
+      budget.renderEndpoints = true;
+      budget.preferPackedBeam = false;
+      return budget;
     case "ultra":
     default:
-      return {
-        simple: packedCrowd,
-        curved: !packedCrowd,
-        segmentDivisor: 24 + crowdPenalty * 4,
-        minSegments: packedCrowd ? 1 : 6,
-        maxSegments: packedCrowd ? 1 : Math.max(6, 14 - crowdPenalty),
-        waveAmplitudeMul: packedCrowd ? 0.2 : 1,
-        secondaryWaveMul: packedCrowd ? 0.12 : 1,
-        jaggednessMul: packedCrowd ? 0.24 : 1,
-        ribbonEnabled: !packedCrowd,
-        ribbonAlphaMul: 1,
-        beamParticles: packedCrowd ? 0 : Math.max(3, 5 - crowdPenalty),
-        sourceParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
-        impactParticles: packedCrowd ? 0 : Math.max(2, 4 - crowdPenalty),
-        impactRayCountMax: packedCrowd ? 0 : 7,
-        useLinearGradients: !packedCrowd,
-        useRadialGradients: !packedCrowd,
-        useShadowBlur: !packedCrowd,
-        shadowBlurMul: 1,
-        useSheath: !packedCrowd,
-        useFilament: !packedCrowd,
-        composite: packedCrowd ? "source-over" : "lighter",
-        widthMul: packedCrowd ? 0.88 : 1.04,
-        sourceGlowScale: packedCrowd ? 0.88 : 1.02,
-        impactGlowScale: packedCrowd ? 0.92 : 1.02,
-        electricDash: !packedCrowd,
-        renderImpactRing: !packedCrowd,
-        renderEndpoints: !crowded,
-      };
+      budget.simple = false;
+      budget.curved = true;
+      budget.segmentDivisor = 24;
+      budget.minSegments = 6;
+      budget.maxSegments = 14;
+      budget.waveAmplitudeMul = 1;
+      budget.secondaryWaveMul = 1;
+      budget.jaggednessMul = 1;
+      budget.ribbonEnabled = true;
+      budget.ribbonAlphaMul = 1;
+      budget.beamParticles = 4;
+      budget.sourceParticles = 3;
+      budget.impactParticles = 3;
+      budget.impactRayCountMax = 7;
+      budget.useLinearGradients = true;
+      budget.useRadialGradients = true;
+      budget.useShadowBlur = true;
+      budget.shadowBlurMul = 1;
+      budget.useSheath = true;
+      budget.useFilament = true;
+      budget.composite = "lighter";
+      budget.widthMul = 1.04;
+      budget.sourceGlowScale = 1.02;
+      budget.impactGlowScale = 1.02;
+      budget.electricDash = true;
+      budget.renderImpactRing = true;
+      budget.renderEndpoints = true;
+      budget.preferPackedBeam = false;
+      return budget;
   }
+}
+
+function getVisibleLaserSegment(laser) {
+  const sourceX = Number(laser?.sourceX || 0);
+  const sourceY = Number(laser?.sourceY || 0);
+  const targetX = Number(laser?.targetX || 0);
+  const targetY = Number(laser?.targetY || 0);
+  const rawDx = targetX - sourceX;
+  const rawDy = targetY - sourceY;
+  const rawDistance = Math.hypot(rawDx, rawDy);
+  if (rawDistance <= 0.01) {
+    return null;
+  }
+  let sourceInset = Math.max(0, Number(laser?.visualSourceInsetPx) || 0);
+  let targetInset = Math.max(0, Number(laser?.visualTargetInsetPx) || 0);
+  const maxInsetTotal = Math.max(0, rawDistance - 6);
+  const requestedInsetTotal = sourceInset + targetInset;
+  if (requestedInsetTotal > maxInsetTotal && requestedInsetTotal > 0.001) {
+    const insetScale = maxInsetTotal / requestedInsetTotal;
+    sourceInset *= insetScale;
+    targetInset *= insetScale;
+  }
+  const rawUnitX = rawDx / rawDistance;
+  const rawUnitY = rawDy / rawDistance;
+  const visibleSourceX = sourceX + rawUnitX * sourceInset;
+  const visibleSourceY = sourceY + rawUnitY * sourceInset;
+  const visibleTargetX = targetX - rawUnitX * targetInset;
+  const visibleTargetY = targetY - rawUnitY * targetInset;
+  const visibleDx = visibleTargetX - visibleSourceX;
+  const visibleDy = visibleTargetY - visibleSourceY;
+  const visibleDistance = Math.hypot(visibleDx, visibleDy);
+  if (visibleDistance <= 0.01) {
+    return null;
+  }
+  const segment = laserVisibleSegmentScratch;
+  segment.sourceX = visibleSourceX;
+  segment.sourceY = visibleSourceY;
+  segment.targetX = visibleTargetX;
+  segment.targetY = visibleTargetY;
+  segment.dx = visibleDx;
+  segment.dy = visibleDy;
+  segment.distance = visibleDistance;
+  segment.unitX = visibleDx / visibleDistance;
+  segment.unitY = visibleDy / visibleDistance;
+  segment.normalX = -visibleDy / visibleDistance;
+  segment.normalY = visibleDx / visibleDistance;
+  return segment;
 }
 
 function drawLasers(lasers) {
@@ -3931,36 +4082,40 @@ function drawLasers(lasers) {
   }
   const timeMs = Math.max(0, Number(state.timeMs) || 0);
   const qualityKey = String(state.performance?.quality || "medium");
-  const activeLaserCount = laserList.length;
   for (const laser of laserList) {
-    const sourceX = Number(laser?.sourceX || 0);
-    const sourceY = Number(laser?.sourceY || 0);
-    const targetX = Number(laser?.targetX || 0);
-    const targetY = Number(laser?.targetY || 0);
-    const dx = targetX - sourceX;
-    const dy = targetY - sourceY;
-    const distance = Math.hypot(dx, dy);
-    if (distance <= 0.01) {
+    const visibleSegment = getVisibleLaserSegment(laser);
+    if (!visibleSegment) {
       continue;
     }
+    const {
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      dx,
+      dy,
+      distance,
+      unitX,
+      unitY,
+      normalX,
+      normalY,
+    } = visibleSegment;
     const phase = Number(laser?.phaseOffset || 0);
     const pulse = 0.5 + 0.5 * Math.sin(timeMs * 0.011 + phase);
     const flowPulse = 0.5 + 0.5 * Math.sin(timeMs * 0.0065 + phase * 1.9);
-    const unitX = dx / distance;
-    const unitY = dy / distance;
-    const normalX = -dy / distance;
-    const normalY = dx / distance;
+    const baseAngle = Math.atan2(unitY, unitX);
     const profile = getLaserVisualProfile(laser?.attackType || "normal", pulse, distance);
-    const budget = getLaserRenderBudget(qualityKey, activeLaserCount, distance);
+    const budget = getLaserRenderBudget(qualityKey, distance);
     const haloWidth = clamp((6.2 + distance * 0.008 + pulse * 2.6) * profile.widthBoost * budget.widthMul, 4.8, 20);
     const coreWidth = Math.max(1.8, haloWidth * 0.24 + profile.coreBoost);
     const sourceRadius = Math.max(3.2, coreWidth * (1.26 + profile.sourceGlowBoost * 0.24) * budget.sourceGlowScale);
     const impactRadius = Math.max(4.2, coreWidth * (1.55 + profile.impactGlowBoost * 0.28) * budget.impactGlowScale);
 
     if (budget.simple) {
-      if (activeLaserCount >= 4 && drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget)) {
+      if (budget.preferPackedBeam && drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget)) {
         continue;
       }
+      drawLaserContrastSegment(sourceX, sourceY, targetX, targetY, haloWidth, coreWidth, profile, pulse, flowPulse);
       ctx.save();
       ctx.globalCompositeOperation = budget.composite;
       ctx.lineCap = "round";
@@ -4014,35 +4169,46 @@ function drawLasers(lasers) {
           Math.max(budget.minSegments, budget.maxSegments),
         )
       : 1;
-    const points = [];
+    const points = laserCurvePointBuffer;
     for (let i = 0; i <= segments; i += 1) {
-      points.push(
-        sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, renderProfile, i / segments),
+      points[i] = sampleLaserPoint(
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        normalX,
+        normalY,
+        timeMs,
+        phase,
+        renderProfile,
+        i / segments,
+        getReusableLaserPoint(points, i),
       );
     }
+    points.length = segments + 1;
     const shouldRenderRibbon = renderProfile.ribbonAlpha > 0.01;
     const ribbonOffset = renderProfile.ribbonOffset * (0.8 + pulse * 0.5);
     const ribbonShift = Math.sin(timeMs * renderProfile.waveSpeed * 0.42 + phase * 1.3) * renderProfile.ribbonDrift * ribbonOffset;
-    const ribbonPoints = shouldRenderRibbon
-      ? points.map((point, index) => {
-          const t = segments <= 0 ? 0 : index / segments;
-          const taper = Math.sin(t * Math.PI);
-          return {
-            x: point.x + normalX * (ribbonShift + ribbonOffset * taper * 0.35),
-            y: point.y + normalY * (ribbonShift + ribbonOffset * taper * 0.35),
-          };
-        })
-      : [];
-    const mirrorRibbonPoints = shouldRenderRibbon
-      ? points.map((point, index) => {
-          const t = segments <= 0 ? 0 : index / segments;
-          const taper = Math.sin(t * Math.PI);
-          return {
-            x: point.x - normalX * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24),
-            y: point.y - normalY * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24),
-          };
-        })
-      : [];
+    const ribbonPoints = shouldRenderRibbon ? laserRibbonPointBuffer : [];
+    const mirrorRibbonPoints = shouldRenderRibbon ? laserMirrorRibbonPointBuffer : [];
+    if (shouldRenderRibbon) {
+      for (let index = 0; index <= segments; index += 1) {
+        const point = points[index];
+        const t = segments <= 0 ? 0 : index / segments;
+        const taper = Math.sin(t * Math.PI);
+        const ribbonPoint = getReusableLaserPoint(ribbonPoints, index);
+        const mirrorRibbonPoint = getReusableLaserPoint(mirrorRibbonPoints, index);
+        ribbonPoint.x = point.x + normalX * (ribbonShift + ribbonOffset * taper * 0.35);
+        ribbonPoint.y = point.y + normalY * (ribbonShift + ribbonOffset * taper * 0.35);
+        ribbonPoint.offset = point.offset;
+        mirrorRibbonPoint.x = point.x - normalX * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24);
+        mirrorRibbonPoint.y = point.y - normalY * (ribbonShift * 0.65 + ribbonOffset * taper * 0.24);
+        mirrorRibbonPoint.offset = point.offset;
+      }
+      ribbonPoints.length = segments + 1;
+      mirrorRibbonPoints.length = segments + 1;
+    }
+    drawLaserContrastCurve(points, haloWidth, coreWidth, profile, pulse, flowPulse);
     let haloStrokeStyle = rgba(profile.accentRgb, 0.42 + pulse * 0.1);
     let coreStrokeStyle = rgba(profile.fringeRgb, 0.94);
     let sheathStrokeStyle = rgba(profile.accentRgb, 0.76);
@@ -4176,7 +4342,7 @@ function drawLasers(lasers) {
       const px = beamPoint.x + normalX * sideSway;
       const py = beamPoint.y + normalY * sideSway;
       const size = (1.18 + Math.sin(travel * Math.PI) * 0.72) * profile.particleSize * (0.74 + pulse * 0.24);
-      const angle = Math.atan2(unitY, unitX) + Math.sin(travel * Math.PI * 8 + phase) * 0.2;
+      const angle = baseAngle + Math.sin(travel * Math.PI * 8 + phase) * 0.2;
       drawLaserParticleShape(
         profile.particleShape,
         px,
@@ -5633,16 +5799,19 @@ function drawEvolutionSpriteFrame(entity, x, y, size, options = {}) {
 
   if (isDrawableImage(spriteImage)) {
     const dims = getDrawableImageDimensions(spriteImage);
-    const ratio = dims.width / Math.max(dims.height, 1);
-    let drawWidth = renderSize;
-    let drawHeight = renderSize;
-    if (ratio > 1) {
-      drawHeight = renderSize / ratio;
-    } else {
-      drawWidth = renderSize * ratio;
-    }
-    const drawX = -drawWidth * 0.5;
-    const drawY = -drawHeight * 0.45;
+    const placement = computeSpriteOpaqueDrawPlacement({
+      renderSize,
+      sourceWidth: dims.width,
+      sourceHeight: dims.height,
+      opaqueMinX: resolvedSpriteSource?.opaqueMinX,
+      opaqueMinY: resolvedSpriteSource?.opaqueMinY,
+      opaqueWidth: resolvedSpriteSource?.opaqueWidth,
+      opaqueHeight: resolvedSpriteSource?.opaqueHeight,
+    });
+    const drawWidth = placement.drawWidth;
+    const drawHeight = placement.drawHeight;
+    const drawX = placement.drawX;
+    const drawY = placement.drawY + drawHeight * 0.05;
     const wasSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
     drawSpriteImageWithTint(spriteImage, drawX, drawY, drawWidth, drawHeight, [255, 255, 255], whiteRatio);
@@ -6154,11 +6323,11 @@ function drawNonCombatZoneOverlay(layout) {
   const nextRouteId = getNextRouteId(zoneId);
   const title = zoneType === "town" ? "Ville paisible" : "Zone sans combat";
   const subtitle = zoneType === "town"
-    ? "Aucun combat ici. Passe a la zone suivante."
-    : "Aucun Pokemon sauvage dans cette zone.";
+    ? "Aucun combat ici. Passe \u00e0 la zone suivante."
+    : "Aucun Pok\u00e9mon sauvage dans cette zone.";
   const nextLabel = nextRouteId
     ? `Suivante: ${getRouteDisplayName(nextRouteId)}`
-    : "Derniere zone debloquee.";
+    : "Derni\u00e8re zone d\u00e9bloqu\u00e9e.";
 
   ctx.save();
   const width = clamp(state.viewport.width * 0.52, 300, 640);
@@ -6414,7 +6583,6 @@ function render() {
       }
     }
 
-    drawLasers(state.battle ? state.battle.getLasers() : []);
     drawProjectiles(state.battle ? state.battle.getProjectiles() : []);
     if (!captureSequence) {
       drawEnemyKoEffect(layout, koTransition);
@@ -6485,6 +6653,7 @@ function render() {
         shader: skipShader ? mergeSpriteShaderConfig(memberShader, skipShader) : null,
       });
     }
+    drawLasers(state.battle ? state.battle.getLasers() : []);
     drawTeamDragSwapOverlay(layout);
 
     if (!captureSequence) {

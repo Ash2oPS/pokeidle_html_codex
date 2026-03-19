@@ -45,6 +45,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "DEFERRED_ROUTE_WARMUP_CHUNK_SIZE",
   "DEFERRED_ROUTE_WARMUP_DELAY_MS",
   "DISPLAY_APP_VERSION",
+  "GAME_DESIGN_SNAPSHOT",
   "EXTRA_SHOP_ITEM_CONFIG_BY_ID",
   "GACHA_BASE_MAX_POKEMON_ID",
   "GACHA_EXTENDED_MAX_POKEMON_ID",
@@ -84,6 +85,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "TEAM_DRAG_CLICK_SUPPRESS_MS",
   "TEAM_DRAG_START_DISTANCE_PX",
   "TEAM_SPRITE_SCALE",
+  "TYPE_ICON_ASSET_DIR",
   "UNKNOWN_CAVE_ROUTE_ID",
   "animatedSpriteFramesCache",
   "appearanceGridEl",
@@ -309,6 +311,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     DEFERRED_ROUTE_WARMUP_DELAY_MS,
     DISPLAY_APP_VERSION,
     Date,
+    GAME_DESIGN_SNAPSHOT,
     EXTRA_SHOP_ITEM_CONFIG_BY_ID,
     Element,
     Error,
@@ -363,6 +366,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     TEAM_DRAG_CLICK_SUPPRESS_MS,
     TEAM_DRAG_START_DISTANCE_PX,
     TEAM_SPRITE_SCALE,
+    TYPE_ICON_ASSET_DIR,
     UNKNOWN_CAVE_ROUTE_ID,
     animatedSpriteFramesCache,
     appearanceGridEl,
@@ -567,6 +571,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     validateRouteDataPayload,
     window
   } = scope;
+  const pendingPokedexDefinitionLoads = new Map();
 
 function getWorldCoordinatesFromPointerEvent(event) {
   const rect = canvas.getBoundingClientRect();
@@ -950,7 +955,7 @@ function openRenameModalForTeamSlot(slotIndex) {
     renameTitleEl.textContent = `Renommer | ${nickname || baseNameFr}`;
   }
   if (renameSubtitleEl) {
-    renameSubtitleEl.textContent = `${baseNameFr} (${getTeamSlotLabel(index)}) | applique a la famille evolutive`;
+    renameSubtitleEl.textContent = `${baseNameFr} (${getTeamSlotLabel(index)}) | appliqu\u00e9 \u00e0 la famille \u00e9volutive`;
   }
   if (renameInputEl) {
     renameInputEl.value = nickname;
@@ -990,11 +995,11 @@ function applyRenameModal() {
   const nextDisplayName = getPokemonDisplayNameForOwnedEntity(pokemonId);
   if (nextNickname) {
     setTopMessage(
-      `Surnom de famille applique (${renameResult.familySize}): ${previousDisplayName} -> ${nextDisplayName}.`,
+      `Surnom de famille appliqu\u00e9 (${renameResult.familySize}): ${previousDisplayName} -> ${nextDisplayName}.`,
       1900,
     );
   } else {
-    setTopMessage(`Surnom de famille retire (${renameResult.familySize} Pokemon).`, 1800);
+    setTopMessage(`Surnom de famille retir\u00e9 (${renameResult.familySize} Pokemon).`, 1800);
   }
 }
 
@@ -1621,11 +1626,21 @@ function getPokedexSpeciesCatalogByPokemonId() {
       const nameFr = normalizeUiDisplayText(String(rawSpecies?.nameFr || def?.nameFr || fallbackName), {
         frenchTypography: true,
       });
+      const defensiveTypes =
+        Array.isArray(def?.defensiveTypes) && def.defensiveTypes.length > 0
+          ? getPokemonTypeList(def.defensiveTypes, "normal")
+          : null;
+      const offensiveType =
+        defensiveTypes && defensiveTypes.length > 0
+          ? normalizeType(def?.offensiveType || defensiveTypes[0] || "normal") || "normal"
+          : "";
       speciesById.set(pokemonId, {
         id: pokemonId,
         nameFr,
         nameEn,
         spritePath: resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def),
+        defensiveTypes,
+        offensiveType,
       });
     }
     return speciesById;
@@ -1645,14 +1660,38 @@ function getPokedexSpeciesCatalogByPokemonId() {
     const nameFr = normalizeUiDisplayText(String(hint?.nameFr || def?.nameFr || fallbackName), {
       frenchTypography: true,
     });
+    const defensiveTypes =
+      Array.isArray(def?.defensiveTypes) && def.defensiveTypes.length > 0
+        ? getPokemonTypeList(def.defensiveTypes, "normal")
+        : null;
+    const offensiveType =
+      defensiveTypes && defensiveTypes.length > 0
+        ? normalizeType(def?.offensiveType || defensiveTypes[0] || "normal") || "normal"
+        : "";
     speciesById.set(pokemonId, {
       id: pokemonId,
       nameFr,
       nameEn,
       spritePath: resolvePokedexSpeciesSpritePath(pokemonId, nameEn, def),
+      defensiveTypes,
+      offensiveType,
     });
   }
   return speciesById;
+}
+
+function getResolvedPokedexEntryTypes(species, def) {
+  const defensiveTypes = getPokemonTypeList(
+    (Array.isArray(def?.defensiveTypes) && def.defensiveTypes.length > 0)
+      ? def.defensiveTypes
+      : species?.defensiveTypes,
+    "normal",
+  );
+  const offensiveType = normalizeType(def?.offensiveType || species?.offensiveType || defensiveTypes[0] || "normal") || "normal";
+  return {
+    defensiveTypes,
+    offensiveType,
+  };
 }
 
 function buildPokedexEncounterZonesByPokemonId() {
@@ -1750,6 +1789,7 @@ function refreshPokedexEntriesCacheIfNeeded() {
     const nameFr = normalizeUiDisplayText(String(species?.nameFr || def?.nameFr || `Pokemon ${pokemonId}`), {
       frenchTypography: true,
     });
+    const { defensiveTypes, offensiveType } = getResolvedPokedexEntryTypes(species, def);
 
     const shinyModeUnlocked = record ? isShinyAppearanceUnlockedForRecord(record, pokemonId) : false;
     const ultraShinyModeUnlocked = record ? isUltraShinyAppearanceUnlockedForRecord(record, pokemonId) : false;
@@ -1758,7 +1798,10 @@ function refreshPokedexEntriesCacheIfNeeded() {
     const entry = {
       id: pokemonId,
       nameFr,
+      nameEn: normalizePokedexSpeciesNameEn(species?.nameEn || def?.nameEn || record?.species_name_en || ""),
       spritePath: String(species?.spritePath || resolvePokedexSpeciesSpritePath(pokemonId, species?.nameEn, def) || ""),
+      defensiveTypes,
+      offensiveType,
       discoveryState,
       encounteredTotal,
       capturedTotal,
@@ -1802,6 +1845,72 @@ function getPokedexEntryByPokemonId(pokemonId) {
   return pokedexEntriesCacheById.get(id) || null;
 }
 
+async function ensurePokedexEntryDefinitionLoaded(entryOrPokemonId) {
+  const pokemonId = Number(entryOrPokemonId?.id || entryOrPokemonId || 0);
+  if (pokemonId <= 0) {
+    return null;
+  }
+
+  const existingDef = state.pokemonDefsById.get(pokemonId) || null;
+  if (existingDef) {
+    return existingDef;
+  }
+
+  if (pendingPokedexDefinitionLoads.has(pokemonId)) {
+    return pendingPokedexDefinitionLoads.get(pokemonId);
+  }
+
+  const species = getPokedexSpeciesCatalogByPokemonId().get(pokemonId) || null;
+  const nameEn = normalizePokedexSpeciesNameEn(
+    entryOrPokemonId?.nameEn
+    || species?.nameEn
+    || state.saveData?.pokemon_entities?.[String(pokemonId)]?.species_name_en,
+  );
+  if (!nameEn) {
+    return null;
+  }
+
+  const syntheticRouteData = {
+    route_id: `pokedex_species_${String(pokemonId).padStart(3, "0")}`,
+    encounters: [
+      {
+        id: pokemonId,
+        name_en: nameEn,
+        name_fr: String(species?.nameFr || entryOrPokemonId?.nameFr || "").trim(),
+      },
+    ],
+  };
+
+  const task = loadPokemonDefinitions([syntheticRouteData], { append: true })
+    .then(() => {
+      const loadedDef = state.pokemonDefsById.get(pokemonId) || null;
+      if (!loadedDef) {
+        return null;
+      }
+      invalidatePokedexEntriesCache();
+      const activePokemonId = Number(state.ui.pokedexHoverPokemonId || 0);
+      if (state.ui.pokedexOpen && activePokemonId === pokemonId) {
+        const refreshedEntry = getPokedexEntryByPokemonId(pokemonId);
+        if (refreshedEntry) {
+          setPokedexInfoFromEntry(refreshedEntry);
+        }
+      }
+      return loadedDef;
+    })
+    .catch((error) => {
+      console.warn(
+        `Impossible de charger la definition Pokedex #${String(pokemonId).padStart(3, "0")}:`,
+        error instanceof Error ? error.message : String(error || ""),
+      );
+      return null;
+    })
+    .finally(() => {
+      pendingPokedexDefinitionLoads.delete(pokemonId);
+    });
+  pendingPokedexDefinitionLoads.set(pokemonId, task);
+  return task;
+}
+
 function getPokedexSpeciesProgressCounters() {
   refreshPokedexEntriesCacheIfNeeded();
   return {
@@ -1838,6 +1947,22 @@ function formatPokedexCompletionPercentFromRatio(ratio) {
   })}%`;
 }
 
+function buildPokedexHeaderCompletionMarkup(completionLabel, totalSpecies) {
+  return [
+    `<span class="pokedex-global-completion-kicker">Compl\u00e9tion Pok\u00e9dex</span>`,
+    `<span class="pokedex-global-completion-value">${escapeHtml(String(completionLabel || "0%"))}</span>`,
+    `<span class="pokedex-global-completion-meta">${escapeHtml(`${formatCompactNumber(totalSpecies)} esp\u00e8ce${totalSpecies !== 1 ? "s" : ""}`)}</span>`,
+  ].join("");
+}
+
+function buildPokedexHeaderStatMarkup(label, valueLabel, percentLabel) {
+  return [
+    `<span class="pokedex-header-stat-label">${escapeHtml(String(label || ""))}</span>`,
+    `<span class="pokedex-header-stat-value">${escapeHtml(String(valueLabel || ""))}</span>`,
+    `<span class="pokedex-header-stat-meta">${escapeHtml(String(percentLabel || ""))}</span>`,
+  ].join("");
+}
+
 function setPokedexHeaderProgressSummary(counters, totalSpecies) {
   const total = Math.max(0, toSafeInt(totalSpecies, 0));
   const encountered = Math.max(0, toSafeInt(counters?.encounteredSpeciesCount, 0));
@@ -1852,26 +1977,96 @@ function setPokedexHeaderProgressSummary(counters, totalSpecies) {
       + clamp(ultra / total, 0, 1)
     ) / 4
     : 0;
+  const completionLabel = formatPokedexCompletionPercentFromRatio(completionRatio);
   if (pokedexGlobalCompletionEl) {
-    pokedexGlobalCompletionEl.textContent =
-      `Complétion générale du Pokédex: ${formatPokedexCompletionPercentFromRatio(completionRatio)}.`;
+    pokedexGlobalCompletionEl.innerHTML = buildPokedexHeaderCompletionMarkup(completionLabel, total);
   }
   if (pokedexEncounteredStatEl) {
-    pokedexEncounteredStatEl.textContent =
-      `Tu as rencontré ${formatCompactNumber(encountered)} espèce${encountered !== 1 ? "s" : ""} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(encountered, total)}).`;
+    pokedexEncounteredStatEl.innerHTML = buildPokedexHeaderStatMarkup(
+      "Rencontrées",
+      `${formatCompactNumber(encountered)} / ${formatCompactNumber(total)}`,
+      formatPokedexSpeciesProgressPercent(encountered, total),
+    );
   }
   if (pokedexCapturedStatEl) {
-    pokedexCapturedStatEl.textContent =
-      `Tu as capturé ${formatCompactNumber(captured)} espèce${captured !== 1 ? "s" : ""} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(captured, total)}).`;
+    pokedexCapturedStatEl.innerHTML = buildPokedexHeaderStatMarkup(
+      "Capturées",
+      `${formatCompactNumber(captured)} / ${formatCompactNumber(total)}`,
+      formatPokedexSpeciesProgressPercent(captured, total),
+    );
   }
   if (pokedexShinyStatEl) {
-    pokedexShinyStatEl.textContent =
-      `En shiny (hors ultra), tu en as capturé ${formatCompactNumber(shiny)} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(shiny, total)}).`;
+    pokedexShinyStatEl.innerHTML = buildPokedexHeaderStatMarkup(
+      "Shiny",
+      `${formatCompactNumber(shiny)} / ${formatCompactNumber(total)}`,
+      formatPokedexSpeciesProgressPercent(shiny, total),
+    );
   }
   if (pokedexUltraShinyStatEl) {
-    pokedexUltraShinyStatEl.textContent =
-      `En ultra shiny, tu en as capturé ${formatCompactNumber(ultra)} sur ${formatCompactNumber(total)} (${formatPokedexSpeciesProgressPercent(ultra, total)}).`;
+    pokedexUltraShinyStatEl.innerHTML = buildPokedexHeaderStatMarkup(
+      "Ultra shiny",
+      `${formatCompactNumber(ultra)} / ${formatCompactNumber(total)}`,
+      formatPokedexSpeciesProgressPercent(ultra, total),
+    );
   }
+}
+
+function getPokemonTypeIconAssetPath(typeName) {
+  const normalizedType = normalizeType(typeName || "normal") || "normal";
+  const baseDir = String(TYPE_ICON_ASSET_DIR || "assets/type-icons").replace(/[\\/]+$/, "");
+  return `${baseDir}/${normalizedType}.png`;
+}
+
+function getPokemonTypeList(typeNames, fallbackType = "normal") {
+  const seenTypes = new Set();
+  const normalizedTypes = [];
+  const rawTypes = Array.isArray(typeNames) ? typeNames : [fallbackType];
+  for (const typeName of rawTypes) {
+    const normalizedType = normalizeType(typeName || fallbackType || "normal") || "normal";
+    if (seenTypes.has(normalizedType)) {
+      continue;
+    }
+    seenTypes.add(normalizedType);
+    normalizedTypes.push(normalizedType);
+  }
+  if (normalizedTypes.length > 0) {
+    return normalizedTypes;
+  }
+  return [normalizeType(fallbackType || "normal") || "normal"];
+}
+
+function buildPokemonTypeChipMarkup(typeName) {
+  const normalizedType = normalizeType(typeName || "normal") || "normal";
+  const label = escapeHtml(formatTypeLabelFr(normalizedType));
+  const iconPath = escapeHtml(getPokemonTypeIconAssetPath(normalizedType));
+  return [
+    `<span class="pokemon-info-type-chip" data-type="${escapeHtml(normalizedType)}">`,
+    `<img class="pokemon-info-type-chip-icon" src="${iconPath}" alt="" width="16" height="16" loading="lazy" decoding="async" aria-hidden="true" />`,
+    `<span class="pokemon-info-type-chip-label">${label}</span>`,
+    `</span>`,
+  ].join("");
+}
+
+function buildPokemonTypeGroupMarkup(groupLabel, typeNames, fallbackType = "normal") {
+  const safeLabel = escapeHtml(String(groupLabel || ""));
+  const chips = getPokemonTypeList(typeNames, fallbackType)
+    .map((typeName) => buildPokemonTypeChipMarkup(typeName))
+    .join("");
+  return [
+    `<div class="pokemon-info-type-group">`,
+    `<span class="pokemon-info-type-group-label">${safeLabel}</span>`,
+    `<div class="pokemon-info-type-chip-list">${chips}</div>`,
+    `</div>`,
+  ].join("");
+}
+
+function buildPokemonTypeSummaryMarkup(defensiveTypes, offensiveType) {
+  return [
+    `<div class="pokemon-info-type-grid">`,
+    buildPokemonTypeGroupMarkup("D\u00e9fensif", defensiveTypes, "normal"),
+    buildPokemonTypeGroupMarkup("Offensif", [offensiveType], defensiveTypes?.[0] || "normal"),
+    `</div>`,
+  ].join("");
 }
 
 function setPokedexInfoFromEntry(entry) {
@@ -1881,8 +2076,8 @@ function setPokedexInfoFromEntry(entry) {
   if (!entry) {
     pokedexInfoPanelEl.innerHTML = [
       `<article class="pokemon-info-card pokemon-info-card--empty">`,
-      `<p class="pokemon-info-empty-title">Infos Pokemon</p>`,
-      `<p class="pokemon-info-empty-text">Survole un Pokemon du Pokedex pour voir ses infos detaillees.</p>`,
+      `<p class="pokemon-info-empty-title">Infos Pokémon</p>`,
+      `<p class="pokemon-info-empty-text">Survole un Pokémon du Pokédex pour voir ses infos détaillées.</p>`,
       `</article>`,
     ].join("");
     return;
@@ -1937,6 +2132,12 @@ function setPokedexInfoFromEntry(entry) {
     formatStatCard("Shiny", formatCompactNumber(entry.capturedShiny), "pokemon-info-stat--shiny"),
     formatStatCard("Ultra", formatCompactNumber(entry.capturedUltraShiny), "pokemon-info-stat--ultra"),
   ].join("");
+  const typeLine = [
+    `<div class="pokemon-info-zone pokemon-info-zone--types">`,
+    `<span class="pokemon-info-zone-label">Types</span>`,
+    buildPokemonTypeSummaryMarkup(entry.defensiveTypes, entry.offensiveType),
+    `</div>`,
+  ].join("");
 
   const badgeShinyClass = entry.shinyModeUnlocked ? "pokemon-info-badge is-active" : "pokemon-info-badge";
   const badgeUltraClass = entry.ultraShinyModeUnlocked
@@ -1944,7 +2145,7 @@ function setPokedexInfoFromEntry(entry) {
     : "pokemon-info-badge pokemon-info-badge--ultra";
 
   const hintLine = discoveryTone === "unknown"
-    ? `<p class="pokemon-info-hint">Cette espece n'a pas encore ete rencontree.</p>`
+    ? `<p class="pokemon-info-hint">Cette espèce n'a pas encore été rencontrée.</p>`
     : "";
   const zoneLine = zoneSummary
     ? `<p class="pokemon-info-zone"><span class="pokemon-info-zone-label">Zone</span><span class="pokemon-info-zone-value">${zoneSummary}</span></p>`
@@ -1962,8 +2163,11 @@ function setPokedexInfoFromEntry(entry) {
     `<span class="${badgeUltraClass}">Ultra</span>`,
     `</div>`,
     `</header>`,
+    `<div class="pokemon-info-feature-grid">`,
+    typeLine,
     zoneLine,
     hintLine,
+    `</div>`,
     `<section class="pokemon-info-block">`,
     `<h4 class="pokemon-info-block-title">Rencontres</h4>`,
     `<div class="pokemon-info-stat-grid">${encounterCards}</div>`,
@@ -2062,6 +2266,7 @@ function handlePokedexCardInteractionEvent(event) {
   }
   state.ui.pokedexHoverPokemonId = entry.id;
   setPokedexInfoFromEntry(entry);
+  void ensurePokedexEntryDefinitionLoaded(entry);
 }
 
 function bindPokedexVirtualEventsIfNeeded() {
@@ -2384,6 +2589,7 @@ function renderPokedexGrid() {
   }
   renderPokedexViewportSlice({ force: true });
   setPokedexInfoFromEntry(hoverEntry);
+  void ensurePokedexEntryDefinitionLoaded(hoverEntry);
 }
 
 function openPokedexModal() {
@@ -2420,8 +2626,8 @@ function setBoxesInfoFromEntry(entry) {
   if (!entry) {
     boxesInfoPanelEl.innerHTML = [
       `<article class="pokemon-info-card pokemon-info-card--empty">`,
-      `<p class="pokemon-info-empty-title">Infos Pokemon</p>`,
-      `<p class="pokemon-info-empty-text">Survole un Pokemon de la boite pour afficher ses details.</p>`,
+      `<p class="pokemon-info-empty-title">Infos Pokémon</p>`,
+      `<p class="pokemon-info-empty-text">Survole un Pokémon de la boîte pour afficher ses détails.</p>`,
       `</article>`,
     ].join("");
     return;
@@ -2442,10 +2648,9 @@ function setBoxesInfoFromEntry(entry) {
     ? "Niveau max"
     : `${formatCompactNumber(xpCurrent, { decimalsSmall: 2, decimalsMedium: 1, decimalsLarge: 0 })}/${formatCompactNumber(xpToNext, { decimalsSmall: 2, decimalsMedium: 1, decimalsLarge: 0 })} vers niv. ${Math.min(MAX_LEVEL, levelValue + 1)}`;
 
-  const defensiveTypes = escapeHtml(formatTypeListFr(entry.defensiveTypes));
-  const offensiveType = escapeHtml(formatTypeLabelFr(entry.offensiveType));
   const talentLabel = escapeHtml(formatTalentLabelFr(talent, entry?.id));
   const talentDescription = escapeHtml(String(talent.descriptionFr || TALENT_NONE_DESCRIPTION_FR));
+  const typeSummaryMarkup = buildPokemonTypeSummaryMarkup(entry.defensiveTypes, entry.offensiveType);
 
   const buildMicroStat = (label, value, toneClass = "") => [
     `<div class="pokemon-info-micro${toneClass ? ` ${toneClass}` : ""}">`,
@@ -2461,6 +2666,7 @@ function setBoxesInfoFromEntry(entry) {
       decimalsMedium: 1,
       decimalsLarge: 0,
     }),
+    "pokemon-info-micro--stat",
   )).join("");
 
   const progressionCards = [
@@ -2498,18 +2704,27 @@ function setBoxesInfoFromEntry(entry) {
     `<span class="pokemon-info-badge pokemon-info-badge--ultra is-active">BST ${formatCompactNumber(Math.round(baseTotal))}</span>`,
     `</div>`,
     `</header>`,
-    `<p class="pokemon-info-zone"><span class="pokemon-info-zone-label">Types</span><span class="pokemon-info-zone-value">${defensiveTypes} | Offensif: ${offensiveType}</span></p>`,
-    `<p class="pokemon-info-hint"><span class="pokemon-info-hint-label">Talent</span><span class="pokemon-info-hint-value">${talentLabel} - ${talentDescription}</span></p>`,
+    `<div class="pokemon-info-feature-grid">`,
+    `<div class="pokemon-info-zone pokemon-info-zone--types">`,
+    `<span class="pokemon-info-zone-label">Types</span>`,
+    typeSummaryMarkup,
+    `</div>`,
+    `<p class="pokemon-info-hint">`,
+    `<span class="pokemon-info-hint-label">Talent</span>`,
+    `<span class="pokemon-info-hint-value">${talentLabel}</span>`,
+    `<span class="pokemon-info-hint-meta">${talentDescription}</span>`,
+    `</p>`,
+    `</div>`,
     `<section class="pokemon-info-block">`,
     `<h4 class="pokemon-info-block-title">Progression</h4>`,
-    `<div class="pokemon-info-micro-grid">`,
-    buildMicroStat("XP", xpLabel, "pokemon-info-micro--wide"),
+    `<div class="pokemon-info-micro-grid pokemon-info-micro-grid--summary">`,
+    buildMicroStat("XP", xpLabel, "pokemon-info-micro--wide pokemon-info-micro--accent"),
     progressionCards,
     `</div>`,
     `</section>`,
     `<section class="pokemon-info-block">`,
     `<h4 class="pokemon-info-block-title">Stats actuelles</h4>`,
-    `<div class="pokemon-info-micro-grid">${baseStatsCards}</div>`,
+    `<div class="pokemon-info-micro-grid pokemon-info-micro-grid--stats">${baseStatsCards}</div>`,
     `</section>`,
     `</article>`,
   ].join("");
@@ -2978,7 +3193,7 @@ function renderAppearanceModal() {
       }
       renderAppearanceModal();
       render();
-      setTopMessage(`${def.nameFr}: sprite ${variant.labelFr} equipe.`, 1400);
+      setTopMessage(`${def.nameFr}: sprite ${variant.labelFr} \u00e9quip\u00e9.`, 1400);
     });
 
     appearanceGridEl.appendChild(card);
@@ -3365,6 +3580,7 @@ function exportTextState() {
           id: state.enemy.id,
           name_fr: state.enemy.nameFr,
           level: state.enemy.level,
+          attack_mode: state.enemy.attackMode || "",
           sprite_scale: Math.round(getPokemonDataSpriteScale(state.enemy) * 1000) / 1000,
           hp_current: state.enemy.hpCurrent,
           hp_max: state.enemy.hpMax,
@@ -3421,6 +3637,7 @@ function exportTextState() {
       id: member.id,
       name_fr: member.nameFr,
       level: member.level,
+      attack_mode: member.attackMode || "",
       sprite_scale: Math.round(getPokemonDataSpriteScale(member) * 1000) / 1000,
       xp: Math.max(0, toSafeInt(member.xp, 0)),
       xp_to_next: Math.max(0, toSafeInt(member.xpToNext, 0)),
@@ -3463,6 +3680,7 @@ function exportTextState() {
       x_axis: "right-positive",
       y_axis: "down-positive",
     },
+    design_config_snapshot: GAME_DESIGN_SNAPSHOT || null,
     viewport: {
       width: Math.round(state.viewport.width),
       height: Math.round(state.viewport.height),
@@ -3653,12 +3871,14 @@ function exportTextState() {
     team_level_up_effects_active: Array.isArray(state.teamLevelUpEffects) ? state.teamLevelUpEffects.length : 0,
     team_xp_gain_effects_active: Array.isArray(state.teamXpGainEffects) ? state.teamXpGainEffects.length : 0,
     active_projectiles: (battle ? battle.getProjectiles() : []).map((projectile) => ({
+      attack_mode: projectile.attackMode || "projectile",
       type: projectile.attackType,
       x: Math.round(projectile.x),
       y: Math.round(projectile.y),
       attacker_name_fr: projectile.attackerNameFr,
     })),
     active_lasers: (battle ? battle.getLasers() : []).map((laser) => ({
+      attack_mode: "laser",
       type: laser.attackType,
       source_x: Math.round(Number(laser.sourceX) || 0),
       source_y: Math.round(Number(laser.sourceY) || 0),
@@ -3732,6 +3952,12 @@ window.__pokeidle_debug_getSpriteFrameIndex = (target = "enemy", slotIndex = 0) 
     sprite_path: spritePath || null,
     sprite_animated: Boolean(entity.spriteAnimated),
     frame_index: toSafeInt(resolved.frameIndex, -1),
+    opaque_min_x: toSafeInt(resolved.opaqueMinX, 0),
+    opaque_min_y: toSafeInt(resolved.opaqueMinY, 0),
+    opaque_width: toSafeInt(resolved.opaqueWidth, 0),
+    opaque_height: toSafeInt(resolved.opaqueHeight, 0),
+    max_opaque_width: toSafeInt(resolved.maxOpaqueWidth, toSafeInt(resolved.opaqueWidth, 0)),
+    max_opaque_height: toSafeInt(resolved.maxOpaqueHeight, toSafeInt(resolved.opaqueHeight, 0)),
     cache_status: cacheEntry?.status || null,
     cache_frames: Array.isArray(cacheEntry?.frames) ? cacheEntry.frames.length : 0,
     cache_error: cacheEntry?.error || null,
@@ -4435,6 +4661,7 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
     refreshPokedexEntriesCacheIfNeeded,
     getPokedexEntries,
     getPokedexEntryByPokemonId,
+    ensurePokedexEntryDefinitionLoaded,
     getPokedexSpeciesProgressCounters,
     formatPokedexSpeciesProgressPercent,
     formatPokedexCompletionPercentFromRatio,

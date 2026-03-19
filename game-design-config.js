@@ -1,0 +1,360 @@
+/**
+ * Source unique des reglages globaux de game design.
+ *
+ * Regles:
+ * - Ne mets ici que du tuning global.
+ * - Garde le contenu par route / item / Pokemon dans les CSV/JSON existants.
+ * - Chaque cle doit rester simple, stable et clairement nommee.
+ *
+ * Carte rapide:
+ * - rarete: shiny / ultra shiny
+ * - combat: cadence, degats, timings de combat, talents globaux
+ * - capture: capture feel et multiplicateurs
+ * - progression: XP, niveaux, scaling global
+ * - economie: argent / coins
+ * - routeUnlock: debloquage de routes et only-one
+ * - gacha: couts, pool, timings
+ * - ui: timings et interactions globales de surface
+ * - metrics: cadence runtime, qualite de rendu, seuils perf
+ */
+export const GAME_DESIGN_CONFIG = {
+  /** Rarete globale et feedback shiny. */
+  rarity: {
+    /** Chance de shiny normale: 1 / shinyOdds. */
+    shinyOdds: 2048,
+    /** Chance de ultra shiny: 1 / ultraShinyOdds. */
+    ultraShinyOdds: 8192,
+    /** Duree du cycle de teinte ultra shiny. */
+    ultraShinyHueCycleMs: 7600,
+    /** Frequence de scintillation ultra shiny. */
+    ultraShinyScintillationPeriodMs: 1150,
+    /** Duree du flash de scintillation ultra shiny. */
+    ultraShinyScintillationFlashMs: 220,
+    /** Debug uniquement: force tous les Pokemon en ultra shiny. */
+    debugForceUltraShinyAllPokemon: false,
+  },
+
+  /** Combat principal, degats et talents globaux. */
+  combat: {
+    /** Pas de simulation de base. */
+    baseStepMs: 1000 / 60,
+    /** Niveau de depart de base quand il doit etre force en code. */
+    starterLevel: 1,
+    /** Intervalle d'attaque standard. */
+    attackIntervalMs: 420,
+    /** Chance de critique standard. */
+    attackCritChance: 0.05,
+    /** Chance de miss standard. */
+    attackMissChance: 0.05,
+    /** Multiplicateur de critique. */
+    attackCritMultiplier: 1.5,
+    /** Facteur global de degats. */
+    damageScale: 2.2,
+    /** Courbe de progression des degats par niveau. */
+    damageLevelProgressionExponent: 0.62,
+    /** Interpolation du compteur d'argent. */
+    moneyCounterLerpMs: 180,
+    /** Pulse du compteur d'argent. */
+    moneyCounterPulseMs: 520,
+
+    /** Boost X global. */
+    boostX: {
+      /** Duree du boost X. */
+      durationMs: 2 * 60 * 1000,
+      /** Multiplicateur applique a l'intervalle d'attaque. */
+      attackIntervalMultiplier: 0.33,
+    },
+
+    /** Projectiles et traines. */
+    projectile: {
+      /** Vitesse de projectile. */
+      speedPxPerSecond: 910,
+      /** Duree mini de tween projectile. */
+      tweenDurationMinMs: 80,
+      /** Duree maxi de tween projectile. */
+      tweenDurationMaxMs: 354,
+      /** Arc de base du tween. */
+      tweenArcBasePx: 8,
+      /** Variance d'arc du tween. */
+      tweenArcRandomPx: 14,
+      /** Taille sprite projectile. */
+      spritePx: 72,
+      /** Duree de vie d'un point de trainee. */
+      trailPointLifetimeMs: 170,
+      /** Cap global de points de trainee. */
+      trailMaxPoints: 10,
+      /** Espacement cible des points de trainee. */
+      trailPointBaseSpacingPx: 7.2,
+      /** Espacement mini des points de trainee. */
+      trailPointMinSpacingPx: 4.5,
+      /** Espacement maxi des points de trainee. */
+      trailPointMaxSpacingPx: 13.5,
+      /** Profil visuel par defaut des projectiles. */
+      visualProfile: {
+        trailEnabled: true,
+        trailMaxPoints: 4,
+        trailStride: 2,
+        trailGlow: false,
+        streak: false,
+        aura: false,
+        auraScale: 0.66,
+        spriteDetail: true,
+      },
+    },
+
+    /** Timings et ratios du ressenti combat. */
+    timings: {
+      koRespawnDelayMs: 110,
+      koAnimationDurationMs: 110,
+      enemyEnterAnimDurationMs: 140,
+      enemyEnterAnimOffsetPx: 84,
+      enemyEnterAnimRotationDeg: 8,
+      enemyEnterAnimFadeRatio: 0.58,
+      enemyEnterAnimRotateRatio: 0.4,
+      attackFlashDurationMs: 150,
+      attackFlashWhiteBlend: 0.4,
+      skipTurnEffectDurationMinMs: 190,
+      skipTurnEffectDurationMaxMs: 720,
+      skipTurnEffectFadeRatio: 0.24,
+      skipTurnEffectGrayscaleMax: 0.94,
+      attackChargeMinWindowMs: 120,
+      attackChargeWindowRatio: 0.42,
+      teleportSwapScaleDurationMs: 130,
+      enemyDamageFlashDurationMs: 150,
+      enemyDamageFlashRedBlend: 0.4,
+    },
+
+    /** Textes flottants globaux. */
+    floatingText: {
+      lifetimeMs: 950,
+      enterTweenMs: 120,
+      exitTweenMs: 220,
+    },
+
+    /** Talents qui changent la balance globale. */
+    talents: {
+      legendaryFieldAttackBonus: 0.35,
+      legendaryFieldAttackIntervalMultiplier: 0.8,
+      critBonusChanceById: {
+        VALIANT_EYE: 0.1,
+      },
+      moneyMultiplierById: {
+        JACKPOT: 1.2,
+        JACKPOT_PLUS: 1.4,
+      },
+      teleportSwapChanceById: {
+        TELEPORT: 0.1,
+        TELEPORT_PLUS: 0.2,
+        TELEPORT_PLUS_PLUS: 0.3,
+      },
+      teleportPlusPlusDamageMultiplier: 1.5,
+    },
+  },
+
+  /** Reglages de capture globaux. */
+  capture: {
+    throwMs: 360,
+    shakeMs: 560,
+    successBurstMs: 560,
+    failBreakMs: 420,
+    failReappearMs: 460,
+    postMs: 230,
+    critChance: 0.1,
+    critMultiplier: 2,
+    ballMultiplierNerf: 0.5,
+  },
+
+  /** Progression, niveaux, XP et scaling. */
+  progression: {
+    maxLevel: 100,
+    defaultWildLevelMin: 2,
+    defaultWildLevelMax: 6,
+    captureXpBase: 10,
+    captureXpLevelMult: 5,
+    captureXpStatFactor: 0.024,
+    koXpRatioOfCapture: 0.3,
+    levelProgressionLinearPerStep: 0.055,
+    levelProgressionCurveExponent: 1.52,
+    levelProgressionCurvePerStep: 0.038,
+    enemyHpTeamScaleMaxBonus: 1.8,
+    enemyHpTeamScaleExponent: 1.12,
+    enemyRewardScaleExponent: 0.45,
+    enemyRewardScaleBlend: 0.7,
+    appearanceUnlockLevel: 10,
+    pokemonNicknameMaxLength: 14,
+    happinessEvolutionBoxRequiredMs: 3 * 60 * 60 * 1000,
+  },
+
+  /** Economie globale. */
+  economy: {
+    enemyMoneyBase: 16,
+    enemyMoneyLevelMult: 9,
+    enemyMoneyStatFactor: 0.06,
+    coinRewardPerCapture: 1,
+    coinRewardFirstCaptureBonus: 5,
+    coinRewardPerEvolution: 3,
+    minLevelDiffMoneyMultiplier: 0.35,
+  },
+
+  /** Debloquage de routes et cadence des encounters speciaux. */
+  routeUnlock: {
+    routeUnlockDefeats: 20,
+    routeDefeatTimerMs: 20000,
+    onlyOneEncounterInterval: 50,
+    onlyOneEncounterHpMultiplier: 3,
+    onlyOneEncounterTimerMs: 150000,
+    enemyTimerStyleRoute: "route",
+    enemyTimerStyleOnlyOne: "only-one",
+  },
+
+  /** Gacha et skins. */
+  gacha: {
+    spinCostCoins: 10,
+    batchSpinCount: 10,
+    batchSpinCostCoins: 100,
+    baseMaxPokemonId: 151,
+    extendedMaxPokemonId: 493,
+    reelTotalItems: 64,
+    rewardIndex: 44,
+    spinDurationMs: 2400,
+    batchSpinDurationMs: 3200,
+    spinFinalSnapDurationMs: 220,
+    spinFinalSnapLeadPx: 24,
+    batchSpotlightPopMs: 620,
+    batchSpotlightTransferMs: 420,
+    batchSpotlightStepGapMs: 110,
+    batchSlotJuiceMs: 560,
+  },
+
+  /** Timings UI et interactions globales. */
+  ui: {
+    teamDragStartDistancePx: 12,
+    teamDragClickSuppressMs: 220,
+    teamContextTouchHoldDelayMs: 460,
+    teamContextTouchHoldCancelDistancePx: 10,
+    ballInventoryMaxPerType: 9999,
+    shopQuantityPresetValues: ["1", "5", "10", "50", "100"],
+    evolutionAnimTotalMs: 2480,
+    evolutionAnimWhiteMs: 1120,
+    evolutionAnimFlashMs: 280,
+    evolutionAnimRevealMs: 820,
+    evolutionAnimBackdropFadeMs: 320,
+    evolutionAnimParticleCount: 14,
+    backgroundDriftTravelMinMs: 9000,
+    backgroundDriftTravelMaxMs: 21000,
+    backgroundDriftHoldMinMs: 1200,
+    backgroundDriftHoldMaxMs: 4200,
+    teamLevelUpEffectDurationMs: 780,
+    teamXpGainEffectDurationMs: 920,
+    teamXpPulseDurationMs: 360,
+    loadingScreenExitDurationMs: 820,
+    actionDockFullscreenMenuTransitionMs: 340,
+  },
+
+  /** Cadence runtime, presets de rendu et seuils de perf. */
+  metrics: {
+    foregroundFrameStepMs: 40,
+    hiddenSimBudgetMs: 180000,
+    bulkIdleThresholdMs: 1200,
+    maxOfflineCatchupMs: 1000 * 60 * 60 * 24 * 7,
+    backgroundTickIntervalMs: 1000,
+    targetFps: 60,
+    maxForegroundPendingMs: 320,
+    hudAutoRefreshIntervalMs: 200,
+    layoutRecomputeIntervalMs: 220,
+    deferredRouteWarmupChunkSize: 2,
+    deferredRouteWarmupDelayMs: 180,
+    localDayStartHour: 7,
+    localNightStartHour: 19,
+    environmentUpdateIntervalMs: 120,
+    maxRenderDpr: 1.35,
+    renderQualityOrder: ["very_low", "low", "medium", "high", "ultra"],
+    renderQualityPresets: {
+      ultra: {
+        maxDpr: 1.25,
+        renderScale: 0.9,
+        renderFrameIntervalMs: 17,
+        foregroundSimBudgetMs: 72,
+        environmentParticleScale: 0.45,
+        environmentUpdateIntervalMult: 1.3,
+        fogLayerCount: 1,
+        ambientOverlayEnabled: true,
+        celebrationParticles: true,
+        enemyHitGlow: false,
+        levelUpParticleStride: 2,
+        lightningGlow: false,
+        vignette: false,
+      },
+      high: {
+        maxDpr: 1.08,
+        renderScale: 0.84,
+        renderFrameIntervalMs: 17,
+        foregroundSimBudgetMs: 64,
+        environmentParticleScale: 0.22,
+        environmentUpdateIntervalMult: 1.6,
+        fogLayerCount: 1,
+        ambientOverlayEnabled: true,
+        celebrationParticles: true,
+        enemyHitGlow: false,
+        levelUpParticleStride: 3,
+        lightningGlow: false,
+        vignette: false,
+      },
+      medium: {
+        maxDpr: 1,
+        renderScale: 0.78,
+        renderFrameIntervalMs: 17,
+        foregroundSimBudgetMs: 56,
+        environmentParticleScale: 0.06,
+        environmentUpdateIntervalMult: 2,
+        fogLayerCount: 0,
+        ambientOverlayEnabled: false,
+        celebrationParticles: false,
+        enemyHitGlow: false,
+        levelUpParticleStride: 4,
+        lightningGlow: false,
+        vignette: false,
+      },
+      low: {
+        maxDpr: 1,
+        renderScale: 0.68,
+        renderFrameIntervalMs: 20,
+        foregroundSimBudgetMs: 48,
+        environmentParticleScale: 0,
+        environmentUpdateIntervalMult: 2.4,
+        fogLayerCount: 0,
+        ambientOverlayEnabled: false,
+        celebrationParticles: false,
+        enemyHitGlow: false,
+        levelUpParticleStride: 5,
+        lightningGlow: false,
+        vignette: false,
+      },
+      very_low: {
+        maxDpr: 1,
+        renderScale: 0.58,
+        renderFrameIntervalMs: 24,
+        foregroundSimBudgetMs: 40,
+        environmentParticleScale: 0,
+        environmentUpdateIntervalMult: 2.8,
+        fogLayerCount: 0,
+        ambientOverlayEnabled: false,
+        celebrationParticles: false,
+        enemyHitGlow: false,
+        levelUpParticleStride: 6,
+        lightningGlow: false,
+        vignette: false,
+      },
+    },
+    perfShortEmaSmoothing: 0.18,
+    perfLongEmaSmoothing: 0.045,
+    perfCpuEmaSmoothing: 0.14,
+    perfRenderEmaSmoothing: 0.2,
+    perfSwitchCooldownMs: 900,
+    perfDowngradeStreak: 9,
+    perfUpgradeStreak: 170,
+    perfSlowFrameMarginMs: 1.4,
+    perfVerySlowFrameMarginMs: 4.6,
+    perfUpgradeHeadroomMs: 2.6,
+  },
+};

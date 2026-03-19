@@ -6,6 +6,7 @@
     "normal"
   ],
   "offensive_type": "normal",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 440,
     "name_en": "happiny",

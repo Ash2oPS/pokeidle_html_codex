@@ -6,6 +6,7 @@
     "dragon"
   ],
   "offensive_type": "dragon",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 371,
     "name_en": "bagon",

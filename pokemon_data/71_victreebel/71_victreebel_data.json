@@ -7,6 +7,7 @@
     "poison"
   ],
   "offensive_type": "grass",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 70,
     "name_en": "weepinbell",

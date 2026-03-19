@@ -6,6 +6,7 @@
     "bug"
   ],
   "offensive_type": "bug",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 265,
     "name_en": "wurmple",

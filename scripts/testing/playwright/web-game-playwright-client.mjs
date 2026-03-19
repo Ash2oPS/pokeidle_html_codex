@@ -388,6 +388,26 @@ async function captureNamedFullPageShot(page, dir, name, fullPage) {
   return shotPath;
 }
 
+async function setSelectorScrollTop(page, selector, top, options = {}) {
+  const locator = page.locator(selector).first();
+  await locator.waitFor({
+    state: options.waitState || "attached",
+    timeout: options.timeout || 10_000,
+  });
+  await page.evaluate(({ query, nextTop }) => {
+    const element = document.querySelector(query);
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+    element.scrollTop = Number(nextTop) || 0;
+    element.dispatchEvent(new Event("scroll", { bubbles: true }));
+    return true;
+  }, {
+    query: selector,
+    nextTop: top,
+  });
+}
+
 async function executeDirectiveStep(page, canvas, step, options = {}) {
   if (step.waitForSelector) {
     await waitForStepSelector(page, step.waitForSelector, {
@@ -408,6 +428,18 @@ async function executeDirectiveStep(page, canvas, step, options = {}) {
     await clickSelectorIfVisible(page, step.clickSelectorIfVisible, {
       force: step.force,
     });
+  }
+
+  if (step.setScrollTop && step.setScrollTop.selector) {
+    await setSelectorScrollTop(
+      page,
+      step.setScrollTop.selector,
+      step.setScrollTop.top,
+      {
+        timeout: step.setScrollTop.timeout,
+        waitState: step.setScrollTop.waitState,
+      },
+    );
   }
 
   if (step.buttons || Number.isFinite(step.frames)) {

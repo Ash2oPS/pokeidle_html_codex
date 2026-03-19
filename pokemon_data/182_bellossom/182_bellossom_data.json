@@ -6,6 +6,7 @@
     "grass"
   ],
   "offensive_type": "grass",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 44,
     "name_en": "gloom",

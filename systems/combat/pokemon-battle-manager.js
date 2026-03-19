@@ -211,7 +211,7 @@ export function createPokemonBattleRuntime(deps = {}) {
     if (normalized === ATTACK_MODE_LASER) {
       return ATTACK_MODE_LASER;
     }
-    if (normalized === ATTACK_MODE_PROJECTILE) {
+    if (normalized === ATTACK_MODE_PROJECTILE || normalized === `${ATTACK_MODE_PROJECTILE}s`) {
       return ATTACK_MODE_PROJECTILE;
     }
     return fallback;
@@ -566,6 +566,8 @@ function getProjectileSprite(typeName) {
       sourceY: 0,
       targetX: 0,
       targetY: 0,
+      visualSourceInsetPx: 0,
+      visualTargetInsetPx: 0,
       tickIntervalMs: initialTickIntervalMs,
       tickTimerMs: initialTickIntervalMs,
       damageCarry: 0,
@@ -672,6 +674,22 @@ function getProjectileSprite(typeName) {
       }
     }
     return count;
+  }
+
+  hasLiveLaserRuntimeState() {
+    for (const laser of this.laserStates || []) {
+      if (!laser) {
+        continue;
+      }
+      if (
+        laser.active
+        || Math.max(0, Number(laser.damageCarry) || 0) > 0
+        || laser.pendingTurnDecision
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   getEffectiveAttackIntervalMs() {
@@ -1623,14 +1641,17 @@ function getProjectileSprite(typeName) {
     const impactPoint = this.getEnemyImpactPoint(layout);
     const enemyCenterX = Number(layout?.centerX);
     const enemyCenterY = Number(layout?.centerY);
+    const enemySize = Math.max(0, Number(layout?.enemySize) || 0);
     laserState.attackType = attackType;
     laserState.attackerNameFr = attacker?.nameFr || laserState.attackerNameFr || null;
     if (slot) {
       laserState.sourceX = Number(slot.x) || 0;
       laserState.sourceY = Number(slot.y) || 0;
+      laserState.visualSourceInsetPx = clamp(slot.size * 0.44, 28, 58);
     }
     laserState.targetX = Number.isFinite(enemyCenterX) ? enemyCenterX : (Number(impactPoint.x) || 0);
     laserState.targetY = Number.isFinite(enemyCenterY) ? enemyCenterY : (Number(impactPoint.y) || 0);
+    laserState.visualTargetInsetPx = clamp(enemySize * 0.48, 36, 92);
     return laserState;
   }
 
@@ -2518,8 +2539,6 @@ function getProjectileSprite(typeName) {
       return;
     }
 
-    this.refreshLaserStates(layout);
-
     if (idleMode) {
       this.resetQueuedAttackState();
       this.updateIdleCombat(safeDeltaMs, layout);
@@ -2531,10 +2550,14 @@ function getProjectileSprite(typeName) {
     }
 
     if (downtimeAtStart) {
-      this.clearLasers();
+      if (this.hasLiveLaserRuntimeState()) {
+        this.clearLasers();
+      }
       this.advanceAttackTimerDuringDowntime(safeDeltaMs);
       return;
     }
+
+    this.refreshLaserStates(layout);
 
     if (!this.enemy || this.enemy.hpCurrent <= 0 || this.isEnemyRespawning()) {
       return;

@@ -7,6 +7,7 @@
     "rock"
   ],
   "offensive_type": "fire",
+  "attack_mode": "laser",
   "evolves_from": {
     "id": 218,
     "name_en": "slugma",

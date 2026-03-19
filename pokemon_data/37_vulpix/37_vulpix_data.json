@@ -6,6 +6,7 @@
     "fire"
   ],
   "offensive_type": "fire",
+  "attack_mode": "laser",
   "evolves_from": null,
   "evolves_to": [
     {

@@ -6,6 +6,7 @@
     "poison"
   ],
   "offensive_type": "poison",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 32,
     "name_en": "nidoran-m",

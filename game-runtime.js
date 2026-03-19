@@ -6,7 +6,6 @@ import {
 } from "./version.js";
 import { Easing, Group, Tween } from "./vendor/tween.js";
 import { createAudioManager } from "./lib/audio-manager.js";
-import { initializeGithubUpdateChecker } from "./lib/github-update-checker.js";
 import {
   assertValidBallConfig,
   assertValidEncounter,
@@ -50,17 +49,14 @@ import {
 import { createInitialGameState } from "./lib/game-runtime-state.js";
 import { createDevLayoutControls } from "./lib/dev-layout-controls.js";
 import { createRuntimePlatformUtils } from "./lib/runtime-platform-utils.js";
+import { createUiTextNormalizationRuntime } from "./lib/ui-text-normalization-runtime.js";
 import { createUiAnimationRuntime } from "./lib/ui-animation-runtime.js";
 import { createRenderQualityUtils } from "./lib/render-quality-utils.js";
 import { createGameMathUtils } from "./lib/game-math-runtime.js";
 import { createWalletUiRuntime } from "./lib/wallet-ui-runtime.js";
 import { createEnvironmentRuntime } from "./lib/environment-runtime.js";
+import { getGameDesignConfigSnapshot } from "./lib/game-design-config-runtime.js";
 import { createPokemonCoreUtils } from "./lib/pokemon-core-utils.js";
-import {
-  loadGameSettings,
-  isGameMaintenanceActive,
-  getMaintenanceMessage,
-} from "./lib/game-settings-runtime.js";
 import { createRuntimeConfigLoaders } from "./lib/runtime-config-loaders.js";
 import { createRuntimeLoopKernel } from "./core/runtime-loop-kernel.js";
 import { createRuntimeOrchestrator } from "./core/runtime-orchestrator.js";
@@ -511,6 +507,10 @@ function rebuildShopItemConfigState() {
 
 const runtimeUiDom = mountRuntimeUi(document);
 assertRuntimeUiDomInvariants(runtimeUiDom);
+const uiTextNormalizationRuntime = createUiTextNormalizationRuntime({
+  rootEl: runtimeUiDom.captureRootEl,
+});
+uiTextNormalizationRuntime.start();
 
 const {
   canvas,
@@ -1409,7 +1409,7 @@ function notifyWindowsShinyCapture(enemy, options = {}) {
 }
 
 function isEvolutionReadySystemNotificationEnabled() {
-  return state.gameSettings?.notifications?.evolutionReadySystemEnabled !== false;
+  return true;
 }
 
 function notifyWindowsEvolutionReady(candidate = {}) {
@@ -2070,6 +2070,8 @@ function destroyAnimatedSpriteFramesCacheEntry(entry) {
   entry.totalDurationMs = 0;
   entry.width = 0;
   entry.height = 0;
+  entry.opaqueMinX = 0;
+  entry.opaqueMinY = 0;
   entry.opaqueWidth = 0;
   entry.opaqueHeight = 0;
 }
@@ -2116,7 +2118,7 @@ function resolveAnimatedSpriteFrame(entry, timeMs) {
   }
   const total = Math.max(0, Number(entry.totalDurationMs) || 0);
   if (frames.length === 1 || total <= 0.1) {
-    return { source: frames[0].source || null, frameIndex: 0 };
+    return { frame: frames[0] || null, frameIndex: 0 };
   }
   const t = Math.max(0, Number(timeMs) || 0);
   const targetMs = t % total;
@@ -2125,11 +2127,11 @@ function resolveAnimatedSpriteFrame(entry, timeMs) {
     const start = Number(starts[i]) || 0;
     const duration = Math.max(20, toSafeInt(frames[i]?.durationMs, 100));
     if (targetMs < start + duration) {
-      return { source: frames[i].source || null, frameIndex: i };
+      return { frame: frames[i] || null, frameIndex: i };
     }
   }
   const lastIndex = Math.max(0, frames.length - 1);
-  return { source: frames[lastIndex]?.source || null, frameIndex: lastIndex };
+  return { frame: frames[lastIndex] || null, frameIndex: lastIndex };
 }
 
 async function createAnimatedFrameSourceFromRgba(rgba, width, height) {
@@ -2221,7 +2223,14 @@ async function decodeGifToAnimatedFrames(arrayBuffer, stableKey) {
       continue;
     }
     spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame${i}`);
-    frames.push({ source, durationMs: delayMs });
+    frames.push({
+      source,
+      durationMs: delayMs,
+      opaqueMinX: Math.max(0, toSafeInt(opaqueBounds.opaqueMinX, 0)),
+      opaqueMinY: Math.max(0, toSafeInt(opaqueBounds.opaqueMinY, 0)),
+      opaqueWidth: Math.max(1, toSafeInt(opaqueBounds.opaqueWidth, width)),
+      opaqueHeight: Math.max(1, toSafeInt(opaqueBounds.opaqueHeight, height)),
+    });
 
     previousFrameInfo = frameInfo;
     previousRestore = restore;
@@ -2260,15 +2269,30 @@ async function decodeApngToAnimatedFrames(arrayBuffer, stableKey) {
       continue;
     }
     spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame${i}`);
-    frames.push({ source, durationMs: delayMs });
+    frames.push({
+      source,
+      durationMs: delayMs,
+      opaqueMinX: Math.max(0, toSafeInt(opaqueBounds.opaqueMinX, 0)),
+      opaqueMinY: Math.max(0, toSafeInt(opaqueBounds.opaqueMinY, 0)),
+      opaqueWidth: Math.max(1, toSafeInt(opaqueBounds.opaqueWidth, width)),
+      opaqueHeight: Math.max(1, toSafeInt(opaqueBounds.opaqueHeight, height)),
+    });
   }
 
   if (frames.length <= 0) {
     const single = rgbaBuffers.length > 0 ? new Uint8ClampedArray(rgbaBuffers[0]) : new Uint8ClampedArray(width * height * 4);
+    const opaqueBounds = computeOpaqueBoundsFromRgba(single, width, height);
     const source = await createAnimatedFrameSourceFromRgba(single, width, height);
     if (source) {
       spriteSourceStableIdOverrides?.set?.(source, `${stableKey}#frame0`);
-      frames.push({ source, durationMs: 100 });
+      frames.push({
+        source,
+        durationMs: 100,
+        opaqueMinX: Math.max(0, toSafeInt(opaqueBounds.opaqueMinX, 0)),
+        opaqueMinY: Math.max(0, toSafeInt(opaqueBounds.opaqueMinY, 0)),
+        opaqueWidth: Math.max(1, toSafeInt(opaqueBounds.opaqueWidth, width)),
+        opaqueHeight: Math.max(1, toSafeInt(opaqueBounds.opaqueHeight, height)),
+      });
     }
   }
 
@@ -2317,6 +2341,8 @@ function ensureAnimatedSpriteFramesEntry(spritePath) {
     totalDurationMs: 0,
     width: 0,
     height: 0,
+    opaqueMinX: 0,
+    opaqueMinY: 0,
     opaqueWidth: 0,
     opaqueHeight: 0,
     lastAccessMs: performance.now(),
@@ -2327,6 +2353,8 @@ function ensureAnimatedSpriteFramesEntry(spritePath) {
     .then((result) => {
       entry.width = Math.max(1, toSafeInt(result?.width, 1));
       entry.height = Math.max(1, toSafeInt(result?.height, 1));
+      entry.opaqueMinX = Math.max(0, toSafeInt(result?.opaqueMinX, 0));
+      entry.opaqueMinY = Math.max(0, toSafeInt(result?.opaqueMinY, 0));
       entry.opaqueWidth = Math.max(1, toSafeInt(result?.opaqueWidth, entry.width));
       entry.opaqueHeight = Math.max(1, toSafeInt(result?.opaqueHeight, entry.height));
       entry.frames = Array.isArray(result?.frames) ? result.frames : [];
@@ -2357,30 +2385,41 @@ function resolveAnimatedSpriteFrameSource(spritePath, timeMs) {
   }
   entry.lastAccessMs = performance.now();
   const resolved = resolveAnimatedSpriteFrame(entry, timeMs);
-  if (!resolved?.source) {
+  const frame = resolved?.frame;
+  if (!frame?.source) {
     return null;
   }
   return {
-    source: resolved.source,
+    source: frame.source,
     frameIndex: toSafeInt(resolved.frameIndex, -1),
     width: Math.max(1, toSafeInt(entry.width, 1)),
     height: Math.max(1, toSafeInt(entry.height, 1)),
-    opaqueWidth: Math.max(1, toSafeInt(entry.opaqueWidth, entry.width || 1)),
-    opaqueHeight: Math.max(1, toSafeInt(entry.opaqueHeight, entry.height || 1)),
+    opaqueMinX: Math.max(0, toSafeInt(frame.opaqueMinX, 0)),
+    opaqueMinY: Math.max(0, toSafeInt(frame.opaqueMinY, 0)),
+    opaqueWidth: Math.max(1, toSafeInt(frame.opaqueWidth, entry.width || 1)),
+    opaqueHeight: Math.max(1, toSafeInt(frame.opaqueHeight, entry.height || 1)),
+    maxOpaqueWidth: Math.max(1, toSafeInt(entry.opaqueWidth, entry.width || 1)),
+    maxOpaqueHeight: Math.max(1, toSafeInt(entry.opaqueHeight, entry.height || 1)),
   };
 }
 
 function resolveEntitySpriteDrawSource(entity, timeMs = state.timeMs) {
   const base = entity?.spriteImage || null;
   const baseDims = getDrawableImageDimensions(base);
-  const baseOpaqueBounds = isDrawableImage(base) ? getOpaqueBoundsForDrawableImage(base) : { opaqueWidth: 0, opaqueHeight: 0 };
+  const baseOpaqueBounds = isDrawableImage(base)
+    ? getOpaqueBoundsForDrawableImage(base)
+    : { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: 0, opaqueHeight: 0 };
   const fallback = {
     source: base,
     frameIndex: -1,
     width: Math.max(0, toSafeInt(baseDims.width, 0)),
     height: Math.max(0, toSafeInt(baseDims.height, 0)),
+    opaqueMinX: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueMinX, 0)),
+    opaqueMinY: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueMinY, 0)),
     opaqueWidth: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueWidth, baseDims.width)),
     opaqueHeight: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueHeight, baseDims.height)),
+    maxOpaqueWidth: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueWidth, baseDims.width)),
+    maxOpaqueHeight: Math.max(0, toSafeInt(baseOpaqueBounds.opaqueHeight, baseDims.height)),
   };
   if (!entity?.spriteAnimated) {
     return fallback;
@@ -2410,6 +2449,11 @@ function getPokemonDataSpriteScale(entity) {
 }
 
 function getSpriteSourceMaxPixelDimension(source) {
+  const maxOpaqueWidth = Math.max(0, toSafeInt(source?.maxOpaqueWidth, 0));
+  const maxOpaqueHeight = Math.max(0, toSafeInt(source?.maxOpaqueHeight, 0));
+  if (maxOpaqueWidth > 0 || maxOpaqueHeight > 0) {
+    return Math.max(maxOpaqueWidth, maxOpaqueHeight);
+  }
   const opaqueWidth = Math.max(0, toSafeInt(source?.opaqueWidth, 0));
   const opaqueHeight = Math.max(0, toSafeInt(source?.opaqueHeight, 0));
   if (opaqueWidth > 0 || opaqueHeight > 0) {
@@ -2632,7 +2676,7 @@ function computeOpaqueBoundsFromRgba(rgba, width, height) {
   const w = Math.max(1, toSafeInt(width, 1));
   const h = Math.max(1, toSafeInt(height, 1));
   if (!rgba || typeof rgba.length !== "number" || rgba.length < w * h * 4) {
-    return { opaqueWidth: w, opaqueHeight: h };
+    return { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: w, opaqueHeight: h };
   }
 
   let minX = w;
@@ -2662,9 +2706,11 @@ function computeOpaqueBoundsFromRgba(rgba, width, height) {
   }
 
   if (maxX < minX || maxY < minY) {
-    return { opaqueWidth: w, opaqueHeight: h };
+    return { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: w, opaqueHeight: h };
   }
   return {
+    opaqueMinX: Math.max(0, minX),
+    opaqueMinY: Math.max(0, minY),
     opaqueWidth: Math.max(1, maxX - minX + 1),
     opaqueHeight: Math.max(1, maxY - minY + 1),
   };
@@ -2672,7 +2718,7 @@ function computeOpaqueBoundsFromRgba(rgba, width, height) {
 
 function getOpaqueBoundsForDrawableImage(image) {
   if (!isDrawableImage(image)) {
-    return { opaqueWidth: 1, opaqueHeight: 1 };
+    return { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: 1, opaqueHeight: 1 };
   }
   const cacheKey = getImageCacheStableId(image);
   if (cacheKey && spriteOpaqueBoundsCache.has(cacheKey)) {
@@ -2682,7 +2728,7 @@ function getOpaqueBoundsForDrawableImage(image) {
   const dims = getDrawableImageDimensions(image);
   const width = Math.max(1, toSafeInt(dims.width, 1));
   const height = Math.max(1, toSafeInt(dims.height, 1));
-  let bounds = { opaqueWidth: width, opaqueHeight: height };
+  let bounds = { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: width, opaqueHeight: height };
 
   if (spriteOpaqueBoundsCtx) {
     try {
@@ -2698,7 +2744,7 @@ function getOpaqueBoundsForDrawableImage(image) {
       const rgba = spriteOpaqueBoundsCtx.getImageData(0, 0, width, height).data;
       bounds = computeOpaqueBoundsFromRgba(rgba, width, height);
     } catch (error) {
-      bounds = { opaqueWidth: width, opaqueHeight: height };
+      bounds = { opaqueMinX: 0, opaqueMinY: 0, opaqueWidth: width, opaqueHeight: height };
     }
   }
 
@@ -8280,6 +8326,7 @@ async function loadPokemonEntity(jsonPath) {
 
   const defensiveTypes = getDefensiveTypes(payload);
   const offensiveType = String(payload?.offensive_type || defensiveTypes[0] || "normal").toLowerCase();
+  const attackMode = String(payload?.attack_mode || payload?.attackMode || "").toLowerCase().trim();
   const evolvesFrom = normalizeEvolutionLink(payload?.evolves_from);
   const evolvesTo = Array.isArray(payload?.evolves_to)
     ? payload.evolves_to.map((entry) => normalizeEvolutionLink(entry)).filter(Boolean)
@@ -8304,6 +8351,7 @@ async function loadPokemonEntity(jsonPath) {
     stats: payload.stats || {},
     defensiveTypes,
     offensiveType,
+    attackMode,
     catchRate: Number(payload?.catch_rate || 45),
     spriteScaleValue: normalizePokemonSpriteScaleValue(payload?.size),
     spritePath,
@@ -8451,6 +8499,7 @@ function resolveMorphingBaseProfile(member) {
     baseStats: resolvedBaseStats,
     defensiveTypes: defaultDefensiveTypes,
     offensiveType: normalizeType(def?.offensiveType || member?.offensiveType || "normal"),
+    attackMode: String(def?.attackMode || member?.attackMode || "").toLowerCase().trim(),
     spritePath: appearance?.spritePath || def?.spritePath || member?.spritePath || "",
     spriteImage: appearance?.spriteImage || def?.spriteImage || member?.spriteImage || null,
     spriteVariantId: appearance?.variant?.id || member?.spriteVariantId || (def ? getDefaultSpriteVariantId(def) : null),
@@ -8474,6 +8523,7 @@ function restoreMorphingMemberBaseState(member) {
   member.hpCurrent = Math.max(1, Math.round(restoredHpMax * hpRatio));
   member.defensiveTypes = Array.isArray(baseProfile.defensiveTypes) ? baseProfile.defensiveTypes.slice(0, 2) : ["normal"];
   member.offensiveType = normalizeType(baseProfile.offensiveType || "normal");
+  member.attackMode = baseProfile.attackMode || member.attackMode || "";
   member.spritePath = baseProfile.spritePath || member.spritePath;
   member.spriteImage = baseProfile.spriteImage || member.spriteImage;
   member.spriteVariantId = baseProfile.spriteVariantId || member.spriteVariantId;
@@ -8542,6 +8592,7 @@ function applyTeamTalentOverrides(teamMembers) {
         ? source.defensiveTypes.slice(0, 2)
         : member.defensiveTypes;
     member.offensiveType = source.offensiveType || member.offensiveType;
+    member.attackMode = source.attackMode || member.attackMode || "";
     member.spritePath = source.spritePath || member.spritePath;
     member.spriteImage = source.spriteImage || member.spriteImage;
     member.spriteVariantId = source.spriteVariantId || member.spriteVariantId;
@@ -9058,7 +9109,8 @@ function startBattle() {
 }
 
 function setTopMessage(text, durationMs = 1200) {
-  return runtimeNotificationSystem.setTopMessage(text, durationMs);
+  const safeText = normalizeUiDisplayText(text || "", { frenchTypography: true });
+  return runtimeNotificationSystem.setTopMessage(safeText, durationMs);
 }
 
 function getRouteDisplayName(routeId) {
@@ -10063,7 +10115,7 @@ function setGachaStatusText(text) {
   if (!gachaStatusEl) {
     return;
   }
-  gachaStatusEl.textContent = String(text || "");
+  gachaStatusEl.textContent = normalizeUiDisplayText(text || "", { frenchTypography: true });
 }
 
 function waitForGachaDelay(durationMs) {
@@ -11618,6 +11670,7 @@ function getRuntimeUiInteractionSystem() {
     runtimeUiInteractionSystem = decorateRuntimeUiInteractionSystem(createRuntimeUiInteractionSystem({
       bindings: buildRuntimeBindingSnapshot(RUNTIME_UI_INTERACTION_BINDING_KEYS, {
         captureRootEl,
+        GAME_DESIGN_SNAPSHOT: getGameDesignConfigSnapshot(),
         worldUiLayerEl,
         projectWorldToRuntimeStage,
       }),
@@ -11879,25 +11932,7 @@ resizeCanvas();
 state.realClockLastMs = Date.now();
 state.lastSimulationPumpAtMs = state.realClockLastMs;
 
-async function bootstrapRuntimeStartup() {
-  const gameSettingsLoad = await loadGameSettings();
-  state.gameSettings = gameSettingsLoad.settings;
-  const isProductionRuntime = isProductionGithubPagesLocation(window.location);
-  const maintenanceActive = isGameMaintenanceActive(gameSettingsLoad.settings, APP_VERSION);
-  if (isProductionRuntime && maintenanceActive) {
-    state.mode = "loading";
-    const maintenanceMessage = getMaintenanceMessage(gameSettingsLoad.settings);
-    showLoadingScreen(maintenanceMessage, { disablePokeballSpin: true });
-    console.warn("[pokeidle:maintenance]", maintenanceMessage);
-    return;
-  }
-  if (!isProductionRuntime && maintenanceActive) {
-    console.info("[pokeidle:maintenance] mode dev detecte (non-prod), maintenance ignoree.");
-  }
-
-  if (isProductionRuntime) {
-    initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
-  }
+function bootstrapRuntimeStartup() {
   initializeScene();
   ensureDesktopRuntimeWatchdog();
   if (shouldRunBackgroundTicker()) {
@@ -11906,14 +11941,4 @@ async function bootstrapRuntimeStartup() {
   window.requestAnimationFrame(gameLoop);
 }
 
-bootstrapRuntimeStartup().catch((error) => {
-  console.warn(
-    "[pokeidle:settings] Impossible de charger game-settings.json, bootstrap standard conserve:",
-    error instanceof Error ? error.message : String(error || ""),
-  );
-  if (isProductionGithubPagesLocation(window.location)) {
-    initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
-  }
-  initializeScene();
-  window.requestAnimationFrame(gameLoop);
-});
+bootstrapRuntimeStartup();

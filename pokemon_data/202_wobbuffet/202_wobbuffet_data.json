@@ -6,6 +6,7 @@
     "psychic"
   ],
   "offensive_type": "psychic",
+  "attack_mode": "projectiles",
   "evolves_from": {
     "id": 360,
     "name_en": "wynaut",

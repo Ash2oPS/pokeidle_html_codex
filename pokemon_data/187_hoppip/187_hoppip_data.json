@@ -7,6 +7,7 @@
     "flying"
   ],
   "offensive_type": "grass",
+  "attack_mode": "projectiles",
   "evolves_from": null,
   "evolves_to": [
     {
