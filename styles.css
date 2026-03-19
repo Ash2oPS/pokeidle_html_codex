@@ -690,6 +690,24 @@ body {
   pointer-events: none;
 }
 
+.background-runtime-debug-overlay {
+  position: absolute;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: calc(var(--layer-panel) + 1);
+  min-width: min(72vw, 300px);
+  max-width: min(86vw, 360px);
+  padding: 8px 10px;
+  border: 1px solid rgba(182, 230, 255, 0.42);
+  border-radius: 10px;
+  background: rgba(5, 17, 28, 0.84);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.28);
+  color: #dff6ff;
+  font: 600 11px/1.45 "Trebuchet MS", "Verdana", sans-serif;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
 .game-notif {
   width: min(430px, 92vw);
   border-radius: 12px;

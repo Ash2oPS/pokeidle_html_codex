@@ -4328,6 +4328,29 @@ function exportTextState() {
       Math.round((1000 / Math.max(1, Number(state.performance?.shortFrameMsEma) || TARGET_FRAME_MS)) * 10) / 10,
     render_fps_estimate:
       Math.round((1000 / Math.max(1, Number(state.performance?.renderFrameMsEma) || TARGET_FRAME_MS)) * 10) / 10,
+    background_runtime: {
+      activity_state: String(state.backgroundRuntime?.activityState || "foreground_active"),
+      pending_sim_ms: Math.max(0, Math.round(Number(state.pendingSimMs) || 0)),
+      real_clock_last_ms: Math.max(0, toSafeInt(state.realClockLastMs, 0)),
+      last_tick_epoch_ms: Math.max(0, toSafeInt(state.saveData?.last_tick_epoch_ms, 0)),
+      last_background_reason: String(state.backgroundRuntime?.lastBackgroundReason || ""),
+      last_persist_at_ms: Math.max(0, toSafeInt(state.backgroundRuntime?.lastPersistAtMs, 0)),
+      last_resume_catchup_ms: Math.max(0, toSafeInt(state.backgroundRuntime?.lastResumeCatchupMs, 0)),
+      desktop_window_state: state.desktopWindowState
+        ? {
+            minimized: Boolean(state.desktopWindowState.minimized),
+            visible: Boolean(state.desktopWindowState.visible),
+            focused: Boolean(state.desktopWindowState.focused),
+            occluded: Boolean(state.desktopWindowState.occluded),
+            backgrounded: Boolean(state.desktopWindowState.backgrounded),
+            updated_at_ms: Math.max(0, toSafeInt(state.desktopWindowState.updatedAtMs, 0)),
+          }
+        : null,
+      capacitor_app_active:
+        typeof state.backgroundRuntime?.capacitorAppActive === "boolean"
+          ? state.backgroundRuntime.capacitorAppActive
+          : null,
+    },
     attack_interval_ms: getCurrentAttackIntervalMs(),
     legendary_field_attack_interval_multiplier:
       Math.round(clamp(Number(legendaryFieldAttackIntervalMultiplier) || 1, 0.05, 20) * 1000) / 1000,

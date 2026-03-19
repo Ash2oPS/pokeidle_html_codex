@@ -54,6 +54,21 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - styles dans `styles.css`
 - Il est interdit de reintroduire `game-settings.json`, `lib/game-settings-runtime.js` ou une logique store mobile / maintenance gate.
 - Il est interdit de changer le schema de save, les cles de save, `window.render_game_to_text` ou `window.advanceTime` sans demande explicite.
+- La fiabilite du background idle est critique:
+  - le jeu ne doit jamais perdre de progression a cause d'un passage en arriere-plan
+  - browser PC, browser smartphone, exe desktop et APK Android doivent tous retrouver une progression correcte au retour
+- Interdiction de compter sur des timers caches pour la justesse sur mobile browser et APK Android.
+- Le desktop peut simuler en live en background si la plateforme le permet, mais un catch-up de reprise reste obligatoire comme filet de securite.
+- Le chemin de reprise apres background/suspend ne doit jamais repasser par le clamp foreground normal.
+- Toute modification touchant:
+  - game loop
+  - timers
+  - cadence d'attaque
+  - progression idle
+  - `last_tick_epoch_ms`
+  - lifecycle page/app
+  - bridge desktop/mobile/Capacitor
+  doit obligatoirement valider la matrice background.
 
 ## Placement Rules
 
@@ -118,5 +133,12 @@ Quand tu ajoutes ou deplaces une valeur de design:
 - Aucun texte UI nouveau n'introduit de mojibake ou de FR casse.
 - Pour toute modif UI, les screenshots desktop et mobile portrait ont ete generes et relus.
 - La modif UI reste alignée avec le langage visuel existant du jeu.
+- Pour toute modif runtime/lifecycle/background, les preuves minimales existent:
+  - tests unitaires touches
+  - artefacts `render_game_to_text`
+  - validation desktop web
+  - validation mobile web portrait
+  - validation Electron/desktop exe
+  - note explicite de la duree de background testee
 - `tests/ui-copy-encoding-guard.test.mjs` reste vert et les tests UI touches passent.
 - Les tests passent.

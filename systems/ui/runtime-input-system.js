@@ -113,8 +113,7 @@ export function createRuntimeInputSystem({
   const syncMapMarkerLayerBounds = asFunction(actions.syncMapMarkerLayerBounds);
   const renderMapModal = asFunction(actions.renderMapModal);
   const resizeCanvas = asFunction(actions.resizeCanvas);
-  const handleVisibilityChange = asFunction(actions.handleVisibilityChange);
-  const handlePageLifecyclePersist = asFunction(actions.handlePageLifecyclePersist);
+  const handleRuntimeLifecycleSignal = asFunction(actions.handleRuntimeLifecycleSignal);
 
   const ElementCtor = typeof Element !== "undefined" ? Element : null;
   const HTMLElementCtor = typeof HTMLElement !== "undefined" ? HTMLElement : null;
@@ -309,9 +308,14 @@ export function createRuntimeInputSystem({
     });
 
     register(windowRef, "pointerup", handleWindowPointerUpOutsideCanvas);
-    register(windowRef, "blur", () => {
+    register(windowRef, "blur", (event) => {
       cancelTeamContextTouchHold();
       if (!state?.ui?.teamDragActive) {
+        handleRuntimeLifecycleSignal({
+          source: "window",
+          kind: "blur",
+          event,
+        });
         return;
       }
       const dragMoved = Boolean(state.ui.teamDragMoved);
@@ -322,6 +326,18 @@ export function createRuntimeInputSystem({
       if (dragMoved) {
         render();
       }
+      handleRuntimeLifecycleSignal({
+        source: "window",
+        kind: "blur",
+        event,
+      });
+    });
+    register(windowRef, "focus", (event) => {
+      handleRuntimeLifecycleSignal({
+        source: "window",
+        kind: "focus",
+        event,
+      });
     });
 
     register(teamContextMenuRenameButtonEl, "click", () => {
@@ -570,14 +586,53 @@ export function createRuntimeInputSystem({
 
     register(windowRef, "resize", handleLayoutResize);
     register(documentRef, "fullscreenchange", handleLayoutResize);
-    register(documentRef, "visibilitychange", handleVisibilityChange);
-
-    const persistAndDispose = () => {
-      handlePageLifecyclePersist();
+    register(documentRef, "visibilitychange", (event) => {
+      handleRuntimeLifecycleSignal({
+        source: "document",
+        kind: "visibilitychange",
+        event,
+      });
+    });
+    if ("onfreeze" in (documentRef || {})) {
+      register(documentRef, "freeze", (event) => {
+        handleRuntimeLifecycleSignal({
+          source: "document",
+          kind: "freeze",
+          event,
+        });
+      });
+    }
+    if ("onresume" in (documentRef || {})) {
+      register(documentRef, "resume", (event) => {
+        handleRuntimeLifecycleSignal({
+          source: "document",
+          kind: "resume",
+          event,
+        });
+      });
+    }
+    register(windowRef, "pageshow", (event) => {
+      handleRuntimeLifecycleSignal({
+        source: "window",
+        kind: "pageshow",
+        event,
+      });
+    });
+    register(windowRef, "pagehide", (event) => {
+      handleRuntimeLifecycleSignal({
+        source: "window",
+        kind: "pagehide",
+        event,
+      });
+    });
+    register(windowRef, "beforeunload", (event) => {
+      handleRuntimeLifecycleSignal({
+        source: "window",
+        kind: "beforeunload",
+        event,
+      });
       dispose();
-    };
-    register(windowRef, "pagehide", persistAndDispose);
-    register(windowRef, "beforeunload", persistAndDispose);
+    });
   }
 
   return {

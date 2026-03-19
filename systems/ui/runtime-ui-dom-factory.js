@@ -603,6 +603,13 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       </div>
     </section>
     <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
+    <aside
+      id="background-runtime-debug-overlay"
+      class="background-runtime-debug-overlay hidden"
+      aria-live="polite"
+      aria-hidden="true"
+      aria-label="Background runtime debug"
+    ></aside>
     </div>
     </div>
     <section id="dev-layout-panel" class="dev-layout-panel hidden" aria-hidden="true" aria-label="Dev layout panel">
@@ -738,6 +745,7 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   appearanceShinyStatusEl: "appearance-shiny-status",
   appearanceGridEl: "appearance-grid",
   notificationStackEl: "notification-stack",
+  backgroundRuntimeDebugOverlayEl: "background-runtime-debug-overlay",
   tutorialModalEl: "tutorial-modal",
   tutorialTitleEl: "tutorial-title",
   tutorialPageTitleEl: "tutorial-page-title",
@@ -872,6 +880,7 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "appearance-shiny-status",
   "appearance-grid",
   "notification-stack",
+  "background-runtime-debug-overlay",
   "tutorial-modal",
   "tutorial-title",
   "tutorial-page-title",
@@ -908,6 +917,7 @@ export const RUNTIME_UI_CRITICAL_REF_KEYS = Object.freeze([
   "tutorialModalEl",
   "renameModalEl",
   "notificationStackEl",
+  "backgroundRuntimeDebugOverlayEl",
 ]);
 
 function isElementLike(value) {

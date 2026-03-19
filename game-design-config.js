@@ -289,7 +289,15 @@ export const GAME_DESIGN_CONFIG = {
     hiddenSimBudgetMs: 180000,
     bulkIdleThresholdMs: 1200,
     maxOfflineCatchupMs: 1000 * 60 * 60 * 24 * 7,
+    /** Catch-up maxi apres reprise same-session d'un background/suspend. */
+    maxResumeCatchupMs: 1000 * 60 * 60 * 6,
     backgroundTickIntervalMs: 1000,
+    /** Anti-spam des persist pendant les transitions de lifecycle. */
+    backgroundPersistDebounceMs: 250,
+    /** Watchdog desktop pour continuer l'idle quand le renderer ne tick plus. */
+    desktopBackgroundWatchdogIntervalMs: 50,
+    /** Seuil de stall du renderer desktop avant prise en charge watchdog. */
+    desktopBackgroundWatchdogStallMs: 125,
     targetFps: 60,
     maxForegroundPendingMs: 320,
     hudAutoRefreshIntervalMs: 200,

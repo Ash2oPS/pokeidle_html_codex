@@ -48,6 +48,8 @@ class FakeEventTarget {
 
 function createFixture() {
   const documentRef = new FakeEventTarget();
+  documentRef.onfreeze = null;
+  documentRef.onresume = null;
   const windowRef = new FakeEventTarget();
   const canvas = new FakeEventTarget();
 
@@ -55,7 +57,7 @@ function createFixture() {
     clearTeamDragState: 0,
     clearCanvasHoverState: 0,
     render: 0,
-    persist: 0,
+    lifecycleSignals: [],
   };
 
   const state = {
@@ -98,8 +100,8 @@ function createFixture() {
       render() {
         calls.render += 1;
       },
-      handlePageLifecyclePersist() {
-        calls.persist += 1;
+      handleRuntimeLifecycleSignal(payload) {
+        calls.lifecycleSignals.push(payload);
       },
       toggleFullscreen() {
         return Promise.resolve();
@@ -164,20 +166,34 @@ test("escape cancels team drag with expected priority", () => {
   assert.equal(fixture.calls.render, 1);
 });
 
-test("pagehide persists and disposes listeners", () => {
+test("blur and visibility lifecycle events are forwarded without breaking drag cleanup", () => {
   const fixture = createFixture();
   fixture.state.ui.teamDragActive = true;
+  fixture.state.ui.teamDragMoved = true;
   fixture.system.init();
 
-  fixture.windowRef.dispatchEvent("pagehide", {});
-  assert.equal(fixture.calls.persist, 1);
+  fixture.windowRef.dispatchEvent("blur", { type: "blur" });
+  fixture.documentRef.dispatchEvent("visibilitychange", { type: "visibilitychange" });
+
+  assert.equal(fixture.calls.clearTeamDragState, 1);
+  assert.equal(fixture.calls.clearCanvasHoverState, 1);
+  assert.equal(fixture.calls.render, 1);
+  assert.deepEqual(
+    fixture.calls.lifecycleSignals.map((entry) => `${entry.source}:${entry.kind}`),
+    ["window:blur", "document:visibilitychange"],
+  );
+});
+
+test("beforeunload forwards lifecycle signal and disposes listeners", () => {
+  const fixture = createFixture();
+  fixture.system.init();
+
+  fixture.windowRef.dispatchEvent("beforeunload", { type: "beforeunload" });
+
+  assert.equal(fixture.calls.lifecycleSignals.length, 1);
+  assert.equal(fixture.calls.lifecycleSignals[0].source, "window");
+  assert.equal(fixture.calls.lifecycleSignals[0].kind, "beforeunload");
   assert.equal(fixture.documentRef.listenerCount(), 0);
   assert.equal(fixture.windowRef.listenerCount(), 0);
   assert.equal(fixture.canvas.listenerCount(), 0);
-
-  fixture.documentRef.dispatchEvent("keydown", {
-    key: "Escape",
-    preventDefault() {},
-  });
-  assert.equal(fixture.calls.clearTeamDragState, 0);
 });

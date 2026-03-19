@@ -48,7 +48,15 @@ import {
 } from "./lib/talents.js";
 import { createInitialGameState } from "./lib/game-runtime-state.js";
 import { createDevLayoutControls } from "./lib/dev-layout-controls.js";
-import { createRuntimePlatformUtils } from "./lib/runtime-platform-utils.js";
+import {
+  createRuntimePlatformUtils,
+  DEFAULT_DESKTOP_WINDOW_STATE,
+  RUNTIME_ACTIVITY_BACKGROUND_LIVE,
+  RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED,
+  RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
+  RUNTIME_ACTIVITY_FOREGROUND_UNFOCUSED,
+  shouldForceLifecyclePersistAfterTransition,
+} from "./lib/runtime-platform-utils.js";
 import { createUiTextNormalizationRuntime } from "./lib/ui-text-normalization-runtime.js";
 import { createUiAnimationRuntime } from "./lib/ui-animation-runtime.js";
 import { createRenderQualityUtils } from "./lib/render-quality-utils.js";
@@ -327,7 +335,9 @@ import {
   HIDDEN_SIM_BUDGET_MS,
   BULK_IDLE_THRESHOLD_MS,
   MAX_OFFLINE_CATCHUP_MS,
+  MAX_RESUME_CATCHUP_MS,
   BACKGROUND_TICK_INTERVAL_MS,
+  BACKGROUND_PERSIST_DEBOUNCE_MS,
   EVOLUTION_ANIM_TOTAL_MS,
   EVOLUTION_ANIM_WHITE_MS,
   EVOLUTION_ANIM_FLASH_MS,
@@ -380,6 +390,8 @@ import {
   TARGET_RENDER_INTERVAL_MS,
   MAX_FOREGROUND_PENDING_MS,
   HUD_AUTO_REFRESH_INTERVAL_MS,
+  DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS,
+  DESKTOP_BACKGROUND_WATCHDOG_STALL_MS,
   LAYOUT_RECOMPUTE_INTERVAL_MS,
   DEFERRED_ROUTE_WARMUP_CHUNK_SIZE,
   DEFERRED_ROUTE_WARMUP_DELAY_MS,
@@ -640,6 +652,7 @@ const {
   appearanceShinyStatusEl,
   appearanceGridEl,
   notificationStackEl,
+  backgroundRuntimeDebugOverlayEl,
   tutorialModalEl,
   tutorialTitleEl,
   tutorialPageTitleEl,
@@ -781,6 +794,9 @@ const state = createInitialGameState({
   devLayoutSettingsDefaults: DEV_LAYOUT_SETTINGS_DEFAULTS,
   defaultShopTab: SHOP_TAB_POKEBALLS,
 });
+state.backgroundRuntime.debugOverlayEnabled = String(
+  new URLSearchParams(window.location.search).get("debugBackgroundRuntime") || "",
+).trim() === "1";
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -823,14 +839,19 @@ const {
   hasDesktopSaveBridge,
   hasDesktopNotificationBridge,
   getDesktopWindowState,
+  normalizeDesktopWindowState,
+  isDesktopWindowStateBackgrounded,
   isDesktopRuntime,
   getCapacitorBridge,
+  getCapacitorAppPlugin,
+  subscribeCapacitorAppState,
   isCapacitorAndroidRuntime,
   getAndroidNotificationPlugin,
   hasAndroidNotificationBridge,
   getNotificationPlatformLabel,
   isLikelySmartphoneBrowser,
   getRuntimeClientType,
+  getRuntimeActivitySnapshot,
 } = createRuntimePlatformUtils({
   toSafeInt,
   runtimeClientDesktopExePc: RUNTIME_CLIENT_DESKTOP_EXE_PC,
@@ -4525,6 +4546,8 @@ async function loadSaveData() {
 
 function persistSaveData(_options = {}) {
   runtimeSaveSystem.persistSaveData();
+  state.backgroundRuntime.lastPersistAtMs = Date.now();
+  syncBackgroundRuntimeDebugOverlay();
 }
 
 function persistSaveDataForSimulationEvent() {
@@ -4543,37 +4566,20 @@ function flushDeferredSaveIfNeeded() {
   persistSaveData();
 }
 
-const DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS = 50;
-const DESKTOP_BACKGROUND_WATCHDOG_STALL_MS = 125;
 let desktopRuntimeWatchdogHandle = null;
-const DEFAULT_DESKTOP_WINDOW_STATE = Object.freeze({
-  minimized: false,
-  visible: true,
-  focused: true,
-  occluded: false,
-  backgrounded: false,
-  updatedAtMs: 0,
-});
 let desktopWindowStateBridgeUnsubscribe = null;
+let capacitorAppStateBridgeUnsubscribe = null;
 
 function isDocumentHidden() {
   return typeof document !== "undefined" && Boolean(document.hidden);
 }
 
-function normalizeDesktopWindowState(input = null) {
-  const minimized = Boolean(input?.minimized);
-  const visible = typeof input?.visible === "boolean" ? input.visible : true;
-  const focused = typeof input?.focused === "boolean" ? input.focused : true;
-  const occluded = Boolean(input?.occluded);
-  const updatedAtMs = Number(input?.updatedAtMs);
-  return {
-    minimized,
-    visible,
-    focused,
-    occluded,
-    backgrounded: Boolean(input?.backgrounded ?? (minimized || !visible || !focused || occluded)),
-    updatedAtMs: Number.isFinite(updatedAtMs) ? updatedAtMs : Date.now(),
-  };
+function isRuntimeBackgroundActivity(activityState = state.backgroundRuntime.activityState) {
+  return activityState === RUNTIME_ACTIVITY_BACKGROUND_LIVE || activityState === RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED;
+}
+
+function getCurrentRuntimeActivityState() {
+  return String(state.backgroundRuntime?.activityState || RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
 }
 
 function syncDesktopWindowState(windowState = null) {
@@ -4600,26 +4606,52 @@ function isDesktopWindowBackgrounded() {
     return false;
   }
   const windowState = readDesktopWindowState();
-  return Boolean(
-    windowState?.backgrounded
-    || windowState?.minimized
-    || !windowState?.visible
-    || !windowState?.focused
-    || windowState?.occluded
-    || isDocumentHidden()
-  );
+  return Boolean(isDesktopWindowStateBackgrounded(windowState) || isDocumentHidden());
+}
+
+function updateCapacitorAppActiveState(isActive, source = "") {
+  if (typeof isActive !== "boolean") {
+    return;
+  }
+  state.backgroundRuntime.capacitorAppActive = isActive;
+  state.backgroundRuntime.capacitorAppSource = String(source || "");
+  state.backgroundRuntime.capacitorAppUpdatedAtMs = Date.now();
+}
+
+function setBackgroundSuspendRequested(nextValue, source = "") {
+  state.backgroundRuntime.suspendRequested = Boolean(nextValue);
+  if (source) {
+    state.backgroundRuntime.lastLifecycleSource = String(source);
+  }
+}
+
+function readRuntimeActivitySnapshot(overrides = {}) {
+  return getRuntimeActivitySnapshot({
+    documentRef: document,
+    desktopWindowState: overrides.desktopWindowState
+      || (isDesktopRuntime() ? readDesktopWindowState() : state.desktopWindowState || DEFAULT_DESKTOP_WINDOW_STATE),
+    capacitorAppState: {
+      isActive: typeof overrides.capacitorAppActive === "boolean"
+        ? overrides.capacitorAppActive
+        : state.backgroundRuntime.capacitorAppActive,
+    },
+    suspendRequested: typeof overrides.suspendRequested === "boolean"
+      ? overrides.suspendRequested
+      : state.backgroundRuntime.suspendRequested,
+  });
 }
 
 function shouldTreatRuntimeAsHidden() {
-  return !isDesktopRuntime() && isDocumentHidden();
+  return isRuntimeBackgroundActivity(getCurrentRuntimeActivityState());
 }
 
 function shouldRunBackgroundTicker() {
-  return shouldTreatRuntimeAsHidden() || isDesktopRuntime();
+  return !isDesktopRuntime() && getCurrentRuntimeActivityState() === RUNTIME_ACTIVITY_BACKGROUND_LIVE;
 }
 
 function markSimulationPump(nowMs = Date.now()) {
   state.lastSimulationPumpAtMs = Math.max(0, toSafeInt(nowMs, Date.now()));
+  syncBackgroundRuntimeDebugOverlay();
 }
 
 const runtimeLoopKernel = createRuntimeLoopKernel({
@@ -4632,9 +4664,11 @@ const runtimeLoopKernel = createRuntimeLoopKernel({
   getSaveTickEpochMs,
   toSafeInt,
   isHidden: shouldTreatRuntimeAsHidden,
+  getActivityState: getCurrentRuntimeActivityState,
   nowMs: () => Date.now(),
   maxForegroundPendingMs: MAX_FOREGROUND_PENDING_MS,
   maxOfflineCatchupMs: MAX_OFFLINE_CATCHUP_MS,
+  maxResumeCatchupMs: MAX_RESUME_CATCHUP_MS,
   hiddenSimBudgetMs: HIDDEN_SIM_BUDGET_MS,
   bulkIdleThresholdMs: BULK_IDLE_THRESHOLD_MS,
   foregroundFrameStepMs: FOREGROUND_FRAME_STEP_MS,
@@ -4642,58 +4676,59 @@ const runtimeLoopKernel = createRuntimeLoopKernel({
   hudAutoRefreshIntervalMs: HUD_AUTO_REFRESH_INTERVAL_MS,
 });
 
-function queueRealtimeElapsedMs(nowMs = Date.now()) {
-  return runtimeLoopKernel.queueRealtimeElapsedMs(nowMs);
+function queueRealtimeElapsedMs(nowMs = Date.now(), options = {}) {
+  return runtimeLoopKernel.queueRealtimeElapsedMs(nowMs, {
+    activityState: options.activityState || getCurrentRuntimeActivityState(),
+    ...options,
+  });
 }
 
 function queueOfflineCatchupFromSave(nowMs = Date.now()) {
   return runtimeLoopKernel.queueOfflineCatchupFromSave(nowMs);
 }
 
+function queueResumeCatchupFromRealtime(nowMs = Date.now(), options = {}) {
+  return runtimeLoopKernel.queueResumeCatchupFromRealtime(nowMs, {
+    activityState: options.activityState || getCurrentRuntimeActivityState(),
+    ...options,
+  });
+}
+
 function consumePendingSimulation(options = {}) {
-  return runtimeLoopKernel.consumePendingSimulation(options);
+  const consumedMs = runtimeLoopKernel.consumePendingSimulation({
+    activityState: options.activityState || getCurrentRuntimeActivityState(),
+    ...options,
+  });
+  syncBackgroundRuntimeDebugOverlay();
+  return consumedMs;
 }
 
 function tickSimulationFromRealtime(options = {}) {
-  return runtimeLoopKernel.tickSimulationFromRealtime(options);
+  const consumedMs = runtimeLoopKernel.tickSimulationFromRealtime({
+    activityState: options.activityState || getCurrentRuntimeActivityState(),
+    ...options,
+  });
+  syncBackgroundRuntimeDebugOverlay();
+  return consumedMs;
 }
 
 function ensureBackgroundTicker() {
-  if (state.backgroundTickHandle) {
+  if (state.backgroundTickHandle || !shouldRunBackgroundTicker()) {
     return;
   }
-  const desktopRuntime = isDesktopRuntime();
-  const tickIntervalMs = desktopRuntime
-    ? DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS
-    : BACKGROUND_TICK_INTERVAL_MS;
   state.backgroundTickHandle = window.setInterval(() => {
+    if (getCurrentRuntimeActivityState() !== RUNTIME_ACTIVITY_BACKGROUND_LIVE) {
+      return;
+    }
     const now = Date.now();
-    if (shouldTreatRuntimeAsHidden()) {
-      tickSimulationFromRealtime({
-        forceIdleMode: true,
-        budgetMs: HIDDEN_SIM_BUDGET_MS,
-      });
-      markSimulationPump(now);
-      return;
-    }
-    if (!desktopRuntime) {
-      return;
-    }
-    const desktopBackgrounded = isDesktopWindowBackgrounded();
-    const lastPumpAtMs = Math.max(0, toSafeInt(state.lastSimulationPumpAtMs, 0));
-    if (lastPumpAtMs > 0 && now - lastPumpAtMs < DESKTOP_BACKGROUND_WATCHDOG_STALL_MS) {
-      return;
-    }
-    const elapsedSinceLastPumpMs = lastPumpAtMs > 0
-      ? now - lastPumpAtMs
-      : DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS;
-    const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, elapsedSinceLastPumpMs);
     tickSimulationFromRealtime({
-      budgetMs,
-      forceIdleMode: desktopBackgrounded,
+      forceIdleMode: true,
+      budgetMs: HIDDEN_SIM_BUDGET_MS,
+      activityState: RUNTIME_ACTIVITY_BACKGROUND_LIVE,
     });
     markSimulationPump(now);
-  }, tickIntervalMs);
+  }, BACKGROUND_TICK_INTERVAL_MS);
+  syncBackgroundRuntimeDebugOverlay();
 }
 
 function stopBackgroundTicker() {
@@ -4702,6 +4737,7 @@ function stopBackgroundTicker() {
   }
   window.clearInterval(state.backgroundTickHandle);
   state.backgroundTickHandle = null;
+  syncBackgroundRuntimeDebugOverlay();
 }
 
 function ensureDesktopRuntimeWatchdog() {
@@ -4712,6 +4748,9 @@ function ensureDesktopRuntimeWatchdog() {
     if (!isDesktopRuntime()) {
       return;
     }
+    if (getCurrentRuntimeActivityState() !== RUNTIME_ACTIVITY_BACKGROUND_LIVE) {
+      return;
+    }
     const now = Date.now();
     const lastPumpAtMs = Math.max(0, toSafeInt(state.lastSimulationPumpAtMs, 0));
     if (lastPumpAtMs > 0 && now - lastPumpAtMs < DESKTOP_BACKGROUND_WATCHDOG_STALL_MS) {
@@ -4723,54 +4762,112 @@ function ensureDesktopRuntimeWatchdog() {
     const budgetMs = Math.max(DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS, elapsedSinceLastPumpMs);
     tickSimulationFromRealtime({
       budgetMs,
-      forceIdleMode: isDocumentHidden(),
+      forceIdleMode: true,
+      activityState: RUNTIME_ACTIVITY_BACKGROUND_LIVE,
     });
     markSimulationPump(now);
   }, DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS);
 }
 
 const runtimeOrchestrator = createRuntimeOrchestrator({
-  isHidden: shouldTreatRuntimeAsHidden,
+  state,
   ensureBackgroundTicker,
   stopBackgroundTicker,
   tickSimulationFromRealtime,
   queueRealtimeElapsedMs,
+  queueResumeCatchupFromRealtime,
   consumePendingSimulation,
   flushDeferredSaveIfNeeded,
   persistSaveData,
   render,
   hiddenSimBudgetMs: HIDDEN_SIM_BUDGET_MS,
+  maxResumeCatchupMs: MAX_RESUME_CATCHUP_MS,
+  backgroundPersistDebounceMs: BACKGROUND_PERSIST_DEBOUNCE_MS,
+  markSimulationPump,
+  nowMs: () => Date.now(),
+  toSafeInt,
 });
 
-function handleVisibilityChange() {
-  runtimeOrchestrator.handleVisibilityChange();
-  if (shouldRunBackgroundTicker()) {
-    ensureBackgroundTicker();
+function syncBackgroundRuntimeDebugOverlay() {
+  if (!backgroundRuntimeDebugOverlayEl) {
     return;
   }
-  stopBackgroundTicker();
+  if (!state.backgroundRuntime.debugOverlayEnabled) {
+    backgroundRuntimeDebugOverlayEl.classList.add("hidden");
+    backgroundRuntimeDebugOverlayEl.setAttribute("aria-hidden", "true");
+    return;
+  }
+  const snapshot = readRuntimeActivitySnapshot();
+  const lines = [
+    `activity=${snapshot.activityState}`,
+    `pending=${Math.round(Math.max(0, Number(state.pendingSimMs) || 0))}ms`,
+    `resume=${Math.round(Math.max(0, Number(state.backgroundRuntime.lastResumeCatchupMs) || 0))}ms`,
+    `bg=${Math.max(0, toSafeInt(state.backgroundRuntime.lastBackgroundEnteredAtMs, 0))}`,
+    `persist=${Math.max(0, toSafeInt(state.backgroundRuntime.lastPersistAtMs, 0))}`,
+    `reason=${snapshot.backgroundReason || state.backgroundRuntime.lastBackgroundReason || "-"}`,
+    `desktop=${state.desktopWindowState?.backgrounded ? "backgrounded" : "foreground"}`,
+    `capacitor=${typeof state.backgroundRuntime.capacitorAppActive === "boolean" ? state.backgroundRuntime.capacitorAppActive : "unknown"}`,
+  ];
+  backgroundRuntimeDebugOverlayEl.textContent = lines.join("\n");
+  backgroundRuntimeDebugOverlayEl.classList.remove("hidden");
+  backgroundRuntimeDebugOverlayEl.setAttribute("aria-hidden", "false");
+}
+
+function applyRuntimeActivityTransition(source, overrides = {}) {
+  const result = runtimeOrchestrator.handleRuntimeActivityChange(readRuntimeActivitySnapshot(overrides), {
+    source,
+  });
+  syncBackgroundRuntimeDebugOverlay();
+  return result;
+}
+
+function handleVisibilityChange() {
+  return applyRuntimeActivityTransition("visibilitychange");
+}
+
+function handleRuntimeLifecycleSignal({ source = "window", kind = "", event = null, isActive = null } = {}) {
+  const normalizedSource = String(source || "window");
+  const normalizedKind = String(kind || "").trim();
+  const lifecycleSource = normalizedKind ? `${normalizedSource}:${normalizedKind}` : normalizedSource;
+
+  if (normalizedSource === "capacitor") {
+    updateCapacitorAppActiveState(typeof isActive === "boolean" ? isActive : null, lifecycleSource);
+    if (normalizedKind === "pause") {
+      setBackgroundSuspendRequested(true, lifecycleSource);
+    } else if (normalizedKind === "resume") {
+      setBackgroundSuspendRequested(false, lifecycleSource);
+    } else if (normalizedKind === "appStateChange" && typeof isActive === "boolean") {
+      setBackgroundSuspendRequested(!isActive, lifecycleSource);
+    }
+  } else if (normalizedKind === "freeze") {
+    setBackgroundSuspendRequested(true, lifecycleSource);
+  } else if (
+    normalizedKind === "resume"
+    || normalizedKind === "pageshow"
+    || normalizedKind === "focus"
+    || (normalizedKind === "visibilitychange" && !isDocumentHidden())
+  ) {
+    setBackgroundSuspendRequested(false, lifecycleSource);
+  } else if (normalizedKind === "pagehide" && event?.persisted === true) {
+    setBackgroundSuspendRequested(true, lifecycleSource);
+  }
+
+  const result = applyRuntimeActivityTransition(lifecycleSource);
+  if (shouldForceLifecyclePersistAfterTransition({
+    source: normalizedSource,
+    kind: normalizedKind,
+    activityState: result?.activityState,
+  })) {
+    handlePageLifecyclePersist(lifecycleSource);
+  }
+  return result;
 }
 
 function handleDesktopWindowStateChange(nextWindowState = null) {
-  const previousBackgrounded = Boolean(state.desktopWindowState?.backgrounded);
   const windowState = syncDesktopWindowState(nextWindowState);
-  const backgrounded = Boolean(windowState?.backgrounded);
-  if (backgrounded) {
-    ensureBackgroundTicker();
-    tickSimulationFromRealtime({
-      forceIdleMode: true,
-      budgetMs: HIDDEN_SIM_BUDGET_MS,
-    });
-    markSimulationPump(Date.now());
-    flushDeferredSaveIfNeeded();
-    persistSaveData();
-    return;
-  }
-  if (previousBackgrounded) {
-    tickSimulationFromRealtime();
-    markSimulationPump(Date.now());
-    render();
-  }
+  return applyRuntimeActivityTransition("desktop_window_state", {
+    desktopWindowState: windowState,
+  });
 }
 
 function initializeDesktopWindowStateBridge() {
@@ -4795,8 +4892,33 @@ function initializeDesktopWindowStateBridge() {
   }
 }
 
-function handlePageLifecyclePersist() {
-  runtimeOrchestrator.handlePageLifecyclePersist();
+function initializeCapacitorLifecycleBridge() {
+  if (typeof capacitorAppStateBridgeUnsubscribe === "function") {
+    capacitorAppStateBridgeUnsubscribe();
+    capacitorAppStateBridgeUnsubscribe = null;
+  }
+  if (!isCapacitorAndroidRuntime() || !getCapacitorAppPlugin()) {
+    return;
+  }
+  state.backgroundRuntime.capacitorAppActive = true;
+  state.backgroundRuntime.capacitorAppSource = "bootstrap";
+  state.backgroundRuntime.capacitorAppUpdatedAtMs = Date.now();
+  capacitorAppStateBridgeUnsubscribe = subscribeCapacitorAppState((payload) => {
+    handleRuntimeLifecycleSignal({
+      source: "capacitor",
+      kind: payload?.source || "appStateChange",
+      event: payload?.event || null,
+      isActive: payload?.isActive,
+    });
+  });
+}
+
+function handlePageLifecyclePersist(source = "pagehide") {
+  setBackgroundSuspendRequested(true, source);
+  runtimeOrchestrator.handlePageLifecyclePersist(readRuntimeActivitySnapshot(), {
+    source,
+  });
+  syncBackgroundRuntimeDebugOverlay();
 }
 
 const {
@@ -6041,11 +6163,11 @@ function shouldCaptureEnemyWithBallType(ballType, enemy) {
   }
 
   const enemyId = Number(enemy.id || 0);
-  const speciesOwned = enemyId > 0 ? isPokemonEntityUnlockedById(enemyId) : false;
-  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !speciesOwned) {
+  const familyOwned = enemyId > 0 ? isEvolutionFamilyOwned(enemyId) : false;
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !familyOwned) {
     return true;
   }
-  if (rules[BALL_CAPTURE_RULE_CAPTURE_OWNED] && speciesOwned) {
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_OWNED] && familyOwned) {
     return true;
   }
   if (Boolean(enemy.isUltraShiny)) {
@@ -11265,6 +11387,7 @@ function refreshLayoutIfNeeded(options = {}) {
 }
 
 function render() {
+  syncBackgroundRuntimeDebugOverlay();
   return getRuntimeRenderSystem().render();
 }
 
@@ -11918,16 +12041,20 @@ const runtimeInputSystem = createRuntimeInputSystem({
     resizeCanvas,
     handleVisibilityChange,
     handlePageLifecyclePersist,
+    handleRuntimeLifecycleSignal,
   },
 });
 runtimeInputSystem.init();
 initializeDesktopWindowStateBridge();
+initializeCapacitorLifecycleBridge();
 state.devLayout.settings = createDefaultDevLayoutSettings();
 
 applyInitialPerformanceProfile();
 resizeCanvas();
 state.realClockLastMs = Date.now();
 state.lastSimulationPumpAtMs = state.realClockLastMs;
+applyRuntimeActivityTransition("bootstrap");
+syncBackgroundRuntimeDebugOverlay();
 
 function bootstrapRuntimeStartup() {
   initializeScene();

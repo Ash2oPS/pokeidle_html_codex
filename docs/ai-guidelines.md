@@ -149,6 +149,25 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Toute evolution du save schema est hors scope par defaut.
 - Si tu crois devoir toucher au save schema, stoppe et attends une demande explicite.
 
+### Background runtime
+
+- Le background idle est un invariant runtime critique.
+- Le jeu ne doit jamais perdre de progression a cause d'un passage en arriere-plan, d'une perte de focus, d'une minimisation, d'un `pagehide`, d'un `freeze` ou d'un `pause/resume` mobile.
+- Cibles obligatoires:
+  - browser PC
+  - browser smartphone
+  - exe desktop / Electron
+  - APK Android / Capacitor
+- Interdit:
+  - supposer que des timers caches restent fiables sur mobile browser ou APK Android
+  - reparer le background en changeant le schema de save
+  - faire repasser le chemin de reprise par le clamp foreground normal
+- Autorise:
+  - simulation live en background sur desktop si la plateforme le permet
+  - catch-up exact au retour comme filet de securite obligatoire
+  - persist immediate sur entree background/suspend
+- Toute modif touchant la loop, les timers, la progression, `last_tick_epoch_ms`, le lifecycle page/app, le bridge Electron ou Capacitor, ou les budgets de simulation doit revalider la matrice background complete.
+
 ## Forbidden Changes
 
 - Reintroduire `game-settings.json`
@@ -214,3 +233,13 @@ Quand tu touches de l'UI au sens large:
 5. Verifie explicitement que le composant touche reste coherent avec les autres UI proches du jeu.
 6. Si le flow touche n'apparait pas assez dans la galerie, execute un scenario visuel cible supplementaire.
 7. Ne cloture pas la tache tant que les deux formats ne sont pas lisibles, fonctionnels, et visuellement coherents.
+
+Quand tu touches au runtime/lifecycle/background:
+
+1. Verifie que la progression reste monotone avant/apres background.
+2. Verifie que le chemin de reprise utilise un catch-up dedie et pas le clamp foreground.
+3. Lance les tests unitaires runtime touches.
+4. Genere des artefacts `render_game_to_text` montrant `background_runtime`.
+5. Valide le web desktop, le web mobile portrait et Electron avec screenshots apres reprise.
+6. Si Android/Capacitor est touche, valide aussi l'APK avec un vrai `pause/resume`.
+7. Note explicitement la duree de background testee dans ton compte-rendu.

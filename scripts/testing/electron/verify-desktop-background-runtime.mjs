@@ -14,6 +14,7 @@ const reportPath = path.join(artifactDir, "report.json");
 const screenshotPath = path.join(artifactDir, "restored-window.png");
 const host = "127.0.0.1";
 const minimizeDurationMs = 8000;
+const unfocusDurationMs = 2500;
 const saveFilePath = path.join(
   process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
   "pokeidle-html-codex",
@@ -140,7 +141,8 @@ async function snapshotCombatState(page) {
       enemiesDefeated: safeNumber(state?.enemies_defeated),
       money: safeNumber(state?.money),
       attackTimerMs: safeNumber(state?.attack_timer_ms),
-      desktopWindowState: state?.desktopWindowState || null,
+      backgroundRuntime: state?.background_runtime || null,
+      desktopWindowState: state?.background_runtime?.desktop_window_state || state?.desktopWindowState || null,
       enemy: enemy ? {
         id: enemy.pokemon_id || enemy.id || null,
         name: enemy.name_fr || enemy.nameFr || enemy.name || null,
@@ -289,8 +291,36 @@ async function main() {
     await page.screenshot({ path: screenshotPath });
     const afterRestore = await snapshotCombatState(page);
 
+    const unfocusedWindow = await electronApp.evaluate(({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win.blur();
+      return {
+        isMinimized: win.isMinimized(),
+        isVisible: win.isVisible(),
+        isFocused: win.isFocused(),
+      };
+    });
+
+    await page.waitForTimeout(unfocusDurationMs);
+    const duringUnfocus = await snapshotCombatState(page);
+
+    const refocusedWindow = await electronApp.evaluate(({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win.focus();
+      return {
+        isMinimized: win.isMinimized(),
+        isVisible: win.isVisible(),
+        isFocused: win.isFocused(),
+      };
+    });
+
+    await page.waitForTimeout(700);
+    const afterRefocus = await snapshotCombatState(page);
+
     const deltaDuringMinimize = computeDelta(beforeMinimize, duringMinimize);
     const deltaAfterRestore = computeDelta(beforeMinimize, afterRestore);
+    const deltaDuringUnfocus = computeDelta(afterRestore, duringUnfocus);
+    const deltaAfterRefocus = computeDelta(afterRestore, afterRefocus);
     const combatProgressedWhileMinimized = Boolean(
       deltaDuringMinimize.enemiesDefeated > 0
       || deltaDuringMinimize.money > 0
@@ -298,11 +328,40 @@ async function main() {
       || deltaDuringMinimize.enemyChanged
       || deltaDuringMinimize.enemyHp < 0
     );
+    const resumeCatchupAfterRestore = toNumber(afterRestore?.backgroundRuntime?.last_resume_catchup_ms);
+    const minimizeHandled = Boolean(
+      combatProgressedWhileMinimized
+      || resumeCatchupAfterRestore > 0
+      || deltaAfterRestore.enemiesDefeated > 0
+      || deltaAfterRestore.money > 0
+      || deltaAfterRestore.team0Xp > 0
+      || deltaAfterRestore.enemyChanged
+      || deltaAfterRestore.enemyHp < 0
+    );
+    const unfocusHandled = Boolean(
+      deltaDuringUnfocus.enemiesDefeated > 0
+      || deltaDuringUnfocus.money > 0
+      || deltaDuringUnfocus.team0Xp > 0
+      || deltaDuringUnfocus.enemyChanged
+      || deltaDuringUnfocus.enemyHp < 0
+      || toNumber(afterRefocus?.backgroundRuntime?.last_resume_catchup_ms) > 0
+      || deltaAfterRefocus.enemiesDefeated > 0
+      || deltaAfterRefocus.money > 0
+      || deltaAfterRefocus.team0Xp > 0
+      || deltaAfterRefocus.enemyChanged
+      || deltaAfterRefocus.enemyHp < 0
+    );
+    const backgroundStateObserved = duringMinimize?.backgroundRuntime?.activity_state === "background_live";
+    const unfocusStateObserved = duringUnfocus?.backgroundRuntime?.activity_state === "foreground_unfocused";
+    const restoredStateValid = !["background_live", "background_suspended"].includes(
+      String(afterRestore?.backgroundRuntime?.activity_state || ""),
+    );
 
     const report = {
       remoteUrl,
       executablePath,
       minimizeDurationMs,
+      unfocusDurationMs,
       meta,
       starterClick,
       beforeMinimize,
@@ -310,10 +369,22 @@ async function main() {
       duringMinimize,
       restoredWindow,
       afterRestore,
+      unfocusedWindow,
+      duringUnfocus,
+      refocusedWindow,
+      afterRefocus,
       deltaDuringMinimize,
       deltaAfterRestore,
+      deltaDuringUnfocus,
+      deltaAfterRefocus,
       combatProgressedWhileMinimized,
-      pass: combatProgressedWhileMinimized,
+      resumeCatchupAfterRestore,
+      minimizeHandled,
+      unfocusHandled,
+      backgroundStateObserved,
+      unfocusStateObserved,
+      restoredStateValid,
+      pass: minimizeHandled && unfocusHandled && restoredStateValid,
       artifacts: {
         reportPath,
         screenshotPath,
@@ -322,9 +393,17 @@ async function main() {
 
     await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
-    if (!combatProgressedWhileMinimized) {
+    if (!(minimizeHandled && unfocusHandled && restoredStateValid)) {
       throw new Error(
-        `Le combat s'est fige en minimisation: ${JSON.stringify(deltaDuringMinimize)}`,
+        `Le runtime desktop ne gere pas correctement le background: ${JSON.stringify({
+          deltaDuringMinimize,
+          deltaAfterRestore,
+          deltaDuringUnfocus,
+          deltaAfterRefocus,
+          resumeCatchupAfterRestore,
+          backgroundStateObserved,
+          restoredStateValid,
+        })}`,
       );
     }
 

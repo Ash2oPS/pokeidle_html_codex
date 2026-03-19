@@ -1,3 +1,9 @@
+import {
+  RUNTIME_ACTIVITY_BACKGROUND_LIVE,
+  RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED,
+  RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
+} from "../lib/runtime-platform-utils.js";
+
 function fallbackToSafeInt(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) {
@@ -13,6 +19,17 @@ function getDefaultDocument() {
   return null;
 }
 
+function isBackgroundActivityState(activityState) {
+  return (
+    activityState === RUNTIME_ACTIVITY_BACKGROUND_LIVE
+    || activityState === RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED
+  );
+}
+
+function shouldClampForegroundPending(activityState, skipForegroundClamp = false) {
+  return !skipForegroundClamp && activityState === RUNTIME_ACTIVITY_FOREGROUND_ACTIVE;
+}
+
 export function createRuntimeLoopKernel({
   state,
   update,
@@ -21,11 +38,13 @@ export function createRuntimeLoopKernel({
   getCurrentAttackIntervalMs,
   getForegroundSimulationBudgetMs,
   getSaveTickEpochMs,
+  getActivityState,
   toSafeInt,
   isHidden,
   nowMs,
   maxForegroundPendingMs,
   maxOfflineCatchupMs,
+  maxResumeCatchupMs,
   hiddenSimBudgetMs,
   bulkIdleThresholdMs,
   foregroundFrameStepMs,
@@ -52,14 +71,26 @@ export function createRuntimeLoopKernel({
           const doc = getDefaultDocument();
           return Boolean(doc?.hidden);
         };
+  const readActivityState =
+    typeof getActivityState === "function"
+      ? getActivityState
+      : () => (readHidden() ? RUNTIME_ACTIVITY_BACKGROUND_LIVE : RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
 
   const foregroundPendingLimit = Math.max(0, Number(maxForegroundPendingMs) || 0);
   const offlineCatchupLimit = Math.max(0, Number(maxOfflineCatchupMs) || 0);
+  const resumeCatchupLimit = Math.max(0, Number(maxResumeCatchupMs) || 0);
   const hiddenBudgetDefault = Math.max(1, Number(hiddenSimBudgetMs) || 1);
   const idleThresholdMs = Math.max(1, Number(bulkIdleThresholdMs) || 1);
   const foregroundStepMs = Math.max(1, Number(foregroundFrameStepMs) || 1);
   const backgroundTickMs = Math.max(1, Number(backgroundTickIntervalMs) || 1);
   const hudRefreshIntervalMs = Math.max(0, Number(hudAutoRefreshIntervalMs) || 0);
+
+  function resolveActivityState(options = {}) {
+    if (typeof options.activityState === "string" && options.activityState.trim()) {
+      return options.activityState.trim();
+    }
+    return readActivityState();
+  }
 
   function flushDeferredSaveIfNeeded() {
     if (!state?.deferredSaveDirty) {
@@ -69,7 +100,7 @@ export function createRuntimeLoopKernel({
     persistSaveDataFn();
   }
 
-  function queueRealtimeElapsedMs(inputNowMs = readNowMs()) {
+  function queueRealtimeElapsedMs(inputNowMs = readNowMs(), options = {}) {
     if (!state) {
       return 0;
     }
@@ -84,11 +115,22 @@ export function createRuntimeLoopKernel({
     if (!Number.isFinite(elapsed) || elapsed <= 0) {
       return 0;
     }
-    state.pendingSimMs = Math.max(0, Number(state.pendingSimMs) || 0) + elapsed;
-    if (!readHidden()) {
+
+    const configuredMaxElapsedMs = Number(options.maxElapsedMs);
+    const cappedElapsedMs =
+      Number.isFinite(configuredMaxElapsedMs) && configuredMaxElapsedMs >= 0
+        ? Math.min(elapsed, configuredMaxElapsedMs)
+        : elapsed;
+    if (cappedElapsedMs <= 0) {
+      return 0;
+    }
+
+    state.pendingSimMs = Math.max(0, Number(state.pendingSimMs) || 0) + cappedElapsedMs;
+    const activityState = resolveActivityState(options);
+    if (shouldClampForegroundPending(activityState, Boolean(options.skipForegroundClamp))) {
       state.pendingSimMs = Math.min(state.pendingSimMs, foregroundPendingLimit);
     }
-    return elapsed;
+    return cappedElapsedMs;
   }
 
   function queueOfflineCatchupFromSave(inputNowMs = readNowMs()) {
@@ -111,6 +153,17 @@ export function createRuntimeLoopKernel({
     return capped;
   }
 
+  function queueResumeCatchupFromRealtime(inputNowMs = readNowMs(), options = {}) {
+    const maxCatchupMs = Number.isFinite(Number(options.maxCatchupMs))
+      ? Number(options.maxCatchupMs)
+      : resumeCatchupLimit;
+    return queueRealtimeElapsedMs(inputNowMs, {
+      ...options,
+      skipForegroundClamp: true,
+      maxElapsedMs: maxCatchupMs,
+    });
+  }
+
   function consumePendingSimulation(options = {}) {
     if (!state || state.mode !== "ready") {
       return 0;
@@ -122,13 +175,14 @@ export function createRuntimeLoopKernel({
       return 0;
     }
 
-    const hidden = Boolean(readHidden());
+    const activityState = resolveActivityState(options);
+    const backgroundActivity = isBackgroundActivityState(activityState);
     const budgetFromOptions = Number(options.budgetMs);
     const foregroundBudgetMs = getForegroundBudgetMs();
     const budgetMs =
       Number.isFinite(budgetFromOptions) && budgetFromOptions > 0
         ? budgetFromOptions
-        : hidden
+        : backgroundActivity
           ? hiddenBudgetDefault
           : foregroundBudgetMs;
 
@@ -146,7 +200,7 @@ export function createRuntimeLoopKernel({
 
       const remainingSim = state.pendingSimMs;
       const forceIdleMode = Boolean(options.forceIdleMode);
-      const idleMode = forceIdleMode || hidden || remainingSim >= idleThresholdMs;
+      const idleMode = forceIdleMode || backgroundActivity || remainingSim >= idleThresholdMs;
       const idealStep = idleMode ? Math.max(currentAttackInterval, idleThresholdMs) : foregroundStepMs;
       const stepMs = Math.max(1, Math.min(remainingBudget, remainingSim, idealStep));
 
@@ -180,8 +234,16 @@ export function createRuntimeLoopKernel({
       state.realClockLastMs = now;
       return 0;
     }
-    const elapsedMs = queueRealtimeElapsedMs(now);
-    if (readHidden() || Boolean(options.forceIdleMode)) {
+
+    const activityState = resolveActivityState(options);
+    const elapsedMs = queueRealtimeElapsedMs(now, {
+      activityState,
+      skipForegroundClamp: Boolean(options.skipForegroundClamp),
+      maxElapsedMs: options.maxElapsedMs,
+    });
+    const backgroundActivity = isBackgroundActivityState(activityState);
+
+    if (backgroundActivity || Boolean(options.forceIdleMode)) {
       const configuredBudgetMs = Number(options.budgetMs);
       const hiddenElapsedBudgetMs = elapsedMs > 0 ? elapsedMs : backgroundTickMs;
       const cappedBudgetMs =
@@ -190,15 +252,21 @@ export function createRuntimeLoopKernel({
           : hiddenElapsedBudgetMs;
       return consumePendingSimulation({
         ...options,
+        activityState,
         budgetMs: cappedBudgetMs,
       });
     }
-    return consumePendingSimulation(options);
+
+    return consumePendingSimulation({
+      ...options,
+      activityState,
+    });
   }
 
   return {
     queueRealtimeElapsedMs,
     queueOfflineCatchupFromSave,
+    queueResumeCatchupFromRealtime,
     consumePendingSimulation,
     tickSimulationFromRealtime,
   };

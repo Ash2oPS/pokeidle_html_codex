@@ -18,7 +18,11 @@ import {
 } from "../lib/combat-balance-config.js";
 import {
   BOOST_X_DURATION_MS,
+  BACKGROUND_PERSIST_DEBOUNCE_MS,
+  DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS,
+  DESKTOP_BACKGROUND_WATCHDOG_STALL_MS,
   MAX_LEVEL,
+  MAX_RESUME_CATCHUP_MS,
   TARGET_FPS,
 } from "../lib/gameplay-ui-config.js";
 import {
@@ -71,6 +75,11 @@ test("game design runtime sanitizes invalid values and computes derived fields",
   assert.equal(sanitized.metrics.targetFps, 1);
   assert.equal(sanitized.metrics.targetRenderIntervalMs, 1000);
   assert.equal(sanitized.metrics.maxRenderDpr, GAME_DESIGN.metrics.maxRenderDpr);
+  assert.equal(sanitized.metrics.maxResumeCatchupMs, GAME_DESIGN.metrics.maxResumeCatchupMs);
+  assert.equal(
+    sanitized.metrics.desktopBackgroundWatchdogIntervalMs,
+    GAME_DESIGN.metrics.desktopBackgroundWatchdogIntervalMs,
+  );
   assert.deepEqual(sanitized.metrics.renderQualityOrder, ["medium", "very_low", "low", "high", "ultra"]);
   assert.equal("renderScale" in sanitized.metrics.renderQualityPresets.medium, false);
   assert.equal("maxDpr" in sanitized.metrics.renderQualityPresets.medium, false);
@@ -85,6 +94,7 @@ test("game design runtime exposes a compact immutable snapshot", () => {
   assert.equal(snapshot.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
   assert.equal(snapshot.combat.vfx.laserPackedTextureWidthPx, GAME_DESIGN.combat.vfx.laserPackedTextureWidthPx);
   assert.equal(snapshot.metrics.targetFps, GAME_DESIGN.metrics.targetFps);
+  assert.equal(snapshot.metrics.maxResumeCatchupMs, GAME_DESIGN.metrics.maxResumeCatchupMs);
   assert.deepEqual(snapshot, GAME_DESIGN_SNAPSHOT);
   assert.equal(Object.isFrozen(snapshot), true);
 });
@@ -96,6 +106,16 @@ test("compatibility facades stay aligned with the sanitized design config", () =
   assert.equal(CAPTURE_CRIT_CHANCE, GAME_DESIGN.capture.critChance);
   assert.equal(GACHA_SPIN_COST_COINS, GAME_DESIGN.gacha.spinCostCoins);
   assert.equal(BOOST_X_DURATION_MS, GAME_DESIGN.combat.boostX.durationMs);
+  assert.equal(MAX_RESUME_CATCHUP_MS, GAME_DESIGN.metrics.maxResumeCatchupMs);
+  assert.equal(BACKGROUND_PERSIST_DEBOUNCE_MS, GAME_DESIGN.metrics.backgroundPersistDebounceMs);
+  assert.equal(
+    DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS,
+    GAME_DESIGN.metrics.desktopBackgroundWatchdogIntervalMs,
+  );
+  assert.equal(
+    DESKTOP_BACKGROUND_WATCHDOG_STALL_MS,
+    GAME_DESIGN.metrics.desktopBackgroundWatchdogStallMs,
+  );
   assert.equal(MAX_LEVEL, GAME_DESIGN.progression.maxLevel);
   assert.equal(TARGET_FPS, GAME_DESIGN.metrics.targetFps);
   assert.equal(ROUTE_UNLOCK_DEFEATS, GAME_DESIGN.routeUnlock.routeUnlockDefeats);
