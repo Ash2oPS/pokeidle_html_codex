@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "waitForState": {
+        "render_scale": 1,
+        "active_projectiles.length": {
+          "min": 1
+        },
+        "active_lasers.length": {
+          "min": 1
+        },
+        "ko_transition.active": false,
+        "vfx_render_debug.projectile.active_count": {
+          "min": 1
+        },
+        "vfx_render_debug.laser.active_count": {
+          "min": 1
+        }
+      },
+      "waitStateTimeoutMs": 15000,
+      "waitStatePollMs": 33,
+      "captureName": "mixed-three-projectiles-three-lasers"
+    }
+  ]
+}

@@ -112,6 +112,9 @@ test("runtime render system materializes the laser renderer without dynamic code
   assert.match(source, /function drawLasers\(/);
   assert.match(source, /function drawPackedLaserBeam\(/);
   assert.match(source, /const packedLaserBeamTextureCache = \{\};/);
+  assert.match(source, /packed_simple/);
+  assert.match(source, /pixel_curved/);
+  assert.match(source, /hero_curved/);
   assert.match(source, /drawLasers\(state\.battle \? state\.battle\.getLasers\(\) : \[\]\);/);
   assert.doesNotMatch(source, /new Function/);
   assert.doesNotMatch(source, /with \(scope\)/);
@@ -130,6 +133,16 @@ test("runtime render system keeps laser budget independent from laser count and 
   assert.doesNotMatch(source, /crowdPenalty/);
   assert.doesNotMatch(source, /packedCrowd/);
   assert.doesNotMatch(source, /const activeLaserCount = laserList\.length;/);
+});
+
+test("runtime render system owns projectile stamp caches and no longer depends on battle sprite factories", () => {
+  const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.match(source, /projectileSpriteAtlasCache = new Map/);
+  assert.match(source, /projectileTrailStampCache = new Map/);
+  assert.match(source, /getProjectileSpriteStamp/);
+  assert.match(source, /getProjectileTrailStamp/);
+  assert.doesNotMatch(source, /getProjectileSprite\(/);
 });
 
 test("runtime render system draws lasers above combat sprites with a contrast underlay", () => {

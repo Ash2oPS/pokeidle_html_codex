@@ -5,10 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Poke Idle Fan Game</title>
     <link rel="icon" type="image/png" href="assets/icons/pokeball-dock.png" />
+    <style>
+      #runtime-ui-root > .loading-screen.is-visible {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #000;
+        color: #fff;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-screen-core {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        gap: 18px;
+        padding: 24px;
+        text-align: center;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-screen-text {
+        margin: 0;
+        max-width: min(90vw, 820px);
+        color: #fff;
+        font: 700 clamp(14px, 2vw, 24px) / 1.32 "Trebuchet MS", "Verdana", sans-serif;
+        letter-spacing: 0.02em;
+        text-wrap: balance;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-pokeball {
+        width: clamp(72px, 11vw, 124px);
+        aspect-ratio: 1 / 1;
+        border-radius: 999px;
+        border: clamp(4px, 0.56vw, 7px) solid #fff;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 112, 112, 1) 0%,
+            rgba(223, 56, 56, 1) 45%,
+            rgba(0, 0, 0, 1) 45%,
+            rgba(0, 0, 0, 1) 55%,
+            rgba(255, 255, 255, 1) 55%,
+            rgba(239, 239, 239, 1) 100%
+          );
+        box-shadow:
+          0 0 0 clamp(2px, 0.32vw, 4px) rgba(0, 0, 0, 0.95),
+          0 0 32px rgba(255, 255, 255, 0.26);
+        position: relative;
+        animation: loading-pokeball-spin 1.02s linear infinite;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-pokeball::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: clamp(24px, 3.6vw, 38px);
+        height: clamp(24px, 3.6vw, 38px);
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        border: clamp(4px, 0.52vw, 6px) solid #000;
+        background: #fff;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-pokeball::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: clamp(10px, 1.3vw, 16px);
+        height: clamp(10px, 1.3vw, 16px);
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background: #000;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible .loading-screen-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        transform: scale(0.72);
+        background:
+          radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 44%),
+          radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 64%);
+      }
+
+      @keyframes loading-pokeball-spin {
+        from {
+          transform: rotate(0deg);
+        }
+
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="runtime-ui-root" aria-live="polite"></div>
+    <div id="runtime-ui-root" aria-live="polite">
+      <section id="loading-screen" class="loading-screen is-visible" aria-live="polite" aria-label="Chargement">
+        <div class="loading-screen-core">
+          <div class="loading-pokeball" aria-hidden="true"></div>
+          <p id="loading-screen-text" class="loading-screen-text">
+            Le code de ce jeu a &eacute;t&eacute; enti&egrave;rement g&eacute;n&eacute;r&eacute; par IA.
+          </p>
+        </div>
+        <div class="loading-screen-flash" aria-hidden="true"></div>
+      </section>
+    </div>
     <script src="vendor/pako.min.js"></script>
     <script src="vendor/upng.js"></script>
     <script src="vendor/omggif.js"></script>

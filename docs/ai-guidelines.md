@@ -75,6 +75,17 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - interaction system
   - render system
   - CSS
+- Il est interdit d'optimiser le jeu en reduisant la resolution interne ou en ajoutant un render scale dynamique.
+- Le rendu interne doit rester a l'echelle `x1` sur tous les formats.
+- Interdit:
+  - sous-rendre le canvas selon le device
+  - baisser la resolution selon la charge ou le FPS
+  - cacher une baisse de resolution dans des presets de qualite
+- Pour les performances, prefere:
+  - reduire le nombre de particules
+  - simplifier les VFX
+  - espacer certaines mises a jour visuelles
+  - diminuer des budgets d'effets ou des details secondaires
 - L'UI doit garder un style visuel coherent sur l'ensemble du jeu.
 - Chaque nouvel ecran, modal, panneau, carte ou refonte doit sembler appartenir au meme produit que le reste du jeu.
 - Avant d'inventer un nouveau style, reutilise d'abord les patterns existants:
@@ -84,6 +95,22 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - densite d'espacement
   - formes de boutons, pills, cartes, modales et panneaux d'info
   - principes d'etat visuel: hover, actif, selection, rarete, desactive
+- Les VFX doivent suivre une direction generale pixel-art-like.
+- Ce n'est pas une obligation de vrai pixel art strict, mais le rendu doit evoquer un style proche:
+  - crunchy
+  - gros pixels propres
+  - formes franches
+  - lecture immediate
+- Evite pour les VFX:
+  - les effets trop fins
+  - les micro-details bruiteux
+  - les blurs mous omnipresents
+  - les particules trop petites ou trop "modern high-fidelity"
+- Quand plusieurs niveaux de rendu sont possibles, tu peux volontairement choisir un rendu moins fin si cela:
+  - renforce cette esthetique pixel-art-like
+  - garde les VFX lisibles en mouvement
+  - reduit le cout de rendu
+  - reste coherent avec le reste du jeu
 - N'introduis une nouvelle variante visuelle que si elle est justifiee par une hierarchie UX claire, un role gameplay distinct ou une demande explicite.
 - Interdit:
   - donner a un ecran un look isole qui casse l'identite du jeu

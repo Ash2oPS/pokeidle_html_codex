@@ -1,0 +1,39 @@
+{
+  "steps": [
+    {
+      "waitMs": 1800
+    },
+    {
+      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 2200
+    },
+    {
+      "clickSelectorIfVisible": "#tutorial-close-btn",
+      "waitMs": 900
+    },
+    {
+      "clickSelector": "#shop-btn"
+    },
+    {
+      "waitForSelector": "#shop-modal:not(.hidden)",
+      "waitMs": 900
+    },
+    {
+      "captureName": "shop-pokeballs"
+    },
+    {
+      "clickSelector": "#shop-tab-combat",
+      "waitMs": 500
+    },
+    {
+      "captureName": "shop-combat"
+    },
+    {
+      "clickSelector": "#shop-tab-evolutions",
+      "waitMs": 500
+    },
+    {
+      "captureName": "shop-evolutions"
+    }
+  ]
+}

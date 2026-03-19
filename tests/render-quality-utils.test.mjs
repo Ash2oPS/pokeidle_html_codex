@@ -58,7 +58,7 @@ test("createRenderQualityUtils exposes projectile trail type VFX profiles", () =
   const fireTrail = utils.getProjectileTrailTypeVfxProfile("fire");
   assert.equal(fireTrail.mode, "ember");
   assert.equal(fireTrail.spacingPx, 6.1);
-  assert.deepEqual(fireTrail.accent, [255, 217, 146]);
+  assert.deepEqual(fireTrail.accent, [255, 244, 196]);
 
   const defaultTrail = utils.getProjectileTrailTypeVfxProfile("mystery_type");
   assert.equal(defaultTrail.mode, "streak");
@@ -155,10 +155,14 @@ test("runtime render quality presets slow the render loop on low-end tiers", () 
   assert.equal(RENDER_QUALITY_PRESETS.very_low.renderFrameIntervalMs > RENDER_QUALITY_PRESETS.low.renderFrameIntervalMs, true);
 });
 
-test("runtime resizeCanvas applies sub-1 render DPR on low-end presets", () => {
+test("runtime resizeCanvas keeps the internal render scale locked to x1", () => {
   const source = fs.readFileSync(gameRuntimePath, "utf8");
 
-  assert.match(source, /const targetDpr = Math\.max\(0\.5, deviceDpr \* renderScale\);/);
+  assert.match(source, /const deviceDpr = clamp\(Math\.max\(1, window\.devicePixelRatio \|\| 1\), 1, MAX_RENDER_DPR\);/);
+  assert.match(source, /const renderScale = 1;/);
+  assert.match(source, /const targetDpr = deviceDpr;/);
+  assert.doesNotMatch(source, /quality\.maxDpr/);
+  assert.doesNotMatch(source, /quality\.renderScale/);
   assert.doesNotMatch(source, /function syncDynamicLaserPerformanceProfile\(\)/);
   assert.doesNotMatch(source, /function getLaserCrowdRenderScalePenalty\(\)/);
   assert.doesNotMatch(source, /syncDynamicLaserPerformanceProfile\(\);/);

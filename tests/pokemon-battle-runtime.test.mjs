@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { createPokemonBattleRuntime } from "../systems/combat/pokemon-battle-manager.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pokemonBattleManagerPath = path.resolve(__dirname, "../systems/combat/pokemon-battle-manager.js");
 
 class MockTween {
   constructor(target, group) {
@@ -203,6 +210,64 @@ test("PokemonBattleManager pauses attack cadence during capture sequence", () =>
   manager.update(60, state.layout);
   assert.equal(manager.attackTimerMs, 150);
   assert.equal(manager.pendingRespawnMs, 40);
+});
+
+test("PokemonBattleManager no longer owns projectile sprite fabrication", () => {
+  const source = fs.readFileSync(pokemonBattleManagerPath, "utf8");
+
+  assert.doesNotMatch(source, /projectileSpriteCache/);
+  assert.doesNotMatch(source, /drawProjectileGlyph/);
+  assert.doesNotMatch(source, /createProjectileSprite/);
+  assert.doesNotMatch(source, /getProjectileSprite/);
+});
+
+test("PokemonBattleManager keeps failed auto-captures in the capture sequence", () => {
+  const state = { timeMs: 0, layout: createLayout() };
+  const runtime = createPokemonBattleRuntime({
+    state,
+    Tween: MockTween,
+    computeDamage: () => ({ damage: 20, isCritical: false }),
+  });
+
+  let captureOnCompleteCalls = 0;
+  const manager = new runtime.PokemonBattleManager({
+    team: [createAttacker()],
+    attackIntervalMs: 420,
+    respawnDelayMs: 100,
+    createEnemy,
+    onEnemyDefeated: () => ({
+      captured: false,
+      capture_attempted: true,
+      capture_ball_type: "hyper_ball",
+      capture_chance_display: 0.42,
+      capture_on_complete: () => {
+        captureOnCompleteCalls += 1;
+        return false;
+      },
+    }),
+  });
+
+  manager.enemy = {
+    ...createEnemy(),
+    hpCurrent: 1,
+  };
+
+  const applied = manager.applyLaserTick(0, state.layout, {
+    forcedDecision: createAttackDecision(),
+    forceImmediateResolution: true,
+  });
+
+  assert.equal(applied, true);
+  assert.ok(manager.captureSequence);
+  assert.equal(manager.captureSequence.captured, false);
+  assert.equal(manager.captureSequence.ballType, "hyper_ball");
+  assert.equal(manager.pendingRespawnMs, manager.captureSequence.totalMs);
+
+  manager.update(manager.captureSequence.totalMs, state.layout);
+
+  assert.equal(captureOnCompleteCalls, 1);
+  assert.equal(manager.captureSequence, null);
+  assert.equal(manager.enemy?.hpCurrent, 20);
 });
 
 test("PokemonBattleManager defaults to laser mode but preserves projectile overrides", () => {
@@ -520,7 +585,7 @@ test("PokemonBattleManager laser hit resolution preserves attacker combat stats 
   assert.equal(observedAttacker?.stats?.attack, 84);
 });
 
-test("PokemonBattleManager laser micro-ticks keep damage text in sync without spamming heavy impact visuals", () => {
+test("PokemonBattleManager laser ticks do not spawn floating damage texts while preserving hit visuals", () => {
   const state = { timeMs: 0, layout: createLayout() };
   const runtime = createPokemonBattleRuntime({
     state,
@@ -538,18 +603,15 @@ test("PokemonBattleManager laser micro-ticks keep damage text in sync without sp
   manager.processAttackCadenceTick(state.layout);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.getFloatingTexts().length, 1);
+  assert.equal(manager.getFloatingTexts().length, 0);
   assert.equal(manager.getHitEffects().length > 0, true);
-  assert.equal(Object.prototype.hasOwnProperty.call(manager.getFloatingTexts()[0], "labelPrimary"), false);
-  assert.equal(Object.prototype.hasOwnProperty.call(manager.getFloatingTexts()[0], "labelSecondary"), false);
 
   manager.clearFloatingTexts();
   manager.hitEffects = [];
   manager.setEnemyDamageFlashMs(0);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.getFloatingTexts().length, 1);
-  assert.equal(manager.getFloatingTexts()[0].damage, 2);
+  assert.equal(manager.getFloatingTexts().length, 0);
   assert.equal(manager.getHitEffects().length, 0);
   assert.equal(manager.getEnemyDamageFlashBlend(), 0);
 });

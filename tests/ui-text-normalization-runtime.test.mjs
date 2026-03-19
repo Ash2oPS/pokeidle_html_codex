@@ -52,3 +52,27 @@ test("ui text normalization runtime repairs dynamic DOM updates", async () => {
   assert.equal(paragraph.textContent, "Aucun Pok\u00e9mon captur\u00e9 pour le moment.");
   assert.equal(paragraph.getAttribute("title"), "Bient\u00f4t disponible");
 });
+
+test("ui text normalization runtime leaves wiring attributes untouched", () => {
+  const dom = createDom();
+  const document = dom.window.document;
+  const rootEl = document.getElementById("root");
+
+  rootEl.innerHTML = `
+    <button id="shop-tab-evolutions" data-shop-tab="evolutions" aria-label="Evolution Pokemon">
+      Evolutions
+    </button>
+  `;
+
+  const runtime = createUiTextNormalizationRuntime({
+    rootEl,
+    MutationObserverCtor: dom.window.MutationObserver,
+  });
+  runtime.start();
+
+  const button = rootEl.querySelector("button");
+  assert.equal(button?.id, "shop-tab-evolutions");
+  assert.equal(button?.getAttribute("data-shop-tab"), "evolutions");
+  assert.equal(button?.getAttribute("aria-label"), "\u00c9volution Pok\u00e9mon");
+  assert.equal(button?.textContent?.trim(), "\u00c9volutions");
+});

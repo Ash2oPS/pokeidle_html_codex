@@ -1,5 +1,3 @@
-import { normalizeUiDisplayText } from "../../lib/text-normalization.js";
-
 const RUNTIME_UI_MOUNT_ROOT_ID = "runtime-ui-root";
 
 export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" class="game-capture-root" data-layout-mode="desktopLandscape">
@@ -420,6 +418,19 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           </div>
           <button id="boxes-close-btn" class="boxes-close-btn" type="button">Fermer</button>
         </div>
+        <div class="collection-search-row">
+          <label class="collection-search-label" for="boxes-search-input">Recherche</label>
+          <input
+            id="boxes-search-input"
+            class="collection-search-input"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Nom, surnom ou n&deg; Pok&eacute;dex"
+            aria-label="Rechercher dans les bo&icirc;tes"
+          />
+        </div>
         <div class="boxes-layout">
           <div id="boxes-grid" class="boxes-grid"></div>
           <aside id="boxes-info-panel" class="boxes-info-panel">
@@ -454,6 +465,19 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             </div>
           </div>
           <button id="pokedex-close-btn" class="boxes-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="collection-search-row">
+          <label class="collection-search-label" for="pokedex-search-input">Recherche</label>
+          <input
+            id="pokedex-search-input"
+            class="collection-search-input"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Nom ou n&deg; Pok&eacute;dex"
+            aria-label="Rechercher dans le Pok&eacute;dex"
+          />
         </div>
         <div class="boxes-layout">
           <div id="pokedex-grid" class="boxes-grid pokedex-grid"></div>
@@ -691,12 +715,14 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   boxesGridEl: "boxes-grid",
   boxesInfoPanelEl: "boxes-info-panel",
   boxesCloseButtonEl: "boxes-close-btn",
+  boxesSearchInputEl: "boxes-search-input",
   boxesSubtitleEl: "boxes-subtitle",
   boxesShinyCounterEl: "boxes-shiny-counter",
   pokedexModalEl: "pokedex-modal",
   pokedexGridEl: "pokedex-grid",
   pokedexInfoPanelEl: "pokedex-info-panel",
   pokedexCloseButtonEl: "pokedex-close-btn",
+  pokedexSearchInputEl: "pokedex-search-input",
   pokedexSubtitleEl: "pokedex-subtitle",
   pokedexGlobalCompletionEl: "pokedex-global-completion",
   pokedexEncounteredStatEl: "pokedex-stat-encountered",
@@ -823,12 +849,14 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "boxes-grid",
   "boxes-info-panel",
   "boxes-close-btn",
+  "boxes-search-input",
   "boxes-subtitle",
   "boxes-shiny-counter",
   "pokedex-modal",
   "pokedex-grid",
   "pokedex-info-panel",
   "pokedex-close-btn",
+  "pokedex-search-input",
   "pokedex-subtitle",
   "pokedex-global-completion",
   "pokedex-stat-encountered",
@@ -963,7 +991,7 @@ export function mountRuntimeUi(documentRef = typeof document !== "undefined" ? d
   }
 
   const mountRoot = ensureMountRoot(documentRef, options.mountRootId || RUNTIME_UI_MOUNT_ROOT_ID);
-  mountRoot.innerHTML = normalizeUiDisplayText(RUNTIME_UI_TEMPLATE_HTML, { frenchTypography: true });
+  mountRoot.innerHTML = RUNTIME_UI_TEMPLATE_HTML;
   const uiDom = resolveRuntimeUiDomRefs(documentRef);
 
   if (options.assertInvariants !== false) {

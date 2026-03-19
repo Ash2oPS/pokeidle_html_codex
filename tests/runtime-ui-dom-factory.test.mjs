@@ -51,3 +51,26 @@ test("mountRuntimeUi normalizes static French copy and labels", () => {
     "Menu principal plein \u00e9cran",
   );
 });
+
+test("mountRuntimeUi preserves interactive ids and shop tab dataset values", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.shopTabEvolutionsButtonEl?.id, "shop-tab-evolutions");
+  assert.equal(refs.shopTabEvolutionsButtonEl?.dataset?.shopTab, "evolutions");
+  assert.equal(refs.shopTabPokeballsButtonEl?.dataset?.shopTab, "pokeballs");
+  assert.equal(refs.shopTabCombatButtonEl?.dataset?.shopTab, "combat");
+});
+
+test("mountRuntimeUi exposes collection search inputs for boxes and pokedex", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.boxesSearchInputEl?.id, "boxes-search-input");
+  assert.equal(refs.boxesSearchInputEl?.getAttribute("placeholder"), "Nom, surnom ou n\u00b0 Pok\u00e9dex");
+  assert.equal(refs.boxesSearchInputEl?.getAttribute("aria-label"), "Rechercher dans les bo\u00eetes");
+
+  assert.equal(refs.pokedexSearchInputEl?.id, "pokedex-search-input");
+  assert.equal(refs.pokedexSearchInputEl?.getAttribute("placeholder"), "Nom ou n\u00b0 Pok\u00e9dex");
+  assert.equal(refs.pokedexSearchInputEl?.getAttribute("aria-label"), "Rechercher dans le Pok\u00e9dex");
+});

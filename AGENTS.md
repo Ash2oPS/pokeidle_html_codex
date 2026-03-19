@@ -14,6 +14,10 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - desktop / PC
   - mobile portrait / telephone
 - Toute modification UI doit preserver un style visuel coherent a l'echelle de tout le jeu. Interdiction de traiter chaque ecran, modal ou panneau comme un mini-projet graphique different.
+- Il est interdit d'optimiser le rendu en baissant la resolution interne ou en ajoutant un render scale dynamique:
+  - le rendu interne doit rester a l'echelle `x1`
+  - pas de sous-rendu conditionnel selon device, FPS, qualite ou charge
+  - les optimisations doivent passer par les budgets VFX, la cadence de rendu, la complexite des effets ou les simplifications de contenu, pas par une resolution floutee
 - Pour toute nouvelle UI ou refonte UI, reutilise d'abord les patterns visuels deja presents:
   - palette
   - contrastes
@@ -23,6 +27,15 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - ombres
   - densite d'espacement
   - formes de cartes, boutons, pills et modales
+- Les VFX du jeu doivent garder une esthetique generale pixel-art-like:
+  - pas du vrai pixel art strict
+  - mais un rendu crunchy, lisible, a gros pixels propres
+  - evite les VFX trop fins, trop lisses, trop flous ou trop "high-fidelity" qui cassent cette direction
+- Quand un choix de rendu VFX existe, privilegie une execution compatible avec cette esthetique pixel:
+  - formes lisibles
+  - silhouettes franches
+  - detail volontairement limite
+  - rendu potentiellement moins fin si cela ameliore coherence visuelle et performances
 - N'introduis une nouvelle variante visuelle que si elle sert une vraie hierarchie UX ou un besoin de gameplay clair. Ne cree jamais une nouvelle "direction artistique locale" par confort.
 - Validation UI obligatoire:
   - lance `npm run test:visual:gallery:desktop`

@@ -120,6 +120,82 @@ export function sanitizeCaptureName(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function getStateValueByPath(state, pathExpression) {
+  if (!state || !pathExpression) {
+    return undefined;
+  }
+  const tokens = String(pathExpression)
+    .split(".")
+    .map((token) => token.trim())
+    .filter(Boolean);
+  let current = state;
+  for (const token of tokens) {
+    if (current == null) {
+      return undefined;
+    }
+    if (token === "length" && (Array.isArray(current) || typeof current === "string")) {
+      current = current.length;
+      continue;
+    }
+    current = current[token];
+  }
+  return current;
+}
+
+function matchesStateCriterion(actualValue, criterion) {
+  if (criterion && typeof criterion === "object" && !Array.isArray(criterion)) {
+    if (Object.prototype.hasOwnProperty.call(criterion, "exists")) {
+      return criterion.exists ? actualValue !== undefined && actualValue !== null : actualValue === undefined || actualValue === null;
+    }
+    if (Object.prototype.hasOwnProperty.call(criterion, "truthy")) {
+      return criterion.truthy ? Boolean(actualValue) : !Boolean(actualValue);
+    }
+    if (Object.prototype.hasOwnProperty.call(criterion, "eq")) {
+      return actualValue === criterion.eq;
+    }
+    if (Object.prototype.hasOwnProperty.call(criterion, "includes")) {
+      if (Array.isArray(actualValue)) {
+        return actualValue.includes(criterion.includes);
+      }
+      if (typeof actualValue === "string") {
+        return actualValue.includes(String(criterion.includes));
+      }
+      return false;
+    }
+    if (Object.prototype.hasOwnProperty.call(criterion, "min")) {
+      if (!Number.isFinite(Number(actualValue))) {
+        return false;
+      }
+      if (Number(actualValue) < Number(criterion.min)) {
+        return false;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(criterion, "max")) {
+      if (!Number.isFinite(Number(actualValue))) {
+        return false;
+      }
+      if (Number(actualValue) > Number(criterion.max)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return actualValue === criterion;
+}
+
+export function matchesStateCriteria(state, criteria) {
+  if (!criteria || typeof criteria !== "object") {
+    return false;
+  }
+  for (const [pathExpression, criterion] of Object.entries(criteria)) {
+    const actualValue = getStateValueByPath(state, pathExpression);
+    if (!matchesStateCriterion(actualValue, criterion)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function makeVirtualTimeShim() {
   return `(() => {
     const pending = new Set();
@@ -307,12 +383,7 @@ class ConsoleErrorTracker {
 }
 
 async function writeStateSnapshot(page, dir, index) {
-  const stateText = await page.evaluate(() => {
-    if (typeof window.render_game_to_text === "function") {
-      return window.render_game_to_text();
-    }
-    return null;
-  });
+  const stateText = await readRenderedStateText(page);
   const snapshotText = stateText || JSON.stringify({ renderStateAvailable: false }, null, 2);
   fs.writeFileSync(path.join(dir, `state-${index}.json`), snapshotText);
   if (index === 0) {
@@ -320,25 +391,33 @@ async function writeStateSnapshot(page, dir, index) {
   }
 }
 
-async function writeNamedStateSnapshot(page, dir, name) {
-  const stateText = await page.evaluate(() => {
+async function writeNamedStateSnapshot(page, dir, name, stateTextOverride = null) {
+  const stateText = stateTextOverride || await readRenderedStateText(page);
+  const snapshotText = stateText || JSON.stringify({ renderStateAvailable: false }, null, 2);
+  fs.writeFileSync(path.join(dir, `${name}.json`), snapshotText);
+}
+
+async function readRenderedStateText(page) {
+  return page.evaluate(() => {
     if (typeof window.render_game_to_text === "function") {
       return window.render_game_to_text();
     }
     return null;
   });
-  const snapshotText = stateText || JSON.stringify({ renderStateAvailable: false }, null, 2);
-  fs.writeFileSync(path.join(dir, `${name}.json`), snapshotText);
 }
 
 async function captureStageShot(page, dir, index) {
   const stagePath = path.join(dir, `stage-${index}.png`);
   const stageLocator = page.locator("#game-capture-root");
   if ((await stageLocator.count()) > 0) {
-    await stageLocator.first().screenshot({
-      path: stagePath,
-      omitBackground: false,
-    });
+    try {
+      await stageLocator.first().screenshot({
+        path: stagePath,
+        omitBackground: false,
+      });
+    } catch {
+      await page.screenshot({ path: stagePath, omitBackground: false });
+    }
     if (index === 0) {
       fs.copyFileSync(stagePath, path.join(dir, "stage.png"));
     }
@@ -368,10 +447,14 @@ async function captureNamedStageShot(page, dir, name) {
   const shotPath = path.join(dir, `${name}.png`);
   const stageLocator = page.locator("#game-capture-root");
   if ((await stageLocator.count()) > 0) {
-    await stageLocator.first().screenshot({
-      path: shotPath,
-      omitBackground: false,
-    });
+    try {
+      await stageLocator.first().screenshot({
+        path: shotPath,
+        omitBackground: false,
+      });
+    } catch {
+      await page.screenshot({ path: shotPath, omitBackground: false });
+    }
     return shotPath;
   }
   await page.screenshot({ path: shotPath, omitBackground: false });
@@ -409,9 +492,42 @@ async function setSelectorScrollTop(page, selector, top, options = {}) {
 }
 
 async function executeDirectiveStep(page, canvas, step, options = {}) {
+  let matchedStateText = null;
+  if (step.waitForState) {
+    const timeoutMs = Math.max(0, Number(step.waitStateTimeoutMs) || 10_000);
+    const pollMs = Math.max(0, Number(step.waitStatePollMs) || 120);
+    const startTime = Date.now();
+    let matched = false;
+    while (Date.now() - startTime <= timeoutMs) {
+      const statePayload = await readRenderedStateText(page);
+      if (statePayload) {
+        try {
+          const state = JSON.parse(statePayload);
+          if (matchesStateCriteria(state, step.waitForState)) {
+            matched = true;
+            matchedStateText = statePayload;
+            break;
+          }
+        } catch {
+          // Ignore malformed state snapshots and keep polling.
+        }
+      }
+      await page.evaluate((advanceMs) => {
+        if (typeof window.advanceTime === "function") {
+          return window.advanceTime(Math.max(0, Number(advanceMs) || 0));
+        }
+        return Promise.resolve();
+      }, pollMs || 120);
+      await page.waitForTimeout(Math.max(16, Math.min(100, pollMs || 120)));
+    }
+    if (!matched) {
+      throw new Error(`Timed out waiting for render state criteria: ${JSON.stringify(step.waitForState)}`);
+    }
+  }
+
   if (step.waitForSelector) {
     await waitForStepSelector(page, step.waitForSelector, {
-      state: step.waitForState,
+      state: step.waitSelectorState || (typeof step.waitForState === "string" ? step.waitForState : undefined),
       timeout: step.waitTimeout,
     });
   }
@@ -454,7 +570,7 @@ async function executeDirectiveStep(page, canvas, step, options = {}) {
   if (captureName) {
     await captureNamedStageShot(page, options.screenshotDir, captureName);
     if (step.captureState !== false) {
-      await writeNamedStateSnapshot(page, options.screenshotDir, captureName);
+      await writeNamedStateSnapshot(page, options.screenshotDir, captureName, matchedStateText);
     }
     if (step.captureFullPage === true) {
       await captureNamedFullPageShot(page, options.screenshotDir, captureName, options.fullPage);

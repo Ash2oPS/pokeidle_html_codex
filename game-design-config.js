@@ -102,6 +102,38 @@ export const GAME_DESIGN_CONFIG = {
       },
     },
 
+    /** Rendu VFX projectile / laser crunchy sans reduction de render scale. */
+    vfx: {
+      /** Taille d'atlas de sprite projectile pre-rendu. */
+      projectileAtlasSizePx: 36,
+      /** Taille d'atlas d'un stamp de trainee projectile. */
+      projectileTrailStampSizePx: 18,
+      /** Nombre borne de variantes pre-rendues par projectile de type. */
+      projectileVariantCount: 3,
+      /** Alignement pixel pour les VFX. */
+      pixelSnapStepPx: 2,
+      /** Taille des textures beam pre-packees. */
+      laserPackedTextureWidthPx: 96,
+      laserPackedTextureHeightPx: 24,
+      /** Buckets de distance pour les budgets laser. */
+      laserDistanceNearPx: 110,
+      laserDistanceMidPx: 240,
+      laserDistanceFarPx: 420,
+      /** Caps globaux par chemin de rendu laser. */
+      laserPackedSimpleSegmentMaxCount: 1,
+      laserPixelCurvedSegmentMaxCount: 6,
+      laserHeroCurvedSegmentMaxCount: 10,
+      laserPackedSimpleParticleMaxCount: 0,
+      laserPixelCurvedParticleMaxCount: 2,
+      laserHeroCurvedParticleMaxCount: 4,
+      /** Intensites generales de rendu. */
+      laserPackedSimpleWidthMultiplier: 0.94,
+      laserPixelCurvedWidthMultiplier: 1.02,
+      laserHeroCurvedWidthMultiplier: 1.08,
+      laserGlowAlpha: 0.08,
+      projectileGlowAlpha: 0.1,
+    },
+
     /** Timings et ratios du ressenti combat. */
     timings: {
       koRespawnDelayMs: 110,
@@ -267,12 +299,11 @@ export const GAME_DESIGN_CONFIG = {
     localDayStartHour: 7,
     localNightStartHour: 19,
     environmentUpdateIntervalMs: 120,
-    maxRenderDpr: 1.35,
+    /** Plafond global de DPR. Le rendu interne reste toujours a l'echelle x1. */
+    maxRenderDpr: 4,
     renderQualityOrder: ["very_low", "low", "medium", "high", "ultra"],
     renderQualityPresets: {
       ultra: {
-        maxDpr: 1.25,
-        renderScale: 0.9,
         renderFrameIntervalMs: 17,
         foregroundSimBudgetMs: 72,
         environmentParticleScale: 0.45,
@@ -286,8 +317,6 @@ export const GAME_DESIGN_CONFIG = {
         vignette: false,
       },
       high: {
-        maxDpr: 1.08,
-        renderScale: 0.84,
         renderFrameIntervalMs: 17,
         foregroundSimBudgetMs: 64,
         environmentParticleScale: 0.22,
@@ -301,8 +330,6 @@ export const GAME_DESIGN_CONFIG = {
         vignette: false,
       },
       medium: {
-        maxDpr: 1,
-        renderScale: 0.78,
         renderFrameIntervalMs: 17,
         foregroundSimBudgetMs: 56,
         environmentParticleScale: 0.06,
@@ -316,8 +343,6 @@ export const GAME_DESIGN_CONFIG = {
         vignette: false,
       },
       low: {
-        maxDpr: 1,
-        renderScale: 0.68,
         renderFrameIntervalMs: 20,
         foregroundSimBudgetMs: 48,
         environmentParticleScale: 0,
@@ -331,8 +356,6 @@ export const GAME_DESIGN_CONFIG = {
         vignette: false,
       },
       very_low: {
-        maxDpr: 1,
-        renderScale: 0.58,
         renderFrameIntervalMs: 24,
         foregroundSimBudgetMs: 40,
         environmentParticleScale: 0,

@@ -34,12 +34,18 @@ function createTestElement(tagName = "div") {
     textContent: "",
     className: "",
     disabled: false,
+    value: "",
     type: "",
     src: "",
     alt: "",
+    scrollTop: 0,
     appendChild(child) {
       this.children.push(child);
       return child;
+    },
+    replaceChildren(...children) {
+      this.children = [...children];
+      return children[children.length - 1];
     },
     addEventListener(type, handler) {
       listeners.set(type, handler);
@@ -162,8 +168,10 @@ function createUiInteractionSystem(overrides = {}) {
       gachaOpen: false,
       boxesOpen: false,
       boxesTargetSlotIndex: -1,
+      boxesSearchQuery: "",
       pokedexOpen: false,
       pokedexHoverPokemonId: 0,
+      pokedexSearchQuery: "",
       appearanceOpen: false,
       appearanceTargetSlotIndex: -1,
       appearancePokemonId: 0,
@@ -302,8 +310,9 @@ function createUiInteractionSystem(overrides = {}) {
     assertValidShopItemConfig: (value) => value,
     ballCaptureMenuEl: { classList: createClassList(true) },
     ballCaptureMenuTitleEl: { textContent: "" },
-    boxesGridEl: { innerHTML: "" },
+    boxesGridEl: createTestElement("div"),
     boxesInfoPanelEl: { innerHTML: "" },
+    boxesSearchInputEl: createTestElement("input"),
     boxesModalEl: { classList: createClassList(true) },
     boxesShinyCounterEl: { textContent: "" },
     boxesSubtitleEl: { textContent: "" },
@@ -457,10 +466,11 @@ function createUiInteractionSystem(overrides = {}) {
     pokedexEntriesCacheSpeciesRef: null,
     pokedexEntriesCacheUltraShinySpeciesCount: 0,
     pokedexGlobalCompletionEl: { textContent: "" },
-    pokedexGridEl: { innerHTML: "" },
+    pokedexGridEl: createTestElement("div"),
     pokedexInfoPanelEl: { innerHTML: "" },
     pokedexModalEl: { classList: createClassList(true) },
     pokedexRenderRafHandle: 0,
+    pokedexSearchInputEl: createTestElement("input"),
     pokedexShinyStatEl: { textContent: "" },
     pokedexSpritePrefetchStateByPath: new Map(),
     pokedexSubtitleEl: { textContent: "" },
@@ -544,6 +554,23 @@ function createUiInteractionSystem(overrides = {}) {
   return { bindings, system, state, window: windowObject };
 }
 
+function findDescendantByClassName(element, className) {
+  if (!element || !Array.isArray(element.children)) {
+    return null;
+  }
+  for (const child of element.children) {
+    const childClasses = String(child.className || "").split(/\s+/).filter(Boolean);
+    if (childClasses.includes(className)) {
+      return child;
+    }
+    const nestedMatch = findDescendantByClassName(child, className);
+    if (nestedMatch) {
+      return nestedMatch;
+    }
+  }
+  return null;
+}
+
 test("runtime ui interaction system exposes evolution animation helpers without dynamic factories", () => {
   const { system, window } = createUiInteractionSystem();
 
@@ -592,12 +619,144 @@ test("runtime ui interaction system exports active laser debug state", () => {
   ]);
 });
 
+test("runtime ui interaction system exports vfx render debug telemetry additively", () => {
+  const { system } = createUiInteractionSystem({
+    state: {
+      mode: "ready",
+      viewport: {
+        width: 1280,
+        height: 720,
+        renderScale: 1,
+      },
+      performance: {
+        quality: "high",
+        shortFrameMsEma: 16.67,
+        renderFrameMsEma: 16.67,
+        cpuFrameMsEma: 4.72,
+      },
+      battle: createBattleStub(),
+      enemy: null,
+      team: [],
+      routeData: null,
+      routeCatalog: new Map(),
+      routeBackgroundsById: new Map(),
+      saveData: null,
+      ui: {
+        hoveredTeamSlotIndex: -1,
+        teamDragActive: false,
+        teamDragMoved: false,
+        teamDragSourceSlotIndex: -1,
+        teamDragTargetSlotIndex: -1,
+        shopOpen: false,
+        mapOpen: false,
+        gachaOpen: false,
+        boxesOpen: false,
+        boxesTargetSlotIndex: -1,
+        pokedexOpen: false,
+        pokedexHoverPokemonId: 0,
+        appearanceOpen: false,
+        appearanceTargetSlotIndex: -1,
+        appearancePokemonId: 0,
+        teamContextMenuOpen: false,
+        teamContextMenuSlotIndex: -1,
+        ballCaptureMenuOpen: false,
+        ballCaptureMenuBallType: "",
+        tutorialOpen: false,
+      },
+      gacha: {
+        spinning: false,
+        lastReward: null,
+        lastRewards: [],
+      },
+      notifications: {
+        items: [],
+      },
+      moneyHud: {
+        displayValue: 0,
+      },
+      teamLevelUpEffects: [],
+      teamXpGainEffects: [],
+      backgroundDrift: {
+        currentX: 0,
+        currentY: 0,
+      },
+      tutorial: {
+        active: null,
+      },
+      evolutionAnimation: {
+        current: null,
+        queue: [],
+      },
+      vfxRenderDebug: {
+        qualityTier: "hero_curved",
+        projectile: {
+          activeCount: 2,
+          stampDrawCount: 4,
+          trailStampDrawCount: 7,
+          spriteCacheSize: 3,
+          spriteCacheHits: 11,
+          spriteCacheMisses: 2,
+          trailCacheSize: 2,
+          trailCacheHits: 9,
+          trailCacheMisses: 1,
+        },
+        laser: {
+          activeCount: 1,
+          renderPathCounts: {
+            packed_simple: 0,
+            pixel_curved: 0,
+            hero_curved: 1,
+          },
+          segmentCount: 9,
+          particleCount: 5,
+          textureCacheSize: 4,
+          textureCacheHits: 12,
+          textureCacheMisses: 1,
+        },
+      },
+      pokemonDefsById: new Map(),
+      pokedexSpeciesCsvByPokemonId: new Map(),
+    },
+  });
+
+  const payload = JSON.parse(system.exportTextState());
+
+  assert.deepEqual(payload.vfx_render_debug, {
+    quality_tier: "hero_curved",
+    projectile: {
+      active_count: 2,
+      stamp_draw_count: 4,
+      trail_stamp_draw_count: 7,
+      sprite_cache_size: 3,
+      sprite_cache_hits: 11,
+      sprite_cache_misses: 2,
+      trail_cache_size: 2,
+      trail_cache_hits: 9,
+      trail_cache_misses: 1,
+    },
+    laser: {
+      active_count: 1,
+      render_path_counts: {
+        packed_simple: 0,
+        pixel_curved: 0,
+        hero_curved: 1,
+      },
+      segment_count: 9,
+      particle_count: 5,
+      texture_cache_size: 4,
+      texture_cache_hits: 12,
+      texture_cache_misses: 1,
+    },
+  });
+});
+
 test("runtime ui interaction system materializes the module without chunk injection", () => {
   const source = fs.readFileSync(runtimeUiInteractionSystemPath, "utf8");
 
   assert.match(source, /export const RUNTIME_UI_INTERACTION_BINDING_KEYS/);
   assert.match(source, /function exportTextState\(/);
   assert.match(source, /active_lasers: \(battle \? battle\.getLasers\(\) : \[\]\)\.map/);
+  assert.match(source, /vfx_render_debug:/);
   assert.doesNotMatch(source, /new Function/);
   assert.doesNotMatch(source, /with \(scope\)/);
   assert.doesNotMatch(source, /RUNTIME_UI_INTERACTION_CHUNK/);
@@ -735,6 +894,7 @@ test("runtime ui interaction system falls back to browser globals for builtins o
 
   assert.equal(payload.mode, "ready");
   assert.equal(payload.render_quality, "medium");
+  assert.equal(payload.render_scale, 1);
 });
 
 test("runtime ui interaction system exports the injected design config snapshot", () => {
@@ -755,6 +915,351 @@ test("runtime ui interaction system exports the injected design config snapshot"
       shinyOdds: 777,
     },
   });
+});
+
+test("runtime ui interaction system normalizes collection search queries and filters box entries", () => {
+  const { system, state } = createUiInteractionSystem();
+
+  assert.equal(system.sanitizeCollectionSearchQuery("  Mimi   025  "), "Mimi 025");
+  assert.equal(system.normalizeCollectionSearchValue("Pok\u00e9mon de For\u00eat"), "pokemon de foret");
+
+  const entries = [
+    { id: 25, nameFr: "Pikachu", baseNameFr: "Pikachu", nickname: "Mimi" },
+    { id: 4, nameFr: "Salameche", baseNameFr: "Salameche", nickname: "" },
+  ];
+
+  state.ui.boxesSearchQuery = "mimi";
+  assert.deepEqual(system.getFilteredBoxesEntries(entries).map((entry) => entry.id), [25]);
+
+  state.ui.boxesSearchQuery = "004";
+  assert.deepEqual(system.getFilteredBoxesEntries(entries).map((entry) => entry.id), [4]);
+});
+
+test("runtime ui interaction system filters pokedex entries by name, number and encounter zone", () => {
+  const { system, state } = createUiInteractionSystem();
+  const entries = [
+    {
+      id: 25,
+      nameFr: "Pikachu",
+      nameEn: "Pikachu",
+      encounterZoneLabels: ["For\u00eat de Jade"],
+    },
+    {
+      id: 7,
+      nameFr: "Carapuce",
+      nameEn: "Squirtle",
+      encounterZoneLabels: ["Route 25"],
+    },
+  ];
+
+  state.ui.pokedexSearchQuery = "jade";
+  assert.deepEqual(system.getFilteredPokedexEntries(entries).map((entry) => entry.id), [25]);
+
+  state.ui.pokedexSearchQuery = "squirtle";
+  assert.deepEqual(system.getFilteredPokedexEntries(entries).map((entry) => entry.id), [7]);
+
+  state.ui.pokedexSearchQuery = "025";
+  assert.deepEqual(system.getFilteredPokedexEntries(entries).map((entry) => entry.id), [25]);
+});
+
+test("runtime ui interaction system decorates pokedex cards with attack mode badges", () => {
+  const { system } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+    },
+  });
+
+  const button = system.createPokedexCardButton({
+    id: 35,
+    nameFr: "Melofee",
+    discoveryState: "captured",
+    attackMode: "laser",
+    shinyModeUnlocked: true,
+    ultraShinyModeUnlocked: false,
+  });
+
+  const badgeRow = findDescendantByClassName(button, "boxes-mode-badges");
+  const attackBadge = findDescendantByClassName(button, "boxes-mode-badge-attack");
+
+  assert.ok(badgeRow);
+  assert.ok(attackBadge);
+  assert.equal(attackBadge.dataset.attackMode, "laser");
+  assert.match(attackBadge.className, /boxes-mode-badge-attack-laser/);
+  assert.match(attackBadge.title, /Laser/);
+});
+
+test("runtime ui interaction system decorates box cards with attack mode badges", () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+      isEntityUnlocked: () => true,
+      getCapturedTotal: () => 9,
+      getXpToNextLevelForSpecies: () => 100,
+      computeStatsAtLevel: () => ({}),
+      resolveSpriteAppearanceForEntity: () => ({
+        spritePath: "pokemon_data/25.png",
+        variant: null,
+        shinyVisual: false,
+        shinyNegativeFallbackVisual: false,
+        ultraShinyVisual: false,
+      }),
+      isShinyAppearanceUnlockedForRecord: () => false,
+      isUltraShinyAppearanceUnlockedForRecord: () => true,
+    },
+  });
+  state.saveData = {
+    pokemon_entities: {
+      25: {
+        id: 25,
+        level: 18,
+        captured_normal: 9,
+        attack_mode: "projectiles",
+      },
+    },
+    team: [0, 0, 0, 0, 0, 0],
+  };
+  state.pokemonDefsById.set(25, {
+    id: 25,
+    nameFr: "Pikachu",
+    spritePath: "pokemon_data/25.png",
+    attackMode: "projectiles",
+  });
+  state.ui.boxesTargetSlotIndex = 0;
+
+  system.renderBoxesGrid();
+
+  const button = bindings.boxesGridEl.children[0];
+  const badgeRow = findDescendantByClassName(button, "boxes-mode-badges");
+  const attackBadge = findDescendantByClassName(button, "boxes-mode-badge-attack");
+  const ultraBadge = findDescendantByClassName(button, "boxes-mode-badge-ultra");
+
+  assert.ok(button);
+  assert.ok(badgeRow);
+  assert.ok(attackBadge);
+  assert.ok(ultraBadge);
+  assert.equal(attackBadge.dataset.attackMode, "projectile");
+  assert.match(attackBadge.className, /boxes-mode-badge-attack-projectile/);
+  assert.match(attackBadge.title, /Projectiles/);
+});
+
+test("runtime ui interaction system renders a compact enemy hover tooltip and clamps it inside the viewport", () => {
+  const hoverPopupEl = createTestElement("div");
+  hoverPopupEl.classList.add("hidden");
+  hoverPopupEl.getBoundingClientRect = () => ({
+    width: 320,
+    height: 260,
+    left: 0,
+    top: 0,
+    right: 320,
+    bottom: 260,
+  });
+
+  let tooltipShowCount = 0;
+  const { system } = createUiInteractionSystem({
+    window: {
+      innerWidth: 300,
+      innerHeight: 220,
+    },
+    bindings: {
+      hoverPopupEl,
+      getSpeciesStatsSummary: () => ({
+        encountered_total: 18,
+        encountered_normal: 16,
+        encountered_shiny: 2,
+        encountered_ultra_shiny: 1,
+        defeated_total: 7,
+        defeated_normal: 6,
+        defeated_shiny: 1,
+        defeated_ultra_shiny: 0,
+        captured_total: 4,
+        captured_normal: 3,
+        captured_shiny: 1,
+        captured_ultra_shiny: 1,
+      }),
+      resolveTalentDefinition: () => ({
+        id: "OVERGROW",
+        nameFr: "Engrais",
+        nameEn: "Overgrow",
+        descriptionFr: "Booste les attaques plante quand les PV baissent.",
+      }),
+      showTooltipWithTween: (element) => {
+        tooltipShowCount += 1;
+        element.classList.remove("hidden");
+      },
+    },
+  });
+
+  system.showHoverPopup({
+    id: 1,
+    nameFr: "Bulbizarre",
+    level: 12,
+    attackMode: "laser",
+    hpCurrent: 19,
+    hpMax: 30,
+    defensiveTypes: ["grass", "poison"],
+    balanceTeamSize: 2,
+    balanceHpMultiplier: 1.5,
+    balanceRewardMultiplier: 1.25,
+    isShiny: true,
+    talent: "OVERGROW",
+  }, 290, 210);
+
+  assert.equal(tooltipShowCount, 1);
+  assert.match(hoverPopupEl.innerHTML, /pokemon-info-card--tooltip/);
+  assert.match(hoverPopupEl.innerHTML, /pokemon-info-hint-label">Talent</);
+  assert.match(hoverPopupEl.innerHTML, /pokemon-info-zone-label">Types</);
+  assert.match(hoverPopupEl.innerHTML, /hover-popup-progress-stat-label">Vu</);
+  assert.match(hoverPopupEl.innerHTML, /hover-popup-progress-stat-label">Capt\.</);
+  assert.match(hoverPopupEl.innerHTML, /Groupe/);
+  assert.match(hoverPopupEl.innerHTML, /PV bonus/);
+  assert.match(hoverPopupEl.innerHTML, /Butin/);
+  assert.match(hoverPopupEl.innerHTML, /Adversaire/);
+  assert.match(hoverPopupEl.innerHTML, /Shiny/);
+  assert.equal(hoverPopupEl.style.left, "8px");
+  assert.equal(hoverPopupEl.style.top, "8px");
+});
+
+test("runtime ui interaction system renders live team hover tooltip combat metrics", () => {
+  const hoverPopupEl = createTestElement("div");
+  hoverPopupEl.getBoundingClientRect = () => ({
+    width: 220,
+    height: 180,
+    left: 0,
+    top: 0,
+    right: 220,
+    bottom: 180,
+  });
+
+  const member = {
+    id: 4,
+    nameFr: "Salameche",
+    level: 14,
+    attackMode: "projectiles",
+    offensiveType: "fire",
+    defensiveTypes: ["fire"],
+    hpCurrent: 34,
+    hpMax: 48,
+    xp: 44,
+    xpToNext: 100,
+    talent: "BLAZE",
+  };
+
+  const { system } = createUiInteractionSystem({
+    state: {
+      mode: "ready",
+      viewport: {
+        width: 1280,
+        height: 720,
+        renderScale: 1,
+      },
+      performance: {
+        quality: "medium",
+        shortFrameMsEma: 16.67,
+        renderFrameMsEma: 16.67,
+        cpuFrameMsEma: 4.72,
+      },
+      battle: createBattleStub({
+        getTeleportDamageBoostForSlot: () => 1.6,
+      }),
+      enemy: {
+        id: 7,
+        nameFr: "Carapuce",
+        defensiveTypes: ["water"],
+      },
+      team: [member],
+      routeData: null,
+      routeCatalog: new Map(),
+      routeBackgroundsById: new Map(),
+      saveData: null,
+      ui: {
+        hoveredTeamSlotIndex: -1,
+        teamDragActive: false,
+        teamDragMoved: false,
+        teamDragSourceSlotIndex: -1,
+        teamDragTargetSlotIndex: -1,
+        shopOpen: false,
+        mapOpen: false,
+        gachaOpen: false,
+        boxesOpen: false,
+        boxesTargetSlotIndex: -1,
+        boxesSearchQuery: "",
+        pokedexOpen: false,
+        pokedexHoverPokemonId: 0,
+        pokedexSearchQuery: "",
+        appearanceOpen: false,
+        appearanceTargetSlotIndex: -1,
+        appearancePokemonId: 0,
+        teamContextMenuOpen: false,
+        teamContextMenuSlotIndex: -1,
+        ballCaptureMenuOpen: false,
+        ballCaptureMenuBallType: "",
+        tutorialOpen: false,
+      },
+      gacha: {
+        spinning: false,
+        lastReward: null,
+        lastRewards: [],
+      },
+      notifications: {
+        items: [],
+      },
+      moneyHud: {
+        displayValue: 0,
+      },
+      teamLevelUpEffects: [],
+      teamXpGainEffects: [],
+      backgroundDrift: {
+        currentX: 0,
+        currentY: 0,
+      },
+      tutorial: {
+        active: null,
+      },
+      evolutionAnimation: {
+        current: null,
+        queue: [],
+      },
+      pokemonDefsById: new Map(),
+      pokedexSpeciesCsvByPokemonId: new Map(),
+    },
+    bindings: {
+      hoverPopupEl,
+      getSpeciesStatsSummary: () => ({
+        encountered_total: 12,
+        encountered_normal: 12,
+        encountered_shiny: 0,
+        encountered_ultra_shiny: 0,
+        defeated_total: 4,
+        defeated_normal: 4,
+        defeated_shiny: 0,
+        defeated_ultra_shiny: 0,
+        captured_total: 1,
+        captured_normal: 1,
+        captured_shiny: 0,
+        captured_ultra_shiny: 0,
+      }),
+      getTeamAuraAttackBonusBySlot: () => [0.18],
+      getTypeMultiplier: () => 2,
+      resolveTalentDefinition: () => ({
+        id: "BLAZE",
+        nameFr: "Brasier",
+        nameEn: "Blaze",
+        descriptionFr: "Renforce l'équipe feu.",
+      }),
+      showTooltipWithTween() {},
+    },
+  });
+
+  system.showHoverPopup(member, 120, 90);
+
+  assert.match(hoverPopupEl.innerHTML, /Slot 1/);
+  assert.match(hoverPopupEl.innerHTML, /Matchup/);
+  assert.match(hoverPopupEl.innerHTML, /x2/);
+  assert.match(hoverPopupEl.innerHTML, /Aura/);
+  assert.match(hoverPopupEl.innerHTML, /\+18%/);
+  assert.match(hoverPopupEl.innerHTML, /T[ée]l[ée]port/);
+  assert.match(hoverPopupEl.innerHTML, /XP/);
+  assert.match(hoverPopupEl.innerHTML, /pokemon-info-zone-label">Types</);
 });
 
 test("runtime ui interaction system renders compact boxes info cards", () => {
@@ -790,6 +1295,7 @@ test("runtime ui interaction system renders compact boxes info cards", () => {
     xpToNext: 112,
     defensiveTypes: ["Poison"],
     offensiveType: "Poison",
+    attackMode: "projectiles",
     talent: { id: "NONE" },
     baseStats: {
       hp: 56,
@@ -818,6 +1324,8 @@ test("runtime ui interaction system renders compact boxes info cards", () => {
   assert.match(bindings.boxesInfoPanelEl.innerHTML, /pokemon-info-micro-grid pokemon-info-micro-grid--stats/);
   assert.match(bindings.boxesInfoPanelEl.innerHTML, /pokemon-info-type-chip/);
   assert.match(bindings.boxesInfoPanelEl.innerHTML, /assets\/type-icons\/poison\.png/);
+  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Attaque/);
+  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Projectiles/);
   assert.match(bindings.boxesInfoPanelEl.innerHTML, /Aucun effet passif pour le moment\./);
 });
 
@@ -852,6 +1360,7 @@ test("runtime ui interaction system renders accented pokemon type chips with ico
     discoveryState: "captured",
     offensiveType: "fairy",
     defensiveTypes: ["fairy"],
+    attackMode: "laser",
     encounteredTotal: 4,
     encounteredNormal: 4,
     encounteredShiny: 0,
@@ -868,6 +1377,8 @@ test("runtime ui interaction system renders accented pokemon type chips with ico
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /pokemon-info-zone pokemon-info-zone--types/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /assets\/type-icons\/fairy\.png/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /F\u00e9e/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Attaque/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Laser/);
 });
 
 test("runtime ui interaction system reloads missing pokedex definitions to restore accented type chips", async () => {
@@ -893,6 +1404,7 @@ test("runtime ui interaction system reloads missing pokedex definitions to resto
           nameEn: "clefairy",
           defensiveTypes: ["fairy"],
           offensiveType: "fairy",
+          attackMode: "laser",
           spritePath: "pokemon_data/35_clefairy/sprites/35_clefairy_firered_leafgreen_front.png",
         });
       },
@@ -925,6 +1437,7 @@ test("runtime ui interaction system reloads missing pokedex definitions to resto
   const initialEntry = system.getPokedexEntryByPokemonId(35);
   assert.deepEqual(initialEntry.defensiveTypes, ["normal"]);
   assert.equal(initialEntry.offensiveType, "normal");
+  assert.equal(initialEntry.attackMode, "");
 
   system.setPokedexInfoFromEntry(initialEntry);
   await system.ensurePokedexEntryDefinitionLoaded(initialEntry);
@@ -936,8 +1449,10 @@ test("runtime ui interaction system reloads missing pokedex definitions to resto
   const refreshedEntry = system.getPokedexEntryByPokemonId(35);
   assert.deepEqual(refreshedEntry.defensiveTypes, ["fairy"]);
   assert.equal(refreshedEntry.offensiveType, "fairy");
+  assert.equal(refreshedEntry.attackMode, "laser");
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /assets\/type-icons\/fairy\.png/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /F\u00e9e/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Laser/);
 });
 
 test("runtime ui interaction system exposes current opaque bounds in sprite debug output", () => {

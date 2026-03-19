@@ -190,7 +190,6 @@ export function createPokemonBattleRuntime(deps = {}) {
     PROJECTILE_TRAIL_POINT_MIN_SPACING_PX = 5,
     PROJECTILE_TRAIL_POINT_BASE_SPACING_PX = 16,
     PROJECTILE_TRAIL_POINT_MAX_SPACING_PX = 28,
-    PROJECTILE_SPRITE_PX = 64,
     CAPTURE_THROW_MS = 260,
     CAPTURE_SHAKE_MS = 340,
     CAPTURE_POST_MS = 220,
@@ -202,7 +201,6 @@ export function createPokemonBattleRuntime(deps = {}) {
     ROUTE_DEFEAT_TIMER_MS = 20000,
   } = deps;
 
-  const projectileSpriteCache = new Map();
   const ATTACK_MODE_PROJECTILE = "projectile";
   const ATTACK_MODE_LASER = "laser";
 
@@ -216,272 +214,6 @@ export function createPokemonBattleRuntime(deps = {}) {
     }
     return fallback;
   }
-
-function drawProjectileGlyph(spriteCtx, typeName, size) {
-  const mid = size * 0.5;
-  const outer = size * 0.34;
-
-  spriteCtx.save();
-  spriteCtx.translate(mid, mid);
-  spriteCtx.fillStyle = "rgba(255, 255, 255, 0.97)";
-  spriteCtx.strokeStyle = "rgba(6, 11, 24, 0.35)";
-  spriteCtx.lineWidth = Math.max(1.2, size * 0.03);
-
-  switch (typeName) {
-    case "fire": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer);
-      spriteCtx.bezierCurveTo(outer * 0.6, -outer * 0.22, outer * 0.56, outer * 0.4, 0, outer * 0.86);
-      spriteCtx.bezierCurveTo(-outer * 0.6, outer * 0.4, -outer * 0.62, -outer * 0.22, 0, -outer);
-      spriteCtx.fill();
-      break;
-    }
-    case "water": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer);
-      spriteCtx.quadraticCurveTo(outer * 0.88, -outer * 0.1, outer * 0.34, outer * 0.58);
-      spriteCtx.quadraticCurveTo(0, outer * 0.92, -outer * 0.34, outer * 0.58);
-      spriteCtx.quadraticCurveTo(-outer * 0.88, -outer * 0.1, 0, -outer);
-      spriteCtx.fill();
-      break;
-    }
-    case "grass": {
-      spriteCtx.beginPath();
-      spriteCtx.ellipse(0, 0, outer * 0.86, outer * 0.56, -0.68, 0, Math.PI * 2);
-      spriteCtx.fill();
-      spriteCtx.strokeStyle = "rgba(6, 11, 24, 0.26)";
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(-outer * 0.56, outer * 0.36);
-      spriteCtx.lineTo(outer * 0.52, -outer * 0.32);
-      spriteCtx.stroke();
-      break;
-    }
-    case "electric": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(-outer * 0.28, -outer * 0.82);
-      spriteCtx.lineTo(outer * 0.1, -outer * 0.14);
-      spriteCtx.lineTo(-outer * 0.06, -outer * 0.14);
-      spriteCtx.lineTo(outer * 0.29, outer * 0.84);
-      spriteCtx.lineTo(-outer * 0.12, outer * 0.14);
-      spriteCtx.lineTo(outer * 0.08, outer * 0.14);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "ice": {
-      spriteCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
-      spriteCtx.lineWidth = Math.max(1.8, size * 0.045);
-      for (let i = 0; i < 3; i += 1) {
-        const angle = (Math.PI / 3) * i;
-        const dx = Math.cos(angle) * outer * 0.84;
-        const dy = Math.sin(angle) * outer * 0.84;
-        spriteCtx.beginPath();
-        spriteCtx.moveTo(-dx, -dy);
-        spriteCtx.lineTo(dx, dy);
-        spriteCtx.stroke();
-      }
-      break;
-    }
-    case "psychic": {
-      spriteCtx.beginPath();
-      spriteCtx.arc(0, 0, outer * 0.82, 0, Math.PI * 2);
-      spriteCtx.stroke();
-      spriteCtx.beginPath();
-      spriteCtx.arc(0, 0, outer * 0.38, 0, Math.PI * 2);
-      spriteCtx.fill();
-      break;
-    }
-    case "dragon": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer * 0.86);
-      for (let i = 1; i < 8; i += 1) {
-        const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 8;
-        const r = i % 2 === 0 ? outer * 0.85 : outer * 0.38;
-        spriteCtx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-      }
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "dark": {
-      spriteCtx.beginPath();
-      spriteCtx.arc(-outer * 0.12, 0, outer * 0.78, -Math.PI * 0.86, Math.PI * 0.86);
-      spriteCtx.fill();
-      spriteCtx.globalCompositeOperation = "destination-out";
-      spriteCtx.beginPath();
-      spriteCtx.arc(outer * 0.28, -outer * 0.06, outer * 0.72, -Math.PI * 0.95, Math.PI * 0.95);
-      spriteCtx.fill();
-      spriteCtx.globalCompositeOperation = "source-over";
-      break;
-    }
-    case "fighting": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer * 0.88);
-      spriteCtx.lineTo(outer * 0.28, -outer * 0.2);
-      spriteCtx.lineTo(outer * 0.88, 0);
-      spriteCtx.lineTo(outer * 0.28, outer * 0.2);
-      spriteCtx.lineTo(0, outer * 0.88);
-      spriteCtx.lineTo(-outer * 0.28, outer * 0.2);
-      spriteCtx.lineTo(-outer * 0.88, 0);
-      spriteCtx.lineTo(-outer * 0.28, -outer * 0.2);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "poison": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer * 0.9);
-      spriteCtx.lineTo(outer * 0.82, 0);
-      spriteCtx.lineTo(0, outer * 0.9);
-      spriteCtx.lineTo(-outer * 0.82, 0);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "ground":
-    case "rock": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(-outer * 0.9, outer * 0.22);
-      spriteCtx.lineTo(-outer * 0.4, -outer * 0.8);
-      spriteCtx.lineTo(outer * 0.2, -outer * 0.62);
-      spriteCtx.lineTo(outer * 0.84, -outer * 0.08);
-      spriteCtx.lineTo(outer * 0.32, outer * 0.84);
-      spriteCtx.lineTo(-outer * 0.62, outer * 0.64);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "flying": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(-outer * 0.94, outer * 0.12);
-      spriteCtx.quadraticCurveTo(-outer * 0.1, -outer * 0.84, outer * 0.94, outer * 0.12);
-      spriteCtx.quadraticCurveTo(0, -outer * 0.2, -outer * 0.94, outer * 0.12);
-      spriteCtx.fill();
-      break;
-    }
-    case "bug": {
-      spriteCtx.beginPath();
-      spriteCtx.ellipse(0, 0, outer * 0.5, outer * 0.72, 0, 0, Math.PI * 2);
-      spriteCtx.fill();
-      for (const dir of [-1, 1]) {
-        spriteCtx.beginPath();
-        spriteCtx.moveTo(dir * outer * 0.3, -outer * 0.24);
-        spriteCtx.lineTo(dir * outer * 0.86, -outer * 0.62);
-        spriteCtx.moveTo(dir * outer * 0.38, 0);
-        spriteCtx.lineTo(dir * outer * 0.96, 0);
-        spriteCtx.moveTo(dir * outer * 0.32, outer * 0.26);
-        spriteCtx.lineTo(dir * outer * 0.86, outer * 0.62);
-        spriteCtx.stroke();
-      }
-      break;
-    }
-    case "ghost": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(-outer * 0.72, outer * 0.56);
-      spriteCtx.lineTo(-outer * 0.72, -outer * 0.1);
-      spriteCtx.quadraticCurveTo(-outer * 0.72, -outer * 0.86, 0, -outer * 0.86);
-      spriteCtx.quadraticCurveTo(outer * 0.72, -outer * 0.86, outer * 0.72, -outer * 0.1);
-      spriteCtx.lineTo(outer * 0.72, outer * 0.56);
-      spriteCtx.lineTo(outer * 0.38, outer * 0.34);
-      spriteCtx.lineTo(0, outer * 0.58);
-      spriteCtx.lineTo(-outer * 0.34, outer * 0.34);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    case "steel": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer * 0.92);
-      spriteCtx.lineTo(outer * 0.8, -outer * 0.34);
-      spriteCtx.lineTo(outer * 0.8, outer * 0.34);
-      spriteCtx.lineTo(0, outer * 0.92);
-      spriteCtx.lineTo(-outer * 0.8, outer * 0.34);
-      spriteCtx.lineTo(-outer * 0.8, -outer * 0.34);
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      spriteCtx.globalCompositeOperation = "destination-out";
-      spriteCtx.beginPath();
-      spriteCtx.arc(0, 0, outer * 0.3, 0, Math.PI * 2);
-      spriteCtx.fill();
-      spriteCtx.globalCompositeOperation = "source-over";
-      break;
-    }
-    case "fairy": {
-      spriteCtx.beginPath();
-      spriteCtx.moveTo(0, -outer * 0.9);
-      for (let i = 1; i < 10; i += 1) {
-        const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
-        const r = i % 2 === 0 ? outer * 0.9 : outer * 0.42;
-        spriteCtx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-      }
-      spriteCtx.closePath();
-      spriteCtx.fill();
-      break;
-    }
-    default: {
-      spriteCtx.beginPath();
-      spriteCtx.arc(0, 0, outer * 0.72, 0, Math.PI * 2);
-      spriteCtx.fill();
-      break;
-    }
-  }
-
-  spriteCtx.restore();
-}
-
-function createProjectileSprite(typeName) {
-  const type = normalizeType(typeName);
-  const size = PROJECTILE_SPRITE_PX;
-  const rgb = getTypeColor(type);
-  const sprite = document.createElement("canvas");
-  sprite.width = size;
-  sprite.height = size;
-  const spriteCtx = sprite.getContext("2d");
-  if (!spriteCtx) {
-    return null;
-  }
-
-  const mid = size * 0.5;
-  const aura = spriteCtx.createRadialGradient(mid, mid, size * 0.08, mid, mid, size * 0.5);
-  aura.addColorStop(0, rgba(rgb, 0.98));
-  aura.addColorStop(0.4, rgba(rgb, 0.5));
-  aura.addColorStop(1, rgba(rgb, 0));
-
-  spriteCtx.fillStyle = aura;
-  spriteCtx.beginPath();
-  spriteCtx.arc(mid, mid, size * 0.5, 0, Math.PI * 2);
-  spriteCtx.fill();
-
-  spriteCtx.fillStyle = rgba(rgb, 0.86);
-  spriteCtx.beginPath();
-  spriteCtx.arc(mid, mid, size * 0.34, 0, Math.PI * 2);
-  spriteCtx.fill();
-
-  spriteCtx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-  spriteCtx.lineWidth = Math.max(1.2, size * 0.022);
-  spriteCtx.beginPath();
-  spriteCtx.arc(mid, mid, size * 0.35, 0, Math.PI * 2);
-  spriteCtx.stroke();
-
-  drawProjectileGlyph(spriteCtx, type, size);
-
-  spriteCtx.fillStyle = "rgba(255, 255, 255, 0.36)";
-  spriteCtx.beginPath();
-  spriteCtx.ellipse(size * 0.38, size * 0.3, size * 0.12, size * 0.07, -0.38, 0, Math.PI * 2);
-  spriteCtx.fill();
-
-  return sprite;
-}
-
-function getProjectileSprite(typeName) {
-  const type = normalizeType(typeName);
-  if (projectileSpriteCache.has(type)) {
-    return projectileSpriteCache.get(type);
-  }
-  const sprite = createProjectileSprite(type);
-  projectileSpriteCache.set(type, sprite);
-  return sprite;
-}
 
   class PokemonBattleManager {
   constructor({
@@ -1315,7 +1047,13 @@ function getProjectileSprite(typeName) {
     const idleMode = Boolean(options.idleMode);
     const suppressTurnEvent = Boolean(options.suppressTurnEvent);
     const suppressImpactVisuals = Boolean(options.suppressImpactVisuals);
-    const suppressFloatingText = suppressImpactVisuals || Boolean(options.suppressFloatingText);
+    const suppressLaserDamageText =
+      normalizeAttackMode(hitResolution?.attackMode) === ATTACK_MODE_LASER
+      && !Boolean(hitResolution?.missed);
+    const suppressFloatingText =
+      suppressImpactVisuals
+      || Boolean(options.suppressFloatingText)
+      || suppressLaserDamageText;
     const suppressHitEffects = suppressImpactVisuals || Boolean(options.suppressHitEffects);
     const suppressDamageFlash = Boolean(options.suppressDamageFlash);
     const allowTalentTriggers = options.allowTalentTriggers !== false;
@@ -1515,7 +1253,7 @@ function getProjectileSprite(typeName) {
         if (!this.enemy || this.enemy.hpCurrent <= 0) {
           this.spawnEnemy();
         }
-      } else if (captured && captureAttempted) {
+      } else if (captureAttempted) {
         const captureChanceDisplay = Number(captureResult?.capture_chance_display);
         const captureOnComplete = captureResult?.capture_on_complete;
         const captureBallType = normalizeBallTypeForVisual(captureResult?.capture_ball_type || "poke_ball");
@@ -3332,6 +3070,5 @@ function getProjectileSprite(typeName) {
 
   return {
     PokemonBattleManager,
-    getProjectileSprite,
   };
 }

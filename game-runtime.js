@@ -617,12 +617,14 @@ const {
   boxesGridEl,
   boxesInfoPanelEl,
   boxesCloseButtonEl,
+  boxesSearchInputEl,
   boxesSubtitleEl,
   boxesShinyCounterEl,
   pokedexModalEl,
   pokedexGridEl,
   pokedexInfoPanelEl,
   pokedexCloseButtonEl,
+  pokedexSearchInputEl,
   pokedexSubtitleEl,
   pokedexGlobalCompletionEl,
   pokedexEncounteredStatEl,
@@ -686,7 +688,6 @@ const notificationCardById = new Map();
 const notificationCardExitingIds = new Set();
 const androidNotificationIdByTag = new Map();
 let nextAndroidNotificationId = 10000;
-const projectileSpriteCache = new Map();
 const pokemonSpriteImageCache = new Map();
 const spriteOpaqueBoundsCache = new Map();
 const morphingColorSampleCache = new Map();
@@ -6040,11 +6041,11 @@ function shouldCaptureEnemyWithBallType(ballType, enemy) {
   }
 
   const enemyId = Number(enemy.id || 0);
-  const familyOwned = enemyId > 0 ? isEvolutionFamilyOwned(enemyId) : false;
-  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !familyOwned) {
+  const speciesOwned = enemyId > 0 ? isPokemonEntityUnlockedById(enemyId) : false;
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_UNOWNED] && !speciesOwned) {
     return true;
   }
-  if (rules[BALL_CAPTURE_RULE_CAPTURE_OWNED] && familyOwned) {
+  if (rules[BALL_CAPTURE_RULE_CAPTURE_OWNED] && speciesOwned) {
     return true;
   }
   if (Boolean(enemy.isUltraShiny)) {
@@ -8264,10 +8265,6 @@ function getPokemonBattleRuntime() {
     });
   }
   return pokemonBattleRuntime;
-}
-
-function getProjectileSprite(typeName) {
-  return getPokemonBattleRuntime().getProjectileSprite(typeName);
 }
 
 const PokemonBattleManager = class PokemonBattleManagerFacade {
@@ -11631,11 +11628,9 @@ function resizeCanvas() {
   const stageRect = gameStageEl?.getBoundingClientRect();
   const width = Math.max(260, Math.floor(stageRect?.width || window.innerWidth || 0));
   const height = Math.max(220, Math.floor(stageRect?.height || window.innerHeight || 0));
-  const quality = getRenderQualitySettings();
-  const dprLimit = clamp(Number(quality.maxDpr) || MAX_RENDER_DPR, 1, MAX_RENDER_DPR);
-  const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, dprLimit);
-  const renderScale = clamp(Number(quality.renderScale) || 1, 0.5, 1);
-  const targetDpr = Math.max(0.5, deviceDpr * renderScale);
+  const deviceDpr = clamp(Math.max(1, window.devicePixelRatio || 1), 1, MAX_RENDER_DPR);
+  const renderScale = 1;
+  const targetDpr = deviceDpr;
   const nextCanvasWidth = Math.max(1, Math.round(width * targetDpr));
   const effectiveDpr = nextCanvasWidth / Math.max(1, width);
   const nextCanvasHeight = Math.max(1, Math.round(height * effectiveDpr));
@@ -11672,6 +11667,8 @@ function getRuntimeUiInteractionSystem() {
         captureRootEl,
         GAME_DESIGN_SNAPSHOT: getGameDesignConfigSnapshot(),
         worldUiLayerEl,
+        boxesSearchInputEl,
+        pokedexSearchInputEl,
         projectWorldToRuntimeStage,
       }),
     }));

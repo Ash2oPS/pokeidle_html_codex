@@ -6798,3 +6798,293 @@ pm run mobile:apk:debug succeeds with the plugin integrated.
     - `output/ui-state-gallery/browser-smartphone-test/idle.png`
     - `output/ui-state-gallery/browser-smartphone-test/menu.png`
   - confirmed the targeted browser portrait artifact exports `runtime_client: "browser_smartphone"` with `viewport.width = 810` / `viewport.height = 1620` in `output/ui-state-gallery/browser-smartphone-test/idle.json`.
+
+## Additional progress (2026-03-19, shop evolutions tab click regression)
+- Goal:
+  - restore the `Évolutions` shop tab click path on desktop and mobile portrait.
+- Root cause:
+  - `mountRuntimeUi(...)` was normalizing the entire `RUNTIME_UI_TEMPLATE_HTML` string before injecting it into the DOM.
+  - the anti-mojibake pass therefore mutated interactive wiring attributes too, turning `shop-tab-evolutions` into `shop-tab-évolutions` and `data-shop-tab="evolutions"` into `data-shop-tab="évolutions"`.
+  - runtime listeners and automated UI flows still targeted the unaccented ids/tokens, so the tab became unclickable by selector and inconsistent with the runtime tab constants.
+- Fix:
+  - `systems/ui/runtime-ui-dom-factory.js`
+    - stopped normalizing the raw HTML template before mount and now injects the template as-authored.
+  - `tests/runtime-ui-dom-factory.test.mjs`
+    - added coverage that critical shop tab ids and `data-shop-tab` values stay stable after mount.
+  - `tests/ui-text-normalization-runtime.test.mjs`
+    - added coverage that the UI text normalization runtime corrects text/ARIA copy while leaving wiring attributes like `id` and `data-shop-tab` untouched.
+- Validation:
+  - `node --test tests/runtime-ui-dom-factory.test.mjs tests/ui-text-normalization-runtime.test.mjs` -> PASS
+  - `npm test` -> PASS
+  - targeted browser capture reviewed:
+    - desktop: `output/shop-tab-debug/desktop/shop-evolutions.png` + `shop-evolutions.json`
+    - mobile portrait: `output/shop-tab-debug/mobile/shop-evolutions.png` + `shop-evolutions.json`
+  - confirmed both targeted JSON snapshots export `shop_tab: "evolutions"` after clicking the tab.
+
+## Additional progress (2026-03-19, fixed internal render scale at x1)
+- Goal:
+  - remove dynamic internal render scaling and keep the game rendered at `x1`.
+- Runtime changes:
+  - `game-runtime.js`
+    - `resizeCanvas()` no longer derives DPR from per-quality `renderScale` / `maxDpr` knobs.
+    - internal render scale is now hard-locked to `1`.
+    - canvas DPR now follows device DPR directly, clamped only by the global `MAX_RENDER_DPR`.
+  - `game-design-config.js`
+    - raised `metrics.maxRenderDpr` to `4` so common desktop/mobile DPR values are not artificially under-rendered.
+    - removed per-preset `maxDpr` and `renderScale` knobs from `renderQualityPresets`.
+  - `lib/game-design-config-runtime.js`
+    - stopped sanitizing/exporting per-preset resolution scaling fields so quality presets can no longer change internal resolution.
+- Guardrails:
+  - `AGENTS.md`
+    - added a non-negotiable rule forbidding dynamic render scale / internal resolution drops.
+  - `docs/ai-guidelines.md`
+    - added the same rule plus preferred optimization paths (effect budgets, cadence, simplification) instead of resolution drops.
+- Tests:
+  - `tests/render-quality-utils.test.mjs`
+    - now asserts the runtime keeps render scale locked to `x1` and no longer reads `quality.maxDpr` / `quality.renderScale`.
+  - `tests/game-design-config-runtime.test.mjs`
+    - asserts sanitized quality presets no longer expose `renderScale` / `maxDpr`.
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - asserts exported runtime text state reports `render_scale = 1`.
+  - `node --test tests/game-design-config-runtime.test.mjs tests/render-quality-utils.test.mjs tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm test` -> PASS
+- Visual validation:
+  - `npm run test:visual:gallery:desktop` -> TIMEOUT in Playwright stage screenshot helper
+  - `npm run test:visual:gallery:mobile` -> TIMEOUT in Playwright stage screenshot helper
+  - fallback validation performed with direct Playwright capture in `--disable-gpu` mode:
+    - desktop: `output/render-scale-check/manual/desktop/render-scale-idle.png` + `render-scale-idle.json`
+    - mobile portrait: `output/render-scale-check/manual/mobile/render-scale-idle.png` + `render-scale-idle.json`
+  - reviewed both screenshots manually
+  - confirmed both JSON snapshots export `render_scale: 1`
+
+## Additional progress (2026-03-19, searchbars in Pokedex + Boxes)
+- Goal:
+  - add a searchbar to the Pokédex and to the boxes modal.
+- Runtime/UI changes:
+  - `systems/ui/runtime-ui-dom-factory.js`
+    - added `#pokedex-search-input` and `#boxes-search-input` to the runtime UI template.
+    - exposed both refs through the runtime DOM ref map/list.
+  - `lib/game-runtime-state.js`
+    - added persistent UI state for `pokedexSearchQuery` and `boxesSearchQuery`.
+  - `game-runtime.js`
+    - passed the new search input refs into the runtime UI interaction system bindings.
+  - `systems/ui/runtime-ui-interaction-system.js`
+    - added shared collection-search normalization helpers.
+    - added filtering for Pokédex entries by FR/EN name, Pokédex number and encounter zones.
+    - added filtering for boxes entries by Pokemon name, nickname and Pokédex number.
+    - bound both search inputs so typing re-renders the corresponding modal and `Escape` clears the active query.
+    - reset search state when closing each modal.
+    - updated subtitle/empty states so filtered results show coherent counts/messages.
+    - exposed the search helpers for direct test coverage.
+  - `styles.css`
+    - added shared searchbar styles for collection modals.
+    - fixed `.boxes-card` grid rows so the new searchbar has its own layout row and no longer overlaps the content panel.
+- Tests:
+  - `tests/runtime-ui-dom-factory.test.mjs`
+    - added coverage for the new boxes/pokedex search input refs and labels.
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - added coverage for collection search normalization and filtering behavior.
+  - `node --test tests/runtime-ui-dom-factory.test.mjs tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm test` -> PASS
+- Visual validation:
+  - required gallery commands were executed:
+    - `npm run test:visual:gallery:desktop` -> TIMEOUT in Playwright stage screenshot helper
+    - `npm run test:visual:gallery:mobile` -> TIMEOUT in Playwright stage screenshot helper
+  - fallback manual Playwright validation performed and screenshots inspected:
+    - desktop pokedex viewport: `output/searchbar-visual-check/desktop/pokedex-search.png`
+    - mobile pokedex viewport: `output/searchbar-visual-check/mobile/pokedex-search.png`
+    - desktop boxes card element: `output/searchbar-visual-check/desktop/boxes-card-element.png`
+    - mobile boxes card element: `output/searchbar-visual-check/mobile/boxes-card-element.png`
+  - additional state artifacts confirm the expected flows:
+    - `output/searchbar-visual-check/desktop/pokedex-search.json`
+      - `pokedex_open: true`
+      - `pokedex_hover_pokemon_id: 25`
+    - `output/searchbar-visual-check/desktop/boxes-search.json`
+      - `route_id: "kanto_city_pallet_town"`
+      - `route_defeat_timer_active: false`
+      - `boxes_open: true`
+    - `output/searchbar-visual-check/mobile/boxes-search.json`
+      - `route_id: "kanto_city_pallet_town"`
+      - `route_defeat_timer_active: false`
+      - `boxes_open: true`
+  - console/page errors captured during fallback validation:
+    - `output/searchbar-visual-check/desktop/console-errors.json` -> `[]`
+    - `output/searchbar-visual-check/mobile/console-errors.json` -> `[]`
+
+- Improved the battlefield hover tooltip layout for Pokémon on terrain:
+  - `systems/ui/runtime-ui-interaction-system.js`
+    - replaced the raw `<br/>` tooltip content with a structured card layout (header, talent block, progression rows).
+    - kept the content compact while making the level / rarity / stats hierarchy easier to scan.
+    - now positions the tooltip with the shared floating-menu clamp logic so it stays inside the viewport near edges.
+  - `styles.css`
+    - added dedicated tooltip summary row styling while reusing the shared `pokemon-info-card` visual language.
+    - converted the outer hover shell into a transparent wrapper so the inner card carries the visual weight cleanly.
+    - added narrow-screen tooltip sizing overrides to avoid overflow in smaller browser widths.
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - added a targeted regression test that asserts the structured tooltip markup is rendered and clamped in-viewport.
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> TIMEOUT in Playwright stage screenshot helper
+  - `npm run test:visual:gallery:mobile` -> TIMEOUT in Playwright stage screenshot helper
+  - fallback manual captures reviewed:
+    - desktop idle: `output/hover-tooltip-check/desktop/idle.png`
+    - desktop tooltip: `output/hover-tooltip-check/desktop/tooltip.png`
+    - mobile portrait idle: `output/hover-tooltip-check/mobile/idle.png`
+  - `npm run test:vitest` -> PASS
+  - `npm test` -> FAIL on pre-existing unrelated node test `tests/render-quality-utils.test.mjs` (trail color expectation mismatch in `createRenderQualityUtils exposes projectile trail type VFX profiles`)
+
+- Follow-up tooltip polish after visual review:
+  - `styles.css`
+    - restored a solid outer background panel for `.hover-popup` so the tooltip no longer looks visually hollow between the title, talent card, and progression rows.
+    - moved the card chrome from the inner tooltip article to the wrapper, keeping the inner sections readable while restoring a continuous backdrop.
+  - refreshed manual screenshots:
+    - desktop tooltip: `output/hover-tooltip-check/desktop/tooltip.png`
+    - mobile portrait idle: `output/hover-tooltip-check/mobile/idle.png`
+
+- Additional progress (2026-03-19, battlefield tooltip redesign)
+  - Rebuilt the battlefield hover tooltip around live combat context instead of the old oversized progression panel.
+  - `systems/ui/runtime-ui-interaction-system.js`
+    - replaced the tooltip summary rows with a denser card structure:
+      - header now shows role context (`Adversaire` / `Équipe • Slot n`) plus attack-mode badge;
+      - talent block now keeps the talent name and only shows extra passive detail when it adds current combat value;
+      - live metrics now surface battle-relevant data:
+        - enemy: PV, group size, HP scaling, reward scaling
+        - team: PV, XP progress, matchup multiplier, aura boost, teleport boost
+      - progression was compacted into a 3-card footer (`Vu`, `KO`, `Capt.`) with normal/shiny/ultra breakdowns.
+  - `styles.css`
+    - added compact tooltip-specific layout primitives (`hover-popup-callout`, `hover-popup-micro-grid`, progress footer cards, passive pill, attack-mode badge styling).
+    - kept the tooltip aligned with the existing `pokemon-info-card` language while removing the wasted vertical space from the old stacked rows.
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - replaced the old tooltip regression with enemy-focused assertions for the new compact structure.
+    - added a new team-tooltip regression that verifies live combat metrics (`XP`, `Matchup`, `Aura`, `Téléport`) render.
+- Validation:
+  - `node --check systems/ui/runtime-ui-interaction-system.js` -> PASS
+  - `node --test tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm test` -> PASS
+  - develop-web-game skill smoke:
+    - `web_game_playwright_client.js` no-input run -> PASS
+    - artifact: `output/tooltip-redesign/client-smoke-noop/shot-0.png`
+  - required gallery commands:
+    - `npm run test:visual:gallery:desktop` -> PASS
+    - `npm run test:visual:gallery:mobile` -> FAIL in existing Playwright helper wait for `#action-dock-fullscreen-menu:not(.hidden)`
+  - fallback targeted visual validation reviewed via runtime captures:
+    - desktop tooltip: `output/hover-tooltip-redesign/desktop/tooltip.png`
+    - mobile portrait tooltip: `output/hover-tooltip-redesign/mobile/tooltip.png`
+    - desktop state confirms `hover_popup_visible: true`, `enemy.hp_current: 21`, `ko_transition.active: false`, `runtime_client: "browser_pc"`
+    - mobile state confirms `hover_popup_visible: true`, `enemy.hp_current: 14`, `ko_transition.active: false`, `runtime_client: "browser_smartphone"`
+    - both targeted capture passes recorded empty console/page error logs:
+      - `output/hover-tooltip-redesign/desktop/console-errors.json` -> `[]`
+      - `output/hover-tooltip-redesign/mobile/console-errors.json` -> `[]`
+
+- Added attack-mode info to Pokédex and Boxes info panels:
+  - `systems/ui/runtime-ui-interaction-system.js`
+    - added a shared attack-mode normalizer/formatter for `projectile` / `projectiles` / `laser`
+    - exposed `attackMode` on Pokédex entries and captured-box entries
+    - rendered a compact `Attaque` info block in both the Pokédex detail panel and the Boxes detail panel
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - extended the boxes and Pokédex panel coverage to assert the `Attaque` row renders correctly
+    - added regression coverage for deferred Pokédex definition loading so attack mode refreshes after the species definition arrives
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> FAIL in existing Playwright helper flow waiting for `#action-dock-fullscreen-menu:not(.hidden)`
+  - targeted fallback validation reviewed manually:
+    - desktop boxes preview: `output/ui-attack-mode-panels/desktop-landscape/boxes-info-preview.png`
+    - desktop Pokédex preview: `output/ui-attack-mode-panels/desktop-landscape/pokedex-info-preview.png`
+    - mobile portrait boxes preview: `output/ui-attack-mode-panels/mobile-portrait/boxes-info-preview.png`
+    - mobile portrait Pokédex preview: `output/ui-attack-mode-panels/mobile-portrait/pokedex-info-preview.png`
+  - targeted HTML/state snapshots confirm Bulbizarre displays `Attaque: Laser` in both panels on both formats
+  - `npm test` -> still FAIL on the unrelated existing node test `tests/render-quality-utils.test.mjs` (`createRenderQualityUtils exposes projectile trail type VFX profiles`)
+
+- Added attack-mode badges on Pokédex and Boxes cards:
+  - `systems/ui/runtime-ui-interaction-system.js`
+    - added a small reusable attack-mode badge builder for card overlays
+    - injects a top-right icon on Pokédex cards and captured-box cards based on `attackMode`
+    - reuses the existing card badge rail so shiny / ultra shiny indicators still coexist cleanly
+  - `styles.css`
+    - added compact badge visuals for both attack families:
+      - laser: diagonal beam glyph
+      - projectile: three-dot burst glyph
+    - kept the new icon inside the existing badge footprint so card spacing stays stable on desktop and mobile
+  - `tests/runtime-ui-interaction-system.test.mjs`
+    - added regression coverage for Pokédex cards rendering the laser badge
+    - added regression coverage for Boxes cards rendering the projectile badge
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs` -> PASS
+  - `npm test` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - targeted captures reviewed manually:
+    - desktop Pokédex full view: `output/searchbar-visual-check/desktop/pokedex-search.png`
+    - mobile Pokédex full view: `output/searchbar-visual-check/mobile/pokedex-search.png`
+    - desktop Boxes card view: `output/searchbar-visual-check/desktop/boxes-card-element.png`
+    - mobile Boxes card view: `output/searchbar-visual-check/mobile/boxes-card-element.png`
+    - desktop Pokédex laser card: `output/attack-mode-card-badge-check/desktop/pokedex-laser-card.png`
+    - desktop Pokédex projectile card: `output/attack-mode-card-badge-check/desktop/pokedex-projectile-card.png`
+    - mobile Pokédex laser card: `output/attack-mode-card-badge-check/mobile/pokedex-laser-card.png`
+    - mobile Pokédex projectile card: `output/attack-mode-card-badge-check/mobile/pokedex-projectile-card.png`
+  - console/page errors during targeted capture pass:
+    - `output/searchbar-visual-check/desktop/console-errors.json` -> `[]`
+    - `output/searchbar-visual-check/mobile/console-errors.json` -> `[]`
+
+## Additional progress (laser damage text cleanup)
+- Removed floating damage number spawns for resolved laser hits in PokemonBattleManager.finalizeResolvedHit while keeping projectile damage texts unchanged.
+- Kept other laser feedback intact (beam visuals, hit effects on cadence hits, damage application, flashes suppression on micro-ticks).
+- Updated battle runtime coverage so laser ticks explicitly assert zero floating damage texts for both cadence hits and micro-ticks.
+- Verification:
+  - 
+ode --test tests/pokemon-battle-runtime.test.mjs`n  - 
+pm run test:visual:gallery:desktop`n  - 
+pm run test:visual:gallery:mobile`n  - 
+pm run test:visual:gallery:vfx:combat:desktop`n  - 
+pm run test:visual:gallery:vfx:combat:mobile`n
+
+## Additional progress (boot splash matches runtime loading screen)
+- Added a pre-mounted loading screen directly in `index.html` so the very first paint now matches the runtime black loading screen with the spinning Pokeball instead of briefly showing the page background.
+- Added critical inline boot styles scoped to the direct `#runtime-ui-root` child loading screen:
+  - fixed full-viewport black backdrop
+  - centered loading core/text
+  - same Pokeball visual treatment and spin animation on first paint
+- Added `tests/index-boot-loading-screen.test.mjs` to lock:
+  - the boot loader markup inside `#runtime-ui-root`
+  - the presence of inline critical styles needed before the runtime mount
+- Verification:
+  - `node --test tests/index-boot-loading-screen.test.mjs tests/runtime-ui-dom-factory.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - targeted boot splash captures reviewed manually:
+    - desktop: `output/boot-loading-screen/desktop/boot-fullpage.png`
+    - mobile portrait: `output/boot-loading-screen/mobile-portrait/boot-fullpage.png`
+  - gallery console/page errors:
+    - `output/ui-state-gallery/desktop-landscape/errors.json` -> `[]`
+    - `output/ui-state-gallery/mobile-portrait/errors.json` -> `[]`
+
+## Additional progress (pixel-crunchy attack VFX pass)
+- Reworked combat projectile and laser rendering to push a more deliberate pixel-art-like look without lowering `render_scale`:
+  - projectile sprites and trail stamps are now built from pre-rendered pixel grids instead of smooth vector circles/ellipses;
+  - laser paths are quantized into stepped polylines and packed beam textures use flat pixel bands/motifs instead of gradients;
+  - medium quality now prefers the cheaper packed laser path so default gameplay stays crunchy and performant.
+- Reduced the smooth/high-fidelity look that was breaking the requested art direction:
+  - removed the default additive-looking projectile foundation;
+  - removed most rounded caps/joins, gradient-heavy laser branches, and continuous curve tracing from the hot path;
+  - stopped rotating projectile/trail stamps every frame to keep them both crisper and cheaper.
+- Tightened VFX defaults in `game-design-config.js`:
+  - smaller projectile/trail atlas sizes;
+  - stronger pixel snapping;
+  - smaller packed beam textures;
+  - lower particle caps and lower glow defaults.
+- Validation:
+  - `node --test tests/game-design-config-runtime.test.mjs tests/runtime-ui-interaction-system.test.mjs tests/pokemon-battle-runtime.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - `npm run test:visual:gallery:vfx:combat:desktop` -> PASS
+  - `npm run test:visual:gallery:vfx:combat:mobile` -> PASS
+  - `npm run test:perf:web-game:regression` -> PASS
+  - `npm run test:perf:web-game:vfx-combat:regression` -> PASS
+- Useful artifacts reviewed manually:
+  - `output/vfx-combat-gallery/desktop-landscape/projectile/projectile-matrix.png`
+  - `output/vfx-combat-gallery/desktop-landscape/laser/laser-matrix.png`
+  - `output/vfx-combat-gallery/desktop-landscape/mixed/mixed-three-projectiles-three-lasers.png`
+  - `output/vfx-combat-gallery/mobile-portrait/mixed/mixed-three-projectiles-three-lasers.png`
+- Note:
+  - the desktop PowerShell VFX gallery script can still flake intermittently on tmp seed cleanup / `Resolve-Path`; rerunning the exact same command succeeded without further code changes.

@@ -4,6 +4,12 @@ import {
   isPhoneLikeViewport,
   resolveProductLayoutMode,
 } from '../../lib/runtime-stage-layout.js';
+import { COMBAT_VFX_CONFIG } from '../../lib/combat-balance-config.js';
+import {
+  getLaserTypeVfxProfile,
+  getProjectileTrailTypeVfxProfile as getSharedProjectileTrailTypeVfxProfile,
+  getProjectileTypeVfxProfile as getSharedProjectileTypeVfxProfile,
+} from '../../lib/combat-vfx-config.js';
 
 function getRuntimeSystemBindings(options = {}) {
   const scope = {};
@@ -179,7 +185,6 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "getNextRouteId",
   "getPokemonEntityRecord",
   "getPokemonSpriteRenderSize",
-  "getProjectileSprite",
   "getRenderQualitySettings",
   "getRouteDisplayName",
   "getRouteUnlockProgressState",
@@ -313,7 +318,6 @@ export function createRuntimeRenderSystem(options = {}) {
     getNextRouteId,
     getPokemonEntityRecord,
     getPokemonSpriteRenderSize,
-    getProjectileSprite,
     getRenderQualitySettings,
     getRouteDisplayName,
     getRouteUnlockProgressState,
@@ -355,6 +359,522 @@ const laserRibbonPointBuffer = [];
 const laserMirrorRibbonPointBuffer = [];
 const laserRenderBudgetScratch = {};
 const laserVisibleSegmentScratch = {};
+const projectileSpriteAtlasCache = new Map();
+const projectileTrailStampCache = new Map();
+const projectileSpriteCacheStats = { hits: 0, misses: 0 };
+const projectileTrailCacheStats = { hits: 0, misses: 0 };
+const laserTextureCacheStats = { hits: 0, misses: 0 };
+
+function getVfxRenderDebugState() {
+  if (!state || typeof state !== "object") {
+    return null;
+  }
+  if (!state.vfxRenderDebug || typeof state.vfxRenderDebug !== "object") {
+    state.vfxRenderDebug = {
+      qualityTier: "low",
+      projectile: {
+        activeCount: 0,
+        stampDrawCount: 0,
+        trailStampDrawCount: 0,
+        spriteCacheSize: 0,
+        spriteCacheHits: 0,
+        spriteCacheMisses: 0,
+        trailCacheSize: 0,
+        trailCacheHits: 0,
+        trailCacheMisses: 0,
+      },
+      laser: {
+        activeCount: 0,
+        renderPathCounts: {
+          packed_simple: 0,
+          pixel_curved: 0,
+          hero_curved: 0,
+        },
+        segmentCount: 0,
+        particleCount: 0,
+        textureCacheSize: 0,
+        textureCacheHits: 0,
+        textureCacheMisses: 0,
+      },
+    };
+  }
+  return state.vfxRenderDebug;
+}
+
+function snapVfxPixel(value) {
+  const step = Math.max(1, Number(COMBAT_VFX_CONFIG.pixelSnapStepPx) || 1);
+  const numeric = Number(value) || 0;
+  return Math.round(numeric / step) * step;
+}
+
+function setCanvasImageSmoothing(renderCtx, enabled) {
+  if (!renderCtx || typeof renderCtx !== "object") {
+    return;
+  }
+  if ("imageSmoothingEnabled" in renderCtx) {
+    renderCtx.imageSmoothingEnabled = Boolean(enabled);
+  }
+}
+
+function createVfxRuntimeCanvas(width, height) {
+  const safeWidth = Math.max(1, Math.round(Number(width) || 0));
+  const safeHeight = Math.max(1, Math.round(Number(height) || 0));
+  if (typeof OffscreenCanvas === "function") {
+    return new OffscreenCanvas(safeWidth, safeHeight);
+  }
+  if (typeof document === "object" && document && typeof document.createElement === "function") {
+    const canvasEl = document.createElement("canvas");
+    canvasEl.width = safeWidth;
+    canvasEl.height = safeHeight;
+    return canvasEl;
+  }
+  return null;
+}
+
+const PROJECTILE_PIXEL_PATTERN_BY_KIND = Object.freeze({
+  neutral_orb: Object.freeze([
+    "...g...",
+    "..gbg..",
+    ".gbabg.",
+    ".bbhbb.",
+    ".gbabg.",
+    "..gbg..",
+    "...s...",
+  ]),
+  ember_comet: Object.freeze([
+    "...g...",
+    "..gah..",
+    "..bab..",
+    ".abbh..",
+    ".bbhh..",
+    "..bb...",
+    "...s...",
+  ]),
+  pressure_drop: Object.freeze([
+    "...h...",
+    "..hah..",
+    "..bab..",
+    ".gbab..",
+    ".gbbb..",
+    "..bbb..",
+    "...s...",
+  ]),
+  seed_leaf: Object.freeze([
+    "...h...",
+    "..hah..",
+    ".abbb..",
+    ".bbb...",
+    "..bbb..",
+    "...ba..",
+    "...s...",
+  ]),
+  zig_bolt: Object.freeze([
+    "..hh...",
+    "..ab...",
+    ".abb...",
+    "...bb..",
+    "..bb...",
+    "..ba...",
+    ".s.....",
+  ]),
+  ice_crystal: Object.freeze([
+    "...h...",
+    "..hah..",
+    ".a.b.a.",
+    "..bbb..",
+    ".a.b.a.",
+    "..sbs..",
+    "...s...",
+  ]),
+  rock_chunk: Object.freeze([
+    "..ss...",
+    ".sbbb..",
+    ".bbbba.",
+    ".bbbab.",
+    "..bbb..",
+    "...ba..",
+    "...s...",
+  ]),
+  earth_clod: Object.freeze([
+    ".sss...",
+    ".bbb...",
+    "bbbba..",
+    ".bbba..",
+    "..bbb..",
+    "...bb..",
+    "...s...",
+  ]),
+  steel_rivet: Object.freeze([
+    "..hhh..",
+    ".hbbbh.",
+    ".bbabb.",
+    ".bbbbb.",
+    ".bbabb.",
+    ".hbbbh.",
+    "..sss..",
+  ]),
+  poison_blob: Object.freeze([
+    "..gg...",
+    ".gaba..",
+    ".abbba.",
+    ".bbbba.",
+    ".abbba.",
+    "..bbb..",
+    "...s...",
+  ]),
+  bug_stinger: Object.freeze([
+    "..hh...",
+    ".hbbb..",
+    ".bbbba.",
+    "..bbb..",
+    ".abb...",
+    ".b.....",
+    ".s.....",
+  ]),
+  ghost_wisp: Object.freeze([
+    "..gg...",
+    ".gabh..",
+    ".abbb..",
+    ".bbbha.",
+    ".abb...",
+    "..bb...",
+    "...s...",
+  ]),
+  shadow_orb: Object.freeze([
+    "..gg...",
+    ".gbbg..",
+    ".bbbba.",
+    ".bbbbb.",
+    ".abbbb.",
+    "..bbb..",
+    "...s...",
+  ]),
+  sigil_orb: Object.freeze([
+    "..hhh..",
+    ".habah.",
+    ".abbbb.",
+    ".bbbba.",
+    ".abbba.",
+    ".hbbbh.",
+    "..sss..",
+  ]),
+  dragon_fang: Object.freeze([
+    "...h...",
+    "..hah..",
+    ".hbbb..",
+    ".bbbba.",
+    "..bbb..",
+    "..bb...",
+    "..s....",
+  ]),
+  petal_star: Object.freeze([
+    "...h...",
+    ".hahah.",
+    "..bbb..",
+    ".ababa.",
+    "..bbb..",
+    ".hahah.",
+    "...s...",
+  ]),
+  feather_gust: Object.freeze([
+    "..hh...",
+    ".hbbb..",
+    ".bbb...",
+    ".abb...",
+    "..bbb..",
+    "...bb..",
+    "....s..",
+  ]),
+  impact_fist: Object.freeze([
+    "..hhh..",
+    ".hbbbh.",
+    ".bbabb.",
+    ".bbbbb.",
+    ".abbbb.",
+    ".bbb...",
+    "..ss...",
+  ]),
+});
+
+const TRAIL_PIXEL_PATTERN_BY_KIND = Object.freeze({
+  neutral_streak: Object.freeze([
+    ".....",
+    ".gb..",
+    ".bbb.",
+    "..ba.",
+    ".....",
+  ]),
+  ember_spark: Object.freeze([
+    "..h..",
+    ".bab.",
+    "..bb.",
+    "...s.",
+    ".....",
+  ]),
+  water_bead: Object.freeze([
+    "..h..",
+    ".bab.",
+    ".bbb.",
+    "..s..",
+    ".....",
+  ]),
+  leaf_chip: Object.freeze([
+    "..h..",
+    ".abb.",
+    ".bbb.",
+    "..ba.",
+    "...s.",
+  ]),
+  volt_spark: Object.freeze([
+    "..h..",
+    ".ab..",
+    "..bb.",
+    ".ba..",
+    ".s...",
+  ]),
+  ice_shard: Object.freeze([
+    "..h..",
+    ".aba.",
+    "..b..",
+    ".sbs.",
+    ".....",
+  ]),
+  debris_chunk: Object.freeze([
+    ".ss..",
+    ".bbb.",
+    ".bba.",
+    "..b..",
+    ".....",
+  ]),
+  earth_lift: Object.freeze([
+    ".ss..",
+    ".bbb.",
+    "bbba.",
+    ".bb..",
+    ".....",
+  ]),
+  metal_shard: Object.freeze([
+    "..h..",
+    ".bbb.",
+    ".bab.",
+    ".sbs.",
+    ".....",
+  ]),
+  toxic_blob: Object.freeze([
+    ".gg..",
+    ".bab.",
+    ".bbb.",
+    "..s..",
+    ".....",
+  ]),
+  swarm_chip: Object.freeze([
+    "..h..",
+    ".bbb.",
+    "..ab.",
+    ".s...",
+    ".....",
+  ]),
+  spectral_wisp: Object.freeze([
+    ".gg..",
+    ".bab.",
+    ".bbb.",
+    "..ba.",
+    "...s.",
+  ]),
+  shadow_lash: Object.freeze([
+    ".gg..",
+    ".bbb.",
+    "..bb.",
+    "...a.",
+    "...s.",
+  ]),
+  rune_shard: Object.freeze([
+    "..h..",
+    ".bab.",
+    ".bbb.",
+    "..ab.",
+    "..s..",
+  ]),
+  sigil_ring: Object.freeze([
+    ".hhh.",
+    ".bab.",
+    ".bbb.",
+    ".aba.",
+    ".sss.",
+  ]),
+  petal_sparkle: Object.freeze([
+    "..h..",
+    ".aba.",
+    "..b..",
+    ".aha.",
+    "..s..",
+  ]),
+  gust_slash: Object.freeze([
+    "..h..",
+    ".bbb.",
+    ".ab..",
+    "..bb.",
+    "...s.",
+  ]),
+  impact_lane: Object.freeze([
+    ".hhh.",
+    ".bbb.",
+    ".bab.",
+    "..bb.",
+    "..ss.",
+  ]),
+});
+
+function getPixelPatternRowWidth(patternRows) {
+  return patternRows.reduce((max, row) => Math.max(max, String(row || "").length), 0);
+}
+
+function resolveProjectilePixelPattern(kind, variantIndex = 0) {
+  const basePattern = PROJECTILE_PIXEL_PATTERN_BY_KIND[kind] || PROJECTILE_PIXEL_PATTERN_BY_KIND.neutral_orb;
+  if (Math.abs(toSafeInt(variantIndex, 0)) % 2 !== 1) {
+    return basePattern;
+  }
+  return basePattern.map((row) => String(row).split("").reverse().join(""));
+}
+
+function resolveTrailPixelPattern(kind) {
+  return TRAIL_PIXEL_PATTERN_BY_KIND[kind] || TRAIL_PIXEL_PATTERN_BY_KIND.neutral_streak;
+}
+
+function drawPixelPattern(renderCtx, patternRows, palette, drawSizePx, options = {}) {
+  const rows = Array.isArray(patternRows) ? patternRows : [];
+  if (!renderCtx || rows.length <= 0) {
+    return 0;
+  }
+  const gridWidth = Math.max(1, getPixelPatternRowWidth(rows));
+  const gridHeight = Math.max(1, rows.length);
+  const maxGridSpan = Math.max(gridWidth, gridHeight);
+  const safeDrawSize = Math.max(4, Math.round(Number(drawSizePx) || 0));
+  const baseCellSize = Math.max(1, Math.floor(safeDrawSize / maxGridSpan));
+  const scaleMul = clamp(Number(options.scaleMul) || 1, 0.5, 2.5);
+  const cellSize = Math.max(1, Math.round(baseCellSize * scaleMul));
+  const drawWidth = gridWidth * cellSize;
+  const drawHeight = gridHeight * cellSize;
+  const offsetX = Math.floor((safeDrawSize - drawWidth) * 0.5) + toSafeInt(options.offsetXPx, 0);
+  const offsetY = Math.floor((safeDrawSize - drawHeight) * 0.5) + toSafeInt(options.offsetYPx, 0);
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = String(rows[rowIndex] || "");
+    for (let colIndex = 0; colIndex < row.length; colIndex += 1) {
+      const token = row[colIndex];
+      const fillStyle = palette[token];
+      if (!fillStyle) {
+        continue;
+      }
+      renderCtx.fillStyle = fillStyle;
+      renderCtx.fillRect(
+        offsetX + colIndex * cellSize,
+        offsetY + rowIndex * cellSize,
+        cellSize,
+        cellSize,
+      );
+    }
+  }
+  return cellSize;
+}
+
+function buildProjectilePixelPalette(profile, baseRgb) {
+  const bodyRgb = blendRgb(baseRgb, profile.glow, 0.16);
+  const accentRgb = blendRgb(bodyRgb, profile.accent, 0.6);
+  const highlightRgb = blendRgb(profile.highlight, [255, 255, 255], 0.28);
+  const glowAlpha = clamp(Number(COMBAT_VFX_CONFIG.projectileGlowAlpha) || 0.1, 0.04, 0.22);
+  const shadowRgb = blendRgb(bodyRgb, [10, 14, 20], 0.72);
+  return {
+    s: rgba(shadowRgb, 0.94),
+    g: rgba(profile.glow, glowAlpha),
+    b: rgba(bodyRgb, 0.98),
+    a: rgba(accentRgb, 0.98),
+    h: rgba(highlightRgb, 0.98),
+  };
+}
+
+function buildTrailPixelPalette(typeRgb, profile, trailColor) {
+  const accentRgb = blendRgb(trailColor, profile.accent, 0.5);
+  const shadowRgb = blendRgb(trailColor, [12, 16, 20], 0.74);
+  return {
+    s: rgba(shadowRgb, 0.86),
+    g: rgba(profile.accent, 0.14),
+    b: rgba(trailColor, 0.94),
+    a: rgba(accentRgb, 0.94),
+    h: rgba(blendRgb(profile.accent, [255, 255, 255], 0.35), 0.96),
+  };
+}
+
+function snapVfxDimension(value, minimum = 1) {
+  const safeMinimum = Math.max(1, toSafeInt(minimum, 1));
+  return Math.max(safeMinimum, snapVfxPixel(Math.max(safeMinimum, Number(value) || 0)));
+}
+
+function buildSquareRadius(radius) {
+  const safeRadius = Math.max(1, Number(radius) || 0);
+  return Math.max(2, snapVfxDimension(safeRadius * 2, 2));
+}
+
+function drawPixelChunkBurst(x, y, size, fillStyle, accentStyle = null) {
+  const chunkSize = buildSquareRadius(size);
+  const half = Math.floor(chunkSize * 0.5);
+  const centerX = snapVfxPixel(x);
+  const centerY = snapVfxPixel(y);
+  ctx.fillStyle = fillStyle;
+  ctx.fillRect(centerX - half, centerY - half, chunkSize, chunkSize);
+  if (accentStyle) {
+    const accentSize = Math.max(1, Math.floor(chunkSize * 0.5));
+    ctx.fillStyle = accentStyle;
+    ctx.fillRect(centerX - accentSize, centerY - accentSize, accentSize, accentSize);
+    ctx.fillRect(centerX, centerY, accentSize, accentSize);
+  }
+}
+
+function drawPixelBurstRing(x, y, size, strokeStyle) {
+  const ringSize = Math.max(4, snapVfxDimension(size * 2.2, 4));
+  const half = Math.floor(ringSize * 0.5);
+  const left = snapVfxPixel(x) - half;
+  const top = snapVfxPixel(y) - half;
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = Math.max(1, snapVfxDimension(ringSize * 0.1, 1));
+  ctx.strokeRect(left, top, ringSize, ringSize);
+}
+
+function traceLaserSteppedPath(points) {
+  if (!Array.isArray(points) || points.length <= 0) {
+    return;
+  }
+  ctx.beginPath();
+  let prevX = snapVfxPixel(points[0].x);
+  let prevY = snapVfxPixel(points[0].y);
+  ctx.moveTo(prevX, prevY);
+  for (let index = 1; index < points.length; index += 1) {
+    const point = points[index];
+    const snappedX = snapVfxPixel(point.x);
+    const snappedY = snapVfxPixel(point.y);
+    if (snappedX === prevX && snappedY === prevY) {
+      continue;
+    }
+    const deltaX = snappedX - prevX;
+    const deltaY = snappedY - prevY;
+    if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+      if (snappedX !== prevX) {
+        ctx.lineTo(snappedX, prevY);
+      }
+      if (snappedY !== prevY) {
+        ctx.lineTo(snappedX, snappedY);
+      }
+    } else {
+      if (snappedY !== prevY) {
+        ctx.lineTo(prevX, snappedY);
+      }
+      if (snappedX !== prevX) {
+        ctx.lineTo(snappedX, snappedY);
+      }
+    }
+    prevX = snappedX;
+    prevY = snappedY;
+  }
+}
 
 function getReusableLaserPoint(buffer, index) {
   if (!buffer[index]) {
@@ -2736,162 +3256,11 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
 }
 
 function getProjectileTypeVfxProfile(typeName) {
-  switch (normalizeType(typeName)) {
-    case "fire":
-      return { motif: "flame", accent: [255, 217, 146], intensity: 1.12 };
-    case "water":
-      return { motif: "droplet", accent: [205, 241, 255], intensity: 1 };
-    case "grass":
-      return { motif: "leaf", accent: [232, 255, 196], intensity: 1.02 };
-    case "electric":
-      return { motif: "bolt", accent: [255, 247, 166], intensity: 1.18 };
-    case "ice":
-      return { motif: "crystal", accent: [236, 251, 255], intensity: 0.96 };
-    case "fighting":
-      return { motif: "impact", accent: [255, 211, 189], intensity: 1.05 };
-    case "poison":
-      return { motif: "bubble", accent: [234, 196, 255], intensity: 0.96 };
-    case "ground":
-      return { motif: "dust", accent: [244, 214, 154], intensity: 0.99 };
-    case "flying":
-      return { motif: "wind", accent: [235, 245, 255], intensity: 1 };
-    case "psychic":
-      return { motif: "orbit", accent: [255, 224, 242], intensity: 1.08 };
-    case "bug":
-      return { motif: "wing", accent: [233, 255, 186], intensity: 0.98 };
-    case "rock":
-      return { motif: "shard", accent: [236, 214, 173], intensity: 0.95 };
-    case "ghost":
-      return { motif: "wisp", accent: [222, 212, 255], intensity: 1.04 };
-    case "dragon":
-      return { motif: "rune", accent: [212, 207, 255], intensity: 1.13 };
-    case "dark":
-      return { motif: "shadow", accent: [189, 177, 166], intensity: 0.95 };
-    case "steel":
-      return { motif: "gear", accent: [227, 240, 250], intensity: 1 };
-    case "fairy":
-      return { motif: "sparkle", accent: [255, 226, 247], intensity: 1.08 };
-    case "normal":
-      return { motif: "ring", accent: [244, 236, 220], intensity: 0.9 };
-    default:
-      return { motif: "ring", accent: [232, 240, 255], intensity: 0.94 };
-  }
+  return getSharedProjectileTypeVfxProfile(typeName);
 }
 
 function getProjectileTrailTypeVfxProfile(typeName) {
-  const typeProfile = getProjectileTypeVfxProfile(typeName);
-  const accent = Array.isArray(typeProfile.accent) ? typeProfile.accent : [232, 240, 255];
-  switch (typeProfile.motif) {
-    case "flame":
-      return {
-        mode: "ember",
-        accent,
-        accentMix: 0.66,
-        radiusMul: 0.92,
-        stretch: 1.8,
-        alphaBase: 0.14,
-        alphaLife: 0.31,
-        spacingPx: 6.1,
-      };
-    case "droplet":
-    case "bubble":
-      return {
-        mode: "droplet",
-        accent,
-        accentMix: 0.54,
-        radiusMul: 0.9,
-        stretch: 1.4,
-        alphaBase: 0.14,
-        alphaLife: 0.28,
-        spacingPx: 7.1,
-      };
-    case "leaf":
-    case "wing":
-      return {
-        mode: "leaf",
-        accent,
-        accentMix: 0.62,
-        radiusMul: 0.84,
-        stretch: 1.45,
-        alphaBase: 0.12,
-        alphaLife: 0.29,
-        spacingPx: 7.4,
-      };
-    case "bolt":
-    case "impact":
-    case "gear":
-      return {
-        mode: "spark",
-        accent,
-        accentMix: 0.67,
-        radiusMul: 0.74,
-        stretch: 1.75,
-        alphaBase: 0.14,
-        alphaLife: 0.33,
-        spacingPx: 6.2,
-      };
-    case "crystal":
-    case "shard":
-    case "rune":
-      return {
-        mode: "shard",
-        accent,
-        accentMix: 0.59,
-        radiusMul: 0.82,
-        stretch: 1.42,
-        alphaBase: 0.12,
-        alphaLife: 0.29,
-        spacingPx: 7.5,
-      };
-    case "dust":
-      return {
-        mode: "dust",
-        accent,
-        accentMix: 0.44,
-        radiusMul: 0.96,
-        stretch: 1.22,
-        alphaBase: 0.12,
-        alphaLife: 0.25,
-        spacingPx: 8.4,
-      };
-    case "wisp":
-    case "shadow":
-      return {
-        mode: "wisp",
-        accent,
-        accentMix: 0.5,
-        radiusMul: 1.02,
-        stretch: 1.25,
-        alphaBase: 0.1,
-        alphaLife: 0.24,
-        spacingPx: 8.6,
-      };
-    case "sparkle":
-      return {
-        mode: "sparkle",
-        accent,
-        accentMix: 0.69,
-        radiusMul: 0.78,
-        stretch: 1.52,
-        alphaBase: 0.12,
-        alphaLife: 0.3,
-        spacingPx: 7,
-      };
-    case "orbit":
-    case "wind":
-    case "ring":
-    default:
-      return {
-        mode: "streak",
-        accent,
-        accentMix: 0.52,
-        radiusMul: 0.86,
-        stretch: 1.58,
-        alphaBase: 0.12,
-        alphaLife: 0.27,
-        spacingPx: 7.8,
-      };
-  }
+  return getSharedProjectileTrailTypeVfxProfile(typeName);
 }
 
 function drawProjectileTypeMotif(projectile, rgb, radius) {
@@ -3156,309 +3525,47 @@ function drawProjectileTypeMotif(projectile, rgb, radius) {
 }
 
 function getLaserVisualProfile(attackType, pulse, distance) {
-  const type = String(attackType || "normal");
-  const rgb = getTypeColor(type);
-  let accentRgb = blendRgb(rgb, [255, 255, 255], 0.24);
-  let fringeRgb = blendRgb(rgb, [255, 255, 255], 0.58);
-  let waveAmplitude = clamp(distance * 0.014, 1.8, 10);
-  let waveFrequency = 1.2;
-  let secondaryWave = 0.32;
-  let waveSpeed = 0.011;
-  let particleSpeed = 0.00052;
-  let particleCount = clamp(Math.round(distance / 54) + 2, 4, 10);
-  let particleSize = 1;
-  let particleShape = "orb";
-  let ribbonAlpha = 0.18;
-  let ribbonOffset = 3.2;
-  let ribbonDrift = 0.85;
-  let jaggedness = 0;
-  let widthBoost = 1;
-  let coreBoost = 0;
-  let sourceGlowBoost = 1;
-  let impactGlowBoost = 1;
-  let emitterSpin = 0.002;
-  let impactRingAlpha = 0.24;
-  let impactRayCount = 4;
-  switch (type) {
-    case "fire":
-      accentRgb = [255, 136, 76];
-      fringeRgb = [255, 244, 196];
-      waveAmplitude *= 1.45;
-      waveFrequency = 1.84;
-      secondaryWave = 0.56;
-      waveSpeed = 0.013;
-      particleSpeed = 0.0007;
-      particleCount += 2;
-      particleSize = 1.08;
-      particleShape = "ember";
-      ribbonAlpha = 0.28;
-      ribbonOffset = 4.8;
-      widthBoost = 1.08;
-      sourceGlowBoost = 1.18;
-      impactGlowBoost = 1.2;
-      impactRingAlpha = 0.36;
-      impactRayCount = 7;
-      break;
-    case "water":
-      accentRgb = [96, 223, 255];
-      fringeRgb = [220, 246, 255];
-      waveAmplitude *= 0.86;
-      waveFrequency = 1.08;
-      secondaryWave = 0.48;
-      waveSpeed = 0.009;
-      particleSpeed = 0.00042;
-      particleCount += 1;
-      particleShape = "droplet";
-      ribbonAlpha = 0.36;
-      ribbonOffset = 5.8;
-      ribbonDrift = 0.58;
-      widthBoost = 1.06;
-      sourceGlowBoost = 1.05;
-      impactGlowBoost = 1.08;
-      break;
-    case "grass":
-      accentRgb = [176, 255, 118];
-      fringeRgb = [244, 255, 224];
-      waveAmplitude *= 1.22;
-      waveFrequency = 1.42;
-      secondaryWave = 0.54;
-      particleCount += 1;
-      particleSize = 1.05;
-      particleShape = "leaf";
-      ribbonAlpha = 0.22;
-      ribbonOffset = 4.2;
-      widthBoost = 1.04;
-      impactRingAlpha = 0.3;
-      impactRayCount = 5;
-      break;
-    case "electric":
-      accentRgb = [255, 235, 110];
-      fringeRgb = [255, 249, 196];
-      waveAmplitude *= 1.82;
-      waveFrequency = 2.36;
-      secondaryWave = 0.18;
-      waveSpeed = 0.017;
-      particleSpeed = 0.00086;
-      particleCount += 3;
-      particleSize = 0.92;
-      particleShape = "spark";
-      ribbonAlpha = 0.12;
-      ribbonOffset = 2.8;
-      ribbonDrift = 0.35;
-      jaggedness = 0.74;
-      widthBoost = 0.96;
-      coreBoost = 0.3;
-      sourceGlowBoost = 1.08;
-      impactGlowBoost = 1.22;
-      impactRingAlpha = 0.38;
-      impactRayCount = 9;
-      break;
-    case "ice":
-      accentRgb = [166, 241, 255];
-      fringeRgb = [255, 255, 255];
-      waveAmplitude = clamp(distance * 0.006, 0.8, 3.2);
-      waveFrequency = 0.94;
-      secondaryWave = 0.12;
-      waveSpeed = 0.008;
-      particleSpeed = 0.00034;
-      particleShape = "crystal";
-      ribbonAlpha = 0.24;
-      ribbonOffset = 3.6;
-      widthBoost = 0.98;
-      sourceGlowBoost = 1.12;
-      impactGlowBoost = 1.18;
-      impactRayCount = 6;
-      break;
-    case "psychic":
-      accentRgb = [255, 126, 226];
-      fringeRgb = [255, 228, 248];
-      waveAmplitude *= 1.18;
-      waveFrequency = 1.34;
-      secondaryWave = 0.42;
-      waveSpeed = 0.01;
-      particleSpeed = 0.00046;
-      particleCount += 1;
-      particleShape = "ring";
-      ribbonAlpha = 0.28;
-      ribbonOffset = 5.2;
-      ribbonDrift = 0.74;
-      widthBoost = 1.02;
-      emitterSpin = 0.0028;
-      sourceGlowBoost = 1.1;
-      impactGlowBoost = 1.16;
-      impactRayCount = 5;
-      break;
-    case "dark":
-      accentRgb = [164, 130, 218];
-      fringeRgb = [225, 214, 255];
-      waveAmplitude *= 1.04;
-      waveFrequency = 1.04;
-      secondaryWave = 0.38;
-      waveSpeed = 0.008;
-      particleSpeed = 0.00038;
-      particleShape = "wisp";
-      ribbonAlpha = 0.16;
-      ribbonOffset = 4.4;
-      widthBoost = 1.08;
-      sourceGlowBoost = 1.06;
-      impactGlowBoost = 1.12;
-      break;
-    case "ghost":
-      accentRgb = [168, 198, 255];
-      fringeRgb = [231, 238, 255];
-      waveAmplitude *= 1.08;
-      waveFrequency = 1.16;
-      secondaryWave = 0.34;
-      waveSpeed = 0.009;
-      particleSpeed = 0.0004;
-      particleShape = "wisp";
-      ribbonAlpha = 0.22;
-      ribbonOffset = 4.6;
-      sourceGlowBoost = 1.08;
-      impactGlowBoost = 1.14;
-      break;
-    case "fairy":
-      accentRgb = [255, 182, 230];
-      fringeRgb = [255, 240, 252];
-      waveAmplitude *= 0.96;
-      waveFrequency = 1.24;
-      secondaryWave = 0.4;
-      particleCount += 2;
-      particleShape = "star";
-      ribbonAlpha = 0.26;
-      ribbonOffset = 4.8;
-      sourceGlowBoost = 1.1;
-      impactGlowBoost = 1.16;
-      break;
-    case "dragon":
-      accentRgb = [132, 218, 255];
-      fringeRgb = [232, 247, 255];
-      waveAmplitude *= 1.32;
-      waveFrequency = 1.62;
-      secondaryWave = 0.34;
-      particleCount += 1;
-      particleShape = "shard";
-      ribbonAlpha = 0.2;
-      ribbonOffset = 3.8;
-      widthBoost = 1.08;
-      impactRayCount = 6;
-      break;
-    case "ground":
-    case "rock":
-      accentRgb = type === "ground" ? [231, 194, 92] : [214, 184, 154];
-      fringeRgb = type === "ground" ? [255, 236, 188] : [246, 232, 220];
-      waveAmplitude *= 0.62;
-      waveFrequency = 0.94;
-      secondaryWave = 0.18;
-      waveSpeed = 0.007;
-      particleSpeed = 0.00032;
-      particleShape = "dust";
-      ribbonAlpha = 0.14;
-      ribbonOffset = 2.6;
-      widthBoost = 1.12;
-      coreBoost = 0.4;
-      sourceGlowBoost = 0.98;
-      impactGlowBoost = 1.18;
-      impactRayCount = 4;
-      break;
-    case "steel":
-      accentRgb = [202, 228, 246];
-      fringeRgb = [255, 255, 255];
-      waveAmplitude *= 0.52;
-      waveFrequency = 1;
-      secondaryWave = 0.1;
-      waveSpeed = 0.01;
-      particleSpeed = 0.00048;
-      particleShape = "shard";
-      ribbonAlpha = 0.18;
-      ribbonOffset = 2.8;
-      widthBoost = 0.96;
-      coreBoost = 0.6;
-      sourceGlowBoost = 1.02;
-      impactGlowBoost = 1.06;
-      break;
-    case "poison":
-      accentRgb = [206, 122, 255];
-      fringeRgb = [244, 214, 255];
-      waveAmplitude *= 1.1;
-      waveFrequency = 1.18;
-      secondaryWave = 0.46;
-      waveSpeed = 0.009;
-      particleSpeed = 0.00038;
-      particleCount += 1;
-      particleShape = "droplet";
-      ribbonAlpha = 0.24;
-      ribbonOffset = 4.8;
-      widthBoost = 1.06;
-      impactGlowBoost = 1.16;
-      break;
-    case "bug":
-      accentRgb = [190, 236, 102];
-      fringeRgb = [244, 255, 210];
-      waveAmplitude *= 0.92;
-      waveFrequency = 1.46;
-      secondaryWave = 0.32;
-      particleShape = "leaf";
-      ribbonAlpha = 0.18;
-      ribbonOffset = 3.8;
-      impactRayCount = 5;
-      break;
-    case "fighting":
-      accentRgb = [255, 144, 114];
-      fringeRgb = [255, 229, 213];
-      waveAmplitude *= 0.88;
-      waveFrequency = 1.52;
-      secondaryWave = 0.22;
-      waveSpeed = 0.015;
-      particleSpeed = 0.00068;
-      particleShape = "spark";
-      ribbonAlpha = 0.1;
-      ribbonOffset = 2.2;
-      jaggedness = 0.18;
-      widthBoost = 1.08;
-      impactRingAlpha = 0.34;
-      impactRayCount = 8;
-      break;
-    case "flying":
-      accentRgb = [204, 242, 255];
-      fringeRgb = [255, 255, 255];
-      waveAmplitude *= 1.08;
-      waveFrequency = 1.56;
-      secondaryWave = 0.28;
-      particleShape = "feather";
-      ribbonAlpha = 0.24;
-      ribbonOffset = 5;
-      widthBoost = 0.98;
-      sourceGlowBoost = 1.02;
-      impactGlowBoost = 1.08;
-      break;
-    default:
-      break;
-  }
+  const sharedProfile = getLaserTypeVfxProfile(attackType);
+  const rgb = getTypeColor(sharedProfile.type);
+  const safeDistance = Math.max(0, Number(distance) || 0);
+  const safePulse = clamp(Number(pulse) || 0, 0, 1);
+  const baseAmplitude = clamp(
+    safeDistance * sharedProfile.waveDistanceRatio,
+    sharedProfile.waveAmplitudeMin,
+    sharedProfile.waveAmplitudeMax,
+  );
+  const particleCount = clamp(
+    Math.round(safeDistance / 54) + 2 + Math.round(sharedProfile.widthBoost * 1.4),
+    3,
+    10,
+  );
   return {
-    type,
+    type: sharedProfile.type,
     rgb,
-    accentRgb,
-    fringeRgb,
-    waveAmplitude,
-    waveFrequency,
-    secondaryWave,
-    waveSpeed,
-    particleSpeed,
+    laserPattern: sharedProfile.laserPattern,
+    beamPattern: sharedProfile.beamPattern,
+    accentRgb: sharedProfile.accentRgb,
+    fringeRgb: sharedProfile.fringeRgb,
+    glowRgb: sharedProfile.glowRgb,
+    waveAmplitude: baseAmplitude * sharedProfile.waveAmplitudeMul * (0.92 + safePulse * 0.16),
+    waveFrequency: sharedProfile.waveFrequency,
+    secondaryWave: sharedProfile.secondaryWave,
+    waveSpeed: sharedProfile.waveSpeed,
+    particleSpeed: sharedProfile.particleSpeed,
     particleCount,
-    particleSize,
-    particleShape,
-    ribbonAlpha,
-    ribbonOffset,
-    ribbonDrift,
-    jaggedness,
-    widthBoost,
-    coreBoost,
-    sourceGlowBoost,
-    impactGlowBoost,
-    emitterSpin,
-    impactRingAlpha,
-    impactRayCount,
+    particleSize: sharedProfile.particleSize,
+    particleShape: sharedProfile.particleShape,
+    ribbonAlpha: sharedProfile.ribbonAlpha,
+    ribbonOffset: sharedProfile.ribbonOffset,
+    ribbonDrift: sharedProfile.ribbonDrift,
+    jaggedness: sharedProfile.jaggedness,
+    widthBoost: sharedProfile.widthBoost,
+    coreBoost: sharedProfile.coreBoost,
+    sourceGlowBoost: sharedProfile.sourceGlowBoost,
+    impactGlowBoost: sharedProfile.impactGlowBoost,
+    emitterSpin: sharedProfile.emitterSpin,
+    impactRingAlpha: sharedProfile.impactRingAlpha,
+    impactRayCount: sharedProfile.impactRayCount,
   };
 }
 
@@ -3467,134 +3574,98 @@ function drawLaserParticleShape(shape, x, y, size, angle, fillStyle, alpha, outl
   if (safeAlpha <= 0.01 || size <= 0.05) {
     return;
   }
+  const pixel = Math.max(1, snapVfxDimension(size * 0.55, 1));
+  const centerX = snapVfxPixel(x);
+  const centerY = snapVfxPixel(y);
+  const fill = fillStyle || "rgba(255,255,255,1)";
+  const outline = outlineStyle || fill;
+  const drawCell = (cellX, cellY, style = fill) => {
+    ctx.fillStyle = style;
+    ctx.fillRect(centerX + cellX * pixel, centerY + cellY * pixel, pixel, pixel);
+  };
   ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
   ctx.globalAlpha = safeAlpha;
-  ctx.fillStyle = fillStyle;
-  ctx.strokeStyle = outlineStyle || fillStyle;
-  ctx.lineWidth = Math.max(0.7, size * 0.14);
   switch (shape) {
     case "ember":
-      ctx.beginPath();
-      ctx.moveTo(size * 0.75, 0);
-      ctx.lineTo(0, -size * 0.52);
-      ctx.lineTo(-size * 0.8, 0);
-      ctx.lineTo(0, size * 0.48);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.92, 0);
-      ctx.lineTo(-size * 1.45, -size * 0.18);
-      ctx.lineTo(-size * 1.18, size * 0.14);
-      ctx.closePath();
-      ctx.fill();
+      drawCell(0, -1, outline);
+      drawCell(1, 0, fill);
+      drawCell(0, 0, fill);
+      drawCell(-1, 0, outline);
+      drawCell(0, 1, fill);
       break;
     case "droplet":
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.9);
-      ctx.quadraticCurveTo(size * 0.72, -size * 0.18, size * 0.34, size * 0.86);
-      ctx.quadraticCurveTo(0, size * 1.08, -size * 0.34, size * 0.86);
-      ctx.quadraticCurveTo(-size * 0.72, -size * 0.18, 0, -size * 0.9);
-      ctx.closePath();
-      ctx.fill();
+      drawCell(0, -1, outline);
+      drawCell(-1, 0, outline);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, outline);
+      drawCell(0, 1, fill);
       break;
     case "leaf":
-      ctx.beginPath();
-      ctx.ellipse(0, 0, size * 0.96, size * 0.54, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = outlineStyle || fillStyle;
-      ctx.lineWidth = Math.max(0.5, size * 0.1);
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.7, 0);
-      ctx.lineTo(size * 0.72, 0);
-      ctx.stroke();
+      drawCell(-1, -1, outline);
+      drawCell(-1, 0, fill);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, fill);
+      drawCell(1, 1, outline);
       break;
     case "spark":
-      ctx.strokeStyle = outlineStyle || fillStyle;
-      ctx.lineWidth = Math.max(0.8, size * 0.16);
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.9, -size * 0.22);
-      ctx.lineTo(-size * 0.08, -size * 0.3);
-      ctx.lineTo(-size * 0.36, size * 0.84);
-      ctx.lineTo(size * 0.9, size * 0.08);
-      ctx.lineTo(size * 0.1, size * 0.2);
-      ctx.lineTo(size * 0.34, -size * 0.84);
-      ctx.stroke();
+      drawCell(0, -1, outline);
+      drawCell(-1, 0, outline);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, outline);
+      drawCell(0, 1, outline);
       break;
     case "crystal":
     case "shard":
-      ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.lineTo(size * 0.58, -size * 0.14);
-      ctx.lineTo(size * 0.18, size * 0.96);
-      ctx.lineTo(-size * 0.48, size * 0.24);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      drawCell(0, -1, outline);
+      drawCell(1, 0, fill);
+      drawCell(0, 0, fill);
+      drawCell(0, 1, fill);
+      drawCell(-1, 0, outline);
       break;
     case "ring":
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.72, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(size * 0.08, 0, size * 0.16, 0, Math.PI * 2);
-      ctx.fill();
+      drawCell(-1, -1, outline);
+      drawCell(0, -1, outline);
+      drawCell(1, -1, outline);
+      drawCell(-1, 0, outline);
+      drawCell(1, 0, outline);
+      drawCell(-1, 1, outline);
+      drawCell(0, 1, outline);
+      drawCell(1, 1, outline);
+      drawCell(0, 0, fill);
       break;
     case "wisp":
-      ctx.beginPath();
-      ctx.arc(size * 0.1, 0, size * 0.58, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-size * 0.46, size * 0.08, size * 0.28, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-size * 0.8, size * 0.14, size * 0.16, 0, Math.PI * 2);
-      ctx.fill();
+      drawCell(-1, 0, outline);
+      drawCell(0, -1, fill);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, fill);
+      drawCell(0, 1, fill);
       break;
     case "star":
-      ctx.beginPath();
-      for (let i = 0; i < 5; i += 1) {
-        const outerAngle = -Math.PI * 0.5 + i * (Math.PI * 2 / 5);
-        const innerAngle = outerAngle + Math.PI / 5;
-        const outerRadius = size;
-        const innerRadius = size * 0.42;
-        const ox = Math.cos(outerAngle) * outerRadius;
-        const oy = Math.sin(outerAngle) * outerRadius;
-        const ix = Math.cos(innerAngle) * innerRadius;
-        const iy = Math.sin(innerAngle) * innerRadius;
-        if (i === 0) {
-          ctx.moveTo(ox, oy);
-        } else {
-          ctx.lineTo(ox, oy);
-        }
-        ctx.lineTo(ix, iy);
-      }
-      ctx.closePath();
-      ctx.fill();
+      drawCell(0, -1, outline);
+      drawCell(-1, 0, outline);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, outline);
+      drawCell(0, 1, outline);
       break;
     case "dust":
-      ctx.beginPath();
-      ctx.arc(-size * 0.36, size * 0.1, size * 0.32, 0, Math.PI * 2);
-      ctx.arc(size * 0.18, -size * 0.06, size * 0.44, 0, Math.PI * 2);
-      ctx.arc(size * 0.66, size * 0.12, size * 0.24, 0, Math.PI * 2);
-      ctx.fill();
+      drawCell(-1, 0, outline);
+      drawCell(0, -1, fill);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, outline);
       break;
     case "feather":
-      ctx.beginPath();
-      ctx.ellipse(0, 0, size * 0.98, size * 0.34, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = outlineStyle || fillStyle;
-      ctx.lineWidth = Math.max(0.5, size * 0.1);
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.88, 0);
-      ctx.lineTo(size * 0.92, 0);
-      ctx.stroke();
+      drawCell(-1, -1, outline);
+      drawCell(-1, 0, fill);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, fill);
+      drawCell(1, 1, outline);
       break;
     default:
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.66, 0, Math.PI * 2);
-      ctx.fill();
+      drawCell(0, -1, outline);
+      drawCell(-1, 0, outline);
+      drawCell(0, 0, fill);
+      drawCell(1, 0, outline);
+      drawCell(0, 1, outline);
       break;
   }
   ctx.restore();
@@ -3624,138 +3695,139 @@ function getLaserOffsetAtT(t, timeMs, phase, profile) {
 function sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, profile, t, output = null) {
   const offset = getLaserOffsetAtT(t, timeMs, phase, profile);
   const point = output || { x: 0, y: 0, offset: 0 };
-  point.x = sourceX + (targetX - sourceX) * t + normalX * offset;
-  point.y = sourceY + (targetY - sourceY) * t + normalY * offset;
+  point.x = snapVfxPixel(sourceX + (targetX - sourceX) * t + normalX * offset);
+  point.y = snapVfxPixel(sourceY + (targetY - sourceY) * t + normalY * offset);
   point.offset = offset;
   return point;
 }
 
 function traceLaserCurve(points) {
-  if (!Array.isArray(points) || points.length <= 0) {
-    return;
-  }
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  if (points.length === 1) {
-    return;
-  }
-  for (let i = 1; i < points.length - 1; i += 1) {
-    const nextPoint = points[i + 1];
-    const midX = (points[i].x + nextPoint.x) * 0.5;
-    const midY = (points[i].y + nextPoint.y) * 0.5;
-    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
-  }
-  const lastPoint = points[points.length - 1];
-  ctx.lineTo(lastPoint.x, lastPoint.y);
+  traceLaserSteppedPath(points);
 }
 
 function traceLaserSegment(sourceX, sourceY, targetX, targetY) {
   ctx.beginPath();
-  ctx.moveTo(sourceX, sourceY);
-  ctx.lineTo(targetX, targetY);
+  ctx.moveTo(snapVfxPixel(sourceX), snapVfxPixel(sourceY));
+  ctx.lineTo(snapVfxPixel(targetX), snapVfxPixel(targetY));
 }
 
 function createLaserRuntimeCanvas(width, height) {
-  const safeWidth = Math.max(1, Math.round(Number(width) || 0));
-  const safeHeight = Math.max(1, Math.round(Number(height) || 0));
-  if (typeof OffscreenCanvas === "function") {
-    return new OffscreenCanvas(safeWidth, safeHeight);
-  }
-  if (typeof document === "object" && document && typeof document.createElement === "function") {
-    const canvasEl = document.createElement("canvas");
-    canvasEl.width = safeWidth;
-    canvasEl.height = safeHeight;
-    return canvasEl;
-  }
-  return null;
+  return createVfxRuntimeCanvas(width, height);
 }
 
 const packedLaserBeamTextureCache = {};
 
 function drawPackedLaserTextureBands(textureCtx, profile, width, height) {
-  const centerY = height * 0.5;
+  const centerY = Math.floor(height * 0.5);
+  const pixel = Math.max(1, Math.floor(height / 8));
+  const accentStyle = rgba(profile.accentRgb, 0.92);
+  const fringeStyle = rgba(profile.fringeRgb, 0.98);
+  const glowStyle = rgba(profile.glowRgb, 0.28);
   textureCtx.save();
-  textureCtx.lineCap = "round";
-  textureCtx.lineJoin = "round";
-  switch (profile.type) {
-    case "fire":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.18);
-      textureCtx.lineWidth = 2.4;
+  setCanvasImageSmoothing(textureCtx, false);
+  switch (profile.beamPattern || profile.type) {
+    case "flame_band":
       for (let i = 0; i < 4; i += 1) {
-        const startX = width * (0.08 + i * 0.22);
-        textureCtx.beginPath();
-        textureCtx.moveTo(startX, centerY + (i % 2 === 0 ? 5 : -5));
-        textureCtx.quadraticCurveTo(startX + width * 0.07, centerY + (i % 2 === 0 ? -7 : 7), startX + width * 0.16, centerY);
-        textureCtx.stroke();
+        const startX = Math.floor(width * (0.08 + i * 0.22));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(startX, centerY - pixel * 2 + (i % 2 === 0 ? 0 : pixel), pixel * 3, pixel);
+        textureCtx.fillRect(startX + pixel * 2, centerY - pixel + (i % 2 === 0 ? pixel : 0), pixel * 3, pixel);
+        textureCtx.fillStyle = glowStyle;
+        textureCtx.fillRect(startX, centerY - pixel * 3, pixel * 2, pixel);
       }
       break;
-    case "water":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.17);
-      textureCtx.lineWidth = 1.8;
+    case "water_band":
       for (let i = 0; i < 3; i += 1) {
-        const yOffset = (i - 1) * 5;
-        textureCtx.beginPath();
-        textureCtx.moveTo(0, centerY + yOffset);
-        textureCtx.bezierCurveTo(width * 0.22, centerY + yOffset - 3, width * 0.56, centerY + yOffset + 3, width, centerY + yOffset);
-        textureCtx.stroke();
+        const yOffset = (i - 1) * pixel * 2;
+        textureCtx.fillStyle = i === 1 ? fringeStyle : accentStyle;
+        for (let x = 0; x < width; x += pixel * 4) {
+          textureCtx.fillRect(x, centerY + yOffset, pixel * 2, pixel);
+        }
       }
       break;
-    case "grass":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.16);
-      textureCtx.lineWidth = 1.9;
+    case "grass_band":
       for (let i = 0; i < 5; i += 1) {
-        const x = width * (0.12 + i * 0.17);
-        textureCtx.beginPath();
-        textureCtx.moveTo(x, centerY + 6);
-        textureCtx.lineTo(x + 8, centerY - 6);
-        textureCtx.stroke();
+        const x = Math.floor(width * (0.12 + i * 0.17));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x, centerY + pixel, pixel, pixel * 2);
+        textureCtx.fillRect(x + pixel, centerY, pixel, pixel * 2);
+        textureCtx.fillStyle = glowStyle;
+        textureCtx.fillRect(x, centerY - pixel, pixel, pixel);
       }
       break;
-    case "electric":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.24);
-      textureCtx.lineWidth = 2.1;
+    case "electric_band":
       for (let i = 0; i < 4; i += 1) {
-        const startX = width * (0.06 + i * 0.23);
-        textureCtx.beginPath();
-        textureCtx.moveTo(startX, centerY - 5);
-        textureCtx.lineTo(startX + 9, centerY - 1);
-        textureCtx.lineTo(startX + 4, centerY + 1);
-        textureCtx.lineTo(startX + 16, centerY + 6);
-        textureCtx.stroke();
+        const startX = Math.floor(width * (0.06 + i * 0.23));
+        textureCtx.fillStyle = fringeStyle;
+        textureCtx.fillRect(startX, centerY - pixel * 2, pixel * 2, pixel);
+        textureCtx.fillRect(startX + pixel, centerY - pixel, pixel * 2, pixel);
+        textureCtx.fillRect(startX, centerY, pixel * 2, pixel);
+        textureCtx.fillRect(startX + pixel * 2, centerY + pixel, pixel * 2, pixel);
       }
       break;
-    case "ice":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.18);
-      textureCtx.lineWidth = 1.4;
+    case "ice_band":
       for (let i = 0; i < 6; i += 1) {
-        const x = width * (0.1 + i * 0.14);
-        textureCtx.beginPath();
-        textureCtx.moveTo(x, centerY - 6);
-        textureCtx.lineTo(x + 6, centerY);
-        textureCtx.lineTo(x, centerY + 6);
-        textureCtx.stroke();
+        const x = Math.floor(width * (0.1 + i * 0.14));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x, centerY - pixel * 2, pixel, pixel);
+        textureCtx.fillRect(x + pixel, centerY - pixel, pixel, pixel);
+        textureCtx.fillRect(x, centerY, pixel, pixel);
+        textureCtx.fillRect(x + pixel, centerY + pixel, pixel, pixel);
       }
       break;
-    case "psychic":
-    case "ghost":
-    case "dark":
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.12);
-      textureCtx.lineWidth = 2.2;
+    case "rock_band":
+    case "ground_band":
+      for (let i = 0; i < 5; i += 1) {
+        const x = Math.floor(width * (0.1 + i * 0.18));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x, centerY + pixel, pixel * 2, pixel);
+        textureCtx.fillRect(x + pixel, centerY, pixel * 2, pixel);
+        textureCtx.fillRect(x + pixel * 3, centerY + pixel, pixel, pixel);
+      }
+      break;
+    case "steel_band":
+      for (let i = 0; i < 6; i += 1) {
+        const x = Math.floor(width * (0.08 + i * 0.15));
+        textureCtx.fillStyle = fringeStyle;
+        textureCtx.fillRect(x, centerY - pixel * 2, pixel, pixel * 4);
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x + pixel, centerY - pixel, pixel, pixel * 2);
+      }
+      break;
+    case "poison_band":
+      for (let i = 0; i < 4; i += 1) {
+        const x = Math.floor(width * (0.18 + i * 0.2));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x, centerY + (i % 2 === 0 ? -pixel : pixel), pixel * 2, pixel * 2);
+        textureCtx.fillStyle = glowStyle;
+        textureCtx.fillRect(x + pixel, centerY, pixel, pixel);
+      }
+      break;
+    case "psychic_band":
+    case "ghost_band":
+    case "dark_band":
       for (let i = 0; i < 3; i += 1) {
-        textureCtx.beginPath();
-        textureCtx.arc(width * (0.22 + i * 0.26), centerY, 6 + i * 2, Math.PI * 0.15, Math.PI * 1.85);
-        textureCtx.stroke();
+        const x = Math.floor(width * (0.22 + i * 0.26));
+        textureCtx.fillStyle = glowStyle;
+        textureCtx.fillRect(x, centerY - pixel * 2, pixel * 2, pixel * 4);
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x + pixel, centerY - pixel, pixel * 2, pixel * 2);
+      }
+      break;
+    case "fairy_band":
+      for (let i = 0; i < 4; i += 1) {
+        const x = Math.floor(width * (0.14 + i * 0.18));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x - pixel, centerY, pixel * 3, pixel);
+        textureCtx.fillRect(x, centerY - pixel, pixel, pixel * 3);
       }
       break;
     default:
-      textureCtx.strokeStyle = rgba(profile.fringeRgb, 0.12);
-      textureCtx.lineWidth = 1.8;
       for (let i = 0; i < 4; i += 1) {
-        const x = width * (0.14 + i * 0.2);
-        textureCtx.beginPath();
-        textureCtx.moveTo(x, centerY - 5);
-        textureCtx.lineTo(x + 8, centerY + 5);
-        textureCtx.stroke();
+        const x = Math.floor(width * (0.14 + i * 0.2));
+        textureCtx.fillStyle = accentStyle;
+        textureCtx.fillRect(x, centerY - pixel, pixel * 2, pixel);
+        textureCtx.fillRect(x + pixel, centerY, pixel * 2, pixel);
       }
       break;
   }
@@ -3763,48 +3835,44 @@ function drawPackedLaserTextureBands(textureCtx, profile, width, height) {
 }
 
 function buildPackedLaserBeamTexture(profile) {
-  const texture = createLaserRuntimeCanvas(160, 48);
+  const texture = createLaserRuntimeCanvas(
+    COMBAT_VFX_CONFIG.laserPackedTextureWidthPx,
+    COMBAT_VFX_CONFIG.laserPackedTextureHeightPx,
+  );
   const textureCtx = texture?.getContext?.("2d");
   if (!textureCtx) {
     return null;
   }
-  const width = Number(texture.width) || 160;
-  const height = Number(texture.height) || 48;
-  const centerY = height * 0.5;
+  const width = Number(texture.width) || Math.max(32, Number(COMBAT_VFX_CONFIG.laserPackedTextureWidthPx) || 160);
+  const height = Number(texture.height) || Math.max(16, Number(COMBAT_VFX_CONFIG.laserPackedTextureHeightPx) || 48);
+  const centerY = Math.floor(height * 0.5);
+  const pixel = Math.max(1, Math.floor(height / 8));
+  setCanvasImageSmoothing(textureCtx, false);
   textureCtx.clearRect(0, 0, width, height);
-  const bodyGradient = textureCtx.createLinearGradient(0, 0, width, 0);
-  bodyGradient.addColorStop(0, rgba(profile.accentRgb, 0));
-  bodyGradient.addColorStop(0.08, rgba(profile.accentRgb, 0.34));
-  bodyGradient.addColorStop(0.24, rgba(profile.accentRgb, 0.72));
-  bodyGradient.addColorStop(0.72, rgba(profile.fringeRgb, 0.92));
-  bodyGradient.addColorStop(1, rgba(profile.fringeRgb, 0.76));
-  textureCtx.fillStyle = bodyGradient;
-  textureCtx.fillRect(0, 0, width, height);
-
-  const haloGradient = textureCtx.createLinearGradient(0, 0, 0, height);
-  haloGradient.addColorStop(0, rgba(profile.accentRgb, 0));
-  haloGradient.addColorStop(0.16, rgba(profile.accentRgb, 0.1));
-  haloGradient.addColorStop(0.36, rgba(profile.accentRgb, 0.5));
-  haloGradient.addColorStop(0.5, rgba(profile.fringeRgb, 0.9));
-  haloGradient.addColorStop(0.64, rgba(profile.accentRgb, 0.5));
-  haloGradient.addColorStop(0.84, rgba(profile.accentRgb, 0.1));
-  haloGradient.addColorStop(1, rgba(profile.accentRgb, 0));
-  textureCtx.fillStyle = haloGradient;
-  textureCtx.fillRect(0, 0, width, height);
-
-  textureCtx.fillStyle = rgba(profile.fringeRgb, 0.82);
-  textureCtx.fillRect(0, centerY - 2.2, width, 4.4);
-  textureCtx.fillStyle = rgba([255, 255, 255], 0.32);
-  textureCtx.fillRect(0, centerY - 0.9, width, 1.8);
+  textureCtx.fillStyle = rgba(profile.glowRgb, 0.14);
+  textureCtx.fillRect(0, centerY - pixel * 3, width, pixel * 6);
+  textureCtx.fillStyle = rgba(profile.accentRgb, 0.78);
+  textureCtx.fillRect(0, centerY - pixel * 2, width, pixel * 4);
+  textureCtx.fillStyle = rgba(profile.fringeRgb, 0.98);
+  textureCtx.fillRect(0, centerY - pixel, width, pixel * 2);
+  textureCtx.fillStyle = rgba([255, 255, 255], 0.7);
+  textureCtx.fillRect(0, centerY, width, pixel);
+  textureCtx.fillStyle = rgba(profile.accentRgb, 0.24);
+  for (let x = 0; x < width; x += pixel * 3) {
+    textureCtx.fillRect(x, centerY - pixel * 3, pixel, pixel);
+    textureCtx.fillRect(x + pixel, centerY + pixel * 2, pixel, pixel);
+  }
   drawPackedLaserTextureBands(textureCtx, profile, width, height);
   return texture;
 }
 
 function getPackedLaserBeamTexture(profile) {
-  const cacheKey = String(profile?.type || "normal");
+  const cacheKey = `${String(profile?.type || "normal")}:${String(profile?.beamPattern || "neutral_band")}`;
   if (packedLaserBeamTextureCache[cacheKey] !== undefined) {
+    laserTextureCacheStats.hits += 1;
     return packedLaserBeamTextureCache[cacheKey];
   }
+  laserTextureCacheStats.misses += 1;
   const texture = buildPackedLaserBeamTexture(profile);
   packedLaserBeamTextureCache[cacheKey] = texture;
   return texture;
@@ -3821,13 +3889,15 @@ function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profi
     9,
     30,
   );
-  const beamAlpha = clamp(0.72 + pulse * 0.2, 0.28, 1);
+  const snappedBeamHeight = snapVfxDimension(beamHeight, 8);
+  const beamAlpha = clamp(0.9 + pulse * 0.08, 0.5, 1);
   ctx.save();
   ctx.globalCompositeOperation = budget.composite;
   ctx.globalAlpha = beamAlpha;
-  ctx.translate(sourceX, sourceY);
+  setCanvasImageSmoothing(ctx, false);
+  ctx.translate(snapVfxPixel(sourceX), snapVfxPixel(sourceY));
   ctx.rotate(angle);
-  ctx.drawImage(texture, 0, -beamHeight * 0.5, distance, beamHeight);
+  ctx.drawImage(texture, 0, -snappedBeamHeight * 0.5, snapVfxDimension(distance, 8), snappedBeamHeight);
   ctx.restore();
   return true;
 }
@@ -3837,15 +3907,15 @@ function drawLaserContrastSegment(sourceX, sourceY, targetX, targetY, haloWidth,
   const contrastCoreRgb = blendRgb(profile.fringeRgb, [10, 16, 28], 0.76);
   ctx.save();
   ctx.globalCompositeOperation = "source-over";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.lineCap = "butt";
+  ctx.lineJoin = "miter";
   ctx.setLineDash([]);
   ctx.strokeStyle = rgba(contrastHaloRgb, 0.14 + pulse * 0.04);
-  ctx.lineWidth = Math.max(2.2, haloWidth * 0.52);
+  ctx.lineWidth = Math.max(2, snapVfxDimension(haloWidth * 0.52, 2));
   traceLaserSegment(sourceX, sourceY, targetX, targetY);
   ctx.stroke();
   ctx.strokeStyle = rgba(contrastCoreRgb, 0.2 + flowPulse * 0.04);
-  ctx.lineWidth = Math.max(1.2, coreWidth * 0.92);
+  ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth * 0.92, 1));
   traceLaserSegment(sourceX, sourceY, targetX, targetY);
   ctx.stroke();
   ctx.restore();
@@ -3856,15 +3926,15 @@ function drawLaserContrastCurve(points, haloWidth, coreWidth, profile, pulse, fl
   const contrastCoreRgb = blendRgb(profile.fringeRgb, [10, 16, 28], 0.76);
   ctx.save();
   ctx.globalCompositeOperation = "source-over";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.lineCap = "butt";
+  ctx.lineJoin = "miter";
   ctx.setLineDash([]);
   ctx.strokeStyle = rgba(contrastHaloRgb, 0.16 + pulse * 0.04);
-  ctx.lineWidth = Math.max(2.4, haloWidth * 0.54);
+  ctx.lineWidth = Math.max(2, snapVfxDimension(haloWidth * 0.54, 2));
   traceLaserCurve(points);
   ctx.stroke();
   ctx.strokeStyle = rgba(contrastCoreRgb, 0.22 + flowPulse * 0.04);
-  ctx.lineWidth = Math.max(1.3, coreWidth * 0.96);
+  ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth * 0.96, 1));
   traceLaserCurve(points);
   ctx.stroke();
   ctx.restore();
@@ -3873,159 +3943,87 @@ function drawLaserContrastCurve(points, haloWidth, coreWidth, profile, pulse, fl
 function getLaserRenderBudget(qualityKey, distance) {
   const safeDistance = Math.max(0, Number(distance) || 0);
   const budget = laserRenderBudgetScratch;
+  const nearThreshold = Math.max(48, Number(COMBAT_VFX_CONFIG.laserDistanceNearPx) || 110);
+  const midThreshold = Math.max(nearThreshold + 1, Number(COMBAT_VFX_CONFIG.laserDistanceMidPx) || 220);
+  const farThreshold = Math.max(midThreshold + 1, Number(COMBAT_VFX_CONFIG.laserDistanceFarPx) || 420);
+  const phoneLike = Boolean(state.layout?.viewportProfile?.phone);
+  const bucket = safeDistance <= nearThreshold ? "near" : safeDistance <= midThreshold ? "mid" : safeDistance <= farThreshold ? "far" : "far";
+  let renderPath = "pixel_curved";
   switch (String(qualityKey || "medium")) {
     case "very_low":
-      budget.simple = true;
-      budget.curved = false;
-      budget.segmentDivisor = 999;
-      budget.minSegments = 1;
-      budget.maxSegments = 1;
-      budget.waveAmplitudeMul = 0;
-      budget.secondaryWaveMul = 0;
-      budget.jaggednessMul = 0;
-      budget.ribbonEnabled = false;
-      budget.ribbonAlphaMul = 0;
-      budget.beamParticles = 0;
-      budget.sourceParticles = 0;
-      budget.impactParticles = 0;
-      budget.impactRayCountMax = 0;
-      budget.useLinearGradients = false;
-      budget.useRadialGradients = false;
-      budget.useShadowBlur = false;
-      budget.shadowBlurMul = 0;
-      budget.useSheath = false;
-      budget.useFilament = false;
-      budget.composite = "source-over";
-      budget.widthMul = 0.78;
-      budget.sourceGlowScale = 0.72;
-      budget.impactGlowScale = 0.78;
-      budget.electricDash = false;
-      budget.renderImpactRing = false;
-      budget.renderEndpoints = false;
-      budget.preferPackedBeam = true;
-      return budget;
     case "low":
-      budget.simple = true;
-      budget.curved = false;
-      budget.segmentDivisor = 84;
-      budget.minSegments = 1;
-      budget.maxSegments = 1;
-      budget.waveAmplitudeMul = 0.18;
-      budget.secondaryWaveMul = 0.1;
-      budget.jaggednessMul = 0.2;
-      budget.ribbonEnabled = false;
-      budget.ribbonAlphaMul = 0;
-      budget.beamParticles = safeDistance > 120 ? 1 : 0;
-      budget.sourceParticles = 0;
-      budget.impactParticles = 0;
-      budget.impactRayCountMax = 0;
-      budget.useLinearGradients = false;
-      budget.useRadialGradients = false;
-      budget.useShadowBlur = false;
-      budget.shadowBlurMul = 0;
-      budget.useSheath = false;
-      budget.useFilament = false;
-      budget.composite = "lighter";
-      budget.widthMul = 0.82;
-      budget.sourceGlowScale = 0.8;
-      budget.impactGlowScale = 0.84;
-      budget.electricDash = true;
-      budget.renderImpactRing = false;
-      budget.renderEndpoints = true;
-      budget.preferPackedBeam = false;
-      return budget;
+      renderPath = "packed_simple";
+      break;
     case "medium":
-      budget.simple = safeDistance <= 110;
-      budget.curved = !budget.simple;
-      budget.segmentDivisor = 52;
-      budget.minSegments = budget.simple ? 1 : 4;
-      budget.maxSegments = budget.simple ? 1 : 8;
-      budget.waveAmplitudeMul = budget.simple ? 0.14 : 0.56;
-      budget.secondaryWaveMul = budget.simple ? 0.08 : 0.38;
-      budget.jaggednessMul = budget.simple ? 0.16 : 0.75;
-      budget.ribbonEnabled = !budget.simple;
-      budget.ribbonAlphaMul = 0.65;
-      budget.beamParticles = budget.simple ? 0 : 2;
-      budget.sourceParticles = budget.simple ? 0 : 1;
-      budget.impactParticles = budget.simple ? 0 : 1;
-      budget.impactRayCountMax = budget.simple ? 0 : 3;
-      budget.useLinearGradients = !budget.simple;
-      budget.useRadialGradients = false;
-      budget.useShadowBlur = !budget.simple;
-      budget.shadowBlurMul = 0.28;
-      budget.useSheath = !budget.simple;
-      budget.useFilament = !budget.simple;
-      budget.composite = "lighter";
-      budget.widthMul = budget.simple ? 0.82 : 0.94;
-      budget.sourceGlowScale = budget.simple ? 0.84 : 0.96;
-      budget.impactGlowScale = budget.simple ? 0.88 : 0.98;
-      budget.electricDash = true;
-      budget.renderImpactRing = !budget.simple;
-      budget.renderEndpoints = true;
-      budget.preferPackedBeam = false;
-      return budget;
+      renderPath = "packed_simple";
+      break;
     case "high":
-      budget.simple = false;
-      budget.curved = true;
-      budget.segmentDivisor = 34;
-      budget.minSegments = 5;
-      budget.maxSegments = 11;
-      budget.waveAmplitudeMul = 0.82;
-      budget.secondaryWaveMul = 0.7;
-      budget.jaggednessMul = 0.9;
-      budget.ribbonEnabled = true;
-      budget.ribbonAlphaMul = 0.88;
-      budget.beamParticles = 3;
-      budget.sourceParticles = 2;
-      budget.impactParticles = 2;
-      budget.impactRayCountMax = 5;
-      budget.useLinearGradients = true;
-      budget.useRadialGradients = true;
-      budget.useShadowBlur = true;
-      budget.shadowBlurMul = 0.62;
-      budget.useSheath = true;
-      budget.useFilament = true;
-      budget.composite = "lighter";
-      budget.widthMul = 1;
-      budget.sourceGlowScale = 1;
-      budget.impactGlowScale = 1;
-      budget.electricDash = true;
-      budget.renderImpactRing = true;
-      budget.renderEndpoints = true;
-      budget.preferPackedBeam = false;
-      return budget;
+      renderPath = bucket === "far" ? "pixel_curved" : "packed_simple";
+      break;
     case "ultra":
     default:
-      budget.simple = false;
-      budget.curved = true;
-      budget.segmentDivisor = 24;
-      budget.minSegments = 6;
-      budget.maxSegments = 14;
-      budget.waveAmplitudeMul = 1;
-      budget.secondaryWaveMul = 1;
-      budget.jaggednessMul = 1;
-      budget.ribbonEnabled = true;
-      budget.ribbonAlphaMul = 1;
-      budget.beamParticles = 4;
-      budget.sourceParticles = 3;
-      budget.impactParticles = 3;
-      budget.impactRayCountMax = 7;
-      budget.useLinearGradients = true;
-      budget.useRadialGradients = true;
-      budget.useShadowBlur = true;
-      budget.shadowBlurMul = 1;
-      budget.useSheath = true;
-      budget.useFilament = true;
-      budget.composite = "lighter";
-      budget.widthMul = 1.04;
-      budget.sourceGlowScale = 1.02;
-      budget.impactGlowScale = 1.02;
-      budget.electricDash = true;
-      budget.renderImpactRing = true;
-      budget.renderEndpoints = true;
-      budget.preferPackedBeam = false;
-      return budget;
+      renderPath = bucket === "near" ? "pixel_curved" : "hero_curved";
+      break;
   }
+  if (phoneLike && renderPath === "hero_curved") {
+    renderPath = "pixel_curved";
+  }
+  const segmentMax = renderPath === "packed_simple"
+    ? Math.max(1, toSafeInt(COMBAT_VFX_CONFIG.laserPackedSimpleSegmentMaxCount, 1))
+    : renderPath === "pixel_curved"
+      ? Math.max(2, toSafeInt(COMBAT_VFX_CONFIG.laserPixelCurvedSegmentMaxCount, 8))
+      : Math.max(3, toSafeInt(COMBAT_VFX_CONFIG.laserHeroCurvedSegmentMaxCount, 14));
+  const particleMax = renderPath === "packed_simple"
+    ? Math.max(0, toSafeInt(COMBAT_VFX_CONFIG.laserPackedSimpleParticleMaxCount, 0))
+    : renderPath === "pixel_curved"
+      ? Math.max(0, toSafeInt(COMBAT_VFX_CONFIG.laserPixelCurvedParticleMaxCount, 2))
+      : Math.max(0, toSafeInt(COMBAT_VFX_CONFIG.laserHeroCurvedParticleMaxCount, 4));
+  const bucketMul = bucket === "near" ? 0.35 : bucket === "mid" ? 0.68 : 1;
+  const phoneMul = phoneLike ? 0.5 : 1;
+  budget.renderPath = renderPath;
+  budget.distanceBucket = bucket;
+  budget.simple = renderPath === "packed_simple";
+  budget.curved = !budget.simple;
+  budget.segmentDivisor = renderPath === "packed_simple"
+    ? 999
+    : renderPath === "pixel_curved"
+      ? (bucket === "far" ? 44 : 56)
+      : (bucket === "far" ? 24 : 34);
+  budget.minSegments = renderPath === "packed_simple" ? 1 : renderPath === "pixel_curved" ? 3 : 5;
+  budget.maxSegments = renderPath === "packed_simple"
+    ? 1
+    : Math.max(
+        budget.minSegments,
+        Math.round(segmentMax * (bucket === "near" ? 0.58 : bucket === "mid" ? 0.82 : 1)),
+      );
+  budget.waveAmplitudeMul = renderPath === "packed_simple" ? 0.1 : renderPath === "pixel_curved" ? 0.36 : 0.56;
+  budget.secondaryWaveMul = renderPath === "packed_simple" ? 0.04 : renderPath === "pixel_curved" ? 0.18 : 0.3;
+  budget.jaggednessMul = renderPath === "packed_simple" ? 0.28 : renderPath === "pixel_curved" ? 0.68 : 0.88;
+  budget.ribbonEnabled = renderPath === "hero_curved" && !phoneLike;
+  budget.ribbonAlphaMul = renderPath === "hero_curved" && !phoneLike ? 0.28 : 0;
+  budget.beamParticles = Math.max(0, Math.round(particleMax * bucketMul * phoneMul));
+  budget.sourceParticles = renderPath === "hero_curved" ? Math.min(2, budget.beamParticles) : 0;
+  budget.impactParticles = renderPath === "hero_curved" ? Math.min(2, budget.beamParticles) : 0;
+  budget.impactRayCountMax = renderPath === "hero_curved" ? 7 : renderPath === "pixel_curved" ? 4 : 0;
+  budget.useLinearGradients = false;
+  budget.useRadialGradients = false;
+  budget.useShadowBlur = false;
+  budget.shadowBlurMul = 0;
+  budget.useSheath = renderPath === "hero_curved";
+  budget.useFilament = false;
+  budget.composite = "source-over";
+  budget.widthMul = renderPath === "packed_simple"
+    ? Math.max(0.4, Number(COMBAT_VFX_CONFIG.laserPackedSimpleWidthMultiplier) || 0.82)
+    : renderPath === "pixel_curved"
+      ? Math.max(0.4, Number(COMBAT_VFX_CONFIG.laserPixelCurvedWidthMultiplier) || 0.94)
+      : Math.max(0.4, Number(COMBAT_VFX_CONFIG.laserHeroCurvedWidthMultiplier) || 1.04);
+  budget.sourceGlowScale = renderPath === "packed_simple" ? 0.82 : renderPath === "pixel_curved" ? 0.96 : 1;
+  budget.impactGlowScale = renderPath === "packed_simple" ? 0.86 : renderPath === "pixel_curved" ? 0.98 : 1;
+  budget.electricDash = renderPath === "hero_curved";
+  budget.renderImpactRing = renderPath !== "packed_simple";
+  budget.renderEndpoints = true;
+  budget.preferPackedBeam = renderPath === "packed_simple";
+  return budget;
 }
 
 function getVisibleLaserSegment(laser) {
@@ -4077,6 +4075,19 @@ function getVisibleLaserSegment(laser) {
 
 function drawLasers(lasers) {
   const laserList = Array.isArray(lasers) ? lasers : [];
+  const debug = getVfxRenderDebugState();
+  if (debug) {
+    debug.qualityTier = String(state.performance?.quality || "medium");
+    debug.laser.activeCount = laserList.length;
+    debug.laser.renderPathCounts.packed_simple = 0;
+    debug.laser.renderPathCounts.pixel_curved = 0;
+    debug.laser.renderPathCounts.hero_curved = 0;
+    debug.laser.segmentCount = 0;
+    debug.laser.particleCount = 0;
+    debug.laser.textureCacheSize = Object.keys(packedLaserBeamTextureCache).length;
+    debug.laser.textureCacheHits = laserTextureCacheStats.hits;
+    debug.laser.textureCacheMisses = laserTextureCacheStats.misses;
+  }
   if (laserList.length <= 0) {
     return;
   }
@@ -4106,50 +4117,56 @@ function drawLasers(lasers) {
     const baseAngle = Math.atan2(unitY, unitX);
     const profile = getLaserVisualProfile(laser?.attackType || "normal", pulse, distance);
     const budget = getLaserRenderBudget(qualityKey, distance);
+    const beamParticleCount = Math.max(0, Math.round(budget.beamParticles));
+    const sourceParticleCount = Math.max(0, Math.round(budget.sourceParticles));
+    const impactParticleCount = Math.max(0, Math.round(budget.impactParticles));
+    if (debug) {
+      const pathKey = String(budget.renderPath || "packed_simple");
+      if (Object.prototype.hasOwnProperty.call(debug.laser.renderPathCounts, pathKey)) {
+        debug.laser.renderPathCounts[pathKey] += 1;
+      }
+      debug.laser.particleCount += beamParticleCount + sourceParticleCount + impactParticleCount;
+    }
     const haloWidth = clamp((6.2 + distance * 0.008 + pulse * 2.6) * profile.widthBoost * budget.widthMul, 4.8, 20);
     const coreWidth = Math.max(1.8, haloWidth * 0.24 + profile.coreBoost);
     const sourceRadius = Math.max(3.2, coreWidth * (1.26 + profile.sourceGlowBoost * 0.24) * budget.sourceGlowScale);
     const impactRadius = Math.max(4.2, coreWidth * (1.55 + profile.impactGlowBoost * 0.28) * budget.impactGlowScale);
 
     if (budget.simple) {
+      if (debug) {
+        debug.laser.segmentCount += 1;
+      }
       if (budget.preferPackedBeam && drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget)) {
         continue;
       }
       drawLaserContrastSegment(sourceX, sourceY, targetX, targetY, haloWidth, coreWidth, profile, pulse, flowPulse);
       ctx.save();
       ctx.globalCompositeOperation = budget.composite;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+      ctx.lineCap = "butt";
+      ctx.lineJoin = "miter";
       ctx.setLineDash([]);
       ctx.strokeStyle = rgba(profile.accentRgb, 0.24 + pulse * 0.08);
-      ctx.lineWidth = haloWidth;
+      ctx.lineWidth = Math.max(2, snapVfxDimension(haloWidth, 2));
       traceLaserSegment(sourceX, sourceY, targetX, targetY);
       ctx.stroke();
       if (profile.type === "electric" && budget.electricDash) {
-        ctx.setLineDash([haloWidth * 0.62, haloWidth * 0.4]);
+        ctx.setLineDash([
+          Math.max(2, snapVfxDimension(haloWidth * 0.62, 2)),
+          Math.max(2, snapVfxDimension(haloWidth * 0.4, 2)),
+        ]);
         ctx.lineDashOffset = -timeMs * 0.06;
       }
       ctx.strokeStyle = rgba(profile.fringeRgb, 0.96);
-      ctx.lineWidth = Math.max(1.4, coreWidth);
+      ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth, 1));
       traceLaserSegment(sourceX, sourceY, targetX, targetY);
       ctx.stroke();
       ctx.setLineDash([]);
       if (budget.renderEndpoints !== false) {
-        ctx.fillStyle = rgba(profile.accentRgb, 0.34 + pulse * 0.12);
-        ctx.beginPath();
-        ctx.arc(sourceX, sourceY, sourceRadius * 1.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = rgba(profile.fringeRgb, 0.52 + flowPulse * 0.14);
-        ctx.beginPath();
-        ctx.arc(targetX, targetY, impactRadius * 1.52, 0, Math.PI * 2);
-        ctx.fill();
+        drawPixelChunkBurst(sourceX, sourceY, sourceRadius * 1.2, rgba(profile.accentRgb, 0.42 + pulse * 0.12), rgba([255, 255, 255], 0.52));
+        drawPixelChunkBurst(targetX, targetY, impactRadius * 1.36, rgba(profile.fringeRgb, 0.58 + flowPulse * 0.14), rgba(profile.accentRgb, 0.44));
       }
       if (budget.renderImpactRing) {
-        ctx.strokeStyle = rgba(profile.fringeRgb, 0.28 + flowPulse * 0.1);
-        ctx.lineWidth = Math.max(0.8, coreWidth * 0.16);
-        ctx.beginPath();
-        ctx.arc(targetX, targetY, impactRadius * 1.16, 0, Math.PI * 2);
-        ctx.stroke();
+        drawPixelBurstRing(targetX, targetY, impactRadius * 1.08, rgba(profile.fringeRgb, 0.28 + flowPulse * 0.1));
       }
       ctx.restore();
       continue;
@@ -4169,6 +4186,9 @@ function drawLasers(lasers) {
           Math.max(budget.minSegments, budget.maxSegments),
         )
       : 1;
+    if (debug) {
+      debug.laser.segmentCount += segments;
+    }
     const points = laserCurvePointBuffer;
     for (let i = 0; i <= segments; i += 1) {
       points[i] = sampleLaserPoint(
@@ -4259,31 +4279,34 @@ function drawLasers(lasers) {
     }
     ctx.save();
     ctx.globalCompositeOperation = budget.composite;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "miter";
     ctx.shadowColor = budget.useShadowBlur ? rgba(profile.accentRgb, 0.28 + pulse * 0.1) : "rgba(0, 0, 0, 0)";
     ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * (1.2 + pulse * 0.35) : 0;
     ctx.strokeStyle = haloStrokeStyle;
-    ctx.lineWidth = haloWidth;
+    ctx.lineWidth = Math.max(2, snapVfxDimension(haloWidth, 2));
     ctx.setLineDash([]);
     traceLaserCurve(points);
     ctx.stroke();
     if (shouldRenderRibbon) {
       ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.7 : 0;
       ctx.strokeStyle = rgba(profile.accentRgb, renderProfile.ribbonAlpha + pulse * 0.06);
-      ctx.lineWidth = haloWidth * 0.5;
+      ctx.lineWidth = Math.max(1, snapVfxDimension(haloWidth * 0.5, 1));
       traceLaserCurve(ribbonPoints);
       ctx.stroke();
       ctx.strokeStyle = rgba(profile.fringeRgb, renderProfile.ribbonAlpha * 0.56 + flowPulse * 0.05);
-      ctx.lineWidth = haloWidth * 0.28;
+      ctx.lineWidth = Math.max(1, snapVfxDimension(haloWidth * 0.28, 1));
       traceLaserCurve(mirrorRibbonPoints);
       ctx.stroke();
     }
     ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.45 : 0;
     ctx.strokeStyle = coreStrokeStyle;
-    ctx.lineWidth = coreWidth;
+    ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth, 1));
     if (profile.type === "electric" && budget.electricDash) {
-      ctx.setLineDash([haloWidth * 0.72, haloWidth * 0.45]);
+      ctx.setLineDash([
+        Math.max(2, snapVfxDimension(haloWidth * 0.72, 2)),
+        Math.max(2, snapVfxDimension(haloWidth * 0.45, 2)),
+      ]);
       ctx.lineDashOffset = -timeMs * 0.08;
     } else {
       ctx.setLineDash([]);
@@ -4294,33 +4317,23 @@ function drawLasers(lasers) {
     if (budget.useSheath) {
       ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.36 : 0;
       ctx.strokeStyle = sheathStrokeStyle;
-      ctx.lineWidth = Math.max(1.2, coreWidth * 0.66);
+      ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth * 0.66, 1));
       traceLaserCurve(points);
       ctx.stroke();
     }
     if (budget.useFilament) {
       ctx.shadowBlur = budget.useShadowBlur ? haloWidth * budget.shadowBlurMul * 0.24 : 0;
       ctx.strokeStyle = filamentStrokeStyle;
-      ctx.lineWidth = Math.max(1, coreWidth * 0.34);
+      ctx.lineWidth = Math.max(1, snapVfxDimension(coreWidth * 0.34, 1));
       traceLaserCurve(points);
       ctx.stroke();
     }
     if (budget.renderEndpoints !== false) {
-      ctx.fillStyle = sourceFillStyle;
-      ctx.beginPath();
-      ctx.arc(sourceX, sourceY, budget.useRadialGradients ? sourceRadius * 2.2 : sourceRadius * 1.55, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = impactFillStyle;
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, budget.useRadialGradients ? impactRadius * 2.45 : impactRadius * 1.68, 0, Math.PI * 2);
-      ctx.fill();
+      drawPixelChunkBurst(sourceX, sourceY, sourceRadius * 1.22, sourceFillStyle, rgba([255, 255, 255], 0.56));
+      drawPixelChunkBurst(targetX, targetY, impactRadius * 1.34, impactFillStyle, rgba(profile.accentRgb, 0.5));
     }
     if (budget.renderImpactRing) {
-      ctx.strokeStyle = rgba(profile.fringeRgb, profile.impactRingAlpha + flowPulse * 0.1);
-      ctx.lineWidth = Math.max(0.9, coreWidth * 0.24);
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, impactRadius * (1.16 + flowPulse * 0.1), 0, Math.PI * 2);
-      ctx.stroke();
+      drawPixelBurstRing(targetX, targetY, impactRadius * (1.1 + flowPulse * 0.08), rgba(profile.fringeRgb, profile.impactRingAlpha + flowPulse * 0.1));
     }
     const impactRayCount = Math.max(0, Math.min(Math.round(profile.impactRayCount), budget.impactRayCountMax));
     for (let rayIndex = 0; rayIndex < impactRayCount; rayIndex += 1) {
@@ -4334,7 +4347,6 @@ function drawLasers(lasers) {
       ctx.lineTo(targetX + Math.cos(rayAngle) * outerRadius, targetY + Math.sin(rayAngle) * outerRadius);
       ctx.stroke();
     }
-    const beamParticleCount = Math.max(0, Math.round(budget.beamParticles));
     for (let particleIndex = 0; particleIndex < beamParticleCount; particleIndex += 1) {
       const travel = (particleIndex / beamParticleCount + timeMs * profile.particleSpeed + phase * 0.11) % 1;
       const beamPoint = sampleLaserPoint(sourceX, sourceY, targetX, targetY, normalX, normalY, timeMs, phase, renderProfile, travel);
@@ -4354,7 +4366,6 @@ function drawLasers(lasers) {
         rgba(profile.fringeRgb, 0.9)
       );
     }
-    const sourceParticleCount = Math.max(0, Math.round(budget.sourceParticles));
     for (let emitterIndex = 0; emitterIndex < sourceParticleCount; emitterIndex += 1) {
       const orbit = phase + emitterIndex * ((Math.PI * 2) / sourceParticleCount) + timeMs * profile.emitterSpin * (0.8 + emitterIndex * 0.22);
       const orbitDistance = sourceRadius * (0.96 + 0.24 * Math.sin(timeMs * 0.005 + emitterIndex));
@@ -4371,7 +4382,6 @@ function drawLasers(lasers) {
         rgba(profile.accentRgb, 0.88)
       );
     }
-    const impactParticleCount = Math.max(0, Math.round(budget.impactParticles));
     for (let impactIndex = 0; impactIndex < impactParticleCount; impactIndex += 1) {
       const arcAngle = phase * 1.8 + impactIndex * ((Math.PI * 2) / impactParticleCount) - timeMs * 0.0016;
       const arcDistance = impactRadius * (0.94 + (impactIndex % 2 === 0 ? 0.34 : 0.12));
@@ -4390,9 +4400,243 @@ function drawLasers(lasers) {
     }
     ctx.restore();
   }
+  if (debug) {
+    debug.laser.textureCacheSize = Object.keys(packedLaserBeamTextureCache).length;
+    debug.laser.textureCacheHits = laserTextureCacheStats.hits;
+    debug.laser.textureCacheMisses = laserTextureCacheStats.misses;
+  }
+}
+
+function getProjectileVariantIndex(projectile, projectileProfile) {
+  const variantCount = Math.max(1, toSafeInt(projectileProfile?.projectileVariantCount, 1));
+  if (variantCount <= 1) {
+    return 0;
+  }
+  const seed = Math.round(
+    (Number(projectile?.spinPhase) || 0) * 997
+    + (Number(projectile?.rotation) || 0) * 271
+    + (Number(projectile?.lifetimeMs) || 0) * 0.013,
+  );
+  return Math.abs(seed) % variantCount;
+}
+
+function drawProjectileGlyphShape(spriteCtx, profile, rgb, size, variantIndex = 0) {
+  const patternRows = resolveProjectilePixelPattern(profile.projectileKind, variantIndex);
+  const palette = buildProjectilePixelPalette(profile, rgb);
+  const variantScale = clamp(0.84 + (Math.abs(toSafeInt(variantIndex, 0)) % 3) * 0.06, 0.8, 1);
+  return drawPixelPattern(spriteCtx, patternRows, palette, size, { scaleMul: variantScale });
+}
+
+function buildProjectileSpriteStamp(typeName, variantIndex = 0) {
+  const profile = getProjectileTypeVfxProfile(typeName);
+  const type = normalizeType(profile.type || typeName);
+  const rgb = getTypeColor(type);
+  const size = Math.max(20, toSafeInt(COMBAT_VFX_CONFIG.projectileAtlasSizePx, 36));
+  const sprite = createVfxRuntimeCanvas(size, size);
+  const spriteCtx = sprite?.getContext?.("2d");
+  if (!spriteCtx) {
+    return null;
+  }
+  setCanvasImageSmoothing(spriteCtx, false);
+  spriteCtx.clearRect(0, 0, size, size);
+  drawProjectileGlyphShape(spriteCtx, profile, rgb, size, variantIndex);
+  return sprite;
+}
+
+function getProjectileSpriteStamp(typeName, variantIndex = 0) {
+  const profile = getProjectileTypeVfxProfile(typeName);
+  const safeVariant = Math.max(0, Math.min(
+    Math.max(1, toSafeInt(profile.projectileVariantCount, 1)) - 1,
+    toSafeInt(variantIndex, 0),
+  ));
+  const cacheKey = `${normalizeType(profile.type || typeName)}:${safeVariant}`;
+  if (projectileSpriteAtlasCache.has(cacheKey)) {
+    projectileSpriteCacheStats.hits += 1;
+    return projectileSpriteAtlasCache.get(cacheKey) || null;
+  }
+  projectileSpriteCacheStats.misses += 1;
+  const sprite = buildProjectileSpriteStamp(typeName, safeVariant);
+  projectileSpriteAtlasCache.set(cacheKey, sprite);
+  return sprite;
+}
+
+function buildProjectileTrailStamp(typeName) {
+  const profile = getProjectileTrailTypeVfxProfile(typeName);
+  const type = normalizeType(profile.type || typeName);
+  const rgb = getTypeColor(type);
+  const trailColor = blendRgb(rgb, profile.accent, profile.accentMix);
+  const size = Math.max(10, toSafeInt(COMBAT_VFX_CONFIG.projectileTrailStampSizePx, 18));
+  const stamp = createVfxRuntimeCanvas(size, size);
+  const stampCtx = stamp?.getContext?.("2d");
+  if (!stampCtx) {
+    return null;
+  }
+  setCanvasImageSmoothing(stampCtx, false);
+  stampCtx.clearRect(0, 0, size, size);
+  const patternRows = resolveTrailPixelPattern(profile.trailStampKind);
+  const palette = buildTrailPixelPalette(rgb, profile, trailColor);
+  drawPixelPattern(stampCtx, patternRows, palette, size, {
+    scaleMul: profile.mode === "spark" || profile.mode === "sparkle" ? 0.78 : 0.86,
+  });
+  return stamp;
+}
+
+function getProjectileTrailStamp(typeName) {
+  const profile = getProjectileTrailTypeVfxProfile(typeName);
+  const cacheKey = normalizeType(profile.type || typeName);
+  if (projectileTrailStampCache.has(cacheKey)) {
+    projectileTrailCacheStats.hits += 1;
+    return projectileTrailStampCache.get(cacheKey) || null;
+  }
+  projectileTrailCacheStats.misses += 1;
+  const stamp = buildProjectileTrailStamp(typeName);
+  projectileTrailStampCache.set(cacheKey, stamp);
+  return stamp;
 }
 
 function drawProjectiles(projectiles) {
+  const projectileList = Array.isArray(projectiles) ? projectiles : [];
+  const trailStride = Math.max(1, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailStride, 1));
+  const trailEnabled = Boolean(PROJECTILE_VISUAL_PROFILE.trailEnabled);
+  const trailGlow = Boolean(PROJECTILE_VISUAL_PROFILE.trailGlow);
+  const projectileStreak = Boolean(PROJECTILE_VISUAL_PROFILE.streak);
+  const projectileAura = Boolean(PROJECTILE_VISUAL_PROFILE.aura);
+  const spriteDetail = Boolean(PROJECTILE_VISUAL_PROFILE.spriteDetail);
+  const auraScale = clamp(Number(PROJECTILE_VISUAL_PROFILE.auraScale) || 1, 0.45, 1.5);
+  const debug = getVfxRenderDebugState();
+  if (debug) {
+    debug.qualityTier = String(state.performance?.quality || "medium");
+    debug.projectile.activeCount = projectileList.length;
+    debug.projectile.stampDrawCount = 0;
+    debug.projectile.trailStampDrawCount = 0;
+    debug.projectile.spriteCacheSize = projectileSpriteAtlasCache.size;
+    debug.projectile.spriteCacheHits = projectileSpriteCacheStats.hits;
+    debug.projectile.spriteCacheMisses = projectileSpriteCacheStats.misses;
+    debug.projectile.trailCacheSize = projectileTrailStampCache.size;
+    debug.projectile.trailCacheHits = projectileTrailCacheStats.hits;
+    debug.projectile.trailCacheMisses = projectileTrailCacheStats.misses;
+  }
+  if (projectileList.length <= 0) {
+    return;
+  }
+  const previousSmoothing = "imageSmoothingEnabled" in ctx ? ctx.imageSmoothingEnabled : null;
+  setCanvasImageSmoothing(ctx, false);
+  for (const projectile of projectileList) {
+    const rgb = getTypeColor(projectile.attackType);
+    const radius = Math.max(4, Number(projectile.radius) || 8);
+    const projectileProfile = getProjectileTypeVfxProfile(projectile.attackType);
+    const trailProfile = getProjectileTrailTypeVfxProfile(projectile.attackType);
+    const variantIndex = getProjectileVariantIndex(projectile, projectileProfile);
+    const sprite = spriteDetail ? getProjectileSpriteStamp(projectile.attackType, variantIndex) : null;
+    const trailStamp = trailEnabled ? getProjectileTrailStamp(projectile.attackType) : null;
+    const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];
+    const movementX = Number(projectile.x) - Number(projectile.prevX);
+    const movementY = Number(projectile.y) - Number(projectile.prevY);
+    const movementDistance = Math.hypot(movementX, movementY);
+    let trailAngle = Number(projectile.rotation) || 0;
+    let trailDirX = Math.cos(trailAngle);
+    let trailDirY = Math.sin(trailAngle);
+    if (movementDistance > 0.0001) {
+      trailDirX = movementX / movementDistance;
+      trailDirY = movementY / movementDistance;
+      trailAngle = Math.atan2(trailDirY, trailDirX);
+    }
+
+    if (trailPoints.length > 0 && trailStamp) {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      for (let pointIndex = 0; pointIndex < trailPoints.length; pointIndex += trailStride) {
+        const point = trailPoints[pointIndex];
+        if (!point) {
+          continue;
+        }
+        const lifeRatio = clamp(point.lifeMs / Math.max(1, point.maxLifeMs), 0, 1);
+        const pointScale = clamp(Number(point.scale) || 1, 0.72, 1.4);
+        const pointRadius = radius * trailProfile.radiusMul * (0.5 + lifeRatio * 0.82) * pointScale;
+        const alpha = clamp(
+          (trailProfile.alphaBase + lifeRatio * trailProfile.alphaLife) * (trailGlow ? 0.9 : 1),
+          0.04,
+          0.72,
+        );
+        const pointPhase = Number(point.phase) || 0;
+        const drawWidth = snapVfxDimension(Math.max(4, pointRadius * 2.2 * trailProfile.stretch), 4);
+        const drawHeight = snapVfxDimension(Math.max(4, pointRadius * 1.9), 4);
+        const snappedX = snapVfxPixel(point.x);
+        const snappedY = snapVfxPixel(point.y);
+        ctx.save();
+        ctx.translate(snappedX, snappedY);
+        if (trailGlow) {
+          ctx.globalAlpha = alpha * 0.24;
+          ctx.drawImage(trailStamp, -drawWidth * 0.6, -drawHeight * 0.6, drawWidth * 1.2, drawHeight * 1.2);
+          if (debug) {
+            debug.projectile.trailStampDrawCount += 1;
+          }
+        }
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(trailStamp, -drawWidth * 0.5, -drawHeight * 0.5, drawWidth, drawHeight);
+        ctx.restore();
+        if (debug) {
+          debug.projectile.trailStampDrawCount += 1;
+        }
+      }
+      ctx.restore();
+    }
+
+    const projectilePulse = 0.72 + Math.sin((Number(projectile.lifetimeMs) || 0) * 0.018 + (Number(projectile.spinPhase) || 0)) * 0.2;
+    const snappedX = snapVfxPixel(projectile.x);
+    const snappedY = snapVfxPixel(projectile.y);
+    const spriteSize = snapVfxDimension(
+      Math.max(12, radius * 5.2 * clamp(Number(projectileProfile.projectileScale) || 1, 0.75, 1.35)),
+      12,
+    );
+    if (sprite) {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.translate(snappedX, snappedY);
+      if (projectileAura) {
+        const auraSize = snapVfxDimension(spriteSize * (1.08 + auraScale * 0.08), spriteSize);
+        ctx.globalAlpha = clamp((Number(COMBAT_VFX_CONFIG.projectileGlowAlpha) || 0.1) * projectilePulse, 0.04, 0.22);
+        ctx.drawImage(sprite, -auraSize * 0.5, -auraSize * 0.5, auraSize, auraSize);
+        if (debug) {
+          debug.projectile.stampDrawCount += 1;
+        }
+      }
+      ctx.globalAlpha = clamp(0.88 + projectilePulse * 0.12, 0.6, 1);
+      ctx.drawImage(sprite, -spriteSize * 0.5, -spriteSize * 0.5, spriteSize, spriteSize);
+      if (debug) {
+        debug.projectile.stampDrawCount += 1;
+      }
+      if (projectileStreak && trailStamp && movementDistance > 0.0001) {
+        const streakWidth = snapVfxDimension(Math.max(4, radius * 4 * trailProfile.stretch), 4);
+        const streakHeight = snapVfxDimension(Math.max(4, radius * 1.6), 4);
+        ctx.globalAlpha = 0.16 + projectilePulse * 0.06;
+        ctx.drawImage(trailStamp, -spriteSize * 0.65, -streakHeight * 0.5, streakWidth, streakHeight);
+        if (debug) {
+          debug.projectile.stampDrawCount += 1;
+        }
+      }
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      drawPixelChunkBurst(snappedX, snappedY, radius * 0.9, rgba(rgb, 0.96), rgba([255, 255, 255], 0.7));
+      ctx.restore();
+    }
+  }
+  if (previousSmoothing !== null) {
+    ctx.imageSmoothingEnabled = previousSmoothing;
+  }
+  if (debug) {
+    debug.projectile.spriteCacheSize = projectileSpriteAtlasCache.size;
+    debug.projectile.spriteCacheHits = projectileSpriteCacheStats.hits;
+    debug.projectile.spriteCacheMisses = projectileSpriteCacheStats.misses;
+    debug.projectile.trailCacheSize = projectileTrailStampCache.size;
+    debug.projectile.trailCacheHits = projectileTrailCacheStats.hits;
+    debug.projectile.trailCacheMisses = projectileTrailCacheStats.misses;
+  }
+}
+
+function drawProjectilesLegacyUnused(projectiles) {
   const trailStride = Math.max(1, toSafeInt(PROJECTILE_VISUAL_PROFILE.trailStride, 1));
   const trailEnabled = Boolean(PROJECTILE_VISUAL_PROFILE.trailEnabled);
   const trailGlow = Boolean(PROJECTILE_VISUAL_PROFILE.trailGlow);
@@ -4406,7 +4650,7 @@ function drawProjectiles(projectiles) {
     const trailProfile = getProjectileTrailTypeVfxProfile(projectile.attackType);
     const trailAccent = Array.isArray(trailProfile.accent) ? trailProfile.accent : rgb;
     const trailColor = blendRgb(rgb, trailAccent, trailProfile.accentMix);
-    const sprite = spriteDetail ? getProjectileSprite(projectile.attackType) : null;
+    const sprite = spriteDetail ? getProjectileSpriteStamp(projectile.attackType, 0) : null;
     const auraRadius = radius * 3.3 * auraScale;
     const trailPoints = trailEnabled && Array.isArray(projectile.trail) ? projectile.trail : [];
     const movementX = Number(projectile.x) - Number(projectile.prevX);

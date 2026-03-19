@@ -62,13 +62,18 @@ test("game design runtime sanitizes invalid values and computes derived fields",
   assert.equal(sanitized.rarity.nonUltraShinyOddsDenominator, 1);
   assert.equal(sanitized.combat.attackIntervalMs, 1);
   assert.equal(sanitized.combat.boostX.durationMs, GAME_DESIGN.combat.boostX.durationMs);
+  assert.equal(sanitized.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
+  assert.equal(sanitized.combat.vfx.laserPackedSimpleSegmentMaxCount >= 1, true);
   assert.equal(sanitized.capture.critChance, 1);
   assert.equal(sanitized.progression.maxLevel, 1);
   assert.equal(sanitized.routeUnlock.onlyOneEncounterInterval, 1);
   assert.equal(sanitized.routeUnlock.onlyOneEncounterNormalsBeforeSpawn, 0);
   assert.equal(sanitized.metrics.targetFps, 1);
   assert.equal(sanitized.metrics.targetRenderIntervalMs, 1000);
+  assert.equal(sanitized.metrics.maxRenderDpr, GAME_DESIGN.metrics.maxRenderDpr);
   assert.deepEqual(sanitized.metrics.renderQualityOrder, ["medium", "very_low", "low", "high", "ultra"]);
+  assert.equal("renderScale" in sanitized.metrics.renderQualityPresets.medium, false);
+  assert.equal("maxDpr" in sanitized.metrics.renderQualityPresets.medium, false);
   assert.deepEqual(sanitized.ui.shopQuantityPresetValues, ["10", "50"]);
 });
 
@@ -77,6 +82,8 @@ test("game design runtime exposes a compact immutable snapshot", () => {
 
   assert.equal(snapshot.rarity.shinyOdds, GAME_DESIGN.rarity.shinyOdds);
   assert.equal(snapshot.combat.attackIntervalMs, GAME_DESIGN.combat.attackIntervalMs);
+  assert.equal(snapshot.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
+  assert.equal(snapshot.combat.vfx.laserPackedTextureWidthPx, GAME_DESIGN.combat.vfx.laserPackedTextureWidthPx);
   assert.equal(snapshot.metrics.targetFps, GAME_DESIGN.metrics.targetFps);
   assert.deepEqual(snapshot, GAME_DESIGN_SNAPSHOT);
   assert.equal(Object.isFrozen(snapshot), true);
