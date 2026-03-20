@@ -122,5 +122,16 @@
   "map_marker": {
     "x": 68.75,
     "y": 78.61
+  },
+  "connected_route_ids": [
+    "johto_dungeon_whirl_islands",
+    "johto_route_42"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

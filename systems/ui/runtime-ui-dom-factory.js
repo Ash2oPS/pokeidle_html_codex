@@ -70,21 +70,45 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           <div class="game-overlay">
             <header class="ui-topbar">
               <div class="route-nav-wrap">
-                <section class="route-nav" aria-label="Navigation des zones">
-                  <button id="route-prev-btn" class="route-nav-btn" type="button" aria-label="Route pr&eacute;c&eacute;dente">
-                    <span class="btn-icon" aria-hidden="true">&#8592;</span>
-                  </button>
-                  <div class="route-nav-center">
-                    <div class="route-nav-meta">
-                      <span class="route-nav-kicker">Exploration active</span>
-                      <span class="route-nav-hint">F plein &eacute;cran</span>
+                <section id="route-nav-panel" class="route-nav" aria-label="Navigation des zones">
+                  <div class="route-nav-header">
+                    <div class="route-nav-identity">
+                      <span id="route-nav-zone-type" class="route-nav-zone-type">Route</span>
+                      <span id="route-nav-region" class="route-nav-region">Kanto</span>
                     </div>
-                    <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
-                    <div id="route-nav-progress" class="route-nav-progress">1/47 zones d&eacute;bloqu&eacute;es</div>
+                    <div class="route-nav-actions">
+                      <span class="route-nav-hint">F plein &eacute;cran</span>
+                      <button
+                        id="route-nav-drawer-toggle"
+                        class="route-nav-drawer-toggle"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="route-nav-drawer"
+                      >
+                        <span class="route-nav-drawer-toggle-label">Sorties</span>
+                        <span id="route-nav-drawer-toggle-count" class="route-nav-drawer-toggle-count">0</span>
+                      </button>
+                    </div>
                   </div>
-                  <button id="route-next-btn" class="route-nav-btn" type="button" aria-label="Route suivante">
-                    <span class="btn-icon" aria-hidden="true">&#8594;</span>
-                  </button>
+                  <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
+                  <div id="route-nav-badges" class="route-nav-badges" aria-live="polite"></div>
+                  <div id="route-nav-progress-chips" class="route-nav-progress-chips" aria-live="polite"></div>
+                  <div id="route-nav-destinations" class="route-nav-destinations" aria-live="polite"></div>
+                  <div id="route-nav-drawer" class="route-nav-drawer hidden" aria-label="Sorties connect&eacute;es">
+                    <div class="route-nav-drawer-header">
+                      <span class="route-nav-drawer-title">Sorties depuis la zone active</span>
+                      <button
+                        id="route-nav-drawer-close"
+                        class="route-nav-drawer-close"
+                        type="button"
+                        aria-label="Fermer les sorties"
+                      >
+                        Fermer
+                      </button>
+                    </div>
+                    <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
+                  </div>
+                  <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
                 </section>
               </div>
 
@@ -307,15 +331,42 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           </div>
           <button id="map-close-btn" class="map-close-btn" type="button">Fermer</button>
         </div>
-        <div class="map-stage">
-          <img
-            id="map-image"
-            class="map-image"
-            src="assets/maps/kanto_map_reference_user.png"
-            alt="Carte"
-            draggable="false"
-          />
-          <div id="map-markers" class="map-markers"></div>
+        <div class="map-modal-body">
+          <div class="map-stage">
+            <img
+              id="map-image"
+              class="map-image"
+              src="assets/maps/kanto_map_reference_user.png"
+              alt="Carte"
+              draggable="false"
+            />
+            <div id="map-markers" class="map-markers"></div>
+          </div>
+          <aside class="map-connections-panel" aria-label="Sorties et embranchements">
+            <h3 class="map-connections-title">Sorties depuis la zone active</h3>
+            <div id="map-connections-list" class="map-connections-list"></div>
+            <div id="map-connections-info-panel" class="route-nav-info-panel route-nav-info-panel-map hidden" aria-live="polite"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="dialogue-modal" class="dialogue-modal hidden" role="dialog" aria-modal="true" aria-label="Dialogue">
+      <div class="dialogue-modal-card">
+        <div class="dialogue-modal-header">
+          <div>
+            <h2 id="dialogue-title" class="dialogue-title">Dialogue</h2>
+            <p id="dialogue-speaker" class="dialogue-speaker"></p>
+          </div>
+          <button id="dialogue-close-btn" class="dialogue-close-btn" type="button">Fermer</button>
+        </div>
+        <div class="dialogue-modal-body">
+          <div id="dialogue-text" class="dialogue-text"></div>
+          <div id="dialogue-choice-list" class="dialogue-choice-list"></div>
+        </div>
+        <div class="dialogue-modal-footer">
+          <span id="dialogue-progress" class="dialogue-progress"></span>
+          <button id="dialogue-next-btn" class="dialogue-next-btn" type="button">Suivant</button>
         </div>
       </div>
     </section>
@@ -710,6 +761,8 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   mapImageEl: "map-image",
   mapMarkersEl: "map-markers",
   mapModalTitleEl: "map-modal-title",
+  mapConnectionsListEl: "map-connections-list",
+  mapConnectionsInfoPanelEl: "map-connections-info-panel",
   shopButtonEl: "shop-btn",
   gachaButtonEl: "gacha-btn",
   windowsNotificationButtonEl: "windows-notification-btn",
@@ -758,10 +811,19 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   moneyAnimLayerEl: "money-anim-layer",
   coinsValueEl: "coins-value",
   saveBackendValueEl: "save-backend-value",
+  routeNavPanelEl: "route-nav-panel",
+  routeNavZoneTypeEl: "route-nav-zone-type",
+  routeNavRegionEl: "route-nav-region",
   routeNavCurrentEl: "route-nav-current",
-  routeNavProgressEl: "route-nav-progress",
-  routePrevButtonEl: "route-prev-btn",
-  routeNextButtonEl: "route-next-btn",
+  routeNavBadgesEl: "route-nav-badges",
+  routeNavProgressChipsEl: "route-nav-progress-chips",
+  routeNavDestinationsEl: "route-nav-destinations",
+  routeNavDrawerToggleButtonEl: "route-nav-drawer-toggle",
+  routeNavDrawerToggleCountEl: "route-nav-drawer-toggle-count",
+  routeNavDrawerEl: "route-nav-drawer",
+  routeNavDrawerCloseButtonEl: "route-nav-drawer-close",
+  routeNavDrawerListEl: "route-nav-drawer-list",
+  routeNavInfoPanelEl: "route-nav-info-panel",
   boxesModalEl: "boxes-modal",
   boxesGridEl: "boxes-grid",
   boxesInfoPanelEl: "boxes-info-panel",
@@ -798,6 +860,14 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   tutorialPrevButtonEl: "tutorial-prev-btn",
   tutorialNextButtonEl: "tutorial-next-btn",
   tutorialCloseButtonEl: "tutorial-close-btn",
+  dialogueModalEl: "dialogue-modal",
+  dialogueTitleEl: "dialogue-title",
+  dialogueSpeakerEl: "dialogue-speaker",
+  dialogueTextEl: "dialogue-text",
+  dialogueChoiceListEl: "dialogue-choice-list",
+  dialogueProgressEl: "dialogue-progress",
+  dialogueNextButtonEl: "dialogue-next-btn",
+  dialogueCloseButtonEl: "dialogue-close-btn",
   devLayoutPanelEl: "dev-layout-panel",
   devLayoutControlsEl: "dev-layout-controls",
   devLayoutCloseButtonEl: "dev-layout-close-btn",
@@ -847,6 +917,8 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "map-image",
   "map-markers",
   "map-modal-title",
+  "map-connections-list",
+  "map-connections-info-panel",
   "shop-btn",
   "gacha-btn",
   "windows-notification-btn",
@@ -895,10 +967,19 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "money-anim-layer",
   "coins-value",
   "save-backend-value",
+  "route-nav-panel",
+  "route-nav-zone-type",
+  "route-nav-region",
   "route-nav-current",
-  "route-nav-progress",
-  "route-prev-btn",
-  "route-next-btn",
+  "route-nav-badges",
+  "route-nav-progress-chips",
+  "route-nav-destinations",
+  "route-nav-drawer-toggle",
+  "route-nav-drawer-toggle-count",
+  "route-nav-drawer",
+  "route-nav-drawer-close",
+  "route-nav-drawer-list",
+  "route-nav-info-panel",
   "boxes-modal",
   "boxes-grid",
   "boxes-info-panel",
@@ -935,6 +1016,14 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "tutorial-prev-btn",
   "tutorial-next-btn",
   "tutorial-close-btn",
+  "dialogue-modal",
+  "dialogue-title",
+  "dialogue-speaker",
+  "dialogue-text",
+  "dialogue-choice-list",
+  "dialogue-progress",
+  "dialogue-next-btn",
+  "dialogue-close-btn",
   "dev-layout-panel",
   "dev-layout-controls",
   "dev-layout-close-btn",
@@ -961,6 +1050,7 @@ export const RUNTIME_UI_CRITICAL_REF_KEYS = Object.freeze([
   "pokedexModalEl",
   "appearanceModalEl",
   "tutorialModalEl",
+  "dialogueModalEl",
   "renameModalEl",
   "notificationStackEl",
   "backgroundRuntimeDebugOverlayEl",

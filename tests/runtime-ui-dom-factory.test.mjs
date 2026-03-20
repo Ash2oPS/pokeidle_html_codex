@@ -64,6 +64,35 @@ test("mountRuntimeUi preserves interactive ids and shop tab dataset values", () 
   assert.equal(refs.shopTabCombatButtonEl?.dataset?.shopTab, "combat");
 });
 
+test("mountRuntimeUi exposes the graph navigation HUD contract", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.routeNavPanelEl?.id, "route-nav-panel");
+  assert.equal(refs.routeNavZoneTypeEl?.id, "route-nav-zone-type");
+  assert.equal(refs.routeNavRegionEl?.id, "route-nav-region");
+  assert.equal(refs.routeNavCurrentEl?.id, "route-nav-current");
+  assert.equal(refs.routeNavBadgesEl?.id, "route-nav-badges");
+  assert.equal(refs.routeNavProgressChipsEl?.id, "route-nav-progress-chips");
+  assert.equal(refs.routeNavDestinationsEl?.id, "route-nav-destinations");
+  assert.equal(refs.routeNavDrawerToggleButtonEl?.id, "route-nav-drawer-toggle");
+  assert.equal(refs.routeNavDrawerToggleCountEl?.id, "route-nav-drawer-toggle-count");
+  assert.equal(refs.routeNavDrawerEl?.id, "route-nav-drawer");
+  assert.equal(refs.routeNavDrawerListEl?.id, "route-nav-drawer-list");
+  assert.equal(refs.routeNavInfoPanelEl?.id, "route-nav-info-panel");
+  assert.equal(refs.mapConnectionsInfoPanelEl?.id, "map-connections-info-panel");
+});
+
+test("mountRuntimeUi includes new route-navigation labels in French", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.routeNavDrawerToggleButtonEl?.querySelector(".route-nav-drawer-toggle-label")?.textContent, "Sorties");
+  assert.equal(document.querySelector(".route-nav-drawer-title")?.textContent?.trim(), "Sorties depuis la zone active");
+  assert.equal(refs.routeNavDrawerCloseButtonEl?.getAttribute("aria-label"), "Fermer les sorties");
+  assert.equal(refs.mapConnectionsInfoPanelEl?.classList.contains("route-nav-info-panel-map"), true);
+});
+
 test("mountRuntimeUi exposes collection search inputs for boxes and pokedex", () => {
   const document = createDocument();
   const refs = mountRuntimeUi(document);

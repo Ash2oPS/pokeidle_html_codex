@@ -19,6 +19,7 @@ function toSafeInt(value, fallback = 0) {
 function createFixture() {
   const state = {
     mode: "ready",
+    timeMs: 0,
     battle: { id: "battle" },
     team: [{ id: 1 }],
     saveData: { last_tick_epoch_ms: 0 },
@@ -36,15 +37,18 @@ function createFixture() {
 
   let hidden = false;
   let now = 0;
+  let workNow = 0;
   let activityState = RUNTIME_ACTIVITY_FOREGROUND_ACTIVE;
 
   const kernel = createRuntimeLoopKernel({
     state,
     update(deltaMs, options = {}) {
+      state.timeMs += Number(deltaMs) || 0;
       calls.updates.push({
         deltaMs: Number(deltaMs),
         idleMode: Boolean(options.idleMode),
       });
+      workNow += 5;
     },
     updateHud() {
       calls.updateHud += 1;
@@ -68,6 +72,7 @@ function createFixture() {
     toSafeInt,
     isHidden: () => hidden,
     nowMs: () => now,
+    workNowMs: () => workNow,
     maxForegroundPendingMs: 500,
     maxOfflineCatchupMs: 900,
     maxResumeCatchupMs: 750,
@@ -87,6 +92,9 @@ function createFixture() {
     },
     setNow(nextNow) {
       now = Number(nextNow);
+    },
+    setWorkNow(nextWorkNow) {
+      workNow = Number(nextWorkNow);
     },
     setActivityState(nextActivityState) {
       activityState = String(nextActivityState || RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
@@ -173,6 +181,23 @@ test("consumePendingSimulation flushes deferred save when combat is inactive", (
   assert.equal(fixture.calls.persistSaveData, 1);
 });
 
+test("consumePendingSimulation still advances time when the team is in a town without battle", () => {
+  const fixture = createFixture();
+  fixture.state.battle = null;
+  fixture.state.pendingSimMs = 240;
+  fixture.state.lastHudAutoUpdateMs = 0;
+  fixture.setNow(1000);
+  fixture.setActivityState(RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
+
+  const consumed = fixture.kernel.consumePendingSimulation();
+
+  assert.equal(consumed, 48);
+  assert.equal(fixture.calls.updates.length, 1);
+  assert.equal(fixture.calls.updates[0].deltaMs, 48);
+  assert.equal(fixture.calls.updates[0].idleMode, true);
+  assert.equal(fixture.state.timeMs, 48);
+});
+
 test("consumePendingSimulation switches to idle mode when pending queue is large", () => {
   const fixture = createFixture();
   fixture.state.pendingSimMs = 260;
@@ -183,6 +208,27 @@ test("consumePendingSimulation switches to idle mode when pending queue is large
   const consumed = fixture.kernel.consumePendingSimulation();
 
   assert.equal(consumed, 48);
+  assert.equal(fixture.calls.updates.length, 1);
+  assert.equal(fixture.calls.updates[0].deltaMs, 48);
+  assert.equal(fixture.calls.updates[0].idleMode, true);
+  assert.equal(fixture.calls.updateHud, 1);
+});
+
+test("consumePendingSimulation yields when max work time is reached and preserves backlog", () => {
+  const fixture = createFixture();
+  fixture.state.pendingSimMs = 240;
+  fixture.state.lastHudAutoUpdateMs = 0;
+  fixture.setNow(1000);
+  fixture.setWorkNow(0);
+  fixture.setActivityState(RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
+  fixture.calls.updates.length = 0;
+
+  const consumed = fixture.kernel.consumePendingSimulation({
+    maxWorkMs: 4,
+  });
+
+  assert.equal(consumed, 48);
+  assert.equal(fixture.state.pendingSimMs, 192);
   assert.equal(fixture.calls.updates.length, 1);
   assert.equal(fixture.calls.updates[0].deltaMs, 48);
   assert.equal(fixture.calls.updates[0].idleMode, true);

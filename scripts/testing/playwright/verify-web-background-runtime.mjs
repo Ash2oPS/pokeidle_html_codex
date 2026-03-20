@@ -4,10 +4,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright";
+import { BACKGROUND_TICK_INTERVAL_MS } from "../../../lib/gameplay-ui-config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const host = "127.0.0.1";
+const RESTORE_RESPONSIVENESS_TIMEOUT_MS = 1500;
+const DESKTOP_RESUME_CATCHUP_LIMIT_MS = 2 * BACKGROUND_TICK_INTERVAL_MS;
 
 const MIME_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -278,6 +281,28 @@ function computeDelta(before, after) {
   };
 }
 
+function getActivityStateFromSnapshot(snapshot) {
+  return String(snapshot?.backgroundRuntime?.activity_state || "");
+}
+
+function isForegroundActivityState(snapshot) {
+  return getActivityStateFromSnapshot(snapshot) === "foreground_active";
+}
+
+async function waitForForegroundResponsive(page, timeoutMs = RESTORE_RESPONSIVENESS_TIMEOUT_MS) {
+  await page.waitForFunction(() => {
+    try {
+      if (typeof window.render_game_to_text !== "function") {
+        return false;
+      }
+      const state = JSON.parse(window.render_game_to_text());
+      return String(state?.background_runtime?.activity_state || "") === "foreground_active";
+    } catch {
+      return false;
+    }
+  }, null, { timeout: timeoutMs });
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const output = getOutputPaths(args.mode);
@@ -337,6 +362,20 @@ async function main() {
     await dispatchSyntheticLifecycle(page, "visibilitychange");
     await dispatchSyntheticLifecycle(page, "focus");
 
+    await waitForForegroundResponsive(page);
+    const immediateAfterRestore = await snapshotRuntime(page);
+    const immediateResumeCatchupMs = toNumber(immediateAfterRestore?.backgroundRuntime?.last_resume_catchup_ms);
+    const immediateRestoredForeground = isForegroundActivityState(immediateAfterRestore);
+    if (args.mode === "desktop" && immediateResumeCatchupMs > DESKTOP_RESUME_CATCHUP_LIMIT_MS) {
+      throw new Error(
+        `Desktop resume catch-up trop grand: ${JSON.stringify({
+          immediateResumeCatchupMs,
+          resumeCatchupLimitMs: DESKTOP_RESUME_CATCHUP_LIMIT_MS,
+          backgroundMs: args.backgroundMs,
+        })}`,
+      );
+    }
+
     await page.waitForTimeout(1200);
     await page.screenshot({
       path: output.screenshotPath,
@@ -355,14 +394,13 @@ async function main() {
       || deltaAfterRestore.enemyChanged
     );
     const resumeCatchupMs = toNumber(backgroundRuntime.last_resume_catchup_ms);
-    const liveDuringBackground = String(duringBackground?.backgroundRuntime?.activity_state || "") === "background_live";
-    const suspendedDuringBackground = String(duringBackground?.backgroundRuntime?.activity_state || "") === "background_suspended";
-    const restoredForeground = !["background_live", "background_suspended"].includes(
-      String(afterRestore?.backgroundRuntime?.activity_state || ""),
-    );
+    const liveDuringBackground = getActivityStateFromSnapshot(duringBackground) === "background_live";
+    const suspendedDuringBackground = getActivityStateFromSnapshot(duringBackground) === "background_suspended";
+    const restoredForeground = isForegroundActivityState(afterRestore);
     const pass = args.mode === "desktop"
       ? Boolean(
         liveDuringBackground
+        && immediateRestoredForeground
         && restoredForeground
         && (
           restoredProgressed
@@ -370,9 +408,11 @@ async function main() {
           || deltaDuringBackground.money > 0
           || deltaDuringBackground.team0Xp > 0
         )
+        && resumeCatchupMs <= DESKTOP_RESUME_CATCHUP_LIMIT_MS
       )
       : Boolean(
         suspendedDuringBackground
+        && immediateRestoredForeground
         && restoredForeground
         && restoredProgressed
         && (resumeCatchupMs > 0 || deltaAfterRestore.enemiesDefeated > 0 || deltaAfterRestore.money > 0),
@@ -388,6 +428,10 @@ async function main() {
       deltaDuringBackground,
       deltaAfterRestore,
       liveDuringBackground,
+      immediateAfterRestore,
+      immediateRestoredForeground,
+      immediateResumeCatchupMs,
+      resumeCatchupLimitMs: args.mode === "desktop" ? DESKTOP_RESUME_CATCHUP_LIMIT_MS : null,
       pass,
       restoredForeground,
       suspendedDuringBackground,

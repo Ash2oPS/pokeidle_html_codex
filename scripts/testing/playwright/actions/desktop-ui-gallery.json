@@ -15,6 +15,24 @@
       "captureName": "idle"
     },
     {
+      "waitForSelector": "#route-nav-destinations [data-route-action='info']",
+      "waitMs": 500
+    },
+    {
+      "clickSelector": "#route-nav-destinations [data-route-action='info']"
+    },
+    {
+      "waitForSelector": "#route-nav-info-panel:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "route-nav-lock-info"
+    },
+    {
+      "clickSelectorIfVisible": "#route-nav-info-panel [data-route-info-close='true']",
+      "waitMs": 350
+    },
+    {
       "clickSelector": "#map-btn"
     },
     {
@@ -23,6 +41,24 @@
     },
     {
       "captureName": "map"
+    },
+    {
+      "waitForSelector": ".map-marker-btn.is-locked",
+      "waitMs": 350
+    },
+    {
+      "clickSelector": ".map-marker-btn.is-locked"
+    },
+    {
+      "waitForSelector": "#map-connections-info-panel:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "map-lock-info"
+    },
+    {
+      "clickSelectorIfVisible": "#map-connections-info-panel [data-route-info-close='true']",
+      "waitMs": 350
     },
     {
       "clickSelectorIfVisible": "#map-close-btn",

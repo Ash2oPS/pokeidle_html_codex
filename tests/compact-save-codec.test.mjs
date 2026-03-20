@@ -27,7 +27,7 @@ function createEmptySave() {
   const ballCaptureRules = Object.fromEntries(COMPACT_SAVE_BALL_ORDER.map((ballType) => [ballType, createDefaultBallCaptureRules()]));
   const shopItems = Object.fromEntries(COMPACT_SAVE_ITEM_ORDER.map((itemId) => [itemId, 0]));
   return {
-    version: 7,
+    version: 8,
     app_build_version: "0.2.0",
     starter_chosen: false,
     current_route_id: "kanto_route_1",
@@ -59,6 +59,8 @@ function createEmptySave() {
     },
     legacy_shiny_family_root_ids: [],
     legacy_ultra_shiny_family_root_ids: [],
+    zone_flags: [],
+    seen_dialogue_ids: [],
   };
 }
 
@@ -98,7 +100,7 @@ function normalizePokemonEntityRecord(rawEntity, pokemonId) {
 function createCodecOptions() {
   return {
     formatId: COMPACT_SAVE_FORMAT_ID,
-    saveVersion: 7,
+    saveVersion: 8,
     appVersion: "0.2.0",
     routeIdOrder: ["kanto_route_1", "kanto_route_2", "kanto_route_3"],
     defaultRouteId: "kanto_route_1",
@@ -114,7 +116,7 @@ test("compact codec round-trips an empty save snapshot", () => {
   const decoded = decodeCompactSave(encoded, createCodecOptions());
 
   assert.equal(encoded.f, COMPACT_SAVE_FORMAT_ID);
-  assert.equal(encoded.v, 7);
+  assert.equal(encoded.v, 8);
   assert.equal(isCompactSavePayload(encoded, createCodecOptions()), true);
   assert.equal(decoded.current_route_id, "kanto_route_1");
   assert.deepEqual(decoded.team, []);
@@ -126,8 +128,8 @@ test("compact codec round-trips a rich save and preserves sparse route encoding"
   const saveData = createEmptySave();
   saveData.app_build_version = "0.2.9";
   saveData.last_tick_epoch_ms = 987654321;
-  saveData.current_route_id = "kanto_route_2";
-  saveData.unlocked_route_ids = ["kanto_route_1", "kanto_route_2", "kanto_route_3"];
+  saveData.current_route_id = "kanto_route_3";
+  saveData.unlocked_route_ids = ["kanto_route_1", "kanto_route_3"];
   saveData.route_defeat_counts.kanto_route_2 = 18;
   saveData.team = [25];
   saveData.money = 1200;
@@ -142,6 +144,8 @@ test("compact codec round-trips a rich save and preserves sparse route encoding"
   saveData.tutorials.route1_intro_seen = true;
   saveData.legacy_shiny_family_root_ids = [25];
   saveData.legacy_ultra_shiny_family_root_ids = [133];
+  saveData.zone_flags = ["viridian_guide_spoken", "safari_ticket"];
+  saveData.seen_dialogue_ids = ["kanto_pallet_intro_once"];
   saveData.pokemon_entities["25"] = normalizePokemonEntityRecord({
     id: 25,
     level: 18,
@@ -160,19 +164,23 @@ test("compact codec round-trips a rich save and preserves sparse route encoding"
   const encoded = encodeCompactSave(saveData, createCodecOptions());
   const decoded = decodeCompactSave(encoded, createCodecOptions());
 
-  assert.deepEqual(encoded.r, [1, 2, [1, 18]]);
+  assert.deepEqual(encoded.r, [2, [0, 2], [1, 18]]);
   assert.deepEqual(encoded.w, [1200, 50]);
   assert.deepEqual(encoded.tm, [25]);
   assert.deepEqual(encoded.ls, [25]);
   assert.deepEqual(encoded.lu, [133]);
-  assert.equal(decoded.current_route_id, "kanto_route_2");
-  assert.deepEqual(decoded.unlocked_route_ids, ["kanto_route_1", "kanto_route_2", "kanto_route_3"]);
+  assert.deepEqual(encoded.zf, ["viridian_guide_spoken", "safari_ticket"]);
+  assert.deepEqual(encoded.sd, ["kanto_pallet_intro_once"]);
+  assert.equal(decoded.current_route_id, "kanto_route_3");
+  assert.deepEqual(decoded.unlocked_route_ids, ["kanto_route_1", "kanto_route_3"]);
   assert.equal(decoded.route_defeat_counts.kanto_route_2, 18);
   assert.equal(decoded.ball_inventory.hyper_ball, 1);
   assert.equal(decoded.active_ball_type, "hyper_ball");
   assert.equal(decoded.shop_items.thunder_stone, 2);
   assert.equal(decoded.pokemon_entities["25"].appearance_selected_variant, "black_white");
   assert.deepEqual(decoded.legacy_shiny_family_root_ids, [25]);
+  assert.deepEqual(decoded.zone_flags, ["viridian_guide_spoken", "safari_ticket"]);
+  assert.deepEqual(decoded.seen_dialogue_ids, ["kanto_pallet_intro_once"]);
 });
 
 test("compact codec trims trailing pokemon tuple defaults", () => {
@@ -191,7 +199,7 @@ test("compact codec trims trailing pokemon tuple defaults", () => {
 
 test("compact codec rejects invalid compact payloads", () => {
   assert.throws(
-    () => decodeCompactSave({ f: "bad", v: 7 }, createCodecOptions()),
+    () => decodeCompactSave({ f: "bad", v: 8 }, createCodecOptions()),
     /invalide/i,
   );
 });

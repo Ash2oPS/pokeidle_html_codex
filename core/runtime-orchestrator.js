@@ -24,6 +24,8 @@ export function createRuntimeOrchestrator({
   toSafeInt,
   ensureBackgroundTicker,
   stopBackgroundTicker,
+  ensureForegroundCatchupPump,
+  stopForegroundCatchupPump,
   tickSimulationFromRealtime,
   queueRealtimeElapsedMs,
   queueResumeCatchupFromRealtime,
@@ -32,6 +34,8 @@ export function createRuntimeOrchestrator({
   persistSaveData,
   render,
   hiddenSimBudgetMs,
+  backgroundPumpMaxWorkMs,
+  foregroundCatchupPumpMaxWorkMs,
   maxResumeCatchupMs,
   backgroundPersistDebounceMs,
   markSimulationPump,
@@ -40,6 +44,10 @@ export function createRuntimeOrchestrator({
   const safeToInt = typeof toSafeInt === "function" ? toSafeInt : fallbackToSafeInt;
   const ensureBackgroundTickerFn = typeof ensureBackgroundTicker === "function" ? ensureBackgroundTicker : () => {};
   const stopBackgroundTickerFn = typeof stopBackgroundTicker === "function" ? stopBackgroundTicker : () => {};
+  const ensureForegroundCatchupPumpFn =
+    typeof ensureForegroundCatchupPump === "function" ? ensureForegroundCatchupPump : () => {};
+  const stopForegroundCatchupPumpFn =
+    typeof stopForegroundCatchupPump === "function" ? stopForegroundCatchupPump : () => {};
   const tickSimulationFromRealtimeFn =
     typeof tickSimulationFromRealtime === "function" ? tickSimulationFromRealtime : () => 0;
   const queueRealtimeElapsedMsFn = typeof queueRealtimeElapsedMs === "function" ? queueRealtimeElapsedMs : () => 0;
@@ -53,6 +61,12 @@ export function createRuntimeOrchestrator({
   const renderFn = typeof render === "function" ? render : () => {};
   const markSimulationPumpFn = typeof markSimulationPump === "function" ? markSimulationPump : () => {};
   const hiddenBudgetMs = Math.max(1, Number(hiddenSimBudgetMs) || 1);
+  const backgroundPumpWorkLimitMs = Number.isFinite(Number(backgroundPumpMaxWorkMs))
+    ? Math.max(0, Number(backgroundPumpMaxWorkMs))
+    : Number.POSITIVE_INFINITY;
+  const foregroundCatchupWorkLimitMs = Number.isFinite(Number(foregroundCatchupPumpMaxWorkMs))
+    ? Math.max(0, Number(foregroundCatchupPumpMaxWorkMs))
+    : Number.POSITIVE_INFINITY;
   const resumeCatchupLimit = Math.max(0, Number(maxResumeCatchupMs) || 0);
   const persistDebounceMs = Math.max(0, Number(backgroundPersistDebounceMs) || 0);
 
@@ -146,11 +160,13 @@ export function createRuntimeOrchestrator({
     const backgroundActivity = isBackgroundActivityState(activityState);
 
     if (backgroundActivity) {
+      stopForegroundCatchupPumpFn();
       ensureBackgroundTickerFn();
       const consumedMs = tickSimulationFromRealtimeFn({
         activityState,
         forceIdleMode: true,
         budgetMs: hiddenBudgetMs,
+        maxWorkMs: backgroundPumpWorkLimitMs,
         skipForegroundClamp: true,
       });
       if (consumedMs > 0) {
@@ -170,20 +186,23 @@ export function createRuntimeOrchestrator({
 
     let resumeCatchupMs = 0;
     if (transition.resumedFromBackground) {
+      stopForegroundCatchupPumpFn();
       resumeCatchupMs = queueResumeCatchupFromRealtimeFn(now, {
         activityState,
         maxCatchupMs: resumeCatchupLimit,
       });
       backgroundRuntime.lastResumeCatchupMs = resumeCatchupMs;
-      const pendingSimMs = Math.max(0, Number(state?.pendingSimMs) || 0);
-      const budgetMs = Math.max(hiddenBudgetMs, pendingSimMs, resumeCatchupMs);
       const consumedMs = consumePendingSimulationFn({
         activityState,
         forceIdleMode: true,
-        budgetMs,
+        budgetMs: hiddenBudgetMs,
+        maxWorkMs: foregroundCatchupWorkLimitMs,
       });
       if (resumeCatchupMs > 0 || consumedMs > 0) {
         markSimulationPumpFn(now);
+      }
+      if (Math.max(0, Number(state?.pendingSimMs) || 0) > 0.5) {
+        ensureForegroundCatchupPumpFn();
       }
       renderFn();
       return {
@@ -217,6 +236,7 @@ export function createRuntimeOrchestrator({
       backgroundReason: snapshot.backgroundReason || "page_lifecycle_persist",
       source,
     };
+    stopForegroundCatchupPumpFn();
     syncBackgroundRuntimeSnapshot(persistedSnapshot, { source, now });
     queueRealtimeElapsedMsFn(now, {
       activityState: persistedSnapshot.activityState,
@@ -226,6 +246,7 @@ export function createRuntimeOrchestrator({
       activityState: persistedSnapshot.activityState,
       forceIdleMode: true,
       budgetMs: hiddenBudgetMs,
+      maxWorkMs: backgroundPumpWorkLimitMs,
     });
     if (consumedMs > 0) {
       markSimulationPumpFn(now);

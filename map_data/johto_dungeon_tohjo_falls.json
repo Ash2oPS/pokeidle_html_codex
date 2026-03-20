@@ -118,5 +118,16 @@
   "map_marker": {
     "x": 92.92,
     "y": 15.56
+  },
+  "connected_route_ids": [
+    "johto_dungeon_dark_cave",
+    "johto_route_47"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

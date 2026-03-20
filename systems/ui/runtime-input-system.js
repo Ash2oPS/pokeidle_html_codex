@@ -101,7 +101,11 @@ export function createRuntimeInputSystem({
     actions.toggleWindowsNotificationSystemFromButton,
   );
   const toggleActionDockFullscreenMenu = asFunction(actions.toggleActionDockFullscreenMenu);
-  const navigateRouteByOffset = asFunction(actions.navigateRouteByOffset);
+  const applyRouteChange = asFunction(actions.applyRouteChange, () => false);
+  const toggleRouteNavDrawer = asFunction(actions.toggleRouteNavDrawer);
+  const setRouteNavDrawerOpen = asFunction(actions.setRouteNavDrawerOpen);
+  const openRouteNavigationInfo = asFunction(actions.openRouteNavigationInfo);
+  const closeRouteNavigationInfo = asFunction(actions.closeRouteNavigationInfo);
   const startGachaSpin = asFunction(actions.startGachaSpin);
   const setShopTab = asFunction(actions.setShopTab);
   const setShopQuantityMode = asFunction(actions.setShopQuantityMode);
@@ -116,6 +120,10 @@ export function createRuntimeInputSystem({
   const renderMapModal = asFunction(actions.renderMapModal);
   const resizeCanvas = asFunction(actions.resizeCanvas);
   const handleRuntimeLifecycleSignal = asFunction(actions.handleRuntimeLifecycleSignal);
+  const closeDialogueModal = asFunction(actions.closeDialogueModal);
+  const advanceActiveDialogue = asFunction(actions.advanceActiveDialogue);
+  const chooseActiveDialogueChoice = asFunction(actions.chooseActiveDialogueChoice);
+  const triggerZoneAction = asFunction(actions.triggerZoneAction);
 
   const ElementCtor = typeof Element !== "undefined" ? Element : null;
   const HTMLElementCtor = typeof HTMLElement !== "undefined" ? HTMLElement : null;
@@ -176,8 +184,13 @@ export function createRuntimeInputSystem({
       actionDockPokeballVisualEl = null,
       actionDockFullscreenMenuEl = null,
       actionDockFullscreenGridEl = null,
-      routePrevButtonEl = null,
-      routeNextButtonEl = null,
+      routeNavPanelEl = null,
+      routeNavDrawerToggleButtonEl = null,
+      routeNavDrawerEl = null,
+      routeNavDrawerCloseButtonEl = null,
+      routeNavDrawerListEl = null,
+      routeNavInfoPanelEl = null,
+      routeNavDestinationsEl = null,
       closeShopButtonEl = null,
       gachaCloseButtonEl = null,
       gachaSpinButtonEl = null,
@@ -185,6 +198,8 @@ export function createRuntimeInputSystem({
       evolutionItemCloseButtonEl = null,
       mapCloseButtonEl = null,
       mapImageEl = null,
+      mapConnectionsListEl = null,
+      mapConnectionsInfoPanelEl = null,
       shopTabPokeballsButtonEl = null,
       shopTabCombatButtonEl = null,
       shopTabEvolutionsButtonEl = null,
@@ -211,7 +226,42 @@ export function createRuntimeInputSystem({
       gachaModalEl = null,
       evolutionItemModalEl = null,
       mapModalEl = null,
+      dialogueModalEl = null,
+      dialogueChoiceListEl = null,
+      dialogueNextButtonEl = null,
+      dialogueCloseButtonEl = null,
+      worldUiLayerEl = null,
     } = elements;
+
+    function dismissRouteNavigationSurfaces() {
+      closeRouteNavigationInfo();
+      setRouteNavDrawerOpen(false);
+    }
+
+    function handleRouteNavigationTargetClick(event) {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const routeButton = canResolveTarget ? event.target.closest("[data-route-id]") : null;
+      const routeId = String(routeButton?.getAttribute("data-route-id") || "");
+      if (!routeId) {
+        return;
+      }
+      const routeAction = String(routeButton?.getAttribute("data-route-action") || "travel").toLowerCase().trim();
+      if (routeAction === "info") {
+        openRouteNavigationInfo(routeId);
+        return;
+      }
+      dismissRouteNavigationSurfaces();
+      applyRouteChange(routeId);
+    }
+
+    function handleRouteNavigationInfoDismiss(event) {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const closeButton = canResolveTarget ? event.target.closest("[data-route-info-close='true']") : null;
+      if (!closeButton) {
+        return;
+      }
+      closeRouteNavigationInfo();
+    }
 
     register(documentRef, "keydown", (event) => {
       const key = String(event?.key || "").toLowerCase();
@@ -230,6 +280,16 @@ export function createRuntimeInputSystem({
       if (key === "escape" && isActionDockFullscreenMenuOpen()) {
         event.preventDefault();
         setActionDockFullscreenMenuOpen(false);
+        return;
+      }
+      if (key === "escape" && state?.ui?.routeNavInfoRouteId) {
+        event.preventDefault();
+        closeRouteNavigationInfo();
+        return;
+      }
+      if (key === "escape" && state?.ui?.routeNavDrawerOpen) {
+        event.preventDefault();
+        setRouteNavDrawerOpen(false);
         return;
       }
       if (key === "escape" && state?.ui?.evolutionItemChoiceOpen) {
@@ -255,6 +315,11 @@ export function createRuntimeInputSystem({
       if (key === "escape" && state?.ui?.tutorialOpen) {
         event.preventDefault();
         closeTutorialModal();
+        return;
+      }
+      if (key === "escape" && state?.ui?.dialogueOpen) {
+        event.preventDefault();
+        closeDialogueModal();
         return;
       }
       if (key === "escape" && state?.ui?.mapOpen) {
@@ -379,6 +444,15 @@ export function createRuntimeInputSystem({
       if (state?.ui?.ballCaptureMenuOpen && (!ballCaptureMenuEl || !ballCaptureMenuEl.contains(target))) {
         closeBallCaptureMenu();
       }
+      const clickedInsideRouteNav = Boolean(routeNavPanelEl && routeNavPanelEl.contains(target));
+      const clickedInsideMapInfo = Boolean(mapConnectionsInfoPanelEl && mapConnectionsInfoPanelEl.contains(target));
+      const clickedInsideMapList = Boolean(mapConnectionsListEl && mapConnectionsListEl.contains(target));
+      if (state?.ui?.routeNavDrawerOpen && !clickedInsideRouteNav) {
+        setRouteNavDrawerOpen(false);
+      }
+      if (state?.ui?.routeNavInfoRouteId && !clickedInsideRouteNav && !clickedInsideMapInfo && !clickedInsideMapList) {
+        closeRouteNavigationInfo();
+      }
     });
 
     register(exportSaveButtonEl, "click", () => {
@@ -389,9 +463,11 @@ export function createRuntimeInputSystem({
     });
     register(resetSaveButtonEl, "click", resetSaveAndRestart);
     register(mapButtonEl, "click", () => {
+      dismissRouteNavigationSurfaces();
       setMapOpen(!state?.ui?.mapOpen);
     });
     register(pokedexButtonEl, "click", () => {
+      dismissRouteNavigationSurfaces();
       if (state?.ui?.pokedexOpen) {
         closePokedexModal();
         return;
@@ -399,9 +475,11 @@ export function createRuntimeInputSystem({
       actions.openPokedexModal?.();
     });
     register(shopButtonEl, "click", () => {
+      dismissRouteNavigationSurfaces();
       toggleShopPanel();
     });
     register(gachaButtonEl, "click", () => {
+      dismissRouteNavigationSurfaces();
       setGachaOpen(!state?.ui?.gachaOpen);
     });
     register(windowsNotificationButtonEl, "click", () => {
@@ -431,8 +509,13 @@ export function createRuntimeInputSystem({
         sourceButton.click();
       }
     });
-    register(routePrevButtonEl, "click", () => navigateRouteByOffset(-1));
-    register(routeNextButtonEl, "click", () => navigateRouteByOffset(1));
+    register(routeNavDrawerToggleButtonEl, "click", () => toggleRouteNavDrawer());
+    register(routeNavDrawerCloseButtonEl, "click", () => setRouteNavDrawerOpen(false));
+    register(routeNavDestinationsEl, "click", handleRouteNavigationTargetClick);
+    register(routeNavDrawerListEl, "click", handleRouteNavigationTargetClick);
+    register(mapConnectionsListEl, "click", handleRouteNavigationTargetClick);
+    register(routeNavInfoPanelEl, "click", handleRouteNavigationInfoDismiss);
+    register(mapConnectionsInfoPanelEl, "click", handleRouteNavigationInfoDismiss);
     register(closeShopButtonEl, "click", () => setShopOpen(false));
     register(gachaCloseButtonEl, "click", () => closeGachaModal());
     register(gachaSpinButtonEl, "click", () => {
@@ -536,6 +619,30 @@ export function createRuntimeInputSystem({
       renderTutorialModal();
     });
     register(tutorialCloseButtonEl, "click", () => closeTutorialModal());
+    register(dialogueNextButtonEl, "click", () => {
+      advanceActiveDialogue();
+    });
+    register(dialogueCloseButtonEl, "click", () => {
+      closeDialogueModal();
+    });
+    register(dialogueChoiceListEl, "click", (event) => {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const choiceButton = canResolveTarget ? event.target.closest("[data-dialogue-choice-id]") : null;
+      const choiceId = String(choiceButton?.getAttribute("data-dialogue-choice-id") || "");
+      if (!choiceId) {
+        return;
+      }
+      chooseActiveDialogueChoice(choiceId);
+    });
+    register(worldUiLayerEl, "click", (event) => {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const actionButton = canResolveTarget ? event.target.closest("[data-zone-action-id]") : null;
+      const actionId = String(actionButton?.getAttribute("data-zone-action-id") || "");
+      if (!actionId) {
+        return;
+      }
+      triggerZoneAction(actionId);
+    });
 
     register(boxesModalEl, "click", (event) => {
       if (event?.target === boxesModalEl) {
@@ -580,6 +687,11 @@ export function createRuntimeInputSystem({
     register(mapModalEl, "click", (event) => {
       if (event?.target === mapModalEl) {
         setMapOpen(false);
+      }
+    });
+    register(dialogueModalEl, "click", (event) => {
+      if (event?.target === dialogueModalEl) {
+        closeDialogueModal();
       }
     });
 

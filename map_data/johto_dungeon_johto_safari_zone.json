@@ -877,5 +877,16 @@
   "map_marker": {
     "x": 94.58,
     "y": 71.94
+  },
+  "connected_route_ids": [
+    "johto_route_48",
+    "hoenn_route_101"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { _electron as electron } from "playwright";
+import { DESKTOP_BACKGROUND_WATCHDOG_STALL_MS } from "../../../lib/gameplay-ui-config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..", "..");
@@ -15,6 +16,8 @@ const screenshotPath = path.join(artifactDir, "restored-window.png");
 const host = "127.0.0.1";
 const minimizeDurationMs = 8000;
 const unfocusDurationMs = 2500;
+const RESTORE_RESPONSIVENESS_TIMEOUT_MS = 1500;
+const ELECTRON_RESUME_CATCHUP_LIMIT_MS = 2 * DESKTOP_BACKGROUND_WATCHDOG_STALL_MS;
 const saveFilePath = path.join(
   process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
   "pokeidle-html-codex",
@@ -122,6 +125,26 @@ function computeDelta(before, after) {
     enemyChanged: String(after?.enemy?.id || "") !== String(before?.enemy?.id || ""),
     attackTimerChanged: toNumber(after?.attackTimerMs) !== toNumber(before?.attackTimerMs),
   };
+}
+
+function getActivityStateFromSnapshot(snapshot) {
+  return String(snapshot?.backgroundRuntime?.activity_state || "");
+}
+
+function isForegroundActivityState(snapshot) {
+  return getActivityStateFromSnapshot(snapshot) === "foreground_active";
+}
+
+async function waitForForegroundResponsive(page, timeoutMs = RESTORE_RESPONSIVENESS_TIMEOUT_MS) {
+  await page.waitForFunction(() => {
+    try {
+      return typeof window.render_game_to_text === "function"
+        && typeof document.visibilityState === "string"
+        && typeof document.hasFocus === "function";
+    } catch {
+      return false;
+    }
+  }, null, { timeout: timeoutMs });
 }
 
 async function snapshotCombatState(page) {
@@ -287,6 +310,22 @@ async function main() {
       };
     });
 
+    await waitForForegroundResponsive(page);
+    const immediateAfterRestore = await snapshotCombatState(page);
+    const immediateResumeCatchupAfterRestore = toNumber(
+      immediateAfterRestore?.backgroundRuntime?.last_resume_catchup_ms,
+    );
+    const immediateRestoredForeground = isForegroundActivityState(immediateAfterRestore);
+    if (immediateResumeCatchupAfterRestore > ELECTRON_RESUME_CATCHUP_LIMIT_MS) {
+      throw new Error(
+        `Electron resume catch-up trop grand apres restore: ${JSON.stringify({
+          immediateResumeCatchupAfterRestore,
+          resumeCatchupLimitMs: ELECTRON_RESUME_CATCHUP_LIMIT_MS,
+          minimizeDurationMs,
+        })}`,
+      );
+    }
+
     await page.waitForTimeout(800);
     await page.screenshot({ path: screenshotPath });
     const afterRestore = await snapshotCombatState(page);
@@ -314,6 +353,22 @@ async function main() {
       };
     });
 
+    await waitForForegroundResponsive(page);
+    const immediateAfterRefocus = await snapshotCombatState(page);
+    const immediateResumeCatchupAfterRefocus = toNumber(
+      immediateAfterRefocus?.backgroundRuntime?.last_resume_catchup_ms,
+    );
+    const immediateRefocusForeground = isForegroundActivityState(immediateAfterRefocus);
+    if (immediateResumeCatchupAfterRefocus > ELECTRON_RESUME_CATCHUP_LIMIT_MS) {
+      throw new Error(
+        `Electron resume catch-up trop grand apres refocus: ${JSON.stringify({
+          immediateResumeCatchupAfterRefocus,
+          resumeCatchupLimitMs: ELECTRON_RESUME_CATCHUP_LIMIT_MS,
+          unfocusDurationMs,
+        })}`,
+      );
+    }
+
     await page.waitForTimeout(700);
     const afterRefocus = await snapshotCombatState(page);
 
@@ -328,7 +383,8 @@ async function main() {
       || deltaDuringMinimize.enemyChanged
       || deltaDuringMinimize.enemyHp < 0
     );
-    const resumeCatchupAfterRestore = toNumber(afterRestore?.backgroundRuntime?.last_resume_catchup_ms);
+    const resumeCatchupAfterRestore = toNumber(immediateAfterRestore?.backgroundRuntime?.last_resume_catchup_ms);
+    const resumeCatchupAfterRefocus = toNumber(immediateAfterRefocus?.backgroundRuntime?.last_resume_catchup_ms);
     const minimizeHandled = Boolean(
       combatProgressedWhileMinimized
       || resumeCatchupAfterRestore > 0
@@ -344,18 +400,17 @@ async function main() {
       || deltaDuringUnfocus.team0Xp > 0
       || deltaDuringUnfocus.enemyChanged
       || deltaDuringUnfocus.enemyHp < 0
-      || toNumber(afterRefocus?.backgroundRuntime?.last_resume_catchup_ms) > 0
+      || resumeCatchupAfterRefocus > 0
       || deltaAfterRefocus.enemiesDefeated > 0
       || deltaAfterRefocus.money > 0
       || deltaAfterRefocus.team0Xp > 0
       || deltaAfterRefocus.enemyChanged
       || deltaAfterRefocus.enemyHp < 0
     );
-    const backgroundStateObserved = duringMinimize?.backgroundRuntime?.activity_state === "background_live";
-    const unfocusStateObserved = duringUnfocus?.backgroundRuntime?.activity_state === "foreground_unfocused";
-    const restoredStateValid = !["background_live", "background_suspended"].includes(
-      String(afterRestore?.backgroundRuntime?.activity_state || ""),
-    );
+    const backgroundStateObserved = getActivityStateFromSnapshot(duringMinimize) === "background_live";
+    const unfocusStateObserved = getActivityStateFromSnapshot(duringUnfocus) === "foreground_unfocused";
+    const restoredStateValid = isForegroundActivityState(afterRestore);
+    const refocusStateValid = isForegroundActivityState(afterRefocus);
 
     const report = {
       remoteUrl,
@@ -379,12 +434,18 @@ async function main() {
       deltaAfterRefocus,
       combatProgressedWhileMinimized,
       resumeCatchupAfterRestore,
+      resumeCatchupAfterRefocus,
+      immediateAfterRestore,
+      immediateAfterRefocus,
+      immediateRestoredForeground,
+      immediateRefocusForeground,
       minimizeHandled,
       unfocusHandled,
       backgroundStateObserved,
       unfocusStateObserved,
       restoredStateValid,
-      pass: minimizeHandled && unfocusHandled && restoredStateValid,
+      refocusStateValid,
+      pass: minimizeHandled && unfocusHandled && restoredStateValid && refocusStateValid,
       artifacts: {
         reportPath,
         screenshotPath,
@@ -393,7 +454,7 @@ async function main() {
 
     await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
-    if (!(minimizeHandled && unfocusHandled && restoredStateValid)) {
+    if (!(minimizeHandled && unfocusHandled && restoredStateValid && refocusStateValid)) {
       throw new Error(
         `Le runtime desktop ne gere pas correctement le background: ${JSON.stringify({
           deltaDuringMinimize,
@@ -401,8 +462,12 @@ async function main() {
           deltaDuringUnfocus,
           deltaAfterRefocus,
           resumeCatchupAfterRestore,
+          resumeCatchupAfterRefocus,
           backgroundStateObserved,
           restoredStateValid,
+          refocusStateValid,
+          immediateRestoredForeground,
+          immediateRefocusForeground,
         })}`,
       );
     }

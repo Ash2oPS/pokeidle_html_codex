@@ -50,5 +50,16 @@
   "map_marker": {
     "x": 87.08,
     "y": 18.33
+  },
+  "connected_route_ids": [
+    "johto_dungeon_ice_path",
+    "johto_dungeon_dragons_den"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

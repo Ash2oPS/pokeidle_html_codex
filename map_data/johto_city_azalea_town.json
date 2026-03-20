@@ -22,5 +22,16 @@
   "map_marker": {
     "x": 36.25,
     "y": 82.22
+  },
+  "connected_route_ids": [
+    "johto_route_33",
+    "johto_dungeon_slowpoke_well"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

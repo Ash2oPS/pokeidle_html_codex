@@ -1,11 +1,24 @@
 {
   "steps": [
     {
-      "waitMs": 1800
+      "waitForState": {
+        "mode": "ready",
+        "starter_modal_visible": true
+      },
+      "waitStateTimeoutMs": 15000
     },
     {
-      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
-      "waitMs": 2200
+      "clickSelector": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 500
+    },
+    {
+      "waitForState": {
+        "save_team_size": {
+          "min": 1
+        },
+        "starter_modal_visible": false
+      },
+      "waitStateTimeoutMs": 12000
     },
     {
       "clickSelectorIfVisible": "#tutorial-close-btn",
@@ -13,6 +26,38 @@
     },
     {
       "captureName": "idle"
+    },
+    {
+      "clickSelector": "#route-nav-drawer-toggle"
+    },
+    {
+      "waitForSelector": "#route-nav-drawer:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "route-nav-drawer"
+    },
+    {
+      "waitForSelector": "#route-nav-drawer-list [data-route-action='info']",
+      "waitMs": 350
+    },
+    {
+      "clickSelector": "#route-nav-drawer-list [data-route-action='info']"
+    },
+    {
+      "waitForSelector": "#route-nav-info-panel:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "route-nav-lock-info"
+    },
+    {
+      "clickSelectorIfVisible": "#route-nav-info-panel [data-route-info-close='true']",
+      "waitMs": 300
+    },
+    {
+      "clickSelectorIfVisible": "#route-nav-drawer-close",
+      "waitMs": 300
     },
     {
       "clickSelector": "#action-dock-pokeball-toggle"

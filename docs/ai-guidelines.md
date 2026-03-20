@@ -161,6 +161,61 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - reintroduire `game-settings.json` pour ce besoin
   - reutiliser un checker d'update GitHub ou une logique store mobile pour faire office de maintenance
 
+### Code hygiene and migrations
+
+- N'ajoute une nouvelle abstraction, helper, facade, module ou fichier que si elle apporte au moins un gain clair:
+  - reutilisation reelle
+  - isolation technique propre
+  - meilleure testabilite
+  - baisse nette de complexite locale
+- Interdit:
+  - extraire "par principe"
+  - creer une couche juste pour faire joli
+  - multiplier les helpers mono-usage sans benefice concret
+- Quand un flux, un ecran ou un systeme en remplace un autre, la meme tache doit nettoyer ce qui devient obsolete:
+  - branches legacy
+  - flags morts
+  - selectors/styles orphelins
+  - scripts obsoletes
+  - tests de comportement retire
+  - docs perimees
+- N'entretiens pas deux chemins runtime/UI equivalentes en parallele sauf migration transitoire explicitement cadree.
+- Si une migration transitoire est vraiment necessaire, elle doit avoir:
+  - un point d'entree principal clair
+  - une raison documentee
+  - une condition de retrait claire
+  - des tests qui couvrent la transition
+- Hors exceptions explicitement documentees comme le fail-open du bootstrap maintenance, evite les fallbacks silencieux qui masquent:
+  - import casse
+  - config manquante
+  - donnees invalides
+  - branche non supportee
+- Pour un vrai probleme structurel, prefere:
+  - signaler clairement l'erreur
+  - echouer bruyamment en dev
+  - corriger la source du probleme
+  plutot que d'empiler des rustines invisibles
+- Tout nouvel `id`, `class`, `data-*`, selector CSS ou selector JS manipule par le runtime doit etre:
+  - stable
+  - unique
+  - nomme de facon descriptive
+  - couvert par un test DOM/interactions si le flow est important
+- Toute nouvelle commande ajoutee dans `scripts/` doit etre:
+  - reliee a `package.json`
+  - ou documentee clairement si elle est volontairement manuelle
+  - nommee selon son usage reel
+  - supprimee si elle devient obsolete
+- Tout nouveau flag debug, query param, toggle dev, export debug ou hook `window.*` doit etre:
+  - documente
+  - borne au dev/non-prod si possible
+  - justifie par un vrai besoin
+  - retire quand il ne sert plus
+- Evite les `TODO` / `FIXME` vagues.
+- Si un TODO est inevitable, il doit preciser:
+  - le blocage concret
+  - ce qui reste a faire
+  - ce qui devra etre retire ou simplifie ensuite
+
 ### Domain
 
 - `domain/` contient des regles pures.
@@ -203,6 +258,9 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Reintroduire `lib/game-settings-runtime.js`
 - Reintroduire des redirects Play Store / App Store
 - Introduire un maintenance gate runtime disperse ou qui bloque les environnements dev / non-prod
+- Laisser du code mort, des selectors/styles orphelins ou des scripts inutiles apres une migration
+- Ajouter un fallback silencieux pour cacher un probleme structurel non documente
+- Laisser un script de debug/test orphelin sans point d'entree clair
 - Ajouter des nombres magiques de tuning dans le runtime
 - Aspirer des CSV/JSON de contenu dans le fichier global de design
 - Changer des hooks publics runtime sans demande explicite
@@ -273,3 +331,13 @@ Quand tu touches au runtime/lifecycle/background:
 5. Valide le web desktop, le web mobile portrait et Electron avec screenshots apres reprise.
 6. Si Android/Capacitor est touche, valide aussi l'APK avec un vrai `pause/resume`.
 7. Note explicitement la duree de background testee dans ton compte-rendu.
+
+Quand tu fais une migration ou un remplacement de flow:
+
+1. Identifie le nouveau point d'entree principal.
+2. Retire les branches legacy, selectors, styles, scripts et docs devenus inutiles.
+3. Garde une compatibilite transitoire seulement si elle est vraiment necessaire.
+4. Si tu gardes cette compatibilite, documente immediatement la condition de retrait.
+5. Ajoute les tests qui prouvent le nouveau chemin principal.
+6. Verifie qu'aucun fallback silencieux ne masque un vrai probleme.
+7. Ne laisse pas de TODO vague a la fin de la tache.

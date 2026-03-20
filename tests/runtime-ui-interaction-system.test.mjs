@@ -1631,3 +1631,183 @@ test("runtime ui interaction system shows inherited shiny messaging in the appea
   assert.match(bindings.appearanceShinyStatusEl.textContent, /ancienne sauvegarde/i);
   assert.equal(bindings.appearanceShinyToggleButtonEl.disabled, false);
 });
+
+test("runtime ui interaction system preserves touch hold context menu through a small drift on mobile", async () => {
+  const windowObject = {
+    setTimeout,
+    clearTimeout,
+  };
+  const teamContextMenuEl = Object.assign(createTestElement("div"), {
+    getBoundingClientRect() {
+      return { width: 140, height: 80 };
+    },
+  });
+  const { system, state } = createUiInteractionSystem({
+    window: windowObject,
+    state: {
+      mode: "ready",
+      viewport: {
+        width: 390,
+        height: 664,
+        renderScale: 1,
+      },
+      performance: {
+        quality: "medium",
+        shortFrameMsEma: 16.67,
+        renderFrameMsEma: 16.67,
+        cpuFrameMsEma: 4.72,
+      },
+      battle: createBattleStub(),
+      enemy: {
+        id: 16,
+        nameFr: "Roucool",
+        defensiveTypes: ["normal", "flying"],
+      },
+      team: [
+        {
+          id: 1,
+          nameFr: "Bulbizarre",
+        },
+      ],
+      routeData: { route_id: "kanto_route_1", combat_enabled: true },
+      routeCatalog: new Map(),
+      routeBackgroundsById: new Map(),
+      saveData: null,
+      ui: {
+        hoveredTeamSlotIndex: -1,
+        hoveredBallOverlayType: "",
+        teamDragActive: false,
+        teamDragMoved: false,
+        teamDragSourceSlotIndex: -1,
+        teamDragTargetSlotIndex: -1,
+        teamDragStartClientX: 0,
+        teamDragStartClientY: 0,
+        teamDragCurrentWorldX: 0,
+        teamDragCurrentWorldY: 0,
+        teamDragPointerId: -1,
+        teamDragPointerType: "",
+        teamDragSuppressClickUntilMs: 0,
+        teamContextMenuOpen: false,
+        teamContextMenuSlotIndex: -1,
+        teamContextMenuPokemonId: 0,
+        teamContextTouchHoldPointerId: -1,
+        teamContextTouchHoldSlotIndex: -1,
+        teamContextTouchHoldClientX: 0,
+        teamContextTouchHoldClientY: 0,
+        teamContextTouchHoldStartClientX: 0,
+        teamContextTouchHoldStartClientY: 0,
+        teamContextTouchHoldTimerId: 0,
+        ballCaptureMenuOpen: false,
+        ballCaptureMenuBallType: "",
+        shopOpen: false,
+        mapOpen: false,
+        gachaOpen: false,
+        boxesOpen: false,
+        boxesTargetSlotIndex: -1,
+        boxesSearchQuery: "",
+        pokedexOpen: false,
+        pokedexHoverPokemonId: 0,
+        pokedexSearchQuery: "",
+        appearanceOpen: false,
+        appearanceTargetSlotIndex: -1,
+        appearancePokemonId: 0,
+        tutorialOpen: false,
+      },
+      gacha: {
+        spinning: false,
+        lastReward: null,
+        lastRewards: [],
+      },
+      notifications: {
+        items: [],
+      },
+      moneyHud: {
+        displayValue: 0,
+      },
+      teamLevelUpEffects: [],
+      teamXpGainEffects: [],
+      backgroundDrift: {
+        currentX: 0,
+        currentY: 0,
+      },
+      tutorial: {
+        active: null,
+      },
+      evolutionAnimation: {
+        current: null,
+        queue: [],
+      },
+      pokemonDefsById: new Map(),
+      pokedexSpeciesCsvByPokemonId: new Map(),
+    },
+    layout: {
+      centerX: 195,
+      centerY: 332,
+      teamSlots: [
+        {
+          x: 71,
+          y: 226,
+          size: 64,
+        },
+      ],
+    },
+    bindings: {
+      getRuntimeClientType: () => "browser_smartphone",
+      getTeamSpriteScale: () => 1,
+      teamContextMenuEl,
+      teamContextMenuTitleEl: createTestElement("div"),
+      teamContextMenuRenameButtonEl: createTestElement("button"),
+      teamContextMenuBoxesButtonEl: createTestElement("button"),
+      teamContextMenuAppearanceButtonEl: createTestElement("button"),
+      navigator: {
+        vibrate() {},
+      },
+      render: () => {},
+      showPopupWithTween: () => {},
+    },
+  });
+
+  const dragStarted = system.beginTeamDragForSlot(0, {
+    clientX: 71,
+    clientY: 226,
+    worldX: 71,
+    worldY: 226,
+    pointerId: 1,
+    pointerType: "touch",
+  });
+
+  assert.equal(dragStarted, true);
+  assert.equal(state.ui.teamDragActive, true);
+
+  system.scheduleTeamContextTouchHold(0, state.team[0], {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 71,
+    clientY: 226,
+  });
+
+  assert.equal(state.ui.teamContextTouchHoldPointerId, 1);
+
+  system.handleCanvasPointerMove({
+    pointerId: 1,
+    pointerType: "touch",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: 83,
+    clientY: 226,
+    cancelable: true,
+    preventDefault() {},
+    stopPropagation() {},
+  });
+
+  assert.equal(state.ui.teamContextTouchHoldPointerId, 1);
+  assert.equal(state.ui.teamDragMoved, false);
+
+  await new Promise((resolve) => setTimeout(resolve, 520));
+
+  assert.equal(state.ui.teamContextMenuOpen, true);
+  assert.equal(state.ui.teamDragActive, false);
+  assert.equal(state.ui.teamDragMoved, false);
+  assert.equal(state.ui.teamContextMenuSlotIndex, 0);
+});

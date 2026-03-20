@@ -130,5 +130,16 @@
   "map_marker": {
     "x": 82.92,
     "y": 20.83
+  },
+  "connected_route_ids": [
+    "johto_route_46",
+    "johto_dungeon_tohjo_falls"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

@@ -106,5 +106,16 @@
   "map_marker": {
     "x": 37.5,
     "y": 80.28
+  },
+  "connected_route_ids": [
+    "johto_city_azalea_town",
+    "johto_dungeon_ilex_forest"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

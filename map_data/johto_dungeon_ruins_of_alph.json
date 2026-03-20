@@ -119,5 +119,16 @@
   "map_marker": {
     "x": 33.33,
     "y": 66.39
+  },
+  "connected_route_ids": [
+    "johto_dungeon_sprout_tower",
+    "johto_route_32"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

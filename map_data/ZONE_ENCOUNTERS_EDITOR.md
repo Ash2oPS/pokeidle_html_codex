@@ -1,6 +1,22 @@
-# Zone Encounters Editor
+# Zone Studio
 
-Le jeu continue de lire `map_data/kanto_zone_encounters.csv`.
+Le studio web `npm run tool:data-studio` expose maintenant deux outils:
+
+- `Zone Studio` via `/route`
+  - rencontres Kanto, Johto et Hoenn
+  - navigation en graphe via `connected_route_ids`
+  - locks via `access_rules`
+  - dialogues obligatoires d'arrivee via `arrival_dialogue_ids_once`
+  - interactions PNJ via `zone_actions` avec preview desktop/mobile
+- `Dialogue Studio` via `/dialogues`
+  - edition des dialogues a embranchements
+  - conditions de flags
+  - effets `set_flag_true` / `set_flag_false`
+  - preview jouable
+  - validation des references cassees et des dialogues references par des zones
+
+Le workbook Excel ci-dessous reste dedie au CSV runtime de Kanto, que le jeu continue de lire via
+`map_data/kanto_zone_encounters.csv`.
 
 Pour une edition plus confortable (formules + listes deroulantes), utilise le workbook Excel:
 `map_data/kanto_zone_encounters_editor.xlsx`.
@@ -25,7 +41,7 @@ npm run zone:editor:export
 npm run zone:csv:export
 ```
 
-## UX incluse dans le workbook
+## UX incluse dans le workbook Excel
 
 - `pokemon_id` -> noms FR/EN automatiques.
 - Listes deroulantes:

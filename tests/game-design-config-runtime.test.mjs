@@ -19,6 +19,9 @@ import {
 import {
   BOOST_X_DURATION_MS,
   BACKGROUND_PERSIST_DEBOUNCE_MS,
+  BACKGROUND_PUMP_MAX_WORK_MS,
+  FOREGROUND_CATCHUP_PUMP_DELAY_MS,
+  FOREGROUND_CATCHUP_PUMP_MAX_WORK_MS,
   DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS,
   DESKTOP_BACKGROUND_WATCHDOG_STALL_MS,
   MAX_LEVEL,
@@ -53,6 +56,9 @@ test("game design runtime sanitizes invalid values and computes derived fields",
     },
     metrics: {
       targetFps: 0,
+      backgroundPumpMaxWorkMs: 0,
+      foregroundCatchupPumpMaxWorkMs: 999999999,
+      foregroundCatchupPumpDelayMs: -1,
       renderQualityOrder: ["medium", "unknown"],
     },
     ui: {
@@ -75,7 +81,10 @@ test("game design runtime sanitizes invalid values and computes derived fields",
   assert.equal(sanitized.metrics.targetFps, 1);
   assert.equal(sanitized.metrics.targetRenderIntervalMs, 1000);
   assert.equal(sanitized.metrics.maxRenderDpr, GAME_DESIGN.metrics.maxRenderDpr);
+  assert.equal(sanitized.metrics.backgroundPumpMaxWorkMs, 1);
   assert.equal(sanitized.metrics.maxResumeCatchupMs, GAME_DESIGN.metrics.maxResumeCatchupMs);
+  assert.equal(sanitized.metrics.foregroundCatchupPumpMaxWorkMs, 1000 * 60 * 60);
+  assert.equal(sanitized.metrics.foregroundCatchupPumpDelayMs, 0);
   assert.equal(
     sanitized.metrics.desktopBackgroundWatchdogIntervalMs,
     GAME_DESIGN.metrics.desktopBackgroundWatchdogIntervalMs,
@@ -94,6 +103,7 @@ test("game design runtime exposes a compact immutable snapshot", () => {
   assert.equal(snapshot.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
   assert.equal(snapshot.combat.vfx.laserPackedTextureWidthPx, GAME_DESIGN.combat.vfx.laserPackedTextureWidthPx);
   assert.equal(snapshot.metrics.targetFps, GAME_DESIGN.metrics.targetFps);
+  assert.equal(snapshot.metrics.backgroundPumpMaxWorkMs, GAME_DESIGN.metrics.backgroundPumpMaxWorkMs);
   assert.equal(snapshot.metrics.maxResumeCatchupMs, GAME_DESIGN.metrics.maxResumeCatchupMs);
   assert.deepEqual(snapshot, GAME_DESIGN_SNAPSHOT);
   assert.equal(Object.isFrozen(snapshot), true);
@@ -106,7 +116,16 @@ test("compatibility facades stay aligned with the sanitized design config", () =
   assert.equal(CAPTURE_CRIT_CHANCE, GAME_DESIGN.capture.critChance);
   assert.equal(GACHA_SPIN_COST_COINS, GAME_DESIGN.gacha.spinCostCoins);
   assert.equal(BOOST_X_DURATION_MS, GAME_DESIGN.combat.boostX.durationMs);
+  assert.equal(BACKGROUND_PUMP_MAX_WORK_MS, GAME_DESIGN.metrics.backgroundPumpMaxWorkMs);
   assert.equal(MAX_RESUME_CATCHUP_MS, GAME_DESIGN.metrics.maxResumeCatchupMs);
+  assert.equal(
+    FOREGROUND_CATCHUP_PUMP_MAX_WORK_MS,
+    GAME_DESIGN.metrics.foregroundCatchupPumpMaxWorkMs,
+  );
+  assert.equal(
+    FOREGROUND_CATCHUP_PUMP_DELAY_MS,
+    GAME_DESIGN.metrics.foregroundCatchupPumpDelayMs,
+  );
   assert.equal(BACKGROUND_PERSIST_DEBOUNCE_MS, GAME_DESIGN.metrics.backgroundPersistDebounceMs);
   assert.equal(
     DESKTOP_BACKGROUND_WATCHDOG_INTERVAL_MS,

@@ -13,5 +13,13 @@
   "background_image": null,
   "encounters": [],
   "generated_from": "pokeapi + bulbagarden",
-  "generated_at_utc": "2026-03-07T00:29:40.912Z"
+  "generated_at_utc": "2026-03-07T00:29:40.912Z",
+  "connected_route_ids": [],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

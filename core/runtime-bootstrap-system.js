@@ -89,6 +89,7 @@ export function createRuntimeBootstrapSystem(options = {}) {
   const setZoneEncounterCsvState = asFunction(read("setZoneEncounterCsvState"));
   const setPokemonTalentCsvState = asFunction(read("setPokemonTalentCsvState"));
   const stopBackgroundTicker = asFunction(read("stopBackgroundTicker"));
+  const stopForegroundCatchupPump = asFunction(read("stopForegroundCatchupPump"));
   const clearTeamDragState = asFunction(read("clearTeamDragState"));
   const closeTeamContextMenu = asFunction(read("closeTeamContextMenu"));
   const clearCanvasHoverState = asFunction(read("clearCanvasHoverState"));
@@ -245,6 +246,7 @@ export function createRuntimeBootstrapSystem(options = {}) {
     state.environment.nextUpdateAtMs = 0;
     updateEnvironment(Date.now(), true);
     stopBackgroundTicker();
+    stopForegroundCatchupPump();
     setMapOpen(false);
     setShopOpen(false);
     closeGachaModal({ force: true });
@@ -446,6 +448,7 @@ export function createRuntimeBootstrapSystem(options = {}) {
     setZoneEncounterCsvState(null);
     setPokemonTalentCsvState(null);
     stopBackgroundTicker();
+    stopForegroundCatchupPump();
     clearTeamDragState();
     closeTeamContextMenu();
     clearCanvasHoverState();

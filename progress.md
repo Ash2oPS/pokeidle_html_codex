@@ -7169,3 +7169,29 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - fail-open
   - non-blocking for local/dev
   - screenshot-validated on desktop and mobile portrait
+
+## Additional progress (2026-03-20, zone graph + towns + dialogues polish)
+- Finished the multi-region zone/town/dialogue refactor validation pass:
+  - graph-based route connectivity, flag-based locks, arrival dialogues, repeatable zone actions, and the new sparse save fields remain green under the full automated suite;
+  - town runtime keeps advancing without combat freeze and the dedicated town layouts remain validated via existing targeted Playwright artifacts.
+- Fixed the remaining mobile team context-menu edge case in `systems/ui/runtime-ui-interaction-system.js`:
+  - while a touch-hold context menu is armed, drag activation now waits for at least the touch-hold cancel distance, preventing a tiny drift from cancelling the hold and starting a drag too early.
+- Stabilized mobile gallery scenarios after the slower multi-region bootstrap:
+  - replaced fragile fixed waits in `scripts/testing/playwright/actions/mobile-ui-gallery.json`
+  - replaced fragile fixed waits in `scripts/testing/playwright/actions/mobile-shop-tabs.json`
+  - replaced fragile fixed waits in `scripts/testing/playwright/actions/mobile-pokedex-types.json`
+  - scenarios now wait for `mode: "ready"`, `starter_modal_visible: true`, then for `save_team_size >= 1` and `starter_modal_visible: false` before continuing.
+- Added deterministic test coverage for the small mobile drift case and kept the iPhone WebKit smoke test green.
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs tests/runtime-ios-touch-context-menu.test.mjs` -> PASS
+  - `npm run test:node` -> PASS
+  - `npm test` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop combat gallery idle: `output/ui-state-gallery/desktop-landscape/idle.png`
+  - mobile fullscreen dock menu: `output/ui-state-gallery/mobile-portrait/menu.png`
+  - mobile route idle: `output/ui-state-gallery/mobile-portrait/idle.png`
+  - desktop town layout: `output/playwright/zone-dialogue-desktop/pallet-town.png`
+  - mobile town layout: `output/playwright/zone-dialogue-mobile/pallet-town-mobile.png`
+  - mobile dialogue modal: `output/playwright/zone-dialogue-mobile/viridian-guide-dialogue-mobile.png`

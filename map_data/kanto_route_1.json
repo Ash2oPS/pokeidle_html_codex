@@ -81,5 +81,16 @@
   "encounter_species_count_source": 2,
   "generated_from": "pokeapi + bulbagarden",
   "generated_at_utc": "2026-03-07T17:06:59.473Z",
-  "unlock_timer_ms": 20000
+  "unlock_timer_ms": 20000,
+  "connected_route_ids": [
+    "kanto_city_pallet_town",
+    "kanto_city_viridian_city"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

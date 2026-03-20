@@ -30,6 +30,8 @@ function createFixture() {
   const calls = {
     ensureBackgroundTicker: 0,
     stopBackgroundTicker: 0,
+    ensureForegroundCatchupPump: 0,
+    stopForegroundCatchupPump: 0,
     tickSimulationFromRealtime: [],
     queueRealtimeElapsedMs: [],
     queueResumeCatchupFromRealtime: [],
@@ -41,6 +43,8 @@ function createFixture() {
   };
 
   let now = 1000;
+  let consumePendingReturnMs = 180;
+  let pendingAfterConsumeMs = 0;
 
   const orchestrator = createRuntimeOrchestrator({
     state,
@@ -54,6 +58,12 @@ function createFixture() {
     },
     stopBackgroundTicker() {
       calls.stopBackgroundTicker += 1;
+    },
+    ensureForegroundCatchupPump() {
+      calls.ensureForegroundCatchupPump += 1;
+    },
+    stopForegroundCatchupPump() {
+      calls.stopForegroundCatchupPump += 1;
     },
     tickSimulationFromRealtime(options = {}) {
       calls.tickSimulationFromRealtime.push(options);
@@ -70,8 +80,8 @@ function createFixture() {
     },
     consumePendingSimulation(options = {}) {
       calls.consumePendingSimulation.push(options);
-      state.pendingSimMs = 0;
-      return 640;
+      state.pendingSimMs = pendingAfterConsumeMs;
+      return consumePendingReturnMs;
     },
     flushDeferredSaveIfNeeded() {
       calls.flushDeferredSaveIfNeeded += 1;
@@ -84,6 +94,8 @@ function createFixture() {
       calls.render += 1;
     },
     hiddenSimBudgetMs: 180,
+    backgroundPumpMaxWorkMs: 4,
+    foregroundCatchupPumpMaxWorkMs: 6,
     maxResumeCatchupMs: 120000,
     backgroundPersistDebounceMs: 250,
     markSimulationPump(nowMs) {
@@ -97,6 +109,10 @@ function createFixture() {
     orchestrator,
     setNow(nextNow) {
       now = Number(nextNow);
+    },
+    setConsumePendingResult({ consumedMs = 180, remainingPendingMs = 0 } = {}) {
+      consumePendingReturnMs = Number(consumedMs);
+      pendingAfterConsumeMs = Number(remainingPendingMs);
     },
   };
 }
@@ -114,11 +130,13 @@ test("background live transition starts background ticker, simulates idle, and p
 
   assert.equal(result.activityState, RUNTIME_ACTIVITY_BACKGROUND_LIVE);
   assert.equal(fixture.calls.ensureBackgroundTicker, 1);
+  assert.equal(fixture.calls.stopForegroundCatchupPump, 1);
   assert.equal(fixture.calls.tickSimulationFromRealtime.length, 1);
   assert.deepEqual(fixture.calls.tickSimulationFromRealtime[0], {
     activityState: RUNTIME_ACTIVITY_BACKGROUND_LIVE,
     forceIdleMode: true,
     budgetMs: 180,
+    maxWorkMs: 4,
     skipForegroundClamp: true,
   });
   assert.equal(fixture.calls.persistSaveData, 1);
@@ -127,10 +145,11 @@ test("background live transition starts background ticker, simulates idle, and p
   assert.equal(fixture.state.backgroundRuntime.lastBackgroundEnteredAtMs, 1000);
 });
 
-test("resume transition stops background ticker and drains resume catchup in idle mode", () => {
+test("resume transition queues catchup, drains one bounded tranche, and schedules the foreground pump", () => {
   const fixture = createFixture();
   fixture.state.backgroundRuntime.activityState = RUNTIME_ACTIVITY_BACKGROUND_LIVE;
   fixture.state.backgroundRuntime.lastBackgroundEnteredAtMs = 1000;
+  fixture.setConsumePendingResult({ consumedMs: 180, remainingPendingMs: 460 });
   fixture.setNow(5000);
 
   const result = fixture.orchestrator.handleRuntimeActivityChange({
@@ -144,6 +163,7 @@ test("resume transition stops background ticker and drains resume catchup in idl
   assert.equal(result.activityState, RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
   assert.equal(result.resumeCatchupMs, 640);
   assert.equal(fixture.calls.stopBackgroundTicker, 1);
+  assert.equal(fixture.calls.stopForegroundCatchupPump, 1);
   assert.equal(fixture.calls.queueResumeCatchupFromRealtime.length, 1);
   assert.deepEqual(fixture.calls.queueResumeCatchupFromRealtime[0], {
     inputNowMs: 5000,
@@ -156,11 +176,33 @@ test("resume transition stops background ticker and drains resume catchup in idl
   assert.deepEqual(fixture.calls.consumePendingSimulation[0], {
     activityState: RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
     forceIdleMode: true,
-    budgetMs: 640,
+    budgetMs: 180,
+    maxWorkMs: 6,
   });
+  assert.equal(fixture.calls.ensureForegroundCatchupPump, 1);
   assert.equal(fixture.calls.render, 1);
   assert.equal(fixture.state.backgroundRuntime.lastResumeAtMs, 5000);
   assert.equal(fixture.state.backgroundRuntime.lastResumeCatchupMs, 640);
+});
+
+test("resume transition does not schedule foreground pump once the first tranche clears the backlog", () => {
+  const fixture = createFixture();
+  fixture.state.backgroundRuntime.activityState = RUNTIME_ACTIVITY_BACKGROUND_LIVE;
+  fixture.state.backgroundRuntime.lastBackgroundEnteredAtMs = 1000;
+  fixture.setConsumePendingResult({ consumedMs: 180, remainingPendingMs: 0 });
+  fixture.setNow(5000);
+
+  const result = fixture.orchestrator.handleRuntimeActivityChange({
+    activityState: RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
+    backgroundReason: "foreground_active",
+    suspendRequested: false,
+  }, {
+    source: "window:focus",
+  });
+
+  assert.equal(result.activityState, RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
+  assert.equal(result.resumeCatchupMs, 640);
+  assert.equal(fixture.calls.ensureForegroundCatchupPump, 0);
 });
 
 test("page lifecycle persist flushes current realtime and forces persistence", () => {
@@ -176,6 +218,7 @@ test("page lifecycle persist flushes current realtime and forces persistence", (
   });
 
   assert.equal(result.activityState, RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED);
+  assert.equal(fixture.calls.stopForegroundCatchupPump, 1);
   assert.equal(fixture.calls.queueRealtimeElapsedMs.length, 1);
   assert.deepEqual(fixture.calls.queueRealtimeElapsedMs[0], {
     inputNowMs: 7000,
@@ -189,6 +232,7 @@ test("page lifecycle persist flushes current realtime and forces persistence", (
     activityState: RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED,
     forceIdleMode: true,
     budgetMs: 180,
+    maxWorkMs: 4,
   });
   assert.equal(fixture.calls.persistSaveData, 1);
   assert.equal(fixture.state.backgroundRuntime.activityState, RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED);

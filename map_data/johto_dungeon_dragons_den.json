@@ -62,5 +62,16 @@
   "map_marker": {
     "x": 89.58,
     "y": 16.67
+  },
+  "connected_route_ids": [
+    "johto_city_blackthorn_city",
+    "johto_route_45"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

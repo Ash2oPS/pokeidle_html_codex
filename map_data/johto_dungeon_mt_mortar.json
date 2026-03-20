@@ -175,5 +175,16 @@
   "map_marker": {
     "x": 67.08,
     "y": 44.44
+  },
+  "connected_route_ids": [
+    "johto_route_42",
+    "johto_route_43"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

@@ -67,5 +67,16 @@
   "map_marker": {
     "x": 73.75,
     "y": 36.11
+  },
+  "connected_route_ids": [
+    "johto_city_mahogany_town",
+    "johto_route_44"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

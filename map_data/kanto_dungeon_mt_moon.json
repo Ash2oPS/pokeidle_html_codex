@@ -162,5 +162,16 @@
   ],
   "encounter_species_count_source": 4,
   "generated_from": "pokeapi + bulbagarden",
-  "generated_at_utc": "2026-03-07T17:06:59.473Z"
+  "generated_at_utc": "2026-03-07T17:06:59.473Z",
+  "connected_route_ids": [
+    "kanto_route_3",
+    "kanto_route_4"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

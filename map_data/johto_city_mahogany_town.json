@@ -22,5 +22,16 @@
   "map_marker": {
     "x": 71.67,
     "y": 34.72
+  },
+  "connected_route_ids": [
+    "johto_dungeon_lake_of_rage",
+    "johto_dungeon_team_rocket_hq"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

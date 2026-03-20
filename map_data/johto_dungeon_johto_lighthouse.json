@@ -20,5 +20,16 @@
   "map_marker": {
     "x": 68.75,
     "y": 49.17
+  },
+  "connected_route_ids": [
+    "johto_city_olivine_city",
+    "johto_route_40"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

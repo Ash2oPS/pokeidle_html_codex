@@ -1,11 +1,24 @@
 {
   "steps": [
     {
-      "waitMs": 1800
+      "waitForState": {
+        "mode": "ready",
+        "starter_modal_visible": true
+      },
+      "waitStateTimeoutMs": 15000
     },
     {
-      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
-      "waitMs": 2200
+      "clickSelector": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 500
+    },
+    {
+      "waitForState": {
+        "save_team_size": {
+          "min": 1
+        },
+        "starter_modal_visible": false
+      },
+      "waitStateTimeoutMs": 12000
     },
     {
       "clickSelectorIfVisible": "#tutorial-close-btn",

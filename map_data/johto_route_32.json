@@ -274,5 +274,16 @@
   "source_url": "https://altissimo1.github.io/Main-Series/Johto-Locations/route-32.html",
   "generated_from": "altissimo (HGSS standard union; radio/swarm/static excluded)",
   "generated_at_utc": "2026-03-17T15:13:15.600Z",
-  "unlock_timer_ms": 20000
+  "unlock_timer_ms": 20000,
+  "connected_route_ids": [
+    "johto_dungeon_ruins_of_alph",
+    "johto_dungeon_union_cave"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

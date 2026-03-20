@@ -1,97 +1,165 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PokeIdle - Route Encounter Studio</title>
+    <title>PokeIdle - Zone Studio</title>
     <style>
       :root {
         --bg-top: #fff7e1;
         --bg-bottom: #e9f5ec;
         --ink: #182028;
         --muted: #5f6f7c;
-        --card: #ffffff;
+        --card: rgba(255, 255, 255, 0.96);
         --line: #d8e1e8;
         --accent: #1f8f63;
         --accent-strong: #0f6e49;
+        --secondary: #2f7bb7;
+        --secondary-strong: #216395;
         --warn-bg: #fff7e6;
         --warn-line: #efc56b;
         --danger: #c0392b;
+        --danger-strong: #9d2f24;
         --danger-soft: #fff2f0;
-        --radius: 14px;
-        --shadow: 0 10px 28px rgba(24, 32, 40, 0.12);
+        --radius: 18px;
+        --shadow: 0 12px 34px rgba(24, 32, 40, 0.12);
       }
+
       * { box-sizing: border-box; }
       body {
         margin: 0;
         color: var(--ink);
-        background: linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 34%),
+          linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
         min-height: 100vh;
       }
-      .layout { width: min(1400px, 97%); margin: 18px auto 34px; display: grid; gap: 12px; }
+      .page { width: min(1680px, 97%); margin: 18px auto 34px; display: grid; gap: 14px; }
       .panel {
         background: var(--card);
         border: 1px solid var(--line);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 14px;
+        padding: 16px;
+        backdrop-filter: blur(8px);
       }
+      .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+      .hero-links { display: flex; flex-wrap: wrap; gap: 8px; }
       h1, h2, h3 { margin: 0 0 8px; }
-      h1 { font-size: clamp(1.2rem, 2.6vw, 1.62rem); }
-      .sub { margin: 0; color: var(--muted); }
-      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-      .row + .row { margin-top: 10px; }
-      label { font-size: 0.84rem; color: #425665; font-weight: 700; }
+      h1 { font-size: clamp(1.35rem, 2.8vw, 1.95rem); }
+      h2 { font-size: 1.08rem; }
+      p { margin: 0; }
+      .sub { color: var(--muted); line-height: 1.5; }
+      .toolbar { display: grid; gap: 12px; }
+      .toolbar-row, .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .grow { flex: 1 1 180px; }
+      label { display: block; font-size: 0.84rem; font-weight: 700; color: #425665; margin-bottom: 4px; }
+      input, select, textarea, button { font: inherit; }
       input, select, textarea {
+        width: 100%;
         border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 9px 10px;
+        border-radius: 12px;
+        padding: 10px 12px;
         background: #fbfdff;
         color: var(--ink);
-        font: inherit;
       }
-      input[type="number"] { width: 100%; }
-      select { min-width: 260px; }
-      .w-100 { width: 100%; }
-      .grow { flex: 1 1 180px; }
+      textarea { min-height: 84px; resize: vertical; }
+      .inline-input { min-width: 170px; }
       .btn {
         border: 0;
-        border-radius: 10px;
-        padding: 9px 12px;
-        font: inherit;
+        border-radius: 12px;
+        padding: 10px 14px;
         font-weight: 700;
         cursor: pointer;
         background: var(--accent);
         color: #fff;
       }
       .btn:hover { background: var(--accent-strong); }
-      .btn-secondary { background: #2f7bb7; }
-      .btn-secondary:hover { background: #216395; }
+      .btn-secondary { background: var(--secondary); }
+      .btn-secondary:hover { background: var(--secondary-strong); }
       .btn-danger { background: var(--danger); }
-      .btn-danger:hover { background: #9d2f24; }
+      .btn-danger:hover { background: var(--danger-strong); }
+      .btn-ghost { background: #eef4fb; color: #21486d; }
+      .btn-ghost:hover { background: #ddeaf7; }
       .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-      .meta-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-      .pill { border: 1px solid var(--line); border-radius: 10px; background: #f8fbff; padding: 8px 10px; }
-      .pill-key { color: var(--muted); font-size: 0.76rem; }
-      .pill-value { font-weight: 700; font-size: 0.95rem; }
-      .status { border: 1px solid transparent; border-radius: 10px; padding: 9px 11px; font-size: 0.92rem; }
+      .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip {
+        border-radius: 999px;
+        border: 1px solid #cad6e2;
+        background: #f8fcff;
+        color: #274761;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 5px 10px;
+      }
+      .status {
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 0.92rem;
+      }
       .status.ok { border-color: #9ed7bd; background: #effbf4; color: #185a3f; }
       .status.info { border-color: #b7d5ff; background: #f2f8ff; color: #1b4d91; }
       .status.warn { border-color: var(--warn-line); background: var(--warn-bg); color: #745308; }
       .status.err { border-color: #f0b2a9; background: #fff3f2; color: #7e2a20; }
-      .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
-      .chip { border-radius: 999px; border: 1px solid #cad6e2; background: #f8fcff; color: #274761; font-size: 0.76rem; font-weight: 700; padding: 4px 9px; }
-      .chip code { font-size: 0.76rem; }
-      .encounter-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 8px;
-        width: 100%;
+      .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+      .meta-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #fcfdff, #f3f8fc);
+        padding: 10px 12px;
       }
+      .meta-card small { display: block; color: var(--muted); margin-bottom: 4px; }
+      .meta-card strong { display: block; font-size: 1rem; }
+      .workspace { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr); gap: 14px; }
+      .column { display: grid; gap: 14px; align-content: start; }
+      .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+      .editor-grid { display: grid; gap: 12px; }
+      .editor-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fbfdff;
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .ordered-list { display: grid; gap: 8px; }
+      .ordered-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid #d4deea;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #f9fcff, #f2f7fb);
+        padding: 10px 12px;
+      }
+      .ordered-card strong { display: block; }
+      .ordered-card small { color: var(--muted); }
+      .ordered-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+      .empty-state {
+        border: 1px dashed #c7d5e2;
+        border-radius: 14px;
+        padding: 12px;
+        color: var(--muted);
+        background: #fafcff;
+      }
+      .flag-grid { display: grid; gap: 10px; }
+      .suggestion-help { display: grid; gap: 8px; }
+      .zone-actions-table-wrap, .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; }
+      table { width: 100%; border-collapse: collapse; min-width: 1040px; }
+      th, td { border-bottom: 1px solid #e4ebf1; padding: 8px; text-align: left; vertical-align: top; }
+      th { position: sticky; top: 0; background: #eff4f8; color: #2d3d4c; z-index: 2; font-size: 0.82rem; }
+      tbody tr.invalid { background: var(--danger-soft); }
+      tbody tr:hover { background: #f7fbff; }
+      .readonly { background: #f2f5f8; }
+      .small { font-size: 0.8rem; color: var(--muted); }
+      .action-col { display: flex; gap: 5px; flex-wrap: wrap; }
+      .encounter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 8px; }
       .encounter-card {
         border: 1px solid #d4deea;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 8px;
         background: linear-gradient(180deg, #f9fcff, #f3f8ff);
         display: grid;
@@ -110,216 +178,500 @@
           linear-gradient(-45deg, transparent 75%, #dce5ef 75%);
         background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px;
         background-position: 0 0, 0 6px, 6px -6px, -6px 0;
-        background-repeat: repeat, repeat, repeat, repeat;
+        background-repeat: repeat;
         overflow: hidden;
       }
-      .sprite-mini > img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        image-rendering: pixelated;
+      .sprite-mini > img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+      .sprite-mini.small { width: 36px; height: 36px; }
+      .chance-wrap { min-width: 112px; }
+      .chance-bar { width: 100%; height: 8px; border-radius: 999px; background: #d7e2ee; overflow: hidden; }
+      .chance-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1f8f63, #31b57f); }
+      .preview-shell { display: grid; gap: 12px; }
+      .preview-frame {
+        position: relative;
+        border: 1px solid #b7c7d8;
+        border-radius: 18px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent),
+          linear-gradient(180deg, #9dc6dd 0%, #b7d9c8 44%, #d9cca8 100%);
+        min-height: 240px;
       }
-      .sprite-mini.small {
-        width: 34px;
-        height: 34px;
-        border-radius: 7px;
+      .preview-frame.desktop { aspect-ratio: 16 / 9; }
+      .preview-frame.mobile { aspect-ratio: 9 / 16; max-width: 320px; margin-inline: auto; }
+      .preview-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 10% 10%;
       }
-      .card-name {
-        font-size: 0.83rem;
+      .preview-title {
+        position: absolute;
+        top: 10px;
+        left: 12px;
+        z-index: 1;
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(18, 28, 36, 0.7);
+        color: #fff;
+        font-size: 0.8rem;
         font-weight: 700;
-        line-height: 1.2;
       }
-      .card-sub {
+      .preview-action {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 999px;
+        padding: 7px 10px;
+        background: rgba(24, 42, 61, 0.82);
+        color: #fff;
         font-size: 0.76rem;
-        color: #546577;
+        font-weight: 700;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
       }
-      .chance-wrap {
-        min-width: 112px;
+      .preview-action.active {
+        background: rgba(15, 110, 73, 0.9);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45), 0 8px 22px rgba(15, 110, 73, 0.28);
       }
-      .chance-bar {
-        width: 100%;
-        height: 8px;
-        border-radius: 999px;
-        background: #d7e2ee;
-        overflow: hidden;
+      .kbd {
+        display: inline-block;
+        border: 1px solid #c3cbd4;
+        border-radius: 5px;
+        padding: 1px 6px;
+        background: #f5f8fb;
+        font-size: 0.75rem;
+        color: #3e4f5f;
       }
-      .chance-bar > span {
-        display: block;
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #1f8f63, #31b57f);
-      }
-      .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
-      table { width: 100%; border-collapse: collapse; min-width: 1080px; }
-      th, td { border-bottom: 1px solid #e4ebf1; padding: 6px; text-align: left; vertical-align: top; }
-      th { position: sticky; top: 0; z-index: 2; background: #eff4f8; color: #2d3d4c; font-size: 0.83rem; }
-      tbody tr.invalid { background: var(--danger-soft); }
-      tbody tr:hover { background: #f7fbff; }
-      td input, td select { width: 100%; }
-      .readonly { background: #f2f5f8; }
-      .small { font-size: 0.78rem; color: var(--muted); }
-      .action-col { display: flex; gap: 5px; }
-      .kbd { display: inline-block; border: 1px solid #c3cbd4; border-radius: 5px; padding: 1px 6px; background: #f5f8fb; font-size: 0.75rem; color: #3e4f5f; }
-      @media (max-width: 800px) {
-        .layout { width: min(98%, 98%); }
-        select { min-width: 100%; }
+      a.tool-link { color: #1b4d91; font-weight: 700; text-decoration: none; }
+      a.tool-link:hover { text-decoration: underline; }
+      @media (max-width: 1180px) { .workspace { grid-template-columns: 1fr; } }
+      @media (max-width: 860px) {
+        .page { width: min(99%, 99%); }
+        .hero { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
-    <main class="layout">
-      <section class="panel">
-        <h1>Route Encounter Studio</h1>
-        <p class="sub">
-          Modifie les Pokemon sauvages d'une zone sans coder. Sauvegarde securisee (backup auto) dans
-          <code>output/tool-backups</code>.
-        </p>
+    <main class="page">
+      <section class="panel hero">
+        <div>
+          <h1>Zone Studio</h1>
+          <p class="sub">
+            Édite les rencontres, la navigation en graphe, les verrouillages et les interactions d'une zone sans coder.
+            Kanto garde ses rencontres dans le CSV runtime, Johto/Hoenn dans les JSON de zone, et toute la méta de zone
+            vit maintenant dans les JSON.
+          </p>
+        </div>
+        <div class="hero-links">
+          <a class="tool-link" href="/dialogues">Ouvrir Dialogue Studio</a>
+          <a class="tool-link" href="/talents">Ouvrir Talents Studio</a>
+        </div>
       </section>
 
-      <section class="panel">
-        <div class="row">
+      <section class="panel toolbar">
+        <div id="status" class="status info">Chargement du studio...</div>
+        <div class="toolbar-row">
           <div class="grow">
-            <label for="route-filter">Filtrer les routes</label>
-            <input id="route-filter" class="w-100" type="text" placeholder="Ex: route 3, viridian, dungeon..." />
+            <label for="route-filter">Filtrer les zones</label>
+            <input id="route-filter" type="text" placeholder="Ex: johto, jadielle, safari..." />
+          </div>
+          <div>
+            <label for="route-region-select">Région</label>
+            <select id="route-region-select">
+              <option value="all">Toutes</option>
+              <option value="kanto">Kanto</option>
+              <option value="johto">Johto</option>
+              <option value="hoenn">Hoenn</option>
+              <option value="other">Autre</option>
+            </select>
           </div>
           <div class="grow">
-            <label for="route-select">Route</label>
-            <select id="route-select" class="w-100"></select>
+            <label for="route-select">Zone</label>
+            <select id="route-select"></select>
           </div>
         </div>
-        <div class="row">
-          <button id="prev-route-btn" class="btn btn-secondary" type="button" disabled>&larr; Zone precedente</button>
-          <button id="next-route-btn" class="btn btn-secondary" type="button" disabled>Zone suivante &rarr;</button>
+        <div class="toolbar-row">
           <button id="load-route-btn" class="btn" type="button">Charger</button>
           <button id="reload-route-btn" class="btn btn-secondary" type="button" disabled>Recharger depuis disque</button>
-          <button id="save-route-btn" class="btn" type="button" disabled>Sauvegarder la route</button>
-          <button id="add-empty-row-btn" class="btn btn-secondary" type="button" disabled>Ajouter une ligne vide</button>
+          <button id="save-route-btn" class="btn" type="button" disabled>Sauvegarder</button>
+          <button id="add-empty-row-btn" class="btn btn-secondary" type="button" disabled>Ajouter une rencontre</button>
+          <button id="quick-add-btn" class="btn btn-secondary" type="button" disabled>Ajout rapide</button>
+          <input id="quick-add-input" class="inline-input" list="pokemon-ref-list" placeholder="Ex: 25 pikachu" autocomplete="off" />
+          <datalist id="pokemon-ref-list"></datalist>
         </div>
-        <div class="row small">
-          Raccourci: <span class="kbd">Ctrl + S</span> pour sauvegarder.
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Parametres de zone</h2>
-        <div class="row">
-          <div class="grow">
-            <label for="route-name-input">Nom FR de la zone</label>
-            <input id="route-name-input" class="w-100" type="text" />
-          </div>
-          <div>
-            <label for="zone-type-select">Type</label>
-            <select id="zone-type-select">
-              <option value="route">route</option>
-              <option value="town">town</option>
-              <option value="dungeon">dungeon</option>
-              <option value="cave">cave</option>
-              <option value="forest">forest</option>
-            </select>
-          </div>
-          <div>
-            <label for="combat-enabled-select">Combat actif</label>
-            <select id="combat-enabled-select">
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="grow">
-            <label for="unlock-defeats-input">Pokemon a battre d'affilee</label>
-            <input id="unlock-defeats-input" class="w-100" type="number" min="1" step="1" />
-          </div>
-          <div class="grow">
-            <label for="unlock-timer-seconds-input">Timer de fight (secondes)</label>
-            <input id="unlock-timer-seconds-input" class="w-100" type="number" min="1" step="1" />
-            <div class="small">Ce timer est sauvegarde en ms dans les JSON de route.</div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="grow">
-            <label for="quick-add-input">Ajout rapide Pokemon (ID ou nom)</label>
-            <input id="quick-add-input" class="w-100" list="pokemon-ref-list" placeholder="Ex: 25 pikachu" />
-            <datalist id="pokemon-ref-list"></datalist>
-          </div>
-          <button id="quick-add-btn" class="btn btn-secondary" type="button" disabled>Ajouter</button>
+        <div class="small">
+          Raccourci: <span class="kbd">Ctrl + S</span> pour sauvegarder. Clique sur le preview pour poser l'action PNJ
+          sélectionnée.
         </div>
       </section>
 
       <section class="panel">
-        <h2>Rencontres</h2>
-        <div id="status" class="status info">Charge d'abord une route.</div>
-        <div class="row">
-          <div id="meta-grid" class="meta-grid"></div>
+        <h2>Résumé de la zone</h2>
+        <div id="meta-grid" class="meta-grid"></div>
+      </section>
+
+      <section class="workspace">
+        <div class="column">
+          <section class="panel">
+            <h2>Paramètres de zone</h2>
+            <div class="settings-grid">
+              <div>
+                <label for="route-name-input">Nom FR</label>
+                <input id="route-name-input" type="text" />
+              </div>
+              <div>
+                <label for="zone-type-select">Type</label>
+                <select id="zone-type-select">
+                  <option value="route">route</option>
+                  <option value="town">town</option>
+                  <option value="dungeon">dungeon</option>
+                  <option value="cave">cave</option>
+                  <option value="forest">forest</option>
+                </select>
+              </div>
+              <div>
+                <label for="combat-enabled-select">Combat actif</label>
+                <select id="combat-enabled-select">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div>
+                <label for="unlock-mode-select">Mode de déblocage</label>
+                <select id="unlock-mode-select">
+                  <option value="defeats">defeats</option>
+                  <option value="visit">visit</option>
+                </select>
+              </div>
+              <div>
+                <label for="unlock-defeats-input">KO requis</label>
+                <input id="unlock-defeats-input" type="number" min="0" step="1" />
+              </div>
+              <div>
+                <label for="unlock-timer-seconds-input">Timer de fight (secondes)</label>
+                <input id="unlock-timer-seconds-input" type="number" min="1" step="1" />
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Rencontres</h2>
+            <div class="row"><div id="methods-help" class="chip-row"></div></div>
+            <div class="row"><div id="encounter-cards" class="encounter-cards"></div></div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Sprite</th>
+                    <th>Pokémon ID</th>
+                    <th>Nom FR</th>
+                    <th>Nom EN</th>
+                    <th>Poids</th>
+                    <th>Chance approx</th>
+                    <th>Niveau min</th>
+                    <th>Niveau max</th>
+                    <th>Méthodes (<code>|</code>)</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="encounters-body"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
-        <div class="row">
-          <div id="encounter-cards" class="encounter-cards"></div>
-        </div>
-        <div class="row">
-          <div class="chip-row" id="methods-help"></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Sprite</th>
-                <th>Pokemon ID</th>
-                <th>Nom FR</th>
-                <th>Nom EN</th>
-                <th>Poids</th>
-                <th>Chance approx</th>
-                <th>Niveau min</th>
-                <th>Niveau max</th>
-                <th>Methods (<code>|</code>)</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="encounters-body"></tbody>
-          </table>
+
+        <div class="column">
+          <section class="panel editor-grid">
+            <div class="editor-card">
+              <h2>Navigation</h2>
+              <div class="row">
+                <div class="grow">
+                  <label for="connected-route-add-select">Ajouter une sortie connectée</label>
+                  <select id="connected-route-add-select"></select>
+                </div>
+                <button id="connected-route-add-btn" class="btn btn-secondary" type="button" disabled>Ajouter</button>
+              </div>
+              <div id="connected-route-list" class="ordered-list"></div>
+            </div>
+
+            <div class="editor-card flag-grid">
+              <div>
+                <h2>Locks et accès</h2>
+                <p class="small">Les flags servent de squelette d'unlock. Sépare-les par des virgules ou des lignes.</p>
+              </div>
+              <div>
+                <label for="access-flags-all-input">Flags requis (tous)</label>
+                <textarea id="access-flags-all-input" placeholder="Ex: guide_spoken, badge_kanto"></textarea>
+              </div>
+              <div>
+                <label for="access-flags-any-input">Flags requis (au moins un)</label>
+                <textarea id="access-flags-any-input" placeholder="Ex: ferry_ticket, badge_hoenn"></textarea>
+              </div>
+              <div>
+                <label for="access-blocked-reason-input">Raison de blocage FR</label>
+                <textarea id="access-blocked-reason-input" placeholder="Message affiché dans l'UI quand la sortie est verrouillée."></textarea>
+              </div>
+              <div class="suggestion-help">
+                <div class="small">Clique un flag pour l'ajouter au champ actuellement focus.</div>
+                <div id="flag-suggestions" class="chip-row"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel editor-grid">
+            <div class="editor-card">
+              <h2>Dialogues d'arrivée</h2>
+              <div class="row">
+                <div class="grow">
+                  <label for="arrival-dialogue-add-select">Ajouter un dialogue obligatoire</label>
+                  <select id="arrival-dialogue-add-select"></select>
+                </div>
+                <button id="arrival-dialogue-add-btn" class="btn btn-secondary" type="button" disabled>Ajouter</button>
+              </div>
+              <div id="arrival-dialogue-list" class="ordered-list"></div>
+            </div>
+
+            <div class="editor-card">
+              <div class="row">
+                <div class="grow">
+                  <h2>Interactions et PNJ</h2>
+                  <p class="small">Les actions de zone déclenchent un dialogue optionnel via un bouton dans la scène.</p>
+                </div>
+                <button id="add-zone-action-btn" class="btn btn-secondary" type="button" disabled>Ajouter une action</button>
+              </div>
+              <div class="zone-actions-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cible preview</th>
+                      <th>action_id</th>
+                      <th>Label FR</th>
+                      <th>Dialogue</th>
+                      <th>Desktop X</th>
+                      <th>Desktop Y</th>
+                      <th>Mobile X</th>
+                      <th>Mobile Y</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="zone-actions-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="editor-card preview-shell">
+              <div class="row">
+                <div class="grow">
+                  <h2>Preview de scène</h2>
+                  <p class="small">Sélectionne une action puis clique dans la scène pour déplacer son ancre.</p>
+                </div>
+                <div>
+                  <label for="preview-mode-select">Preview</label>
+                  <select id="preview-mode-select">
+                    <option value="desktop">desktop</option>
+                    <option value="mobile">mobile</option>
+                  </select>
+                </div>
+              </div>
+              <div id="action-preview-stage" class="preview-frame desktop" aria-label="Preview de placement des actions">
+                <div class="preview-grid"></div>
+                <div id="action-preview-title" class="preview-title">Aucune zone chargée</div>
+              </div>
+              <div id="action-preview-hint" class="small">Charge une zone pour afficher les interactions.</div>
+            </div>
+          </section>
         </div>
       </section>
     </main>
 
     <script>
+      const DEFAULT_UNLOCK_DEFEATS_REQUIRED = 20;
+      const DEFAULT_UNLOCK_TIMER_MS = 20000;
+
       const state = {
         loading: false,
         dirty: false,
         selectedRouteId: "",
+        routeRegionFilter: "all",
         allRoutes: [],
         filteredRoutes: [],
+        routeChoices: [],
+        dialogueChoices: [],
+        flagChoices: [],
+        methodChoices: [],
         pokemonRefs: [],
         pokemonById: new Map(),
-        methodChoices: [],
+        routeChoiceById: new Map(),
+        dialogueChoiceById: new Map(),
         route: null,
+        previewMode: "desktop",
+        selectedZoneActionId: "",
+        activeFlagField: "all",
       };
-      const DEFAULT_UNLOCK_DEFEATS_REQUIRED = 20;
-      const DEFAULT_UNLOCK_TIMER_MS = 20000;
 
       const nodes = {
+        status: document.getElementById("status"),
         routeFilter: document.getElementById("route-filter"),
+        routeRegionSelect: document.getElementById("route-region-select"),
         routeSelect: document.getElementById("route-select"),
-        prevRouteBtn: document.getElementById("prev-route-btn"),
-        nextRouteBtn: document.getElementById("next-route-btn"),
         loadRouteBtn: document.getElementById("load-route-btn"),
         reloadRouteBtn: document.getElementById("reload-route-btn"),
         saveRouteBtn: document.getElementById("save-route-btn"),
         addEmptyRowBtn: document.getElementById("add-empty-row-btn"),
+        quickAddBtn: document.getElementById("quick-add-btn"),
+        quickAddInput: document.getElementById("quick-add-input"),
+        pokemonRefList: document.getElementById("pokemon-ref-list"),
+        metaGrid: document.getElementById("meta-grid"),
         routeNameInput: document.getElementById("route-name-input"),
         zoneTypeSelect: document.getElementById("zone-type-select"),
         combatEnabledSelect: document.getElementById("combat-enabled-select"),
+        unlockModeSelect: document.getElementById("unlock-mode-select"),
         unlockDefeatsInput: document.getElementById("unlock-defeats-input"),
         unlockTimerSecondsInput: document.getElementById("unlock-timer-seconds-input"),
-        quickAddInput: document.getElementById("quick-add-input"),
-        quickAddBtn: document.getElementById("quick-add-btn"),
-        pokemonRefList: document.getElementById("pokemon-ref-list"),
-        status: document.getElementById("status"),
-        metaGrid: document.getElementById("meta-grid"),
         methodsHelp: document.getElementById("methods-help"),
-        encountersBody: document.getElementById("encounters-body"),
         encounterCards: document.getElementById("encounter-cards"),
+        encountersBody: document.getElementById("encounters-body"),
+        connectedRouteAddSelect: document.getElementById("connected-route-add-select"),
+        connectedRouteAddBtn: document.getElementById("connected-route-add-btn"),
+        connectedRouteList: document.getElementById("connected-route-list"),
+        accessFlagsAllInput: document.getElementById("access-flags-all-input"),
+        accessFlagsAnyInput: document.getElementById("access-flags-any-input"),
+        accessBlockedReasonInput: document.getElementById("access-blocked-reason-input"),
+        flagSuggestions: document.getElementById("flag-suggestions"),
+        arrivalDialogueAddSelect: document.getElementById("arrival-dialogue-add-select"),
+        arrivalDialogueAddBtn: document.getElementById("arrival-dialogue-add-btn"),
+        arrivalDialogueList: document.getElementById("arrival-dialogue-list"),
+        addZoneActionBtn: document.getElementById("add-zone-action-btn"),
+        zoneActionsBody: document.getElementById("zone-actions-body"),
+        previewModeSelect: document.getElementById("preview-mode-select"),
+        actionPreviewStage: document.getElementById("action-preview-stage"),
+        actionPreviewTitle: document.getElementById("action-preview-title"),
+        actionPreviewHint: document.getElementById("action-preview-hint"),
       };
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function sanitizeText(value, fallback = "") {
+        const normalized = String(value ?? "").trim();
+        return normalized || fallback;
+      }
+
+      function sanitizeStringList(valueRaw) {
+        const source = Array.isArray(valueRaw)
+          ? valueRaw
+          : String(valueRaw || "")
+              .split(/[\n,;]+/g)
+              .map((entry) => entry.trim());
+        const deduped = [];
+        const seen = new Set();
+        for (const entry of source) {
+          const value = sanitizeText(entry);
+          if (!value || seen.has(value)) {
+            continue;
+          }
+          seen.add(value);
+          deduped.push(value);
+        }
+        return deduped;
+      }
+
+      function parsePositiveInt(valueRaw, fallback, min = 1) {
+        const parsed = Number.parseInt(String(valueRaw ?? "").trim(), 10);
+        if (!Number.isFinite(parsed)) {
+          return Math.max(min, Number(fallback || min));
+        }
+        return Math.max(min, parsed);
+      }
+
+      function parseBooleanValue(valueRaw, fallback = true) {
+        const normalized = String(valueRaw ?? "").trim().toLowerCase();
+        if (!normalized) {
+          return Boolean(fallback);
+        }
+        if (["1", "true", "yes", "y", "oui", "on"].includes(normalized)) {
+          return true;
+        }
+        if (["0", "false", "no", "n", "non", "off"].includes(normalized)) {
+          return false;
+        }
+        return Boolean(fallback);
+      }
+
+      function clampPercent(valueRaw, fallback = 50) {
+        const numeric = Number(valueRaw);
+        if (!Number.isFinite(numeric)) {
+          return Math.max(0, Math.min(100, Number(fallback) || 50));
+        }
+        return Math.max(0, Math.min(100, Math.round(numeric * 100) / 100));
+      }
+
+      function normalizeAccessRules(valueRaw) {
+        const source = valueRaw && typeof valueRaw === "object" ? valueRaw : {};
+        return {
+          requires_flags_all: sanitizeStringList(source.requires_flags_all),
+          requires_flags_any: sanitizeStringList(source.requires_flags_any),
+          blocked_reason_fr: sanitizeText(source.blocked_reason_fr),
+        };
+      }
+
+      function normalizeZoneAction(actionRaw, fallback = null) {
+        const source = actionRaw && typeof actionRaw === "object" ? actionRaw : {};
+        const previous = fallback && typeof fallback === "object" ? fallback : {};
+        const actionId = sanitizeText(source.action_id, sanitizeText(previous.action_id));
+        const dialogueId = sanitizeText(source.dialogue_id, sanitizeText(previous.dialogue_id));
+        return {
+          action_id: actionId,
+          label_fr: sanitizeText(source.label_fr, sanitizeText(previous.label_fr, actionId || dialogueId || "action")),
+          kind: "dialogue",
+          dialogue_id: dialogueId,
+          desktop_anchor_pct: {
+            x: clampPercent(source?.desktop_anchor_pct?.x, previous?.desktop_anchor_pct?.x ?? 50),
+            y: clampPercent(source?.desktop_anchor_pct?.y, previous?.desktop_anchor_pct?.y ?? 50),
+          },
+          mobile_anchor_pct: {
+            x: clampPercent(source?.mobile_anchor_pct?.x, previous?.mobile_anchor_pct?.x ?? 50),
+            y: clampPercent(source?.mobile_anchor_pct?.y, previous?.mobile_anchor_pct?.y ?? 50),
+          },
+        };
+      }
+
+      function normalizeZoneActionList(valueRaw) {
+        const source = Array.isArray(valueRaw) ? valueRaw : [];
+        const actions = [];
+        const seen = new Set();
+        for (const entry of source) {
+          const action = normalizeZoneAction(entry);
+          if (!action.action_id || seen.has(action.action_id)) {
+            continue;
+          }
+          seen.add(action.action_id);
+          actions.push(action);
+        }
+        return actions;
+      }
+
+      function getRouteChoiceById(routeId) {
+        return state.routeChoiceById.get(String(routeId || "").trim()) || null;
+      }
+
+      function getDialogueChoiceById(dialogueId) {
+        return state.dialogueChoiceById.get(String(dialogueId || "").trim()) || null;
+      }
 
       function setStatus(kind, message) {
         nodes.status.className = `status ${kind}`;
@@ -327,13 +679,15 @@
       }
 
       function setBusy(busy) {
-        state.loading = busy;
-        nodes.loadRouteBtn.disabled = busy;
-        nodes.reloadRouteBtn.disabled = busy || !state.selectedRouteId;
-        nodes.saveRouteBtn.disabled = busy || !state.selectedRouteId;
-        nodes.addEmptyRowBtn.disabled = busy || !state.route;
-        nodes.quickAddBtn.disabled = busy || !state.route;
-        updateRouteNavButtons();
+        state.loading = Boolean(busy);
+        nodes.loadRouteBtn.disabled = state.loading;
+        nodes.reloadRouteBtn.disabled = state.loading || !state.selectedRouteId;
+        nodes.saveRouteBtn.disabled = state.loading || !state.selectedRouteId || !state.route;
+        nodes.addEmptyRowBtn.disabled = state.loading || !state.route;
+        nodes.quickAddBtn.disabled = state.loading || !state.route;
+        nodes.connectedRouteAddBtn.disabled = state.loading || !state.route;
+        nodes.arrivalDialogueAddBtn.disabled = state.loading || !state.route;
+        nodes.addZoneActionBtn.disabled = state.loading || !state.route;
       }
 
       async function api(path, options = {}) {
@@ -351,6 +705,64 @@
           throw new Error(message);
         }
         return payload;
+      }
+
+      function inferRegionId(routeId) {
+        const id = String(routeId || "").trim().toLowerCase();
+        if (id.startsWith("kanto_")) {
+          return "kanto";
+        }
+        if (id.startsWith("johto_")) {
+          return "johto";
+        }
+        if (id.startsWith("hoenn_")) {
+          return "hoenn";
+        }
+        return "other";
+      }
+
+      function getRouteUnlockMinimum(route = null) {
+        const combatEnabled = route?.combat_enabled !== false;
+        const unlockMode = String(route?.unlock_mode || (combatEnabled ? "defeats" : "visit")).toLowerCase().trim();
+        return !combatEnabled || unlockMode === "visit" ? 0 : 1;
+      }
+
+      function parseUnlockDefeats(valueRaw, route = null) {
+        const min = getRouteUnlockMinimum(route);
+        const fallback = min === 0 ? 0 : DEFAULT_UNLOCK_DEFEATS_REQUIRED;
+        const parsed = Number.parseInt(String(valueRaw ?? "").trim(), 10);
+        if (!Number.isFinite(parsed)) {
+          return fallback;
+        }
+        return Math.max(min, parsed);
+      }
+
+      function toUnlockTimerSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
+        const fallbackSeconds = Math.max(1, Math.round(Number(fallbackMs || DEFAULT_UNLOCK_TIMER_MS) / 1000));
+        return parsePositiveInt(valueRaw, fallbackSeconds, 1);
+      }
+
+      function toUnlockTimerMsFromSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
+        return Math.max(1000, toUnlockTimerSeconds(valueRaw, fallbackMs) * 1000);
+      }
+
+      function normalizeMethods(valueRaw) {
+        const list = String(valueRaw || "")
+          .replaceAll(",", "|")
+          .replaceAll(";", "|")
+          .split("|")
+          .map((entry) => String(entry || "").toLowerCase().trim())
+          .filter(Boolean);
+        const deduped = [];
+        const seen = new Set();
+        for (const method of list) {
+          if (seen.has(method)) {
+            continue;
+          }
+          seen.add(method);
+          deduped.push(method);
+        }
+        return deduped;
       }
 
       function parsePokemonId(rawValue) {
@@ -380,43 +792,6 @@
         return 0;
       }
 
-      function parsePositiveInt(valueRaw, fallback, min = 1) {
-        const parsed = Number.parseInt(String(valueRaw ?? "").trim(), 10);
-        if (!Number.isFinite(parsed)) {
-          return Math.max(min, Number(fallback || min));
-        }
-        return Math.max(min, parsed);
-      }
-
-      function toUnlockTimerSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
-        const fallbackSeconds = Math.max(1, Math.round(Number(fallbackMs || DEFAULT_UNLOCK_TIMER_MS) / 1000));
-        return parsePositiveInt(valueRaw, fallbackSeconds, 1);
-      }
-
-      function toUnlockTimerMsFromSeconds(valueRaw, fallbackMs = DEFAULT_UNLOCK_TIMER_MS) {
-        const seconds = toUnlockTimerSeconds(valueRaw, fallbackMs);
-        return Math.max(1000, seconds * 1000);
-      }
-
-      function normalizeMethods(valueRaw) {
-        const list = String(valueRaw || "")
-          .replaceAll(",", "|")
-          .replaceAll(";", "|")
-          .split("|")
-          .map((entry) => String(entry || "").toLowerCase().trim())
-          .filter(Boolean);
-        const seen = new Set();
-        const deduped = [];
-        for (const method of list) {
-          if (seen.has(method)) {
-            continue;
-          }
-          seen.add(method);
-          deduped.push(method);
-        }
-        return deduped;
-      }
-
       function validateEncounter(row) {
         const errors = [];
         const pokemonId = Number(row?.pokemon_id || 0);
@@ -439,107 +814,49 @@
           errors.push("max_level > 0 requis");
         }
         if (Number(row?.max_level) < Number(row?.min_level)) {
-          errors.push("max_level doit etre >= min_level");
+          errors.push("max_level doit être >= min_level");
         }
         return errors;
       }
 
-      function renderRouteSelect() {
-        const current = state.selectedRouteId;
-        nodes.routeSelect.innerHTML = "";
-        for (const route of state.filteredRoutes) {
-          const option = document.createElement("option");
-          option.value = route.route_id;
-          option.textContent = `${route.route_name_fr} (${route.route_id})`;
-          nodes.routeSelect.append(option);
+      function validateZoneAction(action) {
+        const errors = [];
+        if (!sanitizeText(action?.action_id)) {
+          errors.push("action_id manquant");
         }
-        if (!state.filteredRoutes.some((route) => route.route_id === current)) {
-          state.selectedRouteId = state.filteredRoutes[0]?.route_id || "";
+        if (!sanitizeText(action?.label_fr)) {
+          errors.push("label_fr manquant");
         }
-        nodes.routeSelect.value = state.selectedRouteId;
-        updateRouteNavButtons();
+        if (!sanitizeText(action?.dialogue_id)) {
+          errors.push("dialogue_id manquant");
+        }
+        return errors;
       }
 
-      function getSelectedRouteIndex() {
-        return state.filteredRoutes.findIndex((route) => route.route_id === state.selectedRouteId);
+      function createDefaultEncounter(pokemonId = 0) {
+        const id = Math.max(0, Number(pokemonId || 0));
+        const ref = state.pokemonById.get(id) || null;
+        return {
+          pokemon_id: id || "",
+          pokemon_name_en: ref?.name_en || "",
+          pokemon_name_fr: ref?.name_fr || "",
+          spawn_weight: 10,
+          min_level: 2,
+          max_level: 4,
+          methods: ["walk"],
+        };
       }
 
-      function updateRouteNavButtons() {
-        const hasAny = state.filteredRoutes.length > 0;
-        const index = getSelectedRouteIndex();
-        nodes.prevRouteBtn.disabled = state.loading || !hasAny || index <= 0;
-        nodes.nextRouteBtn.disabled = state.loading || !hasAny || index < 0 || index >= state.filteredRoutes.length - 1;
-      }
-
-      function isTypingTarget(target) {
-        if (!target || typeof target !== "object") {
-          return false;
-        }
-        const tagName = String(target.tagName || "").toUpperCase();
-        if (tagName === "TEXTAREA") {
-          return true;
-        }
-        if (tagName === "INPUT") {
-          const type = String(target.type || "").toLowerCase();
-          return !["button", "submit", "reset", "checkbox", "radio", "range"].includes(type);
-        }
-        if (tagName === "SELECT") {
-          return true;
-        }
-        return Boolean(target.isContentEditable);
-      }
-
-      async function loadRelativeRoute(offset) {
-        if (state.loading || state.filteredRoutes.length <= 0) {
-          return;
-        }
-        const currentIndex = getSelectedRouteIndex();
-        if (currentIndex < 0) {
-          return;
-        }
-        const nextIndex = Math.max(0, Math.min(state.filteredRoutes.length - 1, currentIndex + offset));
-        if (nextIndex === currentIndex) {
-          return;
-        }
-        const nextRouteId = state.filteredRoutes[nextIndex]?.route_id || "";
-        if (!nextRouteId) {
-          return;
-        }
-        if (state.dirty && !confirm("Tu as des modifs non sauvegardees. Continuer sans sauvegarder ?")) {
-          return;
-        }
-        await loadRoute(nextRouteId);
-      }
-
-      function applyRouteFilter() {
-        const filterText = String(nodes.routeFilter.value || "").toLowerCase().trim();
-        if (!filterText) {
-          state.filteredRoutes = state.allRoutes.slice();
-        } else {
-          state.filteredRoutes = state.allRoutes.filter((route) => {
-            const hay = `${route.route_id} ${route.route_name_fr} ${route.zone_type}`.toLowerCase();
-            return hay.includes(filterText);
-          });
-        }
-        renderRouteSelect();
-      }
-
-      function setDirty(nextDirty) {
-        state.dirty = Boolean(nextDirty);
-        if (!state.route) {
-          return;
-        }
-        if (state.dirty) {
-          setStatus("warn", "Modifications non sauvegardees.");
-        } else {
-          setStatus("ok", "A jour avec le fichier CSV.");
-        }
-      }
-
-      function buildPokemonRefList() {
-        nodes.pokemonRefList.innerHTML = state.pokemonRefs
-          .map((ref) => `<option value="${ref.id} ${ref.name_en} (${ref.name_fr})"></option>`)
-          .join("");
+      function createDefaultZoneAction() {
+        const defaultDialogueId = sanitizeText(state.dialogueChoices[0]?.dialogue_id);
+        const actionIndex = Array.isArray(state.route?.route?.zone_actions) ? state.route.route.zone_actions.length + 1 : 1;
+        return normalizeZoneAction({
+          action_id: `action_${actionIndex}`,
+          label_fr: `Interaction ${actionIndex}`,
+          dialogue_id: defaultDialogueId,
+          desktop_anchor_pct: { x: 50, y: 60 },
+          mobile_anchor_pct: { x: 70, y: 30 },
+        });
       }
 
       function getPokemonRef(pokemonId) {
@@ -588,206 +905,61 @@
         return `<div class="${className}" title="${safeLabel}" aria-label="${safeLabel}">${imageMarkup}</div>`;
       }
 
-      function renderMethodsHelp() {
-        nodes.methodsHelp.innerHTML = state.methodChoices
-          .map((method) => `<span class="chip"><code>${method}</code></span>`)
+      function buildPokemonRefList() {
+        nodes.pokemonRefList.innerHTML = state.pokemonRefs
+          .map((ref) => `<option value="${ref.id} ${escapeHtml(ref.name_en)} (${escapeHtml(ref.name_fr)})"></option>`)
           .join("");
       }
 
-      function renderMeta() {
-        const encounters = Array.isArray(state.route?.encounters) ? state.route.encounters : [];
-        const totalWeight = encounters.reduce((sum, row) => sum + Math.max(0, Number(row.spawn_weight || 0)), 0);
-        const invalidCount = encounters.filter((row) => validateEncounter(row).length > 0).length;
-        const unlockDefeatsRequired = parsePositiveInt(
-          state.route?.route?.unlock_defeats_required,
-          DEFAULT_UNLOCK_DEFEATS_REQUIRED,
-          1,
-        );
-        const unlockTimerSeconds = toUnlockTimerSeconds(
-          state.route?.route?.unlock_timer_ms
-            ? Math.round(Number(state.route.route.unlock_timer_ms) / 1000)
-            : "",
-          DEFAULT_UNLOCK_TIMER_MS,
-        );
-        const methodTotals = {};
-        for (const row of encounters) {
-          const rowWeight = Math.max(0, Number(row.spawn_weight || 0));
-          const methods = normalizeMethods(row.methods);
-          const keys = methods.length > 0 ? methods : ["(none)"];
-          for (const key of keys) {
-            methodTotals[key] = (methodTotals[key] || 0) + rowWeight;
+      function refreshChoiceMaps() {
+        state.routeChoiceById = new Map((Array.isArray(state.routeChoices) ? state.routeChoices : []).map((route) => [route.route_id, route]));
+        state.dialogueChoiceById = new Map((Array.isArray(state.dialogueChoices) ? state.dialogueChoices : []).map((dialogue) => [dialogue.dialogue_id, dialogue]));
+      }
+
+      function applyRouteFilter() {
+        const filterText = String(nodes.routeFilter.value || "").trim().toLowerCase();
+        const regionFilter = String(nodes.routeRegionSelect.value || "all").trim().toLowerCase() || "all";
+        state.routeRegionFilter = regionFilter;
+        state.filteredRoutes = state.allRoutes.filter((route) => {
+          const regionId = String(route.region_id || inferRegionId(route.route_id)).toLowerCase();
+          if (regionFilter !== "all" && regionId !== regionFilter) {
+            return false;
           }
+          if (!filterText) {
+            return true;
+          }
+          const haystack = `${route.route_id} ${route.route_name_fr} ${route.zone_type} ${route.region_label || ""} ${route.storage_label || ""}`.toLowerCase();
+          return haystack.includes(filterText);
+        });
+        renderRouteSelect();
+      }
+
+      function renderRouteSelect() {
+        const current = state.selectedRouteId;
+        nodes.routeSelect.innerHTML = "";
+        for (const route of state.filteredRoutes) {
+          const option = document.createElement("option");
+          option.value = route.route_id;
+          option.textContent = `${route.region_label || "Autre"} • ${route.route_name_fr} (${route.route_id})`;
+          nodes.routeSelect.append(option);
         }
-        const methodSummary = Object.entries(methodTotals)
-          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-          .slice(0, 10)
-          .map(([method, weight]) => {
-            const ratio = totalWeight > 0 ? Math.round((weight / totalWeight) * 1000) / 10 : 0;
-            return `${method}: ${weight} (${ratio}%)`;
-          })
-          .join(" | ");
-
-        nodes.metaGrid.innerHTML = `
-          <article class="pill"><div class="pill-key">Rencontres</div><div class="pill-value">${encounters.length}</div></article>
-          <article class="pill"><div class="pill-key">Poids total</div><div class="pill-value">${totalWeight}</div></article>
-          <article class="pill"><div class="pill-key">Lignes invalides</div><div class="pill-value">${invalidCount}</div></article>
-          <article class="pill"><div class="pill-key">Deblocage</div><div class="pill-value">${unlockDefeatsRequired} KO d'affilee</div></article>
-          <article class="pill"><div class="pill-key">Timer de fight</div><div class="pill-value">${unlockTimerSeconds}s</div></article>
-          <article class="pill"><div class="pill-key">Repartition methods</div><div class="pill-value">${methodSummary || "-"}</div></article>
-        `;
-        renderEncounterCards(encounters, totalWeight);
-      }
-
-      function renderEncounterCards(encounters, totalWeight) {
-        const topRows = encounters
-          .slice()
-          .sort((a, b) => Number(b.spawn_weight || 0) - Number(a.spawn_weight || 0))
-          .slice(0, 8);
-        if (topRows.length <= 0) {
-          nodes.encounterCards.innerHTML = `<article class="pill">Aucun Pokemon dans cette zone.</article>`;
-          return;
+        if (!state.filteredRoutes.some((route) => route.route_id === current)) {
+          state.selectedRouteId = state.filteredRoutes[0]?.route_id || "";
         }
-        nodes.encounterCards.innerHTML = topRows
-          .map((row) => {
-            const chance = totalWeight > 0 ? Math.max(0, (Number(row.spawn_weight || 0) / totalWeight) * 100) : 0;
-            const spriteMarkup = renderSpriteBlock(
-              getPokemonSpriteUrlForRow(row),
-              "sprite-mini",
-              row.pokemon_name_en || row.pokemon_name_fr || row.pokemon_id,
-            );
-            return `
-              <article class="encounter-card">
-                <div class="row">
-                  ${spriteMarkup}
-                  <div>
-                    <div class="card-name">#${Number(row.pokemon_id || 0)} ${escapeHtml(row.pokemon_name_fr || "-")}</div>
-                    <div class="card-sub">${escapeHtml(row.pokemon_name_en || "-")}</div>
-                  </div>
-                </div>
-                <div class="card-sub">Poids ${Number(row.spawn_weight || 0)} | Lvl ${Number(row.min_level || 1)}-${Number(row.max_level || 1)}</div>
-                <div class="chance-wrap">
-                  <div class="chance-bar"><span style="width:${Math.max(0, Math.min(100, chance)).toFixed(1)}%"></span></div>
-                  <div class="small">${chance.toFixed(1)}%</div>
-                </div>
-              </article>
-            `;
-          })
-          .join("");
+        nodes.routeSelect.value = state.selectedRouteId;
       }
 
-      function renderEncounters() {
-        const encounters = Array.isArray(state.route?.encounters) ? state.route.encounters : [];
-        const totalWeight = encounters.reduce((sum, row) => sum + Math.max(0, Number(row.spawn_weight || 0)), 0);
-        if (encounters.length <= 0) {
-          nodes.encountersBody.innerHTML = `<tr><td colspan="11" class="small">Aucune rencontre. Ajoute une ligne.</td></tr>`;
-          renderMeta();
-          return;
-        }
-        nodes.encountersBody.innerHTML = encounters
-          .map((row, index) => {
-            const errors = validateEncounter(row);
-            const methodText = Array.isArray(row.methods) ? row.methods.join("|") : String(row.methods || "");
-            const chance = totalWeight > 0 ? Math.max(0, (Number(row.spawn_weight || 0) / totalWeight) * 100) : 0;
-            const spriteMarkup = renderSpriteBlock(
-              getPokemonSpriteUrlForRow(row),
-              "sprite-mini small",
-              row.pokemon_name_en || row.pokemon_name_fr || row.pokemon_id,
-            );
-            return `
-              <tr data-index="${index}" class="${errors.length > 0 ? "invalid" : ""}" title="${errors.join(", ")}">
-                <td>${index + 1}</td>
-                <td>${spriteMarkup}</td>
-                <td><input type="number" min="1" data-field="pokemon_id" value="${Number(row.pokemon_id || 0) || ""}" /></td>
-                <td><input class="readonly" type="text" data-field="pokemon_name_fr" value="${escapeHtml(row.pokemon_name_fr || "")}" readonly /></td>
-                <td><input class="readonly" type="text" data-field="pokemon_name_en" value="${escapeHtml(row.pokemon_name_en || "")}" readonly /></td>
-                <td><input type="number" min="1" data-field="spawn_weight" value="${Number(row.spawn_weight || 1)}" /></td>
-                <td>
-                  <div class="chance-wrap">
-                    <div class="chance-bar"><span style="width:${Math.max(0, Math.min(100, chance)).toFixed(1)}%"></span></div>
-                    <div class="small">${chance.toFixed(1)}%</div>
-                  </div>
-                </td>
-                <td><input type="number" min="1" data-field="min_level" value="${Number(row.min_level || 1)}" /></td>
-                <td><input type="number" min="1" data-field="max_level" value="${Number(row.max_level || 1)}" /></td>
-                <td><input type="text" data-field="methods" value="${escapeHtml(methodText)}" placeholder="walk|surf|good-rod" /></td>
-                <td>
-                  <div class="action-col">
-                    <button class="btn btn-secondary" type="button" data-action="duplicate">Dupliquer</button>
-                    <button class="btn btn-danger" type="button" data-action="remove">Suppr.</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          })
-          .join("");
-        renderMeta();
-      }
-
-      function escapeHtml(value) {
-        return String(value || "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#39;");
-      }
-
-      function syncRouteSettingsFromUi() {
+      function setDirty(nextDirty) {
+        state.dirty = Boolean(nextDirty);
         if (!state.route) {
           return;
         }
-        state.route.route.route_name_fr = String(nodes.routeNameInput.value || "").trim() || state.route.route.route_id;
-        state.route.route.zone_type = String(nodes.zoneTypeSelect.value || "route").toLowerCase().trim();
-        state.route.route.combat_enabled = nodes.combatEnabledSelect.value === "true";
-        state.route.route.unlock_defeats_required = parsePositiveInt(
-          nodes.unlockDefeatsInput.value,
-          state.route.route.unlock_defeats_required || DEFAULT_UNLOCK_DEFEATS_REQUIRED,
-          1,
-        );
-        state.route.route.unlock_timer_ms = toUnlockTimerMsFromSeconds(
-          nodes.unlockTimerSecondsInput.value,
-          state.route.route.unlock_timer_ms || DEFAULT_UNLOCK_TIMER_MS,
-        );
-        refreshUnlockSettingsUi();
-      }
-
-      function refreshUnlockSettingsUi() {
-        const combatEnabled = nodes.combatEnabledSelect.value === "true";
-        nodes.unlockDefeatsInput.disabled = !combatEnabled;
-        nodes.unlockDefeatsInput.title = combatEnabled
-          ? ""
-          : "Combat inactif: ce seuil n'est pas utilise pour debloquer la prochaine zone.";
-      }
-
-      function updateEncounterNameById(index) {
-        const encounters = state.route?.encounters || [];
-        const row = encounters[index];
-        if (!row) {
-          return;
-        }
-        const pokemonId = Number(row.pokemon_id || 0);
-        const ref = state.pokemonById.get(pokemonId) || null;
-        if (ref) {
-          row.pokemon_name_en = ref.name_en;
-          row.pokemon_name_fr = ref.name_fr;
+        const storageLabel = String(state.route.route.storage_label || "fichier de zone");
+        if (state.dirty) {
+          setStatus("warn", `Modifications non sauvegardées (${storageLabel}).`);
         } else {
-          row.pokemon_name_en = "";
-          row.pokemon_name_fr = "";
+          setStatus("ok", `À jour avec ${storageLabel.toLowerCase()}.`);
         }
-      }
-
-      function createDefaultEncounter(pokemonId = 0) {
-        const id = Math.max(0, Number(pokemonId || 0));
-        const ref = state.pokemonById.get(id) || null;
-        return {
-          pokemon_id: id || "",
-          pokemon_name_en: ref?.name_en || "",
-          pokemon_name_fr: ref?.name_fr || "",
-          spawn_weight: 10,
-          min_level: 2,
-          max_level: 4,
-          methods: ["walk"],
-        };
       }
 
       function parseRoutePayload(payload) {
@@ -795,23 +967,27 @@
         const encounters = Array.isArray(payload?.encounters) ? payload.encounters : [];
         return {
           route: {
-            route_id: String(route.route_id || state.selectedRouteId || ""),
-            route_name_fr: String(route.route_name_fr || route.route_id || state.selectedRouteId || "").trim(),
-            zone_type: String(route.zone_type || "route").toLowerCase().trim(),
-            combat_enabled: Boolean(route.combat_enabled),
-            unlock_mode: String(route.unlock_mode || (route.combat_enabled === false ? "visit" : "defeats")),
-            unlock_defeats_required: parsePositiveInt(
-              route.unlock_defeats_required,
-              DEFAULT_UNLOCK_DEFEATS_REQUIRED,
-              1,
-            ),
+            route_id: sanitizeText(route.route_id, state.selectedRouteId || ""),
+            route_name_fr: sanitizeText(route.route_name_fr, sanitizeText(route.route_id, state.selectedRouteId || "")),
+            zone_type: sanitizeText(route.zone_type, "route").toLowerCase(),
+            combat_enabled: parseBooleanValue(route.combat_enabled, true),
+            unlock_mode: sanitizeText(route.unlock_mode, route.combat_enabled === false ? "visit" : "defeats").toLowerCase(),
+            unlock_defeats_required: parseUnlockDefeats(route.unlock_defeats_required, route),
             unlock_timer_ms: parsePositiveInt(route.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS, 1000),
+            region_id: sanitizeText(route.region_id, inferRegionId(route.route_id || state.selectedRouteId || "")),
+            region_label: sanitizeText(route.region_label),
+            storage_kind: sanitizeText(route.storage_kind),
+            storage_label: sanitizeText(route.storage_label),
+            connected_route_ids: sanitizeStringList(route.connected_route_ids).filter((candidateId) => candidateId !== route.route_id),
+            arrival_dialogue_ids_once: sanitizeStringList(route.arrival_dialogue_ids_once),
+            zone_actions: normalizeZoneActionList(route.zone_actions),
+            access_rules: normalizeAccessRules(route.access_rules),
           },
           encounters: encounters.map((row) => ({
             pokemon_id: Math.max(0, Number.parseInt(String(row.pokemon_id || ""), 10) || 0),
-            pokemon_name_en: String(row.pokemon_name_en || "").toLowerCase().trim(),
-            pokemon_name_fr: String(row.pokemon_name_fr || "").trim(),
-            sprite_default_url: String(row.sprite_default_url || "").trim(),
+            pokemon_name_en: sanitizeText(row.pokemon_name_en).toLowerCase(),
+            pokemon_name_fr: sanitizeText(row.pokemon_name_fr),
+            sprite_default_url: sanitizeText(row.sprite_default_url),
             spawn_weight: Math.max(1, Number.parseInt(String(row.spawn_weight || ""), 10) || 1),
             min_level: Math.max(1, Number.parseInt(String(row.min_level || ""), 10) || 1),
             max_level: Math.max(1, Number.parseInt(String(row.max_level || ""), 10) || 1),
@@ -827,125 +1003,448 @@
         nodes.routeNameInput.value = state.route.route.route_name_fr || "";
         nodes.zoneTypeSelect.value = state.route.route.zone_type || "route";
         nodes.combatEnabledSelect.value = state.route.route.combat_enabled ? "true" : "false";
-        nodes.unlockDefeatsInput.value = String(
-          parsePositiveInt(state.route.route.unlock_defeats_required, DEFAULT_UNLOCK_DEFEATS_REQUIRED, 1),
-        );
+        nodes.unlockModeSelect.value = state.route.route.unlock_mode || "defeats";
+        nodes.unlockDefeatsInput.value = String(parseUnlockDefeats(state.route.route.unlock_defeats_required, state.route.route));
         nodes.unlockTimerSecondsInput.value = String(
           toUnlockTimerSeconds(
-            state.route.route.unlock_timer_ms
-              ? Math.round(Number(state.route.route.unlock_timer_ms) / 1000)
-              : "",
+            state.route.route.unlock_timer_ms ? Math.round(Number(state.route.route.unlock_timer_ms) / 1000) : "",
             DEFAULT_UNLOCK_TIMER_MS,
           ),
         );
+        nodes.accessFlagsAllInput.value = (state.route.route.access_rules.requires_flags_all || []).join(", ");
+        nodes.accessFlagsAnyInput.value = (state.route.route.access_rules.requires_flags_any || []).join(", ");
+        nodes.accessBlockedReasonInput.value = state.route.route.access_rules.blocked_reason_fr || "";
+        nodes.previewModeSelect.value = state.previewMode;
         refreshUnlockSettingsUi();
       }
 
-      async function loadBootstrap() {
-        setBusy(true);
-        setStatus("info", "Chargement des references...");
-        try {
-          const [pokemonPayload, metaPayload] = await Promise.all([api("/api/pokemon-ref"), api("/api/route-encounters/meta")]);
-          state.pokemonRefs = Array.isArray(pokemonPayload?.pokemon) ? pokemonPayload.pokemon : [];
-          state.pokemonById = new Map(state.pokemonRefs.map((entry) => [Number(entry.id), entry]));
-          state.methodChoices = Array.isArray(metaPayload?.method_choices) ? metaPayload.method_choices : [];
-          state.allRoutes = Array.isArray(metaPayload?.routes) ? metaPayload.routes : [];
-          state.filteredRoutes = state.allRoutes.slice();
-          state.selectedRouteId = state.filteredRoutes[0]?.route_id || "";
-          buildPokemonRefList();
-          renderMethodsHelp();
-          renderRouteSelect();
-          if (state.selectedRouteId) {
-            await loadRoute(state.selectedRouteId);
-          } else {
-            setStatus("warn", "Aucune route trouvee.");
-          }
-        } catch (error) {
-          setStatus("err", `Erreur: ${error.message}`);
-        } finally {
-          setBusy(false);
+      function refreshUnlockSettingsUi() {
+        const combatEnabled = nodes.combatEnabledSelect.value === "true";
+        if (!combatEnabled) {
+          nodes.unlockModeSelect.value = "visit";
         }
+        const unlockMode = String(nodes.unlockModeSelect.value || "defeats");
+        const useDefeatGate = combatEnabled && unlockMode === "defeats";
+        nodes.unlockModeSelect.disabled = !combatEnabled;
+        nodes.unlockDefeatsInput.disabled = !useDefeatGate;
+        nodes.unlockTimerSecondsInput.disabled = !useDefeatGate;
+        nodes.unlockDefeatsInput.min = useDefeatGate ? "1" : "0";
       }
 
-      async function loadRoute(routeId) {
-        const id = String(routeId || "").trim();
-        if (!id) {
-          setStatus("warn", "Choisis une route.");
+      function syncRouteSettingsFromUi() {
+        if (!state.route) {
           return;
         }
-        setBusy(true);
-        setStatus("info", `Chargement de ${id}...`);
-        try {
-          const payload = await api(`/api/route-encounters/${encodeURIComponent(id)}`);
-          state.selectedRouteId = id;
-          state.route = parseRoutePayload(payload);
-          pushUiSettings();
-          renderEncounters();
-          setDirty(false);
-          nodes.reloadRouteBtn.disabled = false;
-          nodes.saveRouteBtn.disabled = false;
-          nodes.addEmptyRowBtn.disabled = false;
-          nodes.quickAddBtn.disabled = false;
-          nodes.routeSelect.value = id;
-          updateRouteNavButtons();
-        } catch (error) {
-          setStatus("err", `Erreur: ${error.message}`);
-        } finally {
-          setBusy(false);
-        }
+        const combatEnabled = nodes.combatEnabledSelect.value === "true";
+        const unlockMode = combatEnabled ? String(nodes.unlockModeSelect.value || "defeats").toLowerCase().trim() : "visit";
+        state.route.route.route_name_fr = sanitizeText(nodes.routeNameInput.value, state.route.route.route_id);
+        state.route.route.zone_type = sanitizeText(nodes.zoneTypeSelect.value, "route").toLowerCase();
+        state.route.route.combat_enabled = combatEnabled;
+        state.route.route.unlock_mode = unlockMode;
+        state.route.route.unlock_defeats_required = parseUnlockDefeats(nodes.unlockDefeatsInput.value, {
+          ...state.route.route,
+          combat_enabled: combatEnabled,
+          unlock_mode: unlockMode,
+        });
+        state.route.route.unlock_timer_ms = toUnlockTimerMsFromSeconds(
+          nodes.unlockTimerSecondsInput.value,
+          state.route.route.unlock_timer_ms || DEFAULT_UNLOCK_TIMER_MS,
+        );
+        state.route.route.access_rules = {
+          requires_flags_all: sanitizeStringList(nodes.accessFlagsAllInput.value),
+          requires_flags_any: sanitizeStringList(nodes.accessFlagsAnyInput.value),
+          blocked_reason_fr: sanitizeText(nodes.accessBlockedReasonInput.value),
+        };
+        refreshUnlockSettingsUi();
       }
 
-      async function saveRoute() {
-        if (!state.route || !state.selectedRouteId) {
+      function renderMethodsHelp() {
+        nodes.methodsHelp.innerHTML = state.methodChoices
+          .map((method) => `<span class="chip"><code>${escapeHtml(method)}</code></span>`)
+          .join("");
+      }
+
+      function renderMeta() {
+        if (!state.route) {
+          nodes.metaGrid.innerHTML = `<article class="empty-state">Charge une zone pour afficher son résumé.</article>`;
           return;
         }
-        syncRouteSettingsFromUi();
-        const invalidRows = state.route.encounters
-          .map((row, index) => ({ index, errors: validateEncounter(row) }))
-          .filter((entry) => entry.errors.length > 0);
-        if (invalidRows.length > 0) {
-          setStatus("err", `Impossible de sauvegarder: ${invalidRows.length} ligne(s) invalide(s).`);
-          renderEncounters();
+        const route = state.route.route;
+        const encounters = Array.isArray(state.route.encounters) ? state.route.encounters : [];
+        const totalWeight = encounters.reduce((sum, row) => sum + Math.max(0, Number(row.spawn_weight || 0)), 0);
+        const invalidEncounters = encounters.filter((row) => validateEncounter(row).length > 0).length;
+        const invalidActions = (route.zone_actions || []).filter((action) => validateZoneAction(action).length > 0).length;
+        const unlockLabel =
+          route.combat_enabled === false || route.unlock_mode === "visit"
+            ? "Visite"
+            : `${parseUnlockDefeats(route.unlock_defeats_required, route)} KO`;
+        nodes.metaGrid.innerHTML = [
+          ["Zone", route.route_name_fr || route.route_id],
+          ["ID", route.route_id],
+          ["Région", route.region_label || inferRegionId(route.route_id)],
+          ["Sauvegarde", route.storage_label || route.storage_kind || "JSON de zone"],
+          ["Rencontres", `${encounters.length}`],
+          ["Poids total", `${totalWeight}`],
+          ["Déblocage", unlockLabel],
+          ["Sorties", `${(route.connected_route_ids || []).length}`],
+          ["Dialogues arrivée", `${(route.arrival_dialogue_ids_once || []).length}`],
+          ["Actions PNJ", `${(route.zone_actions || []).length}`],
+          ["Lignes invalides", `${invalidEncounters}`],
+          ["Actions invalides", `${invalidActions}`],
+        ]
+          .map(
+            ([label, value]) =>
+              `<article class="meta-card"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></article>`,
+          )
+          .join("");
+      }
+
+      function renderEncounterCards(encounters, totalWeight) {
+        const topRows = encounters
+          .slice()
+          .sort((left, right) => Number(right.spawn_weight || 0) - Number(left.spawn_weight || 0))
+          .slice(0, 8);
+        if (topRows.length <= 0) {
+          nodes.encounterCards.innerHTML = `<article class="empty-state">Aucun Pokémon dans cette zone.</article>`;
           return;
         }
-        setBusy(true);
-        setStatus("info", "Sauvegarde en cours...");
-        try {
-          const payload = {
-            route_name_fr: state.route.route.route_name_fr,
-            zone_type: state.route.route.zone_type,
-            combat_enabled: state.route.route.combat_enabled,
-            unlock_defeats_required: parsePositiveInt(
-              state.route.route.unlock_defeats_required,
-              DEFAULT_UNLOCK_DEFEATS_REQUIRED,
-              1,
-            ),
-            unlock_timer_ms: parsePositiveInt(state.route.route.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS, 1000),
-            encounters: state.route.encounters.map((row) => ({
-              pokemon_id: Number(row.pokemon_id || 0),
-              pokemon_name_en: String(row.pokemon_name_en || "").trim().toLowerCase(),
-              pokemon_name_fr: String(row.pokemon_name_fr || "").trim(),
-              spawn_weight: Math.max(1, Number.parseInt(String(row.spawn_weight || "1"), 10) || 1),
-              min_level: Math.max(1, Number.parseInt(String(row.min_level || "1"), 10) || 1),
-              max_level: Math.max(1, Number.parseInt(String(row.max_level || "1"), 10) || 1),
-              methods: normalizeMethods(row.methods),
-            })),
-          };
-          const response = await api(`/api/route-encounters/${encodeURIComponent(state.selectedRouteId)}`, {
-            method: "PUT",
-            body: JSON.stringify(payload),
-          });
-          state.route = parseRoutePayload(response?.route || {});
-          state.allRoutes = Array.isArray(response?.routes) ? response.routes : state.allRoutes;
-          applyRouteFilter();
-          renderEncounters();
-          setDirty(false);
-          setStatus("ok", "Sauvegarde terminee. Backup cree automatiquement.");
-        } catch (error) {
-          setStatus("err", `Erreur: ${error.message}`);
-        } finally {
-          setBusy(false);
+        nodes.encounterCards.innerHTML = topRows
+          .map((row) => {
+            const chance = totalWeight > 0 ? Math.max(0, (Number(row.spawn_weight || 0) / totalWeight) * 100) : 0;
+            return `
+              <article class="encounter-card">
+                <div class="row">
+                  ${renderSpriteBlock(
+                    getPokemonSpriteUrlForRow(row),
+                    "sprite-mini",
+                    row.pokemon_name_en || row.pokemon_name_fr || row.pokemon_id,
+                  )}
+                  <div>
+                    <strong>#${Number(row.pokemon_id || 0)} ${escapeHtml(row.pokemon_name_fr || "-")}</strong>
+                    <div class="small">${escapeHtml(row.pokemon_name_en || "-")}</div>
+                  </div>
+                </div>
+                <div class="small">Poids ${Number(row.spawn_weight || 0)} | Lvl ${Number(row.min_level || 1)}-${Number(row.max_level || 1)}</div>
+                <div class="chance-wrap">
+                  <div class="chance-bar"><span style="width:${Math.max(0, Math.min(100, chance)).toFixed(1)}%"></span></div>
+                  <div class="small">${chance.toFixed(1)}%</div>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderEncounters() {
+        if (!state.route) {
+          nodes.encountersBody.innerHTML = `<tr><td colspan="11" class="small">Charge une zone.</td></tr>`;
+          nodes.encounterCards.innerHTML = `<article class="empty-state">Charge une zone.</article>`;
+          return;
         }
+        const encounters = Array.isArray(state.route.encounters) ? state.route.encounters : [];
+        const totalWeight = encounters.reduce((sum, row) => sum + Math.max(0, Number(row.spawn_weight || 0)), 0);
+        if (encounters.length <= 0) {
+          nodes.encountersBody.innerHTML = `<tr><td colspan="11" class="small">Aucune rencontre. Ajoute une ligne.</td></tr>`;
+          renderEncounterCards([], 0);
+          return;
+        }
+        nodes.encountersBody.innerHTML = encounters
+          .map((row, index) => {
+            const errors = validateEncounter(row);
+            const chance = totalWeight > 0 ? Math.max(0, (Number(row.spawn_weight || 0) / totalWeight) * 100) : 0;
+            return `
+              <tr data-index="${index}" class="${errors.length > 0 ? "invalid" : ""}" title="${escapeHtml(errors.join(", "))}">
+                <td>${index + 1}</td>
+                <td>${renderSpriteBlock(
+                  getPokemonSpriteUrlForRow(row),
+                  "sprite-mini small",
+                  row.pokemon_name_en || row.pokemon_name_fr || row.pokemon_id,
+                )}</td>
+                <td><input type="number" min="1" data-field="pokemon_id" value="${Number(row.pokemon_id || 0) || ""}" /></td>
+                <td><input class="readonly" type="text" data-field="pokemon_name_fr" value="${escapeHtml(row.pokemon_name_fr || "")}" readonly /></td>
+                <td><input class="readonly" type="text" data-field="pokemon_name_en" value="${escapeHtml(row.pokemon_name_en || "")}" readonly /></td>
+                <td><input type="number" min="1" data-field="spawn_weight" value="${Number(row.spawn_weight || 1)}" /></td>
+                <td>
+                  <div class="chance-wrap">
+                    <div class="chance-bar"><span style="width:${Math.max(0, Math.min(100, chance)).toFixed(1)}%"></span></div>
+                    <div class="small">${chance.toFixed(1)}%</div>
+                  </div>
+                </td>
+                <td><input type="number" min="1" data-field="min_level" value="${Number(row.min_level || 1)}" /></td>
+                <td><input type="number" min="1" data-field="max_level" value="${Number(row.max_level || 1)}" /></td>
+                <td><input type="text" data-field="methods" value="${escapeHtml((row.methods || []).join("|"))}" placeholder="walk|surf|good-rod" /></td>
+                <td>
+                  <div class="action-col">
+                    <button class="btn btn-secondary" type="button" data-action="duplicate">Dupliquer</button>
+                    <button class="btn btn-danger" type="button" data-action="remove">Suppr.</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+        renderEncounterCards(encounters, totalWeight);
+      }
+
+      function renderConnectedRoutes() {
+        if (!state.route) {
+          nodes.connectedRouteList.innerHTML = `<article class="empty-state">Charge une zone pour éditer ses sorties.</article>`;
+          return;
+        }
+        const connectedRouteIds = Array.isArray(state.route.route.connected_route_ids) ? state.route.route.connected_route_ids : [];
+        if (connectedRouteIds.length <= 0) {
+          nodes.connectedRouteList.innerHTML = `<article class="empty-state">Aucune sortie configurée pour cette zone.</article>`;
+        } else {
+          nodes.connectedRouteList.innerHTML = connectedRouteIds
+            .map((routeId, index) => {
+              const route = getRouteChoiceById(routeId);
+              return `
+                <article class="ordered-card" data-route-order-index="${index}">
+                  <div>
+                    <strong>${escapeHtml(route?.route_name_fr || routeId)}</strong>
+                    <small>${escapeHtml(routeId)} • ${escapeHtml(route?.region_label || inferRegionId(routeId))}</small>
+                  </div>
+                  <div class="ordered-actions">
+                    <button class="btn btn-ghost" type="button" data-ordered-list="connected" data-ordered-action="up">↑</button>
+                    <button class="btn btn-ghost" type="button" data-ordered-list="connected" data-ordered-action="down">↓</button>
+                    <button class="btn btn-danger" type="button" data-ordered-list="connected" data-ordered-action="remove">Suppr.</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+        }
+        const usedIds = new Set(connectedRouteIds);
+        const currentRouteId = state.route.route.route_id;
+        nodes.connectedRouteAddSelect.innerHTML = state.routeChoices
+          .filter((route) => route.route_id !== currentRouteId && !usedIds.has(route.route_id))
+          .map((route) => `<option value="${escapeHtml(route.route_id)}">${escapeHtml(route.route_name_fr)} (${escapeHtml(route.route_id)})</option>`)
+          .join("");
+      }
+
+      function renderArrivalDialogues() {
+        if (!state.route) {
+          nodes.arrivalDialogueList.innerHTML = `<article class="empty-state">Charge une zone pour éditer ses dialogues d'arrivée.</article>`;
+          return;
+        }
+        const dialogueIds = Array.isArray(state.route.route.arrival_dialogue_ids_once)
+          ? state.route.route.arrival_dialogue_ids_once
+          : [];
+        if (dialogueIds.length <= 0) {
+          nodes.arrivalDialogueList.innerHTML = `<article class="empty-state">Aucun dialogue obligatoire configuré.</article>`;
+        } else {
+          nodes.arrivalDialogueList.innerHTML = dialogueIds
+            .map((dialogueId, index) => {
+              const dialogue = getDialogueChoiceById(dialogueId);
+              return `
+                <article class="ordered-card" data-dialogue-order-index="${index}">
+                  <div>
+                    <strong>${escapeHtml(dialogue?.title_fr || dialogueId)}</strong>
+                    <small>${escapeHtml(dialogueId)}</small>
+                  </div>
+                  <div class="ordered-actions">
+                    <button class="btn btn-ghost" type="button" data-ordered-list="arrival" data-ordered-action="up">↑</button>
+                    <button class="btn btn-ghost" type="button" data-ordered-list="arrival" data-ordered-action="down">↓</button>
+                    <button class="btn btn-danger" type="button" data-ordered-list="arrival" data-ordered-action="remove">Suppr.</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+        }
+        const usedIds = new Set(dialogueIds);
+        nodes.arrivalDialogueAddSelect.innerHTML = state.dialogueChoices
+          .filter((dialogue) => !usedIds.has(dialogue.dialogue_id))
+          .map((dialogue) => `<option value="${escapeHtml(dialogue.dialogue_id)}">${escapeHtml(dialogue.title_fr)} (${escapeHtml(dialogue.dialogue_id)})</option>`)
+          .join("");
+      }
+
+      function buildDialogueOptions(selectedId = "") {
+        return state.dialogueChoices
+          .map((dialogue) => {
+            const selected = dialogue.dialogue_id === selectedId ? " selected" : "";
+            return `<option value="${escapeHtml(dialogue.dialogue_id)}"${selected}>${escapeHtml(dialogue.title_fr)} (${escapeHtml(dialogue.dialogue_id)})</option>`;
+          })
+          .join("");
+      }
+
+      function renderZoneActions() {
+        if (!state.route) {
+          nodes.zoneActionsBody.innerHTML = `<tr><td colspan="9" class="small">Charge une zone pour éditer ses interactions.</td></tr>`;
+          return;
+        }
+        const actions = Array.isArray(state.route.route.zone_actions) ? state.route.route.zone_actions : [];
+        if (actions.length <= 0) {
+          nodes.zoneActionsBody.innerHTML = `<tr><td colspan="9" class="small">Aucune action de zone. Ajoute une ligne.</td></tr>`;
+          return;
+        }
+        if (!actions.some((action) => action.action_id === state.selectedZoneActionId)) {
+          state.selectedZoneActionId = actions[0]?.action_id || "";
+        }
+        nodes.zoneActionsBody.innerHTML = actions
+          .map((action, index) => {
+            const errors = validateZoneAction(action);
+            const dialogueOptions = buildDialogueOptions(action.dialogue_id);
+            return `
+              <tr data-zone-action-index="${index}" class="${errors.length > 0 ? "invalid" : ""}" title="${escapeHtml(errors.join(", "))}">
+                <td>
+                  <button class="btn ${action.action_id === state.selectedZoneActionId ? "" : "btn-ghost"}" type="button" data-zone-action-action="select">
+                    ${action.action_id === state.selectedZoneActionId ? "Ciblée" : "Cibler"}
+                  </button>
+                </td>
+                <td><input type="text" data-zone-action-field="action_id" value="${escapeHtml(action.action_id || "")}" /></td>
+                <td><input type="text" data-zone-action-field="label_fr" value="${escapeHtml(action.label_fr || "")}" /></td>
+                <td><select data-zone-action-field="dialogue_id"><option value="">Choisir...</option>${dialogueOptions}</select></td>
+                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_x" value="${clampPercent(action.desktop_anchor_pct?.x, 50)}" /></td>
+                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_y" value="${clampPercent(action.desktop_anchor_pct?.y, 50)}" /></td>
+                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_x" value="${clampPercent(action.mobile_anchor_pct?.x, 50)}" /></td>
+                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_y" value="${clampPercent(action.mobile_anchor_pct?.y, 50)}" /></td>
+                <td>
+                  <div class="action-col">
+                    <button class="btn btn-secondary" type="button" data-zone-action-action="duplicate">Dupliquer</button>
+                    <button class="btn btn-danger" type="button" data-zone-action-action="remove">Suppr.</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderActionPreview() {
+        const previewMode = state.previewMode === "mobile" ? "mobile" : "desktop";
+        nodes.actionPreviewStage.classList.toggle("mobile", previewMode === "mobile");
+        nodes.actionPreviewStage.classList.toggle("desktop", previewMode === "desktop");
+        if (!state.route) {
+          nodes.actionPreviewTitle.textContent = "Aucune zone chargée";
+          nodes.actionPreviewHint.textContent = "Charge une zone pour afficher les interactions.";
+          return;
+        }
+        const route = state.route.route;
+        nodes.actionPreviewTitle.textContent = `${route.route_name_fr || route.route_id} • ${previewMode}`;
+        const previewActions = Array.isArray(route.zone_actions) ? route.zone_actions : [];
+        const existingActions = Array.from(nodes.actionPreviewStage.querySelectorAll(".preview-action"));
+        for (const element of existingActions) {
+          element.remove();
+        }
+        nodes.actionPreviewStage.insertAdjacentHTML(
+          "beforeend",
+          previewActions
+            .map((action) => {
+              const anchor = previewMode === "mobile" ? action.mobile_anchor_pct : action.desktop_anchor_pct;
+              const className = action.action_id === state.selectedZoneActionId ? "preview-action active" : "preview-action";
+              return `<div class="${className}" style="left:${clampPercent(anchor?.x, 50)}%; top:${clampPercent(anchor?.y, 50)}%;">${escapeHtml(action.label_fr || action.action_id)}</div>`;
+            })
+            .join(""),
+        );
+        nodes.actionPreviewHint.textContent =
+          previewActions.length > 0
+            ? `Action ciblée: ${state.selectedZoneActionId || previewActions[0].action_id}. Clique dans la scène pour repositionner l'ancre ${previewMode}.`
+            : "Aucune action de zone pour l'instant.";
+      }
+
+      function renderFlagSuggestions() {
+        if (!Array.isArray(state.flagChoices) || state.flagChoices.length <= 0) {
+          nodes.flagSuggestions.innerHTML = `<span class="small">Aucun flag suggéré pour le moment.</span>`;
+          return;
+        }
+        nodes.flagSuggestions.innerHTML = state.flagChoices
+          .map((flagId) => `<button class="chip" type="button" data-flag-suggestion="${escapeHtml(flagId)}">${escapeHtml(flagId)}</button>`)
+          .join("");
+      }
+
+      function renderAllRouteEditors() {
+        pushUiSettings();
+        renderMeta();
+        renderMethodsHelp();
+        renderEncounters();
+        renderConnectedRoutes();
+        renderArrivalDialogues();
+        renderZoneActions();
+        renderActionPreview();
+        renderFlagSuggestions();
+      }
+
+      function updateEncounterNameById(index) {
+        const row = state.route?.encounters?.[index];
+        if (!row) {
+          return;
+        }
+        const ref = getPokemonRef(row.pokemon_id);
+        row.pokemon_name_en = ref?.name_en || "";
+        row.pokemon_name_fr = ref?.name_fr || "";
+      }
+
+      function moveOrderedValue(listName, index, direction) {
+        if (!state.route) {
+          return;
+        }
+        const key = listName === "arrival" ? "arrival_dialogue_ids_once" : "connected_route_ids";
+        const list = state.route.route[key];
+        if (!Array.isArray(list)) {
+          return;
+        }
+        const nextIndex = index + direction;
+        if (nextIndex < 0 || nextIndex >= list.length) {
+          return;
+        }
+        const [moved] = list.splice(index, 1);
+        list.splice(nextIndex, 0, moved);
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function removeOrderedValue(listName, index) {
+        if (!state.route) {
+          return;
+        }
+        const key = listName === "arrival" ? "arrival_dialogue_ids_once" : "connected_route_ids";
+        const list = state.route.route[key];
+        if (!Array.isArray(list)) {
+          return;
+        }
+        list.splice(index, 1);
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function addConnectedRoute() {
+        if (!state.route) {
+          return;
+        }
+        const routeId = sanitizeText(nodes.connectedRouteAddSelect.value);
+        if (!routeId) {
+          return;
+        }
+        state.route.route.connected_route_ids = sanitizeStringList([...(state.route.route.connected_route_ids || []), routeId]);
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function addArrivalDialogue() {
+        if (!state.route) {
+          return;
+        }
+        const dialogueId = sanitizeText(nodes.arrivalDialogueAddSelect.value);
+        if (!dialogueId) {
+          return;
+        }
+        state.route.route.arrival_dialogue_ids_once = sanitizeStringList([
+          ...(state.route.route.arrival_dialogue_ids_once || []),
+          dialogueId,
+        ]);
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function addZoneAction() {
+        if (!state.route) {
+          return;
+        }
+        state.route.route.zone_actions.push(createDefaultZoneAction());
+        state.selectedZoneActionId = state.route.route.zone_actions.at(-1)?.action_id || "";
+        setDirty(true);
+        renderAllRouteEditors();
       }
 
       function onEncounterFieldChange(event) {
@@ -962,11 +1461,8 @@
           return;
         }
         const field = String(target.getAttribute("data-field") || "");
-        if (!field) {
-          return;
-        }
         const row = state.route?.encounters?.[rowIndex];
-        if (!row) {
+        if (!row || !field) {
           return;
         }
         if (field === "pokemon_id") {
@@ -981,15 +1477,15 @@
           row.max_level = Number(row.min_level || 1);
         }
         setDirty(true);
+        renderMeta();
         renderEncounters();
       }
 
       function onEncounterActionClick(event) {
         const button = event.target.closest("[data-action]");
-        if (!button) {
+        if (!button || !state.route) {
           return;
         }
-        const action = button.getAttribute("data-action");
         const rowEl = button.closest("tr[data-index]");
         if (!rowEl) {
           return;
@@ -998,33 +1494,287 @@
         if (!Number.isInteger(rowIndex) || rowIndex < 0) {
           return;
         }
-        if (!state.route || !Array.isArray(state.route.encounters)) {
-          return;
-        }
-        if (action === "remove") {
+        if (button.getAttribute("data-action") === "remove") {
           state.route.encounters.splice(rowIndex, 1);
-          setDirty(true);
-          renderEncounters();
-          return;
-        }
-        if (action === "duplicate") {
+        } else if (button.getAttribute("data-action") === "duplicate") {
           const source = state.route.encounters[rowIndex];
           if (!source) {
             return;
           }
           state.route.encounters.splice(rowIndex + 1, 0, JSON.parse(JSON.stringify(source)));
-          setDirty(true);
-          renderEncounters();
+        }
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function onOrderedListClick(event) {
+        const button = event.target.closest("[data-ordered-action]");
+        if (!button) {
+          return;
+        }
+        const listName = button.getAttribute("data-ordered-list");
+        const action = button.getAttribute("data-ordered-action");
+        const container = button.closest("[data-route-order-index], [data-dialogue-order-index]");
+        if (!container) {
+          return;
+        }
+        const indexAttr = listName === "arrival" ? "data-dialogue-order-index" : "data-route-order-index";
+        const index = Number.parseInt(container.getAttribute(indexAttr) || "", 10);
+        if (!Number.isInteger(index) || index < 0) {
+          return;
+        }
+        if (action === "up") {
+          moveOrderedValue(listName, index, -1);
+        } else if (action === "down") {
+          moveOrderedValue(listName, index, 1);
+        } else if (action === "remove") {
+          removeOrderedValue(listName, index);
         }
       }
 
-      function addEmptyEncounterRow() {
+      function onZoneActionFieldChange(event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+        const rowEl = target.closest("tr[data-zone-action-index]");
+        if (!rowEl) {
+          return;
+        }
+        const actionIndex = Number.parseInt(rowEl.getAttribute("data-zone-action-index") || "", 10);
+        if (!Number.isInteger(actionIndex) || actionIndex < 0) {
+          return;
+        }
+        const action = state.route?.route?.zone_actions?.[actionIndex];
+        if (!action) {
+          return;
+        }
+        const field = String(target.getAttribute("data-zone-action-field") || "");
+        if (!field) {
+          return;
+        }
+        if (field === "action_id") {
+          const previousId = action.action_id;
+          action.action_id = sanitizeText(target.value, previousId);
+          if (state.selectedZoneActionId === previousId) {
+            state.selectedZoneActionId = action.action_id;
+          }
+        } else if (field === "label_fr") {
+          action.label_fr = sanitizeText(target.value, action.label_fr);
+        } else if (field === "dialogue_id") {
+          action.dialogue_id = sanitizeText(target.value);
+        } else if (field === "desktop_x") {
+          action.desktop_anchor_pct.x = clampPercent(target.value, action.desktop_anchor_pct.x);
+        } else if (field === "desktop_y") {
+          action.desktop_anchor_pct.y = clampPercent(target.value, action.desktop_anchor_pct.y);
+        } else if (field === "mobile_x") {
+          action.mobile_anchor_pct.x = clampPercent(target.value, action.mobile_anchor_pct.x);
+        } else if (field === "mobile_y") {
+          action.mobile_anchor_pct.y = clampPercent(target.value, action.mobile_anchor_pct.y);
+        }
+        setDirty(true);
+        renderMeta();
+        renderZoneActions();
+        renderActionPreview();
+      }
+
+      function onZoneActionActionClick(event) {
+        const button = event.target.closest("[data-zone-action-action]");
+        if (!button || !state.route) {
+          return;
+        }
+        const rowEl = button.closest("tr[data-zone-action-index]");
+        if (!rowEl) {
+          return;
+        }
+        const actionIndex = Number.parseInt(rowEl.getAttribute("data-zone-action-index") || "", 10);
+        if (!Number.isInteger(actionIndex) || actionIndex < 0) {
+          return;
+        }
+        const actions = state.route.route.zone_actions || [];
+        const action = actions[actionIndex];
+        if (!action) {
+          return;
+        }
+        const kind = button.getAttribute("data-zone-action-action");
+        if (kind === "select") {
+          state.selectedZoneActionId = action.action_id;
+          renderZoneActions();
+          renderActionPreview();
+          return;
+        }
+        if (kind === "duplicate") {
+          const copy = normalizeZoneAction(JSON.parse(JSON.stringify(action)));
+          copy.action_id = `${sanitizeText(copy.action_id, "action")}_copy`;
+          actions.splice(actionIndex + 1, 0, copy);
+          state.selectedZoneActionId = copy.action_id;
+        } else if (kind === "remove") {
+          actions.splice(actionIndex, 1);
+          if (state.selectedZoneActionId === action.action_id) {
+            state.selectedZoneActionId = actions[0]?.action_id || "";
+          }
+        }
+        setDirty(true);
+        renderAllRouteEditors();
+      }
+
+      function addFlagSuggestion(flagId) {
         if (!state.route) {
           return;
         }
-        state.route.encounters.push(createDefaultEncounter(0));
+        const targetNode = state.activeFlagField === "any" ? nodes.accessFlagsAnyInput : nodes.accessFlagsAllInput;
+        const values = sanitizeStringList(targetNode.value);
+        if (!values.includes(flagId)) {
+          values.push(flagId);
+          targetNode.value = values.join(", ");
+          syncRouteSettingsFromUi();
+          setDirty(true);
+          renderMeta();
+        }
+      }
+
+      function onPreviewClick(event) {
+        if (!state.route || !state.selectedZoneActionId) {
+          return;
+        }
+        const action = (state.route.route.zone_actions || []).find((entry) => entry.action_id === state.selectedZoneActionId);
+        if (!action) {
+          return;
+        }
+        const rect = nodes.actionPreviewStage.getBoundingClientRect();
+        if (!rect.width || !rect.height) {
+          return;
+        }
+        const x = clampPercent(((event.clientX - rect.left) / rect.width) * 100, 50);
+        const y = clampPercent(((event.clientY - rect.top) / rect.height) * 100, 50);
+        if (state.previewMode === "mobile") {
+          action.mobile_anchor_pct.x = x;
+          action.mobile_anchor_pct.y = y;
+        } else {
+          action.desktop_anchor_pct.x = x;
+          action.desktop_anchor_pct.y = y;
+        }
         setDirty(true);
-        renderEncounters();
+        renderZoneActions();
+        renderActionPreview();
+      }
+
+      async function loadBootstrap() {
+        setBusy(true);
+        setStatus("info", "Chargement des références...");
+        try {
+          const [pokemonPayload, metaPayload] = await Promise.all([api("/api/pokemon-ref"), api("/api/route-encounters/meta")]);
+          state.pokemonRefs = Array.isArray(pokemonPayload?.pokemon) ? pokemonPayload.pokemon : [];
+          state.pokemonById = new Map(state.pokemonRefs.map((entry) => [Number(entry.id), entry]));
+          state.allRoutes = Array.isArray(metaPayload?.routes) ? metaPayload.routes : [];
+          state.filteredRoutes = state.allRoutes.slice();
+          state.routeChoices = Array.isArray(metaPayload?.route_choices) ? metaPayload.route_choices : state.allRoutes.slice();
+          state.dialogueChoices = Array.isArray(metaPayload?.dialogue_choices) ? metaPayload.dialogue_choices : [];
+          state.flagChoices = Array.isArray(metaPayload?.flag_choices) ? metaPayload.flag_choices : [];
+          state.methodChoices = Array.isArray(metaPayload?.method_choices) ? metaPayload.method_choices : [];
+          refreshChoiceMaps();
+          state.selectedRouteId = state.filteredRoutes[0]?.route_id || "";
+          buildPokemonRefList();
+          renderMethodsHelp();
+          renderFlagSuggestions();
+          renderRouteSelect();
+          if (state.selectedRouteId) {
+            await loadRoute(state.selectedRouteId);
+          } else {
+            setStatus("warn", "Aucune zone trouvée.");
+          }
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function loadRoute(routeId) {
+        const id = sanitizeText(routeId);
+        if (!id) {
+          setStatus("warn", "Choisis une zone.");
+          return;
+        }
+        setBusy(true);
+        setStatus("info", `Chargement de ${id}...`);
+        try {
+          const payload = await api(`/api/route-encounters/${encodeURIComponent(id)}`);
+          state.selectedRouteId = id;
+          state.route = parseRoutePayload(payload);
+          state.previewMode = nodes.previewModeSelect.value || state.previewMode;
+          state.selectedZoneActionId = state.route.route.zone_actions[0]?.action_id || "";
+          nodes.routeSelect.value = id;
+          renderAllRouteEditors();
+          nodes.reloadRouteBtn.disabled = false;
+          nodes.saveRouteBtn.disabled = false;
+          nodes.addEmptyRowBtn.disabled = false;
+          nodes.quickAddBtn.disabled = false;
+          setDirty(false);
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function saveRoute() {
+        if (!state.route || !state.selectedRouteId) {
+          return;
+        }
+        syncRouteSettingsFromUi();
+        const invalidEncounters = state.route.encounters
+          .map((row, index) => ({ index, errors: validateEncounter(row) }))
+          .filter((entry) => entry.errors.length > 0);
+        const invalidZoneActions = (state.route.route.zone_actions || [])
+          .map((action, index) => ({ index, errors: validateZoneAction(action) }))
+          .filter((entry) => entry.errors.length > 0);
+        if (invalidEncounters.length > 0 || invalidZoneActions.length > 0) {
+          setStatus("err", `Impossible de sauvegarder: ${invalidEncounters.length} rencontre(s) invalide(s), ${invalidZoneActions.length} action(s) invalide(s).`);
+          renderAllRouteEditors();
+          return;
+        }
+        setBusy(true);
+        setStatus("info", "Sauvegarde en cours...");
+        try {
+          const payload = {
+            route_name_fr: state.route.route.route_name_fr,
+            zone_type: state.route.route.zone_type,
+            combat_enabled: state.route.route.combat_enabled,
+            unlock_mode: state.route.route.unlock_mode,
+            unlock_defeats_required: parseUnlockDefeats(state.route.route.unlock_defeats_required, state.route.route),
+            unlock_timer_ms: parsePositiveInt(state.route.route.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS, 1000),
+            connected_route_ids: sanitizeStringList(state.route.route.connected_route_ids),
+            arrival_dialogue_ids_once: sanitizeStringList(state.route.route.arrival_dialogue_ids_once),
+            zone_actions: normalizeZoneActionList(state.route.route.zone_actions),
+            access_rules: normalizeAccessRules(state.route.route.access_rules),
+            encounters: state.route.encounters.map((row) => ({
+              pokemon_id: Number(row.pokemon_id || 0),
+              pokemon_name_en: sanitizeText(row.pokemon_name_en).toLowerCase(),
+              pokemon_name_fr: sanitizeText(row.pokemon_name_fr),
+              spawn_weight: Math.max(1, Number.parseInt(String(row.spawn_weight || "1"), 10) || 1),
+              min_level: Math.max(1, Number.parseInt(String(row.min_level || "1"), 10) || 1),
+              max_level: Math.max(1, Number.parseInt(String(row.max_level || "1"), 10) || 1),
+              methods: normalizeMethods(row.methods),
+            })),
+          };
+          const response = await api(`/api/route-encounters/${encodeURIComponent(state.selectedRouteId)}`, {
+            method: "PUT",
+            body: JSON.stringify(payload),
+          });
+          state.route = parseRoutePayload(response?.route || {});
+          state.allRoutes = Array.isArray(response?.routes) ? response.routes : state.allRoutes;
+          state.routeChoices = state.allRoutes.slice();
+          refreshChoiceMaps();
+          applyRouteFilter();
+          renderAllRouteEditors();
+          setDirty(false);
+          setStatus("ok", "Sauvegarde terminée. Backup créé automatiquement.");
+        } catch (error) {
+          setStatus("err", `Erreur: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
       }
 
       function quickAddPokemon() {
@@ -1033,30 +1783,26 @@
         }
         const pokemonId = parsePokemonId(nodes.quickAddInput.value);
         if (!pokemonId) {
-          setStatus("err", "Pokemon invalide pour ajout rapide.");
+          setStatus("err", "Pokémon invalide pour l'ajout rapide.");
           return;
         }
         state.route.encounters.push(createDefaultEncounter(pokemonId));
         nodes.quickAddInput.value = "";
         setDirty(true);
-        renderEncounters();
+        renderAllRouteEditors();
       }
 
       nodes.routeFilter.addEventListener("input", () => {
         applyRouteFilter();
       });
+      nodes.routeRegionSelect.addEventListener("change", () => {
+        applyRouteFilter();
+      });
       nodes.routeSelect.addEventListener("change", () => {
         state.selectedRouteId = nodes.routeSelect.value;
-        updateRouteNavButtons();
-      });
-      nodes.prevRouteBtn.addEventListener("click", () => {
-        void loadRelativeRoute(-1);
-      });
-      nodes.nextRouteBtn.addEventListener("click", () => {
-        void loadRelativeRoute(1);
       });
       nodes.loadRouteBtn.addEventListener("click", async () => {
-        if (state.dirty && !confirm("Tu as des modifs non sauvegardees. Continuer sans sauvegarder ?")) {
+        if (state.dirty && !confirm("Tu as des modifs non sauvegardées. Continuer sans sauvegarder ?")) {
           return;
         }
         await loadRoute(nodes.routeSelect.value);
@@ -1065,14 +1811,25 @@
         if (!state.selectedRouteId) {
           return;
         }
-        if (state.dirty && !confirm("Recharger depuis disque va annuler les modifs non sauvegardees. Continuer ?")) {
+        if (state.dirty && !confirm("Recharger depuis disque va annuler les modifs non sauvegardées. Continuer ?")) {
           return;
         }
         await loadRoute(state.selectedRouteId);
       });
-      nodes.saveRouteBtn.addEventListener("click", () => saveRoute());
-      nodes.addEmptyRowBtn.addEventListener("click", () => addEmptyEncounterRow());
-      nodes.quickAddBtn.addEventListener("click", () => quickAddPokemon());
+      nodes.saveRouteBtn.addEventListener("click", () => {
+        void saveRoute();
+      });
+      nodes.addEmptyRowBtn.addEventListener("click", () => {
+        if (!state.route) {
+          return;
+        }
+        state.route.encounters.push(createDefaultEncounter(0));
+        setDirty(true);
+        renderAllRouteEditors();
+      });
+      nodes.quickAddBtn.addEventListener("click", () => {
+        quickAddPokemon();
+      });
       nodes.quickAddInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
@@ -1080,70 +1837,78 @@
         }
       });
 
-      nodes.routeNameInput.addEventListener("input", () => {
-        if (!state.route) {
-          return;
-        }
-        syncRouteSettingsFromUi();
-        setDirty(true);
-      });
-      nodes.zoneTypeSelect.addEventListener("change", () => {
-        if (!state.route) {
-          return;
-        }
-        syncRouteSettingsFromUi();
-        setDirty(true);
-      });
-      nodes.combatEnabledSelect.addEventListener("change", () => {
-        if (!state.route) {
-          return;
-        }
-        syncRouteSettingsFromUi();
-        setDirty(true);
-        renderMeta();
-      });
-      nodes.unlockDefeatsInput.addEventListener("input", () => {
-        if (!state.route) {
-          return;
-        }
-        syncRouteSettingsFromUi();
-        setDirty(true);
-        renderMeta();
-      });
-      nodes.unlockTimerSecondsInput.addEventListener("input", () => {
-        if (!state.route) {
-          return;
-        }
-        syncRouteSettingsFromUi();
-        setDirty(true);
-        renderMeta();
-      });
+      for (const element of [
+        nodes.routeNameInput,
+        nodes.zoneTypeSelect,
+        nodes.combatEnabledSelect,
+        nodes.unlockModeSelect,
+        nodes.unlockDefeatsInput,
+        nodes.unlockTimerSecondsInput,
+        nodes.accessFlagsAllInput,
+        nodes.accessFlagsAnyInput,
+        nodes.accessBlockedReasonInput,
+      ]) {
+        element.addEventListener("input", () => {
+          if (!state.route) {
+            return;
+          }
+          syncRouteSettingsFromUi();
+          setDirty(true);
+          renderMeta();
+        });
+        element.addEventListener("change", () => {
+          if (!state.route) {
+            return;
+          }
+          syncRouteSettingsFromUi();
+          setDirty(true);
+          renderMeta();
+        });
+      }
 
+      nodes.accessFlagsAllInput.addEventListener("focus", () => {
+        state.activeFlagField = "all";
+      });
+      nodes.accessFlagsAnyInput.addEventListener("focus", () => {
+        state.activeFlagField = "any";
+      });
+      nodes.connectedRouteAddBtn.addEventListener("click", () => {
+        addConnectedRoute();
+      });
+      nodes.arrivalDialogueAddBtn.addEventListener("click", () => {
+        addArrivalDialogue();
+      });
+      nodes.addZoneActionBtn.addEventListener("click", () => {
+        addZoneAction();
+      });
+      nodes.connectedRouteList.addEventListener("click", onOrderedListClick);
+      nodes.arrivalDialogueList.addEventListener("click", onOrderedListClick);
       nodes.encountersBody.addEventListener("change", onEncounterFieldChange);
       nodes.encountersBody.addEventListener("click", onEncounterActionClick);
-
+      nodes.zoneActionsBody.addEventListener("input", onZoneActionFieldChange);
+      nodes.zoneActionsBody.addEventListener("change", onZoneActionFieldChange);
+      nodes.zoneActionsBody.addEventListener("click", onZoneActionActionClick);
+      nodes.previewModeSelect.addEventListener("change", () => {
+        state.previewMode = String(nodes.previewModeSelect.value || "desktop");
+        renderActionPreview();
+      });
+      nodes.actionPreviewStage.addEventListener("click", onPreviewClick);
+      nodes.flagSuggestions.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-flag-suggestion]");
+        if (!button) {
+          return;
+        }
+        addFlagSuggestion(button.getAttribute("data-flag-suggestion") || "");
+      });
       window.addEventListener("keydown", (event) => {
         const lower = String(event.key || "").toLowerCase();
         if ((event.ctrlKey || event.metaKey) && lower === "s") {
           event.preventDefault();
           if (!nodes.saveRouteBtn.disabled) {
-            saveRoute();
+            void saveRoute();
           }
-          return;
         }
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
-          return;
-        }
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-          return;
-        }
-        if (isTypingTarget(document.activeElement)) {
-          return;
-        }
-        event.preventDefault();
-        void loadRelativeRoute(event.key === "ArrowLeft" ? -1 : 1);
       });
-
       window.addEventListener("beforeunload", (event) => {
         if (!state.dirty) {
           return;
@@ -1151,7 +1916,6 @@
         event.preventDefault();
         event.returnValue = "";
       });
-
       loadBootstrap();
     </script>
   </body>

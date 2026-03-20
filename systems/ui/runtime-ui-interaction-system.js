@@ -1,3 +1,9 @@
+import {
+  buildRouteUnlockProgressState,
+  normalizeFlagIdList,
+  tryUnlockConnectedRoutes,
+} from "../../lib/zone-graph-runtime.js";
+
 function getRuntimeSystemBindings(options = {}) {
   const scope = {};
   if (options && typeof options === 'object' && options.bindings && typeof options.bindings === 'object') {
@@ -702,6 +708,14 @@ function getTeamDragActivationDistancePx(pointerType) {
   return TEAM_DRAG_START_DISTANCE_PX;
 }
 
+function getTeamContextTouchHoldCancelDistancePx(pointerType) {
+  const activationDistancePx = Number(getTeamDragActivationDistancePx(pointerType));
+  const safeActivationDistancePx = Number.isFinite(activationDistancePx)
+    ? activationDistancePx
+    : TEAM_DRAG_START_DISTANCE_PX;
+  return Math.max(TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX, safeActivationDistancePx);
+}
+
 function isTouchLikePointerType(pointerType) {
   const normalizedPointerType = getNormalizedPointerType(pointerType);
   return normalizedPointerType === "touch" || normalizedPointerType === "pen";
@@ -795,7 +809,7 @@ function updateTeamContextTouchHoldFromMove(event, worldX, worldY, layout) {
   const dx = state.ui.teamContextTouchHoldClientX - Number(state.ui.teamContextTouchHoldStartClientX || 0);
   const dy = state.ui.teamContextTouchHoldClientY - Number(state.ui.teamContextTouchHoldStartClientY || 0);
   const distanceSquared = dx * dx + dy * dy;
-  const cancelDistance = TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX;
+  const cancelDistance = getTeamContextTouchHoldCancelDistancePx(event?.pointerType);
   if (distanceSquared >= cancelDistance * cancelDistance) {
     cancelTeamContextTouchHold(pointerId);
     return;
@@ -4031,7 +4045,14 @@ function handleCanvasPointerMove(event) {
     if (isTouchLikePointerType(pointerType)) {
       updateTeamContextTouchHoldFromMove(event, worldX, worldY, layout);
     }
-    const activationDistancePx = getTeamDragActivationDistancePx(pointerType);
+    let activationDistancePx = getTeamDragActivationDistancePx(pointerType);
+    const activeTouchHoldPointerId = toSafeInt(state.ui.teamContextTouchHoldPointerId, -1);
+    if (isTouchLikePointerType(pointerType) && activeTouchHoldPointerId === toSafeInt(event?.pointerId, -1)) {
+      activationDistancePx = Math.max(
+        activationDistancePx,
+        getTeamContextTouchHoldCancelDistancePx(pointerType),
+      );
+    }
     const activationDistanceSquared = activationDistancePx * activationDistancePx;
     if (!state.ui.teamDragMoved && distanceSquared >= activationDistanceSquared) {
       cancelTeamContextTouchHold(event.pointerId);
@@ -4267,6 +4288,10 @@ function exportTextState() {
   const nextRouteId = routeProgressState.nextRouteId;
   const unlockMode = routeProgressState.unlockMode;
   const unlockTarget = routeProgressState.unlockTarget;
+  const connectedRouteIds = Array.isArray(routeProgressState.connectedRouteIds) ? routeProgressState.connectedRouteIds : [];
+  const blockedConnectedRoutes = Array.isArray(routeProgressState.blockedConnectedRoutes)
+    ? routeProgressState.blockedConnectedRoutes
+    : [];
   const routeDefeatTimer = battle ? battle.getEnemyTimerState() : null;
   const appearancePokemonId = Number(state.ui.appearancePokemonId || 0);
   const appearanceRecord = appearancePokemonId > 0 ? getPokemonEntityRecord(appearancePokemonId) : null;
@@ -4274,6 +4299,10 @@ function exportTextState() {
   const gachaCandidateCount = getGachaSkinCandidates().length;
   const legendaryFieldPresence = getLegendaryFieldPresence(state.team);
   const legendaryFieldAttackIntervalMultiplier = getLegendaryFieldAttackIntervalMultiplier(state.team);
+  const townLayoutMode = isCurrentRouteCombatEnabled()
+    ? null
+    : (layout?.viewportProfile?.phone ? "mobile_right_column" : "desktop_bottom_row");
+  const activeDialogueId = state.ui.dialogueOpen ? String(state.dialogue?.active?.dialogueId || "") : "";
 
   const team = state.team.map((member, index) => {
     const slot = layout.teamSlots[index];
@@ -4425,8 +4454,20 @@ function exportTextState() {
     route_defeat_timer_duration_ms: routeDefeatTimer?.duration_ms ?? 0,
     route_defeat_timer_remaining_ms: routeDefeatTimer?.remaining_ms ?? 0,
     route_defeat_timer_ratio: routeDefeatTimer?.remaining_ratio ?? 0,
+    connected_route_ids: connectedRouteIds,
+    blocked_connected_routes: blockedConnectedRoutes.map((entry) => ({
+      route_id: String(entry?.route_id || ""),
+      route_name_fr: String(entry?.route_name_fr || ""),
+      blocked_reason_fr: String(entry?.blocked_reason_fr || ""),
+      requires_flags_all: Array.isArray(entry?.requires_flags_all) ? entry.requires_flags_all : [],
+      requires_flags_any: Array.isArray(entry?.requires_flags_any) ? entry.requires_flags_any : [],
+    })),
+    route_access_flags: normalizeFlagIdList(state.saveData?.zone_flags),
+    town_layout_mode: townLayoutMode,
     next_route_id: nextRouteId,
     next_route_name_fr: nextRouteId ? getRouteDisplayName(nextRouteId) : null,
+    active_dialogue_id: activeDialogueId || null,
+    seen_dialogue_ids: normalizeFlagIdList(state.saveData?.seen_dialogue_ids),
     starter_modal_visible: !starterModalEl.classList.contains("hidden"),
     hover_popup_visible: !hoverPopupEl.classList.contains("hidden"),
     hovered_team_slot_index: toSafeInt(state.ui.hoveredTeamSlotIndex, -1),
@@ -4535,6 +4576,7 @@ function exportTextState() {
     tutorial_page_count: state.ui.tutorialOpen
       ? Math.max(1, getTutorialFlowDefinition(state.tutorial.active?.flowId)?.pages?.length || 1)
       : 0,
+    dialogue_open: Boolean(state.ui.dialogueOpen),
     top_message: null,
     notifications_active: Array.isArray(state.notifications.items) ? state.notifications.items.length : 0,
     notifications_temporary: Array.isArray(state.notifications.items)
@@ -5247,7 +5289,10 @@ function setActiveRoute(routeId, options = {}) {
     if (getRouteUnlockMode(routeData.route_id) === "visit") {
       const unlockResult = tryUnlockNextRouteAfterDefeat(routeData.route_id);
       if (announceUnlock && unlockResult?.unlocked) {
-        setTopMessage(`Zone debloquee: ${unlockResult.route_name_fr}`, 1700);
+        const unlockedNames = Array.isArray(unlockResult.route_names_fr) && unlockResult.route_names_fr.length > 0
+          ? unlockResult.route_names_fr.join(", ")
+          : unlockResult.route_name_fr;
+        setTopMessage(`Zone debloquee: ${unlockedNames}`, 1700);
       }
     }
   }
@@ -5260,42 +5305,39 @@ function setActiveRoute(routeId, options = {}) {
 
 function tryUnlockNextRouteAfterDefeat(routeId) {
   if (!state.saveData || !state.routeCatalog?.size) {
-    return { unlocked: false, route_name_fr: null };
+    return { unlocked: false, route_name_fr: null, route_names_fr: [] };
   }
 
   const currentRouteId = String(routeId || state.saveData.current_route_id || DEFAULT_ROUTE_ID);
-  const orderedRouteIds = getOrderedCatalogRouteIds();
-  const currentIndex = orderedRouteIds.indexOf(currentRouteId);
-  if (currentIndex < 0) {
-    return { unlocked: false, route_name_fr: null };
-  }
+  const unlockResult = tryUnlockConnectedRoutes({
+    routeId: currentRouteId,
+    routeCatalog: state.routeCatalog,
+    unlockedRouteIds: ensureUnlockedRoutesForCurrentCatalog(),
+    routeDefeatCounts: normalizeRouteDefeatCounts(
+      state.saveData.route_defeat_counts,
+      getOrderedCatalogRouteIds(),
+      DEFAULT_ROUTE_ID,
+      toSafeInt,
+    ),
+    zoneFlags: normalizeFlagIdList(state.saveData.zone_flags),
+    availableRouteIds: getOrderedCatalogRouteIds(),
+    defaultRouteId: DEFAULT_ROUTE_ID,
+    fallbackUnlockTarget: getRouteUnlockDefeatTarget(currentRouteId),
+    toSafeInt,
+  });
+  state.saveData.unlocked_route_ids = unlockResult.unlockedRouteIds;
 
-  const nextRouteId = orderedRouteIds[currentIndex + 1] || null;
-  if (!nextRouteId) {
-    return { unlocked: false, route_name_fr: null };
-  }
-
-  const unlockedRouteIds = ensureUnlockedRoutesForCurrentCatalog();
-  if (unlockedRouteIds.includes(nextRouteId)) {
-    return { unlocked: false, route_name_fr: getRouteDisplayName(nextRouteId) };
-  }
-
-  const unlockMode = getRouteUnlockMode(currentRouteId);
-  if (unlockMode !== "visit") {
-    const defeatTarget = getRouteUnlockDefeatTarget(currentRouteId);
-    if (getRouteDefeatCount(currentRouteId) < defeatTarget) {
-      return { unlocked: false, route_name_fr: null };
-    }
-  }
-
-  const nextUnlocked = normalizeUnlockedRouteIds([...unlockedRouteIds, nextRouteId], orderedRouteIds);
-  state.saveData.unlocked_route_ids = nextUnlocked;
-
+  const unlockedRouteNames = Array.isArray(unlockResult.unlocked)
+    ? unlockResult.unlocked.map((unlockedRouteId) => getRouteDisplayName(unlockedRouteId))
+    : [];
   return {
-    unlocked: true,
-    route_id: nextRouteId,
-    route_name_fr: getRouteDisplayName(nextRouteId),
-    unlock_mode: unlockMode,
+    unlocked: unlockedRouteNames.length > 0,
+    route_id: unlockResult.unlocked?.[0] || null,
+    route_ids: Array.isArray(unlockResult.unlocked) ? unlockResult.unlocked : [],
+    route_name_fr: unlockedRouteNames[0] || null,
+    route_names_fr: unlockedRouteNames,
+    unlock_mode: getRouteUnlockMode(currentRouteId),
+    blocked: Array.isArray(unlockResult.blocked) ? unlockResult.blocked : [],
   };
 }
 
@@ -5313,6 +5355,7 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
     captureCanvasPointer,
     releaseCanvasPointer,
     getTeamDragActivationDistancePx,
+    getTeamContextTouchHoldCancelDistancePx,
     isTouchLikePointerType,
     resetTeamContextTouchHoldState,
     cancelTeamContextTouchHold,

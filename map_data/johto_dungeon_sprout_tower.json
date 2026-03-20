@@ -46,5 +46,16 @@
   "map_marker": {
     "x": 26.25,
     "y": 56.94
+  },
+  "connected_route_ids": [
+    "johto_city_violet_city",
+    "johto_dungeon_ruins_of_alph"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

@@ -5,14 +5,16 @@ import fsp from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { URL } from "node:url";
-import { parseCsvMethods, parseCsvObjects, readCsvCell } from "../lib/runtime-data.js";
+import { parseCsvMethods, parseCsvObjects, readCsvCell, validateDialoguePayload } from "../lib/runtime-data.js";
 
 const HOST = process.env.DATA_STUDIO_HOST || "127.0.0.1";
 const PORT = Number(process.env.DATA_STUDIO_PORT || 4877);
 const ROOT_DIR = path.resolve(process.cwd());
 const ROUTE_UI_INDEX_PATH = path.join(ROOT_DIR, "tools", "route-encounter-studio", "index.html");
+const DIALOGUE_UI_INDEX_PATH = path.join(ROOT_DIR, "tools", "dialogue-studio", "index.html");
 const TALENT_UI_INDEX_PATH = path.join(ROOT_DIR, "tools", "talents-studio", "index.html");
-const MAP_DATA_DIR = path.join(ROOT_DIR, "map_data");
+const MAP_DATA_DIR = path.resolve(process.env.DATA_STUDIO_MAP_DATA_DIR || path.join(ROOT_DIR, "map_data"));
+const DIALOGUE_DATA_DIR = path.join(MAP_DATA_DIR, "dialogues");
 const ROUTE_CSV_PATH = path.resolve(
   process.env.DATA_STUDIO_ROUTE_CSV || path.join(ROOT_DIR, "map_data", "kanto_zone_encounters.csv"),
 );
@@ -20,8 +22,15 @@ const TALENTS_CSV_PATH = path.resolve(
   process.env.DATA_STUDIO_TALENTS_CSV || path.join(ROOT_DIR, "pokemon_data", "pokemon_talents.csv"),
 );
 const POKEMON_DATA_DIR = path.join(ROOT_DIR, "pokemon_data");
-const BACKUP_DIR = path.join(ROOT_DIR, "output", "tool-backups");
+const BACKUP_DIR = path.resolve(process.env.DATA_STUDIO_BACKUP_DIR || path.join(ROOT_DIR, "output", "tool-backups"));
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const REGION_ORDER = Object.freeze(["kanto", "johto", "hoenn", "other"]);
+const REGION_LABEL_BY_ID = Object.freeze({
+  kanto: "Kanto",
+  johto: "Johto",
+  hoenn: "Hoenn",
+  other: "Autre",
+});
 const ROUTE_HEADERS = Object.freeze([
   "route_id",
   "route_name_fr",
@@ -60,6 +69,11 @@ const ZONE_TYPES = new Set(["route", "town", "city", "dungeon", "cave", "forest"
 const UTF8_BOM = "\uFEFF";
 const DEFAULT_UNLOCK_DEFEATS_REQUIRED = 20;
 const DEFAULT_UNLOCK_TIMER_MS = 20000;
+const DEFAULT_ACCESS_RULES = Object.freeze({
+  requires_flags_all: [],
+  requires_flags_any: [],
+  blocked_reason_fr: "",
+});
 const STATIC_MIME_BY_EXT = Object.freeze({
   ".png": "image/png",
   ".gif": "image/gif",
@@ -111,6 +125,92 @@ async function sendFile(response, filePath) {
 function sanitizeText(value, fallback = "") {
   const normalized = String(value ?? "").trim();
   return normalized || fallback;
+}
+
+function sanitizeStringList(valueRaw) {
+  const source = Array.isArray(valueRaw)
+    ? valueRaw
+    : typeof valueRaw === "string"
+      ? valueRaw.split(/[\n,;]+/g)
+      : [];
+  const seen = new Set();
+  const values = [];
+  for (const entry of source) {
+    const normalized = sanitizeText(entry);
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    values.push(normalized);
+  }
+  return values;
+}
+
+function clampPercent(valueRaw, fallback = 50) {
+  const numeric = Number(valueRaw);
+  if (!Number.isFinite(numeric)) {
+    return Math.max(0, Math.min(100, Number(fallback) || 50));
+  }
+  return Math.max(0, Math.min(100, Math.round(numeric * 100) / 100));
+}
+
+function normalizeAccessRulesPayload(valueRaw, fallback = DEFAULT_ACCESS_RULES) {
+  const base = valueRaw && typeof valueRaw === "object" ? valueRaw : {};
+  const previous = fallback && typeof fallback === "object" ? fallback : DEFAULT_ACCESS_RULES;
+  return {
+    requires_flags_all: sanitizeStringList(base.requires_flags_all ?? previous.requires_flags_all),
+    requires_flags_any: sanitizeStringList(base.requires_flags_any ?? previous.requires_flags_any),
+    blocked_reason_fr: sanitizeText(base.blocked_reason_fr, sanitizeText(previous.blocked_reason_fr)),
+  };
+}
+
+function normalizeZoneActionPayload(valueRaw, fallback = null, options = {}) {
+  const base = valueRaw && typeof valueRaw === "object" ? valueRaw : {};
+  const previous = fallback && typeof fallback === "object" ? fallback : {};
+  const strict = options.strict === true;
+  const actionId = sanitizeText(base.action_id, sanitizeText(previous.action_id));
+  const dialogueId = sanitizeText(base.dialogue_id, sanitizeText(previous.dialogue_id));
+  if (!actionId || !dialogueId) {
+    if (strict) {
+      throw new Error("Chaque action de zone doit avoir un action_id et un dialogue_id.");
+    }
+    return null;
+  }
+  return {
+    action_id: actionId,
+    label_fr: sanitizeText(base.label_fr, sanitizeText(previous.label_fr, dialogueId)),
+    kind: "dialogue",
+    dialogue_id: dialogueId,
+    desktop_anchor_pct: {
+      x: clampPercent(base?.desktop_anchor_pct?.x, previous?.desktop_anchor_pct?.x ?? 50),
+      y: clampPercent(base?.desktop_anchor_pct?.y, previous?.desktop_anchor_pct?.y ?? 50),
+    },
+    mobile_anchor_pct: {
+      x: clampPercent(base?.mobile_anchor_pct?.x, previous?.mobile_anchor_pct?.x ?? 50),
+      y: clampPercent(base?.mobile_anchor_pct?.y, previous?.mobile_anchor_pct?.y ?? 50),
+    },
+  };
+}
+
+function normalizeZoneActionList(valueRaw, fallback = [], options = {}) {
+  const source = Array.isArray(valueRaw) ? valueRaw : Array.isArray(fallback) ? fallback : [];
+  const previousById = new Map(
+    (Array.isArray(fallback) ? fallback : [])
+      .map((entry) => [sanitizeText(entry?.action_id), entry])
+      .filter(([actionId]) => actionId),
+  );
+  const seen = new Set();
+  const actions = [];
+  for (const entry of source) {
+    const actionId = sanitizeText(entry?.action_id);
+    const normalized = normalizeZoneActionPayload(entry, previousById.get(actionId) || null, options);
+    if (!normalized || seen.has(normalized.action_id)) {
+      continue;
+    }
+    seen.add(normalized.action_id);
+    actions.push(normalized);
+  }
+  return actions;
 }
 
 function sanitizeSpriteToken(value) {
@@ -203,11 +303,106 @@ function normalizeUnlockMode(valueRaw, combatEnabled = true) {
 }
 
 function normalizeUnlockDefeatsRequired(valueRaw, fallback = DEFAULT_UNLOCK_DEFEATS_REQUIRED) {
-  return Math.max(1, toSafeInt(valueRaw, fallback));
+  return Math.max(0, toSafeInt(valueRaw, fallback));
 }
 
 function normalizeUnlockTimerMs(valueRaw, fallback = DEFAULT_UNLOCK_TIMER_MS) {
   return Math.max(1000, toSafeInt(valueRaw, fallback));
+}
+
+function inferRegionId(routeId) {
+  const id = sanitizeText(routeId).toLowerCase();
+  if (id.startsWith("kanto_")) {
+    return "kanto";
+  }
+  if (id.startsWith("johto_")) {
+    return "johto";
+  }
+  if (id.startsWith("hoenn_")) {
+    return "hoenn";
+  }
+  return "other";
+}
+
+function getRegionLabel(routeId) {
+  return REGION_LABEL_BY_ID[inferRegionId(routeId)] || REGION_LABEL_BY_ID.other;
+}
+
+function buildStorageMeta(routeId, storageKind = "json") {
+  const normalizedKind = storageKind === "csv" ? "csv" : "json";
+  const regionId = inferRegionId(routeId);
+  return {
+    region_id: regionId,
+    region_label: REGION_LABEL_BY_ID[regionId] || REGION_LABEL_BY_ID.other,
+    storage_kind: normalizedKind,
+    storage_label: normalizedKind === "csv" ? "CSV runtime" : "JSON de zone",
+  };
+}
+
+function buildRouteAdditionalMeta(payload = {}, fallback = {}, routeId = "", options = {}) {
+  return {
+    connected_route_ids: sanitizeStringList(payload.connected_route_ids ?? fallback.connected_route_ids)
+      .filter((candidateId) => candidateId !== routeId),
+    arrival_dialogue_ids_once: sanitizeStringList(
+      payload.arrival_dialogue_ids_once ?? fallback.arrival_dialogue_ids_once,
+    ),
+    zone_actions: normalizeZoneActionList(
+      payload.zone_actions ?? fallback.zone_actions,
+      fallback.zone_actions,
+      options,
+    ),
+    access_rules: normalizeAccessRulesPayload(payload.access_rules, fallback.access_rules),
+  };
+}
+
+function normalizeEncounterRowFromRouteJson(routeId, encounter) {
+  const pokemonId = Math.max(0, toSafeInt(encounter?.id, 0));
+  if (pokemonId <= 0) {
+    return null;
+  }
+  const minLevel = Math.max(1, toSafeInt(encounter?.min_level, 1));
+  const maxLevel = Math.max(minLevel, toSafeInt(encounter?.max_level, minLevel));
+  return {
+    route_id: sanitizeText(routeId),
+    route_name_fr: "",
+    zone_type: "route",
+    combat_enabled: true,
+    pokemon_id: pokemonId,
+    pokemon_name_en: sanitizeText(encounter?.name_en).toLowerCase(),
+    pokemon_name_fr: sanitizeText(encounter?.name_fr),
+    spawn_weight: Math.max(1, toSafeInt(encounter?.spawn_weight, 1)),
+    min_level: minLevel,
+    max_level: maxLevel,
+    methods: normalizeMethods(encounter?.methods),
+  };
+}
+
+function buildRouteEncounterRowsFromJson(routeId, routeJson) {
+  const encounters = Array.isArray(routeJson?.encounters) ? routeJson.encounters : [];
+  return encounters
+    .map((encounter) => normalizeEncounterRowFromRouteJson(routeId, encounter))
+    .filter(Boolean)
+    .map((row) => ({
+      ...row,
+      route_name_fr: sanitizeText(routeJson?.route_name_fr, row.route_id),
+      zone_type: normalizeZoneType(routeJson?.zone_type, "route"),
+      combat_enabled: routeJson?.combat_enabled !== false,
+    }));
+}
+
+function normalizeUnlockDefeatsForMode(valueRaw, fallback, combatEnabled = true, unlockMode = "defeats") {
+  const allowZero = !combatEnabled || unlockMode === "visit";
+  const minValue = allowZero ? 0 : 1;
+  const defaultFallback = allowZero ? 0 : DEFAULT_UNLOCK_DEFEATS_REQUIRED;
+  const rawFallback = sanitizeText(fallback);
+  const normalizedFallback = rawFallback
+    ? Math.max(minValue, toSafeInt(rawFallback, defaultFallback))
+    : defaultFallback;
+  const rawValue = sanitizeText(valueRaw);
+  if (!rawValue) {
+    return normalizedFallback;
+  }
+  return Math.max(minValue, toSafeInt(rawValue, normalizedFallback));
 }
 
 function normalizeMethods(valueRaw) {
@@ -293,20 +488,26 @@ async function readRouteJson(routeId) {
 function buildRouteMetaFromJson(routeId, routeJson, fallbackMeta = null) {
   const base = fallbackMeta && typeof fallbackMeta === "object" ? fallbackMeta : {};
   const combatEnabled = routeJson?.combat_enabled !== false;
+  const unlockMode = normalizeUnlockMode(routeJson?.unlock_mode || base.unlock_mode, combatEnabled);
+  const additionalMeta = buildRouteAdditionalMeta(routeJson, base, sanitizeText(routeId));
   return {
     route_id: sanitizeText(routeId, sanitizeText(base.route_id)),
     route_name_fr: sanitizeText(routeJson?.route_name_fr, sanitizeText(base.route_name_fr, sanitizeText(routeId))),
     zone_type: normalizeZoneType(routeJson?.zone_type, normalizeZoneType(base.zone_type, "route")),
     combat_enabled: combatEnabled,
-    unlock_mode: normalizeUnlockMode(routeJson?.unlock_mode || base.unlock_mode, combatEnabled),
-    unlock_defeats_required: normalizeUnlockDefeatsRequired(
+    unlock_mode: unlockMode,
+    unlock_defeats_required: normalizeUnlockDefeatsForMode(
       routeJson?.unlock_defeats_required,
-      normalizeUnlockDefeatsRequired(base.unlock_defeats_required, DEFAULT_UNLOCK_DEFEATS_REQUIRED),
+      base.unlock_defeats_required,
+      combatEnabled,
+      unlockMode,
     ),
     unlock_timer_ms: normalizeUnlockTimerMs(
       routeJson?.unlock_timer_ms,
       normalizeUnlockTimerMs(base.unlock_timer_ms, DEFAULT_UNLOCK_TIMER_MS),
     ),
+    ...additionalMeta,
+    ...buildStorageMeta(routeId, base.storage_kind || "json"),
   };
 }
 
@@ -319,6 +520,7 @@ async function writeRouteJsonMeta(routeId, payload = {}) {
   const previous = (await readRouteJson(id)) || {};
   const combatEnabled = parseBooleanValue(payload?.combat_enabled, previous?.combat_enabled !== false);
   const nextUnlockMode = normalizeUnlockMode(payload?.unlock_mode || previous?.unlock_mode, combatEnabled);
+  const additionalMeta = buildRouteAdditionalMeta(payload, previous, id, { strict: true });
   const nextJson = {
     ...previous,
     route_id: id,
@@ -326,11 +528,14 @@ async function writeRouteJsonMeta(routeId, payload = {}) {
     zone_type: normalizeZoneType(payload?.zone_type, normalizeZoneType(previous?.zone_type, "route")),
     combat_enabled: combatEnabled,
     unlock_mode: nextUnlockMode,
-    unlock_defeats_required: normalizeUnlockDefeatsRequired(
+    unlock_defeats_required: normalizeUnlockDefeatsForMode(
       payload?.unlock_defeats_required,
       previous?.unlock_defeats_required,
+      combatEnabled,
+      nextUnlockMode,
     ),
     unlock_timer_ms: normalizeUnlockTimerMs(payload?.unlock_timer_ms, previous?.unlock_timer_ms),
+    ...additionalMeta,
   };
   await fsp.mkdir(path.dirname(routePath), { recursive: true });
   if (fs.existsSync(routePath)) {
@@ -445,8 +650,9 @@ async function loadRouteCsvModel() {
         zone_type: row.zone_type,
         combat_enabled: row.combat_enabled,
         unlock_mode: row.combat_enabled ? "defeats" : "visit",
-        unlock_defeats_required: DEFAULT_UNLOCK_DEFEATS_REQUIRED,
+        unlock_defeats_required: row.combat_enabled ? DEFAULT_UNLOCK_DEFEATS_REQUIRED : 0,
         unlock_timer_ms: DEFAULT_UNLOCK_TIMER_MS,
+        ...buildStorageMeta(row.route_id, "csv"),
       });
     }
     routeRowsById.get(row.route_id).push(row);
@@ -480,6 +686,129 @@ async function loadRouteCsvModel() {
   };
 }
 
+async function loadRouteCatalogModel() {
+  const routeOrder = [];
+  const routeMetaById = new Map();
+  const routeJsonById = new Map();
+  const zoneCatalogEntries = (await fsp.readdir(MAP_DATA_DIR, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.endsWith("_zones.json"))
+    .map((entry) => entry.name)
+    .sort((left, right) => {
+      const leftPriority = REGION_ORDER.indexOf(inferRegionId(left));
+      const rightPriority = REGION_ORDER.indexOf(inferRegionId(right));
+      if (leftPriority !== rightPriority) {
+        return leftPriority - rightPriority;
+      }
+      return left.localeCompare(right);
+    });
+
+  for (const catalogName of zoneCatalogEntries) {
+    const catalogPath = path.join(MAP_DATA_DIR, catalogName);
+    let catalog = null;
+    try {
+      catalog = JSON.parse(await fsp.readFile(catalogPath, "utf8"));
+    } catch {
+      continue;
+    }
+    const zoneEntries = new Map();
+    const zones = Array.isArray(catalog?.zones) ? catalog.zones : [];
+    for (const zone of zones) {
+      const routeId = sanitizeText(zone?.route_id);
+      if (routeId) {
+        zoneEntries.set(routeId, zone);
+      }
+    }
+    const orderedRouteIds = Array.isArray(catalog?.zone_order)
+      ? catalog.zone_order.map((routeId) => sanitizeText(routeId)).filter(Boolean)
+      : [];
+
+    for (const routeId of orderedRouteIds) {
+      if (!routeMetaById.has(routeId)) {
+        routeOrder.push(routeId);
+      }
+      const zoneEntry = zoneEntries.get(routeId) || { route_id: routeId };
+      const routeJson = await readRouteJson(routeId);
+      routeJsonById.set(routeId, routeJson);
+      routeMetaById.set(
+        routeId,
+        buildRouteMetaFromJson(routeId, routeJson, {
+          ...zoneEntry,
+          ...buildStorageMeta(routeId, "json"),
+        }),
+      );
+    }
+  }
+
+  return {
+    routeOrder,
+    routeMetaById,
+    routeJsonById,
+  };
+}
+
+async function loadRouteStudioModel() {
+  const [csvModel, catalogModel] = await Promise.all([loadRouteCsvModel(), loadRouteCatalogModel()]);
+  const routeOrder = [];
+  const routeRowsById = new Map();
+  const routeMetaById = new Map();
+  const methodSet = new Set([...BASE_METHODS, ...(csvModel.methodChoices || [])]);
+  const seenRouteIds = new Set();
+
+  const registerRoute = (routeId, rows, meta) => {
+    const id = sanitizeText(routeId);
+    if (!id) {
+      return;
+    }
+    if (!seenRouteIds.has(id)) {
+      seenRouteIds.add(id);
+      routeOrder.push(id);
+    }
+    const normalizedRows = Array.isArray(rows) ? rows : [];
+    routeRowsById.set(id, normalizedRows);
+    routeMetaById.set(id, meta);
+    for (const row of normalizedRows) {
+      const methods = Array.isArray(row?.methods) ? row.methods : normalizeMethods(row?.methods);
+      for (const method of methods) {
+        methodSet.add(method);
+      }
+    }
+  };
+
+  for (const routeId of catalogModel.routeOrder) {
+    const csvRows = csvModel.routeRowsById.get(routeId);
+    const routeJson = catalogModel.routeJsonById.get(routeId) ?? (await readRouteJson(routeId));
+    const storageKind = Array.isArray(csvRows) ? "csv" : "json";
+    const rows = Array.isArray(csvRows) ? csvRows : buildRouteEncounterRowsFromJson(routeId, routeJson);
+    const baseMeta = Array.isArray(csvRows)
+      ? csvModel.routeMetaById.get(routeId) || catalogModel.routeMetaById.get(routeId)
+      : catalogModel.routeMetaById.get(routeId);
+    const mergedMeta = buildRouteMetaFromJson(routeId, routeJson, {
+      ...(baseMeta || {}),
+      ...buildStorageMeta(routeId, storageKind),
+    });
+    registerRoute(routeId, rows, mergedMeta);
+  }
+
+  for (const routeId of csvModel.routeOrder) {
+    if (seenRouteIds.has(routeId)) {
+      continue;
+    }
+    const routeJson = await readRouteJson(routeId);
+    const meta = buildRouteMetaFromJson(routeId, routeJson, {
+      ...(csvModel.routeMetaById.get(routeId) || {}),
+      ...buildStorageMeta(routeId, "csv"),
+    });
+    registerRoute(routeId, csvModel.routeRowsById.get(routeId) || [], meta);
+  }
+
+  return {
+    routeOrder,
+    routeRowsById,
+    routeMetaById,
+    methodChoices: Array.from(methodSet.values()),
+  };
+}
+
 function buildRouteMetaList(model) {
   return model.routeOrder.map((routeId) => {
     const rows = model.routeRowsById.get(routeId) || [];
@@ -497,6 +826,29 @@ function buildRouteMetaList(model) {
       total_weight: totalWeight,
     };
   });
+}
+
+function buildRouteChoiceList(model) {
+  return buildRouteMetaList(model).map((route) => ({
+    route_id: sanitizeText(route.route_id),
+    route_name_fr: sanitizeText(route.route_name_fr, sanitizeText(route.route_id)),
+    region_id: sanitizeText(route.region_id, inferRegionId(route.route_id)),
+    region_label: sanitizeText(route.region_label, getRegionLabel(route.route_id)),
+    storage_kind: sanitizeText(route.storage_kind, "json"),
+    zone_type: sanitizeText(route.zone_type, "route"),
+    combat_enabled: route.combat_enabled !== false,
+  }));
+}
+
+function buildDialogueChoiceList(dialogueModel) {
+  const meta = Array.isArray(dialogueModel?.meta) ? dialogueModel.meta : [];
+  return meta.map((entry) => ({
+    dialogue_id: sanitizeText(entry?.dialogue_id),
+    title_fr: sanitizeText(entry?.title_fr, sanitizeText(entry?.dialogue_id)),
+    node_count: Math.max(0, toSafeInt(entry?.node_count, 0)),
+    route_ref_count: Array.isArray(entry?.route_refs) ? entry.route_refs.length : 0,
+    validation_ok: entry?.validation?.ok !== false,
+  }));
 }
 
 function serializeRouteRows(rows) {
@@ -558,11 +910,14 @@ function buildRouteRowsForWrite(existingModel, routeId, payload, pokemonRefsById
   const zoneType = normalizeZoneType(payload?.zone_type, existingMeta.zone_type || "route");
   const combatEnabled = parseBooleanValue(payload?.combat_enabled, existingMeta.combat_enabled !== false);
   const unlockMode = normalizeUnlockMode(payload?.unlock_mode || existingMeta.unlock_mode, combatEnabled);
-  const unlockDefeatsRequired = normalizeUnlockDefeatsRequired(
+  const unlockDefeatsRequired = normalizeUnlockDefeatsForMode(
     payload?.unlock_defeats_required,
     existingMeta.unlock_defeats_required,
+    combatEnabled,
+    unlockMode,
   );
   const unlockTimerMs = normalizeUnlockTimerMs(payload?.unlock_timer_ms, existingMeta.unlock_timer_ms);
+  const additionalMeta = buildRouteAdditionalMeta(payload, existingMeta, id, { strict: true });
   const rawEncounters = Array.isArray(payload?.encounters) ? payload.encounters : [];
   const encounters = [];
   for (let index = 0; index < rawEncounters.length; index += 1) {
@@ -605,6 +960,8 @@ function buildRouteRowsForWrite(existingModel, routeId, payload, pokemonRefsById
     unlock_mode: unlockMode,
     unlock_defeats_required: unlockDefeatsRequired,
     unlock_timer_ms: unlockTimerMs,
+    ...additionalMeta,
+    ...buildStorageMeta(id, existingMeta.storage_kind || "csv"),
   };
 
   if (encounters.length <= 0) {
@@ -655,7 +1012,90 @@ async function writeRouteCsv(routeId, payload, pokemonRefsById) {
   if (routeMeta) {
     await writeRouteJsonMeta(targetRouteId, routeMeta);
   }
-  return loadRouteCsvModel();
+  return loadRouteStudioModel();
+}
+
+function buildRouteJsonPayloadForWrite(existingJson, routeMeta, payload, pokemonRefsById) {
+  const previous = existingJson && typeof existingJson === "object" ? existingJson : {};
+  const combatEnabled = parseBooleanValue(payload?.combat_enabled, routeMeta?.combat_enabled !== false);
+  const unlockMode = normalizeUnlockMode(payload?.unlock_mode || routeMeta?.unlock_mode || previous?.unlock_mode, combatEnabled);
+  const additionalMeta = buildRouteAdditionalMeta(
+    payload,
+    routeMeta || previous,
+    sanitizeText(routeMeta?.route_id || previous?.route_id),
+    { strict: true },
+  );
+  const nextRouteMeta = {
+    route_id: sanitizeText(routeMeta?.route_id || previous?.route_id),
+    route_name_fr: sanitizeText(payload?.route_name_fr, sanitizeText(routeMeta?.route_name_fr, sanitizeText(previous?.route_name_fr))),
+    zone_type: normalizeZoneType(payload?.zone_type, normalizeZoneType(routeMeta?.zone_type || previous?.zone_type, "route")),
+    combat_enabled: combatEnabled,
+    unlock_mode: unlockMode,
+    unlock_defeats_required: normalizeUnlockDefeatsForMode(
+      payload?.unlock_defeats_required,
+      routeMeta?.unlock_defeats_required ?? previous?.unlock_defeats_required,
+      combatEnabled,
+      unlockMode,
+    ),
+    unlock_timer_ms: normalizeUnlockTimerMs(
+      payload?.unlock_timer_ms,
+      routeMeta?.unlock_timer_ms ?? previous?.unlock_timer_ms ?? DEFAULT_UNLOCK_TIMER_MS,
+    ),
+    ...additionalMeta,
+  };
+
+  const rawEncounters = Array.isArray(payload?.encounters) ? payload.encounters : [];
+  const encounters = [];
+  for (let index = 0; index < rawEncounters.length; index += 1) {
+    const raw = rawEncounters[index];
+    const pokemonId = Math.max(0, toSafeInt(raw?.pokemon_id, 0));
+    if (pokemonId <= 0) {
+      continue;
+    }
+    const pokemonRef = pokemonRefsById.get(pokemonId) || null;
+    const resolvedNameEn = sanitizeText(raw?.pokemon_name_en, sanitizeText(pokemonRef?.name_en)).toLowerCase();
+    const resolvedNameFr = sanitizeText(raw?.pokemon_name_fr, sanitizeText(pokemonRef?.name_fr, resolvedNameEn));
+    if (!resolvedNameEn) {
+      throw new Error(`Ligne ${index + 1}: nom anglais introuvable pour #${pokemonId}`);
+    }
+    const minLevel = Math.max(1, toSafeInt(raw?.min_level, 1));
+    const maxLevel = Math.max(minLevel, toSafeInt(raw?.max_level, minLevel));
+    encounters.push({
+      id: pokemonId,
+      name_en: resolvedNameEn,
+      name_fr: resolvedNameFr,
+      methods: normalizeMethods(raw?.methods),
+      spawn_weight: Math.max(1, toSafeInt(raw?.spawn_weight, 1)),
+      min_level: minLevel,
+      max_level: maxLevel,
+    });
+  }
+
+  return {
+    ...previous,
+    ...nextRouteMeta,
+    encounters,
+  };
+}
+
+async function writeRouteJsonData(routeId, payload, pokemonRefsById) {
+  const id = sanitizeText(routeId);
+  if (!id) {
+    throw new Error("route_id manquant");
+  }
+  const existingJson = await readRouteJson(id);
+  if (!existingJson) {
+    throw new Error(`Route introuvable: ${id}`);
+  }
+  const existingMeta = buildRouteMetaFromJson(id, existingJson, {
+    route_id: id,
+    ...buildStorageMeta(id, "json"),
+  });
+  const nextJson = buildRouteJsonPayloadForWrite(existingJson, existingMeta, payload, pokemonRefsById);
+  const routePath = getRouteJsonPath(id);
+  await ensureBackup(routePath);
+  await fsp.writeFile(routePath, `${JSON.stringify(nextJson, null, 2)}\n`, "utf8");
+  return loadRouteStudioModel();
 }
 
 function normalizeTalentRow(row) {
@@ -767,6 +1207,7 @@ function getRoutePayload(model, routeId, pokemonRefsById = new Map()) {
     route_name_fr: id,
     zone_type: "route",
     combat_enabled: true,
+    ...buildStorageMeta(id, "json"),
   };
   const encounters = rows
     .filter((row) => row.pokemon_id > 0)
@@ -777,8 +1218,8 @@ function getRoutePayload(model, routeId, pokemonRefsById = new Map()) {
         buildFallbackSpriteUrl(row.pokemon_id, row.pokemon_name_en, sanitizeText(ref?.folder));
       return {
         pokemon_id: row.pokemon_id,
-        pokemon_name_en: row.pokemon_name_en,
-        pokemon_name_fr: row.pokemon_name_fr,
+        pokemon_name_en: sanitizeText(ref?.name_en, row.pokemon_name_en),
+        pokemon_name_fr: sanitizeText(ref?.name_fr, row.pokemon_name_fr),
         sprite_default_url: spriteDefaultUrl,
         spawn_weight: row.spawn_weight,
         min_level: row.min_level,
@@ -791,6 +1232,376 @@ function getRoutePayload(model, routeId, pokemonRefsById = new Map()) {
     route: meta,
     encounters,
     total_weight: totalWeight,
+  };
+}
+
+function sanitizeDataFileId(value, label = "identifiant") {
+  const id = sanitizeText(value);
+  if (!id || /[\\/]/.test(id)) {
+    throw new Error(`${label} invalide`);
+  }
+  return id;
+}
+
+function getDialogueJsonPath(dialogueId) {
+  const id = sanitizeDataFileId(dialogueId, "dialogue_id");
+  return path.join(DIALOGUE_DATA_DIR, `${id}.json`);
+}
+
+async function listDialogueIds() {
+  if (!fs.existsSync(DIALOGUE_DATA_DIR)) {
+    return [];
+  }
+  const entries = await fsp.readdir(DIALOGUE_DATA_DIR, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => entry.name.replace(/\.json$/i, ""))
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function normalizeDialogueEffectList(valueRaw) {
+  const source = Array.isArray(valueRaw) ? valueRaw : [];
+  return source
+    .map((effect) => ({
+      kind: sanitizeText(effect?.kind),
+      flag_id: sanitizeText(effect?.flag_id),
+    }))
+    .filter((effect) => effect.kind && effect.flag_id);
+}
+
+function normalizeDialogueChoiceList(valueRaw) {
+  const source = Array.isArray(valueRaw) ? valueRaw : [];
+  return source
+    .map((choice) => ({
+      choice_id: sanitizeText(choice?.choice_id),
+      label_fr: sanitizeText(choice?.label_fr),
+      next_node_id: sanitizeText(choice?.next_node_id),
+      requires_flags_all: sanitizeStringList(choice?.requires_flags_all),
+      requires_flags_any: sanitizeStringList(choice?.requires_flags_any),
+      effects: normalizeDialogueEffectList(choice?.effects),
+    }))
+    .filter((choice) => choice.choice_id && choice.label_fr && choice.next_node_id);
+}
+
+function normalizeDialoguePayloadForWrite(dialogueId, payload = {}) {
+  const id = sanitizeDataFileId(dialogueId, "dialogue_id");
+  return validateDialoguePayload(
+    {
+      dialogue_id: id,
+      title_fr: sanitizeText(payload?.title_fr),
+      start_node_id: sanitizeText(payload?.start_node_id),
+      nodes: (Array.isArray(payload?.nodes) ? payload.nodes : [])
+        .map((node) => ({
+          node_id: sanitizeText(node?.node_id),
+          speaker_fr: sanitizeText(node?.speaker_fr),
+          text_fr: sanitizeText(node?.text_fr),
+          next_node_id: sanitizeText(node?.next_node_id),
+          choices: normalizeDialogueChoiceList(node?.choices),
+          effects_on_enter: normalizeDialogueEffectList(node?.effects_on_enter),
+        }))
+        .filter((node) => node.node_id && node.text_fr),
+    },
+    `Dialogue ${id}`,
+  );
+}
+
+async function readDialoguePayload(dialogueId) {
+  const filePath = getDialogueJsonPath(dialogueId);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Dialogue introuvable: ${dialogueId}`);
+  }
+  const raw = await fsp.readFile(filePath, "utf8");
+  const payload = validateDialoguePayload(JSON.parse(raw), `Dialogue ${dialogueId}`);
+  if (payload.dialogue_id !== sanitizeDataFileId(dialogueId, "dialogue_id")) {
+    throw new Error(`Le fichier ${dialogueId}.json ne correspond pas a son dialogue_id.`);
+  }
+  return payload;
+}
+
+async function readDialoguePayloadSafe(dialogueId) {
+  try {
+    return {
+      dialogue: await readDialoguePayload(dialogueId),
+      error: "",
+    };
+  } catch (error) {
+    return {
+      dialogue: null,
+      error: error instanceof Error ? error.message : String(error || "Erreur inconnue"),
+    };
+  }
+}
+
+function collectDialogueRouteRefs(routeModel, dialogueId) {
+  const id = sanitizeText(dialogueId);
+  if (!routeModel?.routeOrder?.length || !id) {
+    return [];
+  }
+  const refs = [];
+  for (const routeId of routeModel.routeOrder) {
+    const routeMeta = routeModel.routeMetaById.get(routeId) || null;
+    if (!routeMeta) {
+      continue;
+    }
+    if (Array.isArray(routeMeta.arrival_dialogue_ids_once) && routeMeta.arrival_dialogue_ids_once.includes(id)) {
+      refs.push({
+        route_id: routeId,
+        route_name_fr: sanitizeText(routeMeta.route_name_fr, routeId),
+        source: "arrival_once",
+        action_id: "",
+      });
+    }
+    const zoneActions = Array.isArray(routeMeta.zone_actions) ? routeMeta.zone_actions : [];
+    for (const action of zoneActions) {
+      if (sanitizeText(action?.dialogue_id) !== id) {
+        continue;
+      }
+      refs.push({
+        route_id: routeId,
+        route_name_fr: sanitizeText(routeMeta.route_name_fr, routeId),
+        source: "zone_action",
+        action_id: sanitizeText(action?.action_id),
+      });
+    }
+  }
+  return refs;
+}
+
+function buildDialogueValidation(dialogue, routeRefs = []) {
+  const errors = [];
+  const warnings = [];
+  const nodes = Array.isArray(dialogue?.nodes) ? dialogue.nodes : [];
+  const nodeMap = new Map();
+  for (const node of nodes) {
+    const nodeId = sanitizeText(node?.node_id);
+    if (!nodeId) {
+      continue;
+    }
+    if (nodeMap.has(nodeId)) {
+      errors.push(`Node duplique: ${nodeId}`);
+      continue;
+    }
+    nodeMap.set(nodeId, node);
+  }
+
+  const startNodeId = sanitizeText(dialogue?.start_node_id);
+  if (!startNodeId || !nodeMap.has(startNodeId)) {
+    errors.push(`start_node_id introuvable: ${startNodeId || "(vide)"}`);
+  }
+
+  const reachable = new Set();
+  const stack = startNodeId && nodeMap.has(startNodeId) ? [startNodeId] : [];
+  while (stack.length > 0) {
+    const currentNodeId = stack.pop();
+    if (!currentNodeId || reachable.has(currentNodeId)) {
+      continue;
+    }
+    reachable.add(currentNodeId);
+    const node = nodeMap.get(currentNodeId);
+    const nextNodeId = sanitizeText(node?.next_node_id);
+    if (nextNodeId) {
+      stack.push(nextNodeId);
+    }
+    const choices = Array.isArray(node?.choices) ? node.choices : [];
+    for (const choice of choices) {
+      const choiceNextNodeId = sanitizeText(choice?.next_node_id);
+      if (choiceNextNodeId) {
+        stack.push(choiceNextNodeId);
+      }
+    }
+  }
+
+  const brokenLinks = [];
+  const brokenChoices = [];
+  const flagIds = new Set();
+  let terminalNodeCount = 0;
+
+  for (const node of nodes) {
+    const nodeId = sanitizeText(node?.node_id);
+    for (const effect of normalizeDialogueEffectList(node?.effects_on_enter)) {
+      flagIds.add(effect.flag_id);
+    }
+    const nextNodeId = sanitizeText(node?.next_node_id);
+    const choices = Array.isArray(node?.choices) ? node.choices : [];
+    if (nextNodeId && !nodeMap.has(nextNodeId)) {
+      brokenLinks.push({ from: nodeId, to: nextNodeId });
+    }
+    if (!nextNodeId && choices.length <= 0) {
+      terminalNodeCount += 1;
+    }
+    for (const choice of choices) {
+      const choiceId = sanitizeText(choice?.choice_id);
+      const choiceNextNodeId = sanitizeText(choice?.next_node_id);
+      if (choiceNextNodeId && !nodeMap.has(choiceNextNodeId)) {
+        brokenChoices.push({ from: nodeId, choice_id: choiceId, to: choiceNextNodeId });
+      }
+      for (const flagId of sanitizeStringList(choice?.requires_flags_all)) {
+        flagIds.add(flagId);
+      }
+      for (const flagId of sanitizeStringList(choice?.requires_flags_any)) {
+        flagIds.add(flagId);
+      }
+      for (const effect of normalizeDialogueEffectList(choice?.effects)) {
+        flagIds.add(effect.flag_id);
+      }
+    }
+  }
+
+  if (terminalNodeCount <= 0) {
+    warnings.push("Aucun noeud terminal detecte.");
+  }
+
+  const orphanNodeIds = nodes
+    .map((node) => sanitizeText(node?.node_id))
+    .filter((nodeId) => nodeId && !reachable.has(nodeId));
+  if (orphanNodeIds.length > 0) {
+    warnings.push(`${orphanNodeIds.length} noeud(x) orphelin(s).`);
+  }
+  if (brokenLinks.length > 0) {
+    errors.push(`${brokenLinks.length} lien(s) next_node_id casse(s).`);
+  }
+  if (brokenChoices.length > 0) {
+    errors.push(`${brokenChoices.length} choix avec next_node_id casse(s).`);
+  }
+
+  return {
+    ok: errors.length <= 0,
+    errors,
+    warnings,
+    node_count: nodes.length,
+    terminal_node_count: terminalNodeCount,
+    orphan_node_ids: orphanNodeIds,
+    broken_next_links: brokenLinks,
+    broken_choice_links: brokenChoices,
+    route_refs: routeRefs,
+    flag_ids: Array.from(flagIds.values()).sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+function collectRouteFlagIds(routeModel) {
+  const flags = new Set();
+  if (!routeModel?.routeOrder?.length) {
+    return [];
+  }
+  for (const routeId of routeModel.routeOrder) {
+    const routeMeta = routeModel.routeMetaById.get(routeId) || null;
+    if (!routeMeta) {
+      continue;
+    }
+    for (const flagId of sanitizeStringList(routeMeta?.access_rules?.requires_flags_all)) {
+      flags.add(flagId);
+    }
+    for (const flagId of sanitizeStringList(routeMeta?.access_rules?.requires_flags_any)) {
+      flags.add(flagId);
+    }
+  }
+  return Array.from(flags.values()).sort((left, right) => left.localeCompare(right));
+}
+
+async function loadDialogueStudioModel(routeModelInput = null) {
+  const routeModel = routeModelInput || await loadRouteStudioModel();
+  const dialogueIds = await listDialogueIds();
+  const dialoguesById = new Map();
+  const meta = [];
+  const flagIds = new Set(collectRouteFlagIds(routeModel));
+
+  for (const dialogueId of dialogueIds) {
+    const safePayload = await readDialoguePayloadSafe(dialogueId);
+    const routeRefs = collectDialogueRouteRefs(routeModel, dialogueId);
+    if (!safePayload.dialogue) {
+      meta.push({
+        dialogue_id: dialogueId,
+        title_fr: dialogueId,
+        node_count: 0,
+        route_refs: routeRefs,
+        validation: {
+          ok: false,
+          errors: [safePayload.error],
+          warnings: [],
+          node_count: 0,
+          terminal_node_count: 0,
+          orphan_node_ids: [],
+          broken_next_links: [],
+          broken_choice_links: [],
+          route_refs: routeRefs,
+          flag_ids: [],
+        },
+      });
+      continue;
+    }
+    dialoguesById.set(dialogueId, safePayload.dialogue);
+    const validation = buildDialogueValidation(safePayload.dialogue, routeRefs);
+    for (const flagId of validation.flag_ids) {
+      flagIds.add(flagId);
+    }
+    meta.push({
+      dialogue_id: dialogueId,
+      title_fr: sanitizeText(safePayload.dialogue.title_fr, dialogueId),
+      node_count: validation.node_count,
+      route_refs: routeRefs,
+      validation,
+    });
+  }
+
+  return {
+    routeModel,
+    dialogueIds,
+    dialoguesById,
+    meta,
+    flag_suggestions: Array.from(flagIds.values()).sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+async function writeDialogueData(dialogueId, payload) {
+  const id = sanitizeDataFileId(dialogueId, "dialogue_id");
+  const nextDialogue = normalizeDialoguePayloadForWrite(id, payload);
+  const dialoguePath = getDialogueJsonPath(id);
+  await fsp.mkdir(path.dirname(dialoguePath), { recursive: true });
+  if (fs.existsSync(dialoguePath)) {
+    await ensureBackup(dialoguePath);
+  }
+  await fsp.writeFile(dialoguePath, `${JSON.stringify(nextDialogue, null, 2)}\n`, "utf8");
+  return nextDialogue;
+}
+
+async function duplicateDialogueData(sourceDialogueId, targetDialogueIdRaw = "") {
+  const sourceDialogue = await readDialoguePayload(sourceDialogueId);
+  const sourceId = sanitizeDataFileId(sourceDialogueId, "dialogue source");
+  const targetDialogueId = sanitizeDataFileId(
+    targetDialogueIdRaw || `${sourceId}_copy`,
+    "dialogue cible",
+  );
+  const targetPath = getDialogueJsonPath(targetDialogueId);
+  if (fs.existsSync(targetPath)) {
+    throw new Error(`Le dialogue ${targetDialogueId} existe deja.`);
+  }
+  const duplicatedDialogue = {
+    ...sourceDialogue,
+    dialogue_id: targetDialogueId,
+    title_fr: sanitizeText(sourceDialogue.title_fr, sourceId)
+      ? `${sanitizeText(sourceDialogue.title_fr, sourceId)} (copie)`
+      : `${targetDialogueId} (copie)`,
+  };
+  await writeDialogueData(targetDialogueId, duplicatedDialogue);
+  return duplicatedDialogue;
+}
+
+async function deleteDialogueData(dialogueId, options = {}) {
+  const id = sanitizeDataFileId(dialogueId, "dialogue_id");
+  const routeModel = await loadRouteStudioModel();
+  const routeRefs = collectDialogueRouteRefs(routeModel, id);
+  if (routeRefs.length > 0 && options.force !== true) {
+    throw new Error(`Le dialogue ${id} est encore reference par ${routeRefs.length} zone(s).`);
+  }
+  const dialoguePath = getDialogueJsonPath(id);
+  if (!fs.existsSync(dialoguePath)) {
+    throw new Error(`Dialogue introuvable: ${id}`);
+  }
+  await ensureBackup(dialoguePath);
+  await fsp.unlink(dialoguePath);
+  return {
+    dialogue_id: id,
+    route_refs: routeRefs,
   };
 }
 
@@ -834,6 +1645,7 @@ const server = http.createServer(async (request, response) => {
       <p>Choisis ton outil d'edition no-code.</p>
       <div class="links">
         <a href="/route">Route Encounter Studio</a>
+        <a href="/dialogues">Dialogue Studio</a>
         <a href="/talents">Talents Studio</a>
       </div>
     </main>
@@ -846,6 +1658,10 @@ const server = http.createServer(async (request, response) => {
 
     if (method === "GET" && pathname === "/route") {
       await serveUi(response, ROUTE_UI_INDEX_PATH);
+      return;
+    }
+    if (method === "GET" && (pathname === "/dialogues" || pathname === "/dialogue")) {
+      await serveUi(response, DIALOGUE_UI_INDEX_PATH);
       return;
     }
     if (method === "GET" && pathname === "/talents") {
@@ -875,10 +1691,14 @@ const server = http.createServer(async (request, response) => {
     }
 
     if (method === "GET" && pathname === "/api/route-encounters/meta") {
-      const model = await loadRouteCsvModel();
+      const model = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(model);
       sendJson(response, 200, {
         routes: buildRouteMetaList(model),
         method_choices: model.methodChoices,
+        route_choices: buildRouteChoiceList(model),
+        dialogue_choices: buildDialogueChoiceList(dialogueModel),
+        flag_choices: dialogueModel.flag_suggestions,
       });
       return;
     }
@@ -886,7 +1706,7 @@ const server = http.createServer(async (request, response) => {
     const routeMatch = pathname.match(/^\/api\/route-encounters\/([^/]+)$/);
     if (routeMatch && method === "GET") {
       const routeId = decodeURIComponent(routeMatch[1] || "");
-      const model = await loadRouteCsvModel();
+      const model = await loadRouteStudioModel();
       const refs = await loadPokemonReferences();
       if (!model.routeRowsById.has(routeId)) {
         sendJson(response, 404, { error: `Route introuvable: ${routeId}` });
@@ -899,11 +1719,107 @@ const server = http.createServer(async (request, response) => {
       const routeId = decodeURIComponent(routeMatch[1] || "");
       const payload = await readBodyJson(request);
       const refs = await loadPokemonReferences();
-      const updatedModel = await writeRouteCsv(routeId, payload, refs.byId);
+      const currentModel = await loadRouteStudioModel();
+      const routeMeta = currentModel.routeMetaById.get(routeId);
+      if (!routeMeta) {
+        sendJson(response, 404, { error: `Route introuvable: ${routeId}` });
+        return;
+      }
+      const updatedModel =
+        routeMeta.storage_kind === "csv"
+          ? await writeRouteCsv(routeId, payload, refs.byId)
+          : await writeRouteJsonData(routeId, payload, refs.byId);
       sendJson(response, 200, {
         ok: true,
         route: getRoutePayload(updatedModel, routeId, refs.byId),
         routes: buildRouteMetaList(updatedModel),
+      });
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/dialogues/meta") {
+      const routeModel = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(routeModel);
+      sendJson(response, 200, {
+        dialogues: dialogueModel.meta,
+        dialogue_choices: buildDialogueChoiceList(dialogueModel),
+        route_choices: buildRouteChoiceList(routeModel),
+        flag_choices: dialogueModel.flag_suggestions,
+      });
+      return;
+    }
+
+    const dialogueMatch = pathname.match(/^\/api\/dialogues\/([^/]+)$/);
+    const duplicateDialogueMatch = pathname.match(/^\/api\/dialogues\/([^/]+)\/duplicate$/);
+
+    if (duplicateDialogueMatch && method === "POST") {
+      const sourceDialogueId = decodeURIComponent(duplicateDialogueMatch[1] || "");
+      const payload = await readBodyJson(request);
+      const duplicatedDialogue = await duplicateDialogueData(
+        sourceDialogueId,
+        sanitizeText(payload?.target_dialogue_id || payload?.dialogue_id),
+      );
+      const routeModel = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(routeModel);
+      const routeRefs = collectDialogueRouteRefs(routeModel, duplicatedDialogue.dialogue_id);
+      sendJson(response, 200, {
+        ok: true,
+        dialogue: duplicatedDialogue,
+        validation: buildDialogueValidation(duplicatedDialogue, routeRefs),
+        dialogues: dialogueModel.meta,
+      });
+      return;
+    }
+
+    if (dialogueMatch && method === "GET") {
+      const dialogueId = decodeURIComponent(dialogueMatch[1] || "");
+      const routeModel = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(routeModel);
+      const dialogue = await readDialoguePayload(dialogueId);
+      const routeRefs = collectDialogueRouteRefs(routeModel, dialogueId);
+      const validation = buildDialogueValidation(dialogue, routeRefs);
+      const flagChoices = Array.from(
+        new Set([...(dialogueModel.flag_suggestions || []), ...(validation.flag_ids || [])]),
+      ).sort((left, right) => left.localeCompare(right));
+      sendJson(response, 200, {
+        dialogue,
+        validation,
+        route_refs: routeRefs,
+        route_choices: buildRouteChoiceList(routeModel),
+        flag_choices: flagChoices,
+      });
+      return;
+    }
+
+    if (dialogueMatch && method === "PUT") {
+      const dialogueId = decodeURIComponent(dialogueMatch[1] || "");
+      const payload = await readBodyJson(request);
+      const dialogue = await writeDialogueData(dialogueId, payload);
+      const routeModel = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(routeModel);
+      const routeRefs = collectDialogueRouteRefs(routeModel, dialogueId);
+      const validation = buildDialogueValidation(dialogue, routeRefs);
+      sendJson(response, 200, {
+        ok: true,
+        dialogue,
+        validation,
+        dialogues: dialogueModel.meta,
+        flag_choices: dialogueModel.flag_suggestions,
+      });
+      return;
+    }
+
+    if (dialogueMatch && method === "DELETE") {
+      const dialogueId = decodeURIComponent(dialogueMatch[1] || "");
+      const forceDelete =
+        requestUrl.searchParams.get("force") === "1" || requestUrl.searchParams.get("force") === "true";
+      const result = await deleteDialogueData(dialogueId, { force: forceDelete });
+      const routeModel = await loadRouteStudioModel();
+      const dialogueModel = await loadDialogueStudioModel(routeModel);
+      sendJson(response, 200, {
+        ok: true,
+        deleted: result,
+        dialogues: dialogueModel.meta,
       });
       return;
     }

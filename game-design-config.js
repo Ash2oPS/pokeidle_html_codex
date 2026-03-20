@@ -287,10 +287,16 @@ export const GAME_DESIGN_CONFIG = {
   metrics: {
     foregroundFrameStepMs: 40,
     hiddenSimBudgetMs: 180000,
+    /** Limite CPU d'un tick background live avant yield. */
+    backgroundPumpMaxWorkMs: 4,
     bulkIdleThresholdMs: 1200,
     maxOfflineCatchupMs: 1000 * 60 * 60 * 24 * 7,
     /** Catch-up maxi apres reprise same-session d'un background/suspend. */
     maxResumeCatchupMs: 1000 * 60 * 60 * 6,
+    /** Limite CPU d'une tranche de catch-up foreground. */
+    foregroundCatchupPumpMaxWorkMs: 6,
+    /** Delai entre deux tranches de catch-up foreground. */
+    foregroundCatchupPumpDelayMs: 16,
     backgroundTickIntervalMs: 1000,
     /** Anti-spam des persist pendant les transitions de lifecycle. */
     backgroundPersistDebounceMs: 250,

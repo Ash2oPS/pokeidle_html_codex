@@ -42,6 +42,7 @@ export function createRuntimeLoopKernel({
   toSafeInt,
   isHidden,
   nowMs,
+  workNowMs,
   maxForegroundPendingMs,
   maxOfflineCatchupMs,
   maxResumeCatchupMs,
@@ -64,6 +65,19 @@ export function createRuntimeLoopKernel({
       ? getSaveTickEpochMs
       : (savePayload) => Math.max(0, safeToInt(savePayload?.last_tick_epoch_ms, 0));
   const readNowMs = typeof nowMs === "function" ? nowMs : () => Date.now();
+  const readWorkNowMs =
+    typeof workNowMs === "function"
+      ? workNowMs
+      : () => {
+          try {
+            if (typeof performance?.now === "function") {
+              return Number(performance.now()) || 0;
+            }
+          } catch {
+            // Fallback to Date.now() when the monotonic clock is unavailable.
+          }
+          return Date.now();
+        };
   const readHidden =
     typeof isHidden === "function"
       ? isHidden
@@ -169,7 +183,7 @@ export function createRuntimeLoopKernel({
       return 0;
     }
 
-    if (!state.battle || !state.team?.length) {
+    if (!state.team?.length) {
       state.pendingSimMs = 0;
       flushDeferredSaveIfNeeded();
       return 0;
@@ -185,14 +199,23 @@ export function createRuntimeLoopKernel({
         : backgroundActivity
           ? hiddenBudgetDefault
           : foregroundBudgetMs;
+    const configuredMaxWorkMs = Number(options.maxWorkMs);
+    const maxWorkMs =
+      Number.isFinite(configuredMaxWorkMs) && configuredMaxWorkMs >= 0
+        ? configuredMaxWorkMs
+        : Number.POSITIVE_INFINITY;
 
     let consumedMs = 0;
     let safety = 0;
+    const workStartMs = readWorkNowMs();
     const currentAttackInterval = getAttackIntervalMs();
     const minStepForSafety = Math.max(1, Math.min(foregroundStepMs, currentAttackInterval));
     const maxIterations = Math.max(64, Math.ceil(budgetMs / minStepForSafety) + 32);
 
     while (state.pendingSimMs > 0.5 && consumedMs < budgetMs && safety < maxIterations) {
+      if (safety > 0 && Number.isFinite(maxWorkMs) && readWorkNowMs() - workStartMs >= maxWorkMs) {
+        break;
+      }
       const remainingBudget = Math.max(0, budgetMs - consumedMs);
       if (remainingBudget <= 0) {
         break;

@@ -61,5 +61,16 @@
   "map_marker": {
     "x": 58.33,
     "y": 54.72
+  },
+  "connected_route_ids": [
+    "johto_route_37",
+    "johto_dungeon_burned_tower"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

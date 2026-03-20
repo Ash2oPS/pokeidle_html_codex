@@ -25,5 +25,16 @@
     "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/VerdanturfTown/map.json"
   ],
   "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
-  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+  "generated_at_utc": "2026-03-17T16:39:27.528Z",
+  "connected_route_ids": [
+    "hoenn_route_117",
+    "hoenn_route_111"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

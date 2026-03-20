@@ -156,5 +156,16 @@
   "map_marker": {
     "x": 75.42,
     "y": 72.22
+  },
+  "connected_route_ids": [
+    "johto_route_41",
+    "johto_city_cianwood_city"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

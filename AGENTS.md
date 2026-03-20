@@ -62,6 +62,40 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - ne doit jamais bloquer localhost, `127.0.0.1` ou tout autre environnement dev / non-prod
 - Le preview QA du mode maintenance est autorise uniquement hors prod via `?previewMaintenance=1`.
 - Toute modification du bootstrap ou du mode maintenance doit etre validee par screenshots desktop et mobile portrait de l'ecran obtenu.
+- Toute nouvelle abstraction, helper, module ou fichier doit avoir une raison concrete:
+  - reutilisation reelle
+  - isolation technique nette
+  - testabilite clairement meilleure
+  - pas de couche "au cas ou"
+- Quand un flow, un systeme ou un ecran remplace un ancien, supprime dans la meme tache le code mort associe:
+  - branches legacy
+  - flags devenus inutiles
+  - styles/selectors orphelins
+  - scripts et tests obsoletes
+  - docs perimees
+- Interdiction de maintenir deux chemins runtime/UI equivalentes en parallele sans migration explicite:
+  - point d'entree unique clairement assume
+  - raison transitoire documentee
+  - condition de retrait claire
+- Hors exceptions explicitement documentees comme le fail-open du bootstrap maintenance, n'ajoute pas de fallback silencieux qui masque:
+  - une erreur structurelle
+  - des donnees invalides
+  - un import casse
+  - une config manquante
+- Tout nouvel `id`, `class`, `data-*`, selector CSS ou selector JS pilote par le runtime doit etre:
+  - stable
+  - unique
+  - teste si le flow est critique
+- Toute nouvelle commande de test, debug, capture ou migration ajoutee dans `scripts/` doit etre:
+  - branchee dans `package.json`
+  - ou documentee explicitement au bon endroit
+  - jamais laissee orpheline
+- Tout nouveau flag debug, query param, toggle dev ou hook `window.*` doit etre:
+  - documente
+  - borne au dev / non-prod si possible
+  - retire quand il ne sert plus
+- N'ajoute pas de `TODO` / `FIXME` vague.
+  - Si un TODO est vraiment indispensable, il doit nommer le blocage concret et ce qu'il faudra retirer ou terminer ensuite.
 - Il est interdit de changer le schema de save, les cles de save, `window.render_game_to_text` ou `window.advanceTime` sans demande explicite.
 - La fiabilite du background idle est critique:
   - le jeu ne doit jamais perdre de progression a cause d'un passage en arriere-plan
@@ -132,6 +166,7 @@ Quand tu ajoutes ou deplaces une valeur de design:
 - Preserve les imports publics existants quand c'est possible.
 - Ne refactor pas large "tant qu'on y est".
 - Ne cree pas une seconde source de verite de tuning par confort.
+- Si tu introduis une compatibilite transitoire, documente immediatement sa sortie et evite qu'elle devienne permanente par oubli.
 
 ## Done Checklist
 
@@ -140,8 +175,12 @@ Quand tu ajoutes ou deplaces une valeur de design:
 - Aucun import direct interdit de `game-design-config.js` n'a ete ajoute.
 - Aucun nombre magique equivalent n'est reste planque ailleurs.
 - Aucun texte UI nouveau n'introduit de mojibake ou de FR casse.
+- Aucun code mort, style orphelin, selector obsolete ou script inutile n'a ete laisse apres le changement.
+- Aucun nouveau fallback silencieux ou double chemin inutile n'a ete introduit.
+- Toute nouvelle commande `scripts/` est soit branchee dans `package.json`, soit documentee explicitement.
+- Tout nouveau flag debug/query param/hook runtime a une portee claire et une raison d'exister.
 - Pour toute modif UI, les screenshots desktop et mobile portrait ont ete generes et relus.
-- La modif UI reste alignée avec le langage visuel existant du jeu.
+- La modif UI reste alignee avec le langage visuel existant du jeu.
 - Pour toute modif runtime/lifecycle/background, les preuves minimales existent:
   - tests unitaires touches
   - artefacts `render_game_to_text`

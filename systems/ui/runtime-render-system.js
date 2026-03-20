@@ -995,6 +995,90 @@ function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY
   return positions;
 }
 
+function buildTownTeamSlots({
+  profile,
+  playLeft,
+  playRight,
+  playTop,
+  playBottom,
+  teamSize,
+  teamHudWidth,
+  teamHudHeight,
+  teamTypeChipHeight,
+  cardMargin,
+}) {
+  const slots = [];
+  const safeWidth = Math.max(180, playRight - playLeft);
+  const safeHeight = Math.max(180, playBottom - playTop);
+  if (profile.phone) {
+    const x = playRight - teamSize * 0.88;
+    const topStart = playTop + teamSize * 0.92;
+    const bottomEnd = playBottom - teamSize * 0.92;
+    const step = MAX_TEAM_SIZE <= 1 ? 0 : (bottomEnd - topStart) / Math.max(1, MAX_TEAM_SIZE - 1);
+    for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+      const y = topStart + step * i;
+      const hudWidth = clamp(teamHudWidth * 0.98, 74, Math.min(176, safeWidth * 0.56));
+      const hudCenterX = clamp(
+        x - teamSize * 0.84 - hudWidth * 0.5,
+        playLeft + hudWidth * 0.5 + cardMargin,
+        playRight - hudWidth * 0.5 - cardMargin,
+      );
+      const hudCenterY = clamp(
+        y - teamSize * 0.42,
+        playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+        playBottom - teamHudHeight * 0.5 - cardMargin,
+      );
+      slots.push({
+        x,
+        y,
+        size: teamSize,
+        hudCenterX,
+        hudCenterY,
+        hudTopY: hudCenterY - teamHudHeight * 0.5,
+        hudWidth,
+        hudHeight: teamHudHeight,
+        hudTypeChipHeight: teamTypeChipHeight,
+        hudDirectionX: -1,
+        hudDirectionY: 0,
+      });
+    }
+    return slots;
+  }
+
+  const y = playBottom - teamSize * 0.9;
+  const startX = playLeft + teamSize * 0.92;
+  const endX = playRight - teamSize * 0.92;
+  const step = MAX_TEAM_SIZE <= 1 ? 0 : (endX - startX) / Math.max(1, MAX_TEAM_SIZE - 1);
+  for (let i = 0; i < MAX_TEAM_SIZE; i += 1) {
+    const x = startX + step * i;
+    const hudWidth = clamp(teamHudWidth * 1.04, 90, Math.min(188, safeWidth * 0.24));
+    const hudCenterX = clamp(
+      x,
+      playLeft + hudWidth * 0.5 + cardMargin,
+      playRight - hudWidth * 0.5 - cardMargin,
+    );
+    const hudCenterY = clamp(
+      y - teamSize * 0.96 - teamHudHeight * 0.5,
+      playTop + teamTypeChipHeight + teamHudHeight * 0.5 + cardMargin,
+      playBottom - teamHudHeight * 0.5 - cardMargin,
+    );
+    slots.push({
+      x,
+      y,
+      size: teamSize,
+      hudCenterX,
+      hudCenterY,
+      hudTopY: hudCenterY - teamHudHeight * 0.5,
+      hudWidth,
+      hudHeight: teamHudHeight,
+      hudTypeChipHeight: teamTypeChipHeight,
+      hudDirectionX: 0,
+      hudDirectionY: -1,
+    });
+  }
+  return slots;
+}
+
 function computeLayout() {
   const width = Math.max(260, Number(state.viewport.width) || 0);
   const height = Math.max(220, Number(state.viewport.height) || 0);
@@ -1060,6 +1144,7 @@ function computeLayout() {
   );
   const teamTypeChipHeight = clamp(teamSize * 0.17, 11, 18);
   const cardMargin = 6;
+  const routeCombatEnabled = isCurrentRouteCombatEnabled();
   const teamSlots = [];
   const devLayoutSettings = state.devLayout?.settings || DEV_LAYOUT_SETTINGS_DEFAULTS;
   const usePhoneRowsLayout = Boolean(profile.phone);
@@ -1085,6 +1170,62 @@ function computeLayout() {
   const hudDepthScale = usePhoneRowsLayout ? 1 : Math.max(0.1, Number(devLayoutSettings.hudDepthScale || 1));
   const enemyUiYOffset = usePhoneRowsLayout ? 0 : Number(devLayoutSettings.enemyUiYOffset || 0);
   const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
+
+  if (!routeCombatEnabled) {
+    const townTeamSize = clamp(
+      Math.min(
+        playWidth / (profile.phone ? 4.9 : 7.3),
+        playHeight / (profile.phone ? 8.6 : 4.8),
+      ),
+      profile.phone ? 56 : 70,
+      profile.phone ? 94 : 112,
+    );
+    const townHudWidth = clamp(
+      teamHudBaseWidth * (profile.phone ? 0.92 : 1.08),
+      profile.phone ? 74 : 94,
+      profile.phone ? 154 : 188,
+    );
+    const townHudHeight = clamp(
+      teamHudBaseHeight * (profile.phone ? 0.94 : 1.04),
+      profile.phone ? 24 : 26,
+      profile.phone ? 40 : 52,
+    );
+    return {
+      centerX: playLeft + playWidth * 0.5,
+      centerY: playTop + playHeight * 0.48,
+      enemyImpactX: playLeft + playWidth * 0.5,
+      enemyImpactY: playTop + playHeight * 0.48,
+      enemySize: 0,
+      hpBarWidth: 0,
+      hpBarHeight: 0,
+      hpBarY: playTop + playHeight * 0.5,
+      enemyNameTopY: playTop + playHeight * 0.5,
+      enemyNamePlateWidth: 0,
+      enemyTypeHudY: playTop + playHeight * 0.5,
+      viewportProfile: profile,
+      safeBounds: {
+        top: playTop,
+        bottom: playBottom,
+        left: playLeft,
+        right: playRight,
+        width: playWidth,
+        height: playHeight,
+      },
+      teamSlots: buildTownTeamSlots({
+        profile,
+        playLeft,
+        playRight,
+        playTop,
+        playBottom,
+        teamSize: townTeamSize,
+        teamHudWidth: townHudWidth,
+        teamHudHeight: townHudHeight,
+        teamTypeChipHeight: clamp(townTeamSize * 0.16, 11, 18),
+        cardMargin,
+      }),
+      townLayoutMode: profile.phone ? "mobile_right_column" : "desktop_bottom_row",
+    };
+  }
 
   const centerYBaseRatio = useSplitRows
     ? 0.64
@@ -6561,46 +6702,6 @@ function drawBattleUiOverlay(layout, options = {}) {
   }
 }
 
-function drawNonCombatZoneOverlay(layout) {
-  const zoneId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
-  const zoneType = getRouteZoneType(zoneId);
-  const nextRouteId = getNextRouteId(zoneId);
-  const title = zoneType === "town" ? "Ville paisible" : "Zone sans combat";
-  const subtitle = zoneType === "town"
-    ? "Aucun combat ici. Passe \u00e0 la zone suivante."
-    : "Aucun Pok\u00e9mon sauvage dans cette zone.";
-  const nextLabel = nextRouteId
-    ? `Suivante: ${getRouteDisplayName(nextRouteId)}`
-    : "Derni\u00e8re zone d\u00e9bloqu\u00e9e.";
-
-  ctx.save();
-  const width = clamp(state.viewport.width * 0.52, 300, 640);
-  const height = 102;
-  const x = layout.centerX - width * 0.5;
-  const y = layout.centerY - height * 0.5;
-  drawRetroHudPanel(x, y, width, height, {
-    cut: 18,
-    fillTop: "rgba(46, 62, 86, 0.98)",
-    fillBottom: "rgba(27, 39, 56, 0.98)",
-    border: "rgba(103, 132, 164, 0.98)",
-    highlight: "rgba(186, 210, 237, 0.25)",
-    shadow: "rgba(0, 0, 0, 0.36)",
-    borderWidth: 2,
-  });
-
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = "700 24px Tahoma";
-  ctx.fillStyle = "#e6f0fe";
-  ctx.fillText(title, layout.centerX, y + 36);
-  ctx.font = "700 13px Tahoma";
-  ctx.fillStyle = "#aec2d9";
-  ctx.fillText(subtitle, layout.centerX, y + 62);
-  ctx.fillStyle = "#e6b55d";
-  ctx.fillText(nextLabel, layout.centerX, y + 84);
-  ctx.restore();
-}
-
 function getBottomHudSafeEdge(layout = state.layout) {
   const viewportHeight = Math.max(0, Number(state.viewport?.height) || 0);
   if (viewportHeight <= 0) {
@@ -6909,9 +7010,6 @@ function render() {
       showEnemyUi: Boolean(state.enemy) && !koTransition?.active && !captureSequence,
       teamDrawPositions,
     });
-  }
-  if (!routeCombatEnabled) {
-    drawNonCombatZoneOverlay(layout);
   }
   drawEnvironmentForegroundLayer(width, height, environmentSnapshot);
   drawLegendaryFieldScreenVfx(width, height, state.team);

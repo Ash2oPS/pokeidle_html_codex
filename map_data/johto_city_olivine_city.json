@@ -105,5 +105,16 @@
   "map_marker": {
     "x": 67.08,
     "y": 51.39
+  },
+  "connected_route_ids": [
+    "johto_route_39",
+    "johto_dungeon_johto_lighthouse"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
   }
 }

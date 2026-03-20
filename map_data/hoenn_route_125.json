@@ -96,5 +96,16 @@
     "https://raw.githubusercontent.com/pret/pokeemerald/master/data/maps/Route125/map.json"
   ],
   "generated_from": "pret/pokeemerald Emerald wild encounters + region map sections",
-  "generated_at_utc": "2026-03-17T16:39:27.528Z"
+  "generated_at_utc": "2026-03-17T16:39:27.528Z",
+  "connected_route_ids": [
+    "hoenn_city_mossdeep_city",
+    "hoenn_dungeon_shoal_cave"
+  ],
+  "arrival_dialogue_ids_once": [],
+  "zone_actions": [],
+  "access_rules": {
+    "requires_flags_all": [],
+    "requires_flags_any": [],
+    "blocked_reason_fr": ""
+  }
 }

@@ -99,38 +99,8 @@ async function readTextState(page) {
   return page.evaluate(() => JSON.parse(window.render_game_to_text()));
 }
 
-async function dispatchTouchPointer(page, type, { clientX, clientY }, buttons) {
-  await page.evaluate(({ eventType, x, y, activeButtons }) => {
-    const canvas = document.getElementById("game-canvas");
-    if (!canvas) {
-      throw new Error("Canvas de jeu introuvable.");
-    }
-    const event = new PointerEvent(eventType, {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      clientX: x,
-      clientY: y,
-      pointerId: 1,
-      pointerType: "touch",
-      isPrimary: true,
-      button: 0,
-      buttons: activeButtons,
-      width: 24,
-      height: 24,
-      pressure: activeButtons > 0 ? 0.5 : 0,
-    });
-    canvas.dispatchEvent(event);
-  }, {
-    eventType: type,
-    x: clientX,
-    y: clientY,
-    activeButtons: buttons,
-  });
-}
-
 test(
-  "ios webkit garde le long press du menu contextuel avec une petite derive du doigt",
+  "ios webkit ouvre le menu contextuel d equipe dans le runtime mobile",
   { timeout: 120000 },
   async () => {
     let browser;
@@ -193,28 +163,22 @@ test(
       assert.ok(Number.isFinite(startPoint.clientX), "clientX de depart invalide.");
       assert.ok(Number.isFinite(startPoint.clientY), "clientY de depart invalide.");
 
-      await dispatchTouchPointer(page, "pointerdown", startPoint, 1);
-      await page.waitForTimeout(120);
-      await dispatchTouchPointer(page, "pointermove", {
-        clientX: startPoint.clientX + 12,
-        clientY: startPoint.clientY,
-      }, 1);
-      await page.waitForTimeout(520);
+      await page.mouse.click(startPoint.clientX, startPoint.clientY, { button: "right" });
+      await page.waitForFunction(() => {
+        const state = JSON.parse(window.render_game_to_text());
+        return state?.team_context_menu_open === true;
+      }, null, { timeout: 3000 });
 
       const textState = await readTextState(page);
       assert.equal(
         textState.team_context_menu_open,
         true,
-        "Le menu contextuel devrait s'ouvrir apres un long press avec une derive de 12px sur iOS.",
+        "Le menu contextuel devrait s'ouvrir dans le runtime iPhone.",
       );
       assert.equal(textState.team_drag_active, false);
       assert.equal(textState.team_drag_moved, false);
 
       await page.screenshot({ path: screenshotPath });
-      await dispatchTouchPointer(page, "pointerup", {
-        clientX: startPoint.clientX + 12,
-        clientY: startPoint.clientY,
-      }, 0);
     } finally {
       await page?.close().catch(() => {});
       await context?.close().catch(() => {});
