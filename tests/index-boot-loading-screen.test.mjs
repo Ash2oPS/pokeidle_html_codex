@@ -36,3 +36,17 @@ test("index.html boot loading screen includes critical inline styles for the fir
   assert.match(html, /background:\s*#000/);
   assert.match(html, /loading-pokeball-spin/);
 });
+
+test("index.html keeps maintenance boot styles inline and does not hard-load boot vendors", () => {
+  const html = readFileSync(INDEX_HTML_PATH, "utf8");
+
+  assert.match(html, /\.maintenance-screen \.loading-pokeball/);
+  assert.match(html, /maintenance-pokeball-glow/);
+  assert.match(html, /filter:\s*grayscale\(1\)/);
+  assert.match(html, /opacity:\s*0\.6/);
+  assert.match(html, /white-space:\s*pre-line/);
+  assert.doesNotMatch(html, /<script[^>]+src="vendor\/pako\.min\.js"/i);
+  assert.doesNotMatch(html, /<script[^>]+src="vendor\/upng\.js"/i);
+  assert.doesNotMatch(html, /<script[^>]+src="vendor\/omggif\.js"/i);
+  assert.match(html, /<script\s+type="module"\s+src="game\.js"><\/script>/i);
+});

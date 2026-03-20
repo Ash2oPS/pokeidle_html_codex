@@ -46,7 +46,7 @@ class FakeEventTarget {
   }
 }
 
-function createFixture() {
+function createFixture(overrides = {}) {
   const documentRef = new FakeEventTarget();
   documentRef.onfreeze = null;
   documentRef.onresume = null;
@@ -106,6 +106,10 @@ function createFixture() {
       toggleFullscreen() {
         return Promise.resolve();
       },
+      ...overrides.actions,
+    },
+    elements: {
+      ...overrides.elements,
     },
   });
 
@@ -196,4 +200,33 @@ test("beforeunload forwards lifecycle signal and disposes listeners", () => {
   assert.equal(fixture.documentRef.listenerCount(), 0);
   assert.equal(fixture.windowRef.listenerCount(), 0);
   assert.equal(fixture.canvas.listenerCount(), 0);
+});
+
+test("clicking import/export save buttons forwards to runtime save actions", async () => {
+  const exportSaveButtonEl = new FakeEventTarget();
+  const importSaveButtonEl = new FakeEventTarget();
+  const calls = [];
+  const fixture = createFixture({
+    elements: {
+      exportSaveButtonEl,
+      importSaveButtonEl,
+    },
+    actions: {
+      exportSaveToFile() {
+        calls.push("export");
+        return Promise.resolve();
+      },
+      importSaveFromFile() {
+        calls.push("import");
+        return Promise.resolve();
+      },
+    },
+  });
+  fixture.system.init();
+
+  exportSaveButtonEl.dispatchEvent("click");
+  importSaveButtonEl.dispatchEvent("click");
+  await Promise.resolve();
+
+  assert.deepEqual(calls, ["export", "import"]);
 });

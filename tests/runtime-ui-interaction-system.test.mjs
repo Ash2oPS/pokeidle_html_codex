@@ -549,6 +549,23 @@ function createUiInteractionSystem(overrides = {}) {
     window: windowObject,
     ...overrides.bindings,
   };
+  if (typeof bindings.getAppearanceUnlockState !== "function") {
+    bindings.getAppearanceUnlockState = (pokemonId) => {
+      const record = typeof bindings.getPokemonEntityRecord === "function"
+        ? bindings.getPokemonEntityRecord(pokemonId)
+        : null;
+      const shinyUnlocked = Boolean(bindings.isShinyAppearanceUnlockedForRecord?.(record, pokemonId));
+      const ultraUnlocked = Boolean(bindings.isUltraShinyAppearanceUnlockedForRecord?.(record, pokemonId));
+      return {
+        shinyUnlocked,
+        ultraUnlocked,
+        shinySource: shinyUnlocked ? "current_save" : "none",
+        ultraSource: ultraUnlocked ? "current_save" : "none",
+        familyShinyCaptures: shinyUnlocked ? 1 : 0,
+        familyUltraShinyCaptures: ultraUnlocked ? 1 : 0,
+      };
+    };
+  }
 
   const system = createRuntimeUiInteractionSystem({ bindings });
   return { bindings, system, state, window: windowObject };
@@ -1570,4 +1587,47 @@ test("runtime ui interaction system waits for the selected skin assets before re
     "render:black_white",
     "message:black_white",
   ]);
+});
+
+test("runtime ui interaction system shows inherited shiny messaging in the appearance modal", () => {
+  const variants = [
+    { id: "firered_leafgreen", labelFr: "Rouge Feu", frontPath: "rf.png" },
+  ];
+  const record = {
+    appearance_selected_variant: "firered_leafgreen",
+    appearance_shiny_mode: false,
+    appearance_ultra_shiny_mode: false,
+  };
+  const { bindings, system, state } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+      appearanceGridEl: createTestElement("div"),
+      getPokemonEntityRecord: () => record,
+      getSpriteVariantsForDef: () => variants,
+      getOwnedSpriteVariantsForRecord: () => variants,
+      getSelectedOwnedSpriteVariantForRecord: () => variants[0],
+      getSpriteVariantDisplayLabel: (variant) => variant?.labelFr || "",
+      getAppearanceUnlockState: () => ({
+        shinyUnlocked: true,
+        ultraUnlocked: false,
+        shinySource: "legacy",
+        ultraSource: "none",
+        familyShinyCaptures: 0,
+        familyUltraShinyCaptures: 0,
+      }),
+    },
+  });
+
+  state.saveData = { team: [25] };
+  state.ui.appearancePokemonId = 25;
+  state.pokemonDefsById.set(25, {
+    id: 25,
+    nameFr: "Pikachu",
+    spritePath: "pokemon_data/25.png",
+  });
+
+  system.renderAppearanceModal();
+
+  assert.match(bindings.appearanceShinyStatusEl.textContent, /ancienne sauvegarde/i);
+  assert.equal(bindings.appearanceShinyToggleButtonEl.disabled, false);
 });

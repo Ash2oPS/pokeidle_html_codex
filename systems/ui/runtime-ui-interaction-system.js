@@ -413,6 +413,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     formatTypeLabelFr,
     formatTypeListFr,
     getActiveBallType,
+    getAppearanceUnlockState,
     getAttackBoostRemainingMs,
     getBallCaptureRulesForType,
     getBallInventoryCount,
@@ -3690,10 +3691,13 @@ function renderAppearanceModal() {
   const ownedVariants = getOwnedSpriteVariantsForRecord(record, def);
   const ownedSet = new Set(ownedVariants.map((variant) => variant.id));
   const selectedVariant = getSelectedOwnedSpriteVariantForRecord(record, def);
-  const shinyUnlocked = isShinyAppearanceUnlockedForRecord(record, pokemonId);
-  const ultraShinyUnlocked = isUltraShinyAppearanceUnlockedForRecord(record, pokemonId);
-  const shinyCapturesFamily = getFamilyShinyCaptureCount(pokemonId);
-  const ultraShinyCapturesFamily = getFamilyUltraShinyCaptureCount(pokemonId);
+  const appearanceUnlockState = getAppearanceUnlockState(pokemonId);
+  const shinyUnlocked = appearanceUnlockState.shinyUnlocked;
+  const ultraShinyUnlocked = appearanceUnlockState.ultraUnlocked;
+  const shinyCapturesFamily = appearanceUnlockState.familyShinyCaptures;
+  const ultraShinyCapturesFamily = appearanceUnlockState.familyUltraShinyCaptures;
+  const shinySource = appearanceUnlockState.shinySource;
+  const ultraSource = appearanceUnlockState.ultraSource;
   const shinyModeActive = Boolean(record.appearance_shiny_mode && shinyUnlocked);
   const ultraShinyModeActive = Boolean(record.appearance_ultra_shiny_mode && ultraShinyUnlocked);
   const selectedHasShiny = Boolean(getVariantShinySpritePath(def, selectedVariant));
@@ -3718,6 +3722,22 @@ function renderAppearanceModal() {
   if (appearanceShinyStatusEl) {
     if (!shinyUnlocked) {
       appearanceShinyStatusEl.textContent = "Capture un shiny de la famille evolutive pour debloquer ce mode.";
+    } else if (shinySource === "legacy" && ultraSource === "none") {
+      appearanceShinyStatusEl.textContent =
+        shinyModeActive
+          ? "Mode shiny herite d'une ancienne sauvegarde."
+          : "Mode shiny herite d'une ancienne sauvegarde. Active le mode shiny si voulu.";
+    } else if (shinySource === "legacy" && ultraSource === "current_save") {
+      appearanceShinyStatusEl.textContent =
+        ultraShinyModeActive
+          ? `Ultra shiny actif (famille: ${ultraShinyCapturesFamily} capture ultra shiny). Mode shiny herite d'une ancienne sauvegarde.`
+          : `Mode shiny herite d'une ancienne sauvegarde. Mode ultra shiny debloque via tes captures actuelles (${ultraShinyCapturesFamily}).`;
+    } else if (shinySource === "legacy" && ultraSource === "legacy" && ultraShinyModeActive) {
+      appearanceShinyStatusEl.textContent =
+        "Mode ultra shiny herite d'une ancienne sauvegarde.";
+    } else if (shinySource === "legacy" && ultraSource === "legacy") {
+      appearanceShinyStatusEl.textContent =
+        "Modes shiny et ultra shiny herites d'une ancienne sauvegarde.";
     } else if (!ultraShinyUnlocked) {
       appearanceShinyStatusEl.textContent = shinyModeActive
         ? `Shiny famille debloque (${shinyCapturesFamily} capture). Capture un ultra shiny de la famille pour debloquer le mode ultra shiny.`

@@ -75,6 +75,16 @@ import { createDesktopBridgeSaveStorage } from "./infra/storage/desktop-bridge-s
 import { createIndexedDbSaveStorage } from "./infra/storage/indexeddb-save-storage.js";
 import { createRuntimeSaveSystem } from "./systems/save/runtime-save-system.js";
 import {
+  COMPACT_SAVE_FORMAT_ID,
+  COMPACT_SAVE_BALL_ORDER,
+  COMPACT_SAVE_ITEM_ORDER,
+  decodeCompactSave as decodeCompactSavePayload,
+  encodeCompactSave as encodeCompactSavePayload,
+  extractLegacyAppearanceSpecies as extractLegacyAppearanceSpeciesFromPayload,
+  isCompactSavePayload,
+  sanitizePositiveIntArray,
+} from "./lib/compact-save-codec.js";
+import {
   createRuntimeRenderSystem,
   RUNTIME_RENDER_BINDING_KEYS,
 } from "./systems/ui/runtime-render-system.js";
@@ -122,10 +132,12 @@ import {
 } from "./lib/game-world-config.js";
 import {
   SAVE_KEY,
-  SAVE_SESSION_KEY,
   SAVE_INDEXED_DB_NAME,
   SAVE_INDEXED_DB_STORE_NAME,
   SAVE_INDEXED_DB_RECORD_KEY,
+  LEGACY_SAVE_KEY,
+  LEGACY_SAVE_SESSION_KEY,
+  LEGACY_SAVE_INDEXED_DB_NAME,
   DEV_SEED_SAVE_QUERY_PARAM,
   WINDOWS_NOTIFICATION_PREF_KEY,
   SAVE_BACKEND_LABEL_BROWSER,
@@ -561,6 +573,8 @@ const {
   renameCharCountEl,
   renameCloseButtonEl,
   renameResetButtonEl,
+  exportSaveButtonEl,
+  importSaveButtonEl,
   resetSaveButtonEl,
   mapButtonEl,
   pokedexButtonEl,
@@ -3600,6 +3614,58 @@ function createDefaultTutorialProgress() {
   };
 }
 
+function normalizeLegacyAppearanceFamilyRootIds(rawValue) {
+  return sanitizePositiveIntArray(rawValue, {
+    toSafeInt,
+  });
+}
+
+function canonicalizeLegacyAppearanceFamilyRootIds(rawValue, defsById = state.pokemonDefsById) {
+  const normalizedIds = normalizeLegacyAppearanceFamilyRootIds(rawValue);
+  const rootIds = normalizedIds.map((pokemonId) => getEvolutionFamilyRootIdFromDefs(pokemonId, defsById));
+  return normalizeLegacyAppearanceFamilyRootIds(rootIds);
+}
+
+function getCompactSaveCodecOptions() {
+  return {
+    formatId: COMPACT_SAVE_FORMAT_ID,
+    saveVersion: SAVE_VERSION,
+    appVersion: APP_VERSION,
+    routeIdOrder: ROUTE_ID_ORDER,
+    defaultRouteId: DEFAULT_ROUTE_ID,
+    ballOrder: COMPACT_SAVE_BALL_ORDER,
+    itemOrder: COMPACT_SAVE_ITEM_ORDER,
+    ballCaptureRuleKeys: {
+      all: BALL_CAPTURE_RULE_CAPTURE_ALL,
+      unowned: BALL_CAPTURE_RULE_CAPTURE_UNOWNED,
+      owned: BALL_CAPTURE_RULE_CAPTURE_OWNED,
+      shiny: BALL_CAPTURE_RULE_CAPTURE_SHINY,
+      ultraShiny: BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY,
+    },
+    createEmptySave,
+    normalizePokemonEntityRecord,
+    toSafeInt,
+  };
+}
+
+function encodeCompactSave(saveData) {
+  return encodeCompactSavePayload(saveData, getCompactSaveCodecOptions());
+}
+
+function decodeCompactSave(rawSave) {
+  return decodeCompactSavePayload(rawSave, getCompactSaveCodecOptions());
+}
+
+function serializeSaveData(saveData) {
+  return JSON.stringify(encodeCompactSave(saveData));
+}
+
+function extractLegacyAppearanceSpecies(rawLegacySave) {
+  return extractLegacyAppearanceSpeciesFromPayload(rawLegacySave, {
+    toSafeInt,
+  });
+}
+
 function hasUnlockedEntityAtLeastLevelFromRecords(rawEntities, minLevel = APPEARANCE_UNLOCK_LEVEL) {
   if (!rawEntities || typeof rawEntities !== "object") {
     return false;
@@ -3667,6 +3733,8 @@ function createEmptySave() {
     attack_boost_until_ms: 0,
     pokeballs: 0,
     tutorials: createDefaultTutorialProgress(),
+    legacy_shiny_family_root_ids: [],
+    legacy_ultra_shiny_family_root_ids: [],
   };
 }
 
@@ -3694,7 +3762,7 @@ function isRawSaveAppVersionSupported(rawSave) {
 }
 
 function isRawSaveSupported(rawSave) {
-  return isRawSaveVersionSupported(rawSave) && isRawSaveAppVersionSupported(rawSave);
+  return isCompactSavePayload(rawSave, getCompactSaveCodecOptions());
 }
 
 function repairNormalizedSaveSnapshot(saveData) {
@@ -3770,6 +3838,22 @@ function repairRuntimeSaveAfterDefinitionsLoaded() {
   }
 
   let changed = backfillSaveSpeciesIdentity();
+  const normalizedLegacyShinyRoots = canonicalizeLegacyAppearanceFamilyRootIds(
+    state.saveData.legacy_shiny_family_root_ids,
+    state.pokemonDefsById,
+  );
+  if (JSON.stringify(normalizedLegacyShinyRoots) !== JSON.stringify(state.saveData.legacy_shiny_family_root_ids || [])) {
+    state.saveData.legacy_shiny_family_root_ids = normalizedLegacyShinyRoots;
+    changed = true;
+  }
+  const normalizedLegacyUltraRoots = canonicalizeLegacyAppearanceFamilyRootIds(
+    state.saveData.legacy_ultra_shiny_family_root_ids,
+    state.pokemonDefsById,
+  );
+  if (JSON.stringify(normalizedLegacyUltraRoots) !== JSON.stringify(state.saveData.legacy_ultra_shiny_family_root_ids || [])) {
+    state.saveData.legacy_ultra_shiny_family_root_ids = normalizedLegacyUltraRoots;
+    changed = true;
+  }
   const ownedEntityIds = getOwnedEntityIdsFromSave(state.saveData, {
     maxTeamSize: MAX_TEAM_SIZE,
   });
@@ -3931,6 +4015,9 @@ function normalizeSave(rawSave) {
   if (!rawSave || typeof rawSave !== "object") {
     return base;
   }
+  if (isCompactSavePayload(rawSave, getCompactSaveCodecOptions())) {
+    return decodeCompactSave(rawSave);
+  }
 
   const normalizedTeam = [];
   const rawTeamEntries = Array.isArray(rawSave.team) ? rawSave.team : [];
@@ -4079,6 +4166,8 @@ function normalizeSave(rawSave) {
     attack_boost_until_ms: attackBoostUntilMs,
     pokeballs: Math.max(0, totalPokeballs),
     tutorials,
+    legacy_shiny_family_root_ids: normalizeLegacyAppearanceFamilyRootIds(rawSave.legacy_shiny_family_root_ids),
+    legacy_ultra_shiny_family_root_ids: normalizeLegacyAppearanceFamilyRootIds(rawSave.legacy_ultra_shiny_family_root_ids),
   };
 }
 
@@ -4350,6 +4439,10 @@ function getBrowserStorageArea(areaName) {
   return browserSaveStorage.getBrowserStorageArea(areaName);
 }
 
+function readRawSaveDataFromStorageKey(areaName, key, contextLabel) {
+  return browserSaveStorage.readRawSaveDataFromStorageKey(areaName, key, contextLabel);
+}
+
 function readSaveDataFromStorageKey(areaName, key, contextLabel) {
   return browserSaveStorage.readSaveDataFromStorageKey(areaName, key, contextLabel);
 }
@@ -4366,8 +4459,20 @@ function readSaveDataFromLocalStorage() {
   return readSaveDataFromStorageKey("localStorage", SAVE_KEY, "localStorage save");
 }
 
-function readSaveDataFromSessionStorage() {
-  return readSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY, "sessionStorage save");
+function readRawLegacySaveDataFromLocalStorage() {
+  return readRawSaveDataFromStorageKey("localStorage", LEGACY_SAVE_KEY, "legacy localStorage save");
+}
+
+function readRawLegacySaveDataFromSessionStorage() {
+  return readRawSaveDataFromStorageKey("sessionStorage", LEGACY_SAVE_SESSION_KEY, "legacy sessionStorage save");
+}
+
+function removeLegacySaveDataFromLocalStorage() {
+  return removeSaveDataFromStorageKey("localStorage", LEGACY_SAVE_KEY);
+}
+
+function removeLegacySaveDataFromSessionStorage() {
+  return removeSaveDataFromStorageKey("sessionStorage", LEGACY_SAVE_SESSION_KEY);
 }
 
 async function readSaveDataFromDesktopBridge() {
@@ -4380,6 +4485,100 @@ async function writeSerializedSaveToDesktopBridge(serializedSave) {
 
 async function deleteSaveDataFromDesktopBridge() {
   return desktopBridgeSaveStorage.deleteSaveDataFromDesktopBridge();
+}
+
+function getLegacySpeciesLoadTargetById(pokemonId) {
+  const id = Number(pokemonId || 0);
+  if (id <= 0 || !(state.pokedexSpeciesCsvByPokemonId instanceof Map)) {
+    return null;
+  }
+  const rawSpecies = state.pokedexSpeciesCsvByPokemonId.get(id);
+  const nameEn = String(rawSpecies?.nameEn || rawSpecies?.name_en || "").toLowerCase().trim();
+  if (!nameEn) {
+    return null;
+  }
+  return {
+    id,
+    nameEn,
+  };
+}
+
+async function ensurePokemonDefinitionsLoadedForSpeciesIds(speciesIds) {
+  const defsById = state.pokemonDefsById instanceof Map ? new Map(state.pokemonDefsById) : new Map();
+  const queue = [];
+  const queuedIds = new Set();
+
+  const enqueue = (pokemonId, nameEn = "") => {
+    const id = Number(pokemonId || 0);
+    const normalizedNameEn = String(nameEn || "").toLowerCase().trim();
+    if (id <= 0 || !normalizedNameEn || defsById.has(id) || queuedIds.has(id)) {
+      return;
+    }
+    queuedIds.add(id);
+    queue.push({
+      id,
+      nameEn: normalizedNameEn,
+    });
+  };
+
+  for (const rawPokemonId of Array.isArray(speciesIds) ? speciesIds : []) {
+    const target = getLegacySpeciesLoadTargetById(rawPokemonId);
+    if (target) {
+      enqueue(target.id, target.nameEn);
+    }
+  }
+
+  while (queue.length > 0) {
+    const batch = queue.splice(0, Math.min(18, queue.length));
+    const loadedBatch = await Promise.all(batch.map(async (entry) => {
+      try {
+        return await loadPokemonEntity(buildPokemonJsonPath(entry.id, entry.nameEn));
+      } catch {
+        return null;
+      }
+    }));
+
+    for (const def of loadedBatch) {
+      if (!def || defsById.has(def.id)) {
+        continue;
+      }
+      defsById.set(def.id, def);
+      if (def.evolvesFrom?.id > 0 && def.evolvesFrom.nameEn) {
+        enqueue(def.evolvesFrom.id, def.evolvesFrom.nameEn);
+      }
+      for (const target of Array.isArray(def.evolvesTo) ? def.evolvesTo : []) {
+        if (target?.id > 0 && target.nameEn) {
+          enqueue(target.id, target.nameEn);
+        }
+      }
+    }
+  }
+
+  applyPokemonTalentCsvToDefinitions(defsById);
+  state.pokemonDefsById = defsById;
+}
+
+async function createSaveFromLegacyRawSave(rawLegacySave) {
+  const nextSave = createEmptySave();
+  const legacyAppearance = extractLegacyAppearanceSpecies(rawLegacySave);
+  const legacySpeciesIds = Array.from(new Set([
+    ...legacyAppearance.shinySpeciesIds,
+    ...legacyAppearance.ultraShinySpeciesIds,
+  ]));
+
+  if (legacySpeciesIds.length > 0) {
+    await ensurePokemonDefinitionsLoadedForSpeciesIds(legacySpeciesIds);
+  }
+
+  nextSave.legacy_shiny_family_root_ids = canonicalizeLegacyAppearanceFamilyRootIds(
+    legacyAppearance.shinySpeciesIds,
+    state.pokemonDefsById,
+  );
+  nextSave.legacy_ultra_shiny_family_root_ids = canonicalizeLegacyAppearanceFamilyRootIds(
+    legacyAppearance.ultraShinySpeciesIds,
+    state.pokemonDefsById,
+  );
+  return nextSave;
 }
 
 function getDevSeedSaveUrl() {
@@ -4437,6 +4636,16 @@ const desktopBridgeSaveStorage = createDesktopBridgeSaveStorage({
   },
 });
 
+const legacyDesktopBridgeSaveStorage = createDesktopBridgeSaveStorage({
+  hasDesktopSaveBridge,
+  getDesktopBridge,
+  parseSerializedSave,
+  isRawSaveSupported: () => true,
+  normalizeSave: (saveData) => saveData,
+  readSaveMethodName: "readLegacySave",
+  deleteSaveMethodName: "deleteLegacySave",
+});
+
 const indexedDbSaveStorage = createIndexedDbSaveStorage({
   getWindowObject: () => window,
   indexedDbName: SAVE_INDEXED_DB_NAME,
@@ -4448,6 +4657,17 @@ const indexedDbSaveStorage = createIndexedDbSaveStorage({
   setIndexedDbAvailable: (available) => {
     state.saveBackend.indexedDbAvailable = available;
   },
+  nowMs: () => Date.now(),
+});
+
+const legacyIndexedDbSaveStorage = createIndexedDbSaveStorage({
+  getWindowObject: () => window,
+  indexedDbName: LEGACY_SAVE_INDEXED_DB_NAME,
+  indexedDbStoreName: SAVE_INDEXED_DB_STORE_NAME,
+  indexedDbRecordKey: SAVE_INDEXED_DB_RECORD_KEY,
+  parseSerializedSave,
+  isRawSaveSupported: () => true,
+  normalizeSave: (saveData) => saveData,
   nowMs: () => Date.now(),
 });
 
@@ -4463,6 +4683,18 @@ async function readSaveDataFromIndexedDb() {
   return indexedDbSaveStorage.readSaveDataFromIndexedDb();
 }
 
+async function readRawLegacySaveDataFromDesktopBridge() {
+  return legacyDesktopBridgeSaveStorage.readRawSaveDataFromDesktopBridge();
+}
+
+async function deleteLegacySaveDataFromDesktopBridge() {
+  return legacyDesktopBridgeSaveStorage.deleteSaveDataFromDesktopBridge();
+}
+
+async function readRawLegacySaveDataFromIndexedDb() {
+  return legacyIndexedDbSaveStorage.readRawSaveDataFromIndexedDb("legacy indexedDB save");
+}
+
 async function writeSerializedSaveToIndexedDb(serializedSave) {
   return indexedDbSaveStorage.writeSerializedSaveToIndexedDb(serializedSave);
 }
@@ -4471,25 +4703,37 @@ async function deleteSaveDataFromIndexedDb() {
   return indexedDbSaveStorage.deleteSaveDataFromIndexedDb();
 }
 
+async function deleteLegacySaveDataFromIndexedDb() {
+  return legacyIndexedDbSaveStorage.deleteSaveDataFromIndexedDb();
+}
+
 const runtimeSaveSystem = createRuntimeSaveSystem({
   state,
   hasIndexedDbSaveSupport,
   hasDesktopSaveBridge,
+  serializeSaveData,
   readSaveDataFromDesktopBridge,
   readSaveDataFromLocalStorage,
-  readSaveDataFromSessionStorage,
   readSaveDataFromIndexedDb,
+  readRawLegacySaveDataFromDesktopBridge,
+  readRawLegacySaveDataFromLocalStorage,
+  readRawLegacySaveDataFromSessionStorage,
+  readRawLegacySaveDataFromIndexedDb,
   writeSerializedSaveToIndexedDb,
   writeSerializedSaveToDesktopBridge,
   writeSerializedSaveToStorageKey,
+  removeLegacySaveDataFromLocalStorage,
+  removeLegacySaveDataFromSessionStorage,
+  deleteLegacySaveDataFromIndexedDb,
+  deleteLegacySaveDataFromDesktopBridge,
   pickPreferredSaveCandidate,
   createEmptySave,
+  createSaveFromLegacyRawSave,
   repairNormalizedSaveSnapshot,
   readSeededDevSaveData,
   saveVersion: SAVE_VERSION,
   appVersion: APP_VERSION,
   saveKey: SAVE_KEY,
-  saveSessionKey: SAVE_SESSION_KEY,
   saveSourceDesktop: SAVE_SOURCE_DESKTOP,
   saveSourceLocalStorage: SAVE_SOURCE_LOCAL_STORAGE,
   saveSourceSessionStorage: SAVE_SOURCE_SESSION_STORAGE,
@@ -5455,18 +5699,38 @@ function ensureOwnedRecordHasAtLeastOneCapture(record) {
   return changed;
 }
 
-function getEvolutionFamilySpeciesIds(pokemonId) {
+function getEvolutionRootSpeciesIdFromDefs(pokemonId, defsById = state.pokemonDefsById) {
+  const sourceDefs = defsById instanceof Map ? defsById : new Map();
+  let currentId = Number(pokemonId || 0);
+  if (currentId <= 0) {
+    return 0;
+  }
+  const visited = new Set();
+  while (currentId > 0 && !visited.has(currentId)) {
+    visited.add(currentId);
+    const def = sourceDefs.get(currentId);
+    const fromId = Number(def?.evolvesFrom?.id || 0);
+    if (fromId <= 0) {
+      return currentId;
+    }
+    currentId = fromId;
+  }
+  return Number(pokemonId || 0);
+}
+
+function getEvolutionFamilySpeciesIdsFromDefs(pokemonId, defsById = state.pokemonDefsById) {
+  const sourceDefs = defsById instanceof Map ? defsById : new Map();
   const id = Number(pokemonId || 0);
   if (id <= 0) {
     return [];
   }
-  const rootId = getEvolutionRootSpeciesId(id);
-  if (rootId <= 0 || !state.pokemonDefsById?.size) {
+  const rootId = getEvolutionRootSpeciesIdFromDefs(id, sourceDefs);
+  if (rootId <= 0 || sourceDefs.size <= 0) {
     return [id];
   }
   const familyIds = [];
-  for (const [speciesId] of state.pokemonDefsById.entries()) {
-    if (getEvolutionRootSpeciesId(speciesId) === rootId) {
+  for (const [speciesId] of sourceDefs.entries()) {
+    if (getEvolutionRootSpeciesIdFromDefs(speciesId, sourceDefs) === rootId) {
       familyIds.push(Number(speciesId));
     }
   }
@@ -5475,6 +5739,18 @@ function getEvolutionFamilySpeciesIds(pokemonId) {
   }
   familyIds.sort((a, b) => a - b);
   return familyIds;
+}
+
+function getEvolutionFamilyRootIdFromDefs(pokemonId, defsById = state.pokemonDefsById) {
+  const familyIds = getEvolutionFamilySpeciesIdsFromDefs(pokemonId, defsById);
+  if (familyIds.length <= 0) {
+    return Number(pokemonId || 0);
+  }
+  return Math.min(...familyIds);
+}
+
+function getEvolutionFamilySpeciesIds(pokemonId) {
+  return getEvolutionFamilySpeciesIdsFromDefs(pokemonId, state.pokemonDefsById);
 }
 
 function applyNicknameToEvolutionFamily(pokemonId, nickname) {
@@ -5611,10 +5887,42 @@ function getFamilyUltraShinyCaptureCount(pokemonId) {
   return getFamilyCounterTotal(id, "captured_ultra_shiny");
 }
 
+function hasLegacyAppearanceUnlockForFamily(pokemonId, appearanceMode = "shiny") {
+  const id = Number(pokemonId || 0);
+  if (id <= 0 || !state.saveData) {
+    return false;
+  }
+  const rootId = getEvolutionFamilyRootIdFromDefs(id, state.pokemonDefsById);
+  const rawList = appearanceMode === "ultra"
+    ? state.saveData.legacy_ultra_shiny_family_root_ids
+    : state.saveData.legacy_shiny_family_root_ids;
+  const normalizedList = normalizeLegacyAppearanceFamilyRootIds(rawList);
+  return normalizedList.includes(rootId);
+}
+
+function getAppearanceUnlockState(pokemonId) {
+  const id = Number(pokemonId || 0);
+  const familyShinyCaptures = id > 0 ? getFamilyShinyCaptureCount(id) : 0;
+  const familyUltraShinyCaptures = id > 0 ? getFamilyUltraShinyCaptureCount(id) : 0;
+  const familyOwned = id > 0 ? isEvolutionFamilyOwned(id) : false;
+  const shinyCurrentSave = familyShinyCaptures > 0;
+  const ultraCurrentSave = familyUltraShinyCaptures > 0;
+  const shinyLegacy = familyOwned && hasLegacyAppearanceUnlockForFamily(id, "shiny");
+  const ultraLegacy = familyOwned && hasLegacyAppearanceUnlockForFamily(id, "ultra");
+  return {
+    shinyUnlocked: shinyCurrentSave || shinyLegacy,
+    ultraUnlocked: ultraCurrentSave || ultraLegacy,
+    shinySource: shinyCurrentSave ? "current_save" : shinyLegacy ? "legacy" : "none",
+    ultraSource: ultraCurrentSave ? "current_save" : ultraLegacy ? "legacy" : "none",
+    familyShinyCaptures,
+    familyUltraShinyCaptures,
+  };
+}
+
 function isShinyAppearanceUnlockedForRecord(record, pokemonId = 0) {
   const id = Number(pokemonId || record?.id || 0);
   if (id > 0) {
-    return getFamilyShinyCaptureCount(id) > 0;
+    return getAppearanceUnlockState(id).shinyUnlocked;
   }
   if (!record) {
     return false;
@@ -5625,7 +5933,7 @@ function isShinyAppearanceUnlockedForRecord(record, pokemonId = 0) {
 function isUltraShinyAppearanceUnlockedForRecord(record, pokemonId = 0) {
   const id = Number(pokemonId || record?.id || 0);
   if (id > 0) {
-    return getFamilyUltraShinyCaptureCount(id) > 0;
+    return getAppearanceUnlockState(id).ultraUnlocked;
   }
   if (!record) {
     return false;
@@ -7388,21 +7696,7 @@ function drawEvolutionAnimationOverlay(layout = state.layout) {
 }
 
 function getEvolutionRootSpeciesId(pokemonId) {
-  let currentId = Number(pokemonId || 0);
-  if (currentId <= 0) {
-    return 0;
-  }
-  const visited = new Set();
-  while (currentId > 0 && !visited.has(currentId)) {
-    visited.add(currentId);
-    const def = state.pokemonDefsById.get(currentId);
-    const fromId = Number(def?.evolvesFrom?.id || 0);
-    if (fromId <= 0) {
-      return currentId;
-    }
-    currentId = fromId;
-  }
-  return Number(pokemonId || 0);
+  return getEvolutionRootSpeciesIdFromDefs(pokemonId, state.pokemonDefsById);
 }
 
 function resolveCaptureEntityUnlock(capturedPokemonId) {
@@ -11793,6 +12087,7 @@ function getRuntimeUiInteractionSystem() {
         boxesSearchInputEl,
         pokedexSearchInputEl,
         projectWorldToRuntimeStage,
+        getAppearanceUnlockState,
       }),
     }));
   }
@@ -11885,12 +12180,19 @@ const runtimeBootstrapSystem = createRuntimeBootstrapSystem({
   clearBrowserSaveRetry,
   clearDesktopSaveRetry,
   removeSaveDataFromStorageKey,
+  removeLegacySaveDataFromLocalStorage,
+  removeLegacySaveDataFromSessionStorage,
   SAVE_KEY,
-  SAVE_SESSION_KEY,
   deleteSaveDataFromIndexedDb,
   deleteSaveDataFromDesktopBridge,
+  deleteLegacySaveDataFromIndexedDb,
+  deleteLegacySaveDataFromDesktopBridge,
   updateSaveBackendIndicator,
   createEmptySave,
+  serializeSaveData,
+  isCompactSavePayload: (payload) => isCompactSavePayload(payload, getCompactSaveCodecOptions()),
+  decodeCompactSave,
+  repairNormalizedSaveSnapshot,
   gameStageEl,
   canvas,
   tutorialModalEl,
@@ -11905,7 +12207,18 @@ const runtimeBootstrapSystem = createRuntimeBootstrapSystem({
   ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS,
 });
 
-const { loadPokemonDefinitions, initializeScene, resetSaveAndRestart, toggleFullscreen, triggerActionDockPokeballSpin, setActionDockFullscreenMenuOpen, isActionDockFullscreenMenuOpen, toggleActionDockFullscreenMenu } = runtimeBootstrapSystem;
+const {
+  loadPokemonDefinitions,
+  initializeScene,
+  resetSaveAndRestart,
+  exportSaveToFile,
+  importSaveFromFile,
+  toggleFullscreen,
+  triggerActionDockPokeballSpin,
+  setActionDockFullscreenMenuOpen,
+  isActionDockFullscreenMenuOpen,
+  toggleActionDockFullscreenMenu,
+} = runtimeBootstrapSystem;
 
 
 const runtimeInputSystem = createRuntimeInputSystem({
@@ -11941,6 +12254,8 @@ const runtimeInputSystem = createRuntimeInputSystem({
     ballCaptureToggleOwnedButtonEl,
     ballCaptureToggleShinyButtonEl,
     ballCaptureToggleUltraButtonEl,
+    exportSaveButtonEl,
+    importSaveButtonEl,
     resetSaveButtonEl,
     mapButtonEl,
     pokedexButtonEl,
@@ -12018,6 +12333,8 @@ const runtimeInputSystem = createRuntimeInputSystem({
     openBoxesForTeamSlot,
     openAppearanceForTeamSlot,
     toggleBallCaptureRule,
+    exportSaveToFile,
+    importSaveFromFile,
     resetSaveAndRestart,
     toggleShopPanel,
     setGachaOpen,

@@ -59,8 +59,10 @@ const desktopApi = Object.freeze({
   isDesktop: true,
   getMeta: () => invoke("pokeidle:desktop-meta"),
   readSave: () => invoke("pokeidle:save-read"),
+  readLegacySave: () => invoke("pokeidle:save-read-legacy"),
   writeSave: (save) => invoke("pokeidle:save-write", { save }),
   deleteSave: () => invoke("pokeidle:save-delete"),
+  deleteLegacySave: () => invoke("pokeidle:save-delete-legacy"),
   notify: (payload) => invoke("pokeidle:notify", payload),
   getWindowState: () => ({ ...currentWindowState }),
   onWindowStateChanged: (listener) => {

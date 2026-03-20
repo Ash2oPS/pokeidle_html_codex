@@ -1,3 +1,5 @@
+import { buildSaveExportFilename, parseImportedCompactSave } from "../lib/save-transfer-utils.js";
+
 function getDefaultDocument() {
   if (typeof document !== "undefined") {
     return document;
@@ -154,8 +156,25 @@ export function createRuntimeBootstrapSystem(options = {}) {
     read("deleteSaveDataFromDesktopBridge"),
     async () => false,
   );
+  const removeLegacySaveDataFromLocalStorage = asFunction(read("removeLegacySaveDataFromLocalStorage"), () => false);
+  const removeLegacySaveDataFromSessionStorage = asFunction(read("removeLegacySaveDataFromSessionStorage"), () => false);
+  const deleteLegacySaveDataFromIndexedDb = asAsyncFunction(
+    read("deleteLegacySaveDataFromIndexedDb"),
+    async () => false,
+  );
+  const deleteLegacySaveDataFromDesktopBridge = asAsyncFunction(
+    read("deleteLegacySaveDataFromDesktopBridge"),
+    async () => false,
+  );
   const updateSaveBackendIndicator = asFunction(read("updateSaveBackendIndicator"));
   const createEmptySave = asFunction(read("createEmptySave"), () => ({}));
+  const serializeSaveData = asFunction(read("serializeSaveData"), (saveData) => JSON.stringify(saveData));
+  const isCompactSavePayload = asFunction(read("isCompactSavePayload"), () => false);
+  const decodeCompactSave = asFunction(read("decodeCompactSave"), (saveData) => saveData);
+  const repairNormalizedSaveSnapshot = asFunction(
+    read("repairNormalizedSaveSnapshot"),
+    (saveData) => ({ saveData }),
+  );
 
   const gameStageEl = read("gameStageEl", null);
   const canvas = read("canvas", null);
@@ -177,12 +196,160 @@ export function createRuntimeBootstrapSystem(options = {}) {
   const DEFAULT_ROUTE_ID = read("DEFAULT_ROUTE_ID", "");
   const HIDDEN_SIM_BUDGET_MS = Number(read("HIDDEN_SIM_BUDGET_MS", 1));
   const SAVE_KEY = read("SAVE_KEY", "");
-  const SAVE_SESSION_KEY = read("SAVE_SESSION_KEY", "");
   const ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS = Number(
     read("ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS", 0),
   );
 
   let actionDockFullscreenMenuOpenTimeoutId = 0;
+  let saveImportInputEl = null;
+
+  function clearPendingSaveWrites() {
+    state.saveBackend.pendingSerializedSave = null;
+    state.saveBackend.pendingDesktopSerializedSave = null;
+    clearBrowserSaveRetry();
+    clearDesktopSaveRetry();
+  }
+
+  function resetTransientRuntimeState() {
+    syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
+    state.team = [];
+    state.enemy = null;
+    state.battle = null;
+    state.pendingSimMs = 0;
+    state.deferredSaveDirty = false;
+    state.teamLevelUpEffects = [];
+    state.teamXpGainEffects = [];
+    state.teamXpPulseMsBySlot = {};
+    state.xpHud.teamXpBySlot = {};
+    state.xpHud.enemyHpKey = null;
+    state.xpHud.enemyHpFrontRatio = 1;
+    state.xpHud.enemyHpLagRatio = 1;
+    state.moneyHud.initialized = false;
+    state.moneyHud.targetValue = 0;
+    state.moneyHud.displayValue = 0;
+    state.moneyHud.lastRawValue = 0;
+    state.moneyHud.pulseMs = 0;
+    clearMoneyGainFloaters();
+    state.evolutionAnimation.current = null;
+    state.evolutionAnimation.queue = [];
+    state.tutorial.queue = [];
+    state.tutorial.active = null;
+    state.ui.tutorialOpen = false;
+    if (tutorialModalEl) {
+      tutorialModalEl.classList.add("hidden");
+    }
+    state.ui.shopTab = SHOP_TAB_POKEBALLS;
+    state.ui.shopQuantityMode = "1";
+    state.ui.shopCustomQuantity = 1;
+    state.realClockLastMs = Date.now();
+    state.environment.nextUpdateAtMs = 0;
+    updateEnvironment(Date.now(), true);
+    stopBackgroundTicker();
+    setMapOpen(false);
+    setShopOpen(false);
+    closeGachaModal({ force: true });
+    closeRenameModal();
+    closeBoxesModal();
+    closePokedexModal();
+    closeAppearanceModal();
+    setActionDockFullscreenMenuOpen(false, { animate: false });
+    closeTeamContextMenu();
+    clearTeamDragState();
+    clearCanvasHoverState();
+    hideStarterModal();
+  }
+
+  async function applySaveAndRestart(nextSaveData, options = {}) {
+    if (!nextSaveData || typeof nextSaveData !== "object") {
+      throw new Error("La sauvegarde fournie est invalide.");
+    }
+
+    clearPendingSaveWrites();
+    state.saveData = nextSaveData;
+    resetTransientRuntimeState();
+    persistSaveData();
+    updateHud();
+    await initializeScene();
+    const successMessage = String(options.successMessage || "");
+    if (successMessage && state.mode === "ready") {
+      setTopMessage(successMessage, 2600);
+    }
+  }
+
+  function downloadTextFile(filename, content, mimeType = "application/json;charset=utf-8") {
+    if (!documentRef?.createElement || !windowRef?.URL?.createObjectURL || typeof Blob === "undefined") {
+      throw new Error("Le telechargement de fichier n'est pas disponible ici.");
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const objectUrl = windowRef.URL.createObjectURL(blob);
+    const link = documentRef.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    link.rel = "noopener";
+    link.style.position = "fixed";
+    link.style.left = "-9999px";
+    if (documentRef.body?.appendChild) {
+      documentRef.body.appendChild(link);
+    }
+    link.click();
+    if (typeof link.remove === "function") {
+      link.remove();
+    }
+    setTimeoutFn(() => {
+      windowRef.URL.revokeObjectURL(objectUrl);
+    }, 0);
+  }
+
+  function ensureSaveImportInput() {
+    if (saveImportInputEl) {
+      return saveImportInputEl;
+    }
+    if (!documentRef?.createElement) {
+      return null;
+    }
+    const input = documentRef.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,.json";
+    input.tabIndex = -1;
+    input.setAttribute("aria-hidden", "true");
+    input.style.position = "fixed";
+    input.style.left = "-9999px";
+    input.style.width = "1px";
+    input.style.height = "1px";
+    input.style.opacity = "0";
+    input.style.pointerEvents = "none";
+    if (documentRef.body?.appendChild) {
+      documentRef.body.appendChild(input);
+    }
+    saveImportInputEl = input;
+    return saveImportInputEl;
+  }
+
+  function requestSaveImportText() {
+    const input = ensureSaveImportInput();
+    if (!input) {
+      return Promise.reject(new Error("L'import de fichier n'est pas disponible ici."));
+    }
+
+    return new Promise((resolve, reject) => {
+      input.value = "";
+      input.onchange = async () => {
+        input.onchange = null;
+        const file = input.files?.[0];
+        if (!file) {
+          resolve(null);
+          return;
+        }
+        try {
+          resolve(await file.text());
+        } catch (error) {
+          reject(error);
+        }
+      };
+      input.click();
+    });
+  }
 
   async function loadPokemonDefinitions(routeDataInput, runtimeOptions = {}) {
     const append = runtimeOptions?.append !== false;
@@ -444,70 +611,75 @@ export function createRuntimeBootstrapSystem(options = {}) {
       return;
     }
 
-    state.saveBackend.pendingSerializedSave = null;
-    state.saveBackend.pendingDesktopSerializedSave = null;
-    clearBrowserSaveRetry();
-    clearDesktopSaveRetry();
+    clearPendingSaveWrites();
     const removedLocalStorage = removeSaveDataFromStorageKey("localStorage", SAVE_KEY);
-    const removedSessionStorage = removeSaveDataFromStorageKey("sessionStorage", SAVE_SESSION_KEY);
-    const removedIndexedDb = await deleteSaveDataFromIndexedDb();
-    const removedDesktopSave = await deleteSaveDataFromDesktopBridge();
-    if (!removedLocalStorage && !removedSessionStorage && !removedIndexedDb && !removedDesktopSave) {
+    const [
+      removedIndexedDb,
+      removedDesktopSave,
+      removedLegacyIndexedDb,
+      removedLegacyDesktopSave,
+    ] = await Promise.all([
+      deleteSaveDataFromIndexedDb(),
+      deleteSaveDataFromDesktopBridge(),
+      deleteLegacySaveDataFromIndexedDb(),
+      deleteLegacySaveDataFromDesktopBridge(),
+    ]);
+    const removedLegacyLocalStorage = removeLegacySaveDataFromLocalStorage();
+    const removedLegacySessionStorage = removeLegacySaveDataFromSessionStorage();
+    if (
+      !removedLocalStorage
+      && !removedIndexedDb
+      && !removedDesktopSave
+      && !removedLegacyLocalStorage
+      && !removedLegacySessionStorage
+      && !removedLegacyIndexedDb
+      && !removedLegacyDesktopSave
+    ) {
       windowRef?.alert?.("Impossible de supprimer la sauvegarde locale.");
       updateSaveBackendIndicator();
       return;
     }
 
-    state.saveData = createEmptySave();
-    syncWindowsPokeballInventoryTracking(state.saveData?.pokeballs, { silent: true });
-    state.team = [];
-    state.enemy = null;
-    state.battle = null;
-    state.pendingSimMs = 0;
-    state.deferredSaveDirty = false;
-    state.teamLevelUpEffects = [];
-    state.teamXpGainEffects = [];
-    state.teamXpPulseMsBySlot = {};
-    state.xpHud.teamXpBySlot = {};
-    state.xpHud.enemyHpKey = null;
-    state.xpHud.enemyHpFrontRatio = 1;
-    state.xpHud.enemyHpLagRatio = 1;
-    state.moneyHud.initialized = false;
-    state.moneyHud.targetValue = 0;
-    state.moneyHud.displayValue = 0;
-    state.moneyHud.lastRawValue = 0;
-    state.moneyHud.pulseMs = 0;
-    clearMoneyGainFloaters();
-    state.evolutionAnimation.current = null;
-    state.evolutionAnimation.queue = [];
-    state.tutorial.queue = [];
-    state.tutorial.active = null;
-    state.ui.tutorialOpen = false;
-    if (tutorialModalEl) {
-      tutorialModalEl.classList.add("hidden");
+    await applySaveAndRestart(createEmptySave());
+  }
+
+  async function exportSaveToFile() {
+    try {
+      if (!state.saveData) {
+        windowRef?.alert?.("Aucune sauvegarde a exporter pour le moment.");
+        return;
+      }
+
+      persistSaveData();
+      const serializedSave = serializeSaveData(state.saveData);
+      downloadTextFile(buildSaveExportFilename(new Date()), serializedSave);
+      setTopMessage("Sauvegarde compacte exportee.", 2200);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue lors de l'export.";
+      windowRef?.alert?.(`Export impossible: ${message}`);
     }
-    state.ui.shopTab = SHOP_TAB_POKEBALLS;
-    state.ui.shopQuantityMode = "1";
-    state.ui.shopCustomQuantity = 1;
-    state.realClockLastMs = Date.now();
-    state.environment.nextUpdateAtMs = 0;
-    updateEnvironment(Date.now(), true);
-    stopBackgroundTicker();
-    setMapOpen(false);
-    setShopOpen(false);
-    closeGachaModal({ force: true });
-    closeRenameModal();
-    closeBoxesModal();
-    closePokedexModal();
-    closeAppearanceModal();
-    setActionDockFullscreenMenuOpen(false, { animate: false });
-    closeTeamContextMenu();
-    clearTeamDragState();
-    persistSaveData();
-    updateHud();
-    clearCanvasHoverState();
-    hideStarterModal();
-    initializeScene().catch(() => {});
+  }
+
+  async function importSaveFromFile() {
+    try {
+      const importedText = await requestSaveImportText();
+      if (!importedText) {
+        return;
+      }
+      const importedSave = parseImportedCompactSave(importedText, {
+        parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
+        isCompactSavePayload,
+        decodeCompactSave,
+        repairNormalizedSaveSnapshot,
+      });
+      await applySaveAndRestart(importedSave, {
+        successMessage: "Sauvegarde importee avec succes.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue lors de l'import.";
+      windowRef?.alert?.(`Import impossible: ${message}`);
+      updateSaveBackendIndicator();
+    }
   }
 
   async function toggleFullscreen() {
@@ -599,6 +771,8 @@ export function createRuntimeBootstrapSystem(options = {}) {
     loadPokemonDefinitions,
     initializeScene,
     resetSaveAndRestart,
+    exportSaveToFile,
+    importSaveFromFile,
     toggleFullscreen,
     triggerActionDockPokeballSpin,
     setActionDockFullscreenMenuOpen,

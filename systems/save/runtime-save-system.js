@@ -10,21 +10,29 @@ export function createRuntimeSaveSystem({
   state,
   hasIndexedDbSaveSupport,
   hasDesktopSaveBridge,
+  serializeSaveData,
   readSaveDataFromDesktopBridge,
   readSaveDataFromLocalStorage,
-  readSaveDataFromSessionStorage,
   readSaveDataFromIndexedDb,
+  readRawLegacySaveDataFromDesktopBridge,
+  readRawLegacySaveDataFromLocalStorage,
+  readRawLegacySaveDataFromSessionStorage,
+  readRawLegacySaveDataFromIndexedDb,
   writeSerializedSaveToIndexedDb,
   writeSerializedSaveToDesktopBridge,
   writeSerializedSaveToStorageKey,
+  removeLegacySaveDataFromLocalStorage,
+  removeLegacySaveDataFromSessionStorage,
+  deleteLegacySaveDataFromIndexedDb,
+  deleteLegacySaveDataFromDesktopBridge,
   pickPreferredSaveCandidate,
   createEmptySave,
+  createSaveFromLegacyRawSave,
   repairNormalizedSaveSnapshot,
   readSeededDevSaveData,
   saveVersion,
   appVersion,
   saveKey,
-  saveSessionKey,
   saveSourceDesktop,
   saveSourceLocalStorage,
   saveSourceSessionStorage,
@@ -40,19 +48,36 @@ export function createRuntimeSaveSystem({
 } = {}) {
   const hasIndexedDbSupportFn = typeof hasIndexedDbSaveSupport === "function" ? hasIndexedDbSaveSupport : () => false;
   const hasDesktopBridgeFn = typeof hasDesktopSaveBridge === "function" ? hasDesktopSaveBridge : () => false;
+  const serializeSaveDataFn = typeof serializeSaveData === "function" ? serializeSaveData : (saveData) => JSON.stringify(saveData);
   const readDesktopSaveFn = typeof readSaveDataFromDesktopBridge === "function" ? readSaveDataFromDesktopBridge : async () => null;
   const readLocalStorageSaveFn = typeof readSaveDataFromLocalStorage === "function" ? readSaveDataFromLocalStorage : () => null;
-  const readSessionStorageSaveFn =
-    typeof readSaveDataFromSessionStorage === "function" ? readSaveDataFromSessionStorage : () => null;
   const readIndexedDbSaveFn = typeof readSaveDataFromIndexedDb === "function" ? readSaveDataFromIndexedDb : async () => null;
+  const readLegacyDesktopSaveFn =
+    typeof readRawLegacySaveDataFromDesktopBridge === "function" ? readRawLegacySaveDataFromDesktopBridge : async () => null;
+  const readLegacyLocalStorageSaveFn =
+    typeof readRawLegacySaveDataFromLocalStorage === "function" ? readRawLegacySaveDataFromLocalStorage : () => null;
+  const readLegacySessionStorageSaveFn =
+    typeof readRawLegacySaveDataFromSessionStorage === "function" ? readRawLegacySaveDataFromSessionStorage : () => null;
+  const readLegacyIndexedDbSaveFn =
+    typeof readRawLegacySaveDataFromIndexedDb === "function" ? readRawLegacySaveDataFromIndexedDb : async () => null;
   const writeIndexedDbSaveFn =
     typeof writeSerializedSaveToIndexedDb === "function" ? writeSerializedSaveToIndexedDb : async () => false;
   const writeDesktopSaveFn =
     typeof writeSerializedSaveToDesktopBridge === "function" ? writeSerializedSaveToDesktopBridge : async () => false;
   const writeStorageKeyFn =
     typeof writeSerializedSaveToStorageKey === "function" ? writeSerializedSaveToStorageKey : () => false;
+  const removeLegacyLocalStorageSaveFn =
+    typeof removeLegacySaveDataFromLocalStorage === "function" ? removeLegacySaveDataFromLocalStorage : () => false;
+  const removeLegacySessionStorageSaveFn =
+    typeof removeLegacySaveDataFromSessionStorage === "function" ? removeLegacySaveDataFromSessionStorage : () => false;
+  const deleteLegacyIndexedDbSaveFn =
+    typeof deleteLegacySaveDataFromIndexedDb === "function" ? deleteLegacySaveDataFromIndexedDb : async () => false;
+  const deleteLegacyDesktopSaveFn =
+    typeof deleteLegacySaveDataFromDesktopBridge === "function" ? deleteLegacySaveDataFromDesktopBridge : async () => false;
   const pickPreferredSaveFn = typeof pickPreferredSaveCandidate === "function" ? pickPreferredSaveCandidate : () => null;
   const createEmptySaveFn = typeof createEmptySave === "function" ? createEmptySave : () => ({});
+  const createLegacySaveFn =
+    typeof createSaveFromLegacyRawSave === "function" ? createSaveFromLegacyRawSave : async () => createEmptySaveFn();
   const repairSaveSnapshotFn =
     typeof repairNormalizedSaveSnapshot === "function"
       ? repairNormalizedSaveSnapshot
@@ -226,8 +251,7 @@ export function createRuntimeSaveSystem({
 
   function syncSerializedSaveToBrowserStorage(serializedSave) {
     const localStorageOk = writeStorageKeyFn("localStorage", saveKey, serializedSave);
-    const sessionStorageOk = writeStorageKeyFn("sessionStorage", saveSessionKey, serializedSave);
-    state.saveBackend.syncStorageAvailable = localStorageOk || sessionStorageOk;
+    state.saveBackend.syncStorageAvailable = localStorageOk;
     queueBrowserSaveWrite(serializedSave);
     queueDesktopSaveWrite(serializedSave);
     refreshSaveBackendStatus();
@@ -242,6 +266,15 @@ export function createRuntimeSaveSystem({
 
   function getSaveTickEpochMs(savePayload) {
     return Math.max(0, safeToInt(savePayload?.last_tick_epoch_ms, 0));
+  }
+
+  async function deleteLegacySaveSources() {
+    removeLegacyLocalStorageSaveFn();
+    removeLegacySessionStorageSaveFn();
+    await Promise.allSettled([
+      deleteLegacyIndexedDbSaveFn(),
+      deleteLegacyDesktopSaveFn(),
+    ]);
   }
 
   async function loadSaveData() {
@@ -264,14 +297,6 @@ export function createRuntimeSaveSystem({
         });
       }
 
-      const sessionStorageSave = readSessionStorageSaveFn();
-      if (sessionStorageSave) {
-        candidates.push({
-          source: sourceSessionStorage,
-          saveData: sessionStorageSave,
-        });
-      }
-
       const indexedDbSave = await readIndexedDbSaveFn();
       if (indexedDbSave) {
         candidates.push({
@@ -280,12 +305,60 @@ export function createRuntimeSaveSystem({
         });
       }
 
-      selected = pickPreferredSaveFn(candidates)?.saveData || createEmptySaveFn();
+      const preferredCurrentSave = pickPreferredSaveFn(candidates)?.saveData || null;
+      if (preferredCurrentSave) {
+        selected = preferredCurrentSave;
+      } else {
+        const legacyCandidates = [];
+        const legacyDesktopSave = await readLegacyDesktopSaveFn();
+        if (legacyDesktopSave) {
+          legacyCandidates.push({
+            source: sourceDesktop,
+            saveData: legacyDesktopSave,
+          });
+        }
+
+        const legacyLocalStorageSave = readLegacyLocalStorageSaveFn();
+        if (legacyLocalStorageSave) {
+          legacyCandidates.push({
+            source: sourceLocalStorage,
+            saveData: legacyLocalStorageSave,
+          });
+        }
+
+        const legacySessionStorageSave = readLegacySessionStorageSaveFn();
+        if (legacySessionStorageSave) {
+          legacyCandidates.push({
+            source: sourceSessionStorage,
+            saveData: legacySessionStorageSave,
+          });
+        }
+
+        const legacyIndexedDbSave = await readLegacyIndexedDbSaveFn();
+        if (legacyIndexedDbSave) {
+          legacyCandidates.push({
+            source: sourceIndexedDb,
+            saveData: legacyIndexedDbSave,
+          });
+        }
+
+        const preferredLegacyCandidate = pickPreferredSaveFn(legacyCandidates) || null;
+        if (preferredLegacyCandidate?.saveData) {
+          try {
+            selected = await createLegacySaveFn(preferredLegacyCandidate.saveData);
+          } catch {
+            selected = createEmptySaveFn();
+          }
+          await deleteLegacySaveSources();
+        } else {
+          selected = createEmptySaveFn();
+        }
+      }
     }
 
     const repairResult = repairSaveSnapshotFn(selected);
     selected = repairResult.saveData;
-    syncSerializedSaveToBrowserStorage(JSON.stringify(selected));
+    syncSerializedSaveToBrowserStorage(serializeSaveDataFn(selected));
     return selected;
   }
 
@@ -296,7 +369,7 @@ export function createRuntimeSaveSystem({
     state.saveData.version = saveVersion;
     state.saveData.app_build_version = appVersion;
     state.saveData.last_tick_epoch_ms = readNowMs();
-    syncSerializedSaveToBrowserStorage(JSON.stringify(state.saveData));
+    syncSerializedSaveToBrowserStorage(serializeSaveDataFn(state.saveData));
   }
 
   return {

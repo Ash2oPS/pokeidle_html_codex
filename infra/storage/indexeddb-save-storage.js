@@ -61,7 +61,7 @@ export function createIndexedDbSaveStorage({
     return saveIndexedDbOpenPromise;
   }
 
-  async function readSaveDataFromIndexedDb() {
+  async function readRawSaveDataFromIndexedDb(contextLabel = "indexedDB save") {
     const database = await openSaveIndexedDb();
     if (!database) {
       return null;
@@ -79,14 +79,9 @@ export function createIndexedDbSaveStorage({
             return;
           }
           try {
-            const saveRaw = parseSerializedSave(serializedSave, "indexedDB save");
-            if (!isRawSaveSupported(saveRaw)) {
-              void deleteSaveDataFromIndexedDb();
-              resolve(null);
-              return;
-            }
+            const saveRaw = parseSerializedSave(serializedSave, contextLabel);
             setAvailability(true);
-            resolve(normalizeSave(saveRaw));
+            resolve(saveRaw);
           } catch {
             resolve(null);
           }
@@ -100,6 +95,18 @@ export function createIndexedDbSaveStorage({
         resolve(null);
       }
     });
+  }
+
+  async function readSaveDataFromIndexedDb() {
+    const saveRaw = await readRawSaveDataFromIndexedDb("indexedDB save");
+    if (!saveRaw) {
+      return null;
+    }
+    if (!isRawSaveSupported(saveRaw)) {
+      void deleteSaveDataFromIndexedDb();
+      return null;
+    }
+    return normalizeSave(saveRaw);
   }
 
   async function writeSerializedSaveToIndexedDb(serializedSave) {
@@ -169,6 +176,7 @@ export function createIndexedDbSaveStorage({
   return {
     hasIndexedDbSaveSupport,
     openSaveIndexedDb,
+    readRawSaveDataFromIndexedDb,
     readSaveDataFromIndexedDb,
     writeSerializedSaveToIndexedDb,
     deleteSaveDataFromIndexedDb,

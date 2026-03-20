@@ -92,6 +92,8 @@ export function createRuntimeInputSystem({
   const openBoxesForTeamSlot = asFunction(actions.openBoxesForTeamSlot);
   const openAppearanceForTeamSlot = asFunction(actions.openAppearanceForTeamSlot);
   const toggleBallCaptureRule = asFunction(actions.toggleBallCaptureRule);
+  const exportSaveToFile = asPromiseFunction(actions.exportSaveToFile);
+  const importSaveFromFile = asPromiseFunction(actions.importSaveFromFile);
   const resetSaveAndRestart = asFunction(actions.resetSaveAndRestart);
   const toggleShopPanel = asFunction(actions.toggleShopPanel);
   const setGachaOpen = asFunction(actions.setGachaOpen);
@@ -162,6 +164,8 @@ export function createRuntimeInputSystem({
       ballCaptureToggleOwnedButtonEl = null,
       ballCaptureToggleShinyButtonEl = null,
       ballCaptureToggleUltraButtonEl = null,
+      exportSaveButtonEl = null,
+      importSaveButtonEl = null,
       resetSaveButtonEl = null,
       mapButtonEl = null,
       pokedexButtonEl = null,
@@ -377,6 +381,12 @@ export function createRuntimeInputSystem({
       }
     });
 
+    register(exportSaveButtonEl, "click", () => {
+      void exportSaveToFile();
+    });
+    register(importSaveButtonEl, "click", () => {
+      void importSaveFromFile();
+    });
     register(resetSaveButtonEl, "click", resetSaveAndRestart);
     register(mapButtonEl, "click", () => {
       setMapOpen(!state?.ui?.mapOpen);

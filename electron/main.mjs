@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const DEFAULT_REMOTE_URL = "https://ash2ops.github.io/pokeidle_html_codex/";
 const DESKTOP_APP_ID = "com.ash2ops.pokeidle";
-const SAVE_FILE_NAME = "pokeidle_save_v3.json";
+const SAVE_FILE_NAME = "pokeidle_save_v4c.json";
+const LEGACY_SAVE_FILE_NAME = "pokeidle_save_v3.json";
 const SAVE_DIR_NAME = "saves";
 const WINDOW_BACKGROUND = "#0f1720";
 const DESKTOP_ICON_FILE_NAME = process.platform === "win32" ? "pokeball-dock.ico" : "pokeball-dock.png";
@@ -34,8 +35,8 @@ function resolveRemoteUrl() {
   return DEFAULT_REMOTE_URL;
 }
 
-function getSaveFilePath() {
-  return path.join(app.getPath("userData"), SAVE_DIR_NAME, SAVE_FILE_NAME);
+function getSaveFilePath(fileName = SAVE_FILE_NAME) {
+  return path.join(app.getPath("userData"), SAVE_DIR_NAME, String(fileName || SAVE_FILE_NAME));
 }
 
 function ensureDesktopRuntimePowerBlocker() {
@@ -125,8 +126,8 @@ function isSaveObject(payload) {
   return Boolean(payload && typeof payload === "object" && !Array.isArray(payload));
 }
 
-async function readDesktopSave() {
-  const filePath = getSaveFilePath();
+async function readDesktopSave(fileName = SAVE_FILE_NAME) {
+  const filePath = getSaveFilePath(fileName);
   try {
     const rawContent = await fs.readFile(filePath, "utf8");
     const parsed = JSON.parse(rawContent);
@@ -160,7 +161,7 @@ async function readDesktopSave() {
   }
 }
 
-async function writeDesktopSave(savePayload) {
+async function writeDesktopSave(savePayload, fileName = SAVE_FILE_NAME) {
   if (!isSaveObject(savePayload)) {
     return {
       ok: false,
@@ -168,7 +169,7 @@ async function writeDesktopSave(savePayload) {
     };
   }
 
-  const filePath = getSaveFilePath();
+  const filePath = getSaveFilePath(fileName);
   try {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     const serialized = `${JSON.stringify(savePayload)}\n`;
@@ -187,8 +188,8 @@ async function writeDesktopSave(savePayload) {
   }
 }
 
-async function deleteDesktopSave() {
-  const filePath = getSaveFilePath();
+async function deleteDesktopSave(fileName = SAVE_FILE_NAME) {
+  const filePath = getSaveFilePath(fileName);
   try {
     await fs.unlink(filePath);
     return {
@@ -288,9 +289,11 @@ function registerIpcHandlers() {
     notificationSupported: Notification.isSupported(),
   }));
 
-  ipcMain.handle("pokeidle:save-read", async () => readDesktopSave());
-  ipcMain.handle("pokeidle:save-write", async (_event, payload) => writeDesktopSave(payload?.save));
-  ipcMain.handle("pokeidle:save-delete", async () => deleteDesktopSave());
+  ipcMain.handle("pokeidle:save-read", async () => readDesktopSave(SAVE_FILE_NAME));
+  ipcMain.handle("pokeidle:save-read-legacy", async () => readDesktopSave(LEGACY_SAVE_FILE_NAME));
+  ipcMain.handle("pokeidle:save-write", async (_event, payload) => writeDesktopSave(payload?.save, SAVE_FILE_NAME));
+  ipcMain.handle("pokeidle:save-delete", async () => deleteDesktopSave(SAVE_FILE_NAME));
+  ipcMain.handle("pokeidle:save-delete-legacy", async () => deleteDesktopSave(LEGACY_SAVE_FILE_NAME));
   ipcMain.handle("pokeidle:notify", async (_event, payload) => sendDesktopNotification(payload));
   ipcMain.handle(WINDOW_STATE_CHANNEL, (event) => {
     const windowRef = BrowserWindow.fromWebContents(event.sender);

@@ -25,18 +25,20 @@ test("browser adapter writes, reads and removes save payloads", () => {
   const adapter = createBrowserSaveStorage({
     getWindowObject: () => ({ localStorage, sessionStorage }),
     parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
-    isRawSaveSupported: (saveRaw) => Number(saveRaw?.version || 0) >= 6,
+    isRawSaveSupported: (saveRaw) => saveRaw?.f === "pi4c" && Number(saveRaw?.v || 0) === 7,
     normalizeSave: (saveRaw) => ({ ...saveRaw, normalized: true }),
   });
 
-  const serialized = JSON.stringify({ version: 6, money: 12 });
+  const serialized = JSON.stringify({ f: "pi4c", v: 7, w: [12, 0] });
   const writeOk = adapter.writeSerializedSaveToStorageKey("localStorage", "save_key", serialized);
+  const rawRead = adapter.readRawSaveDataFromStorageKey("localStorage", "save_key", "local raw");
   const read = adapter.readSaveDataFromStorageKey("localStorage", "save_key", "local");
   const removeOk = adapter.removeSaveDataFromStorageKey("localStorage", "save_key");
   const readAfterRemove = adapter.readSaveDataFromStorageKey("localStorage", "save_key", "local");
 
   assert.equal(writeOk, true);
-  assert.deepEqual(read, { version: 6, money: 12, normalized: true });
+  assert.deepEqual(rawRead, { f: "pi4c", v: 7, w: [12, 0] });
+  assert.deepEqual(read, { f: "pi4c", v: 7, w: [12, 0], normalized: true });
   assert.equal(removeOk, true);
   assert.equal(readAfterRemove, null);
 });
@@ -48,7 +50,7 @@ test("browser adapter drops unsupported saves and clears storage key", () => {
   const adapter = createBrowserSaveStorage({
     getWindowObject: () => ({ localStorage }),
     parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
-    isRawSaveSupported: (saveRaw) => Number(saveRaw?.version || 0) >= 6,
+    isRawSaveSupported: (saveRaw) => saveRaw?.f === "pi4c" && Number(saveRaw?.v || 0) === 7,
     normalizeSave: (saveRaw) => saveRaw,
   });
 

@@ -56,6 +56,8 @@ test("mountRuntimeUi preserves interactive ids and shop tab dataset values", () 
   const document = createDocument();
   const refs = mountRuntimeUi(document);
 
+  assert.equal(refs.exportSaveButtonEl?.id, "export-save-btn");
+  assert.equal(refs.importSaveButtonEl?.id, "import-save-btn");
   assert.equal(refs.shopTabEvolutionsButtonEl?.id, "shop-tab-evolutions");
   assert.equal(refs.shopTabEvolutionsButtonEl?.dataset?.shopTab, "evolutions");
   assert.equal(refs.shopTabPokeballsButtonEl?.dataset?.shopTab, "pokeballs");

@@ -48,6 +48,7 @@
   - `npm run test:perf:phase5:regression`
 
 ## Compatibility Guarantees
-- Save format/schema/keys remain unchanged.
+- Save persistence is intentionally versioned and may break on major save migrations.
+- Current contract: compact save format `pi4c` / `v7`, with one-shot local legacy salvage limited to shiny / ultra shiny appearance family entitlements.
 - Public runtime hooks remain stable (including `window.render_game_to_text` and `window.advanceTime`).
-- Refactor strategy is incremental with reversible boundaries (façade-first extraction).
+- Refactor strategy is incremental with reversible boundaries (facade-first extraction).

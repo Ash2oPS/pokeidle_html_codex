@@ -19,7 +19,7 @@ const saveFilePath = path.join(
   process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
   "pokeidle-html-codex",
   "saves",
-  "pokeidle_save_v3.json",
+  "pokeidle_save_v4c.json",
 );
 
 const MIME_TYPES = new Map([

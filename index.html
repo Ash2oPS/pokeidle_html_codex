@@ -97,6 +97,24 @@
           radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 64%);
       }
 
+      #runtime-ui-root > .loading-screen.is-visible.maintenance-screen .loading-pokeball {
+        animation: maintenance-pokeball-glow 2.5s ease-in-out infinite;
+        filter: grayscale(1);
+        opacity: 0.6;
+        box-shadow:
+          0 0 0 clamp(2px, 0.32vw, 4px) rgba(0, 0, 0, 0.95),
+          0 0 18px rgba(216, 226, 255, 0.22),
+          0 0 44px rgba(216, 226, 255, 0.18);
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible.maintenance-screen .loading-screen-text {
+        white-space: pre-line;
+      }
+
+      #runtime-ui-root > .loading-screen.is-visible.maintenance-screen .loading-screen-flash {
+        display: none;
+      }
+
       @keyframes loading-pokeball-spin {
         from {
           transform: rotate(0deg);
@@ -104,6 +122,25 @@
 
         to {
           transform: rotate(360deg);
+        }
+      }
+
+      @keyframes maintenance-pokeball-glow {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow:
+            0 0 0 clamp(2px, 0.32vw, 4px) rgba(0, 0, 0, 0.95),
+            0 0 16px rgba(216, 226, 255, 0.18),
+            0 0 38px rgba(216, 226, 255, 0.14);
+        }
+
+        50% {
+          transform: scale(1.035);
+          box-shadow:
+            0 0 0 clamp(2px, 0.32vw, 4px) rgba(0, 0, 0, 0.95),
+            0 0 28px rgba(230, 238, 255, 0.34),
+            0 0 60px rgba(230, 238, 255, 0.24);
         }
       }
     </style>
@@ -121,9 +158,6 @@
         <div class="loading-screen-flash" aria-hidden="true"></div>
       </section>
     </div>
-    <script src="vendor/pako.min.js"></script>
-    <script src="vendor/upng.js"></script>
-    <script src="vendor/omggif.js"></script>
     <script type="module" src="game.js"></script>
   </body>
 </html>

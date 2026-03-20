@@ -52,7 +52,16 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - interactions dans `systems/ui/runtime-ui-interaction-system.js`
   - rendu dans `systems/ui/runtime-render-system.js`
   - styles dans `styles.css`
-- Il est interdit de reintroduire `game-settings.json`, `lib/game-settings-runtime.js` ou une logique store mobile / maintenance gate.
+- Il est interdit de reintroduire `game-settings.json`, `lib/game-settings-runtime.js` ou une logique store mobile.
+- Le seul maintenance gate autorise est strictement celui du bootstrap web:
+  - gate de boot uniquement
+  - web de prod GitHub Pages uniquement
+  - controle par `maintenance-config.js`
+  - place avant le chargement des vendors et avant `game-runtime.js`
+  - fail-open si la config est absente, invalide ou illisible
+  - ne doit jamais bloquer localhost, `127.0.0.1` ou tout autre environnement dev / non-prod
+- Le preview QA du mode maintenance est autorise uniquement hors prod via `?previewMaintenance=1`.
+- Toute modification du bootstrap ou du mode maintenance doit etre validee par screenshots desktop et mobile portrait de l'ecran obtenu.
 - Il est interdit de changer le schema de save, les cles de save, `window.render_game_to_text` ou `window.advanceTime` sans demande explicite.
 - La fiabilite du background idle est critique:
   - le jeu ne doit jamais perdre de progression a cause d'un passage en arriere-plan

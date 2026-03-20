@@ -102,19 +102,21 @@ test("indexeddb adapter writes, reads and deletes serialized saves", async () =>
     indexedDbStoreName: "store",
     indexedDbRecordKey: "main",
     parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
-    isRawSaveSupported: (saveRaw) => Number(saveRaw?.version || 0) >= 6,
+    isRawSaveSupported: (saveRaw) => saveRaw?.f === "pi4c" && Number(saveRaw?.v || 0) === 7,
     normalizeSave: (saveRaw) => ({ ...saveRaw, normalized: true }),
     setIndexedDbAvailable: (available) => availability.push(Boolean(available)),
     nowMs: () => 123,
   });
 
-  const writeOk = await adapter.writeSerializedSaveToIndexedDb('{"version":6,"money":50}');
+  const writeOk = await adapter.writeSerializedSaveToIndexedDb('{"f":"pi4c","v":7,"w":[50,0]}');
+  const rawSave = await adapter.readRawSaveDataFromIndexedDb("indexedDB raw save");
   const saveData = await adapter.readSaveDataFromIndexedDb();
   const deleteOk = await adapter.deleteSaveDataFromIndexedDb();
   const saveAfterDelete = await adapter.readSaveDataFromIndexedDb();
 
   assert.equal(writeOk, true);
-  assert.deepEqual(saveData, { version: 6, money: 50, normalized: true });
+  assert.deepEqual(rawSave, { f: "pi4c", v: 7, w: [50, 0] });
+  assert.deepEqual(saveData, { f: "pi4c", v: 7, w: [50, 0], normalized: true });
   assert.equal(deleteOk, true);
   assert.equal(saveAfterDelete, null);
   assert.equal(availability.includes(true), true);

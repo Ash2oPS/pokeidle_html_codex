@@ -218,6 +218,29 @@
   - new styling in `styles.css`;
 
 ## Additional progress (save hardening + anti-hybrid fix)
+- Rebuilt save persistence around a compact `pi4c` / `v7` codec instead of serializing the in-memory runtime snapshot verbosely.
+- Save storage now writes only the new compact targets:
+  - `localStorage`: `pokeidle_save_v4c`
+  - IndexedDB: `pokeidle_browser_save_v2`
+  - desktop file: `pokeidle_save_v4c.json`
+- Added one-shot local legacy salvage when no compact save exists:
+  - scans the old v3 browser/desktop sources;
+  - migrates only shiny / ultra shiny appearance entitlements;
+  - converts them to evolution-family root ids in `legacy_shiny_family_root_ids` / `legacy_ultra_shiny_family_root_ids`;
+  - deletes legacy save sources after salvage so resets stay clean.
+- Import/export now use compact JSON only:
+  - export filename is `pokeidle-save-v4c-YYYYMMDD-HHMMSS.json`;
+  - manual import of old verbose saves is intentionally rejected.
+- Appearance unlock flow now distinguishes current-save unlocks from inherited legacy unlocks:
+  - no fake shiny capture counters are injected;
+  - a newly obtained Pokemon/family immediately inherits shiny / ultra shiny appearance access if that family was owned as shiny in the old save;
+  - the appearance modal now surfaces explicit “ancienne sauvegarde” messaging for inherited unlocks.
+- Added regression coverage for:
+  - compact codec round-trips and sparse route encoding;
+  - runtime save-system selection + legacy salvage;
+  - compact import/export/reset bootstrap paths;
+  - storage adapters raw-read helpers;
+  - appearance modal legacy unlock messaging.
 - Refactored save backend policy so local play and public play are now intentionally separated:
   - local contexts (`localhost`, `127.0.0.1`, private IPv4, `file:`) now use the disk bridge as the single source of truth;
   - non-local/public contexts keep using browser `localStorage`;
@@ -7088,3 +7111,61 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - `output/vfx-combat-gallery/mobile-portrait/mixed/mixed-three-projectiles-three-lasers.png`
 - Note:
   - the desktop PowerShell VFX gallery script can still flake intermittently on tmp seed cleanup / `Resolve-Path`; rerunning the exact same command succeeded without further code changes.
+
+## Additional progress (save import/export JSON)
+- Added save transfer actions to the main action dock and fullscreen menu:
+  - `Exporter JSON` downloads the current normalized save as a `.json` file.
+  - `Importer JSON` opens a file picker, validates/parses the selected save, normalizes it, repairs it through the existing save pipeline, then reloads the runtime from that imported save.
+- Kept the feature inside the existing save architecture:
+  - UI nodes added in `systems/ui/runtime-ui-dom-factory.js`.
+  - button/input wiring added in `systems/ui/runtime-input-system.js`.
+  - save import/export orchestration added next to the existing reset flow in `core/runtime-bootstrap-system.js`.
+  - pure helper utilities extracted to `lib/save-transfer-utils.js`.
+- No save schema/key change:
+  - import uses `parseSerializedSave -> isRawSaveSupported -> normalizeSave -> repairNormalizedSaveSnapshot`.
+  - export serializes `state.saveData` after the normal `persistSaveData()` stamp.
+- Verification:
+  - `node --test tests/save-transfer-utils.test.mjs tests/runtime-input-system.test.mjs tests/runtime-ui-dom-factory.test.mjs` -> PASS
+  - `npm run test:node` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - targeted desktop fullscreen menu capture -> PASS
+- Visual artifacts reviewed manually:
+  - desktop fullscreen menu with new save actions:
+    - `output/ui-state-gallery/desktop-landscape-save-menu/menu.png`
+  - mobile fullscreen menu with new save actions:
+    - `output/ui-state-gallery/mobile-portrait/menu.png`
+  - gallery error logs:
+    - `output/ui-state-gallery/desktop-landscape/errors.json` -> `[]`
+    - `output/ui-state-gallery/mobile-portrait/errors.json` -> `[]`
+    - `output/ui-state-gallery/desktop-landscape-save-menu/errors.json` -> `[]`
+
+## Additional progress (2026-03-20, prod-only maintenance gate)
+- Added `maintenance-config.js` as the single designer-facing toggle for maintenance mode:
+  - `enabled: true` turns maintenance on for production web
+  - `message` overrides the default message
+- Reworked `game.js` into a minimal bootstrap that:
+  - reads and sanitizes `maintenance-config.js`
+  - shows a maintenance boot screen only on production GitHub Pages
+  - skips vendors and `game-runtime.js` entirely when maintenance is active
+  - keeps all non-production environments booting normally
+- Added a non-production QA preview override:
+  - `?previewMaintenance=1` shows the maintenance screen locally without blocking regular dev boot otherwise
+- Removed hard-coded vendor boot scripts from `index.html` and kept only the module bootstrap script.
+- Added inline first-paint maintenance styling derived from the loading screen:
+  - black background
+  - centered Pokeball
+  - glow/pulse instead of spin
+  - centered multiline message
+- Added automated coverage:
+  - `tests/maintenance-bootstrap.test.mjs`
+  - expanded `tests/index-boot-loading-screen.test.mjs`
+- Added dedicated maintenance screenshot commands:
+  - `npm run test:visual:maintenance:desktop`
+  - `npm run test:visual:maintenance:mobile`
+- Updated `AGENTS.md` and `docs/ai-guidelines.md` so maintenance remains:
+  - boot-only
+  - prod-only
+  - fail-open
+  - non-blocking for local/dev
+  - screenshot-validated on desktop and mobile portrait

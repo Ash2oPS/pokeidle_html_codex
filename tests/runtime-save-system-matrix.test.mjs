@@ -40,6 +40,7 @@ function createFixture(options = {}) {
     indexedDb: 0,
   };
   const writes = [];
+  const legacyDeletes = [];
   const setTimerCalls = [];
   const clearTimerCalls = [];
   let timerIdSeed = 1;
@@ -60,6 +61,7 @@ function createFixture(options = {}) {
     state,
     hasIndexedDbSaveSupport: () => Boolean(options.hasIndexedDb),
     hasDesktopSaveBridge: () => Boolean(options.hasDesktopBridge),
+    serializeSaveData: (saveData) => `compact:${saveData.version}:${saveData.last_tick_epoch_ms}:${saveData.marker || ""}`,
     readSaveDataFromDesktopBridge: async () => {
       readCounts.desktop += 1;
       return options.desktopSave ?? null;
@@ -68,13 +70,25 @@ function createFixture(options = {}) {
       readCounts.local += 1;
       return options.localStorageSave ?? null;
     },
-    readSaveDataFromSessionStorage: () => {
+    readRawLegacySaveDataFromLocalStorage: () => {
+      readCounts.local += 1;
+      return options.legacyLocalStorageSave ?? null;
+    },
+    readRawLegacySaveDataFromSessionStorage: () => {
       readCounts.session += 1;
-      return options.sessionStorageSave ?? null;
+      return options.legacySessionStorageSave ?? null;
     },
     readSaveDataFromIndexedDb: async () => {
       readCounts.indexedDb += 1;
       return options.indexedDbSave ?? null;
+    },
+    readRawLegacySaveDataFromDesktopBridge: async () => {
+      readCounts.desktop += 1;
+      return options.legacyDesktopSave ?? null;
+    },
+    readRawLegacySaveDataFromIndexedDb: async () => {
+      readCounts.indexedDb += 1;
+      return options.legacyIndexedDbSave ?? null;
     },
     writeSerializedSaveToIndexedDb: async () => {
       const cursor = Math.min(indexedDbWriteIndex, indexedDbWriteResults.length - 1);
@@ -90,14 +104,30 @@ function createFixture(options = {}) {
       writes.push({ areaName, key, serializedSave });
       return true;
     },
+    removeLegacySaveDataFromLocalStorage: () => {
+      legacyDeletes.push("local");
+      return true;
+    },
+    removeLegacySaveDataFromSessionStorage: () => {
+      legacyDeletes.push("session");
+      return true;
+    },
+    deleteLegacySaveDataFromIndexedDb: async () => {
+      legacyDeletes.push("indexeddb");
+      return true;
+    },
+    deleteLegacySaveDataFromDesktopBridge: async () => {
+      legacyDeletes.push("desktop");
+      return true;
+    },
     pickPreferredSaveCandidate: options.pickPreferredSaveCandidate || pickPreferredSaveCandidate,
-    createEmptySave: () => ({ version: 6, last_tick_epoch_ms: 0, marker: "empty" }),
+    createEmptySave: () => ({ version: 7, last_tick_epoch_ms: 0, marker: "empty" }),
+    createSaveFromLegacyRawSave: async (rawSave) => ({ version: 7, last_tick_epoch_ms: 0, marker: `legacy:${rawSave?.marker || "save"}` }),
     repairNormalizedSaveSnapshot: (saveData) => ({ saveData }),
     readSeededDevSaveData: async () => options.seededSave ?? null,
-    saveVersion: 6,
+    saveVersion: 7,
     appVersion: "0.1.27",
-    saveKey: "pokeidle_save_v3",
-    saveSessionKey: "pokeidle_save_v3_session",
+    saveKey: "pokeidle_save_v4c",
     saveSourceDesktop: SAVE_SOURCE_DESKTOP,
     saveSourceLocalStorage: SAVE_SOURCE_LOCAL_STORAGE,
     saveSourceSessionStorage: SAVE_SOURCE_SESSION_STORAGE,
@@ -141,6 +171,7 @@ function createFixture(options = {}) {
     state,
     readCounts,
     writes,
+    legacyDeletes,
     saveBackendValueEl,
     setTimerCalls,
     clearTimerCalls,
@@ -154,13 +185,13 @@ function createFixture(options = {}) {
 
 test("loadSaveData prioritizes seeded save and bypasses backend reads", async () => {
   const fixture = createFixture({
-    seededSave: { version: 6, last_tick_epoch_ms: 999, marker: "seeded" },
+    seededSave: { version: 7, last_tick_epoch_ms: 999, marker: "seeded" },
     hasDesktopBridge: true,
     hasIndexedDb: true,
-    desktopSave: { version: 6, last_tick_epoch_ms: 100, marker: "desktop" },
-    localStorageSave: { version: 6, last_tick_epoch_ms: 110, marker: "local" },
-    sessionStorageSave: { version: 6, last_tick_epoch_ms: 120, marker: "session" },
-    indexedDbSave: { version: 6, last_tick_epoch_ms: 130, marker: "indexeddb" },
+    desktopSave: { version: 7, last_tick_epoch_ms: 100, marker: "desktop" },
+    localStorageSave: { version: 7, last_tick_epoch_ms: 110, marker: "local" },
+    legacySessionStorageSave: { version: 6, last_tick_epoch_ms: 120, marker: "session" },
+    indexedDbSave: { version: 7, last_tick_epoch_ms: 130, marker: "indexeddb" },
   });
 
   const loaded = await fixture.system.loadSaveData();
@@ -172,15 +203,15 @@ test("loadSaveData prioritizes seeded save and bypasses backend reads", async ()
     session: 0,
     indexedDb: 0,
   });
-  assert.equal(fixture.writes.length, 2);
+  assert.equal(fixture.writes.length, 1);
 });
 
 test("loadSaveData honors tie-break preference and keeps desktop save when timestamps are equal", async () => {
   const fixture = createFixture({
     hasDesktopBridge: true,
-    desktopSave: { version: 6, last_tick_epoch_ms: 777, marker: "desktop" },
-    localStorageSave: { version: 6, last_tick_epoch_ms: 777, marker: "local" },
-    sessionStorageSave: { version: 6, last_tick_epoch_ms: 700, marker: "session" },
+    desktopSave: { version: 7, last_tick_epoch_ms: 777, marker: "desktop" },
+    localStorageSave: { version: 7, last_tick_epoch_ms: 777, marker: "local" },
+    legacySessionStorageSave: { version: 6, last_tick_epoch_ms: 700, marker: "session" },
     indexedDbSave: null,
   });
 
@@ -189,8 +220,35 @@ test("loadSaveData honors tie-break preference and keeps desktop save when times
   assert.equal(loaded.marker, "desktop");
   assert.equal(fixture.readCounts.desktop, 1);
   assert.equal(fixture.readCounts.local, 1);
-  assert.equal(fixture.readCounts.session, 1);
+  assert.equal(fixture.readCounts.session, 0);
   assert.equal(fixture.readCounts.indexedDb, 1);
+});
+
+test("loadSaveData ignores legacy saves when a current compact save exists", async () => {
+  const fixture = createFixture({
+    localStorageSave: { version: 7, last_tick_epoch_ms: 200, marker: "current" },
+    legacySessionStorageSave: { version: 6, last_tick_epoch_ms: 999, marker: "legacy-session" },
+  });
+
+  const loaded = await fixture.system.loadSaveData();
+
+  assert.equal(loaded.marker, "current");
+  assert.deepEqual(fixture.legacyDeletes, []);
+  assert.equal(fixture.readCounts.session, 0);
+  assert.equal(fixture.writes.at(-1).serializedSave, "compact:7:200:current");
+});
+
+test("loadSaveData salvages legacy save when no current compact save exists", async () => {
+  const fixture = createFixture({
+    legacyLocalStorageSave: { version: 6, last_tick_epoch_ms: 400, marker: "legacy-local" },
+    legacySessionStorageSave: { version: 6, last_tick_epoch_ms: 300, marker: "legacy-session" },
+  });
+
+  const loaded = await fixture.system.loadSaveData();
+
+  assert.equal(loaded.marker, "legacy:legacy-local");
+  assert.deepEqual(fixture.legacyDeletes, ["local", "session", "indexeddb", "desktop"]);
+  assert.equal(fixture.writes.at(-1).serializedSave, "compact:7:0:legacy:legacy-local");
 });
 
 test("syncSerializedSaveToBrowserStorage retries indexeddb and desktop writes after transient failures", async () => {

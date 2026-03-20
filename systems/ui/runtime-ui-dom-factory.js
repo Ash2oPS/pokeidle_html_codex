@@ -135,6 +135,14 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                 <span class="btn-icon" aria-hidden="true">N</span>
                 <span id="windows-notification-btn-label" class="btn-label">Notifs Windows</span>
               </button>
+              <button id="export-save-btn" class="shop-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">J</span>
+                <span class="btn-label">Exporter JSON</span>
+              </button>
+              <button id="import-save-btn" class="map-btn action-btn" type="button">
+                <span class="btn-icon" aria-hidden="true">I</span>
+                <span class="btn-label">Importer JSON</span>
+              </button>
               <button id="reset-save-btn" class="reset-save-btn action-btn" type="button">
                 <span class="btn-icon" aria-hidden="true">X</span>
                 <span class="btn-label">Supprimer la save</span>
@@ -227,6 +235,40 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                     <span class="action-dock-fullscreen-texts">
                       <span class="action-dock-fullscreen-label">Notifications</span>
                       <span class="action-dock-fullscreen-sub">Alertes Windows</span>
+                    </span>
+                  </button>
+                  <button
+                    class="action-dock-fullscreen-btn"
+                    type="button"
+                    data-action-kind="save-export"
+                    data-action-target="export-save-btn"
+                    role="menuitem"
+                  >
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M12 5v9m0 0 3.2-3.2M12 14l-3.2-3.2M6 16.3V18h12v-1.7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Exporter la save</span>
+                      <span class="action-dock-fullscreen-sub">T&eacute;l&eacute;charger le JSON</span>
+                    </span>
+                  </button>
+                  <button
+                    class="action-dock-fullscreen-btn"
+                    type="button"
+                    data-action-kind="save-import"
+                    data-action-target="import-save-btn"
+                    role="menuitem"
+                  >
+                    <span class="action-dock-fullscreen-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
+                        <path d="M12 19V10m0 0 3.2 3.2M12 10l-3.2 3.2M6 7.7V6h12v1.7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    <span class="action-dock-fullscreen-texts">
+                      <span class="action-dock-fullscreen-label">Importer une save</span>
+                      <span class="action-dock-fullscreen-sub">Charger un fichier JSON</span>
                     </span>
                   </button>
                   <button
@@ -658,6 +700,8 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   renameCharCountEl: "rename-char-count",
   renameCloseButtonEl: "rename-close-btn",
   renameResetButtonEl: "rename-reset-btn",
+  exportSaveButtonEl: "export-save-btn",
+  importSaveButtonEl: "import-save-btn",
   resetSaveButtonEl: "reset-save-btn",
   mapButtonEl: "map-btn",
   pokedexButtonEl: "pokedex-btn",
@@ -793,6 +837,8 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "rename-char-count",
   "rename-close-btn",
   "rename-reset-btn",
+  "export-save-btn",
+  "import-save-btn",
   "reset-save-btn",
   "map-btn",
   "pokedex-btn",

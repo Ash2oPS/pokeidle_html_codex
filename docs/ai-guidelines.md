@@ -132,6 +132,35 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - puis ouvre les nouvelles captures et controle le resultat
 - Une modif UI n'est pas consideree validee tant que les captures desktop et mobile portrait n'ont pas ete relues. Les tests unitaires seuls sont insuffisants pour cloturer une tache UI.
 
+### Boot maintenance gate
+
+- Le seul maintenance gate autorise dans ce repo est un gate de boot web prod-only.
+- Il doit vivre avant tout chargement lourd:
+  - avant les vendors
+  - avant `game-runtime.js`
+  - avant tout chargement data/audio/runtime
+- Il doit etre controle uniquement par `maintenance-config.js`.
+- Il doit s'appliquer uniquement au web de prod GitHub Pages.
+- Si `maintenance-config.js` est active mais que l'environnement n'est pas la prod web:
+  - le jeu doit continuer a booter normalement
+  - aucun dev local / preview non-prod ne doit etre bloque
+- Un preview QA local est autorise uniquement hors prod via `?previewMaintenance=1`.
+- Si le gate s'active:
+  - il ne doit charger ni vendors ni runtime
+  - il doit afficher uniquement l'ecran de maintenance derive du loading screen
+  - il doit utiliser le message custom si fourni, sinon `Le jeu est en maintenance. Merci de reessayer plus tard.`
+- En cas d'erreur de chargement, d'import casse ou de config invalide, le comportement doit etre fail-open:
+  - `console.warn`
+  - boot normal
+  - jamais de prod ou de dev briquee par accident
+- Toute modif touchant le bootstrap ou le mode maintenance doit etre validee par screenshots:
+  - desktop / PC
+  - mobile portrait / telephone
+- Interdit:
+  - reintroduire un maintenance gate disperse dans `game-runtime.js` ou ailleurs
+  - reintroduire `game-settings.json` pour ce besoin
+  - reutiliser un checker d'update GitHub ou une logique store mobile pour faire office de maintenance
+
 ### Domain
 
 - `domain/` contient des regles pures.
@@ -173,6 +202,7 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Reintroduire `game-settings.json`
 - Reintroduire `lib/game-settings-runtime.js`
 - Reintroduire des redirects Play Store / App Store
+- Introduire un maintenance gate runtime disperse ou qui bloque les environnements dev / non-prod
 - Ajouter des nombres magiques de tuning dans le runtime
 - Aspirer des CSV/JSON de contenu dans le fichier global de design
 - Changer des hooks publics runtime sans demande explicite

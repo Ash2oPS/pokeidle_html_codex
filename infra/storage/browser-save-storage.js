@@ -18,7 +18,7 @@ export function createBrowserSaveStorage({
     }
   }
 
-  function readSaveDataFromStorageKey(areaName, key, contextLabel) {
+  function readRawSaveDataFromStorageKey(areaName, key, contextLabel) {
     const storageArea = getBrowserStorageArea(areaName);
     if (!storageArea || typeof storageArea.getItem !== "function") {
       return null;
@@ -28,15 +28,22 @@ export function createBrowserSaveStorage({
       if (!raw) {
         return null;
       }
-      const saveRaw = parseSerializedSave(raw, contextLabel);
-      if (!isRawSaveSupported(saveRaw)) {
-        removeSaveDataFromStorageKey(areaName, key);
-        return null;
-      }
-      return normalizeSave(saveRaw);
+      return parseSerializedSave(raw, contextLabel);
     } catch {
       return null;
     }
+  }
+
+  function readSaveDataFromStorageKey(areaName, key, contextLabel) {
+    const saveRaw = readRawSaveDataFromStorageKey(areaName, key, contextLabel);
+    if (!saveRaw) {
+      return null;
+    }
+    if (!isRawSaveSupported(saveRaw)) {
+      removeSaveDataFromStorageKey(areaName, key);
+      return null;
+    }
+    return normalizeSave(saveRaw);
   }
 
   function writeSerializedSaveToStorageKey(areaName, key, serializedSave) {
@@ -67,6 +74,7 @@ export function createBrowserSaveStorage({
 
   return {
     getBrowserStorageArea,
+    readRawSaveDataFromStorageKey,
     readSaveDataFromStorageKey,
     writeSerializedSaveToStorageKey,
     removeSaveDataFromStorageKey,

@@ -7,7 +7,7 @@ test("desktop bridge adapter reads and normalizes valid save payload", async () 
   const availability = [];
   const bridge = {
     async readSave() {
-      return { ok: true, save: { version: 6, money: 45 } };
+      return { ok: true, save: { f: "pi4c", v: 7, w: [45, 0] } };
     },
     async writeSave() {
       return { ok: true };
@@ -21,14 +21,16 @@ test("desktop bridge adapter reads and normalizes valid save payload", async () 
     hasDesktopSaveBridge: () => true,
     getDesktopBridge: () => bridge,
     parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
-    isRawSaveSupported: (saveRaw) => Number(saveRaw?.version || 0) >= 6,
+    isRawSaveSupported: (saveRaw) => saveRaw?.f === "pi4c" && Number(saveRaw?.v || 0) === 7,
     normalizeSave: (saveRaw) => ({ ...saveRaw, normalized: true }),
     setDesktopBridgeAvailable: (available) => availability.push(Boolean(available)),
   });
 
+  const rawSave = await adapter.readRawSaveDataFromDesktopBridge();
   const saveData = await adapter.readSaveDataFromDesktopBridge();
 
-  assert.deepEqual(saveData, { version: 6, money: 45, normalized: true });
+  assert.deepEqual(rawSave, { f: "pi4c", v: 7, w: [45, 0] });
+  assert.deepEqual(saveData, { f: "pi4c", v: 7, w: [45, 0], normalized: true });
   assert.equal(availability.at(-1), true);
 });
 
@@ -66,7 +68,7 @@ test("desktop bridge adapter writes serialized save via bridge", async () => {
   let writtenPayload = null;
   const bridge = {
     async readSave() {
-      return { ok: true, save: { version: 6 } };
+      return { ok: true, save: { f: "pi4c", v: 7 } };
     },
     async writeSave(payload) {
       writtenPayload = payload;
@@ -86,8 +88,39 @@ test("desktop bridge adapter writes serialized save via bridge", async () => {
     setDesktopBridgeAvailable: () => {},
   });
 
-  const ok = await adapter.writeSerializedSaveToDesktopBridge('{"version":6,"money":12}');
+  const ok = await adapter.writeSerializedSaveToDesktopBridge('{"f":"pi4c","v":7,"w":[12,0]}');
 
   assert.equal(ok, true);
-  assert.deepEqual(writtenPayload, { version: 6, money: 12 });
+  assert.deepEqual(writtenPayload, { f: "pi4c", v: 7, w: [12, 0] });
+});
+
+test("desktop bridge adapter can target legacy bridge methods", async () => {
+  let deleteCalls = 0;
+  const bridge = {
+    async readLegacySave() {
+      return { ok: true, save: { version: 6, last_tick_epoch_ms: 10 } };
+    },
+    async deleteLegacySave() {
+      deleteCalls += 1;
+      return { ok: true };
+    },
+  };
+
+  const adapter = createDesktopBridgeSaveStorage({
+    hasDesktopSaveBridge: () => true,
+    getDesktopBridge: () => bridge,
+    parseSerializedSave: (payload) => JSON.parse(String(payload || "{}")),
+    isRawSaveSupported: () => false,
+    normalizeSave: (saveRaw) => saveRaw,
+    setDesktopBridgeAvailable: () => {},
+    readSaveMethodName: "readLegacySave",
+    deleteSaveMethodName: "deleteLegacySave",
+  });
+
+  const rawSave = await adapter.readRawSaveDataFromDesktopBridge();
+  const normalizedSave = await adapter.readSaveDataFromDesktopBridge();
+
+  assert.deepEqual(rawSave, { version: 6, last_tick_epoch_ms: 10 });
+  assert.equal(normalizedSave, null);
+  assert.equal(deleteCalls, 1);
 });
