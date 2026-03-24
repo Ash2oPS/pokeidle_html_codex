@@ -364,6 +364,81 @@ const projectileTrailStampCache = new Map();
 const projectileSpriteCacheStats = { hits: 0, misses: 0 };
 const projectileTrailCacheStats = { hits: 0, misses: 0 };
 const laserTextureCacheStats = { hits: 0, misses: 0 };
+const CUSTOM_VFX_ASSET_ROOT = "assets/vfx-custom";
+
+function normalizeCustomVfxAssetToken(value, fallback = "") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized || fallback;
+}
+
+function getDrawableCustomVfxImage(imagePath) {
+  if (!imagePath) {
+    return null;
+  }
+  const image = getCachedSpriteImage(imagePath);
+  return isDrawableImage(image) ? image : null;
+}
+
+function buildCustomProjectileSpriteAssetPath(typeName, variantIndex = 0) {
+  const safeType = normalizeType(typeName || "normal");
+  const safeVariant = Math.max(0, toSafeInt(variantIndex, 0));
+  return `${CUSTOM_VFX_ASSET_ROOT}/projectiles/${safeType}/variant-${safeVariant}.png`;
+}
+
+function getCustomProjectileSpriteOverride(typeName, variantIndex = 0) {
+  const safeVariant = Math.max(0, toSafeInt(variantIndex, 0));
+  const directImage = getDrawableCustomVfxImage(buildCustomProjectileSpriteAssetPath(typeName, safeVariant));
+  if (directImage) {
+    return directImage;
+  }
+  if (safeVariant <= 0) {
+    return null;
+  }
+  return getDrawableCustomVfxImage(buildCustomProjectileSpriteAssetPath(typeName, 0));
+}
+
+function buildCustomProjectileTrailAssetPath(typeName, trailStampKind = "") {
+  const safeType = normalizeType(typeName || "normal");
+  const safeKind = normalizeCustomVfxAssetToken(trailStampKind);
+  return safeKind
+    ? `${CUSTOM_VFX_ASSET_ROOT}/projectile-trails/${safeType}/stamp-${safeKind}.png`
+    : `${CUSTOM_VFX_ASSET_ROOT}/projectile-trails/${safeType}/stamp.png`;
+}
+
+function getCustomProjectileTrailOverride(typeName, trailStampKind = "") {
+  const typedStamp = getDrawableCustomVfxImage(buildCustomProjectileTrailAssetPath(typeName, trailStampKind));
+  if (typedStamp) {
+    return typedStamp;
+  }
+  if (!trailStampKind) {
+    return null;
+  }
+  return getDrawableCustomVfxImage(buildCustomProjectileTrailAssetPath(typeName));
+}
+
+function buildCustomLaserBeamAssetPath(typeName, beamPattern = "") {
+  const safeType = normalizeType(typeName || "normal");
+  const safePattern = normalizeCustomVfxAssetToken(beamPattern);
+  return safePattern
+    ? `${CUSTOM_VFX_ASSET_ROOT}/lasers/${safeType}/beam-${safePattern}.png`
+    : `${CUSTOM_VFX_ASSET_ROOT}/lasers/${safeType}/beam.png`;
+}
+
+function getCustomLaserBeamTexture(profile) {
+  const safeType = normalizeType(profile?.type || "normal");
+  const typedBeam = getDrawableCustomVfxImage(buildCustomLaserBeamAssetPath(safeType, profile?.beamPattern || ""));
+  if (typedBeam) {
+    return typedBeam;
+  }
+  if (!profile?.beamPattern) {
+    return null;
+  }
+  return getDrawableCustomVfxImage(buildCustomLaserBeamAssetPath(safeType));
+}
 
 function getVfxRenderDebugState() {
   if (!state || typeof state !== "object") {
@@ -4008,6 +4083,10 @@ function buildPackedLaserBeamTexture(profile) {
 }
 
 function getPackedLaserBeamTexture(profile) {
+  const customTexture = getCustomLaserBeamTexture(profile);
+  if (customTexture) {
+    return customTexture;
+  }
   const cacheKey = `${String(profile?.type || "normal")}:${String(profile?.beamPattern || "neutral_band")}`;
   if (packedLaserBeamTextureCache[cacheKey] !== undefined) {
     laserTextureCacheStats.hits += 1;
@@ -4019,11 +4098,12 @@ function getPackedLaserBeamTexture(profile) {
   return texture;
 }
 
-function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget) {
-  const texture = getPackedLaserBeamTexture(profile);
+function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget, textureOverride = null) {
+  const texture = textureOverride || getPackedLaserBeamTexture(profile);
   if (!texture) {
     return false;
   }
+  const usingCustomTexture = Boolean(textureOverride);
   const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
   const beamHeight = clamp(
     haloWidth * (profile.type === "electric" ? 1.7 : profile.type === "water" ? 1.9 : 1.82),
@@ -4031,7 +4111,7 @@ function drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profi
     30,
   );
   const snappedBeamHeight = snapVfxDimension(beamHeight, 8);
-  const beamAlpha = clamp(0.9 + pulse * 0.08, 0.5, 1);
+  const beamAlpha = usingCustomTexture ? 1 : clamp(0.9 + pulse * 0.08, 0.5, 1);
   ctx.save();
   ctx.globalCompositeOperation = budget.composite;
   ctx.globalAlpha = beamAlpha;
@@ -4258,11 +4338,13 @@ function drawLasers(lasers) {
     const baseAngle = Math.atan2(unitY, unitX);
     const profile = getLaserVisualProfile(laser?.attackType || "normal", pulse, distance);
     const budget = getLaserRenderBudget(qualityKey, distance);
-    const beamParticleCount = Math.max(0, Math.round(budget.beamParticles));
-    const sourceParticleCount = Math.max(0, Math.round(budget.sourceParticles));
-    const impactParticleCount = Math.max(0, Math.round(budget.impactParticles));
+    const customPackedBeam = getCustomLaserBeamTexture(profile);
+    const usingCustomPackedBeam = Boolean(customPackedBeam);
+    const beamParticleCount = usingCustomPackedBeam ? 0 : Math.max(0, Math.round(budget.beamParticles));
+    const sourceParticleCount = usingCustomPackedBeam ? 0 : Math.max(0, Math.round(budget.sourceParticles));
+    const impactParticleCount = usingCustomPackedBeam ? 0 : Math.max(0, Math.round(budget.impactParticles));
     if (debug) {
-      const pathKey = String(budget.renderPath || "packed_simple");
+      const pathKey = usingCustomPackedBeam ? "packed_simple" : String(budget.renderPath || "packed_simple");
       if (Object.prototype.hasOwnProperty.call(debug.laser.renderPathCounts, pathKey)) {
         debug.laser.renderPathCounts[pathKey] += 1;
       }
@@ -4272,6 +4354,15 @@ function drawLasers(lasers) {
     const coreWidth = Math.max(1.8, haloWidth * 0.24 + profile.coreBoost);
     const sourceRadius = Math.max(3.2, coreWidth * (1.26 + profile.sourceGlowBoost * 0.24) * budget.sourceGlowScale);
     const impactRadius = Math.max(4.2, coreWidth * (1.55 + profile.impactGlowBoost * 0.28) * budget.impactGlowScale);
+
+    if (usingCustomPackedBeam) {
+      if (debug) {
+        debug.laser.segmentCount += 1;
+      }
+      if (drawPackedLaserBeam(sourceX, sourceY, targetX, targetY, distance, profile, haloWidth, pulse, budget, customPackedBeam)) {
+        continue;
+      }
+    }
 
     if (budget.simple) {
       if (debug) {
@@ -4590,6 +4681,10 @@ function getProjectileSpriteStamp(typeName, variantIndex = 0) {
     Math.max(1, toSafeInt(profile.projectileVariantCount, 1)) - 1,
     toSafeInt(variantIndex, 0),
   ));
+  const customSprite = getCustomProjectileSpriteOverride(profile.type || typeName, safeVariant);
+  if (customSprite) {
+    return customSprite;
+  }
   const cacheKey = `${normalizeType(profile.type || typeName)}:${safeVariant}`;
   if (projectileSpriteAtlasCache.has(cacheKey)) {
     projectileSpriteCacheStats.hits += 1;
@@ -4624,6 +4719,10 @@ function buildProjectileTrailStamp(typeName) {
 
 function getProjectileTrailStamp(typeName) {
   const profile = getProjectileTrailTypeVfxProfile(typeName);
+  const customStamp = getCustomProjectileTrailOverride(profile.type || typeName, profile.trailStampKind);
+  if (customStamp) {
+    return customStamp;
+  }
   const cacheKey = normalizeType(profile.type || typeName);
   if (projectileTrailStampCache.has(cacheKey)) {
     projectileTrailCacheStats.hits += 1;

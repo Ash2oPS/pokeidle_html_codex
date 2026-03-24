@@ -320,6 +320,7 @@ function createUiInteractionSystem(overrides = {}) {
       getBoundingClientRect: () => ({ left: 0, top: 0, width: state.viewport.width, height: state.viewport.height }),
       style: {},
     },
+    captureRootEl: createTestElement("div"),
     clamp: (value, min, max) => Math.min(max, Math.max(min, Number(value) || 0)),
     cloneConfigMap: (value) => value,
     closeEvolutionItemChoiceModal: () => {},
@@ -344,7 +345,9 @@ function createUiInteractionSystem(overrides = {}) {
       }),
       createDocumentFragment: () => ({ appendChild() {} }),
     },
+    ensureAppearanceEditorUnlockedFromProgress: () => false,
     ensureVariantAppearanceAssetsLoaded: async () => {},
+    enqueueEvolutionReadyNotification: () => null,
     escapeHtml: (value) => String(value || ""),
     fetch: async () => ({ ok: true, json: async () => ({ encounters: [] }) }),
     formatCompactNumber: (value) => String(value ?? 0),
@@ -373,6 +376,7 @@ function createUiInteractionSystem(overrides = {}) {
     getFamilyShinyCaptureCount: () => 0,
     getFamilyUltraShinyCaptureCount: () => 0,
     getGachaSkinCandidates: () => [],
+    findNextEligibleEvolution: () => null,
     getLegendaryFieldAttackIntervalMultiplier: () => 1,
     getLegendaryFieldPresence: () => ({
       electric: false,
@@ -430,6 +434,7 @@ function createUiInteractionSystem(overrides = {}) {
     hideModalWithTween: () => {},
     hidePopupWithTween: () => {},
     hoverPopupEl: { classList: createClassList(true), innerHTML: "" },
+    loadingScreenEl: createTestElement("div"),
     isAppearanceEditorUnlocked: () => false,
     isCurrentRouteCombatEnabled: () => true,
     isEntityUnlocked: () => false,
@@ -492,6 +497,7 @@ function createUiInteractionSystem(overrides = {}) {
     pokedexVirtualRowGapPx: 12,
     pokedexVirtualTopSpacerEl: { style: {} },
     preloadSelectedAppearanceAssetsForTeam: async () => {},
+    queueTeamLevelUpEffects: () => {},
     queueRoute1TutorialIfNeeded: () => {},
     readCsvBooleanCell: () => false,
     readCsvCell: () => "",
@@ -521,6 +527,15 @@ function createUiInteractionSystem(overrides = {}) {
       descriptionFr: "Aucun talent",
     }),
     sanitizePokemonNickname: (value) => String(value || "").trim(),
+    setEntityLevel: (record, level) => {
+      if (!record) {
+        return;
+      }
+      record.level = level;
+      if (record.level >= 100) {
+        record.xp = 0;
+      }
+    },
     setBallCaptureRulesForType: () => {},
     setMapOpen: () => {},
     setShopOpen: () => {},
@@ -530,6 +545,9 @@ function createUiInteractionSystem(overrides = {}) {
     showModalWithTween: () => {},
     showPopupWithTween: () => {},
     showTooltipWithTween: () => {},
+    mapConnectionsInfoPanelEl: { classList: createClassList(true), replaceChildren() {} },
+    routeNavInfoPanelEl: { classList: createClassList(true), replaceChildren() {} },
+    routeNavPanelEl: createTestElement("div"),
     starterModalEl: { classList: createClassList(true) },
     state,
     teamContextMenuAppearanceButtonEl: { disabled: false },
@@ -912,6 +930,54 @@ test("runtime ui interaction system falls back to browser globals for builtins o
   assert.equal(payload.mode, "ready");
   assert.equal(payload.render_quality, "medium");
   assert.equal(payload.render_scale, 1);
+});
+
+test("runtime ui interaction system exports visual capture readiness and route nav state", () => {
+  const visibleElement = createTestElement("div");
+  const hiddenElement = createTestElement("div");
+  hiddenElement.classList.add("hidden");
+
+  const { system, state } = createUiInteractionSystem({
+    bindings: {
+      captureRootEl: visibleElement,
+      loadingScreenEl: hiddenElement,
+      routeNavPanelEl: visibleElement,
+      routeNavInfoPanelEl: visibleElement,
+      mapConnectionsInfoPanelEl: hiddenElement,
+      starterModalEl: hiddenElement,
+      getOrderedUnlockedRouteIds: () => ["kanto_route_1"],
+      getRouteUnlockProgressState: () => ({
+        nextRouteId: "kanto_city_viridian_city",
+        unlockMode: "defeats",
+        unlockTarget: 20,
+        currentDefeats: 3,
+      }),
+      getRouteDisplayName: (routeId) => routeId,
+    },
+  });
+  state.mode = "ready";
+  state.saveData = {
+    current_route_id: "kanto_route_1",
+    unlocked_route_ids: ["kanto_route_1"],
+    route_defeat_counts: { kanto_route_1: 3 },
+    team: [1],
+  };
+  state.ui.routeNavDrawerOpen = true;
+  state.ui.routeNavInfoRouteId = "kanto_city_viridian_city";
+
+  const payload = JSON.parse(system.exportTextState());
+
+  assert.equal(payload.boot_phase, "ready");
+  assert.equal(payload.loading_overlay_visible, false);
+  assert.equal(payload.visual_ready, true);
+  assert.deepEqual(payload.route_nav_state, {
+    hasDestinations: false,
+    hasBlockedDestinations: false,
+    hasInfoPanelTarget: false,
+    drawerOpen: true,
+    infoPanelOpen: true,
+    selectedInfoRouteId: "kanto_city_viridian_city",
+  });
 });
 
 test("runtime ui interaction system exports the injected design config snapshot", () => {
@@ -1630,6 +1696,181 @@ test("runtime ui interaction system shows inherited shiny messaging in the appea
 
   assert.match(bindings.appearanceShinyStatusEl.textContent, /ancienne sauvegarde/i);
   assert.equal(bindings.appearanceShinyToggleButtonEl.disabled, false);
+});
+
+test("runtime ui interaction system levels up all owned pokemon from the dev button", () => {
+  const queuedLevelUps = [];
+  const queuedEvolutions = [];
+  const topMessages = [];
+  let rebuildCalls = 0;
+  let persistCalls = 0;
+  let updateHudCalls = 0;
+  let renderCalls = 0;
+  let appearanceUnlockCalls = 0;
+
+  const state = {
+    mode: "ready",
+    viewport: {
+      width: 1280,
+      height: 720,
+      renderScale: 1,
+    },
+    performance: {
+      quality: "medium",
+      shortFrameMsEma: 16.67,
+      renderFrameMsEma: 16.67,
+      cpuFrameMsEma: 4.72,
+    },
+    battle: createBattleStub(),
+    enemy: null,
+    team: [],
+    routeData: null,
+    routeCatalog: new Map(),
+    routeBackgroundsById: new Map(),
+    saveData: {
+      team: [1, 2],
+      pokemon_entities: {
+        1: { id: 1, level: 12, xp: 17, entity_unlocked: true },
+        2: { id: 2, level: 99, xp: 9, entity_unlocked: true },
+        3: { id: 3, level: 6, xp: 2, entity_unlocked: false },
+      },
+    },
+    ui: {
+      hoveredTeamSlotIndex: -1,
+      teamDragActive: false,
+      teamDragMoved: false,
+      teamDragSourceSlotIndex: -1,
+      teamDragTargetSlotIndex: -1,
+      shopOpen: false,
+      mapOpen: false,
+      gachaOpen: false,
+      boxesOpen: false,
+      boxesTargetSlotIndex: -1,
+      boxesSearchQuery: "",
+      pokedexOpen: false,
+      pokedexHoverPokemonId: 0,
+      pokedexSearchQuery: "",
+      appearanceOpen: false,
+      appearanceTargetSlotIndex: -1,
+      appearancePokemonId: 0,
+      teamContextMenuOpen: false,
+      teamContextMenuSlotIndex: -1,
+      ballCaptureMenuOpen: false,
+      ballCaptureMenuBallType: "",
+      tutorialOpen: false,
+    },
+    gacha: {
+      spinning: false,
+      lastReward: null,
+      lastRewards: [],
+    },
+    notifications: {
+      items: [],
+    },
+    moneyHud: {
+      displayValue: 0,
+    },
+    teamLevelUpEffects: [],
+    teamXpGainEffects: [],
+    backgroundDrift: {
+      currentX: 0,
+      currentY: 0,
+    },
+    tutorial: {
+      active: null,
+    },
+    evolutionAnimation: {
+      current: null,
+      queue: [],
+    },
+    pokemonDefsById: new Map([
+      [1, { id: 1, nameFr: "Bulbizarre" }],
+      [2, { id: 2, nameFr: "Herbizarre" }],
+      [3, { id: 3, nameFr: "Florizarre" }],
+    ]),
+    pokedexSpeciesCsvByPokemonId: new Map(),
+  };
+
+  const { system } = createUiInteractionSystem({
+    state,
+    bindings: {
+      APPEARANCE_UNLOCK_LEVEL: 13,
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[String(pokemonId)] || null,
+      isEntityUnlocked: (record) => Boolean(record?.entity_unlocked),
+      getPokemonDisplayNameById: (pokemonId) => {
+        switch (Number(pokemonId || 0)) {
+          case 1:
+            return "Bulbizarre";
+          case 2:
+            return "Herbizarre";
+          default:
+            return `Pokemon ${pokemonId}`;
+        }
+      },
+      queueTeamLevelUpEffects: (entries) => {
+        queuedLevelUps.push(...entries);
+      },
+      setEntityLevel: (record, level) => {
+        record.level = level;
+        if (level >= 100) {
+          record.xp = 0;
+        }
+      },
+      findNextEligibleEvolution: (record) => {
+        if (record?.id === 1 && record.level >= 13) {
+          return {
+            fromId: 1,
+            toId: 2,
+            fromDef: { nameFr: "Bulbizarre" },
+            toDef: { nameFr: "Herbizarre" },
+          };
+        }
+        return null;
+      },
+      enqueueEvolutionReadyNotification: (payload) => {
+        queuedEvolutions.push(payload);
+        return "notif-1";
+      },
+      ensureAppearanceEditorUnlockedFromProgress: () => {
+        appearanceUnlockCalls += 1;
+        return true;
+      },
+      rebuildTeamAndSyncBattle: () => {
+        rebuildCalls += 1;
+      },
+      persistSaveData: () => {
+        persistCalls += 1;
+      },
+      updateHud: () => {
+        updateHudCalls += 1;
+      },
+      render: () => {
+        renderCalls += 1;
+      },
+      setTopMessage: (message) => {
+        topMessages.push(message);
+      },
+    },
+  });
+
+  const result = system.levelUpAllOwnedPokemonFromDev();
+
+  assert.deepEqual(result.teamLevelUps.map((entry) => entry.slotIndex), [0, 1]);
+  assert.equal(result.leveledCount, 2);
+  assert.equal(result.queuedEvolutionCount, 1);
+  assert.equal(state.saveData.pokemon_entities["1"].level, 13);
+  assert.equal(state.saveData.pokemon_entities["1"].xp, 17);
+  assert.equal(state.saveData.pokemon_entities["2"].level, 100);
+  assert.equal(state.saveData.pokemon_entities["2"].xp, 0);
+  assert.equal(state.saveData.pokemon_entities["3"].level, 6);
+  assert.equal(queuedLevelUps.length, 2);
+  assert.equal(queuedEvolutions.length, 1);
+  assert.equal(appearanceUnlockCalls, 1);
+  assert.equal(rebuildCalls, 1);
+  assert.equal(persistCalls, 1);
+  assert.equal(updateHudCalls, 1);
+  assert.equal(renderCalls, 1);
+  assert.match(topMessages.at(-1), /\+1 niveau pour 2 Pokemon/);
 });
 
 test("runtime ui interaction system preserves touch hold context menu through a small drift on mobile", async () => {

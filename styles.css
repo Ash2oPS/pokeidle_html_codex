@@ -690,6 +690,74 @@ body {
   pointer-events: none;
 }
 
+#game-capture-root[data-dev-level-all-visible="true"] .notification-stack {
+  bottom: calc(58px + env(safe-area-inset-bottom));
+}
+
+.dev-level-all-button {
+  position: absolute;
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: calc(var(--layer-panel) + 1);
+  min-width: 76px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(197, 235, 255, 0.42);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(24, 74, 112, 0.96), rgba(11, 37, 59, 0.98)),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 8px,
+      rgba(0, 0, 0, 0.04) 8px,
+      rgba(0, 0, 0, 0.04) 16px
+    );
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #edf8ff;
+  font: 800 11px/1 "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+
+.dev-level-all-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 14px 22px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.dev-level-all-button:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+
+.dev-level-all-button:focus-visible {
+  outline: 2px solid rgba(223, 246, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.dev-level-all-button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+#starter-modal:not(.hidden) ~ .dev-level-all-button,
+#tutorial-modal:not(.hidden) ~ .dev-level-all-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .background-runtime-debug-overlay {
   position: absolute;
   left: calc(12px + env(safe-area-inset-left));
@@ -7579,6 +7647,20 @@ body.update-required-active {
   overflow: hidden;
 }
 
+@media (max-width: 640px) {
+  #game-capture-root[data-dev-level-all-visible="true"] .notification-stack {
+    bottom: calc(54px + env(safe-area-inset-bottom));
+  }
+
+  .dev-level-all-button {
+    min-width: 70px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 11px;
+    font-size: 10px;
+  }
+}
+
 .action-dock-fullscreen-btn::after {
   content: "";
   position: absolute;
@@ -8845,7 +8927,7 @@ body.update-required-active {
   }
 }
 
-/* Route navigation HUD refactor: graph-first topbar, shared with map connection cards. */
+/* Route navigation HUD refactor: compact split layout aligned with map + modal panels. */
 .ui-topbar {
   position: relative;
   display: grid;
@@ -8856,8 +8938,8 @@ body.update-required-active {
 }
 
 .ui-topbar .route-nav-wrap {
-  width: 100%;
-  max-width: min(980px, 100%);
+  width: min(760px, calc(100% - 490px));
+  max-width: min(760px, 100%);
   margin-inline: 0;
   justify-self: center;
   border: 0;
@@ -8874,24 +8956,76 @@ body.update-required-active {
 }
 
 .ui-topbar .route-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "summary"
+    "exits"
+    "info";
+  gap: 6px;
   min-height: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(144, 128, 92, 0.62);
-  border-radius: 16px;
+  padding: 8px;
+  border: 2px solid var(--hud-line);
+  border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(251, 247, 236, 0.98), rgba(232, 223, 201, 0.98)),
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.58), transparent 46%);
+    linear-gradient(180deg, rgba(249, 245, 233, 0.98), rgba(235, 226, 206, 0.98)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 42%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.74),
-    0 10px 24px rgba(20, 18, 12, 0.12);
+    var(--shadow-strong),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
-.route-nav-header {
+.route-nav-summary-panel,
+.route-nav-exits-panel,
+.route-nav-drawer:not(.hidden),
+.route-nav-info-card {
+  border-radius: 14px;
+}
+
+.route-nav-summary-panel {
+  grid-area: summary;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px solid rgba(156, 145, 116, 0.58);
+  background:
+    linear-gradient(180deg, rgba(250, 246, 235, 0.98), rgba(232, 224, 205, 0.98)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.54), transparent 48%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 10px 22px rgba(20, 18, 12, 0.12);
+}
+
+.route-nav-exits-panel {
+  grid-area: exits;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  gap: 6px;
+  justify-items: stretch;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.route-nav-info-panel {
   display: flex;
-  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
+}
+
+.route-nav-info-panel.hidden {
+  display: none;
+}
+
+.route-nav-header,
+.route-nav-destinations-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
@@ -8900,19 +9034,91 @@ body.update-required-active {
 .route-nav-actions,
 .route-nav-badges,
 .route-nav-progress-chips,
-.route-nav-destinations,
 .route-nav-drawer-header,
 .route-nav-drawer-list,
 .route-nav-info-header,
-.route-nav-info-flag-list {
+.route-nav-info-flag-list,
+.map-connections-list {
   display: flex;
   gap: 8px;
+}
+
+.route-nav-summary-copy,
+.route-nav-destinations-copy,
+.route-nav-info-title-wrap {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .route-nav-identity,
 .route-nav-actions {
   align-items: center;
   flex-wrap: wrap;
+}
+
+.route-nav-badges,
+.route-nav-progress-chips,
+.route-nav-info-flag-list {
+  flex-wrap: wrap;
+}
+
+.route-nav-section-label,
+.route-nav-section-copy,
+.route-nav-badge-chip-label,
+.route-nav-destination-meta,
+.route-nav-destination-reason,
+.route-nav-drawer-title,
+.route-nav-info-subtitle,
+.route-nav-info-section-label {
+  font: 700 10px/1.2 "Tahoma", "Verdana", sans-serif;
+}
+
+.route-nav-section-label,
+.route-nav-badge-chip-label,
+.route-nav-drawer-title,
+.route-nav-info-subtitle,
+.route-nav-info-section-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-summary-panel .route-nav-section-label,
+.route-nav-summary-panel .route-nav-badge-chip-label,
+.route-nav-summary-panel .route-nav-section-copy {
+  color: var(--text-soft);
+}
+
+.route-nav-summary-copy .route-nav-section-label {
+  display: block;
+}
+
+.route-nav-exits-panel .route-nav-section-label,
+.route-nav-drawer-title,
+.route-nav-info-subtitle,
+.route-nav-info-section-label,
+.route-nav-destination-meta {
+  color: var(--text-soft);
+}
+
+.route-nav-exits-panel .route-nav-section-copy {
+  color: rgba(88, 94, 104, 0.88);
+}
+
+.route-nav-destinations-header {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: stretch;
+}
+
+.route-nav-destinations-copy {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .route-nav-zone-type,
@@ -8926,21 +9132,25 @@ body.update-required-active {
 .route-nav-info-flag-pill {
   border: 1px solid rgba(126, 110, 76, 0.46);
   border-radius: 999px;
-  background: rgba(255, 252, 245, 0.84);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .route-nav-zone-type,
 .route-nav-region {
-  padding: 3px 8px;
+  padding: 4px 8px;
   font: 700 9px/1 "Tahoma", "Verdana", sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-soft);
+  border-color: rgba(141, 124, 88, 0.42);
+  background: rgba(255, 252, 245, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .route-nav-region {
-  background: rgba(239, 233, 216, 0.96);
+  color: #3f678e;
+  border-color: rgba(63, 127, 194, 0.28);
+  background: rgba(227, 240, 253, 0.82);
 }
 
 .route-nav-actions {
@@ -8951,53 +9161,45 @@ body.update-required-active {
 .route-nav-hint {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
+  padding: 4px 9px;
+  border: 1px solid rgba(141, 124, 88, 0.42);
   border-radius: 999px;
-  background: rgba(107, 95, 69, 0.08);
+  background: rgba(255, 252, 245, 0.9);
   font: 700 9px/1 "Tahoma", "Verdana", sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .route-nav-current {
   min-width: 0;
-  font: 700 22px/1.04 "Trebuchet MS", "Verdana", sans-serif;
+  font: 700 20px/1.04 "Trebuchet MS", "Verdana", sans-serif;
   color: var(--text-dark);
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
-}
-
-.route-nav-badges,
-.route-nav-progress-chips {
-  flex-wrap: wrap;
+  text-shadow: none;
 }
 
 .route-nav-badges.hidden {
   display: none;
 }
 
-.route-nav-badge-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-}
-
-.route-nav-badge-chip-label {
-  font: 700 10px/1 "Tahoma", "Verdana", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-
+.route-nav-badge-chip,
 .route-nav-progress-chip {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: 28px;
   padding: 5px 11px;
-  font: 700 11px/1.15 "Tahoma", "Verdana", sans-serif;
   color: var(--text-dark);
+  border-color: rgba(141, 124, 88, 0.42);
+  background: rgba(255, 252, 245, 0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.route-nav-progress-chip {
+  font: 700 11px/1.15 "Tahoma", "Verdana", sans-serif;
 }
 
 .route-nav-progress-chip.is-accent {
@@ -9024,31 +9226,33 @@ body.update-required-active {
   padding: 9px 12px;
   font: 700 11px/1.25 "Tahoma", "Verdana", sans-serif;
   color: var(--text-soft);
+  border-color: rgba(139, 123, 88, 0.4);
+  background: rgba(255, 252, 245, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
-.route-nav-destinations,
+.route-nav-destinations {
+  display: none;
+}
+
 .route-nav-drawer-list,
 .map-connections-list {
-  flex-wrap: wrap;
   min-width: 0;
-}
-
-.route-nav-drawer-list,
-.map-connections-list {
   flex-direction: column;
+  gap: 10px;
 }
 
 .route-nav-destination-card {
   min-width: 0;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
   gap: 5px;
-  padding: 10px 11px;
+  align-content: start;
+  padding: 9px 10px;
   border: 1px solid rgba(141, 124, 88, 0.54);
   border-radius: 14px;
-  background: rgba(255, 252, 245, 0.92);
+  background: rgba(255, 252, 245, 0.94);
   color: var(--text-dark);
+  text-align: left;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.74),
     0 6px 14px rgba(20, 18, 12, 0.08);
@@ -9076,8 +9280,8 @@ body.update-required-active {
 }
 
 .route-nav-destination-card.is-desktop-inline {
-  flex: 1 1 180px;
-  max-width: min(260px, 32%);
+  width: 100%;
+  max-width: none;
 }
 
 .route-nav-destination-card.is-mobile-drawer,
@@ -9098,10 +9302,6 @@ body.update-required-active {
   font: 700 10px/1.25 "Tahoma", "Verdana", sans-serif;
 }
 
-.route-nav-destination-meta {
-  color: var(--text-soft);
-}
-
 .route-nav-destination-status {
   flex-shrink: 0;
   padding: 3px 8px;
@@ -9111,6 +9311,7 @@ body.update-required-active {
   color: #38674b;
   background: rgba(232, 245, 236, 0.98);
   border-color: rgba(96, 144, 118, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .route-nav-destination-status.is-locked {
@@ -9120,7 +9321,7 @@ body.update-required-active {
 }
 
 .route-nav-destination-label {
-  font: 700 14px/1.15 "Trebuchet MS", "Verdana", sans-serif;
+  font: 700 13px/1.15 "Trebuchet MS", "Verdana", sans-serif;
   color: var(--text-dark);
   overflow-wrap: anywhere;
 }
@@ -9165,79 +9366,50 @@ body.update-required-active {
   display: none;
 }
 
-.route-nav-info-panel {
-  display: flex;
-}
-
 .route-nav-drawer:not(.hidden) {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  padding: 10px;
   border: 1px solid rgba(138, 122, 89, 0.54);
-  border-radius: 15px;
   background: rgba(247, 242, 229, 0.96);
 }
 
-.route-nav-drawer-header {
-  align-items: center;
+.route-nav-drawer-header,
+.route-nav-info-header {
+  align-items: flex-start;
   justify-content: space-between;
-}
-
-.route-nav-drawer-title {
-  font: 700 12px/1.1 "Tahoma", "Verdana", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-
-.route-nav-info-panel.hidden {
-  display: none;
 }
 
 .route-nav-info-card {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px 12px;
   border: 1px solid rgba(138, 122, 89, 0.54);
-  border-radius: 15px;
   background: rgba(247, 242, 229, 0.96);
-}
-
-.route-nav-info-header {
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.route-nav-info-title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 4px 14px rgba(16, 18, 24, 0.08);
 }
 
 .route-nav-info-title {
-  font: 700 18px/1.05 "Trebuchet MS", "Verdana", sans-serif;
+  font: 700 17px/1.05 "Trebuchet MS", "Verdana", sans-serif;
   color: var(--text-dark);
 }
 
-.route-nav-info-subtitle,
-.route-nav-info-section-label {
-  font: 700 10px/1.2 "Tahoma", "Verdana", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-
 .route-nav-info-status,
-.route-nav-info-reason,
-.route-nav-info-section-copy {
+.route-nav-info-reason {
   padding: 8px 10px;
   font: 700 12px/1.35 "Tahoma", "Verdana", sans-serif;
   color: var(--text-dark);
   border-radius: 12px;
+}
+
+.route-nav-info-status {
+  background: rgba(236, 239, 245, 0.86);
+  border-color: rgba(135, 144, 161, 0.36);
 }
 
 .route-nav-info-status.is-locked,
@@ -9254,19 +9426,25 @@ body.update-required-active {
 
 .route-nav-info-section-copy {
   padding: 0;
+  font: 700 12px/1.35 "Tahoma", "Verdana", sans-serif;
+  color: var(--text-dark);
   background: none;
   border: 0;
   box-shadow: none;
 }
 
-.route-nav-info-flag-list {
-  flex-wrap: wrap;
+.route-nav-exits-panel > * {
+  min-width: 0;
+  width: 100%;
 }
 
 .route-nav-info-flag-pill {
   padding: 5px 10px;
   font: 700 11px/1.1 "Tahoma", "Verdana", sans-serif;
   color: var(--text-dark);
+  border-color: rgba(138, 122, 89, 0.44);
+  background: rgba(255, 252, 245, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .route-nav-info-panel-map {
@@ -9283,10 +9461,15 @@ body.update-required-active {
     0 8px 14px rgba(20, 18, 12, 0.18);
 }
 
-@media (min-width: 761px) {
-  .route-nav-drawer-toggle,
-  .route-nav-drawer {
-    display: none !important;
+@media (max-width: 1200px) {
+  .ui-topbar .route-nav-wrap {
+    width: min(700px, calc(100% - 430px));
+  }
+}
+
+@media (max-width: 1120px) {
+  .ui-topbar .route-nav-wrap {
+    width: min(640px, calc(100% - 410px));
   }
 }
 
@@ -9305,6 +9488,7 @@ body.update-required-active {
   }
 
   .ui-topbar .route-nav-wrap {
+    width: 100%;
     max-width: 100%;
     justify-self: stretch;
   }
@@ -9312,25 +9496,35 @@ body.update-required-active {
   .resource-strip.currency-stack .resource-pill.currency-pill {
     min-height: 38px;
   }
-
-  .route-nav-destination-card.is-desktop-inline {
-    max-width: 100%;
-  }
 }
 
 @media (max-width: 760px) {
   .route-nav {
-    gap: 6px;
-    padding: 8px 9px;
-    border-radius: 14px;
+    gap: 7px;
+    padding: 7px;
+    border-radius: 16px;
   }
 
-  .route-nav-header {
+  .route-nav-summary-panel {
+    padding: 9px 10px;
+    gap: 7px;
+  }
+
+  .route-nav-exits-panel {
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .route-nav-header,
+  .route-nav-destinations-header {
     align-items: center;
   }
 
   .route-nav-hint,
-  .route-nav-destinations {
+  .route-nav-destinations-copy {
     display: none;
   }
 
@@ -9340,6 +9534,7 @@ body.update-required-active {
 
   .route-nav-zone-type,
   .route-nav-region,
+  .route-nav-section-label,
   .route-nav-badge-chip-label,
   .route-nav-progress-chip,
   .route-nav-destination-meta,
@@ -9367,12 +9562,8 @@ body.update-required-active {
     padding-inline: 9px;
   }
 
-  .route-nav-drawer:not(.hidden) {
-    display: flex;
-  }
-
-  .route-nav-info-card,
-  .route-nav-drawer:not(.hidden) {
+  .route-nav-drawer:not(.hidden),
+  .route-nav-info-card {
     padding: 10px;
     border-radius: 13px;
   }

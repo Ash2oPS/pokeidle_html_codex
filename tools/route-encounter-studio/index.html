@@ -6,64 +6,125 @@
     <title>PokeIdle - Zone Studio</title>
     <style>
       :root {
-        --bg-top: #fff7e1;
-        --bg-bottom: #e9f5ec;
-        --ink: #182028;
-        --muted: #5f6f7c;
-        --card: rgba(255, 255, 255, 0.96);
-        --line: #d8e1e8;
-        --accent: #1f8f63;
-        --accent-strong: #0f6e49;
-        --secondary: #2f7bb7;
-        --secondary-strong: #216395;
-        --warn-bg: #fff7e6;
-        --warn-line: #efc56b;
-        --danger: #c0392b;
-        --danger-strong: #9d2f24;
-        --danger-soft: #fff2f0;
+        --bg-top: #07111d;
+        --bg-bottom: #111c2b;
+        --bg-glow: rgba(72, 126, 186, 0.18);
+        --ink: #edf3ff;
+        --muted: #92a8c3;
+        --card: rgba(11, 20, 32, 0.9);
+        --card-strong: #101c2b;
+        --card-soft: #172638;
+        --card-soft-alt: #1b2d42;
+        --line: #24384e;
+        --line-strong: #345271;
+        --input-bg: #0f1a28;
+        --input-bg-readonly: #162435;
+        --table-head: #152435;
+        --table-row-hover: #18283c;
+        --chip-bg: #16283c;
+        --chip-line: #2b4560;
+        --chip-ink: #b8d6ff;
+        --accent: #2ec27e;
+        --accent-strong: #229766;
+        --secondary: #4d9cff;
+        --secondary-strong: #3579cb;
+        --warn-bg: rgba(246, 192, 85, 0.14);
+        --warn-line: #d5a437;
+        --danger: #df5d5d;
+        --danger-strong: #b84545;
+        --danger-soft: rgba(223, 93, 93, 0.12);
         --radius: 18px;
-        --shadow: 0 12px 34px rgba(24, 32, 40, 0.12);
+        --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
       }
 
       * { box-sizing: border-box; }
       body {
         margin: 0;
         color: var(--ink);
+        color-scheme: dark;
         background:
-          radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 34%),
+          radial-gradient(circle at top left, var(--bg-glow), transparent 34%),
+          radial-gradient(circle at right 12%, rgba(46, 194, 126, 0.12), transparent 26%),
           linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
         min-height: 100vh;
       }
-      .page { width: min(1680px, 97%); margin: 18px auto 34px; display: grid; gap: 14px; }
+      .page { width: min(1680px, calc(100% - 28px)); margin: 18px auto 40px; display: grid; gap: 16px; }
       .panel {
         background: var(--card);
         border: 1px solid var(--line);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 16px;
-        backdrop-filter: blur(8px);
+        padding: 18px;
+        backdrop-filter: blur(10px);
       }
-      .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
-      .hero-links { display: flex; flex-wrap: wrap; gap: 8px; }
+      .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: flex-start; }
+      .hero-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; justify-content: flex-end; }
       h1, h2, h3 { margin: 0 0 8px; }
       h1 { font-size: clamp(1.35rem, 2.8vw, 1.95rem); }
       h2 { font-size: 1.08rem; }
       p { margin: 0; }
       .sub { color: var(--muted); line-height: 1.5; }
-      .toolbar { display: grid; gap: 12px; }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        border-radius: 999px;
+        background: rgba(46, 194, 126, 0.14);
+        color: #9be9c1;
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 5px 10px;
+      }
+      .toolbar { display: grid; gap: 14px; }
+      .toolbar-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+        gap: 14px;
+        align-items: start;
+      }
+      .status-slot { display: grid; align-items: stretch; }
+      .toolbar-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(150px, 0.45fr) minmax(0, 1fr);
+        gap: 10px;
+      }
+      .toolbar-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 440px);
+        gap: 12px;
+        align-items: start;
+      }
+      .action-cluster {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .quick-add-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        width: 100%;
+      }
+      .toolbar-hint { padding-top: 2px; }
       .toolbar-row, .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
       .grow { flex: 1 1 180px; }
-      label { display: block; font-size: 0.84rem; font-weight: 700; color: #425665; margin-bottom: 4px; }
+      label { display: block; font-size: 0.84rem; font-weight: 700; color: #b9cde6; margin-bottom: 4px; }
       input, select, textarea, button { font: inherit; }
       input, select, textarea {
         width: 100%;
         border: 1px solid var(--line);
         border-radius: 12px;
         padding: 10px 12px;
-        background: #fbfdff;
+        background: var(--input-bg);
         color: var(--ink);
       }
+      input::placeholder,
+      textarea::placeholder { color: #7287a1; }
       textarea { min-height: 84px; resize: vertical; }
       .inline-input { min-width: 170px; }
       .btn {
@@ -80,15 +141,15 @@
       .btn-secondary:hover { background: var(--secondary-strong); }
       .btn-danger { background: var(--danger); }
       .btn-danger:hover { background: var(--danger-strong); }
-      .btn-ghost { background: #eef4fb; color: #21486d; }
-      .btn-ghost:hover { background: #ddeaf7; }
+      .btn-ghost { background: #1a2b40; color: #b6d6ff; border: 1px solid #28415d; }
+      .btn-ghost:hover { background: #223650; }
       .btn:disabled { opacity: 0.45; cursor: not-allowed; }
       .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
       .chip {
         border-radius: 999px;
-        border: 1px solid #cad6e2;
-        background: #f8fcff;
-        color: #274761;
+        border: 1px solid var(--chip-line);
+        background: var(--chip-bg);
+        color: var(--chip-ink);
         font-size: 0.78rem;
         font-weight: 700;
         padding: 5px 10px;
@@ -99,83 +160,140 @@
         padding: 10px 12px;
         font-size: 0.92rem;
       }
-      .status.ok { border-color: #9ed7bd; background: #effbf4; color: #185a3f; }
-      .status.info { border-color: #b7d5ff; background: #f2f8ff; color: #1b4d91; }
-      .status.warn { border-color: var(--warn-line); background: var(--warn-bg); color: #745308; }
-      .status.err { border-color: #f0b2a9; background: #fff3f2; color: #7e2a20; }
-      .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+      .status.ok { border-color: rgba(46, 194, 126, 0.4); background: rgba(46, 194, 126, 0.14); color: #9be9c1; }
+      .status.info { border-color: rgba(77, 156, 255, 0.36); background: rgba(77, 156, 255, 0.14); color: #9ac6ff; }
+      .status.warn { border-color: var(--warn-line); background: var(--warn-bg); color: #ffd983; }
+      .status.err { border-color: rgba(223, 93, 93, 0.34); background: rgba(223, 93, 93, 0.14); color: #ffb1b1; }
+      .jump-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-block: 12px;
+      }
+      .jump-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(23, 38, 56, 0.96), rgba(18, 31, 46, 0.96));
+        color: #c2dcff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 8px 12px;
+        text-decoration: none;
+      }
+      .jump-link:hover { background: linear-gradient(180deg, rgba(30, 48, 70, 0.98), rgba(24, 40, 58, 0.98)); }
+      .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      .section-copy { display: grid; gap: 4px; }
+      .section-copy .sub { font-size: 0.92rem; }
+      .section-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+      .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
       .meta-card {
         border: 1px solid var(--line);
-        border-radius: 14px;
-        background: linear-gradient(180deg, #fcfdff, #f3f8fc);
-        padding: 10px 12px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(23, 38, 56, 0.96), rgba(16, 28, 43, 0.96));
+        padding: 12px 14px;
       }
       .meta-card small { display: block; color: var(--muted); margin-bottom: 4px; }
-      .meta-card strong { display: block; font-size: 1rem; }
-      .workspace { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr); gap: 14px; }
-      .column { display: grid; gap: 14px; align-content: start; }
-      .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-      .editor-grid { display: grid; gap: 12px; }
+      .meta-card strong { display: block; font-size: 1.06rem; line-height: 1.35; }
+      .workspace {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 16px;
+        align-items: start;
+      }
+      .column { display: grid; gap: 16px; align-content: start; min-width: 0; }
+      .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+      .editor-grid { display: grid; gap: 14px; }
       .editor-card {
         border: 1px solid var(--line);
-        border-radius: 16px;
-        background: #fbfdff;
-        padding: 12px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(23, 38, 56, 0.94), rgba(16, 28, 43, 0.94));
+        padding: 14px;
         display: grid;
-        gap: 10px;
+        gap: 12px;
+        min-width: 0;
       }
       .ordered-list { display: grid; gap: 8px; }
       .ordered-card {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
-        gap: 8px;
+        gap: 10px;
         align-items: center;
-        border: 1px solid #d4deea;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #f9fcff, #f2f7fb);
-        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(29, 46, 67, 0.96), rgba(22, 36, 54, 0.96));
+        padding: 12px 14px;
       }
       .ordered-card strong { display: block; }
       .ordered-card small { color: var(--muted); }
       .ordered-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
       .empty-state {
-        border: 1px dashed #c7d5e2;
+        border: 1px dashed #38516b;
         border-radius: 14px;
         padding: 12px;
         color: var(--muted);
-        background: #fafcff;
+        background: rgba(16, 28, 43, 0.62);
       }
       .flag-grid { display: grid; gap: 10px; }
       .suggestion-help { display: grid; gap: 8px; }
-      .zone-actions-table-wrap, .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; }
+      .zone-actions-table-wrap, .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(13, 23, 36, 0.92);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
       table { width: 100%; border-collapse: collapse; min-width: 1040px; }
-      th, td { border-bottom: 1px solid #e4ebf1; padding: 8px; text-align: left; vertical-align: top; }
-      th { position: sticky; top: 0; background: #eff4f8; color: #2d3d4c; z-index: 2; font-size: 0.82rem; }
+      .zone-actions-table-wrap table { min-width: 920px; }
+      th, td { border-bottom: 1px solid rgba(52, 82, 113, 0.55); padding: 8px; text-align: left; vertical-align: top; }
+      th { position: sticky; top: 0; background: var(--table-head); color: #bfd8f7; z-index: 2; font-size: 0.82rem; }
+      tbody tr { transition: background-color 140ms ease, box-shadow 140ms ease; }
+      tbody tr.is-selected { background: rgba(77, 156, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(117, 177, 255, 0.5); }
       tbody tr.invalid { background: var(--danger-soft); }
-      tbody tr:hover { background: #f7fbff; }
-      .readonly { background: #f2f5f8; }
+      tbody tr:hover { background: var(--table-row-hover); }
+      .readonly { background: var(--input-bg-readonly); }
       .small { font-size: 0.8rem; color: var(--muted); }
-      .action-col { display: flex; gap: 5px; flex-wrap: wrap; }
-      .encounter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 8px; }
-      .encounter-card {
-        border: 1px solid #d4deea;
-        border-radius: 14px;
-        padding: 8px;
-        background: linear-gradient(180deg, #f9fcff, #f3f8ff);
+      .action-col { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+      .encounter-overview {
         display: grid;
-        gap: 5px;
+        gap: 10px;
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(16, 28, 43, 0.94), rgba(12, 22, 34, 0.94));
+        padding: 12px;
+      }
+      .encounter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
+      .encounter-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 10px 12px;
+        background: linear-gradient(180deg, rgba(29, 46, 67, 0.96), rgba(21, 35, 52, 0.96));
+        display: grid;
+        gap: 8px;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
       }
       .sprite-mini {
         position: relative;
         width: 48px;
         height: 48px;
-        border: 1px solid #c9d5e2;
+        border: 1px solid #35506e;
         border-radius: 8px;
         background-image:
-          linear-gradient(45deg, #dce5ef 25%, transparent 25%),
-          linear-gradient(-45deg, #dce5ef 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, #dce5ef 75%),
-          linear-gradient(-45deg, transparent 75%, #dce5ef 75%);
+          linear-gradient(45deg, #213247 25%, transparent 25%),
+          linear-gradient(-45deg, #213247 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #213247 75%),
+          linear-gradient(-45deg, transparent 75%, #213247 75%);
         background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px;
         background-position: 0 0, 0 6px, 6px -6px, -6px 0;
         background-repeat: repeat;
@@ -184,18 +302,20 @@
       .sprite-mini > img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
       .sprite-mini.small { width: 36px; height: 36px; }
       .chance-wrap { min-width: 112px; }
-      .chance-bar { width: 100%; height: 8px; border-radius: 999px; background: #d7e2ee; overflow: hidden; }
-      .chance-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1f8f63, #31b57f); }
-      .preview-shell { display: grid; gap: 12px; }
+      .chance-bar { width: 100%; height: 8px; border-radius: 999px; background: #17283a; overflow: hidden; }
+      .chance-bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2ec27e, #73f2ba); }
+      .preview-shell { display: grid; gap: 14px; }
       .preview-frame {
         position: relative;
-        border: 1px solid #b7c7d8;
+        width: 100%;
+        max-width: 100%;
+        border: 1px solid #35506e;
         border-radius: 18px;
         overflow: hidden;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent),
-          linear-gradient(180deg, #9dc6dd 0%, #b7d9c8 44%, #d9cca8 100%);
-        min-height: 240px;
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent),
+          linear-gradient(180deg, #18314a 0%, #1f4d56 48%, #3a3748 100%);
+        min-height: 270px;
       }
       .preview-frame.desktop { aspect-ratio: 16 / 9; }
       .preview-frame.mobile { aspect-ratio: 9 / 16; max-width: 320px; margin-inline: auto; }
@@ -203,8 +323,8 @@
         position: absolute;
         inset: 0;
         background-image:
-          linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+          linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
         background-size: 10% 10%;
       }
       .preview-title {
@@ -217,7 +337,7 @@
         align-items: center;
         padding: 7px 10px;
         border-radius: 999px;
-        background: rgba(18, 28, 36, 0.7);
+        background: rgba(10, 18, 28, 0.82);
         color: #fff;
         font-size: 0.8rem;
         font-weight: 700;
@@ -225,10 +345,10 @@
       .preview-action {
         position: absolute;
         transform: translate(-50%, -50%);
-        border: 1px solid rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(167, 205, 255, 0.42);
         border-radius: 999px;
         padding: 7px 10px;
-        background: rgba(24, 42, 61, 0.82);
+        background: rgba(18, 36, 54, 0.88);
         color: #fff;
         font-size: 0.76rem;
         font-weight: 700;
@@ -237,24 +357,120 @@
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
       }
       .preview-action.active {
-        background: rgba(15, 110, 73, 0.9);
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45), 0 8px 22px rgba(15, 110, 73, 0.28);
+        background: rgba(34, 151, 102, 0.94);
+        box-shadow: 0 0 0 2px rgba(167, 205, 255, 0.2), 0 8px 22px rgba(34, 151, 102, 0.28);
       }
       .kbd {
         display: inline-block;
-        border: 1px solid #c3cbd4;
+        border: 1px solid #35506e;
         border-radius: 5px;
         padding: 1px 6px;
-        background: #f5f8fb;
+        background: #142234;
         font-size: 0.75rem;
-        color: #3e4f5f;
+        color: #c7ddfb;
       }
-      a.tool-link { color: #1b4d91; font-weight: 700; text-decoration: none; }
-      a.tool-link:hover { text-decoration: underline; }
-      @media (max-width: 1180px) { .workspace { grid-template-columns: 1fr; } }
+      a.tool-link { color: #8dc1ff; font-weight: 700; text-decoration: none; }
+      a.tool-link:hover { color: #b3d6ff; text-decoration: underline; }
+      .workspace > .column { display: contents; }
+      #zone-settings-panel { grid-column: 1 / 8; grid-row: 1; }
+      #zone-actions-panel { grid-column: 8 / -1; grid-row: 1; }
+      #encounters-panel { grid-column: 1 / -1; grid-row: 2; }
+      #navigation-panel { grid-column: 1 / 7; grid-row: 3; }
+      #dialogues-panel { grid-column: 7 / -1; grid-row: 3; }
+      @media (max-width: 1280px) {
+        .toolbar-heading,
+        .toolbar-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 1180px) {
+        .workspace { grid-template-columns: 1fr; }
+        .workspace > .column { display: grid; }
+        #zone-settings-panel,
+        #zone-actions-panel,
+        #encounters-panel,
+        #navigation-panel,
+        #dialogues-panel {
+          grid-column: auto;
+          grid-row: auto;
+        }
+      }
       @media (max-width: 860px) {
-        .page { width: min(99%, 99%); }
+        .page { width: min(100%, calc(100% - 16px)); margin: 8px auto 28px; gap: 12px; }
+        .panel { padding: 14px; border-radius: 16px; }
         .hero { grid-template-columns: 1fr; }
+        .hero-links { justify-content: flex-start; }
+        .toolbar-grid,
+        .toolbar-actions {
+          grid-template-columns: 1fr;
+        }
+        .quick-add-shell { grid-template-columns: 1fr; }
+        .jump-links {
+          flex-wrap: nowrap;
+          overflow: auto;
+          padding: 8px 2px;
+        }
+        .jump-link { white-space: nowrap; }
+        .table-wrap,
+        .zone-actions-table-wrap {
+          border: 0;
+          overflow: visible;
+          background: transparent;
+          box-shadow: none;
+        }
+        .table-wrap table,
+        .zone-actions-table-wrap table { min-width: 0; }
+        .table-wrap thead,
+        .zone-actions-table-wrap thead { display: none; }
+        .table-wrap tbody,
+        .zone-actions-table-wrap tbody {
+          display: grid;
+          gap: 12px;
+        }
+        .table-wrap tr,
+        .zone-actions-table-wrap tr {
+          display: grid;
+          gap: 10px;
+          padding: 14px;
+          border: 1px solid var(--line);
+          border-radius: 16px;
+          background: linear-gradient(180deg, rgba(23, 38, 56, 0.96), rgba(16, 28, 43, 0.96));
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+        }
+        .table-wrap td,
+        .zone-actions-table-wrap td {
+          display: grid;
+          grid-template-columns: minmax(108px, 42%) minmax(0, 1fr);
+          gap: 10px;
+          align-items: center;
+          padding: 0;
+          border: 0;
+        }
+        .table-wrap td::before,
+        .zone-actions-table-wrap td::before {
+          content: attr(data-label);
+          font-size: 0.72rem;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--muted);
+        }
+        .table-wrap td[data-label="Ligne"],
+        .zone-actions-table-wrap td[data-label="Action"] {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+        .table-wrap td[data-label="Ligne"]::before,
+        .zone-actions-table-wrap td[data-label="Action"]::before {
+          color: var(--ink);
+          font-size: 0.78rem;
+        }
+        .action-col { justify-content: flex-start; }
+        .preview-frame { min-height: 220px; }
+      }
+      @media (max-width: 620px) {
+        .meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .settings-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -262,6 +478,7 @@
     <main class="page">
       <section class="panel hero">
         <div>
+          <div class="eyebrow">Route Encounter Studio</div>
           <h1>Zone Studio</h1>
           <p class="sub">
             Édite les rencontres, la navigation en graphe, les verrouillages et les interactions d'une zone sans coder.
@@ -276,8 +493,20 @@
       </section>
 
       <section class="panel toolbar">
-        <div id="status" class="status info">Chargement du studio...</div>
-        <div class="toolbar-row">
+        <div class="toolbar-heading">
+          <div class="section-copy">
+            <div class="eyebrow">Workflow</div>
+            <h2>Choisir une zone et modifier son contenu</h2>
+            <p class="sub">
+              Charge une zone, filtre rapidement la liste puis travaille la progression, les rencontres et les interactions
+              sans perdre le fil.
+            </p>
+          </div>
+          <div class="status-slot">
+            <div id="status" class="status info">Chargement du studio...</div>
+          </div>
+        </div>
+        <div class="toolbar-grid">
           <div class="grow">
             <label for="route-filter">Filtrer les zones</label>
             <input id="route-filter" type="text" placeholder="Ex: johto, jadielle, safari..." />
@@ -297,30 +526,54 @@
             <select id="route-select"></select>
           </div>
         </div>
-        <div class="toolbar-row">
-          <button id="load-route-btn" class="btn" type="button">Charger</button>
-          <button id="reload-route-btn" class="btn btn-secondary" type="button" disabled>Recharger depuis disque</button>
-          <button id="save-route-btn" class="btn" type="button" disabled>Sauvegarder</button>
-          <button id="add-empty-row-btn" class="btn btn-secondary" type="button" disabled>Ajouter une rencontre</button>
-          <button id="quick-add-btn" class="btn btn-secondary" type="button" disabled>Ajout rapide</button>
-          <input id="quick-add-input" class="inline-input" list="pokemon-ref-list" placeholder="Ex: 25 pikachu" autocomplete="off" />
-          <datalist id="pokemon-ref-list"></datalist>
+        <div class="toolbar-actions">
+          <div class="action-cluster">
+            <button id="load-route-btn" class="btn" type="button">Charger</button>
+            <button id="reload-route-btn" class="btn btn-secondary" type="button" disabled>Recharger depuis disque</button>
+            <button id="save-route-btn" class="btn" type="button" disabled>Sauvegarder</button>
+          </div>
+          <div class="action-cluster">
+            <button id="add-empty-row-btn" class="btn btn-secondary" type="button" disabled>Ajouter une rencontre</button>
+            <div class="quick-add-shell">
+              <input id="quick-add-input" class="inline-input" list="pokemon-ref-list" placeholder="Ex: 25 pikachu" autocomplete="off" />
+              <button id="quick-add-btn" class="btn btn-secondary" type="button" disabled>Ajout rapide</button>
+            </div>
+            <datalist id="pokemon-ref-list"></datalist>
+          </div>
         </div>
-        <div class="small">
+        <div class="small toolbar-hint">
           Raccourci: <span class="kbd">Ctrl + S</span> pour sauvegarder. Clique sur le preview pour poser l'action PNJ
           sélectionnée.
         </div>
       </section>
 
+      <nav class="panel jump-links" aria-label="Sections du studio">
+        <a class="jump-link" href="#zone-settings-panel">Zone</a>
+        <a class="jump-link" href="#encounters-panel">Rencontres</a>
+        <a class="jump-link" href="#zone-actions-panel">Interactions</a>
+        <a class="jump-link" href="#navigation-panel">Navigation</a>
+        <a class="jump-link" href="#dialogues-panel">Dialogues</a>
+      </nav>
+
       <section class="panel">
-        <h2>Résumé de la zone</h2>
+        <div class="section-head">
+          <div class="section-copy">
+            <h2>Résumé de la zone</h2>
+            <p class="sub">Vue rapide de l'état de la zone: contenu, progression et points de friction.</p>
+          </div>
+        </div>
         <div id="meta-grid" class="meta-grid"></div>
       </section>
 
       <section class="workspace">
-        <div class="column">
-          <section class="panel">
-            <h2>Paramètres de zone</h2>
+        <div class="column workspace-main">
+          <section id="zone-settings-panel" class="panel">
+            <div class="section-head">
+              <div class="section-copy">
+                <h2>Paramètres de zone</h2>
+                <p class="sub">Nom, type, combat et cadence de déblocage de la zone.</p>
+              </div>
+            </div>
             <div class="settings-grid">
               <div>
                 <label for="route-name-input">Nom FR</label>
@@ -361,10 +614,19 @@
             </div>
           </section>
 
-          <section class="panel">
-            <h2>Rencontres</h2>
-            <div class="row"><div id="methods-help" class="chip-row"></div></div>
-            <div class="row"><div id="encounter-cards" class="encounter-cards"></div></div>
+          <section id="encounters-panel" class="panel">
+            <div class="section-head">
+              <div class="section-copy">
+                <h2>Rencontres</h2>
+                <p class="sub">Le cœur du studio: ajuste le pool, les poids, les niveaux et les méthodes de spawn.</p>
+              </div>
+              <div class="section-actions">
+                <div id="methods-help" class="chip-row"></div>
+              </div>
+            </div>
+            <div class="encounter-overview">
+              <div id="encounter-cards" class="encounter-cards"></div>
+            </div>
             <div class="table-wrap">
               <table>
                 <thead>
@@ -388,10 +650,68 @@
           </section>
         </div>
 
-        <div class="column">
-          <section class="panel editor-grid">
+        <div class="column workspace-side">
+          <section id="zone-actions-panel" class="panel editor-grid">
+            <div class="editor-card preview-shell">
+              <div class="section-head">
+                <div class="section-copy">
+                  <h2>Preview de scène</h2>
+                  <p class="sub">Place visuellement l'action ciblée puis ajuste son ancre desktop ou mobile.</p>
+                </div>
+                <div>
+                  <label for="preview-mode-select">Preview</label>
+                  <select id="preview-mode-select">
+                    <option value="desktop">desktop</option>
+                    <option value="mobile">mobile</option>
+                  </select>
+                </div>
+              </div>
+              <div id="action-preview-stage" class="preview-frame desktop" aria-label="Preview de placement des actions">
+                <div class="preview-grid"></div>
+                <div id="action-preview-title" class="preview-title">Aucune zone chargée</div>
+              </div>
+              <div id="action-preview-hint" class="small">Charge une zone pour afficher les interactions.</div>
+            </div>
+
             <div class="editor-card">
-              <h2>Navigation</h2>
+              <div class="section-head">
+                <div class="section-copy">
+                  <h2>Interactions et PNJ</h2>
+                  <p class="sub">Les actions de zone déclenchent un dialogue optionnel via un bouton dans la scène.</p>
+                </div>
+                <div class="section-actions">
+                  <button id="add-zone-action-btn" class="btn btn-secondary" type="button" disabled>Ajouter une action</button>
+                </div>
+              </div>
+              <div class="zone-actions-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cible preview</th>
+                      <th>action_id</th>
+                      <th>Label FR</th>
+                      <th>Dialogue</th>
+                      <th>Desktop X</th>
+                      <th>Desktop Y</th>
+                      <th>Mobile X</th>
+                      <th>Mobile Y</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="zone-actions-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="navigation-panel" class="panel editor-grid">
+            <div class="editor-card">
+              <div class="section-head">
+                <div class="section-copy">
+                  <h2>Navigation</h2>
+                  <p class="sub">Gère les sorties dans l'ordre d'affichage du jeu.</p>
+                </div>
+              </div>
               <div class="row">
                 <div class="grow">
                   <label for="connected-route-add-select">Ajouter une sortie connectée</label>
@@ -426,9 +746,14 @@
             </div>
           </section>
 
-          <section class="panel editor-grid">
+          <section id="dialogues-panel" class="panel editor-grid">
             <div class="editor-card">
-              <h2>Dialogues d'arrivée</h2>
+              <div class="section-head">
+                <div class="section-copy">
+                  <h2>Dialogues d'arrivée</h2>
+                  <p class="sub">Ajoute les dialogues obligatoires joués une seule fois à l'entrée.</p>
+                </div>
+              </div>
               <div class="row">
                 <div class="grow">
                   <label for="arrival-dialogue-add-select">Ajouter un dialogue obligatoire</label>
@@ -437,55 +762,6 @@
                 <button id="arrival-dialogue-add-btn" class="btn btn-secondary" type="button" disabled>Ajouter</button>
               </div>
               <div id="arrival-dialogue-list" class="ordered-list"></div>
-            </div>
-
-            <div class="editor-card">
-              <div class="row">
-                <div class="grow">
-                  <h2>Interactions et PNJ</h2>
-                  <p class="small">Les actions de zone déclenchent un dialogue optionnel via un bouton dans la scène.</p>
-                </div>
-                <button id="add-zone-action-btn" class="btn btn-secondary" type="button" disabled>Ajouter une action</button>
-              </div>
-              <div class="zone-actions-table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Cible preview</th>
-                      <th>action_id</th>
-                      <th>Label FR</th>
-                      <th>Dialogue</th>
-                      <th>Desktop X</th>
-                      <th>Desktop Y</th>
-                      <th>Mobile X</th>
-                      <th>Mobile Y</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="zone-actions-body"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="editor-card preview-shell">
-              <div class="row">
-                <div class="grow">
-                  <h2>Preview de scène</h2>
-                  <p class="small">Sélectionne une action puis clique dans la scène pour déplacer son ancre.</p>
-                </div>
-                <div>
-                  <label for="preview-mode-select">Preview</label>
-                  <select id="preview-mode-select">
-                    <option value="desktop">desktop</option>
-                    <option value="mobile">mobile</option>
-                  </select>
-                </div>
-              </div>
-              <div id="action-preview-stage" class="preview-frame desktop" aria-label="Preview de placement des actions">
-                <div class="preview-grid"></div>
-                <div id="action-preview-title" class="preview-title">Aucune zone chargée</div>
-              </div>
-              <div id="action-preview-hint" class="small">Charge une zone pour afficher les interactions.</div>
             </div>
           </section>
         </div>
@@ -1154,26 +1430,26 @@
             const chance = totalWeight > 0 ? Math.max(0, (Number(row.spawn_weight || 0) / totalWeight) * 100) : 0;
             return `
               <tr data-index="${index}" class="${errors.length > 0 ? "invalid" : ""}" title="${escapeHtml(errors.join(", "))}">
-                <td>${index + 1}</td>
-                <td>${renderSpriteBlock(
+                <td data-label="Ligne"><strong>#${index + 1}</strong></td>
+                <td data-label="Sprite">${renderSpriteBlock(
                   getPokemonSpriteUrlForRow(row),
                   "sprite-mini small",
                   row.pokemon_name_en || row.pokemon_name_fr || row.pokemon_id,
                 )}</td>
-                <td><input type="number" min="1" data-field="pokemon_id" value="${Number(row.pokemon_id || 0) || ""}" /></td>
-                <td><input class="readonly" type="text" data-field="pokemon_name_fr" value="${escapeHtml(row.pokemon_name_fr || "")}" readonly /></td>
-                <td><input class="readonly" type="text" data-field="pokemon_name_en" value="${escapeHtml(row.pokemon_name_en || "")}" readonly /></td>
-                <td><input type="number" min="1" data-field="spawn_weight" value="${Number(row.spawn_weight || 1)}" /></td>
-                <td>
+                <td data-label="Pokémon ID"><input type="number" min="1" data-field="pokemon_id" value="${Number(row.pokemon_id || 0) || ""}" /></td>
+                <td data-label="Nom FR"><input class="readonly" type="text" data-field="pokemon_name_fr" value="${escapeHtml(row.pokemon_name_fr || "")}" readonly /></td>
+                <td data-label="Nom EN"><input class="readonly" type="text" data-field="pokemon_name_en" value="${escapeHtml(row.pokemon_name_en || "")}" readonly /></td>
+                <td data-label="Poids"><input type="number" min="1" data-field="spawn_weight" value="${Number(row.spawn_weight || 1)}" /></td>
+                <td data-label="Chance approx.">
                   <div class="chance-wrap">
                     <div class="chance-bar"><span style="width:${Math.max(0, Math.min(100, chance)).toFixed(1)}%"></span></div>
                     <div class="small">${chance.toFixed(1)}%</div>
                   </div>
                 </td>
-                <td><input type="number" min="1" data-field="min_level" value="${Number(row.min_level || 1)}" /></td>
-                <td><input type="number" min="1" data-field="max_level" value="${Number(row.max_level || 1)}" /></td>
-                <td><input type="text" data-field="methods" value="${escapeHtml((row.methods || []).join("|"))}" placeholder="walk|surf|good-rod" /></td>
-                <td>
+                <td data-label="Niveau min"><input type="number" min="1" data-field="min_level" value="${Number(row.min_level || 1)}" /></td>
+                <td data-label="Niveau max"><input type="number" min="1" data-field="max_level" value="${Number(row.max_level || 1)}" /></td>
+                <td data-label="Méthodes"><input type="text" data-field="methods" value="${escapeHtml((row.methods || []).join("|"))}" placeholder="walk|surf|good-rod" /></td>
+                <td data-label="Actions">
                   <div class="action-col">
                     <button class="btn btn-secondary" type="button" data-action="duplicate">Dupliquer</button>
                     <button class="btn btn-danger" type="button" data-action="remove">Suppr.</button>
@@ -1286,20 +1562,20 @@
             const errors = validateZoneAction(action);
             const dialogueOptions = buildDialogueOptions(action.dialogue_id);
             return `
-              <tr data-zone-action-index="${index}" class="${errors.length > 0 ? "invalid" : ""}" title="${escapeHtml(errors.join(", "))}">
-                <td>
+              <tr data-zone-action-index="${index}" class="${errors.length > 0 ? "invalid" : ""} ${action.action_id === state.selectedZoneActionId ? "is-selected" : ""}" title="${escapeHtml(errors.join(", "))}">
+                <td data-label="Action">
                   <button class="btn ${action.action_id === state.selectedZoneActionId ? "" : "btn-ghost"}" type="button" data-zone-action-action="select">
                     ${action.action_id === state.selectedZoneActionId ? "Ciblée" : "Cibler"}
                   </button>
                 </td>
-                <td><input type="text" data-zone-action-field="action_id" value="${escapeHtml(action.action_id || "")}" /></td>
-                <td><input type="text" data-zone-action-field="label_fr" value="${escapeHtml(action.label_fr || "")}" /></td>
-                <td><select data-zone-action-field="dialogue_id"><option value="">Choisir...</option>${dialogueOptions}</select></td>
-                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_x" value="${clampPercent(action.desktop_anchor_pct?.x, 50)}" /></td>
-                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_y" value="${clampPercent(action.desktop_anchor_pct?.y, 50)}" /></td>
-                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_x" value="${clampPercent(action.mobile_anchor_pct?.x, 50)}" /></td>
-                <td><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_y" value="${clampPercent(action.mobile_anchor_pct?.y, 50)}" /></td>
-                <td>
+                <td data-label="action_id"><input type="text" data-zone-action-field="action_id" value="${escapeHtml(action.action_id || "")}" /></td>
+                <td data-label="Label FR"><input type="text" data-zone-action-field="label_fr" value="${escapeHtml(action.label_fr || "")}" /></td>
+                <td data-label="Dialogue"><select data-zone-action-field="dialogue_id"><option value="">Choisir...</option>${dialogueOptions}</select></td>
+                <td data-label="Desktop X"><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_x" value="${clampPercent(action.desktop_anchor_pct?.x, 50)}" /></td>
+                <td data-label="Desktop Y"><input type="number" min="0" max="100" step="0.1" data-zone-action-field="desktop_y" value="${clampPercent(action.desktop_anchor_pct?.y, 50)}" /></td>
+                <td data-label="Mobile X"><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_x" value="${clampPercent(action.mobile_anchor_pct?.x, 50)}" /></td>
+                <td data-label="Mobile Y"><input type="number" min="0" max="100" step="0.1" data-zone-action-field="mobile_y" value="${clampPercent(action.mobile_anchor_pct?.y, 50)}" /></td>
+                <td data-label="Actions">
                   <div class="action-col">
                     <button class="btn btn-secondary" type="button" data-zone-action-action="duplicate">Dupliquer</button>
                     <button class="btn btn-danger" type="button" data-zone-action-action="remove">Suppr.</button>

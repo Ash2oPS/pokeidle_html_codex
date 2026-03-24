@@ -360,6 +360,26 @@ test("clicking import/export save buttons forwards to runtime save actions", asy
   assert.deepEqual(calls, ["export", "import"]);
 });
 
+test("clicking the dev level-all button forwards to the dev boost action", () => {
+  const devLevelAllButtonEl = new FakeEventTarget();
+  let called = 0;
+  const fixture = createFixture({
+    elements: {
+      devLevelAllButtonEl,
+    },
+    actions: {
+      levelUpAllOwnedPokemonFromDev() {
+        called += 1;
+      },
+    },
+  });
+  fixture.system.init();
+
+  devLevelAllButtonEl.dispatchEvent("click");
+
+  assert.equal(called, 1);
+});
+
 test("route navigation clicks travel for unlocked cards and open info for locked cards", () => {
   const fixture = createDomRouteNavFixture();
   fixture.documentRef.getElementById("route-nav-destinations").innerHTML = `

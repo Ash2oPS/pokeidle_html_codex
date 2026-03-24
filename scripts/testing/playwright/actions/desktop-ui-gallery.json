@@ -1,25 +1,73 @@
 {
   "steps": [
     {
-      "waitMs": 1800
+      "waitForState": {
+        "mode": "ready",
+        "boot_phase": "ready",
+        "visual_ready": true,
+        "starter_modal_visible": true
+      },
+      "waitStateTimeoutMs": 20000
     },
     {
-      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
-      "waitMs": 2200
+      "captureName": "starter-modal"
+    },
+    {
+      "clickSelector": "#starter-modal:not(.hidden) .starter-choice",
+      "waitMs": 500
+    },
+    {
+      "waitForState": {
+        "save_team_size": {
+          "min": 1
+        },
+        "starter_modal_visible": false,
+        "visual_ready": true,
+        "route_id": "kanto_route_1",
+        "route_nav_state.hasDestinations": true
+      },
+      "waitStateTimeoutMs": 15000
     },
     {
       "clickSelectorIfVisible": "#tutorial-close-btn",
       "waitMs": 900
     },
     {
+      "waitForState": {
+        "visual_ready": true,
+        "route_id": "kanto_route_1",
+        "notifications_temporary": 0
+      },
+      "waitStateTimeoutMs": 16000
+    },
+    {
       "captureName": "idle"
     },
     {
-      "waitForSelector": "#route-nav-destinations [data-route-action='info']",
+      "waitForState": {
+        "route_nav_state.hasInfoPanelTarget": true
+      },
+      "waitStateTimeoutMs": 12000
+    },
+    {
+      "clickSelector": "#route-nav-drawer-toggle"
+    },
+    {
+      "waitForSelector": "#route-nav-drawer:not(.hidden)",
       "waitMs": 500
     },
     {
-      "clickSelector": "#route-nav-destinations [data-route-action='info']"
+      "waitForSelector": "#route-nav-drawer-list [data-route-action='info']",
+      "waitMs": 500
+    },
+    {
+      "clickSelector": "#route-nav-drawer-list [data-route-action='info']"
+    },
+    {
+      "waitForState": {
+        "route_nav_state.infoPanelOpen": true
+      },
+      "waitStateTimeoutMs": 6000
     },
     {
       "waitForSelector": "#route-nav-info-panel:not(.hidden)",
@@ -33,7 +81,18 @@
       "waitMs": 350
     },
     {
+      "clickSelectorIfVisible": "#route-nav-drawer-close",
+      "waitMs": 350
+    },
+    {
       "clickSelector": "#map-btn"
+    },
+    {
+      "waitForState": {
+        "map_open": true,
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
     },
     {
       "waitForSelector": "#map-modal:not(.hidden)",
@@ -43,18 +102,51 @@
       "captureName": "map"
     },
     {
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
+      "skipReason": "no-blocked-destination-in-current-route"
+    },
+    {
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
       "waitForSelector": ".map-marker-btn.is-locked",
-      "waitMs": 350
+      "waitMs": 350,
+      "skipReason": "no-locked-marker-to-capture"
     },
     {
-      "clickSelector": ".map-marker-btn.is-locked"
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
+      "clickSelector": ".map-marker-btn.is-locked",
+      "skipReason": "no-locked-marker-to-open"
     },
     {
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
+      "waitForState": {
+        "route_nav_state.infoPanelOpen": true,
+        "map_open": true
+      },
+      "waitStateTimeoutMs": 6000,
+      "skipReason": "map-lock-info-not-openable"
+    },
+    {
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
       "waitForSelector": "#map-connections-info-panel:not(.hidden)",
-      "waitMs": 500
+      "waitMs": 500,
+      "skipReason": "map-lock-info-panel-missing"
     },
     {
-      "captureName": "map-lock-info"
+      "skipUnlessState": {
+        "route_nav_state.hasBlockedDestinations": true
+      },
+      "captureName": "map-lock-info",
+      "skipReason": "map-lock-info-not-capturable"
     },
     {
       "clickSelectorIfVisible": "#map-connections-info-panel [data-route-info-close='true']",
@@ -66,6 +158,13 @@
     },
     {
       "clickSelector": "#shop-btn"
+    },
+    {
+      "waitForState": {
+        "shop_open": true,
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
     },
     {
       "waitForSelector": "#shop-modal:not(.hidden)",
@@ -80,6 +179,13 @@
     },
     {
       "clickSelector": "#gacha-btn"
+    },
+    {
+      "waitForState": {
+        "gacha_open": true,
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
     },
     {
       "waitForSelector": "#gacha-modal:not(.hidden)",

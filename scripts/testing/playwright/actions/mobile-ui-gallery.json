@@ -3,9 +3,14 @@
     {
       "waitForState": {
         "mode": "ready",
+        "boot_phase": "ready",
+        "visual_ready": true,
         "starter_modal_visible": true
       },
-      "waitStateTimeoutMs": 15000
+      "waitStateTimeoutMs": 20000
+    },
+    {
+      "captureName": "starter-modal"
     },
     {
       "clickSelector": "#starter-modal:not(.hidden) .starter-choice",
@@ -16,19 +21,36 @@
         "save_team_size": {
           "min": 1
         },
-        "starter_modal_visible": false
+        "starter_modal_visible": false,
+        "visual_ready": true,
+        "route_id": "kanto_route_1",
+        "route_nav_state.hasDestinations": true
       },
-      "waitStateTimeoutMs": 12000
+      "waitStateTimeoutMs": 15000
     },
     {
       "clickSelectorIfVisible": "#tutorial-close-btn",
       "waitMs": 900
     },
     {
+      "waitForState": {
+        "visual_ready": true,
+        "route_id": "kanto_route_1",
+        "notifications_temporary": 0
+      },
+      "waitStateTimeoutMs": 16000
+    },
+    {
       "captureName": "idle"
     },
     {
       "clickSelector": "#route-nav-drawer-toggle"
+    },
+    {
+      "waitForState": {
+        "notifications_temporary": 0
+      },
+      "waitStateTimeoutMs": 8000
     },
     {
       "waitForSelector": "#route-nav-drawer:not(.hidden)",
@@ -38,11 +60,23 @@
       "captureName": "route-nav-drawer"
     },
     {
+      "waitForState": {
+        "route_nav_state.hasInfoPanelTarget": true
+      },
+      "waitStateTimeoutMs": 12000
+    },
+    {
       "waitForSelector": "#route-nav-drawer-list [data-route-action='info']",
       "waitMs": 350
     },
     {
       "clickSelector": "#route-nav-drawer-list [data-route-action='info']"
+    },
+    {
+      "waitForState": {
+        "route_nav_state.infoPanelOpen": true
+      },
+      "waitStateTimeoutMs": 6000
     },
     {
       "waitForSelector": "#route-nav-info-panel:not(.hidden)",
@@ -60,6 +94,14 @@
       "waitMs": 300
     },
     {
+      "waitForState": {
+        "route_nav_state.infoPanelOpen": false,
+        "visual_ready": true,
+        "notifications_temporary": 0
+      },
+      "waitStateTimeoutMs": 8000
+    },
+    {
       "clickSelector": "#action-dock-pokeball-toggle"
     },
     {
@@ -71,6 +113,13 @@
     },
     {
       "clickSelector": "#action-dock-fullscreen-menu [data-action-target='map-btn']"
+    },
+    {
+      "waitForState": {
+        "map_open": true,
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
     },
     {
       "waitForSelector": "#map-modal:not(.hidden)",
@@ -92,6 +141,13 @@
     },
     {
       "clickSelector": "#action-dock-fullscreen-menu [data-action-target='shop-btn']"
+    },
+    {
+      "waitForState": {
+        "shop_open": true,
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
     },
     {
       "waitForSelector": "#shop-modal:not(.hidden)",

@@ -406,7 +406,56 @@ async function readRenderedStateText(page) {
   });
 }
 
+async function readRenderedState(page) {
+  const stateText = await readRenderedStateText(page);
+  if (!stateText) {
+    return null;
+  }
+  try {
+    return JSON.parse(stateText);
+  } catch {
+    return null;
+  }
+}
+
+function isVisualCaptureReadyState(state) {
+  if (!state || typeof state !== "object") {
+    return true;
+  }
+  if (state.boot_phase === "maintenance" || state.mode === "maintenance") {
+    return true;
+  }
+  if (Object.prototype.hasOwnProperty.call(state, "visual_ready")) {
+    return state.visual_ready === true;
+  }
+  return true;
+}
+
+async function waitForVisualCaptureReady(page, options = {}) {
+  const timeoutMs = Math.max(0, Number(options.timeoutMs) || 12_000);
+  const pollMs = Math.max(50, Number(options.pollMs) || 120);
+  const startTime = Date.now();
+  let lastState = null;
+  while (Date.now() - startTime <= timeoutMs) {
+    lastState = await readRenderedState(page);
+    if (isVisualCaptureReadyState(lastState)) {
+      return lastState;
+    }
+    await page.evaluate((advanceMs) => {
+      if (typeof window.advanceTime === "function") {
+        return window.advanceTime(Math.max(0, Number(advanceMs) || 0));
+      }
+      return Promise.resolve();
+    }, pollMs);
+    await page.waitForTimeout(Math.max(16, Math.min(100, pollMs)));
+  }
+  throw new Error(
+    `Timed out waiting for visual capture readiness: ${JSON.stringify(lastState || { state: "unavailable" })}`,
+  );
+}
+
 async function captureStageShot(page, dir, index) {
+  await waitForVisualCaptureReady(page);
   const stagePath = path.join(dir, `stage-${index}.png`);
   const stageLocator = page.locator("#game-capture-root");
   if ((await stageLocator.count()) > 0) {
@@ -431,6 +480,7 @@ async function captureStageShot(page, dir, index) {
 }
 
 async function captureFullPageShot(page, dir, index, fullPage) {
+  await waitForVisualCaptureReady(page);
   const shotPath = path.join(dir, `fullpage-${index}.png`);
   await page.screenshot({
     path: shotPath,
@@ -444,6 +494,7 @@ async function captureFullPageShot(page, dir, index, fullPage) {
 }
 
 async function captureNamedStageShot(page, dir, name) {
+  await waitForVisualCaptureReady(page);
   const shotPath = path.join(dir, `${name}.png`);
   const stageLocator = page.locator("#game-capture-root");
   if ((await stageLocator.count()) > 0) {
@@ -462,6 +513,7 @@ async function captureNamedStageShot(page, dir, name) {
 }
 
 async function captureNamedFullPageShot(page, dir, name, fullPage) {
+  await waitForVisualCaptureReady(page);
   const shotPath = path.join(dir, `${name}-fullpage.png`);
   await page.screenshot({
     path: shotPath,
@@ -493,6 +545,16 @@ async function setSelectorScrollTop(page, selector, top, options = {}) {
 
 async function executeDirectiveStep(page, canvas, step, options = {}) {
   let matchedStateText = null;
+  if (step.skipUnlessState) {
+    const state = await readRenderedState(page);
+    if (!matchesStateCriteria(state, step.skipUnlessState)) {
+      return {
+        skipped: true,
+        reason: String(step.skipReason || "skipUnlessState-mismatch"),
+        step,
+      };
+    }
+  }
   if (step.waitForState) {
     const timeoutMs = Math.max(0, Number(step.waitStateTimeoutMs) || 10_000);
     const pollMs = Math.max(0, Number(step.waitStatePollMs) || 120);
@@ -576,6 +638,10 @@ async function executeDirectiveStep(page, canvas, step, options = {}) {
       await captureNamedFullPageShot(page, options.screenshotDir, captureName, options.fullPage);
     }
   }
+  return {
+    skipped: false,
+    step,
+  };
 }
 
 async function main() {
@@ -613,6 +679,7 @@ async function main() {
     });
     const page = await context.newPage();
     const consoleTracker = new ConsoleErrorTracker();
+    const skippedSteps = [];
 
     await page.addInitScript({ content: makeVirtualTimeShim() });
     page.on("console", (message) => {
@@ -635,10 +702,17 @@ async function main() {
         canvas = await getCanvasHandle(page);
       }
       for (const step of steps) {
-        await executeDirectiveStep(page, canvas, step, {
+        const stepResult = await executeDirectiveStep(page, canvas, step, {
           screenshotDir: args.screenshotDir,
           fullPage: args.fullPage,
         });
+        if (stepResult?.skipped) {
+          skippedSteps.push({
+            captureName: step.captureName || null,
+            reason: stepResult.reason,
+            skipUnlessState: step.skipUnlessState || null,
+          });
+        }
       }
       await page.waitForTimeout(args.pauseMs);
       await captureStageShot(page, args.screenshotDir, i);
@@ -654,6 +728,10 @@ async function main() {
         fs.writeFileSync(
           path.join(args.screenshotDir, "errors.json"),
           JSON.stringify(errors, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(args.screenshotDir, "skipped-steps.json"),
+          JSON.stringify(skippedSteps, null, 2),
         );
       }
       if (errors.length > 0) {

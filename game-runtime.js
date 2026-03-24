@@ -67,6 +67,8 @@ import { createEnvironmentRuntime } from "./lib/environment-runtime.js";
 import { getGameDesignConfigSnapshot } from "./lib/game-design-config-runtime.js";
 import { createPokemonCoreUtils } from "./lib/pokemon-core-utils.js";
 import { createRuntimeConfigLoaders } from "./lib/runtime-config-loaders.js";
+import { createRouteNavigationRuntime } from "./lib/route-navigation-runtime.js";
+import { createZoneDialogueRuntime } from "./lib/zone-dialogue-runtime.js";
 import { createRuntimeLoopKernel } from "./core/runtime-loop-kernel.js";
 import { createRuntimeOrchestrator } from "./core/runtime-orchestrator.js";
 import { createRuntimeCompositionRoot } from "./core/runtime-composition-root.js";
@@ -95,6 +97,9 @@ import {
 } from "./systems/ui/runtime-ui-interaction-system.js";
 import { createRuntimeInputSystem } from "./systems/ui/runtime-input-system.js";
 import { mountRuntimeUi, assertRuntimeUiDomInvariants } from "./systems/ui/runtime-ui-dom-factory.js";
+import { createMapNavigationUi } from "./systems/ui/map-navigation-ui.js";
+import { createRouteNavigationUi } from "./systems/ui/route-navigation-ui.js";
+import { createZoneDialogueUi } from "./systems/ui/zone-dialogue-ui.js";
 import { createPokemonBattleRuntime } from "./systems/combat/pokemon-battle-manager.js";
 import {
   STARTER_CHOICES,
@@ -500,6 +505,7 @@ import {
 
 const APP_VERSION = POKEIDLE_APP_VERSION;
 const DISPLAY_APP_VERSION = getDisplayedAppVersion(window.location, APP_VERSION);
+const IS_DEV_RUNTIME = !isProductionGithubPagesLocation(window.location);
 
 const DEFAULT_BALL_CONFIG_BY_TYPE = createDefaultBallConfigByType();
 const DEFAULT_EVOLUTION_STONE_CONFIG_BY_TYPE = createDefaultEvolutionStoneConfigByType();
@@ -696,6 +702,7 @@ const {
   appearanceShinyStatusEl,
   appearanceGridEl,
   notificationStackEl,
+  devLevelAllButtonEl,
   backgroundRuntimeDebugOverlayEl,
   tutorialModalEl,
   tutorialTitleEl,
@@ -721,6 +728,14 @@ const {
 
 if (!canvas || typeof canvas.getContext !== "function") {
   throw new Error("Runtime UI mount failed: #game-canvas is missing or invalid.");
+}
+
+if (captureRootEl) {
+  captureRootEl.dataset.devLevelAllVisible = IS_DEV_RUNTIME ? "true" : "false";
+}
+if (devLevelAllButtonEl) {
+  devLevelAllButtonEl.classList.toggle("hidden", !IS_DEV_RUNTIME);
+  devLevelAllButtonEl.setAttribute("aria-hidden", IS_DEV_RUNTIME ? "false" : "true");
 }
 
 const ctx =
@@ -759,7 +774,6 @@ const morphingColorSampleCache = new Map();
 const morphingPaletteTextureCache = new Map();
 const pendingRouteDefinitionLoads = new Map();
 const pendingRouteBackgroundLoads = new Map();
-const pendingDialogueDefinitionLoads = new Map();
 let pendingExtendedPokedexAndGachaWarmup = null;
 let pokedexRenderRafHandle = 0;
 let pokedexViewportRenderRafHandle = 0;
@@ -4246,24 +4260,7 @@ function canOpenTutorialModalNow() {
   return true;
 }
 
-function buildDialogueDataPath(dialogueId) {
-  const id = String(dialogueId || "").trim();
-  return id ? `${DIALOGUE_DATA_DIR}/${encodeURIComponent(id)}.json` : "";
-}
-
-function getCurrentRouteZoneActions() {
-  const actions = Array.isArray(state.routeData?.zone_actions) ? state.routeData.zone_actions : [];
-  return actions.filter((action) =>
-    action
-    && String(action.action_id || "").trim()
-    && String(action.dialogue_id || "").trim()
-    && String(action.kind || "dialogue").trim() === "dialogue");
-}
-
 function refreshZoneActionButtons() {
-  if (!(worldUiLayerEl instanceof HTMLElement)) {
-    return;
-  }
   const layout = state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   const isPhoneViewport = Boolean(layout?.viewportProfile?.phone);
   const shouldShowActions = !state.ui.dialogueOpen
@@ -4274,146 +4271,13 @@ function refreshZoneActionButtons() {
     && !state.ui.boxesOpen
     && !state.ui.pokedexOpen
     && !state.ui.appearanceOpen;
-  const routeActions = shouldShowActions ? getCurrentRouteZoneActions() : [];
-  const activeActionIds = new Set();
-
-  for (const action of routeActions) {
-    const actionId = String(action.action_id || "").trim();
-    if (!actionId) {
-      continue;
-    }
-    activeActionIds.add(actionId);
-    let button = zoneActionButtonsById.get(actionId);
-    if (!button) {
-      button = document.createElement("button");
-      button.type = "button";
-      button.className = "zone-action-btn";
-      button.dataset.zoneActionId = actionId;
-      zoneActionButtonsById.set(actionId, button);
-    }
-    if (button.parentElement !== worldUiLayerEl) {
-      worldUiLayerEl.appendChild(button);
-    }
-    const anchor = isPhoneViewport ? action.mobile_anchor_pct : action.desktop_anchor_pct;
-    const leftPct = clamp(Number(anchor?.x || 50), 3, 97);
-    const topPct = clamp(Number(anchor?.y || 50), 4, 96);
-    const label = normalizeUiDisplayText(action.label_fr || action.dialogue_id || actionId, { frenchTypography: true });
-    button.textContent = label;
-    button.title = label;
-    button.setAttribute("aria-label", label);
-    button.style.left = `${leftPct}%`;
-    button.style.top = `${topPct}%`;
-    button.style.transform = "translate(-50%, -50%)";
-    button.hidden = false;
-    button.disabled = false;
-  }
-
-  for (const [actionId, button] of zoneActionButtonsById.entries()) {
-    if (activeActionIds.has(actionId)) {
-      continue;
-    }
-    button.remove();
-    zoneActionButtonsById.delete(actionId);
-  }
-}
-
-function getDialogueNodeById(definition, nodeId) {
-  if (!definition || !Array.isArray(definition.nodes)) {
-    return null;
-  }
-  const id = String(nodeId || "").trim();
-  return definition.nodes.find((node) => String(node?.node_id || "").trim() === id) || null;
-}
-
-function areDialogueFlagRequirementsMet(requiresAll = [], requiresAny = []) {
-  const flags = new Set(getRouteAccessFlags());
-  const requiredAll = normalizeFlagIdList(requiresAll);
-  const requiredAny = normalizeFlagIdList(requiresAny);
-  if (requiredAll.some((flagId) => !flags.has(flagId))) {
-    return false;
-  }
-  if (requiredAny.length > 0 && !requiredAny.some((flagId) => flags.has(flagId))) {
-    return false;
-  }
-  return true;
-}
-
-function getAvailableDialogueChoices(node) {
-  const choices = Array.isArray(node?.choices) ? node.choices : [];
-  return choices.filter((choice) =>
-    areDialogueFlagRequirementsMet(choice.requires_flags_all, choice.requires_flags_any));
-}
-
-function isDialogueQueuedOrActive(dialogueId) {
-  const id = String(dialogueId || "").trim();
-  if (!id) {
-    return false;
-  }
-  if (String(state.dialogue?.active?.dialogueId || "").trim() === id) {
-    return true;
-  }
-  return Array.isArray(state.dialogue?.queue)
-    && state.dialogue.queue.some((entry) => String(entry?.dialogueId || "").trim() === id);
-}
-
-function enqueueDialogueRequest(request, options = {}) {
-  if (!state.saveData) {
-    return false;
-  }
-  const dialogueId = String(request?.dialogueId || request?.dialogue_id || "").trim();
-  if (!dialogueId) {
-    return false;
-  }
-  const once = request?.once === true;
-  if (once && hasSeenDialogue(dialogueId)) {
-    return false;
-  }
-  if (isDialogueQueuedOrActive(dialogueId)) {
-    return false;
-  }
-  const entry = {
-    dialogueId,
-    once,
-    routeId: String(request?.routeId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID),
-    source: String(request?.source || "manual"),
-    sourceActionId: String(request?.sourceActionId || ""),
-  };
-  if (options.front === true) {
-    state.dialogue.queue.unshift(entry);
-  } else {
-    state.dialogue.queue.push(entry);
-  }
-  return true;
-}
-
-async function loadDialogueDefinition(dialogueId) {
-  const id = String(dialogueId || "").trim();
-  if (!id) {
-    return null;
-  }
-  if (state.dialogue.definitionsById.has(id)) {
-    return state.dialogue.definitionsById.get(id);
-  }
-  if (pendingDialogueDefinitionLoads.has(id)) {
-    return pendingDialogueDefinitionLoads.get(id);
-  }
-  const task = fetch(buildDialogueDataPath(id), { cache: "no-store" })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((payload) => validateDialoguePayload(payload, `Dialogue ${id}`))
-    .then((payload) => {
-      state.dialogue.definitionsById.set(id, payload);
-      return payload;
-    })
-    .finally(() => {
-      pendingDialogueDefinitionLoads.delete(id);
-    });
-  pendingDialogueDefinitionLoads.set(id, task);
-  return task;
+  zoneDialogueUi.refreshZoneActionButtons({
+    worldUiLayerEl,
+    zoneActionButtonsById,
+    routeActions: zoneDialogueRuntime.getCurrentRouteZoneActions(),
+    shouldShowActions,
+    isPhoneViewport,
+  });
 }
 
 function canOpenDialogueModalNow() {
@@ -4444,317 +4308,52 @@ function renderDialogueModal() {
     return;
   }
   const active = state.dialogue.active;
-  const definition = active?.definition;
-  const node = getDialogueNodeById(definition, active?.currentNodeId);
-  if (!active || !definition || !node) {
+  const node = zoneDialogueRuntime.getDialogueNodeById(active?.definition, active?.currentNodeId);
+  if (!active || !node) {
     closeDialogueModal({ force: true });
     return;
   }
-  const availableChoices = getAvailableDialogueChoices(node);
-  const nodeCount = Math.max(1, Array.isArray(definition.nodes) ? definition.nodes.length : 1);
-  const visitedCount = Math.max(1, Array.isArray(active.visitedNodeIds) ? active.visitedNodeIds.length : 1);
-  const title = normalizeUiDisplayText(
-    definition.title_fr || getRouteDisplayName(active.routeId) || "Dialogue",
-    { frenchTypography: true },
-  );
-  const speaker = normalizeUiDisplayText(node.speaker_fr || "", { frenchTypography: true });
-  const text = normalizeUiDisplayText(node.text_fr || "", { frenchTypography: true });
-
-  if (dialogueTitleEl) {
-    dialogueTitleEl.textContent = title;
-  }
-  if (dialogueSpeakerEl) {
-    dialogueSpeakerEl.textContent = speaker;
-    dialogueSpeakerEl.classList.toggle("hidden", !speaker);
-  }
-  if (dialogueTextEl) {
-    dialogueTextEl.textContent = text;
-  }
-  if (dialogueProgressEl) {
-    dialogueProgressEl.textContent = `Étape ${visitedCount}/${nodeCount}`;
-  }
-  if (dialogueChoiceListEl) {
-    dialogueChoiceListEl.replaceChildren();
-    if (availableChoices.length > 0) {
-      for (const choice of availableChoices) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "dialogue-choice-btn";
-        button.dataset.dialogueChoiceId = String(choice.choice_id || "");
-        button.textContent = normalizeUiDisplayText(choice.label_fr || choice.choice_id || "", {
-          frenchTypography: true,
-        });
-        dialogueChoiceListEl.appendChild(button);
-      }
-    } else if (Array.isArray(node.choices) && node.choices.length > 0) {
-      const emptyEl = document.createElement("div");
-      emptyEl.className = "dialogue-choice-empty";
-      emptyEl.textContent = "Aucune réponse disponible pour l’instant.";
-      dialogueChoiceListEl.appendChild(emptyEl);
-    }
-  }
-  if (dialogueNextButtonEl) {
-    const hasBranchChoices = Array.isArray(node.choices) && node.choices.length > 0;
-    dialogueNextButtonEl.hidden = hasBranchChoices;
-    dialogueNextButtonEl.disabled = hasBranchChoices;
-    dialogueNextButtonEl.textContent = node.next_node_id ? "Suivant" : "Terminer";
-  }
-  if (dialogueCloseButtonEl) {
-    dialogueCloseButtonEl.hidden = Boolean(active.once);
-    dialogueCloseButtonEl.disabled = Boolean(active.once);
-  }
-}
-
-function commitDialogueSideEffects(effects = []) {
-  let changed = false;
-  for (const effect of Array.isArray(effects) ? effects : []) {
-    const kind = String(effect?.kind || "").trim();
-    const flagId = String(effect?.flag_id || "").trim();
-    if (!flagId) {
-      continue;
-    }
-    if (kind === "set_flag_true") {
-      changed = setRouteAccessFlag(flagId, true) || changed;
-    } else if (kind === "set_flag_false") {
-      changed = setRouteAccessFlag(flagId, false) || changed;
-    }
-  }
-  if (!changed) {
-    return { changed: false, unlockedRouteNames: [] };
-  }
-  const unlockResult = tryUnlockNextRouteAfterDefeat(
-    state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID,
-  );
-  refreshRouteUi();
-  refreshZoneActionButtons();
-  if (state.ui.mapOpen) {
-    renderMapModal();
-  }
-  updateHud();
-  persistSaveDataForSimulationEvent();
-  const unlockedRouteNames = Array.isArray(unlockResult?.route_names_fr) ? unlockResult.route_names_fr : [];
-  if (unlockedRouteNames.length > 0) {
-    setTopMessage(`Nouvelle sortie débloquée : ${unlockedRouteNames.join(", ")}`, 2000);
-  }
-  return {
-    changed: true,
-    unlockedRouteNames,
-  };
-}
-
-function enterDialogueNode(nodeId) {
-  const active = state.dialogue.active;
-  const definition = active?.definition;
-  const node = getDialogueNodeById(definition, nodeId);
-  if (!active || !definition || !node) {
-    closeDialogueModal({ force: true });
-    return false;
-  }
-  active.currentNodeId = String(node.node_id || "");
-  active.visitedNodeIds = Array.isArray(active.visitedNodeIds) ? active.visitedNodeIds : [];
-  active.visitedNodeIds.push(active.currentNodeId);
-  commitDialogueSideEffects(node.effects_on_enter);
-  renderDialogueModal();
-  return true;
+  zoneDialogueUi.renderDialogueModal({
+    dialogueModalEl,
+    dialogueTitleEl,
+    dialogueSpeakerEl,
+    dialogueTextEl,
+    dialogueChoiceListEl,
+    dialogueProgressEl,
+    dialogueNextButtonEl,
+    dialogueCloseButtonEl,
+    active,
+    node,
+    availableChoices: zoneDialogueRuntime.getAvailableDialogueChoices(node),
+  });
 }
 
 function closeDialogueModal(options = {}) {
-  const force = options?.force === true;
-  const active = state.dialogue.active;
-  if (!force && active?.once) {
-    setTopMessage("Ce dialogue est obligatoire.", 1400);
-    return false;
-  }
-  state.ui.dialogueOpen = false;
-  state.dialogue.active = null;
-  if (dialogueModalEl) {
-    hideModalWithTween(dialogueModalEl);
-  }
-  if (dialogueChoiceListEl) {
-    dialogueChoiceListEl.replaceChildren();
-  }
-  if (dialogueTextEl) {
-    dialogueTextEl.textContent = "";
-  }
-  refreshZoneActionButtons();
-  return true;
-}
-
-function finishActiveDialogue() {
-  const active = state.dialogue.active;
-  if (!active) {
-    return closeDialogueModal({ force: true });
-  }
-  let changed = false;
-  if (active.once) {
-    changed = markDialogueSeen(active.dialogueId) || changed;
-  }
-  const closed = closeDialogueModal({ force: true });
-  if (changed) {
-    persistSaveDataForSimulationEvent();
-  }
-  tryOpenPendingDialogue();
-  tryOpenPendingTutorialFlow();
-  return closed;
+  return zoneDialogueRuntime.closeDialogueModal(options);
 }
 
 async function openDialogueSession(dialogueId, options = {}) {
-  const id = String(dialogueId || "").trim();
-  if (!id || !dialogueModalEl || !state.saveData) {
-    return false;
-  }
-  const routeId = String(options?.routeId || state.routeData?.route_id || state.saveData.current_route_id || DEFAULT_ROUTE_ID);
-  if (routeId && routeId !== String(state.routeData?.route_id || state.saveData.current_route_id || DEFAULT_ROUTE_ID)) {
-    return false;
-  }
-  let definition = null;
-  try {
-    definition = await loadDialogueDefinition(id);
-  } catch (error) {
-    console.warn(
-      `Impossible de charger le dialogue ${id}:`,
-      error instanceof Error ? error.message : String(error || ""),
-    );
-    setTopMessage("Dialogue introuvable ou invalide.", 1700);
-    return false;
-  }
-  if (!definition) {
-    return false;
-  }
-  if (!canOpenDialogueModalNow()) {
-    enqueueDialogueRequest({
-      dialogueId: id,
-      once: options?.once === true,
-      routeId,
-      source: options?.source,
-      sourceActionId: options?.sourceActionId,
-    }, { front: options?.source === "arrival_once" });
-    return false;
-  }
-
-  hideHoverPopup();
-  closeTeamContextMenu();
-  closeBallCaptureMenu();
-  closeRenameModal();
-  closeBoxesModal();
-  closePokedexModal();
-  closeAppearanceModal();
-  closeEvolutionItemChoiceModal(null);
-  closeGachaModal({ force: true });
-  setMapOpen(false);
-  setShopOpen(false);
-
-  state.dialogue.active = {
-    dialogueId: id,
-    definition,
-    routeId,
-    once: options?.once === true,
-    source: String(options?.source || "manual"),
-    sourceActionId: String(options?.sourceActionId || ""),
-    currentNodeId: String(definition.start_node_id || ""),
-    visitedNodeIds: [],
-  };
-  state.ui.dialogueOpen = true;
-  showModalWithTween(dialogueModalEl);
-  refreshZoneActionButtons();
-  return enterDialogueNode(definition.start_node_id);
+  return zoneDialogueRuntime.openDialogueSession(dialogueId, options);
 }
 
 function tryOpenPendingDialogue() {
-  if (!canOpenDialogueModalNow()) {
-    return false;
-  }
-  while (Array.isArray(state.dialogue.queue) && state.dialogue.queue.length > 0) {
-    const next = state.dialogue.queue.shift();
-    const nextRouteId = String(next?.routeId || "");
-    const currentRouteId = String(state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
-    if (nextRouteId && nextRouteId !== currentRouteId) {
-      continue;
-    }
-    void openDialogueSession(next.dialogueId, next);
-    return true;
-  }
-  return false;
+  return zoneDialogueRuntime.tryOpenPendingDialogue();
 }
 
 function queueArrivalDialoguesForRoute(routeId) {
-  const routeData = getRouteDataById(routeId);
-  const dialogueIds = Array.isArray(routeData?.arrival_dialogue_ids_once) ? routeData.arrival_dialogue_ids_once : [];
-  let queued = false;
-  for (const dialogueId of dialogueIds) {
-    const id = String(dialogueId || "").trim();
-    if (!id || hasSeenDialogue(id)) {
-      continue;
-    }
-    queued = enqueueDialogueRequest({
-      dialogueId: id,
-      once: true,
-      routeId,
-      source: "arrival_once",
-    }, { front: true }) || queued;
-  }
-  if (queued) {
-    tryOpenPendingDialogue();
-  }
-  return queued;
+  return zoneDialogueRuntime.queueArrivalDialoguesForRoute(routeId);
 }
 
 function triggerZoneAction(actionId) {
-  const id = String(actionId || "").trim();
-  if (!id) {
-    return false;
-  }
-  const routeId = String(state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
-  const zoneAction = getCurrentRouteZoneActions().find((action) => String(action.action_id || "").trim() === id);
-  if (!zoneAction) {
-    return false;
-  }
-  const request = {
-    dialogueId: String(zoneAction.dialogue_id || "").trim(),
-    once: false,
-    routeId,
-    source: "zone_action",
-    sourceActionId: id,
-  };
-  if (!request.dialogueId) {
-    return false;
-  }
-  if (canOpenDialogueModalNow()) {
-    void openDialogueSession(request.dialogueId, request);
-    return true;
-  }
-  return enqueueDialogueRequest(request);
+  return zoneDialogueRuntime.triggerZoneAction(actionId);
 }
 
 function advanceActiveDialogue() {
-  const active = state.dialogue.active;
-  const node = getDialogueNodeById(active?.definition, active?.currentNodeId);
-  if (!active || !node) {
-    return false;
-  }
-  if (getAvailableDialogueChoices(node).length > 0) {
-    setTopMessage("Choisis une réponse.", 1200);
-    return false;
-  }
-  const nextNodeId = String(node.next_node_id || "").trim();
-  if (!nextNodeId) {
-    return finishActiveDialogue();
-  }
-  return enterDialogueNode(nextNodeId);
+  return zoneDialogueRuntime.advanceActiveDialogue();
 }
 
 function chooseActiveDialogueChoice(choiceId) {
-  const active = state.dialogue.active;
-  const node = getDialogueNodeById(active?.definition, active?.currentNodeId);
-  if (!active || !node) {
-    return false;
-  }
-  const choice = getAvailableDialogueChoices(node).find((entry) => String(entry.choice_id || "").trim() === String(choiceId || "").trim());
-  if (!choice) {
-    return false;
-  }
-  commitDialogueSideEffects(choice.effects);
-  return enterDialogueNode(choice.next_node_id);
+  return zoneDialogueRuntime.chooseActiveDialogueChoice(choiceId);
 }
 
 function renderTutorialModal() {
@@ -6299,15 +5898,6 @@ function applyMapReferenceImage() {
 
 function shouldRenderRouteOnCurrentMap(routeId) {
   return getRouteRegionId(routeId) === getActiveMapRegionId();
-}
-
-function removeMapMarkerButton(routeId) {
-  const button = mapMarkerButtonsByRouteId.get(routeId);
-  if (!button) {
-    return;
-  }
-  button.remove();
-  mapMarkerButtonsByRouteId.delete(routeId);
 }
 
 function syncMapMarkerLayerBounds() {
@@ -10356,523 +9946,120 @@ function buildRouteNameStatusGroups(stateByRoute = null) {
   return groups;
 }
 
-function formatRouteRegionLabel(regionId) {
-  const normalizedRegionId = String(regionId || MAP_REGION_DEFAULT_ID).toLowerCase().trim();
-  if (normalizedRegionId === "hoenn") {
-    return "Hoenn";
-  }
-  if (normalizedRegionId === "johto") {
-    return "Johto";
-  }
-  return "Kanto";
-}
+const routeNavigationRuntime = createRouteNavigationRuntime({
+  state,
+  defaultRouteId: DEFAULT_ROUTE_ID,
+  defaultRegionId: MAP_REGION_DEFAULT_ID,
+  normalizeUiDisplayText,
+  getOrderedCatalogRouteIds,
+  getRouteNavigationState,
+  getRouteUnlockProgressState,
+  getConnectedRouteIds,
+  getRouteAccessStateForRoute,
+  isRouteUnlocked,
+  getRouteDisplayName,
+  getRouteZoneTypeLabel,
+  getRouteRegionId,
+  getRouteCollectionBadgeState,
+  buildRouteNameStatusGroups,
+});
 
-function formatRouteAccessFlagLabel(flagId) {
-  const normalizedFlagId = String(flagId || "").trim();
-  if (!normalizedFlagId) {
-    return "";
-  }
-  return normalizedFlagId
-    .split("_")
-    .filter(Boolean)
-    .map((part, index) => {
-      if (part.length <= 2) {
-        return part.toUpperCase();
-      }
-      if (index === 0) {
-        return part.charAt(0).toUpperCase() + part.slice(1);
-      }
-      return part;
-    })
-    .join(" ");
-}
+const routeNavigationUi = createRouteNavigationUi({
+  documentRef: document,
+  normalizeUiDisplayText,
+  formatRouteAccessFlagLabel: routeNavigationRuntime.formatRouteAccessFlagLabel,
+});
 
-function buildRouteAccessRequirementsSummary(routeState) {
-  const summaryParts = [];
-  if (Array.isArray(routeState?.requiresFlagsAll) && routeState.requiresFlagsAll.length > 0) {
-    summaryParts.push(`Toutes : ${routeState.requiresFlagsAll.map(formatRouteAccessFlagLabel).join(", ")}`);
-  }
-  if (Array.isArray(routeState?.requiresFlagsAny) && routeState.requiresFlagsAny.length > 0) {
-    summaryParts.push(`Une parmi : ${routeState.requiresFlagsAny.map(formatRouteAccessFlagLabel).join(", ")}`);
-  }
-  return summaryParts.join(" \u2022 ");
-}
+const zoneDialogueUi = createZoneDialogueUi({
+  documentRef: document,
+  HTMLElementRef: HTMLElement,
+  normalizeUiDisplayText,
+  clamp,
+  getRouteDisplayName,
+});
 
-function buildRouteCollectionBadgeChip(group) {
-  const chipEl = document.createElement("span");
-  chipEl.className = "route-nav-badge-chip";
+const mapNavigationUi = createMapNavigationUi({
+  documentRef: document,
+  normalizeUiDisplayText,
+});
 
-  const labelEl = document.createElement("span");
-  labelEl.className = "route-nav-badge-chip-label";
-  labelEl.textContent = group?.kind === "family" ? "Familles" : "Zone";
-  chipEl.appendChild(labelEl);
-
-  const statusesEl = document.createElement("span");
-  statusesEl.className = "route-nav-current-statuses";
-
-  const groupEl = document.createElement("span");
-  groupEl.className = "route-nav-status-group";
-
-  const ballEl = document.createElement("span");
-  ballEl.className = "route-nav-status-ball";
-  ballEl.title = String(group?.ballTitle || "Progression de collection");
-  groupEl.appendChild(ballEl);
-
-  if (group?.shiny) {
-    const shinyEl = document.createElement("span");
-    shinyEl.className = "boxes-mode-badge boxes-mode-badge-shiny route-nav-status-badge";
-    shinyEl.textContent = "\u2726";
-    shinyEl.title = group?.kind === "family"
-      ? "Shiny famille complet sur la zone."
-      : "Shiny complet sur toutes les esp\u00e8ces de la zone.";
-    groupEl.appendChild(shinyEl);
-  }
-  if (group?.ultra) {
-    const ultraEl = document.createElement("span");
-    ultraEl.className = "boxes-mode-badge boxes-mode-badge-ultra route-nav-status-badge";
-    ultraEl.textContent = "\u2726";
-    ultraEl.title = group?.kind === "family"
-      ? "Ultra shiny famille complet sur la zone."
-      : "Ultra shiny complet sur toutes les esp\u00e8ces de la zone.";
-    groupEl.appendChild(ultraEl);
-  }
-
-  statusesEl.appendChild(groupEl);
-  chipEl.appendChild(statusesEl);
-  return chipEl;
-}
-
-function buildRouteProgressChip(chip) {
-  const chipEl = document.createElement("span");
-  chipEl.className = "route-nav-progress-chip";
-  chipEl.classList.toggle("is-accent", Boolean(chip?.accent));
-  chipEl.classList.toggle("is-warning", chip?.tone === "warning");
-  chipEl.classList.toggle("is-success", chip?.tone === "success");
-  chipEl.classList.toggle("is-neutral", !chip?.tone);
-  chipEl.textContent = String(chip?.label || "");
-  if (chip?.title) {
-    chipEl.title = String(chip.title);
-  }
-  return chipEl;
-}
+const zoneDialogueRuntime = createZoneDialogueRuntime({
+  state,
+  defaultRouteId: DEFAULT_ROUTE_ID,
+  dialogueDataDir: DIALOGUE_DATA_DIR,
+  normalizeUiDisplayText,
+  normalizeFlagIdList,
+  fetchFn: (...args) => fetch(...args),
+  validateDialoguePayload,
+  getRouteAccessFlags,
+  getRouteDataById,
+  getRouteDisplayName,
+  setRouteAccessFlag,
+  tryUnlockNextRouteAfterDefeat: (...args) => tryUnlockNextRouteAfterDefeat(...args),
+  refreshRouteUi,
+  refreshZoneActionButtons,
+  renderMapModal,
+  updateHud,
+  persistSaveDataForSimulationEvent,
+  setTopMessage,
+  hideHoverPopup: (...args) => hideHoverPopup(...args),
+  prepareDialogueUi: () => {
+    closeTeamContextMenu();
+    closeBallCaptureMenu();
+    closeRenameModal();
+    closeBoxesModal();
+    closePokedexModal();
+    closeAppearanceModal();
+    closeEvolutionItemChoiceModal(null);
+    closeGachaModal({ force: true });
+    setMapOpen(false);
+    setShopOpen(false);
+  },
+  showDialogueModal: () => {
+    if (dialogueModalEl) {
+      showModalWithTween(dialogueModalEl);
+    }
+  },
+  hideDialogueModal: () => {
+    if (dialogueModalEl) {
+      hideModalWithTween(dialogueModalEl);
+    }
+  },
+  clearDialogueUi: () => {
+    zoneDialogueUi.clearDialogueUi({
+      dialogueChoiceListEl,
+      dialogueTextEl,
+    });
+  },
+  renderDialogueModal,
+  canOpenDialogueModalNow,
+  hasSeenDialogue,
+  markDialogueSeen,
+  tryOpenPendingTutorialFlow,
+});
 
 function getConnectedRouteDisplayStates(routeId = null) {
-  const currentRouteId = String(routeId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
-  const progressState = getRouteUnlockProgressState(currentRouteId);
-  const connectedRouteIds = getConnectedRouteIds(currentRouteId);
-  return connectedRouteIds
-    .map((connectedRouteId) => buildRouteDisplayState(connectedRouteId, {
-      currentRouteId,
-      progressState,
-      connectedRouteIds,
-    }))
-    .filter(Boolean);
-}
-
-function createRouteNavigationEmptyState(text) {
-  const emptyEl = document.createElement("span");
-  emptyEl.className = "route-nav-empty-state";
-  emptyEl.textContent = normalizeUiDisplayText(text || "", { frenchTypography: true });
-  return emptyEl;
+  return routeNavigationRuntime.getConnectedRouteDisplayStates(routeId);
 }
 
 function buildRouteDisplayState(routeId, options = {}) {
-  const targetRouteId = String(routeId || "").trim();
-  if (!targetRouteId) {
-    return null;
-  }
-  const currentRouteId = String(
-    options?.currentRouteId || state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID,
-  );
-  const progressState = options?.progressState || getRouteUnlockProgressState(currentRouteId);
-  const connectedRouteIds = Array.isArray(options?.connectedRouteIds)
-    ? options.connectedRouteIds
-    : getConnectedRouteIds(currentRouteId);
-  const accessState = options?.accessState || getRouteAccessStateForRoute(targetRouteId);
-  const unlocked = options?.unlocked === true || isRouteUnlocked(targetRouteId);
-  const currentRouteName = getRouteDisplayName(currentRouteId);
-  const connectedFromCurrent = connectedRouteIds.includes(targetRouteId);
-  const isAccessBlocked = Boolean(!accessState?.allowed);
-  const requiresFlagsAll = Array.isArray(accessState?.requires_flags_all) ? accessState.requires_flags_all : [];
-  const requiresFlagsAny = Array.isArray(accessState?.requires_flags_any) ? accessState.requires_flags_any : [];
-  let statusLabel = normalizeUiDisplayText(unlocked ? "Ouverte" : "Verrouill\u00e9e", { frenchTypography: true });
-  let blockedReasonFr = "";
-  let lockDetailFr = "";
-  let progressionRequirementFr = "";
-  let connectionHintFr = "";
-
-  if (!unlocked && isAccessBlocked) {
-    const blockedReason = String(accessState?.blocked_reason_fr || "").trim();
-    blockedReasonFr = normalizeUiDisplayText(blockedReason || "Conditions de zone non remplies.", {
-      frenchTypography: true,
-    });
-    lockDetailFr = blockedReasonFr;
-    statusLabel = normalizeUiDisplayText("Bloqu\u00e9e", { frenchTypography: true });
-  } else if (!unlocked && connectedFromCurrent) {
-    if (progressState.unlockMode === "visit") {
-      blockedReasonFr = normalizeUiDisplayText("Visite requise.", { frenchTypography: true });
-      progressionRequirementFr = normalizeUiDisplayText(
-        `Valide la visite de ${currentRouteName} pour ouvrir cette sortie.`,
-        { frenchTypography: true },
-      );
-    } else {
-      blockedReasonFr = normalizeUiDisplayText(
-        `${progressState.currentDefeats}/${progressState.unlockTarget} KO requis.`,
-        { frenchTypography: true },
-      );
-      const timerSuffix = progressState.timerEnabled
-        ? normalizeUiDisplayText(` Fen\u00eatre : ${Math.round(progressState.timerDurationMs / 1000)} s max par combat.`, {
-          frenchTypography: true,
-        })
-        : "";
-      progressionRequirementFr = normalizeUiDisplayText(
-        `Compl\u00e8te ${progressState.currentDefeats}/${progressState.unlockTarget} KO d'affil\u00e9e dans ${currentRouteName} pour ouvrir cette sortie.${timerSuffix}`,
-        { frenchTypography: true },
-      );
-    }
-    lockDetailFr = progressionRequirementFr || blockedReasonFr;
-    statusLabel = normalizeUiDisplayText("\u00c0 ouvrir", { frenchTypography: true });
-  } else if (!unlocked) {
-    blockedReasonFr = normalizeUiDisplayText("Pas de liaison directe.", { frenchTypography: true });
-    connectionHintFr = normalizeUiDisplayText(
-      `Cette zone n'est pas reli\u00e9e directement \u00e0 ${currentRouteName}. Progresse via les sorties connect\u00e9es pour l'atteindre.`,
-      { frenchTypography: true },
-    );
-    lockDetailFr = connectionHintFr;
-    statusLabel = normalizeUiDisplayText("\u00c0 atteindre", { frenchTypography: true });
-  }
-
-  const routeState = {
-    routeId: targetRouteId,
-    routeNameFr: getRouteDisplayName(targetRouteId),
-    zoneTypeLabel: getRouteZoneTypeLabel(targetRouteId),
-    regionId: getRouteRegionId(targetRouteId),
-    regionLabel: formatRouteRegionLabel(getRouteRegionId(targetRouteId)),
-    unlocked,
-    blocked: !unlocked,
-    connectedFromCurrent,
-    accessBlocked: isAccessBlocked,
-    blockedReasonFr,
-    lockDetailFr,
-    progressionRequirementFr,
-    connectionHintFr,
-    statusLabel,
-    requiresFlagsAll,
-    requiresFlagsAny,
-  };
-  routeState.accessRequirementsSummary = buildRouteAccessRequirementsSummary(routeState);
-  return routeState;
-}
-
-function buildRouteDestinationCard(routeState, options = {}) {
-  const variant = String(options?.variant || "desktop-inline").toLowerCase().trim();
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "route-nav-destination-card";
-  button.classList.add(`is-${variant}`);
-  button.classList.toggle("is-locked", !routeState?.unlocked);
-  button.classList.toggle("is-selected", Boolean(options?.selected));
-  button.dataset.routeId = String(routeState?.routeId || "");
-  button.dataset.routeAction = routeState?.unlocked ? "travel" : "info";
-
-  const topLineEl = document.createElement("span");
-  topLineEl.className = "route-nav-destination-topline";
-
-  const metaEl = document.createElement("span");
-  metaEl.className = "route-nav-destination-meta";
-  metaEl.textContent = normalizeUiDisplayText(
-    `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || formatRouteRegionLabel(routeState?.regionId)}`,
-    { frenchTypography: true },
-  );
-  topLineEl.appendChild(metaEl);
-
-  const statusEl = document.createElement("span");
-  statusEl.className = "route-nav-destination-status";
-  statusEl.classList.toggle("is-locked", !routeState?.unlocked);
-  statusEl.textContent = normalizeUiDisplayText(
-    routeState?.statusLabel || (routeState?.unlocked ? "Ouverte" : "Verrouill\u00e9e"),
-    { frenchTypography: true },
-  );
-  topLineEl.appendChild(statusEl);
-  button.appendChild(topLineEl);
-
-  const labelEl = document.createElement("span");
-  labelEl.className = "route-nav-destination-label";
-  labelEl.textContent = String(routeState?.routeNameFr || "");
-  button.appendChild(labelEl);
-
-  if (!routeState?.unlocked && routeState?.blockedReasonFr) {
-    const reasonEl = document.createElement("span");
-    reasonEl.className = "route-nav-destination-reason";
-    reasonEl.textContent = routeState.blockedReasonFr;
-    button.appendChild(reasonEl);
-  }
-
-  const requirementsSummary = String(routeState?.accessRequirementsSummary || "");
-  button.title = routeState?.unlocked
-    ? normalizeUiDisplayText(`${routeState?.zoneTypeLabel}: ${routeState?.routeNameFr}`, {
-      frenchTypography: true,
-    })
-    : normalizeUiDisplayText(
-      `${routeState?.zoneTypeLabel}: ${routeState?.routeNameFr} (${routeState?.blockedReasonFr || "Verrouill\u00e9e"})${requirementsSummary ? ` \u2022 ${requirementsSummary}` : ""}`,
-      { frenchTypography: true },
-    );
-  return button;
-}
-
-function buildRouteAccessInfoPanel(routeState) {
-  const wrapperEl = document.createElement("div");
-  wrapperEl.className = "route-nav-info-card";
-
-  const headerEl = document.createElement("div");
-  headerEl.className = "route-nav-info-header";
-
-  const titleWrapEl = document.createElement("div");
-  titleWrapEl.className = "route-nav-info-title-wrap";
-
-  const titleEl = document.createElement("div");
-  titleEl.className = "route-nav-info-title";
-  titleEl.textContent = routeState?.routeNameFr || "Zone";
-  titleWrapEl.appendChild(titleEl);
-
-  const subtitleEl = document.createElement("div");
-  subtitleEl.className = "route-nav-info-subtitle";
-  subtitleEl.textContent = normalizeUiDisplayText(
-    `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || formatRouteRegionLabel(routeState?.regionId)}`,
-    { frenchTypography: true },
-  );
-  titleWrapEl.appendChild(subtitleEl);
-  headerEl.appendChild(titleWrapEl);
-
-  const closeButtonEl = document.createElement("button");
-  closeButtonEl.type = "button";
-  closeButtonEl.className = "route-nav-info-close";
-  closeButtonEl.dataset.routeInfoClose = "true";
-  closeButtonEl.setAttribute("aria-label", normalizeUiDisplayText("Fermer les d\u00e9tails de verrouillage", {
-    frenchTypography: true,
-  }));
-  closeButtonEl.textContent = "Fermer";
-  headerEl.appendChild(closeButtonEl);
-  wrapperEl.appendChild(headerEl);
-
-  const statusEl = document.createElement("div");
-  statusEl.className = "route-nav-info-status";
-  statusEl.classList.toggle("is-locked", !routeState?.unlocked);
-  statusEl.textContent = routeState?.unlocked
-    ? normalizeUiDisplayText("Cette sortie est ouverte.", { frenchTypography: true })
-    : normalizeUiDisplayText(
-      routeState?.statusLabel === "\u00c0 atteindre"
-        ? "Cette zone n'est pas encore atteignable depuis la zone active."
-        : "Cette sortie reste verrouill\u00e9e.",
-      { frenchTypography: true },
-    );
-  wrapperEl.appendChild(statusEl);
-
-  if (routeState?.lockDetailFr) {
-    const reasonEl = document.createElement("div");
-    reasonEl.className = "route-nav-info-reason";
-    reasonEl.textContent = routeState.lockDetailFr;
-    wrapperEl.appendChild(reasonEl);
-  }
-
-  if (routeState?.progressionRequirementFr) {
-    const sectionEl = document.createElement("div");
-    sectionEl.className = "route-nav-info-section";
-    const labelEl = document.createElement("div");
-    labelEl.className = "route-nav-info-section-label";
-    labelEl.textContent = normalizeUiDisplayText("Objectif actuel", { frenchTypography: true });
-    sectionEl.appendChild(labelEl);
-    const contentEl = document.createElement("div");
-    contentEl.className = "route-nav-info-section-copy";
-    contentEl.textContent = routeState.progressionRequirementFr;
-    sectionEl.appendChild(contentEl);
-    wrapperEl.appendChild(sectionEl);
-  }
-
-  if (routeState?.connectionHintFr) {
-    const sectionEl = document.createElement("div");
-    sectionEl.className = "route-nav-info-section";
-    const labelEl = document.createElement("div");
-    labelEl.className = "route-nav-info-section-label";
-    labelEl.textContent = normalizeUiDisplayText("Chemin", { frenchTypography: true });
-    sectionEl.appendChild(labelEl);
-    const contentEl = document.createElement("div");
-    contentEl.className = "route-nav-info-section-copy";
-    contentEl.textContent = routeState.connectionHintFr;
-    sectionEl.appendChild(contentEl);
-    wrapperEl.appendChild(sectionEl);
-  }
-
-  if (Array.isArray(routeState?.requiresFlagsAll) && routeState.requiresFlagsAll.length > 0) {
-    const sectionEl = document.createElement("div");
-    sectionEl.className = "route-nav-info-section";
-    const labelEl = document.createElement("div");
-    labelEl.className = "route-nav-info-section-label";
-    labelEl.textContent = "Toutes les conditions";
-    sectionEl.appendChild(labelEl);
-    const listEl = document.createElement("div");
-    listEl.className = "route-nav-info-flag-list";
-    for (const flagId of routeState.requiresFlagsAll) {
-      const pillEl = document.createElement("span");
-      pillEl.className = "route-nav-info-flag-pill";
-      pillEl.textContent = formatRouteAccessFlagLabel(flagId);
-      listEl.appendChild(pillEl);
-    }
-    sectionEl.appendChild(listEl);
-    wrapperEl.appendChild(sectionEl);
-  }
-
-  if (Array.isArray(routeState?.requiresFlagsAny) && routeState.requiresFlagsAny.length > 0) {
-    const sectionEl = document.createElement("div");
-    sectionEl.className = "route-nav-info-section";
-    const labelEl = document.createElement("div");
-    labelEl.className = "route-nav-info-section-label";
-    labelEl.textContent = "Une condition parmi";
-    sectionEl.appendChild(labelEl);
-    const listEl = document.createElement("div");
-    listEl.className = "route-nav-info-flag-list";
-    for (const flagId of routeState.requiresFlagsAny) {
-      const pillEl = document.createElement("span");
-      pillEl.className = "route-nav-info-flag-pill";
-      pillEl.textContent = formatRouteAccessFlagLabel(flagId);
-      listEl.appendChild(pillEl);
-    }
-    sectionEl.appendChild(listEl);
-    wrapperEl.appendChild(sectionEl);
-  }
-
-  return wrapperEl;
+  return routeNavigationRuntime.buildRouteDisplayState(routeId, options);
 }
 
 function buildRouteNavigationViewModel(routeId = null) {
-  const hasCatalog = state.routeCatalog?.size > 0;
-  const orderedRoutes = getOrderedCatalogRouteIds();
-  const { unlockedRouteIds, currentRouteId } = getRouteNavigationState();
-  const activeRouteId = String(routeId || currentRouteId || DEFAULT_ROUTE_ID);
-  const progressState = getRouteUnlockProgressState(activeRouteId);
-  const destinationCards = getConnectedRouteDisplayStates(activeRouteId);
-  const unlockedCount = unlockedRouteIds.length;
-  const totalCount = Math.max(1, orderedRoutes.length);
-  const progressChips = [
-    {
-      label: normalizeUiDisplayText(`${unlockedCount}/${totalCount} zones d\u00e9bloqu\u00e9es`, {
-        frenchTypography: true,
-      }),
-      accent: true,
-      title: normalizeUiDisplayText("Progression globale des zones d\u00e9bloqu\u00e9es.", {
-        frenchTypography: true,
-      }),
-    },
-  ];
-  if (destinationCards.length <= 0) {
-    progressChips.push({
-      label: normalizeUiDisplayText("Aucune sortie", { frenchTypography: true }),
-      tone: "warning",
-      title: normalizeUiDisplayText("Cette zone ne dispose d'aucune sortie configur\u00e9e.", {
-        frenchTypography: true,
-      }),
-    });
-  }
-  if (progressState.unlockMode === "visit" && progressState.unlockableConnectedRouteIds.length > 0) {
-    progressChips.push({
-      label: normalizeUiDisplayText(
-        `${progressState.unlockableConnectedRouteIds.length} sortie${progressState.unlockableConnectedRouteIds.length > 1 ? "s" : ""} \u00e0 ouvrir`,
-        { frenchTypography: true },
-      ),
-      tone: "success",
-      title: normalizeUiDisplayText(
-        "Les sorties connect\u00e9es s'ouvriront \u00e0 la validation de la visite.",
-        { frenchTypography: true },
-      ),
-    });
-  } else if (progressState.unlockMode === "defeats" && progressState.unlockableConnectedRouteIds.length > 0) {
-    progressChips.push({
-      label: normalizeUiDisplayText(`${progressState.currentDefeats}/${progressState.unlockTarget} KO`, {
-        frenchTypography: true,
-      }),
-      accent: true,
-      title: normalizeUiDisplayText(
-        "Progression de la s\u00e9rie de KO requise pour ouvrir les sorties reli\u00e9es.",
-        { frenchTypography: true },
-      ),
-    });
-    if (progressState.timerEnabled) {
-      progressChips.push({
-        label: normalizeUiDisplayText(`${Math.round(progressState.timerDurationMs / 1000)} s max`, {
-          frenchTypography: true,
-        }),
-        tone: "warning",
-        title: normalizeUiDisplayText("Temps maximum autoris\u00e9 par combat pour garder la s\u00e9rie.", {
-          frenchTypography: true,
-        }),
-      });
-    }
-  }
-  if (progressState.blockedConnectedRoutes.length > 0) {
-    progressChips.push({
-      label: normalizeUiDisplayText(
-        `${progressState.blockedConnectedRoutes.length} sortie${progressState.blockedConnectedRoutes.length > 1 ? "s" : ""} bloqu\u00e9e${progressState.blockedConnectedRoutes.length > 1 ? "s" : ""}`,
-        { frenchTypography: true },
-      ),
-      tone: "warning",
-      title: normalizeUiDisplayText("Certaines sorties demandent encore des flags ou une condition de zone.", {
-        frenchTypography: true,
-      }),
-    });
-  } else if (destinationCards.length > 0 && destinationCards.every((entry) => entry.unlocked)) {
-    progressChips.push({
-      label: normalizeUiDisplayText("Toutes ouvertes", { frenchTypography: true }),
-      tone: "success",
-      title: normalizeUiDisplayText("Toutes les sorties connect\u00e9es sont ouvertes.", {
-        frenchTypography: true,
-      }),
-    });
-  }
-  const badgeGroups = buildRouteNameStatusGroups(getRouteCollectionBadgeState(activeRouteId));
-  const selectedRouteId = String(state.ui.routeNavInfoRouteId || "").trim();
-  const selectedLockedDestination = selectedRouteId
-    ? (
-      destinationCards.find((entry) => entry.routeId === selectedRouteId)
-      || buildRouteDisplayState(selectedRouteId, { currentRouteId: activeRouteId })
-    )
-    : null;
-  if (selectedLockedDestination?.unlocked) {
-    state.ui.routeNavInfoRouteId = null;
-  }
-  if (destinationCards.length <= 0) {
-    state.ui.routeNavDrawerOpen = false;
-  }
-  return {
-    hasCatalog,
-    currentZoneHeader: {
-      routeId: activeRouteId,
-      routeNameFr: getRouteDisplayName(activeRouteId),
-      zoneTypeLabel: getRouteZoneTypeLabel(activeRouteId),
-      regionId: getRouteRegionId(activeRouteId),
-      regionLabel: formatRouteRegionLabel(getRouteRegionId(activeRouteId)),
-    },
-    unlockSummary: progressChips[0]?.label || "",
-    progressChips,
-    destinationCards,
-    badgeGroups,
-    blockedCount: progressState.blockedConnectedRoutes.length,
-    navigationDrawerOpen: Boolean(state.ui.routeNavDrawerOpen && destinationCards.length > 0),
-    selectedLockedDestinationId: selectedLockedDestination?.unlocked ? null : selectedLockedDestination?.routeId || null,
-    selectedLockedDestination: selectedLockedDestination?.unlocked ? null : selectedLockedDestination,
-  };
+  return routeNavigationRuntime.buildRouteNavigationViewModel(routeId);
+}
+
+function createRouteNavigationEmptyState(text) {
+  return routeNavigationUi.createRouteNavigationEmptyState(text);
+}
+
+function buildRouteDestinationCard(routeState, options = {}) {
+  return routeNavigationUi.buildRouteDestinationCard(routeState, options);
 }
 
 function renderRouteInfoPanelInto(panelEl, routeState) {
-  if (!panelEl) {
-    return;
-  }
-  panelEl.replaceChildren();
-  if (!routeState || routeState.unlocked) {
-    panelEl.classList.add("hidden");
-    return;
-  }
-  panelEl.appendChild(buildRouteAccessInfoPanel(routeState));
-  panelEl.classList.remove("hidden");
+  routeNavigationUi.renderRouteInfoPanelInto(panelEl, routeState);
 }
 
 function setRouteNavDrawerOpen(open) {
@@ -10914,78 +10101,24 @@ function closeRouteNavigationInfo() {
 
 function refreshRouteUi() {
   const routeViewModel = buildRouteNavigationViewModel();
-  const {
-    hasCatalog,
-    currentZoneHeader,
-    badgeGroups,
-    progressChips,
-    destinationCards,
-  } = routeViewModel;
-
-  if (routeNavPanelEl) {
-    routeNavPanelEl.classList.toggle("is-empty", !hasCatalog);
-    routeNavPanelEl.classList.toggle("has-route-nav-info", Boolean(routeViewModel.selectedLockedDestination));
-  }
-  if (routeNavZoneTypeEl) {
-    routeNavZoneTypeEl.textContent = currentZoneHeader.zoneTypeLabel;
-  }
-  if (routeNavRegionEl) {
-    routeNavRegionEl.textContent = currentZoneHeader.regionLabel;
-  }
-  if (routeNavCurrentEl) {
-    routeNavCurrentEl.textContent = currentZoneHeader.routeNameFr;
-  }
-  if (routeNavBadgesEl) {
-    routeNavBadgesEl.replaceChildren();
-    routeNavBadgesEl.classList.toggle("hidden", badgeGroups.length <= 0);
-    for (const group of badgeGroups) {
-      routeNavBadgesEl.appendChild(buildRouteCollectionBadgeChip(group));
-    }
-  }
-  if (routeNavProgressChipsEl) {
-    routeNavProgressChipsEl.replaceChildren();
-    for (const chip of progressChips) {
-      routeNavProgressChipsEl.appendChild(buildRouteProgressChip(chip));
-    }
-  }
-  if (routeNavDestinationsEl) {
-    routeNavDestinationsEl.replaceChildren();
-    if (!hasCatalog || destinationCards.length <= 0) {
-      routeNavDestinationsEl.appendChild(createRouteNavigationEmptyState("Aucune sortie configur\u00e9e pour cette zone."));
-    } else {
-      for (const routeState of destinationCards) {
-        routeNavDestinationsEl.appendChild(buildRouteDestinationCard(routeState, {
-          variant: "desktop-inline",
-          selected: routeViewModel.selectedLockedDestinationId === routeState.routeId,
-        }));
-      }
-    }
-  }
-  if (routeNavDrawerToggleCountEl) {
-    routeNavDrawerToggleCountEl.textContent = String(destinationCards.length);
-  }
-  if (routeNavDrawerToggleButtonEl) {
-    routeNavDrawerToggleButtonEl.disabled = destinationCards.length <= 0;
-    routeNavDrawerToggleButtonEl.setAttribute("aria-expanded", routeViewModel.navigationDrawerOpen ? "true" : "false");
-  }
-  if (routeNavDrawerEl) {
-    routeNavDrawerEl.classList.toggle("hidden", !routeViewModel.navigationDrawerOpen);
-  }
-  if (routeNavDrawerListEl) {
-    routeNavDrawerListEl.replaceChildren();
-    if (destinationCards.length <= 0) {
-      routeNavDrawerListEl.appendChild(createRouteNavigationEmptyState("Aucune sortie configur\u00e9e pour cette zone."));
-    } else {
-      for (const routeState of destinationCards) {
-        routeNavDrawerListEl.appendChild(buildRouteDestinationCard(routeState, {
-          variant: "mobile-drawer",
-          selected: routeViewModel.selectedLockedDestinationId === routeState.routeId,
-        }));
-      }
-    }
-  }
-  renderRouteInfoPanelInto(routeNavInfoPanelEl, routeViewModel.selectedLockedDestination);
-  renderRouteInfoPanelInto(mapConnectionsInfoPanelEl, routeViewModel.selectedLockedDestination);
+  routeNavigationUi.renderPrimaryNavigation({
+    viewModel: routeViewModel,
+    refs: {
+      routeNavPanelEl,
+      routeNavZoneTypeEl,
+      routeNavRegionEl,
+      routeNavCurrentEl,
+      routeNavBadgesEl,
+      routeNavProgressChipsEl,
+      routeNavDestinationsEl,
+      routeNavDrawerToggleCountEl,
+      routeNavDrawerToggleButtonEl,
+      routeNavDrawerEl,
+      routeNavDrawerListEl,
+      routeNavInfoPanelEl,
+      mapConnectionsInfoPanelEl,
+    },
+  });
 
   if (state.ui.mapOpen) {
     renderMapModal();
@@ -11627,91 +10760,26 @@ function renderMapModal() {
   }
   applyMapReferenceImage();
   syncMapMarkerLayerBounds();
-  const orderedIds = getOrderedCatalogRouteIds();
   const currentRouteId = state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID;
   const selectedInfoRouteId = String(state.ui.routeNavInfoRouteId || "").trim();
-  const renderedRouteIds = new Set();
-
-  for (const routeId of orderedIds) {
-    if (!shouldRenderRouteOnCurrentMap(routeId)) {
-      removeMapMarkerButton(routeId);
-      continue;
-    }
-    const marker = getRouteMapMarker(routeId);
-    if (!marker) {
-      removeMapMarkerButton(routeId);
-      continue;
-    }
-    renderedRouteIds.add(routeId);
-    const zoneTypeKey = getRouteZoneType(routeId);
-    const routeState = buildRouteDisplayState(routeId, { currentRouteId });
-    if (!routeState) {
-      removeMapMarkerButton(routeId);
-      continue;
-    }
-    const isUnlocked = routeState.unlocked;
-    const isCurrent = routeId === currentRouteId;
-
-    let button = mapMarkerButtonsByRouteId.get(routeId);
-    if (!button) {
-      button = document.createElement("button");
-      button.type = "button";
-      button.className = "map-marker-btn";
-      button.dataset.routeId = routeId;
-      button.addEventListener("click", handleMapMarkerClick);
-      mapMarkerButtonsByRouteId.set(routeId, button);
-    }
-    if (button.parentElement !== mapMarkersEl) {
-      mapMarkersEl.appendChild(button);
-    }
-    button.classList.toggle("is-unlocked", isUnlocked);
-    button.classList.toggle("is-current", isCurrent);
-    button.classList.toggle("is-locked", !isUnlocked);
-    button.classList.toggle("is-route", zoneTypeKey === "route");
-    button.classList.toggle("is-town", zoneTypeKey === "town");
-    button.classList.toggle("is-dungeon", zoneTypeKey === "dungeon");
-    button.classList.toggle("is-info-selected", selectedInfoRouteId === routeId && !isUnlocked);
-    button.dataset.routeType = zoneTypeKey;
-    button.style.left = `${marker.x}%`;
-    button.style.top = `${marker.y}%`;
-    button.disabled = false;
-    button.title = isUnlocked
-      ? normalizeUiDisplayText(`${routeState.zoneTypeLabel}: ${routeState.routeNameFr}`, {
-        frenchTypography: true,
-      })
-      : normalizeUiDisplayText(
-        `${routeState.zoneTypeLabel}: ${routeState.routeNameFr} (${routeState.blockedReasonFr || "Verrouillée"})`,
-        { frenchTypography: true },
-      );
-    button.setAttribute("aria-label", button.title);
-  }
-
-  for (const [routeId, button] of mapMarkerButtonsByRouteId.entries()) {
-    if (renderedRouteIds.has(routeId)) {
-      continue;
-    }
-    button.remove();
-    mapMarkerButtonsByRouteId.delete(routeId);
-  }
-
-  if (mapConnectionsListEl) {
-    mapConnectionsListEl.replaceChildren();
-    const connectionStates = getConnectedRouteDisplayStates(currentRouteId);
-    if (connectionStates.length <= 0) {
-      mapConnectionsListEl.appendChild(createRouteNavigationEmptyState("Aucune sortie configurée pour cette zone."));
-    } else {
-      for (const routeState of connectionStates) {
-        mapConnectionsListEl.appendChild(buildRouteDestinationCard(routeState, {
-          variant: "map-panel",
-          selected: selectedInfoRouteId === routeState.routeId,
-        }));
-      }
-    }
-  }
-  renderRouteInfoPanelInto(
+  mapNavigationUi.renderMapModal({
+    routeIds: getOrderedCatalogRouteIds(),
+    currentRouteId,
+    selectedInfoRouteId,
+    shouldRenderRouteOnCurrentMap,
+    getRouteMapMarker,
+    getRouteZoneType,
+    buildRouteDisplayState,
+    getConnectedRouteDisplayStates,
+    createRouteNavigationEmptyState,
+    buildRouteDestinationCard,
+    renderRouteInfoPanelInto,
+    handleMapMarkerClick,
+    mapMarkersEl,
+    mapConnectionsListEl,
     mapConnectionsInfoPanelEl,
-    selectedInfoRouteId ? buildRouteDisplayState(selectedInfoRouteId, { currentRouteId }) : null,
-  );
+    mapMarkerButtonsByRouteId,
+  });
   window.requestAnimationFrame(() => {
     if (!state.ui.mapOpen) {
       return;
@@ -13338,12 +12406,23 @@ function getRuntimeUiInteractionSystem() {
     runtimeUiInteractionSystem = decorateRuntimeUiInteractionSystem(createRuntimeUiInteractionSystem({
       bindings: buildRuntimeBindingSnapshot(RUNTIME_UI_INTERACTION_BINDING_KEYS, {
         captureRootEl,
+        loadingScreenEl,
+        routeNavPanelEl,
+        routeNavInfoPanelEl,
+        mapConnectionsInfoPanelEl,
         GAME_DESIGN_SNAPSHOT: getGameDesignConfigSnapshot(),
         worldUiLayerEl,
         boxesSearchInputEl,
         pokedexSearchInputEl,
         projectWorldToRuntimeStage,
         getAppearanceUnlockState,
+        ensureAppearanceEditorUnlockedFromProgress,
+        enqueueEvolutionReadyNotification,
+        findNextEligibleEvolution,
+        queueTeamLevelUpEffects,
+        rebuildTeamAndSyncBattle,
+        persistSaveData,
+        setEntityLevel,
       }),
     }));
   }
@@ -13356,7 +12435,7 @@ const runtimeUiInteractionFacade = new Proxy({}, {
   },
 });
 
-const { getWorldCoordinatesFromPointerEvent, isCanvasBattleInteractionBlocked, syncCanvasInteractionCursor, setHoveredBallOverlayType, setHoveredTeamSlotIndex, getNormalizedPointerType, isPrimaryCanvasPointerEvent, isEventFromActiveTeamDragPointer, captureCanvasPointer, releaseCanvasPointer, getTeamDragActivationDistancePx, isTouchLikePointerType, resetTeamContextTouchHoldState, cancelTeamContextTouchHold, triggerTeamContextTouchHold, scheduleTeamContextTouchHold, updateTeamContextTouchHoldFromMove, isTeamSlotSwapAllowed, clearTeamDragState, beginTeamDragForSlot, isTeamDragClickSuppressed, swapTeamSlotsFromUi, getBallCaptureMenuBallType, closeBallCaptureMenu, closeTeamContextMenu, refreshRenameCharCount, closeRenameModal, openRenameModalForTeamSlot, applyRenameModal, clearCanvasHoverState, hideHoverPopup, findHoveredTeamSlot, findHoveredBallOverlayHitbox, findHoveredPokemon, showHoverPopup, positionFloatingMenuElement, setBallCaptureToggleButtonState, refreshBallCaptureMenu, openBallCaptureMenu, toggleBallCaptureRule, refreshTeamContextMenu, openTeamContextMenu, getTeamSlotLabel, getPokemonDisplayNameById, findTeamFamilyConflictSlotIndex, getCapturedEntityBoxesEntries, getCapturedEntityCount, getTotalShinyCapturesGlobal, cancelQueuedPokedexGridRender, cancelQueuedPokedexViewportRender, invalidatePokedexEntriesCache, queuePokedexGridRender, queuePokedexViewportRender, buildPokedexSpeciesHintMap, normalizePokedexSpeciesNameEn, getPokedexVariantPreferenceByPokemonId, buildPokedexSpeciesSpritePathForVariant, getPokedexPreferredOfflineVariantId, buildPokedexSpeciesSpritePath, getPokedexPreferredSpriteVariantFromDef, resolvePokedexSpeciesSpritePath, getPokedexSpeciesCatalogByPokemonId, refreshPokedexEntriesCacheIfNeeded, getPokedexEntries, getPokedexEntryByPokemonId, getPokedexSpeciesProgressCounters, formatPokedexSpeciesProgressPercent, formatPokedexCompletionPercentFromRatio, setPokedexHeaderProgressSummary, setPokedexInfoFromEntry, resetPokedexVirtualDomReferences, updatePokedexVirtualLayoutMetricsIfNeeded, getPokedexVirtualMetrics, resolvePokedexCardButtonFromEventTarget, handlePokedexCardInteractionEvent, bindPokedexVirtualEventsIfNeeded, ensurePokedexVirtualResizeObserver, ensurePokedexVirtualElements, prefetchPokedexSpritePath, prefetchPokedexSpritesAroundSlice, createPokedexLoadingIndicatorElement, attachPokedexSpriteLoadingLifecycle, createPokedexCardButton, renderPokedexViewportSlice, closePokedexModal, renderPokedexGrid, openPokedexModal, setBoxesInfoFromEntry, closeBoxesModal, renderBoxesGrid, openBoxesForTeamSlot, closeAppearanceModal, openAppearanceForPokemon, renderAppearanceModal, openAppearanceForTeamSlot, openAppearanceForBoxPokemon, toggleAppearanceShinyMode, toggleAppearanceUltraShinyMode, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, handleCanvasClick, handleCanvasContextMenu, handleCanvasPointerCancel, handleWindowPointerUpOutsideCanvas, exportTextState, getPokemonLoadTargets, setPokemonTalentCsvState, getPokemonTalentCsvForPokemonId, applyPokemonTalentCsvToDefinitions, setBallConfigState, setShopItemConfigState, setZoneEncounterCsvState, hasRouteUnlockedInSaveData, hasUnknownCaveUnlockedInSave, isPostUnknownCaveContentUnlocked, getCurrentPokedexMaxPokemonId, getCurrentGachaMaxPokemonId, formatPokemonRangeLabel, getCurrentGachaPokemonRangeLabel, getZoneEncounterCsvForRoute, mergeRouteEncountersFromCsv, cloneEncounterEntries, getRouteBaseEncounterEntries, applyEncounterMappingToRouteData, refreshRouteCatalogEncounterMapping, buildRouteDataPath, loadRouteData, loadRouteCatalog, getRouteDataListFromInput, getRouteDataByIds, getInitialAssetRouteIds, preloadRouteBackgrounds, queueDeferredRouteAssetWarmup, hasMissingRoutePokemonDefinitions, ensureRouteBackgroundLoaded, ensureRouteDefinitionsLoaded, ensureRouteAssetsLoaded, ensureUnlockedRoutesForCurrentCatalog, setActiveRoute, tryUnlockNextRouteAfterDefeat } = runtimeUiInteractionFacade;
+const { getWorldCoordinatesFromPointerEvent, isCanvasBattleInteractionBlocked, syncCanvasInteractionCursor, setHoveredBallOverlayType, setHoveredTeamSlotIndex, getNormalizedPointerType, isPrimaryCanvasPointerEvent, isEventFromActiveTeamDragPointer, captureCanvasPointer, releaseCanvasPointer, getTeamDragActivationDistancePx, isTouchLikePointerType, resetTeamContextTouchHoldState, cancelTeamContextTouchHold, triggerTeamContextTouchHold, scheduleTeamContextTouchHold, updateTeamContextTouchHoldFromMove, isTeamSlotSwapAllowed, clearTeamDragState, beginTeamDragForSlot, isTeamDragClickSuppressed, swapTeamSlotsFromUi, getBallCaptureMenuBallType, closeBallCaptureMenu, closeTeamContextMenu, refreshRenameCharCount, closeRenameModal, openRenameModalForTeamSlot, applyRenameModal, clearCanvasHoverState, hideHoverPopup, findHoveredTeamSlot, findHoveredBallOverlayHitbox, findHoveredPokemon, showHoverPopup, positionFloatingMenuElement, setBallCaptureToggleButtonState, refreshBallCaptureMenu, openBallCaptureMenu, toggleBallCaptureRule, refreshTeamContextMenu, openTeamContextMenu, getTeamSlotLabel, getPokemonDisplayNameById, levelUpAllOwnedPokemonFromDev, findTeamFamilyConflictSlotIndex, getCapturedEntityBoxesEntries, getCapturedEntityCount, getTotalShinyCapturesGlobal, cancelQueuedPokedexGridRender, cancelQueuedPokedexViewportRender, invalidatePokedexEntriesCache, queuePokedexGridRender, queuePokedexViewportRender, buildPokedexSpeciesHintMap, normalizePokedexSpeciesNameEn, getPokedexVariantPreferenceByPokemonId, buildPokedexSpeciesSpritePathForVariant, getPokedexPreferredOfflineVariantId, buildPokedexSpeciesSpritePath, getPokedexPreferredSpriteVariantFromDef, resolvePokedexSpeciesSpritePath, getPokedexSpeciesCatalogByPokemonId, refreshPokedexEntriesCacheIfNeeded, getPokedexEntries, getPokedexEntryByPokemonId, getPokedexSpeciesProgressCounters, formatPokedexSpeciesProgressPercent, formatPokedexCompletionPercentFromRatio, setPokedexHeaderProgressSummary, setPokedexInfoFromEntry, resetPokedexVirtualDomReferences, updatePokedexVirtualLayoutMetricsIfNeeded, getPokedexVirtualMetrics, resolvePokedexCardButtonFromEventTarget, handlePokedexCardInteractionEvent, bindPokedexVirtualEventsIfNeeded, ensurePokedexVirtualResizeObserver, ensurePokedexVirtualElements, prefetchPokedexSpritePath, prefetchPokedexSpritesAroundSlice, createPokedexLoadingIndicatorElement, attachPokedexSpriteLoadingLifecycle, createPokedexCardButton, renderPokedexViewportSlice, closePokedexModal, renderPokedexGrid, openPokedexModal, setBoxesInfoFromEntry, closeBoxesModal, renderBoxesGrid, openBoxesForTeamSlot, closeAppearanceModal, openAppearanceForPokemon, renderAppearanceModal, openAppearanceForTeamSlot, openAppearanceForBoxPokemon, toggleAppearanceShinyMode, toggleAppearanceUltraShinyMode, handleCanvasPointerDown, handleCanvasPointerMove, handleCanvasPointerUp, handleCanvasClick, handleCanvasContextMenu, handleCanvasPointerCancel, handleWindowPointerUpOutsideCanvas, exportTextState, getPokemonLoadTargets, setPokemonTalentCsvState, getPokemonTalentCsvForPokemonId, applyPokemonTalentCsvToDefinitions, setBallConfigState, setShopItemConfigState, setZoneEncounterCsvState, hasRouteUnlockedInSaveData, hasUnknownCaveUnlockedInSave, isPostUnknownCaveContentUnlocked, getCurrentPokedexMaxPokemonId, getCurrentGachaMaxPokemonId, formatPokemonRangeLabel, getCurrentGachaPokemonRangeLabel, getZoneEncounterCsvForRoute, mergeRouteEncountersFromCsv, cloneEncounterEntries, getRouteBaseEncounterEntries, applyEncounterMappingToRouteData, refreshRouteCatalogEncounterMapping, buildRouteDataPath, loadRouteData, loadRouteCatalog, getRouteDataListFromInput, getRouteDataByIds, getInitialAssetRouteIds, preloadRouteBackgrounds, queueDeferredRouteAssetWarmup, hasMissingRoutePokemonDefinitions, ensureRouteBackgroundLoaded, ensureRouteDefinitionsLoaded, ensureRouteAssetsLoaded, ensureUnlockedRoutesForCurrentCatalog, setActiveRoute, tryUnlockNextRouteAfterDefeat } = runtimeUiInteractionFacade;
 const runtimeBootstrapSystem = createRuntimeBootstrapSystem({
   document,
   window,
@@ -13553,6 +12632,7 @@ const runtimeInputSystem = createRuntimeInputSystem({
     appearanceCloseButtonEl,
     appearanceShinyToggleButtonEl,
     appearanceUltraShinyToggleButtonEl,
+    devLevelAllButtonEl,
     tutorialPrevButtonEl,
     tutorialNextButtonEl,
     tutorialCloseButtonEl,
@@ -13623,6 +12703,7 @@ const runtimeInputSystem = createRuntimeInputSystem({
     applyRenameModal,
     toggleAppearanceShinyMode,
     toggleAppearanceUltraShinyMode,
+    levelUpAllOwnedPokemonFromDev,
     getTutorialFlowDefinition,
     renderTutorialModal,
     syncMapMarkerLayerBounds,

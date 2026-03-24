@@ -113,7 +113,7 @@ export const GAME_DESIGN_CONFIG = {
       /** Alignement pixel pour les VFX. */
       pixelSnapStepPx: 2,
       /** Taille des textures beam pre-packees. */
-      laserPackedTextureWidthPx: 96,
+      laserPackedTextureWidthPx: 128,
       laserPackedTextureHeightPx: 24,
       /** Buckets de distance pour les budgets laser. */
       laserDistanceNearPx: 110,
@@ -127,9 +127,9 @@ export const GAME_DESIGN_CONFIG = {
       laserPixelCurvedParticleMaxCount: 2,
       laserHeroCurvedParticleMaxCount: 4,
       /** Intensites generales de rendu. */
-      laserPackedSimpleWidthMultiplier: 0.94,
-      laserPixelCurvedWidthMultiplier: 1.02,
-      laserHeroCurvedWidthMultiplier: 1.08,
+      laserPackedSimpleWidthMultiplier: 1.08,
+      laserPixelCurvedWidthMultiplier: 1.14,
+      laserHeroCurvedWidthMultiplier: 1.2,
       laserGlowAlpha: 0.08,
       projectileGlowAlpha: 0.1,
     },

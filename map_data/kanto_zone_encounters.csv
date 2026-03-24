@@ -2,7 +2,10 @@
 kanto_city_pallet_town,Bourg Palette (Kanto),town,false,,,,,,,
 kanto_route_1,Route 1 (Kanto),route,true,16,pidgey,Roucool,50,2,5,walk
 kanto_route_1,Route 1 (Kanto),route,true,19,rattata,Rattata,50,2,4,walk
-kanto_city_viridian_city,Jadielle (Kanto),town,false,,,,,,,
+kanto_city_viridian_city,Jadielle,town,false,16,pidgey,Roucool,30,2,5,walk
+kanto_city_viridian_city,Jadielle,town,false,19,rattata,Rattata,30,2,5,walk
+kanto_city_viridian_city,Jadielle,town,false,10,caterpie,Chenipan,5,4,5,walk
+kanto_city_viridian_city,Jadielle,town,false,13,weedle,Aspicot,5,4,5,walk
 kanto_route_2,Route 2 (Kanto),route,true,16,pidgey,Roucool,45,2,5,walk
 kanto_route_2,Route 2 (Kanto),route,true,19,rattata,Rattata,45,2,5,walk
 kanto_route_2,Route 2 (Kanto),route,true,10,caterpie,Chenipan,5,4,5,walk

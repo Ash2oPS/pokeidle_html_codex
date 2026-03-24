@@ -1,6 +1,13 @@
+import fs from "node:fs";
+
+import { COMPACT_SAVE_FORMAT_ID, encodeCompactSave } from "../../../lib/compact-save-codec.js";
+import { SAVE_VERSION } from "../../../lib/runtime-version-config.js";
+
 const DEFAULT_ROUTE_ID = "kanto_route_1";
 const DEFAULT_TEAM_LEVEL = 20;
-const APP_VERSION = "0.1.50";
+const APP_VERSION = JSON.parse(
+  fs.readFileSync(new URL("../../../package.json", import.meta.url), "utf8"),
+).version;
 const SPECIES_NAME_BY_ID = {
   100: "voltorb",
   101: "electrode",
@@ -90,5 +97,17 @@ export function buildCombatVfxSeedSave({
 }
 
 export function buildCombatVfxSeedJson(options = {}) {
-  return `${JSON.stringify(buildCombatVfxSeedSave(options), null, 2)}\n`;
+  const expandedSave = buildCombatVfxSeedSave(options);
+  const routeIdOrder = Array.from(new Set([
+    "kanto_city_pallet_town",
+    String(options.currentRouteId || DEFAULT_ROUTE_ID),
+  ]));
+  const compactSave = encodeCompactSave(expandedSave, {
+    formatId: COMPACT_SAVE_FORMAT_ID,
+    saveVersion: SAVE_VERSION,
+    appVersion: APP_VERSION,
+    routeIdOrder,
+    defaultRouteId: String(options.currentRouteId || DEFAULT_ROUTE_ID),
+  });
+  return `${JSON.stringify(compactSave, null, 2)}\n`;
 }

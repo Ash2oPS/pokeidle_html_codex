@@ -115,6 +115,13 @@ Suites disponibles:
 - `npm run test:node` pour les tests Node (`node:test`).
 - `npm run test:vitest` pour les tests unitaires Vitest.
 
+## Documentation
+
+- Guardrails IA: `AGENTS.md`
+- Carte des docs IA: `docs/ai/README.md`
+- Guide IA detaille: `docs/ai/implementation-guidelines.md`
+- Archive de progression: `docs/history/progress.md`
+
 ## Architecture scripts
 
 Les scripts sont maintenant organises par domaine:

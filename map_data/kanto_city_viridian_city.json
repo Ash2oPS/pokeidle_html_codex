@@ -1,10 +1,10 @@
 {
   "route_id": "kanto_city_viridian_city",
-  "route_name_fr": "Jadielle (Kanto)",
+  "route_name_fr": "Jadielle",
   "zone_type": "town",
   "combat_enabled": false,
   "unlock_mode": "visit",
-  "unlock_defeats_required": 0,
+  "unlock_defeats_required": 20,
   "source_games": [
     "firered",
     "leafgreen"
@@ -24,28 +24,15 @@
   "generated_at_utc": "2026-03-07T17:06:59.473Z",
   "connected_route_ids": [
     "kanto_route_1",
+    "kanto_route_22",
     "kanto_route_2"
   ],
   "arrival_dialogue_ids_once": [],
-  "zone_actions": [
-    {
-      "action_id": "viridian_guide",
-      "label_fr": "Parler au guide",
-      "kind": "dialogue",
-      "dialogue_id": "kanto_viridian_guide",
-      "desktop_anchor_pct": {
-        "x": 68,
-        "y": 70
-      },
-      "mobile_anchor_pct": {
-        "x": 64,
-        "y": 28
-      }
-    }
-  ],
+  "zone_actions": [],
   "access_rules": {
     "requires_flags_all": [],
     "requires_flags_any": [],
     "blocked_reason_fr": ""
-  }
+  },
+  "unlock_timer_ms": 20000
 }

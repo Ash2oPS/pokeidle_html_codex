@@ -87,6 +87,9 @@ test("mountRuntimeUi includes new route-navigation labels in French", () => {
   const document = createDocument();
   const refs = mountRuntimeUi(document);
 
+  assert.equal(document.querySelector(".route-nav-summary-copy .route-nav-section-label")?.textContent?.trim(), "Zone active");
+  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-label")?.textContent?.trim(), "Sorties connect\u00e9es");
+  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-copy")?.textContent?.trim(), "Choisis ta prochaine zone.");
   assert.equal(refs.routeNavDrawerToggleButtonEl?.querySelector(".route-nav-drawer-toggle-label")?.textContent, "Sorties");
   assert.equal(document.querySelector(".route-nav-drawer-title")?.textContent?.trim(), "Sorties depuis la zone active");
   assert.equal(refs.routeNavDrawerCloseButtonEl?.getAttribute("aria-label"), "Fermer les sorties");
@@ -104,4 +107,17 @@ test("mountRuntimeUi exposes collection search inputs for boxes and pokedex", ()
   assert.equal(refs.pokedexSearchInputEl?.id, "pokedex-search-input");
   assert.equal(refs.pokedexSearchInputEl?.getAttribute("placeholder"), "Nom ou n\u00b0 Pok\u00e9dex");
   assert.equal(refs.pokedexSearchInputEl?.getAttribute("aria-label"), "Rechercher dans le Pok\u00e9dex");
+});
+
+test("mountRuntimeUi exposes the dev level-all button contract", () => {
+  const document = createDocument();
+  const refs = mountRuntimeUi(document);
+
+  assert.equal(refs.devLevelAllButtonEl?.id, "dev-level-all-button");
+  assert.equal(refs.devLevelAllButtonEl?.textContent?.trim(), "+1 niv");
+  assert.equal(refs.devLevelAllButtonEl?.classList.contains("hidden"), true);
+  assert.equal(
+    refs.devLevelAllButtonEl?.getAttribute("aria-label"),
+    "Faire gagner un niveau a tous les Pokemon de l'equipe et des boites",
+  );
 });

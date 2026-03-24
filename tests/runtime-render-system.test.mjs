@@ -145,6 +145,22 @@ test("runtime render system owns projectile stamp caches and no longer depends o
   assert.doesNotMatch(source, /getProjectileSprite\(/);
 });
 
+test("runtime render system can override combat VFX with custom asset folders before procedural fallback", () => {
+  const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.ok(source.includes('const CUSTOM_VFX_ASSET_ROOT = "assets/vfx-custom";'));
+  assert.ok(source.includes("function getCustomProjectileSpriteOverride(typeName, variantIndex = 0)"));
+  assert.ok(source.includes("function getCustomProjectileTrailOverride(typeName, trailStampKind = \"\")"));
+  assert.ok(source.includes("function getCustomLaserBeamTexture(profile)"));
+  assert.ok(source.includes("${CUSTOM_VFX_ASSET_ROOT}/projectiles/${safeType}/variant-"));
+  assert.ok(source.includes("${CUSTOM_VFX_ASSET_ROOT}/projectile-trails/${safeType}/stamp"));
+  assert.ok(source.includes("${CUSTOM_VFX_ASSET_ROOT}/lasers/${safeType}/beam"));
+  assert.ok(source.includes("const customSprite = getCustomProjectileSpriteOverride(profile.type || typeName, safeVariant);"));
+  assert.ok(source.includes("const customStamp = getCustomProjectileTrailOverride(profile.type || typeName, profile.trailStampKind);"));
+  assert.ok(source.includes("const customPackedBeam = getCustomLaserBeamTexture(profile);"));
+  assert.ok(source.includes("if (usingCustomPackedBeam) {"));
+});
+
 test("runtime render system draws lasers above combat sprites with a contrast underlay", () => {
   const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
 

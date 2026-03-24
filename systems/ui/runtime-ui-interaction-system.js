@@ -125,7 +125,9 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "computeLayout",
   "computeStatsAtLevel",
   "createRuntimeConfigLoaders",
+  "ensureAppearanceEditorUnlockedFromProgress",
   "ensureVariantAppearanceAssetsLoaded",
+  "enqueueEvolutionReadyNotification",
   "escapeHtml",
   "formatCompactNumber",
   "formatTalentLabelFr",
@@ -245,6 +247,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "pokedexVirtualRowGapPx",
   "pokedexVirtualTopSpacerEl",
   "preloadSelectedAppearanceAssetsForTeam",
+  "queueTeamLevelUpEffects",
   "queueRoute1TutorialIfNeeded",
   "readCsvBooleanCell",
   "readCsvCell",
@@ -268,7 +271,9 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "resolveEntitySpriteDrawSource",
   "resolveSpriteAppearanceForEntity",
   "resolveTalentDefinition",
+  "findNextEligibleEvolution",
   "sanitizePokemonNickname",
+  "setEntityLevel",
   "setBallCaptureRulesForType",
   "setMapOpen",
   "setShopOpen",
@@ -411,7 +416,9 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     console,
     createRuntimeConfigLoaders,
     document,
+    ensureAppearanceEditorUnlockedFromProgress,
     ensureVariantAppearanceAssetsLoaded,
+    enqueueEvolutionReadyNotification,
     escapeHtml,
     fetch,
     formatCompactNumber,
@@ -534,6 +541,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     pokedexVirtualRowGapPx,
     pokedexVirtualTopSpacerEl,
     preloadSelectedAppearanceAssetsForTeam,
+    queueTeamLevelUpEffects,
     queueRoute1TutorialIfNeeded,
     readCsvBooleanCell,
     readCsvCell,
@@ -557,7 +565,9 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     resolveEntitySpriteDrawSource,
     resolveSpriteAppearanceForEntity,
     resolveTalentDefinition,
+    findNextEligibleEvolution,
     sanitizePokemonNickname,
+    setEntityLevel,
     setBallCaptureRulesForType,
     setMapOpen,
     setShopOpen,
@@ -567,6 +577,11 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     showModalWithTween,
     showPopupWithTween,
     showTooltipWithTween,
+    loadingScreenEl,
+    captureRootEl,
+    routeNavPanelEl,
+    routeNavInfoPanelEl,
+    mapConnectionsInfoPanelEl,
     starterModalEl,
     state,
     teamContextMenuAppearanceButtonEl,
@@ -1755,6 +1770,116 @@ function getTotalShinyCapturesGlobal() {
     total += Math.max(0, toSafeInt(record.captured_shiny, 0));
   }
   return total;
+}
+
+function levelUpAllOwnedPokemonFromDev() {
+  if (!state.saveData?.pokemon_entities || typeof state.saveData.pokemon_entities !== "object") {
+    setTopMessage("Boost dev: aucun Pokemon a monter.", 1700);
+    return { leveledCount: 0, queuedEvolutionCount: 0, teamLevelUps: [] };
+  }
+
+  const teamSlotIndexByPokemonId = new Map();
+  const teamIds = Array.isArray(state.saveData.team) ? state.saveData.team : [];
+  for (let slotIndex = 0; slotIndex < teamIds.length; slotIndex += 1) {
+    const pokemonId = Number(teamIds[slotIndex] || 0);
+    if (pokemonId > 0 && !teamSlotIndexByPokemonId.has(pokemonId)) {
+      teamSlotIndexByPokemonId.set(pokemonId, slotIndex);
+    }
+  }
+
+  let leveledCount = 0;
+  let queuedEvolutionCount = 0;
+  let unlockedAppearanceNow = false;
+  const teamLevelUps = [];
+
+  for (const [rawId, rawRecord] of Object.entries(state.saveData.pokemon_entities)) {
+    const pokemonId = Number(rawRecord?.id || rawId || 0);
+    if (pokemonId <= 0) {
+      continue;
+    }
+
+    const record = getPokemonEntityRecord(pokemonId) || rawRecord;
+    if (!record || !isEntityUnlocked(record)) {
+      continue;
+    }
+
+    const beforeLevel = clamp(toSafeInt(record.level, 1), 1, MAX_LEVEL);
+    if (beforeLevel >= MAX_LEVEL) {
+      continue;
+    }
+
+    const nextLevel = Math.min(MAX_LEVEL, beforeLevel + 1);
+    setEntityLevel(record, nextLevel);
+    leveledCount += 1;
+
+    if (beforeLevel < APPEARANCE_UNLOCK_LEVEL && nextLevel >= APPEARANCE_UNLOCK_LEVEL) {
+      unlockedAppearanceNow = true;
+    }
+
+    const slotIndex = teamSlotIndexByPokemonId.get(pokemonId);
+    if (slotIndex >= 0) {
+      teamLevelUps.push({
+        id: pokemonId,
+        nameFr: getPokemonDisplayNameById(pokemonId),
+        fromLevel: beforeLevel,
+        toLevel: nextLevel,
+        slotIndex,
+      });
+    }
+
+    const evolutionCandidate = findNextEligibleEvolution(record);
+    if (!evolutionCandidate) {
+      continue;
+    }
+    const fromNameFr = evolutionCandidate.fromDef?.nameFr || getPokemonDisplayNameById(evolutionCandidate.fromId);
+    const toNameFr = evolutionCandidate.toDef?.nameFr || getPokemonDisplayNameById(evolutionCandidate.toId);
+    const queuedId = enqueueEvolutionReadyNotification({
+      fromId: evolutionCandidate.fromId,
+      toId: evolutionCandidate.toId,
+      fromNameFr,
+      toNameFr,
+      teamSlotIndex: slotIndex ?? -1,
+    });
+    if (queuedId) {
+      queuedEvolutionCount += 1;
+    }
+  }
+
+  if (leveledCount <= 0) {
+    setTopMessage("Boost dev: tous les Pokemon sont deja au niveau max.", 1800);
+    return { leveledCount: 0, queuedEvolutionCount: 0, teamLevelUps: [] };
+  }
+
+  if (unlockedAppearanceNow) {
+    ensureAppearanceEditorUnlockedFromProgress();
+  }
+  if (teamLevelUps.length > 0) {
+    queueTeamLevelUpEffects(teamLevelUps);
+  }
+
+  rebuildTeamAndSyncBattle();
+  if (!state.simulationIdleMode) {
+    updateHud();
+  }
+  if (state.ui?.boxesOpen) {
+    renderBoxesGrid();
+  }
+  if (state.ui?.pokedexOpen) {
+    renderPokedexGrid();
+  }
+  persistSaveData();
+  render();
+
+  const evolutionSuffix = queuedEvolutionCount > 0
+    ? ` ${queuedEvolutionCount} evolution${queuedEvolutionCount > 1 ? "s" : ""} prete${queuedEvolutionCount > 1 ? "s" : ""}.`
+    : "";
+  setTopMessage(`Boost dev: +1 niveau pour ${leveledCount} Pokemon.${evolutionSuffix}`, 2200);
+
+  return {
+    leveledCount,
+    queuedEvolutionCount,
+    teamLevelUps,
+  };
 }
 
 function sanitizeCollectionSearchQuery(value) {
@@ -4240,6 +4365,36 @@ function handleWindowPointerUpOutsideCanvas(event) {
   }
 }
 
+function isElementClassVisible(element) {
+  if (!element?.classList) {
+    return false;
+  }
+  return !element.classList.contains("hidden") && !element.classList.contains("is-hidden");
+}
+
+function getLoadingOverlayVisible() {
+  if (!loadingScreenEl?.classList) {
+    return false;
+  }
+  if (loadingScreenEl.classList.contains("is-hidden")) {
+    return false;
+  }
+  return loadingScreenEl.classList.contains("is-visible") || loadingScreenEl.classList.contains("is-exiting");
+}
+
+function getBootPhaseState() {
+  if (state.mode === "error") {
+    return "failed";
+  }
+  if (state.mode === "ready") {
+    return getLoadingOverlayVisible() ? "loading_runtime" : "ready";
+  }
+  if (state.mode === "loading") {
+    return "loading_runtime";
+  }
+  return "booting";
+}
+
 function exportTextState() {
   const layout = state.layout || computeLayout();
   const battle = state.battle;
@@ -4303,6 +4458,25 @@ function exportTextState() {
     ? null
     : (layout?.viewportProfile?.phone ? "mobile_right_column" : "desktop_bottom_row");
   const activeDialogueId = state.ui.dialogueOpen ? String(state.dialogue?.active?.dialogueId || "") : "";
+  const loadingOverlayVisible = getLoadingOverlayVisible();
+  const starterModalVisible = isElementClassVisible(starterModalEl);
+  const bootPhase = getBootPhaseState();
+  const routeNavInfoOpen = isElementClassVisible(routeNavInfoPanelEl);
+  const mapRouteInfoOpen = isElementClassVisible(mapConnectionsInfoPanelEl);
+  const unlockedRouteIds = state.saveData ? getOrderedUnlockedRouteIds() : [DEFAULT_ROUTE_ID];
+  const lockedConnectedRouteIds = connectedRouteIds.filter((routeId) => !unlockedRouteIds.includes(routeId));
+  const routeNavState = {
+    hasDestinations: connectedRouteIds.length > 0,
+    hasBlockedDestinations: lockedConnectedRouteIds.length > 0,
+    hasInfoPanelTarget: lockedConnectedRouteIds.length > 0,
+    drawerOpen: Boolean(state.ui.routeNavDrawerOpen),
+    infoPanelOpen: routeNavInfoOpen || mapRouteInfoOpen,
+    selectedInfoRouteId: String(state.ui.routeNavInfoRouteId || "").trim() || null,
+  };
+  const visualReady = bootPhase === "ready"
+    && !loadingOverlayVisible
+    && Boolean(captureRootEl)
+    && (Boolean(routeNavPanelEl) || starterModalVisible);
 
   const team = state.team.map((member, index) => {
     const slot = layout.teamSlots[index];
@@ -4357,6 +4531,9 @@ function exportTextState() {
     app_version: DISPLAY_APP_VERSION,
     app_build_version: APP_VERSION,
     mode: state.mode,
+    boot_phase: bootPhase,
+    loading_overlay_visible: loadingOverlayVisible,
+    visual_ready: visualReady,
     debug_force_ultra_shiny_all_pokemon: shouldForceUltraShinyAllPokemon(),
     coordinate_system: {
       origin: "top-left",
@@ -4445,7 +4622,7 @@ function exportTextState() {
     local_time_of_day: environmentSnapshot?.timeOfDayTag || "night",
     daylight_factor: Math.round(clamp(Number(environmentSnapshot?.dayLight) || 0, 0, 1) * 1000) / 1000,
     night_factor: Math.round(clamp(Number(environmentSnapshot?.night) || 0, 0, 1) * 1000) / 1000,
-    unlocked_route_ids: state.saveData ? getOrderedUnlockedRouteIds() : [DEFAULT_ROUTE_ID],
+    unlocked_route_ids: unlockedRouteIds,
     route_unlock_mode: unlockMode,
     route_unlock_progress_current: routeProgressState.currentDefeats,
     route_unlock_target: unlockTarget,
@@ -4462,13 +4639,14 @@ function exportTextState() {
       requires_flags_all: Array.isArray(entry?.requires_flags_all) ? entry.requires_flags_all : [],
       requires_flags_any: Array.isArray(entry?.requires_flags_any) ? entry.requires_flags_any : [],
     })),
+    route_nav_state: routeNavState,
     route_access_flags: normalizeFlagIdList(state.saveData?.zone_flags),
     town_layout_mode: townLayoutMode,
     next_route_id: nextRouteId,
     next_route_name_fr: nextRouteId ? getRouteDisplayName(nextRouteId) : null,
     active_dialogue_id: activeDialogueId || null,
     seen_dialogue_ids: normalizeFlagIdList(state.saveData?.seen_dialogue_ids),
-    starter_modal_visible: !starterModalEl.classList.contains("hidden"),
+    starter_modal_visible: starterModalVisible,
     hover_popup_visible: !hoverPopupEl.classList.contains("hidden"),
     hovered_team_slot_index: toSafeInt(state.ui.hoveredTeamSlotIndex, -1),
     team_drag_active: Boolean(state.ui.teamDragActive),
@@ -5389,6 +5567,7 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
     openTeamContextMenu,
     getTeamSlotLabel,
     getPokemonDisplayNameById,
+    levelUpAllOwnedPokemonFromDev,
     findTeamFamilyConflictSlotIndex,
     getCapturedEntityBoxesEntries,
     getCapturedEntityCount,

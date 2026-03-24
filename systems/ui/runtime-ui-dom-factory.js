@@ -71,13 +71,29 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             <header class="ui-topbar">
               <div class="route-nav-wrap">
                 <section id="route-nav-panel" class="route-nav" aria-label="Navigation des zones">
-                  <div class="route-nav-header">
-                    <div class="route-nav-identity">
-                      <span id="route-nav-zone-type" class="route-nav-zone-type">Route</span>
-                      <span id="route-nav-region" class="route-nav-region">Kanto</span>
+                  <div class="route-nav-summary-panel">
+                    <div class="route-nav-header">
+                      <div class="route-nav-identity">
+                        <span id="route-nav-zone-type" class="route-nav-zone-type">Route</span>
+                        <span id="route-nav-region" class="route-nav-region">Kanto</span>
+                      </div>
+                      <div class="route-nav-actions">
+                        <span class="route-nav-hint">F plein &eacute;cran</span>
+                      </div>
                     </div>
-                    <div class="route-nav-actions">
-                      <span class="route-nav-hint">F plein &eacute;cran</span>
+                    <div class="route-nav-summary-copy">
+                      <span class="route-nav-section-label">Zone active</span>
+                      <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
+                    </div>
+                    <div id="route-nav-badges" class="route-nav-badges" aria-live="polite"></div>
+                    <div id="route-nav-progress-chips" class="route-nav-progress-chips" aria-live="polite"></div>
+                  </div>
+                  <div class="route-nav-exits-panel">
+                    <div class="route-nav-destinations-header">
+                      <div class="route-nav-destinations-copy">
+                        <span class="route-nav-section-label">Sorties connect&eacute;es</span>
+                        <span class="route-nav-section-copy">Choisis ta prochaine zone.</span>
+                      </div>
                       <button
                         id="route-nav-drawer-toggle"
                         class="route-nav-drawer-toggle"
@@ -89,26 +105,23 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                         <span id="route-nav-drawer-toggle-count" class="route-nav-drawer-toggle-count">0</span>
                       </button>
                     </div>
-                  </div>
-                  <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
-                  <div id="route-nav-badges" class="route-nav-badges" aria-live="polite"></div>
-                  <div id="route-nav-progress-chips" class="route-nav-progress-chips" aria-live="polite"></div>
-                  <div id="route-nav-destinations" class="route-nav-destinations" aria-live="polite"></div>
-                  <div id="route-nav-drawer" class="route-nav-drawer hidden" aria-label="Sorties connect&eacute;es">
-                    <div class="route-nav-drawer-header">
-                      <span class="route-nav-drawer-title">Sorties depuis la zone active</span>
-                      <button
-                        id="route-nav-drawer-close"
-                        class="route-nav-drawer-close"
-                        type="button"
-                        aria-label="Fermer les sorties"
-                      >
-                        Fermer
-                      </button>
+                    <div id="route-nav-destinations" class="route-nav-destinations" aria-live="polite"></div>
+                    <div id="route-nav-drawer" class="route-nav-drawer hidden" aria-label="Sorties connect&eacute;es">
+                      <div class="route-nav-drawer-header">
+                        <span class="route-nav-drawer-title">Sorties depuis la zone active</span>
+                        <button
+                          id="route-nav-drawer-close"
+                          class="route-nav-drawer-close"
+                          type="button"
+                          aria-label="Fermer les sorties"
+                        >
+                          Fermer
+                        </button>
+                      </div>
+                      <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
                     </div>
-                    <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
+                    <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
                   </div>
-                  <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
                 </section>
               </div>
 
@@ -696,6 +709,15 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       </div>
     </section>
     <aside id="notification-stack" class="notification-stack" aria-live="polite" aria-label="Notifications du jeu"></aside>
+    <button
+      id="dev-level-all-button"
+      class="dev-level-all-button hidden"
+      type="button"
+      aria-label="Faire gagner un niveau a tous les Pokemon de l'equipe et des boites"
+      title="Faire gagner un niveau a tous les Pokemon de l'equipe et des boites"
+    >
+      +1 niv
+    </button>
     <aside
       id="background-runtime-debug-overlay"
       class="background-runtime-debug-overlay hidden"
@@ -851,6 +873,7 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   appearanceShinyStatusEl: "appearance-shiny-status",
   appearanceGridEl: "appearance-grid",
   notificationStackEl: "notification-stack",
+  devLevelAllButtonEl: "dev-level-all-button",
   backgroundRuntimeDebugOverlayEl: "background-runtime-debug-overlay",
   tutorialModalEl: "tutorial-modal",
   tutorialTitleEl: "tutorial-title",
@@ -1007,6 +1030,7 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "appearance-shiny-status",
   "appearance-grid",
   "notification-stack",
+  "dev-level-all-button",
   "background-runtime-debug-overlay",
   "tutorial-modal",
   "tutorial-title",

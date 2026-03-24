@@ -124,6 +124,7 @@ export function createRuntimeInputSystem({
   const advanceActiveDialogue = asFunction(actions.advanceActiveDialogue);
   const chooseActiveDialogueChoice = asFunction(actions.chooseActiveDialogueChoice);
   const triggerZoneAction = asFunction(actions.triggerZoneAction);
+  const levelUpAllOwnedPokemonFromDev = asFunction(actions.levelUpAllOwnedPokemonFromDev);
 
   const ElementCtor = typeof Element !== "undefined" ? Element : null;
   const HTMLElementCtor = typeof HTMLElement !== "undefined" ? HTMLElement : null;
@@ -214,6 +215,7 @@ export function createRuntimeInputSystem({
       appearanceCloseButtonEl = null,
       appearanceShinyToggleButtonEl = null,
       appearanceUltraShinyToggleButtonEl = null,
+      devLevelAllButtonEl = null,
       tutorialPrevButtonEl = null,
       tutorialNextButtonEl = null,
       tutorialCloseButtonEl = null,
@@ -594,6 +596,9 @@ export function createRuntimeInputSystem({
     register(appearanceCloseButtonEl, "click", () => closeAppearanceModal());
     register(appearanceShinyToggleButtonEl, "click", () => toggleAppearanceShinyMode());
     register(appearanceUltraShinyToggleButtonEl, "click", () => toggleAppearanceUltraShinyMode());
+    register(devLevelAllButtonEl, "click", () => {
+      levelUpAllOwnedPokemonFromDev();
+    });
     register(tutorialPrevButtonEl, "click", () => {
       if (!state?.ui?.tutorialOpen || !state?.tutorial?.active) {
         return;

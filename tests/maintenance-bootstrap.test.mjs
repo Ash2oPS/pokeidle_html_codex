@@ -142,6 +142,9 @@ test("bootstrapGame stops before vendors/runtime when production maintenance is 
   assert.equal(loadingText.textContent, maintenanceMessage);
   assert.deepEqual(JSON.parse(dom.window.render_game_to_text()), {
     mode: "maintenance",
+    boot_phase: "maintenance",
+    loading_overlay_visible: true,
+    visual_ready: true,
     message: maintenanceMessage,
   });
 });
