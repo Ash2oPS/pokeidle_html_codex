@@ -13,6 +13,8 @@ test("loadStepsFromSource accepts object payloads with steps", () => {
         { waitMs: 250 },
         { clickSelector: "#map-btn" },
         { setScrollTop: { selector: "#pokedex-grid", top: 1500 } },
+        { evaluate: { expression: "return arg;", arg: { ok: true } } },
+        { dispatch: { target: "document", type: "pokeidle:test" } },
       ],
     }),
   );
@@ -21,6 +23,8 @@ test("loadStepsFromSource accepts object payloads with steps", () => {
     { waitMs: 250 },
     { clickSelector: "#map-btn" },
     { setScrollTop: { selector: "#pokedex-grid", top: 1500 } },
+    { evaluate: { expression: "return arg;", arg: { ok: true } } },
+    { dispatch: { target: "document", type: "pokeidle:test" } },
   ]);
 });
 

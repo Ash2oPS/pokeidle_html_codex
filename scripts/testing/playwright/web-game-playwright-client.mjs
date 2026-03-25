@@ -543,6 +543,119 @@ async function setSelectorScrollTop(page, selector, top, options = {}) {
   });
 }
 
+function normalizeEvaluateDescriptor(descriptor) {
+  if (typeof descriptor === "string") {
+    return {
+      expression: descriptor,
+      arg: null,
+    };
+  }
+  if (descriptor && typeof descriptor === "object") {
+    return {
+      expression: String(descriptor.expression || ""),
+      arg: Object.prototype.hasOwnProperty.call(descriptor, "arg") ? descriptor.arg : null,
+    };
+  }
+  return {
+    expression: "",
+    arg: null,
+  };
+}
+
+async function evaluateDirectiveStep(page, descriptor) {
+  const normalized = normalizeEvaluateDescriptor(descriptor);
+  const expression = String(normalized.expression || "").trim();
+  if (!expression) {
+    return null;
+  }
+  return page.evaluate(async ({ nextExpression, arg }) => {
+    const runner = new Function(
+      "arg",
+      `return (async () => {\n${nextExpression}\n})();`,
+    );
+    return runner(arg);
+  }, {
+    nextExpression: expression,
+    arg: normalized.arg,
+  });
+}
+
+function inferDispatchEventClassName(type, explicitClassName = "") {
+  const provided = String(explicitClassName || "").trim();
+  if (provided) {
+    return provided;
+  }
+  const normalizedType = String(type || "").trim().toLowerCase();
+  if (normalizedType.startsWith("pointer")) {
+    return "PointerEvent";
+  }
+  if (
+    normalizedType.startsWith("mouse")
+    || normalizedType === "click"
+    || normalizedType === "dblclick"
+    || normalizedType === "contextmenu"
+  ) {
+    return "MouseEvent";
+  }
+  if (normalizedType.startsWith("key")) {
+    return "KeyboardEvent";
+  }
+  if (normalizedType.startsWith("touch")) {
+    return "TouchEvent";
+  }
+  if (normalizedType === "focus" || normalizedType === "blur") {
+    return "FocusEvent";
+  }
+  return "Event";
+}
+
+async function dispatchDirectiveStep(page, descriptor) {
+  if (!descriptor || typeof descriptor !== "object") {
+    return null;
+  }
+  const type = String(descriptor.type || "").trim();
+  if (!type) {
+    return null;
+  }
+  const selector = descriptor.selector ? String(descriptor.selector) : "";
+  const target = descriptor.target ? String(descriptor.target) : "";
+  const eventClass = inferDispatchEventClassName(type, descriptor.eventClass);
+  const init = descriptor.init && typeof descriptor.init === "object" ? descriptor.init : {};
+  return page.evaluate(({ selector: query, target: rawTarget, type: eventType, eventClass: eventClassName, init: eventInit }) => {
+    const resolveTarget = () => {
+      if (query) {
+        return document.querySelector(query);
+      }
+      if (rawTarget === "window") {
+        return window;
+      }
+      if (rawTarget === "document" || !rawTarget) {
+        return document;
+      }
+      return document.querySelector(rawTarget);
+    };
+    const eventTarget = resolveTarget();
+    if (!(eventTarget instanceof EventTarget)) {
+      throw new Error(`Unable to resolve dispatch target for ${eventType}`);
+    }
+    const ctor = typeof window[eventClassName] === "function" ? window[eventClassName] : window.Event;
+    const mergedInit = {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      ...eventInit,
+    };
+    const event = new ctor(eventType, mergedInit);
+    return eventTarget.dispatchEvent(event);
+  }, {
+    selector,
+    target,
+    type,
+    eventClass,
+    init,
+  });
+}
+
 async function executeDirectiveStep(page, canvas, step, options = {}) {
   let matchedStateText = null;
   if (step.skipUnlessState) {
@@ -618,6 +731,14 @@ async function executeDirectiveStep(page, canvas, step, options = {}) {
         waitState: step.setScrollTop.waitState,
       },
     );
+  }
+
+  if (step.evaluate) {
+    await evaluateDirectiveStep(page, step.evaluate);
+  }
+
+  if (step.dispatch) {
+    await dispatchDirectiveStep(page, step.dispatch);
   }
 
   if (step.buttons || Number.isFinite(step.frames)) {

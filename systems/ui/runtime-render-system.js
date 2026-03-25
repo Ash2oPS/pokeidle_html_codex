@@ -5,6 +5,7 @@ import {
   resolveProductLayoutMode,
 } from '../../lib/runtime-stage-layout.js';
 import { COMBAT_VFX_CONFIG } from '../../lib/combat-balance-config.js';
+import { ZONE_UI_CANVAS_THEME } from '../../lib/gameplay-ui-config.js';
 import {
   getLaserTypeVfxProfile,
   getProjectileTrailTypeVfxProfile as getSharedProjectileTrailTypeVfxProfile,
@@ -2653,7 +2654,7 @@ function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
 
   ctx.save();
   while (size > minSize) {
-    ctx.font = `700 ${size}px Tahoma`;
+    ctx.font = `700 ${size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
     measuredWidth = Math.ceil(ctx.measureText(safeText).width);
     if (measuredWidth <= safeMaxWidth) {
       break;
@@ -2661,7 +2662,7 @@ function getFittedFontMetrics(text, maxWidth, baseSize, minSize = 9) {
     size -= 1;
   }
   if (measuredWidth <= 0) {
-    ctx.font = `700 ${size}px Tahoma`;
+    ctx.font = `700 ${size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
     measuredWidth = Math.ceil(ctx.measureText(safeText).width);
   }
   ctx.restore();
@@ -2893,10 +2894,11 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     if (options.card !== false) {
       drawRetroHudPanel(x, y, cardWidth, cardHeight, {
         cut: 14,
-        fillTop: "rgba(28, 39, 58, 0.995)",
-        fillBottom: "rgba(13, 21, 35, 0.995)",
-        border: "rgba(82, 109, 143, 0.94)",
-        highlight: "rgba(157, 186, 219, 0.2)",
+        fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+        fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+        fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+        border: ZONE_UI_CANVAS_THEME.panel.border,
+        highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
         shadow: "rgba(0, 0, 0, 0.44)",
         borderWidth: 2,
       });
@@ -2915,8 +2917,8 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
 
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
-    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
-    ctx.fillStyle = "#eef6ff";
+    ctx.font = `700 ${nameMetrics.size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.panel.text;
     const nameX = contentStartX + leftBadgeWidth + badgeNameGap;
     const nameTextMaxWidth = Math.max(
       22,
@@ -2926,8 +2928,8 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     ctx.fillText(nameText, nameX, midY);
 
     ctx.textAlign = "right";
-    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
-    ctx.fillStyle = "#b8cee5";
+    ctx.font = `700 ${levelMetrics.size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.panel.textSoft;
     ctx.fillText(levelText, x + cardWidth - horizontalPadding, midY);
   } else {
     const horizontalPadding = 8;
@@ -2950,10 +2952,11 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     if (options.card !== false) {
       drawRetroHudPanel(x, y, cardWidth, cardHeight, {
         cut: 10,
-        fillTop: "rgba(26, 37, 56, 0.995)",
-        fillBottom: "rgba(12, 20, 33, 0.995)",
-        border: "rgba(78, 106, 140, 0.9)",
-        highlight: "rgba(154, 184, 218, 0.18)",
+        fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+        fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+        fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+        border: ZONE_UI_CANVAS_THEME.subpanel.border,
+        highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
         shadow: "rgba(0, 0, 0, 0.44)",
         borderWidth: 1.4,
       });
@@ -2963,13 +2966,13 @@ function drawNameAndLevel(entity, centerX, topY, options = {}) {
     ctx.textBaseline = "alphabetic";
 
     const nameBaseline = y + verticalPadding + nameMetrics.size;
-    ctx.font = `700 ${nameMetrics.size}px Tahoma`;
-    ctx.fillStyle = "#e8f2ff";
+    ctx.font = `700 ${nameMetrics.size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.panel.text;
     ctx.fillText(entity.nameFr, cardCenterX, nameBaseline);
 
     const levelBaseline = nameBaseline + lineGap + levelMetrics.size;
-    ctx.font = `700 ${levelMetrics.size}px Tahoma`;
-    ctx.fillStyle = "#b2cae3";
+    ctx.font = `700 ${levelMetrics.size}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.panel.textSoft;
     ctx.fillText(levelText, cardCenterX, levelBaseline);
   }
   ctx.restore();
@@ -3020,24 +3023,12 @@ function getEnemyHpDisplayRatios(enemy, targetRatio) {
 
 function getEnemyHpPalette(ratio) {
   if (ratio >= 0.55) {
-    return {
-      start: "rgba(112, 188, 82, 0.99)",
-      end: "rgba(149, 208, 95, 0.99)",
-      glow: "rgba(172, 224, 123, 0.34)",
-    };
+    return ZONE_UI_CANVAS_THEME.hp.healthy;
   }
   if (ratio >= 0.25) {
-    return {
-      start: "rgba(219, 165, 51, 0.99)",
-      end: "rgba(240, 193, 77, 0.99)",
-      glow: "rgba(255, 222, 140, 0.34)",
-    };
+    return ZONE_UI_CANVAS_THEME.hp.warning;
   }
-  return {
-    start: "rgba(197, 98, 77, 0.99)",
-    end: "rgba(225, 129, 95, 0.99)",
-    glow: "rgba(239, 162, 122, 0.32)",
-  };
+  return ZONE_UI_CANVAS_THEME.hp.danger;
 }
 
 function parseRgbaColor(colorText, fallback = { r: 255, g: 255, b: 255, a: 1 }) {
@@ -3100,27 +3091,29 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
 
   ctx.save();
   ctx.globalAlpha = Number.isFinite(options.alpha) ? options.alpha : 1;
-  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px Tahoma`;
+  ctx.font = `700 ${Math.max(8, Math.round(panelHeight * 0.38))}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   const trackX = chipX + chipWidth + 8;
   const trackWidth = Math.max(50, panelX + panelWidth - trackX - 8);
   const trackRadius = Math.max(2, height * 0.32);
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
     cut: 14,
-    fillTop: "rgba(44, 60, 84, 0.99)",
-    fillBottom: "rgba(25, 36, 54, 0.99)",
-    border: "rgba(102, 129, 161, 0.98)",
-    highlight: "rgba(188, 212, 237, 0.3)",
-    shadow: "rgba(0, 0, 0, 0.36)",
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
     borderWidth: 2,
   });
 
   drawRetroHudPanel(chipX, chipY, chipWidth, chipHeight, {
     cut: 6,
-    fillTop: "rgba(243, 182, 84, 0.99)",
-    fillBottom: "rgba(192, 117, 47, 0.99)",
-    border: "rgba(151, 96, 40, 0.96)",
-    highlight: "rgba(255, 232, 167, 0.56)",
+    fillTop: ZONE_UI_CANVAS_THEME.goldChip.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.goldChip.fillTop,
+    fillBottom: ZONE_UI_CANVAS_THEME.goldChip.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.goldChip.border,
+    highlight: ZONE_UI_CANVAS_THEME.goldChip.highlight,
     shadow: "rgba(0, 0, 0, 0)",
     shadowOffsetY: 0,
     borderWidth: 1.2,
@@ -3128,17 +3121,17 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `700 ${Math.max(9, Math.round(chipHeight * 0.45))}px Tahoma`;
-  ctx.fillStyle = "#fff9ef";
+  ctx.font = `700 ${Math.max(9, Math.round(chipHeight * 0.45))}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  ctx.fillStyle = ZONE_UI_CANVAS_THEME.goldChip.text;
   ctx.fillText("HP", chipX + chipWidth * 0.5 - 0.5, chipY + chipHeight * 0.56);
 
-  ctx.fillStyle = "rgba(82, 95, 116, 0.98)";
+  ctx.fillStyle = ZONE_UI_CANVAS_THEME.hp.track;
   ctx.beginPath();
   ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
   ctx.fill();
 
   if (lagRatio > 0.001) {
-    ctx.fillStyle = "rgba(134, 121, 98, 0.68)";
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.hp.lag;
     ctx.beginPath();
     ctx.roundRect(trackX, trackY, trackWidth * lagRatio, height, trackRadius);
     ctx.fill();
@@ -3163,7 +3156,7 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
     ctx.globalCompositeOperation = "source-over";
   }
 
-  ctx.strokeStyle = "rgba(81, 89, 105, 0.96)";
+  ctx.strokeStyle = ZONE_UI_CANVAS_THEME.hp.trackBorder;
   ctx.lineWidth = 1.2;
   ctx.beginPath();
   ctx.roundRect(trackX, trackY, trackWidth, height, trackRadius);
@@ -3173,16 +3166,16 @@ function drawEnemyHpBar(enemy, centerX, topY, width, height, options = {}) {
   ctx.textBaseline = "middle";
   const hpTextMinSize = 9;
   let hpTextSize = Math.max(hpTextMinSize, Math.round(panelHeight * 0.5));
-  ctx.font = `700 ${hpTextSize}px Tahoma`;
+  ctx.font = `700 ${hpTextSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   const maxHpLabelWidth = Math.max(24, trackWidth - 10);
   while (hpTextSize > hpTextMinSize && ctx.measureText(hpLabel).width > maxHpLabelWidth) {
     hpTextSize -= 1;
-    ctx.font = `700 ${hpTextSize}px Tahoma`;
+    ctx.font = `700 ${hpTextSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   }
   const labelX = trackX + trackWidth * 0.5;
   const labelY = trackY + height * 0.52;
   const filledWidth = trackWidth * frontRatio;
-  const trackBaseColor = { r: 82, g: 95, b: 116, a: 1 };
+  const trackBaseColor = parseRgbaColor(ZONE_UI_CANVAS_THEME.hp.track, { r: 82, g: 95, b: 116, a: 1 });
   const emptyTextStyle = pickContrastingHudTextColor(trackBaseColor);
 
   let fillTextStyle = emptyTextStyle;
@@ -3293,21 +3286,21 @@ function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
   const radius = Math.max(2, height * 0.45);
 
   ctx.save();
-  ctx.fillStyle = "rgba(19, 29, 44, 0.72)";
+  ctx.fillStyle = "rgba(12, 22, 34, 0.74)";
   ctx.beginPath();
   ctx.roundRect(x - 1.5, y - 1.5, width + 3, height + 3, radius + 1);
   ctx.fill();
 
   const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
-  trackGradient.addColorStop(0, "rgba(55, 75, 103, 0.98)");
-  trackGradient.addColorStop(1, "rgba(36, 52, 73, 0.98)");
+  trackGradient.addColorStop(0, ZONE_UI_CANVAS_THEME.xp.trackTop);
+  trackGradient.addColorStop(1, ZONE_UI_CANVAS_THEME.xp.trackBottom);
   ctx.fillStyle = trackGradient;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
   ctx.fill();
 
   if (display.lag > 0.001) {
-    ctx.fillStyle = "rgba(95, 129, 167, 0.5)";
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.xp.lag;
     ctx.beginPath();
     ctx.roundRect(x, y, width * display.lag, height, radius);
     ctx.fill();
@@ -3315,8 +3308,8 @@ function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
 
   if (display.front > 0.001) {
     const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
-    fillGradient.addColorStop(0, "rgba(98, 156, 210, 0.99)");
-    fillGradient.addColorStop(1, "rgba(137, 191, 235, 0.99)");
+    fillGradient.addColorStop(0, ZONE_UI_CANVAS_THEME.xp.fillStart);
+    fillGradient.addColorStop(1, ZONE_UI_CANVAS_THEME.xp.fillEnd);
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
     ctx.roundRect(x, y, width * display.front, height, radius);
@@ -3326,7 +3319,7 @@ function drawTeamXpBar(member, slotIndex, centerX, topY, options = {}) {
     ctx.fillRect(x + 1, y + 1, Math.max(0, width * display.front - 2), Math.max(1, height * 0.3));
   }
 
-  ctx.strokeStyle = "rgba(129, 163, 201, 0.78)";
+  ctx.strokeStyle = ZONE_UI_CANVAS_THEME.xp.border;
   ctx.lineWidth = 1.1;
   ctx.beginPath();
   ctx.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, radius + 0.5);
@@ -3396,17 +3389,18 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   ctx.globalAlpha = 0.94;
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
     cut: 10,
-    fillTop: "rgba(44, 60, 83, 0.99)",
-    fillBottom: "rgba(26, 37, 54, 0.99)",
-    border: "rgba(101, 128, 160, 0.98)",
-    highlight: "rgba(183, 208, 235, 0.24)",
-    shadow: "rgba(0, 0, 0, 0.34)",
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
     borderWidth: 1.7,
   });
 
   const trackGradient = ctx.createLinearGradient(x, y, x, y + height);
-  trackGradient.addColorStop(0, "rgba(81, 95, 115, 0.98)");
-  trackGradient.addColorStop(1, "rgba(57, 69, 86, 0.98)");
+  trackGradient.addColorStop(0, ZONE_UI_CANVAS_THEME.timer.trackTop);
+  trackGradient.addColorStop(1, ZONE_UI_CANVAS_THEME.timer.trackBottom);
   ctx.fillStyle = trackGradient;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
@@ -3415,13 +3409,13 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   if (ratio > 0.001) {
     const fillGradient = ctx.createLinearGradient(x, y, x + width, y);
     if (isOnlyOneTimer) {
-      fillGradient.addColorStop(0, "rgba(197, 126, 255, 0.99)");
-      fillGradient.addColorStop(0.48, "rgba(162, 95, 237, 0.99)");
-      fillGradient.addColorStop(1, "rgba(127, 63, 212, 0.99)");
+      fillGradient.addColorStop(0, ZONE_UI_CANVAS_THEME.timer.onlyOne.start);
+      fillGradient.addColorStop(0.48, ZONE_UI_CANVAS_THEME.timer.onlyOne.mid);
+      fillGradient.addColorStop(1, ZONE_UI_CANVAS_THEME.timer.onlyOne.end);
     } else {
-      fillGradient.addColorStop(0, "rgba(242, 181, 79, 0.98)");
-      fillGradient.addColorStop(0.48, "rgba(219, 121, 59, 0.98)");
-      fillGradient.addColorStop(1, "rgba(188, 77, 63, 0.98)");
+      fillGradient.addColorStop(0, ZONE_UI_CANVAS_THEME.timer.standard.start);
+      fillGradient.addColorStop(0.48, ZONE_UI_CANVAS_THEME.timer.standard.mid);
+      fillGradient.addColorStop(1, ZONE_UI_CANVAS_THEME.timer.standard.end);
     }
     ctx.fillStyle = fillGradient;
     ctx.beginPath();
@@ -3429,14 +3423,14 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
     ctx.fill();
 
     ctx.fillStyle = isOnlyOneTimer
-      ? `rgba(240, 220, 255, ${(0.12 + pulse).toFixed(3)})`
-      : `rgba(255, 246, 219, ${(0.12 + pulse).toFixed(3)})`;
+      ? ZONE_UI_CANVAS_THEME.timer.onlyOne.sheen.replace("0.2", (0.12 + pulse).toFixed(3))
+      : ZONE_UI_CANVAS_THEME.timer.standard.sheen.replace("0.18", (0.12 + pulse).toFixed(3));
     ctx.fillRect(x + 1, y + 1, Math.max(0, width * ratio - 2), Math.max(1, height * 0.32));
   }
 
   ctx.strokeStyle = isOnlyOneTimer
-    ? `rgba(183, 146, 255, ${(0.62 + pulse * 0.4).toFixed(3)})`
-    : `rgba(141, 171, 205, ${(0.62 + pulse * 0.4).toFixed(3)})`;
+    ? ZONE_UI_CANVAS_THEME.timer.onlyOne.stroke.replace("0.82", (0.62 + pulse * 0.4).toFixed(3))
+    : ZONE_UI_CANVAS_THEME.timer.standard.stroke.replace("0.82", (0.62 + pulse * 0.4).toFixed(3));
   ctx.lineWidth = 1.15;
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, radius);
@@ -3445,12 +3439,16 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
   const timerTextSize = compactHud
     ? Math.max(8, Math.min(12, Math.round(height * 0.64)))
     : Math.max(10, Math.min(15, Math.round(height * 0.7)));
-  ctx.font = `700 ${timerTextSize}px Tahoma`;
+  ctx.font = `700 ${timerTextSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.lineWidth = 2.6;
-  ctx.strokeStyle = isOnlyOneTimer ? "rgba(52, 20, 84, 0.82)" : "rgba(45, 22, 18, 0.82)";
-  ctx.fillStyle = "rgba(255, 250, 242, 0.96)";
+  ctx.strokeStyle = isOnlyOneTimer
+    ? ZONE_UI_CANVAS_THEME.timer.onlyOne.textStroke
+    : ZONE_UI_CANVAS_THEME.timer.standard.textStroke;
+  ctx.fillStyle = isOnlyOneTimer
+    ? ZONE_UI_CANVAS_THEME.timer.onlyOne.textFill
+    : ZONE_UI_CANVAS_THEME.timer.standard.textFill;
   ctx.strokeText(timerText, x + width * 0.5, y + height * 0.5);
   ctx.fillText(timerText, x + width * 0.5, y + height * 0.5);
 
@@ -3459,12 +3457,12 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
       ? Math.max(8, Math.min(11, Math.round(height * 0.58)))
       : Math.max(10, Math.min(14, Math.round(height * 0.64)));
     const counterY = y + height + (compactHud ? 4 : 6);
-    ctx.font = `700 ${counterTextSize}px Tahoma`;
+    ctx.font = `700 ${counterTextSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     ctx.lineWidth = 2.8;
-    ctx.strokeStyle = "rgba(14, 20, 30, 0.74)";
-    ctx.fillStyle = "rgba(236, 244, 252, 0.98)";
+    ctx.strokeStyle = ZONE_UI_CANVAS_THEME.timer.counterStroke;
+    ctx.fillStyle = ZONE_UI_CANVAS_THEME.timer.counterFill;
     ctx.strokeText(defeatCounterText, x + width * 0.5, counterY);
     ctx.fillText(defeatCounterText, x + width * 0.5, counterY);
   }
@@ -6607,7 +6605,7 @@ function drawBallInventoryOverlay(layout) {
   const rightInset = isPhone ? 6 : compact ? 8 : 12;
 
   ctx.save();
-  ctx.font = `800 ${valueFontSize}px Tahoma`;
+  ctx.font = `800 ${valueFontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
 
@@ -6630,11 +6628,12 @@ function drawBallInventoryOverlay(layout) {
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {
     cut: compact ? 8 : 10,
-    fillTop: "rgba(36, 51, 72, 0.92)",
-    fillBottom: "rgba(20, 31, 47, 0.92)",
-    border: "rgba(142, 176, 210, 0.88)",
-    highlight: "rgba(198, 223, 248, 0.22)",
-    shadow: "rgba(0, 0, 0, 0.34)",
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
     borderWidth: 1.3,
   });
 
@@ -6667,6 +6666,7 @@ function drawBallInventoryOverlay(layout) {
     drawRetroHudPanel(rowX, rowY, rowWidth, rowVisualHeight, {
       cut: compact ? 6 : 8,
       fillTop: style.rowFillTop,
+      fillMid: style.rowFillTop,
       fillBottom: style.rowFillBottom,
       border: style.rowBorder,
       highlight: "rgba(255, 255, 255, 0.2)",
@@ -6719,7 +6719,7 @@ function drawBallInventoryOverlay(layout) {
       ctx.shadowBlur = 0;
       ctx.shadowColor = "transparent";
     }
-    ctx.font = `800 ${valueFontSize}px Tahoma`;
+    ctx.font = `800 ${valueFontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
     ctx.strokeText(valueText, textX, valueY);
     ctx.fillText(valueText, textX, valueY);
 
@@ -6823,7 +6823,7 @@ function drawVersionOverlay() {
   const bottom = getBottomHudSafeEdge(layout);
 
   ctx.save();
-  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.font = `700 ${fontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
   const textWidth = Math.ceil(ctx.measureText(label).width);
@@ -6832,14 +6832,17 @@ function drawVersionOverlay() {
   const y = bottom - pillHeight;
   drawRetroHudPanel(x, y, pillWidth, pillHeight, {
     cut: 8,
-    fillTop: "rgba(45, 61, 84, 0.95)",
-    fillBottom: "rgba(26, 37, 54, 0.95)",
-    border: "rgba(103, 130, 161, 0.88)",
-    highlight: "rgba(184, 208, 236, 0.22)",
-    shadow: "rgba(0, 0, 0, 0.34)",
+    fillTop: ZONE_UI_CANVAS_THEME.debugPill.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.debugPill.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.debugPill.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.debugPill.border,
+    highlight: ZONE_UI_CANVAS_THEME.debugPill.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
     borderWidth: 1.3,
+    pill: true,
+    radius: pillHeight * 0.5,
   });
-  ctx.fillStyle = "rgba(224, 238, 252, 0.94)";
+  ctx.fillStyle = ZONE_UI_CANVAS_THEME.debugPill.text;
   ctx.fillText(label, x + paddingX, bottom - paddingY);
   ctx.restore();
 
@@ -6857,7 +6860,7 @@ function drawFpsOverlay(layout = state.layout, bottomLimit = null) {
   const margin = viewportProfile.phone ? 8 : 12;
 
   ctx.save();
-  ctx.font = `700 ${fontSize}px Tahoma`;
+  ctx.font = `700 ${fontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   ctx.textAlign = "right";
   ctx.textBaseline = "bottom";
   const textWidth = Math.ceil(ctx.measureText(label).width);
@@ -6870,14 +6873,17 @@ function drawFpsOverlay(layout = state.layout, bottomLimit = null) {
   const y = bottom - pillHeight;
   drawRetroHudPanel(x, y, pillWidth, pillHeight, {
     cut: 7,
-    fillTop: "rgba(45, 61, 84, 0.84)",
-    fillBottom: "rgba(26, 37, 54, 0.84)",
-    border: "rgba(103, 130, 161, 0.78)",
-    highlight: "rgba(184, 208, 236, 0.2)",
+    fillTop: ZONE_UI_CANVAS_THEME.debugPill.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.debugPill.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.debugPill.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.debugPill.border,
+    highlight: ZONE_UI_CANVAS_THEME.debugPill.highlight,
     shadow: "rgba(0, 0, 0, 0.3)",
     borderWidth: 1.2,
+    pill: true,
+    radius: pillHeight * 0.5,
   });
-  ctx.fillStyle = "rgba(224, 238, 252, 0.92)";
+  ctx.fillStyle = ZONE_UI_CANVAS_THEME.debugPill.text;
   ctx.fillText(label, right - paddingX, bottom - paddingY);
   ctx.restore();
 }

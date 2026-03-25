@@ -458,6 +458,7 @@ import {
   BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY,
   BALL_OVERLAY_UI_STYLE_BY_TYPE,
   BALL_OVERLAY_UI_STYLE_DEFAULT,
+  ZONE_UI_CANVAS_THEME,
   SPRITE_OPAQUE_BOUNDS_CACHE_MAX_ENTRIES,
   MORPHING_COLOR_SAMPLE_CACHE_MAX_ENTRIES,
   MORPHING_PALETTE_TEXTURE_CACHE_MAX_ENTRIES,
@@ -7969,11 +7970,11 @@ function drawEvolutionAnimationOverlay(layout = state.layout) {
   ctx.strokeStyle = "rgba(8, 15, 28, 0.9)";
   ctx.lineWidth = 6;
   ctx.fillStyle = "rgba(244, 250, 255, 0.98)";
-  ctx.font = `800 ${Math.max(18, Math.round(spriteSize * 0.14))}px Tahoma`;
+  ctx.font = `800 ${Math.max(18, Math.round(spriteSize * 0.14))}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   const titleY = Math.max(48, centerY - spriteSize * 0.92);
   ctx.strokeText("Evolution", centerX, titleY);
   ctx.fillText("Evolution", centerX, titleY);
-  ctx.font = `700 ${Math.max(14, Math.round(spriteSize * 0.09))}px Tahoma`;
+  ctx.font = `700 ${Math.max(14, Math.round(spriteSize * 0.09))}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   const subtitle = `${animation.fromNameFr || animation.fromDef?.nameFr || "Pokemon"} -> ${animation.toNameFr || animation.toDef?.nameFr || "Pokemon"}`;
   ctx.strokeText(subtitle, centerX, titleY + Math.max(22, spriteSize * 0.18));
   ctx.fillText(subtitle, centerX, titleY + Math.max(22, spriteSize * 0.18));
@@ -8554,92 +8555,109 @@ function formatTypeMultiplierLabel(multiplier) {
 
 function getTypeMatchupPalette(multiplier) {
   if (multiplier <= 0.001) {
-    return {
-      text: "#ffc7d2",
-      border: "rgba(211, 106, 131, 0.86)",
-      glow: "rgba(255, 151, 183, 0.28)",
-      surfaceTop: "rgba(76, 37, 51, 0.98)",
-      surfaceBottom: "rgba(43, 22, 31, 0.98)",
-    };
+    return ZONE_UI_CANVAS_THEME.typeMatchup.immune;
   }
   if (multiplier > 1.001) {
-    return {
-      text: "#ffd989",
-      border: "rgba(204, 151, 58, 0.86)",
-      glow: "rgba(255, 221, 133, 0.28)",
-      surfaceTop: "rgba(84, 63, 33, 0.98)",
-      surfaceBottom: "rgba(49, 37, 19, 0.98)",
-    };
+    return ZONE_UI_CANVAS_THEME.typeMatchup.advantage;
   }
   if (multiplier < 0.999) {
-    return {
-      text: "#9bd6ff",
-      border: "rgba(89, 145, 196, 0.82)",
-      glow: "rgba(132, 200, 255, 0.24)",
-      surfaceTop: "rgba(39, 58, 82, 0.98)",
-      surfaceBottom: "rgba(24, 38, 56, 0.98)",
-    };
+    return ZONE_UI_CANVAS_THEME.typeMatchup.disadvantage;
   }
-  return {
-    text: "#dbe8f8",
-    border: "rgba(95, 121, 151, 0.8)",
-    glow: "rgba(166, 197, 230, 0.2)",
-    surfaceTop: "rgba(40, 54, 74, 0.98)",
-    surfaceBottom: "rgba(25, 35, 51, 0.98)",
-  };
+  return ZONE_UI_CANVAS_THEME.typeMatchup.neutral;
 }
 
-function traceRetroHudPath(x, y, width, height, cut = 10) {
+function traceRetroHudPath(x, y, width, height, cut = 10, radiusOverride = null) {
   const safeWidth = Math.max(12, Number(width) || 0);
   const safeHeight = Math.max(12, Number(height) || 0);
-  const safeCut = clamp(Number(cut) || 0, 4, Math.min(safeWidth, safeHeight) * 0.46);
+  const defaultRadius = Math.max(6, Number(cut) || Math.min(12, safeHeight * 0.58));
+  const safeRadius = clamp(
+    Number.isFinite(radiusOverride) ? Number(radiusOverride) : defaultRadius,
+    4,
+    Math.min(safeWidth, safeHeight) * 0.5,
+  );
 
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + safeWidth - safeCut, y);
-  ctx.lineTo(x + safeWidth, y + safeCut);
-  ctx.lineTo(x + safeWidth, y + safeHeight - safeCut * 0.18);
-  ctx.lineTo(x + safeWidth - safeCut * 0.56, y + safeHeight);
-  ctx.lineTo(x, y + safeHeight);
-  ctx.closePath();
+  ctx.roundRect(x, y, safeWidth, safeHeight, safeRadius);
 }
 
 function drawRetroHudPanel(x, y, width, height, options = {}) {
   const safeWidth = Math.max(12, Number(width) || 0);
   const safeHeight = Math.max(12, Number(height) || 0);
   const cut = clamp(Number(options.cut) || Math.min(12, safeHeight * 0.58), 4, Math.min(safeWidth, safeHeight) * 0.46);
-  const shadowOffsetY = Number.isFinite(options.shadowOffsetY) ? options.shadowOffsetY : 2;
+  const themeChrome = ZONE_UI_CANVAS_THEME.chrome || {};
+  const isPill = options.pill === true;
+  const shadowOffsetY = Number.isFinite(options.shadowOffsetY)
+    ? options.shadowOffsetY
+    : Number(themeChrome.shadowOffsetY) || 3;
   const shadowOffsetX = Number.isFinite(options.shadowOffsetX) ? options.shadowOffsetX : 0;
-  const fillTop = options.fillTop || "rgba(43, 57, 79, 0.98)";
-  const fillBottom = options.fillBottom || "rgba(25, 35, 52, 0.98)";
-  const border = options.border || "rgba(102, 126, 155, 0.96)";
-  const highlight = options.highlight || "rgba(188, 212, 237, 0.28)";
-  const shadow = options.shadow || "rgba(0, 0, 0, 0.36)";
+  const fillTop = options.fillTop || ZONE_UI_CANVAS_THEME.panel.fillTop;
+  const fillMid = options.fillMid || fillTop;
+  const fillBottom = options.fillBottom || ZONE_UI_CANVAS_THEME.panel.fillBottom;
+  const border = options.border || ZONE_UI_CANVAS_THEME.panel.border;
+  const highlight = options.highlight || ZONE_UI_CANVAS_THEME.panel.highlight;
+  const shadow = options.shadow || ZONE_UI_CANVAS_THEME.panel.shadow;
   const borderWidth = Math.max(0.75, Number(options.borderWidth) || 2);
+  const autoRadius = isPill
+    ? safeHeight * 0.5
+    : safeHeight <= 24
+      ? safeHeight * 0.5
+      : Math.max(Number(themeChrome.radiusCard) || 12, cut * 0.92);
+  const radius = clamp(
+    Number(options.radius) || autoRadius,
+    4,
+    Math.min(safeWidth, safeHeight) * 0.5,
+  );
+  const inset = Math.min(radius - 1, Math.max(0.9, borderWidth * 0.72));
 
   ctx.save();
-  ctx.lineJoin = "miter";
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
 
   if (shadowOffsetX !== 0 || shadowOffsetY !== 0) {
     ctx.fillStyle = shadow;
-    traceRetroHudPath(x + shadowOffsetX, y + shadowOffsetY, safeWidth, safeHeight, cut);
+    traceRetroHudPath(x + shadowOffsetX, y + shadowOffsetY, safeWidth, safeHeight, cut, radius);
     ctx.fill();
   }
 
   const fill = ctx.createLinearGradient(x, y, x, y + safeHeight);
   fill.addColorStop(0, fillTop);
+  fill.addColorStop(0.58, fillMid);
   fill.addColorStop(1, fillBottom);
   ctx.fillStyle = fill;
-  traceRetroHudPath(x, y, safeWidth, safeHeight, cut);
+  traceRetroHudPath(x, y, safeWidth, safeHeight, cut, radius);
   ctx.fill();
+
+  ctx.save();
+  traceRetroHudPath(x, y, safeWidth, safeHeight, cut, radius);
+  ctx.clip();
+
+  const gloss = ctx.createLinearGradient(x, y, x, y + safeHeight * 0.64);
+  gloss.addColorStop(0, highlight || "rgba(255, 255, 255, 0.12)");
+  gloss.addColorStop(0.52, "rgba(255, 255, 255, 0.03)");
+  gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = gloss;
+  ctx.fillRect(x, y, safeWidth, safeHeight * 0.64);
+
+  const diagonalSheen = ctx.createLinearGradient(x, y, x + safeWidth * 0.82, y + safeHeight * 0.98);
+  diagonalSheen.addColorStop(0, "rgba(255, 255, 255, 0.1)");
+  diagonalSheen.addColorStop(0.34, "rgba(255, 255, 255, 0.04)");
+  diagonalSheen.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = diagonalSheen;
+  ctx.fillRect(x, y, safeWidth, safeHeight);
+
+  const floorShade = ctx.createLinearGradient(x, y + safeHeight * 0.4, x, y + safeHeight);
+  floorShade.addColorStop(0, "rgba(0, 0, 0, 0)");
+  floorShade.addColorStop(1, "rgba(0, 0, 0, 0.18)");
+  ctx.fillStyle = floorShade;
+  ctx.fillRect(x, y + safeHeight * 0.4, safeWidth, safeHeight * 0.6);
+  ctx.restore();
 
   ctx.strokeStyle = border;
   ctx.lineWidth = borderWidth;
-  traceRetroHudPath(x, y, safeWidth, safeHeight, cut);
+  traceRetroHudPath(x, y, safeWidth, safeHeight, cut, radius);
   ctx.stroke();
 
   if (highlight) {
-    const inset = Math.max(1, borderWidth * 0.65);
     ctx.strokeStyle = highlight;
     ctx.lineWidth = Math.max(0.6, borderWidth * 0.5);
     traceRetroHudPath(
@@ -8647,10 +8665,22 @@ function drawRetroHudPanel(x, y, width, height, options = {}) {
       y + inset,
       Math.max(8, safeWidth - inset * 2),
       Math.max(8, safeHeight - inset * 2),
-      Math.max(3, cut - inset * 1.6),
+      Math.max(3, cut - inset * 1.2),
+      Math.max(3, radius - inset),
     );
     ctx.stroke();
   }
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.22)";
+  ctx.lineWidth = Math.max(0.5, borderWidth * 0.4);
+  traceRetroHudPath(
+    x + inset * 0.75,
+    y + safeHeight * 0.48,
+    Math.max(8, safeWidth - inset * 1.5),
+    Math.max(6, safeHeight * 0.48 - inset * 0.75),
+    Math.max(3, cut - inset),
+    Math.max(3, radius - inset * 0.75),
+  );
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -8718,11 +8748,12 @@ function drawTypeIconBadge(typeName, centerX, centerY, size, options = {}) {
   const y = centerY - safeSize * 0.5;
   drawRetroHudPanel(x, y, safeSize, safeSize, {
     cut: Math.max(4, safeSize * 0.28),
-    fillTop: "rgba(50, 66, 89, 0.99)",
-    fillBottom: "rgba(30, 42, 60, 0.99)",
+    fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
     border: rgba(outlineColor, 0.78),
-    highlight: "rgba(196, 218, 241, 0.3)",
-    shadow: "rgba(0, 0, 0, 0.32)",
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.subpanel.shadow,
     borderWidth: Math.max(1, safeSize * 0.07),
   });
 
@@ -8746,7 +8777,7 @@ function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, option
   const palette = getTypeMatchupPalette(multiplier);
 
   ctx.save();
-  ctx.font = `700 ${fontSize}px Trebuchet MS`;
+  ctx.font = `700 ${fontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   const textWidth = Math.ceil(ctx.measureText(multiplierLabel).width);
@@ -8770,7 +8801,10 @@ function drawTypeMatchupPill(anchorX, centerY, multiplier, defenderTypes, option
 
   drawRetroHudPanel(x, y, width, height, {
     cut: Math.max(6, height * 0.35),
+    pill: true,
+    radius: height * 0.5,
     fillTop: palette.surfaceTop,
+    fillMid: palette.surfaceTop,
     fillBottom: palette.surfaceBottom,
     border: palette.border,
     highlight: palette.glow,
@@ -8855,11 +8889,14 @@ function drawEnemyDefensiveTypeHud(enemy, layout, options = {}) {
   const y = centerY - pillHeight * 0.5;
   drawRetroHudPanel(x, y, pillWidth, pillHeight, {
     cut: Math.max(6, pillHeight * 0.32),
-    fillTop: "rgba(44, 62, 87, 0.98)",
-    fillBottom: "rgba(27, 41, 59, 0.98)",
-    border: "rgba(101, 134, 166, 0.92)",
-    highlight: "rgba(181, 208, 236, 0.26)",
-    shadow: "rgba(0, 0, 0, 0.34)",
+    pill: true,
+    radius: pillHeight * 0.5,
+    fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.subpanel.shadow,
     borderWidth: 1.5,
   });
 
@@ -11959,6 +11996,46 @@ function buildRuntimeBindingSnapshot(bindingKeys = [], baseBindings = null) {
   }
 
   return snapshot;
+}
+
+function buildSerializableRuntimeBindingSnapshot(bindingKeys = []) {
+  const snapshot = buildRuntimeBindingSnapshot(bindingKeys);
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (typeof value === "function") {
+      delete snapshot[key];
+    }
+  }
+  return snapshot;
+}
+
+if (IS_DEV_RUNTIME) {
+  // Dev/test-only bridge used by the Playwright galleries to open runtime UI states deterministically.
+  window.__pokeidle_get_binding_snapshot = (bindingKeys = []) => {
+    return buildSerializableRuntimeBindingSnapshot(bindingKeys);
+  };
+  window.__pokeidle_invoke_binding = async (bindingKey, ...args) => {
+    const key = String(bindingKey || "").trim();
+    if (!key) {
+      return { ok: false, error: "missing-binding-key" };
+    }
+    const getter = RUNTIME_BINDING_GETTERS[key];
+    if (typeof getter !== "function") {
+      return { ok: false, error: `unknown-binding:${key}` };
+    }
+    try {
+      const value = getter();
+      if (typeof value === "function") {
+        const result = await value(...args);
+        return { ok: true, result: result ?? null };
+      }
+      return { ok: true, result: value ?? null };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  };
 }
 
 let runtimeRenderSystem = null;

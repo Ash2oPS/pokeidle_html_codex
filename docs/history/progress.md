@@ -7283,3 +7283,28 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop idle with the dev button: `output/ui-state-gallery/desktop-landscape/idle.png`
   - mobile starter modal without the dev button: `output/ui-state-gallery/mobile-portrait/starter-modal.png`
   - mobile idle with the dev button: `output/ui-state-gallery/mobile-portrait/idle.png`
+
+## 2026-03-25 - Canvas HUD fully aligned with zone-ui morphology
+
+- Reworked the shared canvas HUD primitive so combat/name/debug/ball overlays now render as rounded zone-ui cards instead of the old cut-corner retro panels.
+  - `game-runtime.js` now draws the shared HUD panel with zone-style radius, gloss, inner highlight, and bottom inset shading.
+- Tightened the shared canvas theme in `lib/gameplay-ui-config.js`:
+  - added shared chrome radius/shadow tokens for canvas panels;
+  - aligned the debug pill colors with the elevated zone-ui pill treatment.
+- Removed remaining typography drift in the canvas HUD:
+  - enemy/team name cards;
+  - HP labels;
+  - route timer;
+  - version/FPS overlays;
+  - ball inventory overlay values;
+  - evolution overlay title/subtitle.
+- Intentional exception preserved:
+  - the loading-screen pokeball and the bottom main-menu pokeball keep their classic icon treatment.
+- Validation:
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - `npm run test:vitest` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop combat HUD: `output/ui-state-gallery/desktop-landscape/combat-hud.png`
+  - mobile combat HUD: `output/ui-state-gallery/mobile-portrait/combat-hud.png`
+  - desktop loading screen: `output/ui-state-gallery/desktop-landscape/loading-screen.png`

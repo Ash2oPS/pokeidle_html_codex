@@ -29,6 +29,24 @@
       "waitStateTimeoutMs": 15000
     },
     {
+      "evaluate": {
+        "expression": "window.__galleryInvokeBinding=async(name,...args)=>{const response=await window.__pokeidle_invoke_binding(name,...args);if(!response?.ok){throw new Error(response?.error||('binding-failed:'+name));}return response.result;};window.__galleryTryBinding=async(name,...args)=>{const response=await window.__pokeidle_invoke_binding(name,...args);return response?.ok?response.result:null;};window.__galleryOpenTeamContextMenu=async(slotIndex=0)=>{const snapshot=window.__pokeidle_get_binding_snapshot(['team']);const member=Array.isArray(snapshot.team)?snapshot.team[slotIndex]:null;if(!member){throw new Error('missing-team-member');}const x=Math.round(window.innerWidth*0.42);const y=Math.round(window.innerHeight*0.54);await window.__galleryInvokeBinding('openTeamContextMenu',slotIndex,member,x,y);};window.__galleryOpenBallCaptureMenu=async()=>{const snapshot=window.__pokeidle_get_binding_snapshot(['ballOverlayHitboxes']);const hitbox=Array.isArray(snapshot.ballOverlayHitboxes)?snapshot.ballOverlayHitboxes[0]:null;if(!hitbox){throw new Error('missing-ball-overlay-hitbox');}const ballType=hitbox.ballType||hitbox.type||'poke_ball';const centerX=Number(hitbox.centerX??(Number(hitbox.x||0)+Number(hitbox.width||0)/2));const centerY=Number(hitbox.centerY??(Number(hitbox.y||0)+Number(hitbox.height||0)/2));await window.__galleryInvokeBinding('openBallCaptureMenu',ballType,centerX,centerY);};window.__galleryShowLoadingScreen=(text='Chargement des interfaces zone UI...')=>{const screen=document.getElementById('loading-screen');const label=document.getElementById('loading-screen-text');if(screen){screen.classList.remove('hidden','is-exiting');screen.classList.add('is-visible');}if(label){label.textContent=text;}return true;};window.__galleryHideLoadingScreen=()=>{const screen=document.getElementById('loading-screen');if(screen){screen.classList.remove('is-visible','is-exiting');screen.classList.add('hidden');}return true;};window.__galleryDismissUpdateModal=()=>{const modal=document.getElementById('update-required-modal');if(modal){modal.classList.add('hidden');}document.body.classList.remove('update-required-active');return true;};window.__galleryCloseFloatingMenus=async()=>{await window.__galleryTryBinding('closeBallCaptureMenu');await window.__galleryTryBinding('closeTeamContextMenu');await window.__galleryTryBinding('hideHoverPopup');const teamMenu=document.getElementById('team-context-menu');if(teamMenu){teamMenu.classList.add('hidden');}const ballMenu=document.getElementById('ball-capture-menu');if(ballMenu){ballMenu.classList.add('hidden');}const hover=document.getElementById('hover-popup');if(hover){hover.classList.add('hidden');}return true;};window.__galleryShowTeamHoverPopup=()=>{const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';const state=raw?JSON.parse(raw):null;const member=Array.isArray(state?.team)?state.team[0]:null;const canvas=document.querySelector('canvas');if(!member||!canvas){throw new Error('missing-hover-target');}const rect=canvas.getBoundingClientRect();const clientX=rect.left+Number(member.x||0);const clientY=rect.top+Number(member.y||0);const event=new PointerEvent('pointermove',{bubbles:true,cancelable:true,composed:true,clientX,clientY,pointerType:'mouse',isPrimary:true,buttons:0});canvas.dispatchEvent(event);return {clientX,clientY};};window.__gallerySetNotificationVisibility=(visible)=>{const stack=document.getElementById('notification-stack');if(stack){stack.style.display=visible===false?'none':'';}return visible!==false;};return true;"
+      }
+    },
+    {
+      "waitForState": {
+        "tutorial_open": true
+      },
+      "waitStateTimeoutMs": 10000
+    },
+    {
+      "waitForSelector": "#tutorial-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "tutorial"
+    },
+    {
       "clickSelectorIfVisible": "#tutorial-close-btn",
       "waitMs": 900
     },
@@ -42,6 +60,65 @@
     },
     {
       "captureName": "idle"
+    },
+    {
+      "captureName": "combat-hud"
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryShowTeamHoverPopup();"
+      }
+    },
+    {
+      "waitForSelector": "#hover-popup:not(.hidden)",
+      "waitMs": 400
+    },
+    {
+      "captureName": "hover-popup"
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryCloseFloatingMenus();"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryShowLoadingScreen('Chargement des interfaces zone UI...');"
+      }
+    },
+    {
+      "waitForSelector": "#loading-screen.is-visible",
+      "waitMs": 400
+    },
+    {
+      "captureName": "loading-screen",
+      "captureFullPage": true
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryHideLoadingScreen();"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "if(typeof window.__pokeidle_preview_update_required==='function'){window.__pokeidle_preview_update_required('0.1.999','0.1.998');return true;}let modal=document.getElementById('update-required-modal');if(!modal){modal=document.createElement('section');modal.id='update-required-modal';modal.className='update-required-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.innerHTML='<div class=\"update-required-card\"><p class=\"update-required-eyebrow\">Mise a jour disponible</p><h2 class=\"update-required-title\">Nouvelle version detectee</h2><p class=\"update-required-message\">Une version plus recente du jeu est disponible sur GitHub.</p><p class=\"update-required-version\">Version actuelle: v0.1.998 -> version disponible: v0.1.999</p><button class=\"update-required-refresh-btn\" type=\"button\">Recharger la page (Ctrl + F5)</button></div>';document.body.appendChild(modal);}modal.classList.remove('hidden');document.body.classList.add('update-required-active');return true;"
+      }
+    },
+    {
+      "waitForSelector": "#update-required-modal:not(.hidden)",
+      "waitMs": 400
+    },
+    {
+      "captureName": "update-required",
+      "captureFullPage": true
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryDismissUpdateModal();"
+      },
+      "waitMs": 250
     },
     {
       "waitForState": {
@@ -58,7 +135,7 @@
     },
     {
       "waitForSelector": "#route-nav-drawer-list [data-route-action='info']",
-      "waitMs": 500
+      "waitMs": 400
     },
     {
       "clickSelector": "#route-nav-drawer-list [data-route-action='info']"
@@ -83,6 +160,30 @@
     {
       "clickSelectorIfVisible": "#route-nav-drawer-close",
       "waitMs": 350
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('openBallCaptureMenu','poke_ball',Math.round(window.innerWidth*0.76),Math.round(window.innerHeight*0.7));"
+      }
+    },
+    {
+      "waitForState": {
+        "ball_capture_menu_open": true
+      },
+      "waitStateTimeoutMs": 6000
+    },
+    {
+      "waitForSelector": "#ball-capture-menu:not(.hidden)",
+      "waitMs": 350
+    },
+    {
+      "captureName": "ball-capture-menu"
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryCloseFloatingMenus();"
+      },
+      "waitMs": 250
     },
     {
       "clickSelector": "#map-btn"
@@ -197,6 +298,187 @@
     {
       "clickSelectorIfVisible": "#gacha-close-btn",
       "waitMs": 700
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setActiveRoute','kanto_city_viridian_city');"
+      }
+    },
+    {
+      "waitForState": {
+        "route_id": "kanto_city_viridian_city",
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 10000
+    },
+    {
+      "evaluate": {
+        "expression": "const button=document.getElementById('dev-level-all-button');if(!(button instanceof HTMLButtonElement)){throw new Error('missing-dev-level-button');}button.classList.remove('hidden');for(let i=0;i<24;i+=1){button.click();}return true;"
+      }
+    },
+    {
+      "waitForState": {
+        "appearance_editor_unlocked": true,
+        "notifications_evolution_ready": {
+          "min": 1
+        }
+      },
+      "waitStateTimeoutMs": 12000
+    },
+    {
+      "evaluate": {
+        "expression": "const readState=()=>{const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';return raw?JSON.parse(raw):{};};const wait=(ms)=>new Promise((resolve)=>window.setTimeout(resolve,ms));for(let attempt=0;attempt<12;attempt+=1){const state=readState();if(!state?.tutorial_open){await wait(350);if(!readState()?.tutorial_open){return true;}}await wait(250);await window.__galleryTryBinding('closeTutorialModal');const button=document.getElementById('tutorial-close-btn');if(button instanceof HTMLElement && !button.closest('.hidden')){button.click();}await wait(450);}const finalState=readState();throw new Error(`tutorial-still-open:${finalState?.tutorial_flow_id||'unknown'}`);"
+      }
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__gallerySetNotificationVisibility(false);"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';const state=raw?JSON.parse(raw):null;const member=Array.isArray(state?.team)?state.team[0]:null;if(!member){throw new Error('missing-team-member');}return window.__galleryInvokeBinding('openTeamContextMenu',0,member,Math.round(window.innerWidth*0.42),Math.round(window.innerHeight*0.54));"
+      }
+    },
+    {
+      "waitForState": {
+        "team_context_menu_open": true
+      },
+      "waitStateTimeoutMs": 6000
+    },
+    {
+      "waitForSelector": "#team-context-menu:not(.hidden)",
+      "waitMs": 300
+    },
+    {
+      "captureName": "team-context-menu"
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryCloseFloatingMenus();"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('openRenameModalForTeamSlot',0);"
+      }
+    },
+    {
+      "waitForSelector": "#rename-modal:not(.hidden)",
+      "waitMs": 400
+    },
+    {
+      "captureName": "rename"
+    },
+    {
+      "clickSelectorIfVisible": "#rename-close-btn",
+      "waitMs": 300
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('openBoxesForTeamSlot',0);"
+      }
+    },
+    {
+      "waitForState": {
+        "boxes_open": true
+      },
+      "waitStateTimeoutMs": 6000
+    },
+    {
+      "waitForSelector": "#boxes-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "boxes"
+    },
+    {
+      "clickSelectorIfVisible": "#boxes-close-btn",
+      "waitMs": 300
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('openPokedexModal');"
+      }
+    },
+    {
+      "waitForState": {
+        "pokedex_open": true
+      },
+      "waitStateTimeoutMs": 6000
+    },
+    {
+      "waitForSelector": "#pokedex-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "pokedex"
+    },
+    {
+      "clickSelectorIfVisible": "#pokedex-close-btn",
+      "waitMs": 300
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('openAppearanceForTeamSlot',0);"
+      }
+    },
+    {
+      "waitForState": {
+        "appearance_open": true
+      },
+      "waitStateTimeoutMs": 6000
+    },
+    {
+      "waitForSelector": "#appearance-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "appearance"
+    },
+    {
+      "clickSelectorIfVisible": "#appearance-close-btn",
+      "waitMs": 300
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__gallerySetNotificationVisibility(true);"
+      },
+      "waitMs": 250
+    },
+    {
+      "captureName": "notifications"
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__gallerySetNotificationVisibility(false);"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setActiveRoute','kanto_city_pallet_town');"
+      }
+    },
+    {
+      "waitForState": {
+        "route_id": "kanto_city_pallet_town"
+      },
+      "waitStateTimeoutMs": 12000
+    },
+    {
+      "evaluate": {
+        "expression": "const readState=()=>{const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';return raw?JSON.parse(raw):{};};let state=readState();if(state?.tutorial_open){await window.__galleryTryBinding('closeTutorialModal');const tutorialBtn=document.getElementById('tutorial-close-btn');if(tutorialBtn instanceof HTMLElement){tutorialBtn.click();}}state=readState();if(state?.dialogue_open){return true;}await window.__galleryTryBinding('openDialogueSession','kanto_pallet_intro_once');state=readState();if(state?.dialogue_open){return true;}const modal=document.getElementById('dialogue-modal');if(!(modal instanceof HTMLElement)){throw new Error('missing-dialogue-modal');}const title=document.getElementById('dialogue-title');const speaker=document.getElementById('dialogue-speaker');const text=document.getElementById('dialogue-text');const progress=document.getElementById('dialogue-progress');const nextBtn=document.getElementById('dialogue-next-btn');const closeBtn=document.getElementById('dialogue-close-btn');if(title){title.textContent='Bienvenue à Bourg Palette';}if(speaker){speaker.textContent='Prof. Chen';speaker.classList.remove('hidden');}if(text){text.textContent='Bienvenue à Bourg Palette. Ici, tes Pokémon peuvent souffler sans que le temps se fige.';}if(progress){progress.textContent='Étape 1/2';}if(nextBtn instanceof HTMLButtonElement){nextBtn.hidden=false;nextBtn.disabled=false;nextBtn.textContent='Suivant';}if(closeBtn instanceof HTMLButtonElement){closeBtn.hidden=false;closeBtn.disabled=false;}modal.classList.remove('hidden');return true;"
+      }
+    },
+    {
+      "waitForSelector": "#dialogue-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "dialogue"
     }
   ]
 }
