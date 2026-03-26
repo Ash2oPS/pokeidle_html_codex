@@ -396,7 +396,7 @@ test("PokemonBattleManager laser visuals anchor from ally center to enemy center
   assert.ok(laser.visualTargetInsetPx > 0);
 });
 
-test("PokemonBattleManager laser attacks tick every half interval without spawning projectiles", () => {
+test("PokemonBattleManager laser attacks tick every full interval without spawning projectiles", () => {
   const state = { timeMs: 0, layout: createLayout() };
   const runtime = createPokemonBattleRuntime({
     state,
@@ -413,7 +413,7 @@ test("PokemonBattleManager laser attacks tick every half interval without spawni
 
   manager.processAttackCadenceTick(state.layout);
 
-  assert.equal(manager.getLaserTickIntervalMs(), 210);
+  assert.equal(manager.getLaserTickIntervalMs(), 420);
   assert.equal(manager.getProjectiles().length, 0);
   assert.equal(manager.getLasers().length, 1);
 
@@ -421,11 +421,11 @@ test("PokemonBattleManager laser attacks tick every half interval without spawni
   const applied = manager.applyLaserTick(0, state.layout);
 
   assert.equal(applied, true);
-  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 2);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 4);
   assert.equal(manager.getProjectiles().length, 0);
 });
 
-test("PokemonBattleManager laser ticks use per-tick +/-100ms jitter around half attack interval", () => {
+test("PokemonBattleManager laser ticks use per-tick +/-100ms jitter around attack interval", () => {
   const state = { timeMs: 0, layout: createLayout() };
   const pendingRolls = [];
   const observedJitterRanges = [];
@@ -448,21 +448,21 @@ test("PokemonBattleManager laser ticks use per-tick +/-100ms jitter around half 
   });
 
   const laserState = manager.getLaserState(0);
-  assert.equal(manager.getLaserTickIntervalMs(), 400);
+  assert.equal(manager.getLaserTickIntervalMs(), 800);
 
-  pendingRolls.push(300, 500);
+  pendingRolls.push(700, 900);
   laserState.tickTimerMs = 0;
   manager.scheduleNextLaserTick(laserState);
-  assert.equal(laserState.tickIntervalMs, 300);
-  assert.equal(laserState.tickTimerMs, 300);
+  assert.equal(laserState.tickIntervalMs, 700);
+  assert.equal(laserState.tickTimerMs, 700);
 
   laserState.tickTimerMs = -20;
   manager.scheduleNextLaserTick(laserState);
-  assert.equal(laserState.tickIntervalMs, 500);
-  assert.equal(laserState.tickTimerMs, 480);
+  assert.equal(laserState.tickIntervalMs, 900);
+  assert.equal(laserState.tickTimerMs, 880);
   assert.deepEqual(observedJitterRanges, [
-    [300, 500],
-    [300, 500],
+    [700, 900],
+    [700, 900],
   ]);
 });
 
@@ -482,13 +482,13 @@ test("PokemonBattleManager keeps jittered laser timers across refresh without cl
 
   manager.processAttackCadenceTick(state.layout);
   const laserState = manager.getLaserState(0);
-  laserState.tickIntervalMs = 500;
-  laserState.tickTimerMs = 480;
+  laserState.tickIntervalMs = 900;
+  laserState.tickTimerMs = 880;
 
   manager.refreshLaserStates(state.layout);
 
-  assert.equal(laserState.tickIntervalMs, 500);
-  assert.equal(laserState.tickTimerMs, 480);
+  assert.equal(laserState.tickIntervalMs, 900);
+  assert.equal(laserState.tickTimerMs, 880);
 });
 
 test("PokemonBattleManager exposes active laser states without cloning them every frame", () => {
@@ -534,15 +534,15 @@ test("PokemonBattleManager laser attacks accumulate fractional damage carry acro
 
   assert.equal(manager.applyLaserTick(0, state.layout), false);
   assert.equal(manager.enemy.hpCurrent, enemyHpBefore);
-  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (5 / 12)) < 0.000001);
-
-  assert.equal(manager.applyLaserTick(0, state.layout), false);
-  assert.equal(manager.enemy.hpCurrent, enemyHpBefore);
-  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (10 / 12)) < 0.000001);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (5 / 6)) < 0.000001);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
   assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 1);
-  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (3 / 12)) < 0.000001);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (4 / 6)) < 0.000001);
+
+  assert.equal(manager.applyLaserTick(0, state.layout), true);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 2);
+  assert.ok(Math.abs(manager.getLasers()[0].damageCarry - (3 / 6)) < 0.000001);
 });
 
 test("PokemonBattleManager laser hit resolution preserves attacker combat stats in snapshots", () => {
@@ -580,7 +580,7 @@ test("PokemonBattleManager laser hit resolution preserves attacker combat stats 
   const enemyHpBefore = manager.enemy.hpCurrent;
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 6);
+  assert.equal(manager.enemy.hpCurrent, enemyHpBefore - 12);
   assert.equal(observedAttacker?.level, 37);
   assert.equal(observedAttacker?.stats?.attack, 84);
 });
@@ -706,8 +706,8 @@ test("PokemonBattleManager gates laser mind control follow-ups to cadence instea
   manager.processAttackCadenceTick(state.layout);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.enemy.hpCurrent, 18);
+  assert.equal(manager.enemy.hpCurrent, 16);
 
   assert.equal(manager.applyLaserTick(0, state.layout), true);
-  assert.equal(manager.enemy.hpCurrent, 17);
+  assert.equal(manager.enemy.hpCurrent, 14);
 });

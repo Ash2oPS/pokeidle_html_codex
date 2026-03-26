@@ -154,7 +154,9 @@ export function createPokemonBattleRuntime(deps = {}) {
     getProjectileTrailTypeVfxProfile = () => null,
     computeLayout = () => null,
     ATTACK_INTERVAL_MS = 1000,
+    LASER_TICK_INTERVAL_MULTIPLIER = 1,
     LASER_TICK_JITTER_MS = 100,
+    LASER_DAMAGE_PER_TICK_DIVISOR = 6,
     ATTACK_MISS_CHANCE = 0,
     TURN_ACTION_ATTACK = 'attack',
     TURN_ACTION_SKIP = 'skip',
@@ -314,8 +316,17 @@ export function createPokemonBattleRuntime(deps = {}) {
     return Math.max(0, Number(LASER_TICK_JITTER_MS) || 0);
   }
 
+  getLaserTickIntervalMultiplier() {
+    return Math.max(0.01, Number(LASER_TICK_INTERVAL_MULTIPLIER) || 1);
+  }
+
+  getLaserDamagePerTickDivisor() {
+    return Math.max(1, Number(LASER_DAMAGE_PER_TICK_DIVISOR) || 1);
+  }
+
   getLaserTickIntervalBoundsMs(attackIntervalMs = this.attackIntervalMs) {
-    const baseIntervalMs = Math.max(1, Number(attackIntervalMs) || ATTACK_INTERVAL_MS) * 0.5;
+    const baseIntervalMs =
+      Math.max(1, Number(attackIntervalMs) || ATTACK_INTERVAL_MS) * this.getLaserTickIntervalMultiplier();
     const jitterMs = this.getLaserTickJitterMs();
     const minIntervalMs = Math.max(1, baseIntervalMs - jitterMs);
     const maxIntervalMs = Math.max(minIntervalMs, baseIntervalMs + jitterMs);
@@ -2723,7 +2734,7 @@ export function createPokemonBattleRuntime(deps = {}) {
       || suppressLaserMicroTickVisuals;
     const suppressDamageFlash = Boolean(options.suppressDamageFlash) || suppressLaserMicroTickVisuals;
     if (!hitResolution.missed) {
-      const scaledDamage = Math.max(0, hitResolution.referenceDamage / 12);
+      const scaledDamage = Math.max(0, hitResolution.referenceDamage / this.getLaserDamagePerTickDivisor());
       const combinedDamage = Math.max(0, Number(laserState.damageCarry || 0)) + scaledDamage;
       const resolvedDamage = Math.floor(combinedDamage + 0.000001);
       laserState.damageCarry = Math.max(0, combinedDamage - resolvedDamage);

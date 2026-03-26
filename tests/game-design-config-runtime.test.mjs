@@ -13,6 +13,9 @@ import {
 } from "../lib/runtime-version-config.js";
 import {
   ATTACK_INTERVAL_MS,
+  LASER_DAMAGE_PER_TICK_DIVISOR,
+  LASER_TICK_INTERVAL_MULTIPLIER,
+  LASER_TICK_JITTER_MS,
   CAPTURE_CRIT_CHANCE,
   GACHA_SPIN_COST_COINS,
 } from "../lib/combat-balance-config.js";
@@ -41,6 +44,11 @@ test("game design runtime sanitizes invalid values and computes derived fields",
     },
     combat: {
       attackIntervalMs: -10,
+      laser: {
+        tickIntervalMultiplier: 0,
+        tickJitterMs: -5,
+        damagePerTickDivisor: 0,
+      },
       boostX: {
         durationMs: "bad",
       },
@@ -71,6 +79,9 @@ test("game design runtime sanitizes invalid values and computes derived fields",
   assert.equal(sanitized.rarity.nonUltraShinyOddsNumerator, 1);
   assert.equal(sanitized.rarity.nonUltraShinyOddsDenominator, 1);
   assert.equal(sanitized.combat.attackIntervalMs, 1);
+  assert.equal(sanitized.combat.laser.tickIntervalMultiplier, 0.01);
+  assert.equal(sanitized.combat.laser.tickJitterMs, 0);
+  assert.equal(sanitized.combat.laser.damagePerTickDivisor, 1);
   assert.equal(sanitized.combat.boostX.durationMs, GAME_DESIGN.combat.boostX.durationMs);
   assert.equal(sanitized.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
   assert.equal(sanitized.combat.vfx.laserPackedSimpleSegmentMaxCount >= 1, true);
@@ -100,6 +111,9 @@ test("game design runtime exposes a compact immutable snapshot", () => {
 
   assert.equal(snapshot.rarity.shinyOdds, GAME_DESIGN.rarity.shinyOdds);
   assert.equal(snapshot.combat.attackIntervalMs, GAME_DESIGN.combat.attackIntervalMs);
+  assert.equal(snapshot.combat.laser.tickIntervalMultiplier, GAME_DESIGN.combat.laser.tickIntervalMultiplier);
+  assert.equal(snapshot.combat.laser.tickJitterMs, GAME_DESIGN.combat.laser.tickJitterMs);
+  assert.equal(snapshot.combat.laser.damagePerTickDivisor, GAME_DESIGN.combat.laser.damagePerTickDivisor);
   assert.equal(snapshot.combat.vfx.projectileAtlasSizePx, GAME_DESIGN.combat.vfx.projectileAtlasSizePx);
   assert.equal(snapshot.combat.vfx.laserPackedTextureWidthPx, GAME_DESIGN.combat.vfx.laserPackedTextureWidthPx);
   assert.equal(snapshot.metrics.targetFps, GAME_DESIGN.metrics.targetFps);
@@ -113,6 +127,9 @@ test("compatibility facades stay aligned with the sanitized design config", () =
   assert.equal(SHINY_ODDS, GAME_DESIGN.rarity.shinyOdds);
   assert.equal(ULTRA_SHINY_ODDS, GAME_DESIGN.rarity.ultraShinyOdds);
   assert.equal(ATTACK_INTERVAL_MS, GAME_DESIGN.combat.attackIntervalMs);
+  assert.equal(LASER_TICK_INTERVAL_MULTIPLIER, GAME_DESIGN.combat.laser.tickIntervalMultiplier);
+  assert.equal(LASER_TICK_JITTER_MS, GAME_DESIGN.combat.laser.tickJitterMs);
+  assert.equal(LASER_DAMAGE_PER_TICK_DIVISOR, GAME_DESIGN.combat.laser.damagePerTickDivisor);
   assert.equal(CAPTURE_CRIT_CHANCE, GAME_DESIGN.capture.critChance);
   assert.equal(GACHA_SPIN_COST_COINS, GAME_DESIGN.gacha.spinCostCoins);
   assert.equal(BOOST_X_DURATION_MS, GAME_DESIGN.combat.boostX.durationMs);

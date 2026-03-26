@@ -102,6 +102,16 @@ export const GAME_DESIGN_CONFIG = {
       },
     },
 
+    /** Cadence et decoupage des degats laser. */
+    laser: {
+      /** Multiplicateur de l'intervalle moyen de tick laser sur l'intervalle d'attaque global. */
+      tickIntervalMultiplier: 1,
+      /** Jitter applique autour de l'intervalle moyen de tick laser. */
+      tickJitterMs: 100,
+      /** Diviseur applique aux degats de reference a chaque tick laser. */
+      damagePerTickDivisor: 6,
+    },
+
     /** Rendu VFX projectile / laser crunchy sans reduction de render scale. */
     vfx: {
       /** Taille d'atlas de sprite projectile pre-rendu. */
