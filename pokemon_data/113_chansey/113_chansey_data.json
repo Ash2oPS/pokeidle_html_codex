@@ -434,5 +434,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/113_chansey_cry.ogg",
+    "source": "latest"
+  }
 }

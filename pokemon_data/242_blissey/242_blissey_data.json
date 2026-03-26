@@ -301,5 +301,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/242_blissey_cry.ogg",
+    "source": "latest"
+  }
 }

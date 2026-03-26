@@ -229,5 +229,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/356_dusclops_cry.ogg",
+    "source": "latest"
+  }
 }

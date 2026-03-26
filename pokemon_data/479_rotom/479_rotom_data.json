@@ -222,5 +222,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "ball",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/479_rotom_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -559,5 +559,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/136_flareon_cry.ogg",
+    "source": "latest"
+  }
 }

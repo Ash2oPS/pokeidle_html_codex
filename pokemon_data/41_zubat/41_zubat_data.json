@@ -334,5 +334,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "wings",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/41_zubat_cry.ogg",
+    "source": "latest"
+  }
 }

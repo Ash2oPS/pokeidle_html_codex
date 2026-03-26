@@ -358,5 +358,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/281_kirlia_cry.ogg",
+    "source": "latest"
+  }
 }

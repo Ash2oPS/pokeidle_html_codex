@@ -292,5 +292,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/64_kadabra_cry.ogg",
+    "source": "latest"
+  }
 }

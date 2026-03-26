@@ -108,5 +108,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "bug-wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/402_kricketune_cry.ogg",
+    "source": "latest"
+  }
 }

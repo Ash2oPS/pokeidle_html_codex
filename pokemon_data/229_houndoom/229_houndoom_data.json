@@ -317,5 +317,9 @@
   "forms_switchable": true,
   "color": "black",
   "shape": "quadruped",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/229_houndoom_cry.ogg",
+    "source": "latest"
+  }
 }

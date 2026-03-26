@@ -240,5 +240,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "upright",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/383_groudon_cry.ogg",
+    "source": "latest"
+  }
 }

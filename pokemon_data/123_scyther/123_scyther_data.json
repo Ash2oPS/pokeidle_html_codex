@@ -339,5 +339,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "bug-wings",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/123_scyther_cry.ogg",
+    "source": "latest"
+  }
 }

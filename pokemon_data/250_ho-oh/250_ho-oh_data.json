@@ -115,5 +115,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "wings",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/250_ho-oh_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -243,5 +243,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "heads",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/102_exeggcute_cry.ogg",
+    "source": "latest"
+  }
 }

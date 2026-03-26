@@ -284,5 +284,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "squiggle",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/95_onix_cry.ogg",
+    "source": "latest"
+  }
 }

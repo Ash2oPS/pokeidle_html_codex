@@ -283,5 +283,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/109_koffing_cry.ogg",
+    "source": "latest"
+  }
 }

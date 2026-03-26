@@ -186,5 +186,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/426_drifblim_cry.ogg",
+    "source": "latest"
+  }
 }

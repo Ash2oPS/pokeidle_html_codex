@@ -424,5 +424,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/448_lucario_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -104,6 +104,18 @@ def get_preferred_front_sprite_urls(pokemon_payload: dict[str, Any]) -> tuple[st
     return sprites_payload.get("front_default"), sprites_payload.get("front_shiny")
 
 
+def select_latest_cry_url(pokemon_payload: dict[str, Any]) -> tuple[str | None, str | None]:
+    cries_payload = pokemon_payload.get("cries")
+    if not isinstance(cries_payload, dict):
+        return None, None
+
+    latest_url = cries_payload.get("latest")
+    if isinstance(latest_url, str) and latest_url:
+        return latest_url, "latest"
+
+    return None, None
+
+
 def get_named_resource_name(resource: dict[str, Any] | None) -> str | None:
     if not isinstance(resource, dict):
         return None
@@ -224,6 +236,27 @@ def write_sprite(sprite_url: str | None, destination_base: Path) -> str | None:
     return target_path.name
 
 
+def write_cry(cry_url: str | None, destination_path: Path) -> str | None:
+    if not cry_url:
+        return None
+
+    destination_path.write_bytes(fetch_bytes(cry_url))
+    return destination_path.name
+
+
+def cleanup_cry_assets(cry_dir: Path, keep_filename: str | None = None) -> None:
+    if not cry_dir.exists():
+        return
+
+    for asset_path in cry_dir.glob("*.ogg"):
+        if keep_filename and asset_path.name == keep_filename:
+            continue
+        asset_path.unlink()
+
+    if not any(cry_dir.iterdir()):
+        cry_dir.rmdir()
+
+
 def main() -> None:
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     pokemon_records: list[dict[str, Any]] = []
@@ -245,6 +278,7 @@ def main() -> None:
         offensive_type = select_offensive_type(defensive_types)
         stats = extract_stats(pokemon_payload)
         preferred_front_url, preferred_shiny_url = get_preferred_front_sprite_urls(pokemon_payload)
+        cry_url, cry_source = select_latest_cry_url(pokemon_payload)
         evolution_chain_url = species_payload.get("evolution_chain", {}).get("url")
         evolves_from_name = None
         if species_payload.get("evolves_from_species"):
@@ -269,6 +303,8 @@ def main() -> None:
                 "evolution_chain_url": evolution_chain_url,
                 "front_default_url": preferred_front_url,
                 "front_shiny_url": preferred_shiny_url,
+                "cry_url": cry_url,
+                "cry_source": cry_source,
             }
         )
 
@@ -297,6 +333,15 @@ def main() -> None:
 
         sprite_file_name = write_sprite(record["front_default_url"], sprite_base)
         shiny_file_name = write_sprite(record["front_shiny_url"], shiny_base)
+        cry_file_name = None
+        cry_dir = pokemon_dir / "cries"
+        expected_cry_filename = f"{poke_id}_{name_en}_cry.ogg"
+        if record["cry_url"] and record["cry_source"]:
+            cry_dir.mkdir(parents=True, exist_ok=True)
+            cleanup_cry_assets(cry_dir, keep_filename=expected_cry_filename)
+            cry_file_name = write_cry(record["cry_url"], cry_dir / expected_cry_filename)
+        else:
+            cleanup_cry_assets(cry_dir)
 
         evolves_from = None
         if record["evolves_from_name"]:
@@ -345,6 +390,11 @@ def main() -> None:
                 "front_shiny": f"sprites/{shiny_file_name}" if shiny_file_name else None,
             },
         }
+        if cry_file_name and record["cry_source"]:
+            output_json["cry"] = {
+                "path": f"cries/{cry_file_name}",
+                "source": record["cry_source"],
+            }
 
         json_path = pokemon_dir / f"{poke_id}_{name_en}_data.json"
         json_path.write_text(

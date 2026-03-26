@@ -281,5 +281,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "armor",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/213_shuckle_cry.ogg",
+    "source": "latest"
+  }
 }

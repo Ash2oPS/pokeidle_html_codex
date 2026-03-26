@@ -300,5 +300,9 @@
   "forms_switchable": true,
   "color": "pink",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/80_slowbro_cry.ogg",
+    "source": "latest"
+  }
 }

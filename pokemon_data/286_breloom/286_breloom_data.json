@@ -311,5 +311,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "upright",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/286_breloom_cry.ogg",
+    "source": "latest"
+  }
 }

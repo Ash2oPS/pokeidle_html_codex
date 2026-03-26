@@ -219,5 +219,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/296_makuhita_cry.ogg",
+    "source": "latest"
+  }
 }

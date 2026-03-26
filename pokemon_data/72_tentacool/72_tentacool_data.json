@@ -344,5 +344,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "tentacles",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/72_tentacool_cry.ogg",
+    "source": "latest"
+  }
 }

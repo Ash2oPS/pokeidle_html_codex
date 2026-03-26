@@ -301,5 +301,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/31_nidoqueen_cry.ogg",
+    "source": "latest"
+  }
 }

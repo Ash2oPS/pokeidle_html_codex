@@ -261,5 +261,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "blob",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/346_cradily_cry.ogg",
+    "source": "latest"
+  }
 }

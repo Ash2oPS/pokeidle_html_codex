@@ -247,5 +247,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "fish",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/118_goldeen_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -186,5 +186,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "squiggle",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/218_slugma_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -475,5 +475,9 @@
   "forms_switchable": true,
   "color": "purple",
   "shape": "upright",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/94_gengar_cry.ogg",
+    "source": "latest"
+  }
 }

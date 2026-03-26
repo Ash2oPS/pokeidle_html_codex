@@ -224,5 +224,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "wings",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/225_delibird_cry.ogg",
+    "source": "latest"
+  }
 }

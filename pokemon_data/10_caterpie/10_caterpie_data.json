@@ -297,5 +297,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "armor",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/10_caterpie_cry.ogg",
+    "source": "latest"
+  }
 }

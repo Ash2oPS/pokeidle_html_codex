@@ -62,6 +62,13 @@
       "captureName": "idle"
     },
     {
+      "waitForSelector": "#save-pill:not(.hidden)",
+      "waitMs": 250
+    },
+    {
+      "captureName": "save-pill"
+    },
+    {
       "captureName": "combat-hud"
     },
     {
@@ -147,7 +154,8 @@
       "waitMs": 350
     },
     {
-      "clickSelector": "#route-nav-drawer-list [data-route-action='info']"
+      "clickSelector": "#route-nav-drawer-list [data-route-action='info']",
+      "force": false
     },
     {
       "waitForState": {
@@ -374,6 +382,24 @@
     },
     {
       "evaluate": {
+        "expression": "const modal=document.getElementById('evolution-item-modal');const title=document.getElementById('evolution-item-title');const subtitle=document.getElementById('evolution-item-subtitle');const list=document.getElementById('evolution-item-list');if(!modal||!title||!subtitle||!list){throw new Error('missing-evolution-item-modal');}title.textContent='Pierre Feu';subtitle.textContent='Choisis un Pokemon compatible avec cet objet.';list.innerHTML='<button class=\"evolution-item-choice-btn\" type=\"button\"><div class=\"evolution-item-choice-meta\"><span class=\"evolution-item-choice-name\">Caninos</span><span class=\"evolution-item-choice-team\">slot 1</span></div><div class=\"evolution-item-choice-row\"><div class=\"evolution-item-choice-mon\"><div class=\"evolution-item-choice-sprite-wrap\"><img class=\"evolution-item-choice-sprite\" alt=\"\" src=\"pokemon_data/58_growlithe/sprites/58_growlithe_firered_leafgreen_front.png\"></div><div class=\"evolution-item-choice-mon-name\">Caninos</div></div><span class=\"evolution-item-choice-arrow\" aria-hidden=\"true\">&rarr;</span><div class=\"evolution-item-choice-mon\"><div class=\"evolution-item-choice-sprite-wrap\"><img class=\"evolution-item-choice-sprite\" alt=\"\" src=\"pokemon_data/59_arcanine/sprites/59_arcanine_firered_leafgreen_front.png\"></div><div class=\"evolution-item-choice-mon-name\">Arcanin</div></div></div></button>';modal.classList.remove('hidden');return true;"
+      }
+    },
+    {
+      "waitForSelector": "#evolution-item-modal:not(.hidden)",
+      "waitMs": 350
+    },
+    {
+      "captureName": "evolution-item-modal"
+    },
+    {
+      "evaluate": {
+        "expression": "const modal=document.getElementById('evolution-item-modal');if(modal){modal.classList.add('hidden');}return true;"
+      },
+      "waitMs": 250
+    },
+    {
+      "evaluate": {
         "expression": "return window.__galleryInvokeBinding('openBoxesForTeamSlot',0);"
       }
     },
@@ -386,6 +412,16 @@
     {
       "waitForSelector": "#boxes-modal:not(.hidden)",
       "waitMs": 500
+    },
+    {
+      "evaluate": {
+        "expression": "const preferredButton=document.querySelector('#boxes-grid .boxes-mon-btn:not(.is-current):not(.is-disabled)');const fallbackButton=document.querySelector('#boxes-grid .boxes-mon-btn:not(.is-disabled)')||document.querySelector('#boxes-grid .boxes-mon-btn');const button=preferredButton||fallbackButton;if(!(button instanceof HTMLButtonElement)){throw new Error('missing-boxes-sheet-target');}button.click();return button.dataset.boxEntityId||true;"
+      },
+      "waitMs": 250
+    },
+    {
+      "waitForSelector": "#boxes-info-panel.is-sheet-open",
+      "waitMs": 250
     },
     {
       "captureName": "boxes"
@@ -408,6 +444,16 @@
     {
       "waitForSelector": "#pokedex-modal:not(.hidden)",
       "waitMs": 500
+    },
+    {
+      "evaluate": {
+        "expression": "const button=document.querySelector('#pokedex-grid .pokedex-mon-btn[data-pokedex-id]');if(!(button instanceof HTMLButtonElement)){throw new Error('missing-pokedex-sheet-target');}button.click();return button.dataset.pokedexId||true;"
+      },
+      "waitMs": 250
+    },
+    {
+      "waitForSelector": "#pokedex-info-panel.is-sheet-open",
+      "waitMs": 250
     },
     {
       "captureName": "pokedex"

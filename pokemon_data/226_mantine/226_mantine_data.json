@@ -209,5 +209,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "wings",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/226_mantine_cry.ogg",
+    "source": "latest"
+  }
 }

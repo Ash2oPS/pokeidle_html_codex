@@ -266,5 +266,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "legs",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/60_poliwag_cry.ogg",
+    "source": "latest"
+  }
 }

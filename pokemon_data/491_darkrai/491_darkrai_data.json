@@ -245,5 +245,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/491_darkrai_cry.ogg",
+    "source": "latest"
+  }
 }

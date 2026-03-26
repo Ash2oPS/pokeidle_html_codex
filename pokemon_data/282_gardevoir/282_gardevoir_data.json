@@ -454,5 +454,9 @@
   "forms_switchable": true,
   "color": "white",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/282_gardevoir_cry.ogg",
+    "source": "latest"
+  }
 }

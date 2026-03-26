@@ -226,5 +226,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/335_zangoose_cry.ogg",
+    "source": "latest"
+  }
 }

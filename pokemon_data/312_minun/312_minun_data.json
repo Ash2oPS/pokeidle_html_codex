@@ -202,5 +202,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/312_minun_cry.ogg",
+    "source": "latest"
+  }
 }

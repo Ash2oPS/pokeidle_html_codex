@@ -189,5 +189,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/406_budew_cry.ogg",
+    "source": "latest"
+  }
 }

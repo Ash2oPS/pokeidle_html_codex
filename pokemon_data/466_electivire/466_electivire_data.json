@@ -240,5 +240,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/466_electivire_cry.ogg",
+    "source": "latest"
+  }
 }

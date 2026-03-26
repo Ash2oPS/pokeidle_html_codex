@@ -244,5 +244,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/185_sudowoodo_cry.ogg",
+    "source": "latest"
+  }
 }

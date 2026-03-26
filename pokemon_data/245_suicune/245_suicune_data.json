@@ -338,5 +338,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/245_suicune_cry.ogg",
+    "source": "latest"
+  }
 }

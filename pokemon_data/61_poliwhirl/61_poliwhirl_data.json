@@ -292,5 +292,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/61_poliwhirl_cry.ogg",
+    "source": "latest"
+  }
 }

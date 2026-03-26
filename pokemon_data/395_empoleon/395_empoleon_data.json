@@ -213,5 +213,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/395_empoleon_cry.ogg",
+    "source": "latest"
+  }
 }

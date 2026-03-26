@@ -110,5 +110,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/401_kricketot_cry.ogg",
+    "source": "latest"
+  }
 }

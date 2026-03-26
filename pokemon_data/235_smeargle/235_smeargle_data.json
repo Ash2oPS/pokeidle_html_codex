@@ -306,5 +306,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/235_smeargle_cry.ogg",
+    "source": "latest"
+  }
 }

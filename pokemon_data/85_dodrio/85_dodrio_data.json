@@ -258,5 +258,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "legs",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/85_dodrio_cry.ogg",
+    "source": "latest"
+  }
 }

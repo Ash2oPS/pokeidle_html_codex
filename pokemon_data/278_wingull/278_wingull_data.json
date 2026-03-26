@@ -185,5 +185,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "wings",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/278_wingull_cry.ogg",
+    "source": "latest"
+  }
 }

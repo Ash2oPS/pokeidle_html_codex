@@ -195,5 +195,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "quadruped",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/323_camerupt_cry.ogg",
+    "source": "latest"
+  }
 }

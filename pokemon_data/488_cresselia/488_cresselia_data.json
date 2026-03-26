@@ -232,5 +232,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "squiggle",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/488_cresselia_cry.ogg",
+    "source": "latest"
+  }
 }

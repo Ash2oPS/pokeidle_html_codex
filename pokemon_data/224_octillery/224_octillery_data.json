@@ -258,5 +258,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "tentacles",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/224_octillery_cry.ogg",
+    "source": "latest"
+  }
 }

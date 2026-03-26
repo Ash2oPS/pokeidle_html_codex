@@ -381,5 +381,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/186_politoed_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -112,5 +112,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "heads",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/415_combee_cry.ogg",
+    "source": "latest"
+  }
 }

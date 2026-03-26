@@ -98,5 +98,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "humanoid",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/386_deoxys-normal_cry.ogg",
+    "source": "latest"
+  }
 }

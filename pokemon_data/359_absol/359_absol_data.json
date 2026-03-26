@@ -291,5 +291,9 @@
   "forms_switchable": true,
   "color": "white",
   "shape": "quadruped",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/359_absol_cry.ogg",
+    "source": "latest"
+  }
 }

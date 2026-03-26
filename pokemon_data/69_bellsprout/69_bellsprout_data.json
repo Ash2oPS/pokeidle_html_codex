@@ -226,5 +226,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/69_bellsprout_cry.ogg",
+    "source": "latest"
+  }
 }

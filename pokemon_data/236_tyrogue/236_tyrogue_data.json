@@ -295,5 +295,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/236_tyrogue_cry.ogg",
+    "source": "latest"
+  }
 }

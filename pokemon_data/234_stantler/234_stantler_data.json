@@ -342,5 +342,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/234_stantler_cry.ogg",
+    "source": "latest"
+  }
 }

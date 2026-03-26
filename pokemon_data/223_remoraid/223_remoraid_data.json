@@ -199,5 +199,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/223_remoraid_cry.ogg",
+    "source": "latest"
+  }
 }

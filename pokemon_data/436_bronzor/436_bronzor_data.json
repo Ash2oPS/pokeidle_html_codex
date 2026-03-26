@@ -116,5 +116,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "ball",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/436_bronzor_cry.ogg",
+    "source": "latest"
+  }
 }

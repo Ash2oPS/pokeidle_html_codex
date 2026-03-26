@@ -341,5 +341,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "upright",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/215_sneasel_cry.ogg",
+    "source": "latest"
+  }
 }

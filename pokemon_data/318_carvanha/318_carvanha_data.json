@@ -227,5 +227,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/318_carvanha_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -334,5 +334,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "wings",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/144_articuno_cry.ogg",
+    "source": "latest"
+  }
 }

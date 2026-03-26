@@ -429,5 +429,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/143_snorlax_cry.ogg",
+    "source": "latest"
+  }
 }

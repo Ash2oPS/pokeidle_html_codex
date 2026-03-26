@@ -262,5 +262,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/1_bulbasaur_cry.ogg",
+    "source": "latest"
+  }
 }

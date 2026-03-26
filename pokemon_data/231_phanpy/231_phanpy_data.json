@@ -246,5 +246,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/231_phanpy_cry.ogg",
+    "source": "latest"
+  }
 }

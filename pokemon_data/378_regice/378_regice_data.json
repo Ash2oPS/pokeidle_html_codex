@@ -233,5 +233,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/378_regice_cry.ogg",
+    "source": "latest"
+  }
 }

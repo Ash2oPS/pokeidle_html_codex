@@ -237,5 +237,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/76_golem_cry.ogg",
+    "source": "latest"
+  }
 }

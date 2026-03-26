@@ -303,5 +303,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/16_pidgey_cry.ogg",
+    "source": "latest"
+  }
 }

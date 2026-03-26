@@ -271,5 +271,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/446_munchlax_cry.ogg",
+    "source": "latest"
+  }
 }

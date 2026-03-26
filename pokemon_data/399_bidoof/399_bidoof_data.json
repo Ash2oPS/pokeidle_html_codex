@@ -195,5 +195,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/399_bidoof_cry.ogg",
+    "source": "latest"
+  }
 }

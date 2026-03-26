@@ -222,5 +222,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "upright",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/190_aipom_cry.ogg",
+    "source": "latest"
+  }
 }

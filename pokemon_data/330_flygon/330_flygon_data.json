@@ -325,5 +325,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "wings",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/330_flygon_cry.ogg",
+    "source": "latest"
+  }
 }

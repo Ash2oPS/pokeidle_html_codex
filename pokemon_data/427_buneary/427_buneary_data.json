@@ -300,5 +300,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/427_buneary_cry.ogg",
+    "source": "latest"
+  }
 }

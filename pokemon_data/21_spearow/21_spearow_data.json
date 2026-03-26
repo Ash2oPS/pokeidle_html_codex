@@ -279,5 +279,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/21_spearow_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -199,5 +199,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/163_hoothoot_cry.ogg",
+    "source": "latest"
+  }
 }

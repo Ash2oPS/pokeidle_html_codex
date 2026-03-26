@@ -272,5 +272,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/86_seel_cry.ogg",
+    "source": "latest"
+  }
 }

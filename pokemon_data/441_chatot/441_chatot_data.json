@@ -104,5 +104,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/441_chatot_cry.ogg",
+    "source": "latest"
+  }
 }

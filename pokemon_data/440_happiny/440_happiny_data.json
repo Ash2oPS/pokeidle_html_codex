@@ -232,5 +232,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/440_happiny_cry.ogg",
+    "source": "latest"
+  }
 }

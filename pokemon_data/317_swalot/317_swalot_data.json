@@ -237,5 +237,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "arms",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/317_swalot_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -385,5 +385,9 @@
   "forms_switchable": true,
   "color": "black",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/354_banette_cry.ogg",
+    "source": "latest"
+  }
 }

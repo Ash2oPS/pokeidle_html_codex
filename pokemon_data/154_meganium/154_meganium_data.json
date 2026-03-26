@@ -265,5 +265,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/154_meganium_cry.ogg",
+    "source": "latest"
+  }
 }

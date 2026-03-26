@@ -236,5 +236,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "wings",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/207_gligar_cry.ogg",
+    "source": "latest"
+  }
 }

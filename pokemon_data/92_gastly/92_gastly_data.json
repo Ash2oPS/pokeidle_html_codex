@@ -257,5 +257,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/92_gastly_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -135,12 +135,12 @@ function createDomRouteNavFixture(overrides = {}) {
         <section id="route-nav-panel">
           <button id="route-nav-drawer-toggle" type="button">Sorties</button>
           <div id="route-nav-destinations"></div>
-          <div id="route-nav-drawer">
-            <button id="route-nav-drawer-close" type="button">Fermer</button>
-            <div id="route-nav-drawer-list"></div>
-          </div>
-          <div id="route-nav-info-panel"></div>
         </section>
+        <div id="route-nav-drawer">
+          <button id="route-nav-drawer-close" type="button">Fermer</button>
+          <div id="route-nav-drawer-list"></div>
+          <div id="route-nav-info-panel"></div>
+        </div>
         <div id="map-connections-list"></div>
         <div id="map-connections-info-panel"></div>
         <div id="outside-target"></div>
@@ -248,6 +248,107 @@ function createDomRouteNavFixture(overrides = {}) {
     state,
     calls,
     system,
+    cleanup,
+  };
+}
+
+function createDomOnboardingFixture(overrides = {}) {
+  const dom = new JSDOM(`
+    <!doctype html>
+    <html>
+      <body>
+        <canvas id="canvas"></canvas>
+        <button id="route-nav-drawer-toggle" type="button">Zone</button>
+        <button id="action-dock-toggle" type="button">Menu</button>
+      </body>
+    </html>
+  `, { pretendToBeVisual: true });
+  const previousElement = globalThis.Element;
+  const previousHTMLElement = globalThis.HTMLElement;
+  globalThis.Element = dom.window.Element;
+  globalThis.HTMLElement = dom.window.HTMLElement;
+
+  const state = {
+    layout: {
+      viewportProfile: {
+        phone: false,
+      },
+    },
+    ui: {
+      routeNavDrawerOpen: false,
+      routeNavInfoRouteId: null,
+      routeNavOnboardingSeen: false,
+      actionMenuOnboardingSeen: false,
+      mapOpen: false,
+      tutorialOpen: false,
+      dialogueOpen: false,
+      shopOpen: false,
+      gachaOpen: false,
+      appearanceOpen: false,
+      pokedexOpen: false,
+      boxesOpen: false,
+      renameOpen: false,
+      ballCaptureMenuOpen: false,
+      teamContextMenuOpen: false,
+      evolutionItemChoiceOpen: false,
+      teamDragActive: false,
+      teamDragMoved: false,
+    },
+    tutorial: {
+      active: null,
+    },
+  };
+  const calls = [];
+  const documentRef = dom.window.document;
+  const windowRef = dom.window;
+  const canvas = documentRef.getElementById("canvas");
+
+  const system = createRuntimeInputSystem({
+    documentRef,
+    windowRef,
+    canvas,
+    state,
+    constants: {
+      TEAM_DRAG_CLICK_SUPPRESS_MS: 80,
+      MAX_TEAM_SIZE: 6,
+    },
+    elements: {
+      routeNavDrawerToggleButtonEl: documentRef.getElementById("route-nav-drawer-toggle"),
+      actionDockPokeballToggleButtonEl: documentRef.getElementById("action-dock-toggle"),
+      ...overrides.elements,
+    },
+    actions: {
+      toggleFullscreen() {
+        return Promise.resolve();
+      },
+      isActionDockFullscreenMenuOpen() {
+        return Boolean(state.ui.actionMenuOpen);
+      },
+      toggleActionDockFullscreenMenu() {
+        state.ui.actionMenuOpen = !state.ui.actionMenuOpen;
+        calls.push({ type: "toggle-menu", open: state.ui.actionMenuOpen });
+      },
+      toggleRouteNavDrawer() {
+        state.ui.routeNavDrawerOpen = !state.ui.routeNavDrawerOpen;
+        calls.push({ type: "toggle-drawer", open: state.ui.routeNavDrawerOpen });
+      },
+      ...overrides.actions,
+    },
+  });
+
+  function cleanup() {
+    system.dispose();
+    globalThis.Element = previousElement;
+    globalThis.HTMLElement = previousHTMLElement;
+    dom.window.close();
+  }
+
+  return {
+    dom,
+    state,
+    calls,
+    system,
+    documentRef,
     cleanup,
   };
 }
@@ -380,26 +481,58 @@ test("clicking the dev level-all button forwards to the dev boost action", () =>
   assert.equal(called, 1);
 });
 
-test("route navigation clicks travel for unlocked cards and open info for locked cards", () => {
+test("route navigation clicks travel for unlocked cards without pre-closing the drawer", () => {
   const fixture = createDomRouteNavFixture();
   fixture.documentRef.getElementById("route-nav-destinations").innerHTML = `
     <button type="button" data-route-id="kanto_route_2" data-route-action="travel"><span>Route 2</span></button>
-    <button type="button" data-route-id="johto_route_29" data-route-action="info"><span>Route 29</span></button>
   `;
 
   fixture.system.init();
   fixture.documentRef
     .querySelector("[data-route-id='kanto_route_2']")
     ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
+
+  assert.deepEqual(fixture.calls, [
+    { type: "travel", routeId: "kanto_route_2" },
+  ]);
+  fixture.cleanup();
+});
+
+test("route navigation opens info for locked cards", () => {
+  const fixture = createDomRouteNavFixture();
+  fixture.documentRef.getElementById("route-nav-destinations").innerHTML = `
+    <button type="button" data-route-id="johto_route_29" data-route-action="info"><span>Route 29</span></button>
+  `;
+
+  fixture.system.init();
   fixture.documentRef
     .querySelector("[data-route-id='johto_route_29']")
     ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
 
   assert.deepEqual(fixture.calls, [
-    { type: "close-info" },
-    { type: "set-drawer", open: false },
-    { type: "travel", routeId: "kanto_route_2" },
     { type: "open-info", routeId: "johto_route_29" },
+  ]);
+  fixture.cleanup();
+});
+
+test("route navigation drawer destination cards reuse the delegated travel/info handler", () => {
+  const fixture = createDomRouteNavFixture();
+  fixture.documentRef.getElementById("route-nav-drawer-list").innerHTML = `
+    <button type="button" data-route-id="kanto_route_3" data-route-action="travel"><span>Route 3</span></button>
+    <button type="button" data-route-id="johto_route_30" data-route-action="info"><span>Route 30</span></button>
+  `;
+
+  fixture.system.init();
+  fixture.documentRef
+    .querySelector("#route-nav-drawer-list [data-route-id='kanto_route_3']")
+    ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
+  fixture.documentRef
+    .querySelector("#route-nav-drawer-list [data-route-id='johto_route_30']")
+    ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
+
+  assert.deepEqual(fixture.calls, [
+    { type: "travel", routeId: "kanto_route_3" },
+    { type: "open-info", routeId: "johto_route_30" },
   ]);
   fixture.cleanup();
 });
@@ -482,5 +615,51 @@ test("outside pointerdown dismisses route nav drawer and info panels", () => {
     { type: "set-drawer", open: false },
     { type: "close-info" },
   ]);
+  fixture.cleanup();
+});
+
+test("pointerdown inside the route nav drawer keeps drawer and info open", () => {
+  const fixture = createDomRouteNavFixture();
+  fixture.state.ui.routeNavDrawerOpen = true;
+  fixture.state.ui.routeNavInfoRouteId = "johto_route_29";
+  fixture.system.init();
+
+  fixture.documentRef
+    .getElementById("route-nav-drawer")
+    ?.dispatchEvent(new fixture.dom.window.MouseEvent("pointerdown", { bubbles: true }));
+
+  assert.deepEqual(fixture.calls, []);
+  fixture.cleanup();
+});
+
+test("onboarding pulse is shown until the route header is opened once", () => {
+  const fixture = createDomOnboardingFixture();
+  const routeButton = fixture.documentRef.getElementById("route-nav-drawer-toggle");
+
+  fixture.system.init();
+  assert.equal(routeButton.classList.contains("is-onboarding-pulse"), true);
+  assert.equal(routeButton.getAttribute("data-onboarding-visible"), "true");
+
+  routeButton.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
+
+  assert.equal(fixture.state.ui.routeNavOnboardingSeen, true);
+  assert.equal(routeButton.classList.contains("is-onboarding-pulse"), false);
+  assert.equal(routeButton.getAttribute("data-onboarding-visible"), "false");
+  fixture.cleanup();
+});
+
+test("onboarding pulse is shown until the action menu is opened once", () => {
+  const fixture = createDomOnboardingFixture();
+  const actionButton = fixture.documentRef.getElementById("action-dock-toggle");
+
+  fixture.system.init();
+  assert.equal(actionButton.classList.contains("is-onboarding-pulse"), true);
+  assert.equal(actionButton.getAttribute("data-onboarding-visible"), "true");
+
+  actionButton.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
+
+  assert.equal(fixture.state.ui.actionMenuOnboardingSeen, true);
+  assert.equal(actionButton.classList.contains("is-onboarding-pulse"), false);
+  assert.equal(actionButton.getAttribute("data-onboarding-visible"), "false");
   fixture.cleanup();
 });

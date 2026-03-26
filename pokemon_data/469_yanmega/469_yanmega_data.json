@@ -198,5 +198,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "bug-wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/469_yanmega_cry.ogg",
+    "source": "latest"
+  }
 }

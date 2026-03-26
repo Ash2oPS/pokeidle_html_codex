@@ -245,5 +245,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "armor",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/270_lotad_cry.ogg",
+    "source": "latest"
+  }
 }

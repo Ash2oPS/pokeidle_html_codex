@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/211_qwilfish_cry.ogg",
+    "source": "latest"
+  }
 }

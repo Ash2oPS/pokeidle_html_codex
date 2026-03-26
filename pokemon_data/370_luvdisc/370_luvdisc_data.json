@@ -466,5 +466,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/370_luvdisc_cry.ogg",
+    "source": "latest"
+  }
 }

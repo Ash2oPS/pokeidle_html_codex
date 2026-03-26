@@ -490,5 +490,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/38_ninetales_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -237,5 +237,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "arms",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/375_metang_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -565,5 +565,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "ball",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/201_unown_cry.ogg",
+    "source": "latest"
+  }
 }

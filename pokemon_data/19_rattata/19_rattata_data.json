@@ -397,5 +397,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/19_rattata_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -211,5 +211,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/214_heracross_cry.ogg",
+    "source": "latest"
+  }
 }

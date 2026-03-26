@@ -165,5 +165,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "wings",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/277_swellow_cry.ogg",
+    "source": "latest"
+  }
 }

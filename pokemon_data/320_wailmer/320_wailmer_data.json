@@ -203,5 +203,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/320_wailmer_cry.ogg",
+    "source": "latest"
+  }
 }

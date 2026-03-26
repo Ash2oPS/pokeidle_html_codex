@@ -270,5 +270,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/124_jynx_cry.ogg",
+    "source": "latest"
+  }
 }

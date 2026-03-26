@@ -110,5 +110,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "squiggle",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/423_gastrodon_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -237,5 +237,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/75_graveler_cry.ogg",
+    "source": "latest"
+  }
 }

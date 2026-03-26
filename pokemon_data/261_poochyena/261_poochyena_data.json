@@ -267,5 +267,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/261_poochyena_cry.ogg",
+    "source": "latest"
+  }
 }

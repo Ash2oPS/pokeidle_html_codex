@@ -159,5 +159,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/458_mantyke_cry.ogg",
+    "source": "latest"
+  }
 }

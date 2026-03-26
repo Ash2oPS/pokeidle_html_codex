@@ -278,5 +278,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/246_larvitar_cry.ogg",
+    "source": "latest"
+  }
 }

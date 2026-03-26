@@ -599,5 +599,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/196_espeon_cry.ogg",
+    "source": "latest"
+  }
 }

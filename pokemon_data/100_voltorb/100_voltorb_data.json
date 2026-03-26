@@ -302,5 +302,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "ball",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/100_voltorb_cry.ogg",
+    "source": "latest"
+  }
 }

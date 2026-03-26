@@ -204,5 +204,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/465_tangrowth_cry.ogg",
+    "source": "latest"
+  }
 }

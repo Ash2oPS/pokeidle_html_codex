@@ -211,5 +211,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/165_ledyba_cry.ogg",
+    "source": "latest"
+  }
 }

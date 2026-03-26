@@ -218,5 +218,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "quadruped",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/305_lairon_cry.ogg",
+    "source": "latest"
+  }
 }

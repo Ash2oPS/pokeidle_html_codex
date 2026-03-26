@@ -311,5 +311,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/392_infernape_cry.ogg",
+    "source": "latest"
+  }
 }

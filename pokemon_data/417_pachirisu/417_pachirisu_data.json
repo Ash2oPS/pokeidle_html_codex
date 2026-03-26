@@ -99,5 +99,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/417_pachirisu_cry.ogg",
+    "source": "latest"
+  }
 }

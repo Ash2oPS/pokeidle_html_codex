@@ -234,5 +234,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "arms",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/343_baltoy_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -346,5 +346,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/393_piplup_cry.ogg",
+    "source": "latest"
+  }
 }

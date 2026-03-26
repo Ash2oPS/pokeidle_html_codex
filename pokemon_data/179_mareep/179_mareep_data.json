@@ -206,5 +206,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/179_mareep_cry.ogg",
+    "source": "latest"
+  }
 }

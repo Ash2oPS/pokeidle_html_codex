@@ -111,5 +111,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/418_buizel_cry.ogg",
+    "source": "latest"
+  }
 }

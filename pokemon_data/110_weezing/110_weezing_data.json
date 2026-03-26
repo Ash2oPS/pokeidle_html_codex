@@ -257,5 +257,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "heads",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/110_weezing_cry.ogg",
+    "source": "latest"
+  }
 }

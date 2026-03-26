@@ -20,10 +20,12 @@ GitHub Releases. Le manifeste courant est disponible dans
 
 ## Desktop (Electron)
 
-Le projet inclut maintenant une app Electron qui charge la version GitHub Pages du jeu, avec:
+Le projet inclut maintenant une app Electron qui embarque un bundle web local (`dist/`) servi
+par un mini serveur HTTP loopback interne, avec:
 - sauvegarde JSON locale (dans `%APPDATA%/PokeIdle/saves/pokeidle_save_v3.json`)
 - notifications desktop Windows via bridge natif
 - fallback automatique sur les saves navigateur si besoin
+- aucun chargement gameplay/data depuis GitHub Pages en build packagé
 
 ### Lancer en desktop
 
@@ -31,7 +33,9 @@ Le projet inclut maintenant une app Electron qui charge la version GitHub Pages 
 npm run desktop:start
 ```
 
-### Changer l'URL distante (optionnel)
+Le script regenere d'abord le bundle local via `npm run web:build`.
+
+### Override distant en dev uniquement (optionnel)
 
 Par defaut: `https://ash2ops.github.io/pokeidle_html_codex/`
 
@@ -47,6 +51,8 @@ ou:
 npm run desktop:start -- --remote-url=https://ash2ops.github.io/pokeidle_html_codex/
 ```
 
+Cet override n'est pris en compte qu'en run dev non packagé. Le build packagé charge toujours le bundle local.
+
 ### Build `.exe` Windows
 
 ```bash
@@ -61,12 +67,27 @@ Pour copier l'installateur dans le dossier public versionne:
 npm run downloads:publish
 ```
 
-## Mobile Android (Capacitor, mode server.url)
+## Build web local
 
-L'APK Android charge directement la version live GitHub Pages:
-- URL distante: `https://ash2ops.github.io/pokeidle_html_codex/`
-- pas besoin de republier l'APK pour les updates web (HTML/CSS/JS)
-- republish APK uniquement pour les changements natifs Android (permissions, plugins, icone, etc.)
+Le bundle web local est regenere par:
+
+```bash
+npm run web:build
+```
+
+Effets:
+- recree `dist/`
+- copie les fichiers runtime web necessaires
+- regenere `service-worker.js` et `offline-shell-manifest.json`
+- alimente Electron et Capacitor avec le meme bundle local
+
+## Mobile Android (Capacitor, bundle local)
+
+L'APK Android embarque maintenant le bundle `dist/` synchronise dans `android/app/src/main/assets/public`:
+- plus de chargement live depuis GitHub Pages
+- le cache HTTP WebView statique est purge automatiquement au changement de version native
+- la sauvegarde joueur reste conservee
+- un hotfix web n'arrive plus dans l'APK sans republier un nouveau binaire
 
 Prerequis build Android:
 - Java 21 (recommande pour Capacitor Android 8)
@@ -77,6 +98,8 @@ Prerequis build Android:
 ```bash
 npm run mobile:sync
 ```
+
+Le script regenere d'abord `dist/`, puis pousse le bundle local dans le projet Android.
 
 ### Ouvrir dans Android Studio
 

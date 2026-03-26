@@ -94,5 +94,9 @@
   "forms_switchable": true,
   "color": "black",
   "shape": "tentacles",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/487_giratina-altered_cry.ogg",
+    "source": "latest"
+  }
 }

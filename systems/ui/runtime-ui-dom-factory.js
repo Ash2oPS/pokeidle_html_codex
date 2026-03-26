@@ -71,57 +71,26 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             <header class="ui-topbar">
               <div class="route-nav-wrap">
                 <section id="route-nav-panel" class="route-nav" aria-label="Navigation des zones">
-                  <div class="route-nav-summary-panel">
-                    <div class="route-nav-header">
-                      <div class="route-nav-identity">
-                        <span id="route-nav-zone-type" class="route-nav-zone-type">Route</span>
-                        <span id="route-nav-region" class="route-nav-region">Kanto</span>
+                  <button
+                    id="route-nav-drawer-toggle"
+                    class="route-nav-current-trigger"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="route-nav-drawer"
+                  >
+                    <div class="route-nav-summary-panel">
+                      <div class="route-nav-summary-copy">
+                        <span class="route-nav-section-label">Zone active</span>
+                        <div id="route-nav-current" class="route-nav-current">Route 1</div>
+                        <span id="route-nav-region" class="route-nav-region route-nav-current-region">Kanto</span>
                       </div>
-                      <div class="route-nav-actions">
-                        <span class="route-nav-hint">F plein &eacute;cran</span>
-                      </div>
-                    </div>
-                    <div class="route-nav-summary-copy">
-                      <span class="route-nav-section-label">Zone active</span>
-                      <div id="route-nav-current" class="route-nav-current">Route 1 (Kanto)</div>
-                    </div>
-                    <div id="route-nav-badges" class="route-nav-badges" aria-live="polite"></div>
-                    <div id="route-nav-progress-chips" class="route-nav-progress-chips" aria-live="polite"></div>
-                  </div>
-                  <div class="route-nav-exits-panel">
-                    <div class="route-nav-destinations-header">
-                      <div class="route-nav-destinations-copy">
-                        <span class="route-nav-section-label">Sorties connect&eacute;es</span>
-                        <span class="route-nav-section-copy">Choisis ta prochaine zone.</span>
-                      </div>
-                      <button
-                        id="route-nav-drawer-toggle"
-                        class="route-nav-drawer-toggle"
-                        type="button"
-                        aria-expanded="false"
-                        aria-controls="route-nav-drawer"
-                      >
-                        <span class="route-nav-drawer-toggle-label">Sorties</span>
+                      <div class="route-nav-current-meta" aria-hidden="true">
                         <span id="route-nav-drawer-toggle-count" class="route-nav-drawer-toggle-count">0</span>
-                      </button>
-                    </div>
-                    <div id="route-nav-destinations" class="route-nav-destinations" aria-live="polite"></div>
-                    <div id="route-nav-drawer" class="route-nav-drawer hidden" aria-label="Sorties connect&eacute;es">
-                      <div class="route-nav-drawer-header">
-                        <span class="route-nav-drawer-title">Sorties depuis la zone active</span>
-                        <button
-                          id="route-nav-drawer-close"
-                          class="route-nav-drawer-close"
-                          type="button"
-                          aria-label="Fermer les sorties"
-                        >
-                          Fermer
-                        </button>
+                        <span class="route-nav-current-chevron">&rsaquo;</span>
                       </div>
-                      <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
                     </div>
-                    <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
-                  </div>
+                    <span class="route-nav-drawer-toggle-label route-nav-sr-only">Zones reliées</span>
+                  </button>
                 </section>
               </div>
 
@@ -141,15 +110,54 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                     <span class="currency-pill-caption">Coins</span>
                   </span>
                 </div>
-                <div id="save-pill" class="resource-pill currency-pill save-pill hidden">
+                <div id="save-pill" class="resource-pill currency-pill save-pill">
                   <span class="currency-pill-icon" aria-hidden="true">S</span>
                   <span class="currency-pill-content">
                     <span id="save-backend-value" class="currency-pill-value">Sauvegarde navigateur</span>
+                    <span class="currency-pill-mobile-label" aria-hidden="true">Save</span>
                     <span class="currency-pill-caption">Sauvegarde</span>
                   </span>
                 </div>
               </aside>
             </header>
+
+            <section id="route-nav-drawer" class="route-nav-drawer hidden" aria-label="Zones reli&eacute;es">
+              <div class="route-nav-modal-card">
+                <div class="route-nav-drawer-header">
+                  <div class="route-nav-modal-heading">
+                    <span class="route-nav-drawer-title">Autour de la zone active</span>
+                    <div class="route-nav-destinations-copy">
+                      <span class="route-nav-section-label">Zones voisines</span>
+                      <span class="route-nav-section-copy">Choisis une zone reli&eacute;e.</span>
+                    </div>
+                  </div>
+                  <button
+                    id="route-nav-drawer-close"
+                    class="route-nav-drawer-close"
+                    type="button"
+                    aria-label="Fermer les zones voisines"
+                  >
+                    Fermer
+                  </button>
+                </div>
+                <div class="route-nav-modal-current">
+                  <span id="route-nav-zone-type" class="route-nav-zone-type">Route</span>
+                  <div class="route-nav-modal-current-copy">
+                    <div class="route-nav-modal-current-value">Route 1</div>
+                    <div class="route-nav-modal-current-region">Kanto</div>
+                  </div>
+                </div>
+                <div class="route-nav-modal-meta">
+                  <div id="route-nav-progress-chips" class="route-nav-progress-chips" aria-live="polite"></div>
+                  <div id="route-nav-badges" class="route-nav-badges" aria-live="polite"></div>
+                </div>
+                <div class="route-nav-modal-body">
+                  <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
+                  <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
+                </div>
+                <div id="route-nav-destinations" class="route-nav-destinations hidden" aria-live="polite"></div>
+              </div>
+            </section>
 
             <footer class="action-dock is-temporary-disabled" aria-label="Menu principal temporairement d&eacute;sactiv&eacute;">
               <button id="map-btn" class="map-btn action-btn" type="button">
@@ -194,12 +202,17 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                   aria-expanded="false"
                 >
                   <span class="loading-pokeball action-dock-loading-pokeball" aria-hidden="true"></span>
+                  <span class="action-dock-pokeball-toggle-label">Menu</span>
                 </button>
               </div>
             </footer>
 
             <section id="action-dock-fullscreen-menu" class="action-dock-fullscreen-menu hidden" aria-label="Menu principal plein &eacute;cran">
               <div class="action-dock-fullscreen-shell">
+                <div class="action-dock-fullscreen-header">
+                  <span class="action-dock-fullscreen-title">Menu</span>
+                  <span class="action-dock-fullscreen-kicker">Actions principales</span>
+                </div>
                 <div id="action-dock-fullscreen-grid" class="action-dock-fullscreen-grid" role="menu" aria-label="Actions du menu">
                   <button class="action-dock-fullscreen-btn" type="button" data-action-kind="map" data-action-target="map-btn" role="menuitem">
                     <span class="action-dock-fullscreen-icon" aria-hidden="true">
@@ -355,8 +368,8 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             />
             <div id="map-markers" class="map-markers"></div>
           </div>
-          <aside class="map-connections-panel" aria-label="Sorties et embranchements">
-            <h3 class="map-connections-title">Sorties depuis la zone active</h3>
+          <aside class="map-connections-panel" aria-label="Zones voisines et embranchements">
+            <h3 class="map-connections-title">Zones voisines de la zone active</h3>
             <div id="map-connections-list" class="map-connections-list"></div>
             <div id="map-connections-info-panel" class="route-nav-info-panel route-nav-info-panel-map hidden" aria-live="polite"></div>
           </aside>

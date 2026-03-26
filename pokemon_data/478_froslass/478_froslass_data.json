@@ -351,5 +351,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/478_froslass_cry.ogg",
+    "source": "latest"
+  }
 }

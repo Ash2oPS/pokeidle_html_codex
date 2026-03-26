@@ -388,5 +388,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/67_machoke_cry.ogg",
+    "source": "latest"
+  }
 }

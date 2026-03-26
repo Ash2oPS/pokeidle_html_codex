@@ -253,5 +253,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "ball",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/200_misdreavus_cry.ogg",
+    "source": "latest"
+  }
 }

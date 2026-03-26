@@ -287,5 +287,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "heads",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/82_magneton_cry.ogg",
+    "source": "latest"
+  }
 }

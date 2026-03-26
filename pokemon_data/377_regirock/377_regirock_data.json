@@ -257,5 +257,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/377_regirock_cry.ogg",
+    "source": "latest"
+  }
 }

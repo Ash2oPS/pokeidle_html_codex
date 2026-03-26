@@ -362,5 +362,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "squiggle",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/384_rayquaza_cry.ogg",
+    "source": "latest"
+  }
 }

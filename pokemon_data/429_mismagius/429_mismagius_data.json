@@ -255,5 +255,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/429_mismagius_cry.ogg",
+    "source": "latest"
+  }
 }

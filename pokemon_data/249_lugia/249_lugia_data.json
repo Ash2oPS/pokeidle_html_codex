@@ -434,5 +434,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "wings",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/249_lugia_cry.ogg",
+    "source": "latest"
+  }
 }

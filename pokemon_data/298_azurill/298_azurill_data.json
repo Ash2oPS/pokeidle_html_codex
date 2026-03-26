@@ -299,5 +299,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "legs",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/298_azurill_cry.ogg",
+    "source": "latest"
+  }
 }

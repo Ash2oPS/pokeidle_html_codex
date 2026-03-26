@@ -278,5 +278,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/403_shinx_cry.ogg",
+    "source": "latest"
+  }
 }

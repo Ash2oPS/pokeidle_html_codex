@@ -197,5 +197,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/477_dusknoir_cry.ogg",
+    "source": "latest"
+  }
 }

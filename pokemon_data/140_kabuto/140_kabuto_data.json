@@ -304,5 +304,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "armor",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/140_kabuto_cry.ogg",
+    "source": "latest"
+  }
 }

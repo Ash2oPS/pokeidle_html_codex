@@ -264,5 +264,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/405_luxray_cry.ogg",
+    "source": "latest"
+  }
 }

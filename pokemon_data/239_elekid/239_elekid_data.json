@@ -234,5 +234,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/239_elekid_cry.ogg",
+    "source": "latest"
+  }
 }

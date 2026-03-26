@@ -297,5 +297,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/131_lapras_cry.ogg",
+    "source": "latest"
+  }
 }

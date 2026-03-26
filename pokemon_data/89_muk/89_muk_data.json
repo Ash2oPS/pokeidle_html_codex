@@ -326,5 +326,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "arms",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/89_muk_cry.ogg",
+    "source": "latest"
+  }
 }

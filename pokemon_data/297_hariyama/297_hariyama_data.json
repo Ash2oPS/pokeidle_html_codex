@@ -217,5 +217,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/297_hariyama_cry.ogg",
+    "source": "latest"
+  }
 }

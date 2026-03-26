@@ -90,6 +90,10 @@ describe("runtime-data", () => {
           front: "sprites/pidgey_front.png",
           front_shiny: "sprites/pidgey_front_shiny.png",
         },
+        cry: {
+          path: "cries/16_pidgey_cry.ogg",
+          source: "latest",
+        },
       },
       "pokemon",
     );
@@ -99,6 +103,35 @@ describe("runtime-data", () => {
     expect(pokemon.pokedex_number).toBe(16);
     expect(pokemon.name_en).toBe("pidgey");
     expect(pokemon.attack_mode).toBe("projectiles");
+    expect(pokemon.cry).toEqual({
+      path: "cries/16_pidgey_cry.ogg",
+      source: "latest",
+    });
+  });
+
+  it("rejette les cries legacy", () => {
+    expect(() =>
+      validatePokemonPayload(
+        {
+          pokedex_number: 16,
+          name_fr: "Roucool",
+          name_en: "pidgey",
+          stats: {
+            hp: 40,
+            attack: 45,
+            defense: 40,
+            "special-attack": 35,
+            "special-defense": 35,
+            speed: 56,
+          },
+          cry: {
+            path: "cries/16_pidgey_cry.ogg",
+            source: "legacy",
+          },
+        },
+        "pokemon",
+      ),
+    ).toThrow();
   });
 
   it("valide la configuration normalisee des balls", () => {

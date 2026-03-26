@@ -328,5 +328,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/68_machamp_cry.ogg",
+    "source": "latest"
+  }
 }

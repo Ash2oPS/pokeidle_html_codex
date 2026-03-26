@@ -241,5 +241,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/6_charizard_cry.ogg",
+    "source": "latest"
+  }
 }

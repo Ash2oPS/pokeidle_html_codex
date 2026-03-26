@@ -361,5 +361,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/373_salamence_cry.ogg",
+    "source": "latest"
+  }
 }

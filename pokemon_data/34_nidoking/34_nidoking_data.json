@@ -386,5 +386,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/34_nidoking_cry.ogg",
+    "source": "latest"
+  }
 }

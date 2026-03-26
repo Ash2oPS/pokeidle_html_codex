@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { startStaticServer } from "./local-static-server.mjs";
+
 const DEFAULT_REMOTE_URL = "https://ash2ops.github.io/pokeidle_html_codex/";
 const DESKTOP_APP_ID = "com.ash2ops.pokeidle";
 const SAVE_FILE_NAME = "pokeidle_save_v5z.json";
@@ -15,7 +17,10 @@ const WINDOW_STATE_CHANGED_CHANNEL = "pokeidle:window-state-changed";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP_ICON_PATH = path.join(__dirname, "..", "assets", "icons", DESKTOP_ICON_FILE_NAME);
+const LOCAL_BUNDLE_DIR = path.join(__dirname, "..", "dist");
 let runtimePowerSaveBlockerId = null;
+let localBundleServer = null;
+let rendererTarget = null;
 
 // Keep Chromium from throttling the renderer when the game window is occluded,
 // backgrounded, or minimized. The desktop build must keep simulating continuously.
@@ -23,7 +28,7 @@ app.commandLine.appendSwitch("disable-background-timer-throttling");
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
 app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
 
-function resolveRemoteUrl() {
+function resolveRemoteUrlOverride() {
   const envOverride = String(process.env.POKEIDLE_REMOTE_URL || "").trim();
   if (envOverride) {
     return envOverride;
@@ -33,6 +38,39 @@ function resolveRemoteUrl() {
     return String(cliArg).slice("--remote-url=".length).trim() || DEFAULT_REMOTE_URL;
   }
   return DEFAULT_REMOTE_URL;
+}
+
+async function ensureLocalBundleServer() {
+  if (localBundleServer) {
+    return localBundleServer;
+  }
+  await fs.access(path.join(LOCAL_BUNDLE_DIR, "index.html"));
+  localBundleServer = await startStaticServer(LOCAL_BUNDLE_DIR);
+  return localBundleServer;
+}
+
+async function stopLocalBundleServer() {
+  if (!localBundleServer) {
+    return;
+  }
+  const serverHandle = localBundleServer;
+  localBundleServer = null;
+  await serverHandle.close().catch(() => {});
+}
+
+async function resolveRendererTarget() {
+  const remoteOverride = resolveRemoteUrlOverride();
+  if (!app.isPackaged && remoteOverride) {
+    return {
+      mode: "remote",
+      url: remoteOverride,
+    };
+  }
+  const localServer = await ensureLocalBundleServer();
+  return {
+    mode: "local",
+    url: localServer.url,
+  };
 }
 
 function getSaveFilePath(fileName = SAVE_FILE_NAME) {
@@ -279,7 +317,8 @@ async function sendDesktopNotification(payload) {
   }
 }
 
-function createMainWindow() {
+async function createMainWindow() {
+  rendererTarget = await resolveRendererTarget();
   const windowIcon = createDesktopWindowIcon();
   const mainWindow = new BrowserWindow({
     title: "PokeIdle",
@@ -309,7 +348,7 @@ function createMainWindow() {
     return { action: "deny" };
   });
 
-  void mainWindow.loadURL(resolveRemoteUrl());
+  void mainWindow.loadURL(rendererTarget.url);
   return mainWindow;
 }
 
@@ -318,7 +357,9 @@ function registerIpcHandlers() {
     ok: true,
     platform: process.platform,
     appVersion: app.getVersion(),
-    remoteUrl: resolveRemoteUrl(),
+    appUrl: rendererTarget?.url || "",
+    assetMode: rendererTarget?.mode || "unknown",
+    remoteUrl: rendererTarget?.mode === "remote" ? rendererTarget.url : "",
     saveFilePath: getSaveFilePath(),
     notificationSupported: Notification.isSupported(),
   }));
@@ -339,20 +380,24 @@ if (process.platform === "win32") {
   app.setAppUserModelId(DESKTOP_APP_ID);
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   ensureDesktopRuntimePowerBlocker();
   registerIpcHandlers();
-  createMainWindow();
+  await createMainWindow();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length <= 0) {
-      createMainWindow();
+      void createMainWindow();
     }
   });
+}).catch((error) => {
+  console.error("[desktop] Impossible de demarrer le bundle local.", error);
+  app.quit();
 });
 
-app.on("before-quit", () => {
+app.on("before-quit", async () => {
   releaseDesktopRuntimePowerBlocker();
+  await stopLocalBundleServer();
 });
 
 app.on("window-all-closed", () => {

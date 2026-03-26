@@ -410,5 +410,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/96_drowzee_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -205,5 +205,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/473_mamoswine_cry.ogg",
+    "source": "latest"
+  }
 }

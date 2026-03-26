@@ -290,5 +290,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/445_garchomp_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -177,5 +177,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/388_grotle_cry.ogg",
+    "source": "latest"
+  }
 }

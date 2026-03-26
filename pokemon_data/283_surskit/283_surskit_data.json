@@ -240,5 +240,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "armor",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/283_surskit_cry.ogg",
+    "source": "latest"
+  }
 }

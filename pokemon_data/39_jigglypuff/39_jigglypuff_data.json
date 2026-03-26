@@ -382,5 +382,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/39_jigglypuff_cry.ogg",
+    "source": "latest"
+  }
 }

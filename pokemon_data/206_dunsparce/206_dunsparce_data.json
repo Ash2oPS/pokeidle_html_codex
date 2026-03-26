@@ -258,5 +258,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "squiggle",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/206_dunsparce_cry.ogg",
+    "source": "latest"
+  }
 }

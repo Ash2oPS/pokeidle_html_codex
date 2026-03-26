@@ -382,5 +382,9 @@
   "forms_switchable": true,
   "color": "black",
   "shape": "humanoid",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/303_mawile_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -233,5 +233,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/334_altaria_cry.ogg",
+    "source": "latest"
+  }
 }

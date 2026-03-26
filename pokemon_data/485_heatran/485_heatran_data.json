@@ -94,5 +94,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/485_heatran_cry.ogg",
+    "source": "latest"
+  }
 }

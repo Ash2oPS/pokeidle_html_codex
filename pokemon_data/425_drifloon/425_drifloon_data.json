@@ -231,5 +231,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/425_drifloon_cry.ogg",
+    "source": "latest"
+  }
 }

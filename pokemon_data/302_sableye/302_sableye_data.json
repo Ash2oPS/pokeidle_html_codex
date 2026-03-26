@@ -341,5 +341,9 @@
   "forms_switchable": true,
   "color": "purple",
   "shape": "humanoid",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/302_sableye_cry.ogg",
+    "source": "latest"
+  }
 }

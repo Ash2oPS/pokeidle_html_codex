@@ -218,5 +218,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/464_rhyperior_cry.ogg",
+    "source": "latest"
+  }
 }

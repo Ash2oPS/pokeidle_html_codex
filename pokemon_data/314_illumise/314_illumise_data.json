@@ -172,5 +172,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/314_illumise_cry.ogg",
+    "source": "latest"
+  }
 }

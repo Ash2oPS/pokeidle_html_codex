@@ -301,5 +301,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/159_croconaw_cry.ogg",
+    "source": "latest"
+  }
 }

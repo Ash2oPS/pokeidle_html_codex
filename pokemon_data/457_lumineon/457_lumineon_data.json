@@ -113,5 +113,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/457_lumineon_cry.ogg",
+    "source": "latest"
+  }
 }

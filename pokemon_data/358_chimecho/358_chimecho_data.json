@@ -249,5 +249,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "arms",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/358_chimecho_cry.ogg",
+    "source": "latest"
+  }
 }

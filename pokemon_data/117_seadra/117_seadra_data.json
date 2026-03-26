@@ -259,5 +259,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "blob",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/117_seadra_cry.ogg",
+    "source": "latest"
+  }
 }

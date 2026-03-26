@@ -175,5 +175,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "arms",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/325_spoink_cry.ogg",
+    "source": "latest"
+  }
 }

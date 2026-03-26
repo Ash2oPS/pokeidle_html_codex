@@ -298,5 +298,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/40_wigglytuff_cry.ogg",
+    "source": "latest"
+  }
 }

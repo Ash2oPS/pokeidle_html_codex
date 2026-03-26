@@ -106,5 +106,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "blob",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/412_burmy_cry.ogg",
+    "source": "latest"
+  }
 }

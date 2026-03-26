@@ -256,5 +256,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/182_bellossom_cry.ogg",
+    "source": "latest"
+  }
 }

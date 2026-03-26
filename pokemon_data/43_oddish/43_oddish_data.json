@@ -579,5 +579,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "legs",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/43_oddish_cry.ogg",
+    "source": "latest"
+  }
 }

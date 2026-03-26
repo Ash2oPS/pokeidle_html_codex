@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/424_ambipom_cry.ogg",
+    "source": "latest"
+  }
 }

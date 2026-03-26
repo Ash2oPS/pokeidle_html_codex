@@ -450,5 +450,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/149_dragonite_cry.ogg",
+    "source": "latest"
+  }
 }

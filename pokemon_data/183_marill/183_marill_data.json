@@ -246,5 +246,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/183_marill_cry.ogg",
+    "source": "latest"
+  }
 }

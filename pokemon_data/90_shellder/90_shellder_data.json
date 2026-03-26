@@ -275,5 +275,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/90_shellder_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -230,5 +230,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "ball",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/337_lunatone_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -209,5 +209,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/360_wynaut_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -90,5 +90,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/481_mesprit_cry.ogg",
+    "source": "latest"
+  }
 }

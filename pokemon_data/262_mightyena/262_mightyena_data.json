@@ -253,5 +253,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/262_mightyena_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -198,5 +198,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/307_meditite_cry.ogg",
+    "source": "latest"
+  }
 }

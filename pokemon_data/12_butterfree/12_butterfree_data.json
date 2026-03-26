@@ -302,5 +302,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "bug-wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/12_butterfree_cry.ogg",
+    "source": "latest"
+  }
 }

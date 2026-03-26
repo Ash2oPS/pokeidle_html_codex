@@ -318,5 +318,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/188_skiploom_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -606,5 +606,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/132_ditto_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { JSDOM } from "jsdom";
 
 import { createRuntimeUiInteractionSystem } from "../systems/ui/runtime-ui-interaction-system.js";
 
@@ -14,11 +15,36 @@ const runtimeUiInteractionSystemPath = path.resolve(
 );
 
 function createClassList(hidden = false) {
+  const classes = new Set(hidden ? ["hidden"] : []);
   return {
-    add() {},
-    remove() {},
+    add(...tokens) {
+      for (const token of tokens) {
+        classes.add(token);
+      }
+    },
+    remove(...tokens) {
+      for (const token of tokens) {
+        classes.delete(token);
+      }
+    },
+    toggle(token, force = undefined) {
+      if (force === true) {
+        classes.add(token);
+        return true;
+      }
+      if (force === false) {
+        classes.delete(token);
+        return false;
+      }
+      if (classes.has(token)) {
+        classes.delete(token);
+        return false;
+      }
+      classes.add(token);
+      return true;
+    },
     contains(className) {
-      return className === "hidden" ? hidden : false;
+      return classes.has(className);
     },
   };
 }
@@ -26,10 +52,21 @@ function createClassList(hidden = false) {
 function createTestElement(tagName = "div") {
   const listeners = new Map();
   const classes = new Set();
+  const styleValues = new Map();
   const element = {
     tagName: String(tagName || "div").toUpperCase(),
     children: [],
-    style: {},
+    style: {
+      setProperty(name, value) {
+        styleValues.set(String(name), String(value));
+      },
+      removeProperty(name) {
+        styleValues.delete(String(name));
+      },
+      getPropertyValue(name) {
+        return styleValues.get(String(name)) || "";
+      },
+    },
     dataset: {},
     textContent: "",
     className: "",
@@ -46,6 +83,9 @@ function createTestElement(tagName = "div") {
     replaceChildren(...children) {
       this.children = [...children];
       return children[children.length - 1];
+    },
+    remove() {
+      this.removed = true;
     },
     addEventListener(type, handler) {
       listeners.set(type, handler);
@@ -85,6 +125,22 @@ function createTestElement(tagName = "div") {
       contains(token) {
         return classes.has(token);
       },
+      toggle(token, force = undefined) {
+        if (force === true) {
+          classes.add(token);
+          return true;
+        }
+        if (force === false) {
+          classes.delete(token);
+          return false;
+        }
+        if (classes.has(token)) {
+          classes.delete(token);
+          return false;
+        }
+        classes.add(token);
+        return true;
+      },
     },
   };
   let innerHtml = "";
@@ -99,6 +155,12 @@ function createTestElement(tagName = "div") {
       }
     },
   });
+  return element;
+}
+
+function createHiddenTestElement(tagName = "div") {
+  const element = createTestElement(tagName);
+  element.classList.add("hidden");
   return element;
 }
 
@@ -308,10 +370,10 @@ function createUiInteractionSystem(overrides = {}) {
     assertValidBallConfig: (value) => value,
     assertValidEncounter: (value) => value,
     assertValidShopItemConfig: (value) => value,
-    ballCaptureMenuEl: { classList: createClassList(true) },
+    ballCaptureMenuEl: createHiddenTestElement("div"),
     ballCaptureMenuTitleEl: { textContent: "" },
     boxesGridEl: createTestElement("div"),
-    boxesInfoPanelEl: { innerHTML: "" },
+    boxesInfoPanelEl: createTestElement("aside"),
     boxesSearchInputEl: createTestElement("input"),
     boxesModalEl: { classList: createClassList(true) },
     boxesShinyCounterEl: { textContent: "" },
@@ -330,19 +392,7 @@ function createUiInteractionSystem(overrides = {}) {
     computeStatsAtLevel: () => ({}),
     createRuntimeConfigLoaders: () => ({}),
     document: {
-      createElement: () => ({
-        appendChild() {},
-        classList: createClassList(false),
-        style: {},
-        dataset: {},
-        setAttribute() {},
-        addEventListener() {},
-        removeEventListener() {},
-        focus() {},
-        select() {},
-        innerHTML: "",
-        textContent: "",
-      }),
+      createElement: (tagName) => createTestElement(tagName),
       createDocumentFragment: () => ({ appendChild() {} }),
     },
     ensureAppearanceEditorUnlockedFromProgress: () => false,
@@ -433,7 +483,7 @@ function createUiInteractionSystem(overrides = {}) {
     hasImplementedTalentEffect: () => false,
     hideModalWithTween: () => {},
     hidePopupWithTween: () => {},
-    hoverPopupEl: { classList: createClassList(true), innerHTML: "" },
+    hoverPopupEl: createHiddenTestElement("div"),
     loadingScreenEl: createTestElement("div"),
     isAppearanceEditorUnlocked: () => false,
     isCurrentRouteCombatEnabled: () => true,
@@ -472,7 +522,7 @@ function createUiInteractionSystem(overrides = {}) {
     pokedexEntriesCacheUltraShinySpeciesCount: 0,
     pokedexGlobalCompletionEl: { textContent: "" },
     pokedexGridEl: createTestElement("div"),
-    pokedexInfoPanelEl: { innerHTML: "" },
+    pokedexInfoPanelEl: createTestElement("aside"),
     pokedexModalEl: { classList: createClassList(true) },
     pokedexRenderRafHandle: 0,
     pokedexSearchInputEl: createTestElement("input"),
@@ -552,7 +602,7 @@ function createUiInteractionSystem(overrides = {}) {
     state,
     teamContextMenuAppearanceButtonEl: { disabled: false },
     teamContextMenuBoxesButtonEl: { disabled: false },
-    teamContextMenuEl: { classList: createClassList(true) },
+    teamContextMenuEl: createHiddenTestElement("div"),
     teamContextMenuRenameButtonEl: { disabled: false },
     teamContextMenuTitleEl: { textContent: "" },
     toSafeInt: (value, fallback = 0) => {
@@ -1343,6 +1393,201 @@ test("runtime ui interaction system renders live team hover tooltip combat metri
   assert.match(hoverPopupEl.innerHTML, /T[ée]l[ée]port/);
   assert.match(hoverPopupEl.innerHTML, /XP/);
   assert.match(hoverPopupEl.innerHTML, /pokemon-info-zone-label">Types</);
+});
+
+test("runtime ui interaction system renders the mobile team hover as a quick bottom sheet", () => {
+  const dom = new JSDOM("<!doctype html><html><body><div id='hover-popup'></div></body></html>", {
+    pretendToBeVisual: true,
+  });
+  const hoverPopupEl = dom.window.document.getElementById("hover-popup");
+  hoverPopupEl.classList.add("hidden");
+  hoverPopupEl.getBoundingClientRect = () => ({
+    width: 320,
+    height: 180,
+    left: 0,
+    top: 0,
+    right: 320,
+    bottom: 180,
+  });
+
+  const member = {
+    id: 25,
+    nameFr: "Pikachu",
+    level: 18,
+    hpCurrent: 35,
+    hpMax: 52,
+    xp: 42,
+    xpToNext: 100,
+    attackMode: "projectiles",
+    offensiveType: "electric",
+    defensiveTypes: ["electric"],
+    talent: "STATIC",
+  };
+
+  const { state, system } = createUiInteractionSystem({
+    window: dom.window,
+    layout: {
+      centerX: 640,
+      centerY: 360,
+      teamSlots: [],
+      viewportProfile: { phone: true },
+    },
+    bindings: {
+      document: dom.window.document,
+      Element: dom.window.Element,
+      HTMLElement: dom.window.HTMLElement,
+      HTMLButtonElement: dom.window.HTMLButtonElement,
+      HTMLImageElement: dom.window.HTMLImageElement,
+      hoverPopupEl,
+      getSpeciesStatsSummary: () => ({
+        encountered_total: 12,
+        encountered_normal: 12,
+        encountered_shiny: 0,
+        encountered_ultra_shiny: 0,
+        defeated_total: 8,
+        defeated_normal: 8,
+        defeated_shiny: 0,
+        defeated_ultra_shiny: 0,
+        captured_total: 2,
+        captured_normal: 2,
+        captured_shiny: 0,
+        captured_ultra_shiny: 0,
+      }),
+      resolveTalentDefinition: () => ({
+        id: "STATIC",
+        nameFr: "Statik",
+        nameEn: "Static",
+        descriptionFr: "Peut paralyser au contact.",
+      }),
+      showTooltipWithTween: (element) => {
+        element.classList.remove("hidden");
+      },
+    },
+  });
+  state.layout.viewportProfile = { phone: true };
+  state.team = [member];
+
+  system.showHoverPopup(member, 120, 90);
+
+  assert.match(hoverPopupEl.innerHTML, /pokemon-info-card--quick/);
+  assert.match(hoverPopupEl.innerHTML, /hover-popup-micro-grid--quick/);
+  assert.equal(hoverPopupEl.classList.contains("is-mobile-bottom-sheet"), true);
+  assert.equal(hoverPopupEl.style.getPropertyValue("--context-sheet-max-width"), "360px");
+  assert.equal(hoverPopupEl.style.left, "50%");
+  dom.window.close();
+});
+
+test("runtime ui interaction system uses first tap to open the mobile boxes detail sheet", async () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      getBaseStatTotal: () => 273,
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[pokemonId] || null,
+      isEntityUnlocked: () => true,
+      setTopMessage: () => {},
+    },
+  });
+
+  state.layout.viewportProfile = { phone: true };
+  state.saveData = {
+    team: [25, 0, 0, 0, 0, 0],
+    pokemon_entities: {
+      25: { id: 25, captured_normal: 1 },
+      32: { id: 32, level: 1, captured_normal: 1, encountered_normal: 3, defeated_normal: 3 },
+    },
+  };
+  state.pokemonDefsById.set(25, {
+    id: 25,
+    nameFr: "Pikachu",
+    spritePath: "pokemon_data/25.png",
+    attackMode: "projectiles",
+    offensiveType: "electric",
+    defensiveTypes: ["electric"],
+  });
+  state.pokemonDefsById.set(32, {
+    id: 32,
+    nameFr: "Nidoran",
+    spritePath: "pokemon_data/32.png",
+    attackMode: "projectiles",
+    offensiveType: "poison",
+    defensiveTypes: ["poison"],
+  });
+  state.ui.boxesTargetSlotIndex = 0;
+  state.ui.boxesHoverEntityId = null;
+
+  system.renderBoxesGrid();
+
+  assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), false);
+  assert.equal(state.saveData.team[0], 25);
+
+  await bindings.boxesGridEl.children[1].trigger("click");
+
+  assert.equal(state.saveData.team[0], 25);
+  assert.equal(state.ui.boxesHoverEntityId, 32);
+  assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), true);
+  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Fiche equipe/);
+});
+
+test("runtime ui interaction system anchors the mobile ball capture menu as a bottom sheet", () => {
+  const dom = new JSDOM(
+    "<!doctype html><html><body><div id='team-menu' class='hidden'></div><div id='ball-menu' class='hidden'></div></body></html>",
+    { pretendToBeVisual: true },
+  );
+  const documentRef = dom.window.document;
+  const teamContextMenuEl = documentRef.getElementById("team-menu");
+  const ballCaptureMenuEl = documentRef.getElementById("ball-menu");
+
+  const { state, system } = createUiInteractionSystem({
+    window: dom.window,
+    bindings: {
+      document: documentRef,
+      Element: dom.window.Element,
+      HTMLElement: dom.window.HTMLElement,
+      HTMLButtonElement: dom.window.HTMLButtonElement,
+      HTMLImageElement: dom.window.HTMLImageElement,
+      teamContextMenuEl,
+      teamContextMenuTitleEl: documentRef.createElement("div"),
+      teamContextMenuRenameButtonEl: documentRef.createElement("button"),
+      teamContextMenuBoxesButtonEl: documentRef.createElement("button"),
+      teamContextMenuAppearanceButtonEl: documentRef.createElement("button"),
+      ballCaptureMenuEl,
+      ballCaptureMenuTitleEl: documentRef.createElement("div"),
+      ballCaptureToggleAllButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleUnownedButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleOwnedButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleShinyButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleUltraButtonEl: documentRef.createElement("button"),
+      BALL_CONFIG_BY_TYPE: {
+        poke_ball: {
+          nameFr: "Pokeball",
+        },
+      },
+      getBallCaptureRulesForType: () => ({
+        all: true,
+        unowned: true,
+        owned: true,
+        shiny: true,
+        ultra_shiny: true,
+      }),
+      isAppearanceEditorUnlocked: () => true,
+      getTeamBoxesAccessState: () => ({ allowed: true }),
+      showPopupWithTween: (element) => {
+        element.classList.remove("hidden");
+      },
+    },
+  });
+
+  state.layout.viewportProfile = { phone: true };
+  state.team = [{ id: 25, nameFr: "Pikachu" }];
+  state.saveData = { team: [25] };
+
+  system.openTeamContextMenu(0, state.team[0], 120, 80);
+  assert.equal(state.ui.teamContextMenuOpen, true);
+
+  system.openBallCaptureMenu("poke_ball", 120, 80);
+  assert.equal(ballCaptureMenuEl.classList.contains("is-mobile-bottom-sheet"), true);
+  assert.equal(ballCaptureMenuEl.style.left, "50%");
+
+  dom.window.close();
 });
 
 test("runtime ui interaction system renders compact boxes info cards", () => {

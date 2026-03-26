@@ -343,5 +343,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/470_leafeon_cry.ogg",
+    "source": "latest"
+  }
 }

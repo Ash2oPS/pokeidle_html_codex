@@ -189,5 +189,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "squiggle",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/367_huntail_cry.ogg",
+    "source": "latest"
+  }
 }

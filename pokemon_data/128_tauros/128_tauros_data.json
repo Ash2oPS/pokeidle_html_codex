@@ -279,5 +279,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/128_tauros_cry.ogg",
+    "source": "latest"
+  }
 }

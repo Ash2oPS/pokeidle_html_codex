@@ -325,5 +325,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "wings",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/380_latias_cry.ogg",
+    "source": "latest"
+  }
 }

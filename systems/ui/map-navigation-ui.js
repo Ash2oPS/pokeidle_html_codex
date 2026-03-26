@@ -109,7 +109,7 @@ export function createMapNavigationUi({
       const connectionStates = getConnectedRouteDisplayStates(currentRouteId);
       if (connectionStates.length <= 0) {
         mapConnectionsListEl.appendChild(
-          createRouteNavigationEmptyState("Aucune sortie configur\u00e9e pour cette zone."),
+          createRouteNavigationEmptyState("Aucune zone reli\u00e9e n'est configur\u00e9e pour cette zone."),
         );
       } else {
         for (const routeState of connectionStates) {

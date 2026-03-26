@@ -239,5 +239,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "ball",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/191_sunkern_cry.ogg",
+    "source": "latest"
+  }
 }

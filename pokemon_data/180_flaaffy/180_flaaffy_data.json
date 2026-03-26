@@ -240,5 +240,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/180_flaaffy_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -383,5 +383,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/197_umbreon_cry.ogg",
+    "source": "latest"
+  }
 }

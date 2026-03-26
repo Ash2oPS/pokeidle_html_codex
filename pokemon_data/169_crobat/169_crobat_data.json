@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "bug-wings",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/169_crobat_cry.ogg",
+    "source": "latest"
+  }
 }

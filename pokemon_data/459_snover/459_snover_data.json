@@ -112,5 +112,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/459_snover_cry.ogg",
+    "source": "latest"
+  }
 }

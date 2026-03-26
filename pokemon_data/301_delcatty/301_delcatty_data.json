@@ -295,5 +295,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "quadruped",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/301_delcatty_cry.ogg",
+    "source": "latest"
+  }
 }

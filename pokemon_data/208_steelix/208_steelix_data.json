@@ -274,5 +274,9 @@
   "forms_switchable": true,
   "color": "gray",
   "shape": "squiggle",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/208_steelix_cry.ogg",
+    "source": "latest"
+  }
 }

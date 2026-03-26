@@ -296,5 +296,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "wings",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/42_golbat_cry.ogg",
+    "source": "latest"
+  }
 }

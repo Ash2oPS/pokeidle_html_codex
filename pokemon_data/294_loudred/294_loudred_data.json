@@ -189,5 +189,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/294_loudred_cry.ogg",
+    "source": "latest"
+  }
 }

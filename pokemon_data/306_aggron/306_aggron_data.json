@@ -350,5 +350,9 @@
   "forms_switchable": true,
   "color": "gray",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/306_aggron_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -345,5 +345,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/321_wailord_cry.ogg",
+    "source": "latest"
+  }
 }

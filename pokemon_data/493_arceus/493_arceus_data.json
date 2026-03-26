@@ -208,5 +208,9 @@
   "forms_switchable": true,
   "color": "white",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/493_arceus_cry.ogg",
+    "source": "latest"
+  }
 }

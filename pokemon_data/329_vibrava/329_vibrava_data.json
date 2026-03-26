@@ -205,5 +205,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "bug-wings",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/329_vibrava_cry.ogg",
+    "source": "latest"
+  }
 }

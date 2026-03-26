@@ -7308,3 +7308,65 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop combat HUD: `output/ui-state-gallery/desktop-landscape/combat-hud.png`
   - mobile combat HUD: `output/ui-state-gallery/mobile-portrait/combat-hud.png`
   - desktop loading screen: `output/ui-state-gallery/desktop-landscape/loading-screen.png`
+
+## 2026-03-25 - Route navigation rebuilt as a graph modal from the current-zone card
+
+- Removed the always-visible inline exits strip from the top HUD and turned the current-zone card into the single route-navigation trigger.
+  - `systems/ui/runtime-ui-dom-factory.js` now mounts a dedicated route-nav modal as a sibling overlay instead of nesting the exits UI inside the HUD card.
+- Reworked the route-navigation renderer in `systems/ui/route-navigation-ui.js`:
+  - current-zone summary now shows only the route name plus region subtitle;
+  - adjacent routes render as graph nodes around the current zone;
+  - locked nodes open an access-info panel inside the modal instead of using the old split exits panel.
+- Updated interaction handling in `game-runtime.js` and `systems/ui/runtime-input-system.js`:
+  - opening a locked destination keeps the modal open and selects the access panel target;
+  - outside-click dismissal now treats the detached modal as part of the route-nav surface.
+- Refined copy to stop presenting this flow as the old "sorties" UI:
+  - route-nav modal now uses "Zones voisines / zones reliées";
+  - map side panel uses the same wording;
+  - empty states now mention missing connected zones instead of missing exits.
+- Added focused regression coverage:
+  - `tests/runtime-input-system.test.mjs`
+  - `tests/runtime-ui-dom-factory.test.mjs`
+- Updated gallery automation:
+  - desktop/mobile route-nav info capture now triggers the graph-node click via DOM evaluation, which avoids Playwright misclicks on transformed absolute nodes.
+- Validation:
+  - `node --test tests/runtime-ui-dom-factory.test.mjs tests/runtime-input-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop idle trigger: `output/ui-state-gallery/desktop-landscape/idle.png`
+  - desktop locked-route modal: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - mobile graph modal: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
+  - mobile locked-route modal: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
+- Follow-up fix after runtime repro on the graph nodes:
+  - the adjacent-zone cards could render visibly above the graph but still lose real pointer hits;
+  - `styles.css` now isolates the graph viewport, disables pointer events on the SVG link layer, raises destination nodes above the scene, and makes the center current-zone card non-interactive;
+  - gallery actions were switched back to real `clickSelector` interactions after confirming physical clicks now open locked info cards and travel to unlocked neighboring zones correctly.
+- Hover flicker follow-up on route navigation:
+  - the graph modal was still rebuilding its DOM on repeated `refreshRouteUi()` calls, which could make hover states blink under the mouse;
+  - `systems/ui/route-navigation-ui.js` now skips `replaceChildren()` when the route graph/info payload signature is unchanged, keeping the hovered button node stable;
+  - added `tests/route-navigation-ui.test.mjs` to lock the regression by asserting stable graph-node identity across identical renders and a rebuild only when selection actually changes.
+- Route navigation cards now surface per-zone background art:
+  - `lib/route-navigation-runtime.js` exposes `backgroundImagePath` on the current zone header and connected route states from the route catalog;
+  - `systems/ui/route-navigation-ui.js` renders a background preview strip for destination cards and graph nodes;
+  - `styles.css` adds the preview frame/overlay styling so the route art stays readable on desktop and mobile.
+
+## 2026-03-25 - Fullscreen action menu buttons color pass
+
+- Boosted the fullscreen action-dock cards in `styles.css` so each primary action now reads with a stronger dedicated hue instead of the flatter blue-grey treatment.
+  - Added explicit accent variants for `map`, `pokedex`, `shop`, `skins`, `notifications`, `save-export`, `save-import`, and `danger`.
+  - Reinforced button backgrounds, borders, icon chips, glow, and hover saturation while keeping the existing dark glass panel language.
+- Follow-up after visual review:
+  - removed the shared `action-dock-fullscreen-shell` panel chrome so the fullscreen menu no longer sits inside one large rounded box;
+  - kept only the individual action cards as the visible affordances on desktop and mobile.
+  - tightened the temporary Pokeball footer container so it no longer keeps a clipped/masked shell around the Pokeball visual; the temporary dock now hugs the button instead of preserving a ghost panel footprint.
+- Validation:
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - `node --test tests/runtime-ui-dom-factory.test.mjs` -> PASS
+  - `node --test tests/ui-copy-encoding-guard.test.mjs` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop fullscreen menu: `output/ui-state-gallery/desktop-action-menu/menu.png`
+  - mobile fullscreen menu: `output/ui-state-gallery/mobile-portrait/menu.png`
+  - desktop gallery contact sheet: `output/ui-state-gallery/desktop-landscape/_contact-sheet.png`
+  - mobile gallery contact sheet: `output/ui-state-gallery/mobile-portrait/_contact-sheet.png`

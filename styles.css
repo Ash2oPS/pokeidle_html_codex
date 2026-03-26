@@ -7460,14 +7460,17 @@ body.update-required-active {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 88px;
-  padding: 10px 6px 8px;
+  width: fit-content;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
   gap: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
+  clip-path: none;
   overflow: visible;
 }
 
@@ -7486,11 +7489,11 @@ body.update-required-active {
 }
 
 .action-dock.is-temporary-disabled .action-dock-pokeball-replacement {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   pointer-events: auto;
   overflow: visible;
 }
@@ -9831,7 +9834,6 @@ body.update-required-active {
   .rename-input,
   .shop-custom-qty-input,
   .route-nav-zone-type,
-  .route-nav-region,
   .route-nav-hint,
   .route-nav-badge-chip,
   .route-nav-progress-chip,
@@ -10166,7 +10168,7 @@ body.update-required-active {
 .loading-screen.maintenance-screen .loading-pokeball {
   animation: maintenance-pokeball-glow 2.5s ease-in-out infinite;
   filter: grayscale(1) brightness(1.08) contrast(1.04);
-  opacity: 0.9;
+  opacity: 0.6;
   box-shadow:
     0 0 0 clamp(2px, 0.24vw, 3px) rgba(4, 14, 22, 0.9),
     0 0 20px rgba(216, 226, 255, 0.24),
@@ -10174,37 +10176,113 @@ body.update-required-active {
 }
 
 /* Fullscreen action menu */
+#action-dock-fullscreen-menu .action-dock-fullscreen-shell {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
 #action-dock-fullscreen-menu .action-dock-fullscreen-btn {
-  --zone-ui-local-accent: var(--zone-ui-accent);
+  --zone-ui-local-accent: #6ec8df;
+  --menu-accent: var(--zone-ui-local-accent);
   min-height: 92px;
   border-radius: 16px;
   justify-content: flex-start;
   gap: 12px;
   text-align: left;
+  border-color: color-mix(in srgb, var(--zone-ui-local-accent) 62%, rgba(236, 246, 255, 0.74));
   background:
+    radial-gradient(
+      circle at 18% 16%,
+      color-mix(in srgb, var(--zone-ui-local-accent) 30%, rgba(255, 255, 255, 0.08)),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      color-mix(in srgb, var(--zone-ui-local-accent) 22%, transparent 78%),
+      transparent 48%
+    ),
     linear-gradient(
       150deg,
-      color-mix(in srgb, var(--zone-ui-local-accent) 22%, rgba(18, 45, 67, 0.98)),
+      color-mix(in srgb, var(--zone-ui-local-accent) 44%, rgba(18, 45, 67, 0.98)),
       rgba(7, 22, 34, 0.99)
     ),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 58%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 58%);
+  box-shadow:
+    0 18px 30px rgba(2, 10, 18, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--zone-ui-local-accent) 18%, transparent 82%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -18px 28px color-mix(in srgb, var(--zone-ui-local-accent) 18%, transparent 82%);
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn:hover,
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--zone-ui-local-accent) 78%, rgba(247, 251, 255, 0.92));
+  box-shadow:
+    0 22px 34px rgba(2, 10, 18, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--zone-ui-local-accent) 42%, transparent 58%),
+    0 0 28px color-mix(in srgb, var(--zone-ui-local-accent) 20%, transparent 80%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -20px 30px color-mix(in srgb, var(--zone-ui-local-accent) 24%, transparent 76%);
+  filter: brightness(1.08) saturate(1.1);
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="map"] {
+  --zone-ui-local-accent: #4bd7cf;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="pokedex"] {
+  --zone-ui-local-accent: #9590ff;
 }
 
 #action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="shop"] {
-  --zone-ui-local-accent: #e6bf77;
+  --zone-ui-local-accent: #ffc66b;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="skins"] {
+  --zone-ui-local-accent: #db7dff;
 }
 
 #action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="notifications"] {
-  --zone-ui-local-accent: #94d8b1;
+  --zone-ui-local-accent: #67e2ab;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="save-export"] {
+  --zone-ui-local-accent: #59c5ff;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="save-import"] {
+  --zone-ui-local-accent: #83d975;
 }
 
 #action-dock-fullscreen-menu .action-dock-fullscreen-btn[data-action-kind="danger"] {
-  --zone-ui-local-accent: #e29d96;
+  --zone-ui-local-accent: #ff9389;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-icon {
+  color: color-mix(in srgb, var(--zone-ui-local-accent) 86%, #f3f9ff 14%);
+  border-color: color-mix(in srgb, var(--zone-ui-local-accent) 62%, rgba(227, 241, 255, 0.76));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--zone-ui-local-accent) 36%, rgba(18, 42, 63, 0.98)),
+      rgba(8, 24, 38, 0.99)
+    ),
+    radial-gradient(circle at 28% 0%, rgba(255, 255, 255, 0.22), transparent 54%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 8px 16px color-mix(in srgb, var(--zone-ui-local-accent) 28%, transparent 72%);
 }
 
 .action-dock-fullscreen-label {
   color: var(--zone-ui-text-title);
   font-family: var(--zone-ui-font);
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-sub {
+  color: color-mix(in srgb, var(--zone-ui-local-accent) 68%, #d3e3f3 32%);
 }
 
 /* Notifications and misc panels */
@@ -10299,12 +10377,17 @@ body.update-required-active {
 
 /* Route navigation remains the reference layout. */
 .ui-topbar .route-nav {
-  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
+  overflow: hidden;
+  border: 1px solid var(--zone-ui-border-strong);
+  border-radius: var(--zone-ui-radius-panel);
+  background:
+    linear-gradient(180deg, var(--zone-ui-surface-top), var(--zone-ui-surface-mid) 56%, var(--zone-ui-surface-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 52%);
+  box-shadow: var(--zone-ui-shadow-lg), var(--zone-ui-inset-shadow);
 }
 
 .ui-topbar .route-nav-wrap {
@@ -10313,23 +10396,16 @@ body.update-required-active {
 }
 
 .route-nav-summary-panel {
-  grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto;
-  grid-template-areas:
-    "header copy chips"
-    "header badges badges";
-  gap: 6px 8px;
-  min-height: 56px;
-  padding: 8px 10px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  display: flex;
   align-items: center;
-}
-
-.route-nav-header {
-  grid-area: header;
-  display: grid;
-  gap: 4px;
-  align-content: center;
-  justify-items: start;
-  min-width: 0;
+  justify-content: center;
+  gap: 0;
+  min-height: 72px;
+  padding: 13px 16px 11px;
 }
 
 .route-nav-identity,
@@ -10343,69 +10419,73 @@ body.update-required-active {
 }
 
 .route-nav-summary-copy {
-  grid-area: copy;
+  width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "icon label"
-    "icon current";
-  gap: 2px 7px;
+    "current"
+    "region";
+  gap: 4px;
   align-items: center;
+  justify-items: center;
+  text-align: center;
 }
 
 .route-nav-summary-copy::before {
-  content: "\2197";
-  grid-area: icon;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font: 800 11px/1 var(--zone-ui-font);
+  display: none;
 }
 
 .route-nav-summary-copy > .route-nav-section-label {
-  grid-area: label;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
 }
 
 .route-nav-current {
   grid-area: current;
   min-width: 0;
-  font: 800 clamp(14px, 1vw, 18px) / 1 var(--zone-ui-font);
-  text-align: left;
+  font: 800 clamp(21px, 1.75vw, 28px) / 1.02 var(--zone-ui-font);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.route-nav-current-region {
+  grid-area: region;
+}
+
 .route-nav-progress-chips {
-  grid-area: chips;
-  justify-content: flex-end;
-  align-self: center;
-  max-width: 260px;
+  display: none;
 }
 
 .route-nav-badges {
-  grid-area: badges;
-  justify-content: flex-end;
-  align-self: start;
+  display: none;
 }
 
-.route-nav-badges:empty {
+.route-nav-header {
   display: none;
 }
 
 .route-nav-zone-type,
-.route-nav-region,
 .route-nav-hint {
   min-height: 18px;
   padding: 3px 7px;
   font-size: 8px;
+}
+
+.route-nav-summary-copy .route-nav-region {
+  display: block;
+  justify-self: center;
+  min-height: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none !important;
+  color: rgba(203, 227, 239, 0.72);
+  font: 600 11px/1.1 var(--zone-ui-font);
+  letter-spacing: 0.03em;
+  text-transform: none;
 }
 
 .route-nav-progress-chip {
@@ -10415,33 +10495,52 @@ body.update-required-active {
 }
 
 .route-nav-exits-panel {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   min-height: 0;
-  padding: 8px 10px;
-  gap: 5px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(145, 220, 236, 0.16);
+  gap: 8px;
 }
 
 .route-nav-destinations-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  min-height: 36px;
 }
 
 .route-nav-destinations-copy {
-  gap: 2px;
+  display: grid;
+  gap: 3px;
   min-width: 0;
+}
+
+.route-nav-exits-panel .route-nav-section-label {
+  color: var(--zone-ui-text-title);
+  font: 800 13px/1.08 var(--zone-ui-font);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.route-nav-exits-panel .route-nav-section-copy {
+  color: rgba(183, 213, 227, 0.84);
+  font: 700 11px/1.2 var(--zone-ui-font);
 }
 
 .route-nav-drawer-toggle,
 .route-nav-drawer-close,
 .route-nav-info-close {
-  min-height: 32px;
-  padding: 5px 11px;
+  min-height: 36px;
+  padding: 6px 12px;
   font-size: 10px;
 }
 
 .route-nav-drawer-toggle {
-  min-width: 92px;
+  min-width: 96px;
   justify-content: space-between;
 }
 
@@ -10460,9 +10559,153 @@ body.update-required-active {
   padding: 10px;
 }
 
+.route-nav-drawer:not(.hidden) {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(118, 195, 210, 0.24);
+  border-radius: calc(var(--zone-ui-radius-card) + 2px);
+  background:
+    linear-gradient(180deg, rgba(16, 40, 59, 0.9), rgba(8, 22, 35, 0.97)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 58%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26);
+}
+
+.route-nav-drawer-header {
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(118, 195, 210, 0.16);
+}
+
+.route-nav-drawer-title {
+  color: var(--zone-ui-text-title);
+  font: 800 12px/1.1 var(--zone-ui-font);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.route-nav-drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .route-nav-destination-card {
-  padding: 8px 10px;
-  gap: 4px;
+  position: relative;
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: manipulation;
+  user-select: none;
+  border-radius: 20px;
+  border-color: rgba(118, 195, 210, 0.24);
+  background:
+    linear-gradient(180deg, var(--zone-ui-subsurface-top), var(--zone-ui-subsurface-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 56%);
+  box-shadow:
+    0 14px 28px rgba(2, 10, 18, 0.24),
+    var(--zone-ui-inset-shadow);
+  text-align: center;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.route-nav-destination-card:hover,
+.route-nav-destination-card:focus-visible {
+  transform: none;
+  border-color: var(--zone-ui-border-accent);
+  box-shadow:
+    0 18px 34px rgba(2, 10, 18, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  filter: brightness(1.03);
+  outline: none;
+}
+
+.route-nav-destination-card.is-selected {
+  border-color: rgba(171, 239, 251, 0.54);
+  box-shadow:
+    0 20px 36px rgba(2, 10, 18, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+}
+
+.route-nav-zone-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  overflow: hidden;
+  border: 1px solid rgba(118, 195, 210, 0.22);
+  border-radius: 13px;
+  background:
+    linear-gradient(180deg, rgba(24, 64, 91, 0.92), rgba(9, 24, 37, 0.98)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 58%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
+.route-nav-zone-preview.is-destination-card {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(17, 46, 67, 0.78), rgba(7, 20, 32, 0.92)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 56%);
+  box-shadow: none;
+}
+
+.route-nav-zone-preview-image,
+.route-nav-zone-preview-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.route-nav-zone-preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.route-nav-zone-preview-overlay {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 32%),
+    radial-gradient(circle at 50% 46%, rgba(10, 24, 38, 0.04), rgba(8, 20, 32, 0.62) 54%, rgba(4, 12, 21, 0.9) 100%),
+    linear-gradient(180deg, rgba(4, 12, 20, 0.16), rgba(4, 12, 20, 0.82));
+}
+
+.route-nav-zone-preview.is-empty .route-nav-zone-preview-overlay {
+  background:
+    linear-gradient(135deg, rgba(171, 239, 251, 0.14), rgba(171, 239, 251, 0) 52%),
+    linear-gradient(180deg, rgba(10, 24, 40, 0.06), rgba(4, 12, 20, 0.7));
+}
+
+.route-nav-destination-card.is-selected .route-nav-zone-preview-overlay {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(circle at 50% 42%, rgba(116, 195, 210, 0.18), rgba(116, 195, 210, 0) 46%),
+    linear-gradient(180deg, rgba(6, 16, 27, 0.1), rgba(5, 14, 23, 0.8));
+}
+
+.route-nav-destination-card.is-locked .route-nav-zone-preview-overlay {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, rgba(54, 20, 28, 0.32), rgba(20, 7, 12, 0.82)),
+    linear-gradient(135deg, rgba(243, 198, 124, 0.12), rgba(243, 198, 124, 0) 58%);
 }
 
 .route-nav-destination-status,
@@ -10470,6 +10713,91 @@ body.update-required-active {
 .route-nav-info-flag-pill {
   min-height: 22px;
   padding-block: 3px;
+}
+
+.route-nav-destination-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 132px;
+  padding: 16px 18px;
+}
+
+.route-nav-destination-label {
+  max-width: min(100%, 18ch);
+  color: rgba(249, 252, 255, 0.98);
+  font: 800 clamp(22px, 2.8vw, 32px)/1.02 var(--zone-ui-font);
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  text-shadow:
+    0 3px 10px rgba(2, 10, 18, 0.9),
+    0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.route-nav-drawer .route-nav-info-panel {
+  width: 100%;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(118, 195, 210, 0.16);
+}
+
+.route-nav-drawer .route-nav-info-card {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  gap: 8px;
+}
+
+.route-nav-info-header {
+  align-items: center;
+}
+
+.route-nav-info-title {
+  color: var(--zone-ui-text-title);
+  font: 800 17px/1.08 var(--zone-ui-font);
+}
+
+.route-nav-info-subtitle {
+  color: rgba(183, 213, 227, 0.74);
+  font: 700 10px/1.2 var(--zone-ui-font);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.route-nav-info-status,
+.route-nav-info-reason,
+.route-nav-info-section-copy {
+  border: 1px solid rgba(118, 195, 210, 0.22);
+  border-radius: 14px;
+  padding: 9px 10px;
+  background:
+    linear-gradient(180deg, rgba(19, 50, 72, 0.9), rgba(8, 24, 37, 0.96)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 56%);
+  box-shadow: var(--zone-ui-inset-shadow);
+}
+
+.route-nav-info-status {
+  color: var(--zone-ui-text-title);
+}
+
+.route-nav-info-status.is-locked,
+.route-nav-info-reason {
+  color: var(--zone-ui-text);
+  border-color: rgba(243, 198, 124, 0.26);
+}
+
+.route-nav-info-section {
+  gap: 5px;
+}
+
+.route-nav-info-section-copy {
+  color: var(--zone-ui-text);
+  font: 700 12px/1.35 var(--zone-ui-font);
 }
 
 @media (max-width: 1200px) {
@@ -10484,23 +10812,12 @@ body.update-required-active {
   }
 
   .route-nav-summary-panel {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "copy"
-      "header"
-      "chips"
-      "badges";
     min-height: 0;
-  }
-
-  .route-nav-progress-chips,
-  .route-nav-badges {
-    justify-content: flex-start;
-    max-width: none;
+    padding: 10px 12px 9px;
   }
 
   .route-nav-current {
-    white-space: normal;
+    white-space: nowrap;
   }
 }
 
@@ -10539,15 +10856,15 @@ body.update-required-active {
   }
 
   .route-nav-summary-panel {
-    padding: 7px 8px;
+    min-height: 62px;
+    padding: 9px 10px 8px;
   }
 
   .route-nav-current {
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .route-nav-zone-type,
-  .route-nav-region,
   .route-nav-hint {
     min-height: 17px;
     padding: 2px 6px;
@@ -10560,8 +10877,19 @@ body.update-required-active {
     font-size: 9px;
   }
 
+  .route-nav-summary-copy .route-nav-region {
+    font-size: 9px;
+  }
+
   .route-nav-exits-panel {
-    padding: 6px 7px;
+    padding: 7px 8px 8px;
+  }
+
+  .route-nav-drawer-toggle,
+  .route-nav-drawer-close,
+  .route-nav-info-close {
+    min-height: 34px;
+    padding-inline: 10px;
   }
 
   .route-nav-summary-copy::before {
@@ -10579,5 +10907,1066 @@ body.update-required-active {
 
   .dev-layout-panel-shell {
     padding: 12px;
+  }
+}
+
+/* Route navigation v2: current zone as trigger + dedicated adjacent graph modal. */
+.route-nav-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-topbar .route-nav {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.ui-topbar .route-nav-wrap {
+  width: min(560px, calc(100% - 420px));
+  max-width: min(560px, 100%);
+}
+
+.route-nav-current-trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--zone-ui-border-strong);
+  border-radius: var(--zone-ui-radius-panel);
+  background:
+    linear-gradient(180deg, var(--zone-ui-surface-top), var(--zone-ui-surface-mid) 56%, var(--zone-ui-surface-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 52%);
+  box-shadow: var(--zone-ui-shadow-lg), var(--zone-ui-inset-shadow);
+  color: var(--zone-ui-text);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.route-nav-current-trigger:hover:not(:disabled),
+.route-nav-current-trigger:focus-visible:not(:disabled) {
+  border-color: var(--zone-ui-border-accent);
+  box-shadow:
+    0 18px 32px rgba(2, 10, 18, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  filter: brightness(1.03);
+  outline: none;
+}
+
+.route-nav-current-trigger:disabled {
+  cursor: default;
+  opacity: 0.62;
+  filter: saturate(0.78);
+}
+
+.route-nav-current-trigger .route-nav-summary-panel {
+  display: grid;
+  place-items: center;
+  min-height: 84px;
+  padding: 16px 18px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.route-nav-current-trigger .route-nav-summary-copy {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+}
+
+.route-nav-current-trigger .route-nav-summary-copy > .route-nav-section-label {
+  display: none;
+}
+
+.route-nav-current-trigger .route-nav-current {
+  min-width: 0;
+  font: 800 clamp(22px, 1.9vw, 30px) / 1.02 var(--zone-ui-font);
+  text-align: center;
+  color: var(--zone-ui-text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-nav-current-trigger .route-nav-region {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: rgba(203, 227, 239, 0.72);
+  font: 600 11px/1.1 var(--zone-ui-font);
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.route-nav-exits-panel,
+.route-nav-header,
+.route-nav-actions,
+.route-nav-destinations {
+  display: none !important;
+}
+
+.route-nav-drawer:not(.hidden) {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  padding: 18px 16px;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(147, 220, 235, 0.14), transparent 34%),
+    radial-gradient(circle at 82% 100%, rgba(255, 220, 149, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(5, 17, 28, 0.78), rgba(2, 8, 13, 0.86));
+  backdrop-filter: blur(10px);
+}
+
+.route-nav-modal-card {
+  width: min(940px, calc(100vw - 32px));
+  max-height: min(88dvh, 920px);
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  pointer-events: auto;
+  padding: 18px;
+  border: 1px solid var(--zone-ui-border-strong);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, var(--zone-ui-surface-top), var(--zone-ui-surface-mid) 56%, var(--zone-ui-surface-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 52%);
+  box-shadow:
+    0 28px 62px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+}
+
+.route-nav-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.route-nav-modal-heading {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.route-nav-drawer-title {
+  color: rgba(183, 213, 227, 0.78);
+  font: 800 11px/1.1 var(--zone-ui-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-destinations-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.route-nav-destinations-copy .route-nav-section-label {
+  color: var(--zone-ui-text-title);
+  font: 800 22px/1.02 var(--zone-ui-font);
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.route-nav-destinations-copy .route-nav-section-copy {
+  color: rgba(183, 213, 227, 0.84);
+  font: 700 12px/1.25 var(--zone-ui-font);
+}
+
+.route-nav-drawer-close,
+.route-nav-info-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid var(--zone-ui-border-strong);
+  border-radius: var(--zone-ui-radius-pill);
+  background:
+    linear-gradient(180deg, var(--zone-ui-elevated-top), var(--zone-ui-elevated-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 58%);
+  box-shadow: var(--zone-ui-inset-shadow);
+  color: var(--zone-ui-text-title);
+  font: 800 11px/1 var(--zone-ui-font);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.route-nav-drawer-close:hover,
+.route-nav-drawer-close:focus-visible,
+.route-nav-info-close:hover,
+.route-nav-info-close:focus-visible {
+  border-color: var(--zone-ui-border-accent);
+  box-shadow:
+    0 12px 22px rgba(2, 10, 18, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  filter: brightness(1.04);
+  outline: none;
+}
+
+.route-nav-modal-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(118, 195, 210, 0.24);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(16, 40, 59, 0.92), rgba(8, 22, 35, 0.97)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 58%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26);
+}
+
+.route-nav-zone-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(145, 220, 236, 0.34);
+  border-radius: var(--zone-ui-radius-pill);
+  background:
+    linear-gradient(180deg, var(--zone-ui-elevated-top), var(--zone-ui-elevated-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 58%);
+  color: var(--zone-ui-accent-strong);
+  font: 800 10px/1 var(--zone-ui-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-modal-current-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.route-nav-modal-current-value {
+  min-width: 0;
+  color: var(--zone-ui-text-title);
+  font: 800 clamp(24px, 2.4vw, 34px) / 1.02 var(--zone-ui-font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-nav-modal-current-region {
+  color: rgba(203, 227, 239, 0.72);
+  font: 600 12px/1.1 var(--zone-ui-font);
+  letter-spacing: 0.03em;
+}
+
+.route-nav-modal-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.route-nav-progress-chips,
+.route-nav-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.route-nav-badges.hidden,
+.route-nav-progress-chips.hidden {
+  display: none;
+}
+
+.route-nav-modal-body {
+  display: grid;
+  gap: 12px;
+}
+
+.route-nav-drawer.has-route-nav-info .route-nav-modal-body {
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+  align-items: start;
+}
+
+.route-nav-info-panel {
+  display: flex;
+  width: 100%;
+}
+
+.route-nav-drawer .route-nav-info-panel {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.route-nav-info-panel.hidden {
+  display: none;
+}
+
+.route-nav-info-card {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(118, 195, 210, 0.24);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(16, 40, 59, 0.92), rgba(8, 22, 35, 0.97)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 58%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26);
+}
+
+.route-nav-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-nav-info-title-wrap {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.route-nav-info-title {
+  color: var(--zone-ui-text-title);
+  font: 800 18px/1.08 var(--zone-ui-font);
+}
+
+.route-nav-info-subtitle,
+.route-nav-info-section-label {
+  color: rgba(183, 213, 227, 0.76);
+  font: 700 10px/1.2 var(--zone-ui-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.route-nav-info-status,
+.route-nav-info-reason,
+.route-nav-info-section-copy {
+  padding: 10px 11px;
+  border: 1px solid rgba(118, 195, 210, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(19, 50, 72, 0.9), rgba(8, 24, 37, 0.96)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 56%);
+  box-shadow: var(--zone-ui-inset-shadow);
+  color: var(--zone-ui-text);
+  font: 700 12px/1.35 var(--zone-ui-font);
+}
+
+.route-nav-info-status {
+  color: var(--zone-ui-text-title);
+}
+
+.route-nav-info-status.is-locked,
+.route-nav-info-reason {
+  border-color: rgba(243, 198, 124, 0.26);
+}
+
+.route-nav-info-section {
+  display: grid;
+  gap: 5px;
+}
+
+.route-nav-info-flag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.route-nav-info-flag-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(118, 195, 210, 0.24);
+  border-radius: var(--zone-ui-radius-pill);
+  background:
+    linear-gradient(180deg, var(--zone-ui-elevated-top), var(--zone-ui-elevated-bottom)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 58%);
+  box-shadow: var(--zone-ui-inset-shadow);
+  color: var(--zone-ui-text-title);
+  font: 800 10px/1 var(--zone-ui-font);
+}
+
+@media (max-width: 1200px) {
+  .ui-topbar .route-nav-wrap {
+    width: min(520px, calc(100% - 400px));
+  }
+
+  .route-nav-destination-card {
+    min-height: 124px;
+  }
+
+  .route-nav-destination-content {
+    min-height: 124px;
+  }
+
+  .route-nav-destination-label {
+    font-size: clamp(21px, 2.5vw, 28px);
+  }
+}
+
+@media (max-width: 960px) {
+  .ui-topbar .route-nav-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .route-nav-drawer:not(.hidden) {
+    align-items: start;
+    padding-top: 12px;
+  }
+
+  .route-nav-modal-card {
+    width: min(100vw - 16px, 720px);
+    max-height: min(92dvh, 1000px);
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-modal-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-nav-destination-card {
+    min-height: 118px;
+  }
+
+  .route-nav-destination-content {
+    min-height: 118px;
+    padding-inline: 16px;
+  }
+
+  .route-nav-destination-label {
+    font-size: clamp(20px, 5vw, 26px);
+  }
+}
+
+@media (max-width: 760px) {
+  .route-nav-current-trigger .route-nav-summary-panel {
+    min-height: 74px;
+    padding: 14px 12px 12px;
+  }
+
+  .route-nav-current-trigger .route-nav-current {
+    font-size: 20px;
+  }
+
+  .route-nav-current-trigger .route-nav-region {
+    font-size: 10px;
+  }
+
+  .route-nav-modal-card {
+    width: calc(100vw - 12px);
+    padding: 12px;
+    gap: 12px;
+    border-radius: 20px;
+  }
+
+  .route-nav-drawer-header {
+    gap: 10px;
+  }
+
+  .route-nav-destinations-copy .route-nav-section-label {
+    font-size: 18px;
+  }
+
+  .route-nav-destinations-copy .route-nav-section-copy {
+    font-size: 11px;
+  }
+
+  .route-nav-modal-current {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .route-nav-modal-current-value {
+    font-size: 22px;
+  }
+
+  .route-nav-modal-current-region {
+    font-size: 11px;
+  }
+
+  .route-nav-progress-chips,
+  .route-nav-badges {
+    gap: 6px;
+  }
+
+  .route-nav-drawer-list {
+    gap: 10px;
+  }
+
+  .route-nav-destination-card {
+    min-height: 104px;
+    border-radius: 18px;
+  }
+
+  .route-nav-destination-content {
+    min-height: 104px;
+    padding: 14px;
+  }
+
+  .route-nav-destination-label {
+    max-width: 14ch;
+    font-size: clamp(18px, 6vw, 24px);
+  }
+}
+
+/* Runtime UI refresh: shared tokens + mobile sheets. Keep this block at file end. */
+:root {
+  --ui-hud-desktop-current-zone-max-width-px: 560px;
+  --ui-hud-desktop-current-zone-height-px: 84px;
+  --ui-hud-mobile-zone-header-height-px: 68px;
+  --ui-modal-size-s-max-width-px: 480px;
+  --ui-modal-size-m-max-width-px: 760px;
+  --ui-modal-size-l-max-width-px: 1240px;
+  --ui-modal-mobile-side-inset-px: 12px;
+  --ui-modal-mobile-radius-px: 20px;
+  --ui-modal-mobile-max-height-vh: 88svh;
+  --ui-action-menu-desktop-max-width-px: 720px;
+  --ui-action-menu-desktop-grid-columns: 4;
+  --ui-action-menu-mobile-grid-columns: 2;
+  --ui-action-menu-pulse-duration-ms: 2200ms;
+  --ui-action-menu-pulse-repeat-delay-ms: 1800ms;
+  --ui-notification-desktop-max-width-px: 420px;
+  --ui-notification-mobile-card-height-px: 72px;
+  --ui-notification-mobile-bottom-offset-px: 12px;
+  --ui-collection-desktop-grid-ratio-pct: 72%;
+  --ui-collection-desktop-detail-ratio-pct: 28%;
+  --ui-collection-mobile-detail-sheet-height-vh: 48svh;
+  --ui-collection-mobile-map-min-height-vh: 42svh;
+  --ui-mobile-side-inset-px: 12px;
+  --ui-mobile-bottom-offset-px: 12px;
+  --ui-mobile-quick-card-height-px: 148px;
+}
+
+.currency-pill-mobile-label {
+  display: none;
+}
+
+.action-dock-pokeball-toggle {
+  gap: 8px;
+  line-height: 1;
+}
+
+.action-dock-pokeball-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(145, 220, 236, 0.28);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(19, 50, 72, 0.92), rgba(8, 24, 37, 0.96)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 56%);
+  color: var(--zone-ui-text-title, #f4fbff);
+  font: 800 11px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--zone-ui-inset-shadow, inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.24));
+}
+
+.action-dock-fullscreen-header {
+  width: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 4px;
+}
+
+.action-dock-fullscreen-title {
+  color: var(--zone-ui-text-title, #f4fbff);
+  font: 800 clamp(21px, 2vw, 28px)/1.02 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.action-dock-fullscreen-kicker {
+  color: rgba(183, 213, 227, 0.78);
+  font: 800 11px/1.1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-current-trigger .route-nav-summary-panel {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: var(--ui-hud-desktop-current-zone-height-px, 84px);
+}
+
+.route-nav-current-trigger .route-nav-summary-copy {
+  justify-items: start;
+  text-align: left;
+}
+
+.route-nav-current-meta {
+  display: grid;
+  gap: 7px;
+  justify-items: end;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.route-nav-drawer-toggle-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(145, 220, 236, 0.34);
+  background:
+    linear-gradient(180deg, rgba(26, 63, 90, 0.985), rgba(10, 31, 49, 0.995)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 58%);
+  color: var(--zone-ui-text-title, #f4fbff);
+  font: 800 11px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.route-nav-current-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--zone-ui-accent-strong, #b9f5ff);
+  font: 900 20px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  text-shadow: 0 0 18px rgba(117, 233, 255, 0.24);
+}
+
+.route-nav-current-trigger.is-onboarding-pulse,
+.action-dock-pokeball-toggle.is-onboarding-pulse {
+  animation:
+    ui-onboarding-pulse var(--ui-action-menu-pulse-duration-ms, 2200ms) ease-in-out infinite,
+    ui-onboarding-rest calc(var(--ui-action-menu-pulse-duration-ms, 2200ms) + var(--ui-action-menu-pulse-repeat-delay-ms, 1800ms)) linear infinite;
+}
+
+@keyframes ui-onboarding-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    box-shadow: none;
+  }
+  35% {
+    filter: brightness(1.08);
+    box-shadow: 0 0 0 1px rgba(166, 239, 255, 0.38), 0 0 28px rgba(110, 212, 255, 0.22);
+  }
+}
+
+@keyframes ui-onboarding-rest {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.boxes-mon-btn.is-selected,
+.pokedex-mon-btn.is-selected {
+  border-color: rgba(171, 239, 251, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(171, 239, 251, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 24px rgba(2, 10, 18, 0.24);
+  filter: brightness(1.05);
+}
+
+.collection-info-sheet-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.collection-info-sheet-kicker {
+  color: var(--zone-ui-text-soft, #b7d5e3);
+  font: 800 10px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.collection-info-sheet-close {
+  border: 1px solid var(--zone-ui-border-strong, rgba(145, 220, 236, 0.38));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(26, 63, 90, 0.985), rgba(10, 31, 49, 0.995)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 58%);
+  color: var(--zone-ui-text-title, #f4fbff);
+  min-height: 34px;
+  padding: 7px 12px;
+  font: 800 11px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.is-mobile-bottom-sheet {
+  position: fixed !important;
+  left: 50% !important;
+  top: auto !important;
+  bottom: calc(var(--context-sheet-bottom-offset-px, var(--ui-mobile-bottom-offset-px, 12px)) + env(safe-area-inset-bottom));
+  width: min(var(--context-sheet-max-width, 360px), calc(100vw - (max(var(--ui-mobile-side-inset-px, 12px), env(safe-area-inset-left)) * 2)));
+  max-width: calc(100vw - (max(var(--ui-mobile-side-inset-px, 12px), env(safe-area-inset-left)) * 2));
+  max-height: min(78svh, calc(100dvh - 110px - env(safe-area-inset-bottom)));
+  transform: translateX(-50%);
+  border-radius: 22px;
+  pointer-events: auto;
+  overflow: auto;
+}
+
+.hover-popup.is-mobile-bottom-sheet,
+.team-context-menu.is-mobile-bottom-sheet,
+.ball-capture-menu.is-mobile-bottom-sheet {
+  z-index: 118;
+}
+
+.hover-popup.is-mobile-bottom-sheet {
+  min-width: 0;
+  width: min(var(--context-sheet-max-width, 360px), calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.hover-popup .pokemon-info-card--quick {
+  width: 100%;
+  gap: 10px;
+}
+
+.hover-popup-quick-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.hover-popup-quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.hover-popup-quick-talent {
+  color: var(--zone-ui-text-muted, #b7d7e4);
+  font: 700 11px/1.2 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.hover-popup-micro-grid--quick {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.save-pill .currency-pill-caption {
+  display: none;
+}
+
+.save-pill #save-backend-value {
+  font-size: clamp(11px, 0.86vw, 14px);
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 761px) {
+  .ui-topbar .route-nav-wrap {
+    width: min(var(--ui-hud-desktop-current-zone-max-width-px, 560px), calc(100% - 420px));
+    max-width: min(var(--ui-hud-desktop-current-zone-max-width-px, 560px), 100%);
+  }
+
+  .boxes-layout,
+  .pokedex-card .boxes-layout {
+    grid-template-columns: minmax(0, var(--ui-collection-desktop-grid-ratio-pct, 72%)) minmax(280px, var(--ui-collection-desktop-detail-ratio-pct, 28%));
+  }
+
+  .action-dock-fullscreen-menu {
+    position: fixed;
+    inset: 0;
+    place-items: end center;
+    padding: 24px 24px calc(132px + env(safe-area-inset-bottom));
+    background:
+      radial-gradient(circle at 50% 100%, rgba(147, 220, 235, 0.1), transparent 36%),
+      linear-gradient(180deg, rgba(2, 8, 13, 0.24), rgba(2, 8, 13, 0.48));
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-shell {
+    width: min(var(--ui-action-menu-desktop-max-width-px, 720px), calc(100vw - 32px));
+    padding: 16px;
+    border: 1px solid var(--zone-ui-border-strong, rgba(145, 220, 236, 0.38));
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(16, 43, 61, 0.98), rgba(9, 28, 41, 0.985) 56%, rgba(4, 16, 25, 0.995)),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 52%);
+    box-shadow:
+      0 28px 62px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  }
+
+  .action-dock-fullscreen-grid {
+    width: 100%;
+    grid-template-columns: repeat(var(--ui-action-menu-desktop-grid-columns, 4), minmax(0, 1fr));
+  }
+
+  .notification-stack {
+    right: 18px;
+    bottom: 18px;
+    width: min(var(--ui-notification-desktop-max-width-px, 420px), calc(100vw - 24px));
+  }
+
+  .game-notif {
+    width: 100%;
+  }
+
+  .dialogue-modal-card {
+    width: min(var(--ui-modal-size-m-max-width-px, 760px), calc(100vw - 32px));
+    max-height: min(82svh, calc(100dvh - 32px));
+    border-radius: 22px;
+    border: 1px solid var(--zone-ui-border-strong, rgba(145, 220, 236, 0.38));
+    background:
+      linear-gradient(180deg, rgba(16, 43, 61, 0.98), rgba(9, 28, 41, 0.985) 56%, rgba(4, 16, 25, 0.995)),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 52%);
+    box-shadow:
+      0 28px 62px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  }
+}
+
+@media (max-width: 760px) {
+  .action-dock-pokeball-toggle-label {
+    min-width: 68px;
+    min-height: 22px;
+    font-size: 10px;
+  }
+
+  .save-pill .currency-pill-caption,
+  .save-pill #save-backend-value {
+    display: none;
+  }
+
+  .currency-pill-mobile-label {
+    display: block;
+    color: var(--zone-ui-text-title, #f4fbff);
+    font: 800 11px/1.05 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .route-nav-current-trigger .route-nav-summary-panel {
+    min-height: var(--ui-hud-mobile-zone-header-height-px, 68px);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .route-nav-current-trigger .route-nav-summary-copy {
+    gap: 3px;
+  }
+
+  .route-nav-drawer-toggle-count {
+    min-width: 38px;
+    min-height: 24px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .route-nav-current-chevron {
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+  }
+
+  .route-nav-drawer:not(.hidden) {
+    padding: 12px;
+    place-items: end center;
+  }
+
+  .route-nav-modal-card {
+    width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    max-height: var(--ui-modal-mobile-max-height-vh, 88svh);
+    border-radius: var(--ui-modal-mobile-radius-px, 20px);
+  }
+
+  .route-nav-drawer-header,
+  .evolution-item-header,
+  .dialogue-modal-header,
+  .dialogue-modal-footer {
+    position: sticky;
+    z-index: 1;
+    background: inherit;
+  }
+
+  .route-nav-drawer-header,
+  .evolution-item-header,
+  .dialogue-modal-header {
+    top: 0;
+    padding-top: 2px;
+  }
+
+  .dialogue-modal-footer {
+    bottom: 0;
+  }
+
+  .map-modal-card,
+  .dialogue-modal-card,
+  .rename-card,
+  .evolution-item-card,
+  .tutorial-card,
+  .update-required-card {
+    width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    max-width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    max-height: var(--ui-modal-mobile-max-height-vh, 88svh);
+    border-radius: var(--ui-modal-mobile-radius-px, 20px);
+  }
+
+  .map-modal-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(var(--ui-collection-mobile-map-min-height-vh, 42svh), auto) auto;
+  }
+
+  .map-stage {
+    min-height: var(--ui-collection-mobile-map-min-height-vh, 42svh);
+  }
+
+  .notification-stack {
+    right: auto;
+    left: 50%;
+    bottom: calc(92px + env(safe-area-inset-bottom) + var(--ui-notification-mobile-bottom-offset-px, 12px));
+    width: calc(100vw - 24px);
+    transform: translateX(-50%);
+  }
+
+  .game-notif {
+    width: 100%;
+    min-height: var(--ui-notification-mobile-card-height-px, 72px);
+  }
+
+  #action-dock-fullscreen-menu {
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(var(--ui-modal-mobile-side-inset-px, 12px), env(safe-area-inset-right))
+      max(116px, calc(env(safe-area-inset-bottom) + 92px))
+      max(var(--ui-modal-mobile-side-inset-px, 12px), env(safe-area-inset-left));
+  }
+
+  .action-dock-fullscreen-header {
+    align-items: start;
+    justify-content: start;
+    gap: 4px;
+    padding: 0;
+    display: grid;
+  }
+
+  .action-dock-fullscreen-grid {
+    grid-template-columns: repeat(var(--ui-action-menu-mobile-grid-columns, 2), minmax(0, 1fr));
+  }
+
+  .hover-popup.is-mobile-bottom-sheet .pokemon-info-card--quick {
+    gap: 8px;
+  }
+
+  .hover-popup.is-mobile-bottom-sheet .hover-popup-quick-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .hover-popup.is-mobile-bottom-sheet .hover-popup-micro-grid--quick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hover-popup.is-mobile-bottom-sheet .pokemon-info-card--quick {
+    min-height: var(--ui-mobile-quick-card-height-px, 148px);
+    max-height: var(--ui-mobile-quick-card-height-px, 148px);
+    overflow: hidden;
+  }
+
+  .route-nav-info-panel .route-nav-info-close {
+    display: none;
+  }
+
+  .boxes-card,
+  .boxes-card.pokedex-card {
+    width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    max-height: var(--ui-modal-mobile-max-height-vh, 88svh);
+    border-radius: var(--ui-modal-mobile-radius-px, 20px);
+  }
+
+  .boxes-layout,
+  .pokedex-card .boxes-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .boxes-info-panel {
+    display: none;
+  }
+
+  .boxes-info-panel.is-sheet-open {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 12px));
+    z-index: 102;
+    width: calc(100vw - 24px);
+    max-width: 540px;
+    max-height: var(--ui-collection-mobile-detail-sheet-height-vh, 48svh);
+    padding: 10px;
+    border-radius: 22px;
+    transform: translateX(-50%);
+    box-shadow:
+      0 24px 54px rgba(0, 0, 0, 0.36),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  }
+
+  .boxes-info-panel.is-sheet-open .pokemon-info-card {
+    width: 100%;
+  }
+
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-feature-grid,
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-micro-grid--summary,
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-micro-grid--stats,
+  .boxes-info-panel.is-sheet-open .pokemon-info-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ball-capture-menu.is-mobile-bottom-sheet,
+  .team-context-menu.is-mobile-bottom-sheet {
+    width: calc(100vw - 24px);
+    max-width: 420px;
+  }
+
+  .ball-capture-menu.is-mobile-bottom-sheet .team-context-menu-title,
+  .team-context-menu.is-mobile-bottom-sheet .team-context-menu-title {
+    padding-bottom: 8px;
   }
 }

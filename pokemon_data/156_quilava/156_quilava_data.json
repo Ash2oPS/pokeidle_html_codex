@@ -252,5 +252,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/156_quilava_cry.ogg",
+    "source": "latest"
+  }
 }

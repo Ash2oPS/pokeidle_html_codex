@@ -6,9 +6,9 @@ import { createRouteNavigationRuntime } from "../lib/route-navigation-runtime.js
 function createRuntimeFixture(overrides = {}) {
   const state = {
     routeCatalog: new Map([
-      ["kanto_city_pallet_town", { route_id: "kanto_city_pallet_town" }],
-      ["kanto_route_1", { route_id: "kanto_route_1" }],
-      ["kanto_city_viridian_city", { route_id: "kanto_city_viridian_city" }],
+      ["kanto_city_pallet_town", { route_id: "kanto_city_pallet_town", background_image: "assets/backgrounds/pallet-town.png" }],
+      ["kanto_route_1", { route_id: "kanto_route_1", background_image: "assets/backgrounds/route-1.png" }],
+      ["kanto_city_viridian_city", { route_id: "kanto_city_viridian_city", background_image: "assets/backgrounds/viridian-city.png" }],
     ]),
     routeData: { route_id: "kanto_route_1" },
     saveData: { current_route_id: "kanto_route_1" },
@@ -69,6 +69,7 @@ test("buildRouteDisplayState marks a connected locked route as info-worthy progr
   assert.equal(routeState.statusLabel, "\u00c0 ouvrir");
   assert.match(routeState.blockedReasonFr, /3\/20 KO requis/);
   assert.match(routeState.progressionRequirementFr, /Route 1/);
+  assert.equal(routeState.backgroundImagePath, "assets/backgrounds/viridian-city.png");
 });
 
 test("buildRouteNavigationViewModel keeps selected blocked route info and drawer state", () => {
@@ -89,4 +90,5 @@ test("buildRouteNavigationViewModel keeps selected blocked route info and drawer
   assert.equal(viewModel.navigationDrawerOpen, true);
   assert.equal(viewModel.selectedLockedDestinationId, "kanto_city_viridian_city");
   assert.equal(viewModel.selectedLockedDestination.routeNameFr, "Jadielle (Kanto)");
+  assert.equal(viewModel.currentZoneHeader.backgroundImagePath, "assets/backgrounds/route-1.png");
 });

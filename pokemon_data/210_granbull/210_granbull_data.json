@@ -317,5 +317,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/210_granbull_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -247,5 +247,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "armor",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/167_spinarak_cry.ogg",
+    "source": "latest"
+  }
 }

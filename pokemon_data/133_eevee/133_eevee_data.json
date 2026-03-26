@@ -560,5 +560,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/133_eevee_cry.ogg",
+    "source": "latest"
+  }
 }

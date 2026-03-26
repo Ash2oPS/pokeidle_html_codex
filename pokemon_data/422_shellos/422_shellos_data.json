@@ -111,5 +111,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "squiggle",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/422_shellos_cry.ogg",
+    "source": "latest"
+  }
 }

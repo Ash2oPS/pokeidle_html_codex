@@ -121,5 +121,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/397_staravia_cry.ogg",
+    "source": "latest"
+  }
 }

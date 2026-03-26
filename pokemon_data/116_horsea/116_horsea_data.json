@@ -260,5 +260,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "blob",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/116_horsea_cry.ogg",
+    "source": "latest"
+  }
 }

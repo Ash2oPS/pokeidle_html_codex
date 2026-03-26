@@ -190,5 +190,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/389_torterra_cry.ogg",
+    "source": "latest"
+  }
 }

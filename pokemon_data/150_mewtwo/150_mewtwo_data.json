@@ -573,5 +573,9 @@
   "forms_switchable": true,
   "color": "purple",
   "shape": "upright",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/150_mewtwo_cry.ogg",
+    "source": "latest"
+  }
 }

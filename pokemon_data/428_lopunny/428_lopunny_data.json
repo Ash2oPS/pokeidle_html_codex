@@ -406,5 +406,9 @@
   "forms_switchable": true,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/428_lopunny_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/467_magmortar_cry.ogg",
+    "source": "latest"
+  }
 }

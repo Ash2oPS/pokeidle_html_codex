@@ -496,5 +496,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/52_meowth_cry.ogg",
+    "source": "latest"
+  }
 }

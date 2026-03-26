@@ -228,5 +228,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/404_luxio_cry.ogg",
+    "source": "latest"
+  }
 }

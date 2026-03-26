@@ -219,5 +219,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/221_piloswine_cry.ogg",
+    "source": "latest"
+  }
 }

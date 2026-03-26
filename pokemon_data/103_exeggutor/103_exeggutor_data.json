@@ -296,5 +296,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "legs",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/103_exeggutor_cry.ogg",
+    "source": "latest"
+  }
 }

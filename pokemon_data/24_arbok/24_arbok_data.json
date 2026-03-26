@@ -378,5 +378,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "squiggle",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/24_arbok_cry.ogg",
+    "source": "latest"
+  }
 }

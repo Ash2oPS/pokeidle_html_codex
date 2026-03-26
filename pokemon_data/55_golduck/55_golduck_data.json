@@ -469,5 +469,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/55_golduck_cry.ogg",
+    "source": "latest"
+  }
 }

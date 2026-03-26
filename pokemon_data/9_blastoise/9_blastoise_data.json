@@ -332,5 +332,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/9_blastoise_cry.ogg",
+    "source": "latest"
+  }
 }

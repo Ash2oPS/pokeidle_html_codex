@@ -314,5 +314,9 @@
   "forms_switchable": true,
   "color": "yellow",
   "shape": "bug-wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/15_beedrill_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -243,5 +243,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/332_cacturne_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -108,5 +108,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/474_porygon-z_cry.ogg",
+    "source": "latest"
+  }
 }

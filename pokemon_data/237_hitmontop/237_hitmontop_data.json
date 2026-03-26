@@ -245,5 +245,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/237_hitmontop_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -202,5 +202,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/309_electrike_cry.ogg",
+    "source": "latest"
+  }
 }

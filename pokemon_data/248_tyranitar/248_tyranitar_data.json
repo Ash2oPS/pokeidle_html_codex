@@ -384,5 +384,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/248_tyranitar_cry.ogg",
+    "source": "latest"
+  }
 }

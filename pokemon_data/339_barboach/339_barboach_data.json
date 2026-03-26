@@ -227,5 +227,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "fish",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/339_barboach_cry.ogg",
+    "source": "latest"
+  }
 }

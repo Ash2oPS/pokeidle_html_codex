@@ -313,5 +313,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "wings",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/381_latios_cry.ogg",
+    "source": "latest"
+  }
 }

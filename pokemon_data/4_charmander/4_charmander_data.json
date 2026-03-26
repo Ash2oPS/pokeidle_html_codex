@@ -254,5 +254,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/4_charmander_cry.ogg",
+    "source": "latest"
+  }
 }

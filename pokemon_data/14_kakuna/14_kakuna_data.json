@@ -255,5 +255,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "squiggle",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/14_kakuna_cry.ogg",
+    "source": "latest"
+  }
 }

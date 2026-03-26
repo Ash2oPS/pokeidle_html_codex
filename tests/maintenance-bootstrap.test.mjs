@@ -10,8 +10,11 @@ import {
   bootstrapGame,
   loadBootVendorScripts,
   loadMaintenanceConfig,
+  registerOfflineServiceWorkerIfNeeded,
   sanitizeMaintenanceConfig,
+  shouldRegisterOfflineServiceWorker,
   shouldShowMaintenanceScreen,
+  waitForOfflineServiceWorkerControl,
 } from "../lib/maintenance-bootstrap.js";
 
 const GAME_BOOTSTRAP_PATH = resolve(process.cwd(), "game.js");
@@ -95,6 +98,81 @@ test("shouldShowMaintenanceScreen stays prod-only and supports local preview", (
   }), true);
 });
 
+test("shouldRegisterOfflineServiceWorker stays limited to production GitHub Pages", () => {
+  assert.equal(shouldRegisterOfflineServiceWorker({
+    location: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    navigator: {
+      serviceWorker: {
+        register() {},
+      },
+    },
+  }), true);
+
+  assert.equal(shouldRegisterOfflineServiceWorker({
+    location: new URL("http://127.0.0.1:8080/"),
+    navigator: {
+      serviceWorker: {
+        register() {},
+      },
+    },
+  }), false);
+});
+
+test("waitForOfflineServiceWorkerControl resolves when controllerchange fires", async () => {
+  let controller = null;
+  let controllerChangeHandler = null;
+  const container = {
+    get controller() {
+      return controller;
+    },
+    ready: Promise.resolve({}),
+    addEventListener(eventName, handler) {
+      if (eventName === "controllerchange") {
+        controllerChangeHandler = handler;
+      }
+    },
+    removeEventListener() {},
+  };
+
+  const task = waitForOfflineServiceWorkerControl(container, 100);
+  controller = { scriptURL: "https://ash2ops.github.io/pokeidle_html_codex/service-worker.js" };
+  controllerChangeHandler?.();
+
+  assert.equal(await task, true);
+});
+
+test("registerOfflineServiceWorkerIfNeeded registers on production GitHub Pages only", async () => {
+  const registrations = [];
+  const windowRef = {
+    location: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    navigator: {
+      serviceWorker: {
+        controller: { active: true },
+        ready: Promise.resolve({}),
+        async register(scriptPath) {
+          registrations.push(scriptPath);
+          return { scope: "https://ash2ops.github.io/pokeidle_html_codex/" };
+        },
+        addEventListener() {},
+        removeEventListener() {},
+      },
+    },
+  };
+
+  const registration = await registerOfflineServiceWorkerIfNeeded({ windowRef });
+  assert.equal(registrations.length, 1);
+  assert.equal(registrations[0], "./service-worker.js");
+  assert.equal(registration?.scope, "https://ash2ops.github.io/pokeidle_html_codex/");
+
+  const skippedRegistration = await registerOfflineServiceWorkerIfNeeded({
+    windowRef: {
+      location: new URL("http://127.0.0.1:8080/"),
+      navigator: windowRef.navigator,
+    },
+  });
+  assert.equal(skippedRegistration, null);
+});
+
 test("loadBootVendorScripts loads the boot vendors sequentially", async () => {
   const loadedScripts = [];
   const result = await loadBootVendorScripts({
@@ -175,6 +253,54 @@ test("bootstrapGame ignores enabled maintenance in local/dev and still boots run
   assert.deepEqual(loadedScripts, BOOT_VENDOR_SCRIPTS);
   assert.equal(runtimeLoadCount, 1);
   assert.equal(dom.window.document.getElementById("loading-screen").classList.contains("maintenance-screen"), false);
+});
+
+test("bootstrapGame waits for the offline service worker before booting runtime on production web", async () => {
+  const dom = createBootDom("https://ash2ops.github.io/pokeidle_html_codex/");
+  const bootOrder = [];
+  let controllerChangeHandler = null;
+  let controller = null;
+  dom.window.navigator.serviceWorker = {
+    get controller() {
+      return controller;
+    },
+    ready: Promise.resolve({}),
+    async register(scriptPath) {
+      bootOrder.push(`register:${scriptPath}`);
+      queueMicrotask(() => {
+        controller = { active: true };
+        controllerChangeHandler?.();
+      });
+      return { scope: "https://ash2ops.github.io/pokeidle_html_codex/" };
+    },
+    addEventListener(eventName, handler) {
+      if (eventName === "controllerchange") {
+        controllerChangeHandler = handler;
+      }
+    },
+    removeEventListener() {},
+  };
+
+  await bootstrapGame({
+    windowRef: dom.window,
+    documentRef: dom.window.document,
+    maintenanceConfigImporter: async () => ({
+      MAINTENANCE_CONFIG: {
+        enabled: false,
+        message: "",
+      },
+    }),
+    scriptLoader: async (scriptPath) => {
+      bootOrder.push(`vendor:${scriptPath}`);
+    },
+    runtimeModuleImporter: async () => {
+      bootOrder.push("runtime");
+    },
+  });
+
+  assert.equal(bootOrder[0], "register:./service-worker.js");
+  assert.deepEqual(bootOrder.slice(1, 1 + BOOT_VENDOR_SCRIPTS.length), BOOT_VENDOR_SCRIPTS.map((scriptPath) => `vendor:${scriptPath}`));
+  assert.equal(bootOrder.at(-1), "runtime");
 });
 
 test("bootstrapGame supports local maintenance preview without enabling runtime", async () => {

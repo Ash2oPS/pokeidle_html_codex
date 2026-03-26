@@ -221,5 +221,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "heads",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/51_dugtrio_cry.ogg",
+    "source": "latest"
+  }
 }

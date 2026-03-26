@@ -277,5 +277,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/22_fearow_cry.ogg",
+    "source": "latest"
+  }
 }

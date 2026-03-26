@@ -240,5 +240,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "legs",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/285_shroomish_cry.ogg",
+    "source": "latest"
+  }
 }

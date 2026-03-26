@@ -403,5 +403,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/58_growlithe_cry.ogg",
+    "source": "latest"
+  }
 }

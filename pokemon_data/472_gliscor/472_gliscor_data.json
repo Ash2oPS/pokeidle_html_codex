@@ -230,5 +230,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/472_gliscor_cry.ogg",
+    "source": "latest"
+  }
 }

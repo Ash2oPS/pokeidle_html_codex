@@ -175,5 +175,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/177_natu_cry.ogg",
+    "source": "latest"
+  }
 }

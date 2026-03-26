@@ -236,5 +236,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/187_hoppip_cry.ogg",
+    "source": "latest"
+  }
 }

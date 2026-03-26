@@ -326,5 +326,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/251_celebi_cry.ogg",
+    "source": "latest"
+  }
 }

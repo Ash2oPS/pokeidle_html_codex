@@ -347,5 +347,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/216_teddiursa_cry.ogg",
+    "source": "latest"
+  }
 }

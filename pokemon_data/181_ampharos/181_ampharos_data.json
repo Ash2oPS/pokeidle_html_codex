@@ -348,5 +348,9 @@
   "forms_switchable": true,
   "color": "yellow",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/181_ampharos_cry.ogg",
+    "source": "latest"
+  }
 }

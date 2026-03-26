@@ -213,5 +213,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "armor",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/290_nincada_cry.ogg",
+    "source": "latest"
+  }
 }

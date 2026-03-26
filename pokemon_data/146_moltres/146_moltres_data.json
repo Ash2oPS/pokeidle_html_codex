@@ -298,5 +298,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "wings",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/146_moltres_cry.ogg",
+    "source": "latest"
+  }
 }

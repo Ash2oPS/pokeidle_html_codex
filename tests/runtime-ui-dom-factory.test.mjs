@@ -46,6 +46,8 @@ test("mountRuntimeUi normalizes static French copy and labels", () => {
   assert.equal(refs.ballCaptureMenuEl?.getAttribute("aria-label"), "R\u00e9glages de capture par ball");
   assert.equal(refs.moneyValueEl?.closest("#money-pill")?.querySelector(".currency-pill-icon")?.textContent, "\u20bd");
   assert.equal(refs.pokedexButtonEl?.querySelector(".btn-label")?.textContent, "Pok\u00e9dex");
+  assert.equal(refs.actionDockPokeballToggleButtonEl?.querySelector(".action-dock-pokeball-toggle-label")?.textContent, "Menu");
+  assert.equal(refs.saveBackendValueEl?.parentElement?.querySelector(".currency-pill-mobile-label")?.textContent, "Save");
   assert.equal(
     refs.actionDockFullscreenMenuEl?.getAttribute("aria-label"),
     "Menu principal plein \u00e9cran",
@@ -64,7 +66,7 @@ test("mountRuntimeUi preserves interactive ids and shop tab dataset values", () 
   assert.equal(refs.shopTabCombatButtonEl?.dataset?.shopTab, "combat");
 });
 
-test("mountRuntimeUi exposes the graph navigation HUD contract", () => {
+test("mountRuntimeUi exposes the route navigation HUD contract", () => {
   const document = createDocument();
   const refs = mountRuntimeUi(document);
 
@@ -88,11 +90,11 @@ test("mountRuntimeUi includes new route-navigation labels in French", () => {
   const refs = mountRuntimeUi(document);
 
   assert.equal(document.querySelector(".route-nav-summary-copy .route-nav-section-label")?.textContent?.trim(), "Zone active");
-  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-label")?.textContent?.trim(), "Sorties connect\u00e9es");
-  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-copy")?.textContent?.trim(), "Choisis ta prochaine zone.");
-  assert.equal(refs.routeNavDrawerToggleButtonEl?.querySelector(".route-nav-drawer-toggle-label")?.textContent, "Sorties");
-  assert.equal(document.querySelector(".route-nav-drawer-title")?.textContent?.trim(), "Sorties depuis la zone active");
-  assert.equal(refs.routeNavDrawerCloseButtonEl?.getAttribute("aria-label"), "Fermer les sorties");
+  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-label")?.textContent?.trim(), "Zones voisines");
+  assert.equal(document.querySelector(".route-nav-destinations-copy .route-nav-section-copy")?.textContent?.trim(), "Choisis une zone reli\u00e9e.");
+  assert.equal(refs.routeNavDrawerToggleButtonEl?.querySelector(".route-nav-drawer-toggle-label")?.textContent, "Zones reli\u00e9es");
+  assert.equal(document.querySelector(".route-nav-drawer-title")?.textContent?.trim(), "Autour de la zone active");
+  assert.equal(refs.routeNavDrawerCloseButtonEl?.getAttribute("aria-label"), "Fermer les zones voisines");
   assert.equal(refs.mapConnectionsInfoPanelEl?.classList.contains("route-nav-info-panel-map"), true);
 });
 

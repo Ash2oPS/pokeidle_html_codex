@@ -245,5 +245,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "legs",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/255_torchic_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -109,5 +109,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/419_floatzel_cry.ogg",
+    "source": "latest"
+  }
 }

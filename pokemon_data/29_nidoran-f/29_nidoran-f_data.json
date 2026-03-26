@@ -159,5 +159,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/29_nidoran-f_cry.ogg",
+    "source": "latest"
+  }
 }

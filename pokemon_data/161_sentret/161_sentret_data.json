@@ -203,5 +203,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/161_sentret_cry.ogg",
+    "source": "latest"
+  }
 }

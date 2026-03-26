@@ -223,5 +223,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/462_magnezone_cry.ogg",
+    "source": "latest"
+  }
 }

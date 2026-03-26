@@ -111,5 +111,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "bug-wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/414_mothim_cry.ogg",
+    "source": "latest"
+  }
 }

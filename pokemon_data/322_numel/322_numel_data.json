@@ -220,5 +220,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/322_numel_cry.ogg",
+    "source": "latest"
+  }
 }

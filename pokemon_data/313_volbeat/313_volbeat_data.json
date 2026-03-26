@@ -172,5 +172,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "upright",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/313_volbeat_cry.ogg",
+    "source": "latest"
+  }
 }

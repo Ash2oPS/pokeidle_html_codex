@@ -546,5 +546,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/27_sandshrew_cry.ogg",
+    "source": "latest"
+  }
 }

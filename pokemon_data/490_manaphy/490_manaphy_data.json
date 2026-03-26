@@ -89,5 +89,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/490_manaphy_cry.ogg",
+    "source": "latest"
+  }
 }

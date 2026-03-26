@@ -182,5 +182,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "legs",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/438_bonsly_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -228,5 +228,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "heads",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/476_probopass_cry.ogg",
+    "source": "latest"
+  }
 }

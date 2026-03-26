@@ -238,5 +238,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/311_plusle_cry.ogg",
+    "source": "latest"
+  }
 }

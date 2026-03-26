@@ -213,5 +213,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/295_exploud_cry.ogg",
+    "source": "latest"
+  }
 }

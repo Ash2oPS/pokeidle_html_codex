@@ -449,5 +449,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "quadruped",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/79_slowpoke_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -341,5 +341,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "quadruped",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/232_donphan_cry.ogg",
+    "source": "latest"
+  }
 }

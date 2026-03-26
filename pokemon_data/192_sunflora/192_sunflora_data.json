@@ -208,5 +208,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/192_sunflora_cry.ogg",
+    "source": "latest"
+  }
 }

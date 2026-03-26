@@ -242,5 +242,9 @@
   "forms_switchable": true,
   "color": "brown",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/115_kangaskhan_cry.ogg",
+    "source": "latest"
+  }
 }

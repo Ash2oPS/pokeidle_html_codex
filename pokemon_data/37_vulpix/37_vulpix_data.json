@@ -330,5 +330,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/37_vulpix_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -110,5 +110,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "blob",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/413_wormadam-plant_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -243,5 +243,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/272_ludicolo_cry.ogg",
+    "source": "latest"
+  }
 }

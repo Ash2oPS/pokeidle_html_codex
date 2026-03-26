@@ -302,5 +302,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "upright",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/112_rhydon_cry.ogg",
+    "source": "latest"
+  }
 }

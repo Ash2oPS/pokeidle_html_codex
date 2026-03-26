@@ -12,12 +12,22 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const runtimeRenderSystemPath = path.resolve(__dirname, "../systems/ui/runtime-render-system.js");
+const gameRuntimePath = path.resolve(__dirname, "../game-runtime.js");
+const gameplayUiConfigPath = path.resolve(__dirname, "../lib/gameplay-ui-config.js");
 
 function createRenderSystem(overrides = {}) {
   return createRuntimeRenderSystem({
     bindings: {
       isCoarsePointerDevice: overrides.isCoarsePointerDevice ?? (() => false),
       isLikelySmartphoneBrowser: overrides.isLikelySmartphoneBrowser,
+      state: overrides.state ?? {
+        devLayout: {
+          settings: {
+            allySpriteScale: 1,
+            enemySpriteScale: 1,
+          },
+        },
+      },
     },
   });
 }
@@ -234,4 +244,58 @@ test("computeSpriteOpaqueDrawPlacement recenters asymmetric opaque bounds", () =
   assert.equal(placement.visibleWidth, 60);
   assert.equal(placement.visibleHeight, 72);
   assert.equal(placement.visibleBottomY, 36);
+});
+
+test("runtime render system removes phone-only sprite multipliers and mobile min floors", () => {
+  const renderSystem = createRenderSystem();
+  const compactLayout = { viewportProfile: { compact: true, phone: false } };
+  const phoneLayout = { viewportProfile: { compact: true, phone: true } };
+  const renderSource = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.equal(renderSystem.getTeamSpriteScale(phoneLayout), renderSystem.getTeamSpriteScale(compactLayout));
+  assert.equal(renderSystem.getEnemySpriteRenderSize(phoneLayout, 120), renderSystem.getEnemySpriteRenderSize(compactLayout, 120));
+  assert.doesNotMatch(renderSource, /TEAM_SPRITE_SCALE_PHONE_MULTIPLIER/);
+  assert.doesNotMatch(renderSource, /ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER/);
+  assert.doesNotMatch(renderSource, /minRenderSizePx/);
+  assert.doesNotMatch(renderSource, /getTeamSpriteMinRenderSize/);
+});
+
+test("pokemon sprite render sizing follows source pixels instead of pokemon data scale", () => {
+  const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
+  const gameplayUiConfigSource = fs.readFileSync(gameplayUiConfigPath, "utf8");
+
+  assert.match(gameRuntimeSource, /function getPokemonDataSpriteScale\(entity\)\s*\{\s*void entity;\s*return 1;\s*\}/s);
+  assert.match(gameRuntimeSource, /return sourcePixels \/ commonPpu;/);
+  assert.match(gameRuntimeSource, /return baseSize \* getPokemonSpriteCommonPpuMultiplier\(source\);/);
+  assert.doesNotMatch(gameRuntimeSource, /spriteScaleValue\s*:/);
+  assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_DATA_SPRITE_SCALE_MIN/);
+  assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_DATA_SPRITE_SCALE_MAX/);
+  assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN/);
+  assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX/);
+});
+
+test("computeSpriteOpaqueDrawPlacement preserves uniform pixel density when render size follows source ppu", () => {
+  const tinyPlacement = computeSpriteOpaqueDrawPlacement({
+    renderSize: 1,
+    sourceWidth: 1,
+    sourceHeight: 1,
+    opaqueMinX: 0,
+    opaqueMinY: 0,
+    opaqueWidth: 1,
+    opaqueHeight: 1,
+  });
+  const widePlacement = computeSpriteOpaqueDrawPlacement({
+    renderSize: 96,
+    sourceWidth: 96,
+    sourceHeight: 56,
+    opaqueMinX: 0,
+    opaqueMinY: 0,
+    opaqueWidth: 96,
+    opaqueHeight: 56,
+  });
+
+  assert.equal(tinyPlacement.visibleWidth, 1);
+  assert.equal(tinyPlacement.visibleHeight, 1);
+  assert.equal(widePlacement.visibleWidth, 96);
+  assert.equal(widePlacement.visibleHeight, 56);
 });

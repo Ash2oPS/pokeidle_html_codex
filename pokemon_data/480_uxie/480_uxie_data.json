@@ -89,5 +89,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/480_uxie_cry.ogg",
+    "source": "latest"
+  }
 }

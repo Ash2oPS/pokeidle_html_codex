@@ -198,5 +198,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "humanoid",
-  "habitat": "cave"
+  "habitat": "cave",
+  "cry": {
+    "path": "cries/379_registeel_cry.ogg",
+    "source": "latest"
+  }
 }

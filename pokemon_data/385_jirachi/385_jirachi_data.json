@@ -330,5 +330,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/385_jirachi_cry.ogg",
+    "source": "latest"
+  }
 }

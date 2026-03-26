@@ -395,5 +395,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "arms",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/316_gulpin_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -46,6 +46,7 @@ function createFixture(options = {}) {
     persistSaveDataForSimulationEvent: 0,
     tryOpenPendingTutorialFlow: 0,
     topMessages: [],
+    fetchCalls: [],
   };
 
   const definitionsById = {
@@ -122,6 +123,7 @@ function createFixture(options = {}) {
     normalizeUiDisplayText: (value) => String(value || ""),
     normalizeFlagIdList: (list) => Array.from(new Set(Array.isArray(list) ? list.filter(Boolean).map(String) : [])),
     fetchFn: async (path) => {
+      counters.fetchCalls.push(path);
       const match = String(path || "").match(/([^/]+)\.json$/);
       const id = match ? decodeURIComponent(match[1]) : "";
       return {
@@ -272,4 +274,13 @@ test("zone dialogue runtime filters choices and closes once-dialogues cleanly", 
   assert.equal(counters.clearDialogueUi, 1);
   assert.equal(counters.persistSaveDataForSimulationEvent, 2);
   assert.equal(counters.tryOpenPendingTutorialFlow, 1);
+});
+
+test("zone dialogue runtime fetches static dialogue files without explicit no-store options", async () => {
+  const { runtime, counters } = createFixture();
+
+  const opened = await runtime.openDialogueSession("guide_intro");
+
+  assert.equal(opened, true);
+  assert.deepEqual(counters.fetchCalls, ["map_data/dialogues/guide_intro.json"]);
 });

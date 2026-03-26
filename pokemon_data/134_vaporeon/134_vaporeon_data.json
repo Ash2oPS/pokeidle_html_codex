@@ -463,5 +463,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/134_vaporeon_cry.ogg",
+    "source": "latest"
+  }
 }

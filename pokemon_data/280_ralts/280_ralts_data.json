@@ -324,5 +324,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/280_ralts_cry.ogg",
+    "source": "latest"
+  }
 }

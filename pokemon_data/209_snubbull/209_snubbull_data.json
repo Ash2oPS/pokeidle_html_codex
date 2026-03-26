@@ -211,5 +211,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/209_snubbull_cry.ogg",
+    "source": "latest"
+  }
 }

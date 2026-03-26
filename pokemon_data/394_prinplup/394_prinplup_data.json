@@ -260,5 +260,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/394_prinplup_cry.ogg",
+    "source": "latest"
+  }
 }

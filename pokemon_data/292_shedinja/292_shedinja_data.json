@@ -202,5 +202,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "blob",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/292_shedinja_cry.ogg",
+    "source": "latest"
+  }
 }

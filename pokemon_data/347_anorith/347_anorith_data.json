@@ -294,5 +294,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "armor",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/347_anorith_cry.ogg",
+    "source": "latest"
+  }
 }

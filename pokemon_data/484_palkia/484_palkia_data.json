@@ -202,5 +202,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/484_palkia_cry.ogg",
+    "source": "latest"
+  }
 }

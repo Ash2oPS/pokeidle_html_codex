@@ -207,5 +207,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/274_nuzleaf_cry.ogg",
+    "source": "latest"
+  }
 }

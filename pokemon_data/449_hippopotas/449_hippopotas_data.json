@@ -105,5 +105,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/449_hippopotas_cry.ogg",
+    "source": "latest"
+  }
 }

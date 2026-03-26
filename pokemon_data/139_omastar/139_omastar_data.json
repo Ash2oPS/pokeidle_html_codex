@@ -302,5 +302,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "tentacles",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/139_omastar_cry.ogg",
+    "source": "latest"
+  }
 }

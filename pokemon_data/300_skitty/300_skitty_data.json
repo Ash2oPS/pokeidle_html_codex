@@ -368,5 +368,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "quadruped",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/300_skitty_cry.ogg",
+    "source": "latest"
+  }
 }

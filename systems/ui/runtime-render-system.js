@@ -119,7 +119,6 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "DISPLAY_APP_VERSION",
   "ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER",
   "ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER",
-  "ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER",
   "ENEMY_TIMER_STYLE_ONLY_ONE",
   "EVOLUTION_ANIM_BACKDROP_FADE_MS",
   "EVOLUTION_ANIM_FLASH_MS",
@@ -152,11 +151,8 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "PROJECTILE_VISUAL_PROFILE",
   "SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG",
   "TARGET_FRAME_MS",
-  "TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT",
-  "TEAM_SPRITE_MIN_RENDER_RATIO_PHONE",
   "TEAM_SPRITE_SCALE",
   "TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER",
-  "TEAM_SPRITE_SCALE_PHONE_MULTIPLIER",
   "ULTRA_SHINY_HUE_CYCLE_MS",
   "ULTRA_SHINY_OUTLINE_PX",
   "ULTRA_SHINY_SCINTILLATION_FLASH_MS",
@@ -245,7 +241,6 @@ export function createRuntimeRenderSystem(options = {}) {
     DISPLAY_APP_VERSION,
     ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER,
     ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER,
-    ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER,
     ENEMY_TIMER_STYLE_ONLY_ONE,
     EVOLUTION_ANIM_BACKDROP_FADE_MS,
     EVOLUTION_ANIM_FLASH_MS,
@@ -284,11 +279,8 @@ export function createRuntimeRenderSystem(options = {}) {
     SHINY_NEGATIVE_FALLBACK_SHADER_CONFIG,
     String,
     TARGET_FRAME_MS,
-    TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT,
-    TEAM_SPRITE_MIN_RENDER_RATIO_PHONE,
     TEAM_SPRITE_SCALE,
     TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER,
-    TEAM_SPRITE_SCALE_PHONE_MULTIPLIER,
     ULTRA_SHINY_HUE_CYCLE_MS,
     ULTRA_SHINY_OUTLINE_PX,
     ULTRA_SHINY_SCINTILLATION_FLASH_MS,
@@ -978,11 +970,7 @@ function getBattleViewportProfile(width, height) {
 
 function getTeamSpriteScale(layout = state.layout) {
   const viewportProfile = layout?.viewportProfile || {};
-  const multiplier = viewportProfile.phone
-    ? TEAM_SPRITE_SCALE_PHONE_MULTIPLIER
-    : viewportProfile.compact
-      ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER
-      : 1;
+  const multiplier = viewportProfile.compact ? TEAM_SPRITE_SCALE_COMPACT_MULTIPLIER : 1;
   const devScale = viewportProfile.phone
     ? 1
     : Math.max(0.2, Number(state.devLayout?.settings?.allySpriteScale || 1));
@@ -995,29 +983,11 @@ function getEnemySpriteRenderSize(layout = state.layout, baseSize = 0) {
     return 0;
   }
   const viewportProfile = layout?.viewportProfile || {};
-  const multiplier = viewportProfile.phone
-    ? ENEMY_SPRITE_SIZE_PHONE_MULTIPLIER
-    : viewportProfile.compact
-      ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER
-      : 1;
+  const multiplier = viewportProfile.compact ? ENEMY_SPRITE_SIZE_COMPACT_MULTIPLIER : 1;
   const devScale = viewportProfile.phone
     ? 1
     : Math.max(0.2, Number(state.devLayout?.settings?.enemySpriteScale || 1));
   return safeBaseSize * multiplier * ENEMY_SPRITE_RENDER_SIZE_GLOBAL_MULTIPLIER * devScale;
-}
-
-function getTeamSpriteMinRenderSize(layout = state.layout, slotSize = 0) {
-  const safeSlotSize = Math.max(0, Number(slotSize) || 0);
-  if (safeSlotSize <= 0) {
-    return 0;
-  }
-  const viewportProfile = layout?.viewportProfile || {};
-  const ratio = viewportProfile.phone
-    ? TEAM_SPRITE_MIN_RENDER_RATIO_PHONE
-    : viewportProfile.compact
-      ? TEAM_SPRITE_MIN_RENDER_RATIO_COMPACT
-      : 0;
-  return safeSlotSize * ratio;
 }
 
 function getOverlayPaddingSnapshot() {
@@ -2043,7 +2013,6 @@ function drawTeamDragSwapOverlay(layout) {
     scaleX: 1.04,
     scaleY: 1.04,
     offsetY: -ghostSize * 0.02,
-    minRenderSizePx: getTeamSpriteMinRenderSize(layout, ghostSize),
     shadowProfile: "drag",
     shadowAlpha: 0.42,
     shadowGroundOffsetY: 0,
@@ -2500,11 +2469,7 @@ function drawPokemonSprite(entity, x, y, size, options = {}) {
   const shaderConfig = mergeSpriteShaderConfig(shaderWithUltra, shinyNegativeShaderConfig);
   const resolvedSpriteSource = resolveEntitySpriteDrawSource(entity);
   const spriteImage = resolvedSpriteSource.source;
-  const minRenderSizePx = Number.isFinite(options.minRenderSizePx) ? Math.max(0, Number(options.minRenderSizePx)) : 0;
-  const renderSize = Math.max(
-    minRenderSizePx,
-    getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource),
-  );
+  const renderSize = getPokemonSpriteRenderSize(entity, size, resolvedSpriteSource);
   let spriteDrawX = -renderSize * 0.5;
   let spriteDrawY = -renderSize * 0.5;
   let spriteDrawWidth = renderSize;
@@ -7087,12 +7052,10 @@ function render() {
           }
         : null;
       const memberShader = member?.spriteShader && typeof member.spriteShader === "object" ? member.spriteShader : null;
-      const teamMinRenderSize = getTeamSpriteMinRenderSize(layout, drawPosition.size || slot.size);
       drawPokemonSprite(member, drawPosition.x, drawPosition.y, drawPosition.size || slot.size, {
         scaleX: teamBreath.scaleX * hoverScale * chargeScale * teleportScale * skipScaleX,
         scaleY: teamBreath.scaleY * hoverScale * chargeScale * teleportScale * skipScaleY,
         offsetY: teamBreath.offsetY,
-        minRenderSizePx: teamMinRenderSize,
         shadowProfile: "team",
         shadowAlpha: 0.52,
         flipX: shouldFlipTeamSprite(i),
@@ -7129,7 +7092,6 @@ function render() {
     getBattleViewportProfile,
     getTeamSpriteScale,
     getEnemySpriteRenderSize,
-    getTeamSpriteMinRenderSize,
     computeLayout,
     refreshLayoutIfNeeded,
     render,

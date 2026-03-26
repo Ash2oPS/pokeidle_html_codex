@@ -355,5 +355,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/461_weavile_cry.ogg",
+    "source": "latest"
+  }
 }

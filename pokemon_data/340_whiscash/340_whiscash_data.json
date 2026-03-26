@@ -201,5 +201,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/340_whiscash_cry.ogg",
+    "source": "latest"
+  }
 }

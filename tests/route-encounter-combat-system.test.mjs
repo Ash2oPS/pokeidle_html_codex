@@ -34,6 +34,8 @@ function createFixture(options = {}) {
     stats: { hp: 35, attack: 55 },
     spritePath: "pikachu-front.png",
     shinySpritePath: "pikachu-front-shiny.png",
+    cryPath: "pokemon_data/25_pikachu/cries/25_pikachu_cry.ogg",
+    crySource: "latest",
     spriteImage: { name: "normal-sprite" },
     spriteShinyImage: { name: "shiny-sprite" },
     catchRate: 190,
@@ -161,6 +163,8 @@ test("createRouteEnemyInstance builds a normal route enemy with balance metadata
   assert.deepEqual(enemy.encounterMethods, ["walk"]);
   assert.equal(enemy.spritePath, "variant-default-front.png");
   assert.equal(enemy.spriteImage.path, "variant-default-front.png");
+  assert.equal(enemy.cryPath, "pokemon_data/25_pikachu/cries/25_pikachu_cry.ogg");
+  assert.equal(enemy.crySource, "latest");
   assert.deepEqual(fixture.calls.rewardScale[0], {
     teamHpScaleMultiplier: 1.25,
     isOnlyOne: false,

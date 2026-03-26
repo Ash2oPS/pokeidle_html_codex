@@ -269,5 +269,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/57_primeape_cry.ogg",
+    "source": "latest"
+  }
 }

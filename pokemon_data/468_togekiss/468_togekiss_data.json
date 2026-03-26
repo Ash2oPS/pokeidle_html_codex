@@ -219,5 +219,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/468_togekiss_cry.ogg",
+    "source": "latest"
+  }
 }

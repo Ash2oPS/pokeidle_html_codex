@@ -250,5 +250,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "fish",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/129_magikarp_cry.ogg",
+    "source": "latest"
+  }
 }

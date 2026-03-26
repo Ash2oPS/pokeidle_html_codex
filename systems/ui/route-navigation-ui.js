@@ -9,6 +9,23 @@ function normalizeComparableUiText(value) {
     .toLowerCase();
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function formatPrimaryRouteHeaderLabel(routeName, regionLabel) {
+  const safeRouteName = String(routeName || "").trim();
+  const safeRegionLabel = String(regionLabel || "").trim();
+  if (!safeRouteName) {
+    return "";
+  }
+  if (!safeRegionLabel) {
+    return safeRouteName;
+  }
+  const trailingRegionPattern = new RegExp(`\\s*\\(${escapeRegExp(safeRegionLabel)}\\)\\s*$`, "i");
+  return safeRouteName.replace(trailingRegionPattern, "").trim() || safeRouteName;
+}
+
 export function createRouteNavigationUi({
   documentRef = globalThis.document,
   normalizeUiDisplayText = defaultNormalizeUiDisplayText,
@@ -24,6 +41,55 @@ export function createRouteNavigationUi({
       return false;
     }
     return !others.some((entry) => normalizeComparableUiText(entry) === normalizedCandidate);
+  }
+
+  function buildRenderSignature(value) {
+    return JSON.stringify(value ?? null);
+  }
+
+  function replaceChildrenIfSignatureChanged(containerEl, signature, buildChildren) {
+    if (!containerEl) {
+      return;
+    }
+    const nextSignature = String(signature || "");
+    if (containerEl.dataset.routeRenderSignature === nextSignature) {
+      return;
+    }
+    containerEl.dataset.routeRenderSignature = nextSignature;
+    containerEl.replaceChildren();
+    if (typeof buildChildren === "function") {
+      buildChildren(containerEl);
+    }
+  }
+
+  function appendRouteBackgroundPreview(containerEl, routeState, options = {}) {
+    if (!containerEl) {
+      return;
+    }
+    const previewEl = createElement("span");
+    previewEl.className = "route-nav-zone-preview";
+    const variant = String(options?.variant || "graph-node").trim();
+    if (variant) {
+      previewEl.classList.add(`is-${variant}`);
+    }
+
+    const backgroundImagePath = String(routeState?.backgroundImagePath || "").trim();
+    if (!backgroundImagePath) {
+      previewEl.classList.add("is-empty");
+    } else {
+      const imageEl = createElement("img");
+      imageEl.className = "route-nav-zone-preview-image";
+      imageEl.alt = "";
+      imageEl.decoding = "async";
+      imageEl.loading = "lazy";
+      imageEl.src = backgroundImagePath;
+      previewEl.appendChild(imageEl);
+    }
+
+    const overlayEl = createElement("span");
+    overlayEl.className = "route-nav-zone-preview-overlay";
+    previewEl.appendChild(overlayEl);
+    containerEl.appendChild(previewEl);
   }
 
   function buildRouteCollectionBadgeChip(group) {
@@ -102,38 +168,19 @@ export function createRouteNavigationUi({
     button.dataset.routeId = String(routeState?.routeId || "");
     button.dataset.routeAction = routeState?.unlocked ? "travel" : "info";
 
-    const topLineEl = createElement("span");
-    topLineEl.className = "route-nav-destination-topline";
+    appendRouteBackgroundPreview(button, routeState, {
+      variant: "destination-card",
+    });
 
-    const metaEl = createElement("span");
-    metaEl.className = "route-nav-destination-meta";
-    metaEl.textContent = normalizeUiDisplayText(
-      `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || ""}`,
-      { frenchTypography: true },
-    );
-    topLineEl.appendChild(metaEl);
-
-    const statusEl = createElement("span");
-    statusEl.className = "route-nav-destination-status";
-    statusEl.classList.toggle("is-locked", !routeState?.unlocked);
-    statusEl.textContent = normalizeUiDisplayText(
-      routeState?.statusLabel || (routeState?.unlocked ? "Ouverte" : "Verrouill\u00e9e"),
-      { frenchTypography: true },
-    );
-    topLineEl.appendChild(statusEl);
-    button.appendChild(topLineEl);
+    const contentEl = createElement("span");
+    contentEl.className = "route-nav-destination-content";
 
     const labelEl = createElement("span");
     labelEl.className = "route-nav-destination-label";
-    labelEl.textContent = String(routeState?.routeNameFr || "");
-    button.appendChild(labelEl);
-
-    if (!routeState?.unlocked && routeState?.blockedReasonFr) {
-      const reasonEl = createElement("span");
-      reasonEl.className = "route-nav-destination-reason";
-      reasonEl.textContent = routeState.blockedReasonFr;
-      button.appendChild(reasonEl);
-    }
+    labelEl.textContent = formatPrimaryRouteHeaderLabel(routeState?.routeNameFr || "", routeState?.regionLabel || "")
+      || String(routeState?.routeNameFr || "");
+    contentEl.appendChild(labelEl);
+    button.appendChild(contentEl);
 
     const requirementsSummary = String(routeState?.accessRequirementsSummary || "");
     button.title = routeState?.unlocked
@@ -186,13 +233,13 @@ export function createRouteNavigationUi({
     statusEl.className = "route-nav-info-status";
     statusEl.classList.toggle("is-locked", !routeState?.unlocked);
     const statusText = routeState?.unlocked
-      ? normalizeUiDisplayText("Cette sortie est ouverte.", { frenchTypography: true })
+      ? normalizeUiDisplayText("Cette zone est ouverte.", { frenchTypography: true })
       : normalizeUiDisplayText(
         routeState?.blockedReasonFr
           || (
             routeState?.statusLabel === "\u00c0 atteindre"
               ? "Cette zone n'est pas encore atteignable depuis la zone active."
-              : "Cette sortie reste verrouill\u00e9e."
+              : "Cette zone reste verrouill\u00e9e."
           ),
         { frenchTypography: true },
       );
@@ -279,12 +326,15 @@ export function createRouteNavigationUi({
     if (!panelEl) {
       return;
     }
-    panelEl.replaceChildren();
     if (!routeState || routeState.unlocked) {
+      panelEl.dataset.routeRenderSignature = "";
+      panelEl.replaceChildren();
       panelEl.classList.add("hidden");
       return;
     }
-    panelEl.appendChild(buildRouteAccessInfoPanel(routeState));
+    replaceChildrenIfSignatureChanged(panelEl, buildRenderSignature(routeState), (targetEl) => {
+      targetEl.appendChild(buildRouteAccessInfoPanel(routeState));
+    });
     panelEl.classList.remove("hidden");
   }
 
@@ -326,33 +376,58 @@ export function createRouteNavigationUi({
       routeNavRegionEl.textContent = currentZoneHeader?.regionLabel || "";
     }
     if (routeNavCurrentEl) {
-      routeNavCurrentEl.textContent = currentZoneHeader?.routeNameFr || "";
+      routeNavCurrentEl.textContent = formatPrimaryRouteHeaderLabel(
+        currentZoneHeader?.routeNameFr || "",
+        currentZoneHeader?.regionLabel || "",
+      );
+    }
+    const modalCurrentValueEl = routeNavDrawerEl?.querySelector?.(".route-nav-modal-current-value") || null;
+    if (modalCurrentValueEl) {
+      modalCurrentValueEl.textContent = formatPrimaryRouteHeaderLabel(
+        currentZoneHeader?.routeNameFr || "",
+        currentZoneHeader?.regionLabel || "",
+      );
+    }
+    const modalCurrentRegionEl = routeNavDrawerEl?.querySelector?.(".route-nav-modal-current-region") || null;
+    if (modalCurrentRegionEl) {
+      modalCurrentRegionEl.textContent = currentZoneHeader?.regionLabel || "";
     }
     if (routeNavBadgesEl) {
-      routeNavBadgesEl.replaceChildren();
-      routeNavBadgesEl.classList.toggle("hidden", (badgeGroups || []).length <= 0);
-      for (const group of badgeGroups || []) {
-        routeNavBadgesEl.appendChild(buildRouteCollectionBadgeChip(group));
-      }
+      const safeBadgeGroups = badgeGroups || [];
+      routeNavBadgesEl.classList.toggle("hidden", safeBadgeGroups.length <= 0);
+      replaceChildrenIfSignatureChanged(routeNavBadgesEl, buildRenderSignature(safeBadgeGroups), (targetEl) => {
+        for (const group of safeBadgeGroups) {
+          targetEl.appendChild(buildRouteCollectionBadgeChip(group));
+        }
+      });
     }
     if (routeNavProgressChipsEl) {
-      routeNavProgressChipsEl.replaceChildren();
-      for (const chip of progressChips || []) {
-        routeNavProgressChipsEl.appendChild(buildRouteProgressChip(chip));
-      }
+      const safeProgressChips = progressChips || [];
+      replaceChildrenIfSignatureChanged(routeNavProgressChipsEl, buildRenderSignature(safeProgressChips), (targetEl) => {
+        for (const chip of safeProgressChips) {
+          targetEl.appendChild(buildRouteProgressChip(chip));
+        }
+      });
     }
     if (routeNavDestinationsEl) {
-      routeNavDestinationsEl.replaceChildren();
-      if (!hasCatalog || (destinationCards || []).length <= 0) {
-        routeNavDestinationsEl.appendChild(createRouteNavigationEmptyState("Aucune sortie configur\u00e9e pour cette zone."));
-      } else {
-        for (const routeState of destinationCards) {
-          routeNavDestinationsEl.appendChild(buildRouteDestinationCard(routeState, {
+      const safeDestinationCards = destinationCards || [];
+      const destinationsSignature = buildRenderSignature({
+        hasCatalog,
+        destinationCards: safeDestinationCards,
+        selectedLockedDestinationId: selectedLockedDestinationId || null,
+      });
+      replaceChildrenIfSignatureChanged(routeNavDestinationsEl, destinationsSignature, (targetEl) => {
+        if (!hasCatalog || safeDestinationCards.length <= 0) {
+          targetEl.appendChild(createRouteNavigationEmptyState("Aucune zone reli\u00e9e n'est configur\u00e9e pour cette zone."));
+          return;
+        }
+        for (const routeState of safeDestinationCards) {
+          targetEl.appendChild(buildRouteDestinationCard(routeState, {
             variant: "desktop-inline",
             selected: selectedLockedDestinationId === routeState.routeId,
           }));
         }
-      }
+      });
     }
     if (routeNavDrawerToggleCountEl) {
       routeNavDrawerToggleCountEl.textContent = String((destinationCards || []).length);
@@ -365,27 +440,33 @@ export function createRouteNavigationUi({
         "aria-label",
         normalizeUiDisplayText(
           destinationCount > 0
-            ? `Afficher ${destinationCount} sortie${destinationCount > 1 ? "s" : ""} connect\u00e9e${destinationCount > 1 ? "s" : ""}`
-            : "Aucune sortie connect\u00e9e",
+            ? `Afficher ${destinationCount} zone${destinationCount > 1 ? "s" : ""} reli\u00e9e${destinationCount > 1 ? "s" : ""}`
+            : "Aucune zone reli\u00e9e",
           { frenchTypography: true },
         ),
       );
     }
     if (routeNavDrawerEl) {
       routeNavDrawerEl.classList.toggle("hidden", !navigationDrawerOpen);
+      routeNavDrawerEl.classList.toggle("has-route-nav-info", Boolean(selectedLockedDestination));
     }
     if (routeNavDrawerListEl) {
-      routeNavDrawerListEl.replaceChildren();
-      if ((destinationCards || []).length <= 0) {
-        routeNavDrawerListEl.appendChild(createRouteNavigationEmptyState("Aucune sortie configur\u00e9e pour cette zone."));
-      } else {
-        for (const routeState of destinationCards) {
-          routeNavDrawerListEl.appendChild(buildRouteDestinationCard(routeState, {
-            variant: "mobile-drawer",
+      replaceChildrenIfSignatureChanged(routeNavDrawerListEl, buildRenderSignature({
+        destinationCards: destinationCards || [],
+        selectedLockedDestinationId: selectedLockedDestinationId || null,
+      }), (targetEl) => {
+        const safeDestinationCards = destinationCards || [];
+        if (safeDestinationCards.length <= 0) {
+          targetEl.appendChild(createRouteNavigationEmptyState("Aucune zone reli\u00e9e n'est configur\u00e9e pour cette zone."));
+          return;
+        }
+        for (const routeState of safeDestinationCards) {
+          targetEl.appendChild(buildRouteDestinationCard(routeState, {
+            variant: "drawer-list",
             selected: selectedLockedDestinationId === routeState.routeId,
           }));
         }
-      }
+      });
     }
     renderRouteInfoPanelInto(routeNavInfoPanelEl, selectedLockedDestination || null);
     renderRouteInfoPanelInto(mapConnectionsInfoPanelEl, selectedLockedDestination || null);

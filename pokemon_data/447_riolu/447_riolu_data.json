@@ -267,5 +267,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/447_riolu_cry.ogg",
+    "source": "latest"
+  }
 }

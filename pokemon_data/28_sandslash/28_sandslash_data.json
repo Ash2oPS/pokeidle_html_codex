@@ -373,5 +373,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "upright",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/28_sandslash_cry.ogg",
+    "source": "latest"
+  }
 }

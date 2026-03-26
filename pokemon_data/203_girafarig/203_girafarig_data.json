@@ -228,5 +228,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/203_girafarig_cry.ogg",
+    "source": "latest"
+  }
 }

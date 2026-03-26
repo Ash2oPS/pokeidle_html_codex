@@ -285,5 +285,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "squiggle",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/130_gyarados_cry.ogg",
+    "source": "latest"
+  }
 }

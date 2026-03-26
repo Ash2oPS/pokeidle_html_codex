@@ -598,6 +598,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     window
   } = scope;
   const pendingPokedexDefinitionLoads = new Map();
+  const pendingDialogueWarmupLoads = new Map();
   let boxesSearchEventsBound = false;
   let pokedexSearchEventsBound = false;
 
@@ -1059,6 +1060,82 @@ function hideHoverPopup() {
   hidePopupWithTween(hoverPopupEl);
 }
 
+function isPhoneUiViewport() {
+  return Boolean(state?.layout?.viewportProfile?.phone);
+}
+
+function isStylableUiElement(value) {
+  return Boolean(
+    value
+    && typeof value === "object"
+    && value.style
+    && typeof value.style.removeProperty === "function"
+    && typeof value.style.setProperty === "function"
+    && value.classList
+    && typeof value.classList.add === "function"
+    && typeof value.classList.remove === "function",
+  );
+}
+
+function readRootCssNumberVariable(variableName, fallback = 0) {
+  if (typeof window?.getComputedStyle !== "function" || typeof document === "undefined") {
+    return Number(fallback) || 0;
+  }
+  const rootEl = document.documentElement || document.body;
+  if (!rootEl || typeof rootEl !== "object") {
+    return Number(fallback) || 0;
+  }
+  const rawValue = window.getComputedStyle(rootEl).getPropertyValue(String(variableName || "")).trim();
+  const numeric = Number.parseFloat(rawValue);
+  return Number.isFinite(numeric) ? numeric : Number(fallback) || 0;
+}
+
+function getActionDockBottomSheetOffsetPx() {
+  const fallbackOffsetPx = readRootCssNumberVariable("--ui-mobile-bottom-offset-px", 12);
+  if (typeof document === "undefined") {
+    return fallbackOffsetPx;
+  }
+  const dockToggleEl = document.getElementById("action-dock-pokeball-toggle");
+  if (!dockToggleEl || typeof dockToggleEl.getBoundingClientRect !== "function") {
+    return fallbackOffsetPx;
+  }
+  const rect = dockToggleEl.getBoundingClientRect();
+  const viewportHeight = Math.max(0, Number(window?.innerHeight) || 0);
+  const top = Number(rect?.top);
+  const height = Math.max(0, Number(rect?.height) || 0);
+  if (!Number.isFinite(top) || top <= 0 || height <= 0 || viewportHeight <= 0) {
+    return fallbackOffsetPx;
+  }
+  return Math.max(fallbackOffsetPx, Math.ceil((viewportHeight - top) + fallbackOffsetPx));
+}
+
+function clearResponsiveFloatingMenuPosition(menuEl) {
+  if (!isStylableUiElement(menuEl)) {
+    return;
+  }
+  menuEl.classList.remove("is-mobile-bottom-sheet");
+  menuEl.style.removeProperty("--context-sheet-max-width");
+  menuEl.style.removeProperty("--context-sheet-bottom-offset-px");
+  menuEl.style.removeProperty("right");
+}
+
+function positionBottomSheetElement(menuEl, options = {}) {
+  if (!isStylableUiElement(menuEl)) {
+    return;
+  }
+  const defaultBottomOffsetPx = Math.max(0, readRootCssNumberVariable("--ui-mobile-bottom-offset-px", 12));
+  const maxWidthPx = Math.max(220, Number(options?.maxWidthPx || 0) || 0);
+  const bottomOffsetPx = Math.max(0, Number(options?.bottomOffsetPx || defaultBottomOffsetPx) || defaultBottomOffsetPx);
+  menuEl.classList.add("is-mobile-bottom-sheet");
+  menuEl.style.removeProperty("left");
+  menuEl.style.removeProperty("right");
+  menuEl.style.removeProperty("top");
+  menuEl.style.setProperty("--context-sheet-max-width", `${Math.round(maxWidthPx)}px`);
+  menuEl.style.setProperty("--context-sheet-bottom-offset-px", `${Math.round(bottomOffsetPx)}px`);
+  menuEl.style.left = "50%";
+  menuEl.style.top = "auto";
+}
+
 function findHoveredTeamSlot(worldX, worldY, layout, options = {}) {
   if (!layout) {
     return null;
@@ -1414,6 +1491,74 @@ function showHoverPopup(entity, clientX, clientY) {
     ),
   ].join("");
 
+  const useMobileQuickCard = isPhoneUiViewport() && isTeamMember;
+  if (useMobileQuickCard) {
+    const quickMetricsMarkup = [];
+    if (hasHpMetric) {
+      quickMetricsMarkup.push(
+        buildHoverPopupMetricMarkup(
+          "PV",
+          `${formatCompactNumber(hpCurrent)}/${formatCompactNumber(hpMax)}`,
+          hpMax > 0 ? `${Math.round(clamp(hpCurrent / hpMax, 0, 1) * 100)}%` : "",
+        ),
+      );
+    }
+    const xpCurrent = Math.max(0, toSafeInt(entity?.xp, 0));
+    const xpToNext = Math.max(1, toSafeInt(entity?.xpToNext, 1));
+    quickMetricsMarkup.push(
+      buildHoverPopupMetricMarkup(
+        "XP",
+        levelValue >= MAX_LEVEL
+          ? "Max"
+          : `${formatCompactNumber(xpCurrent)}/${formatCompactNumber(xpToNext)}`,
+        levelValue >= MAX_LEVEL ? "niveau max" : `niv. ${Math.min(MAX_LEVEL, levelValue + 1)}`,
+        " pokemon-info-micro--accent",
+      ),
+    );
+    quickMetricsMarkup.push(
+      buildHoverPopupMetricMarkup(
+        "Attaque",
+        attackModeLabel,
+        "",
+      ),
+    );
+    const quickTagMarkup = [];
+    if (passivePillLabel) {
+      quickTagMarkup.push(`<span class="hover-popup-pill">${escapeHtml(passivePillLabel)}</span>`);
+    }
+    if (typeSummaryMarkup) {
+      quickTagMarkup.push(typeSummaryMarkup);
+    }
+
+    hoverPopupEl.innerHTML = [
+      `<article class="pokemon-info-card pokemon-info-card--tooltip pokemon-info-card--quick">`,
+      `<header class="pokemon-info-head">`,
+      `<div class="pokemon-info-title-wrap">`,
+      `<h3 class="pokemon-info-title">${safeDisplayName || safeSpeciesLabel}</h3>`,
+      `<p class="pokemon-info-subtitle">${escapeHtml(subtitleLabel)}</p>`,
+      `</div>`,
+      `<div class="pokemon-info-badges">${badgeMarkup.join("")}</div>`,
+      `</header>`,
+      `<div class="hover-popup-quick-summary">`,
+      quickTagMarkup.length > 0
+        ? `<div class="hover-popup-quick-tags">${quickTagMarkup.join("")}</div>`
+        : ``,
+      safeTalentLabel
+        ? `<span class="hover-popup-quick-talent">${escapeHtml(safeTalentLabel)}</span>`
+        : ``,
+      `</div>`,
+      `<footer class="pokemon-info-micro-grid hover-popup-micro-grid hover-popup-micro-grid--quick">${quickMetricsMarkup.join("")}</footer>`,
+      `</article>`,
+    ].join("");
+
+    showTooltipWithTween(hoverPopupEl);
+    positionBottomSheetElement(hoverPopupEl, {
+      maxWidthPx: 360,
+      bottomOffsetPx: getActionDockBottomSheetOffsetPx(),
+    });
+    return;
+  }
+
   hoverPopupEl.innerHTML = [
     `<article class="pokemon-info-card pokemon-info-card--tooltip">`,
     `<header class="pokemon-info-head">`,
@@ -1454,6 +1599,7 @@ function positionFloatingMenuElement(menuEl, clientX, clientY) {
   if (!menuEl) {
     return;
   }
+  clearResponsiveFloatingMenuPosition(menuEl);
   const viewportWidth = Math.max(0, Number(window.innerWidth) || 0);
   const viewportHeight = Math.max(0, Number(window.innerHeight) || 0);
   const anchorX = Number.isFinite(Number(clientX)) ? Number(clientX) : viewportWidth / 2;
@@ -1547,7 +1693,14 @@ function openBallCaptureMenu(ballType, clientX, clientY) {
   hideHoverPopup();
   refreshBallCaptureMenu();
   showPopupWithTween(ballCaptureMenuEl);
-  positionFloatingMenuElement(ballCaptureMenuEl, clientX, clientY);
+  if (isPhoneUiViewport()) {
+    positionBottomSheetElement(ballCaptureMenuEl, {
+      maxWidthPx: 420,
+      bottomOffsetPx: getActionDockBottomSheetOffsetPx(),
+    });
+  } else {
+    positionFloatingMenuElement(ballCaptureMenuEl, clientX, clientY);
+  }
 }
 
 function toggleBallCaptureRule(ruleKey) {
@@ -1641,7 +1794,14 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   refreshTeamContextMenu();
 
   showPopupWithTween(teamContextMenuEl);
-  positionFloatingMenuElement(teamContextMenuEl, clientX, clientY);
+  if (isPhoneUiViewport()) {
+    positionBottomSheetElement(teamContextMenuEl, {
+      maxWidthPx: 420,
+      bottomOffsetPx: getActionDockBottomSheetOffsetPx(),
+    });
+  } else {
+    positionFloatingMenuElement(teamContextMenuEl, clientX, clientY);
+  }
 }
 
 function getTeamSlotLabel(slotIndex) {
@@ -2771,7 +2931,10 @@ function setPokedexInfoFromEntry(entry) {
   if (!pokedexInfoPanelEl) {
     return;
   }
+  const useSheetLayout = isPhoneUiViewport();
   if (!entry) {
+    pokedexInfoPanelEl.classList.add("is-empty");
+    pokedexInfoPanelEl.classList.remove("is-sheet-open");
     pokedexInfoPanelEl.innerHTML = [
       `<article class="pokemon-info-card pokemon-info-card--empty">`,
       `<p class="pokemon-info-empty-title">Infos Pokémon</p>`,
@@ -2850,8 +3013,20 @@ function setPokedexInfoFromEntry(entry) {
     ? `<p class="pokemon-info-zone"><span class="pokemon-info-zone-label">Zone</span><span class="pokemon-info-zone-value">${zoneSummary}</span></p>`
     : "";
 
+  const sheetToolbar = useSheetLayout
+    ? [
+      `<div class="collection-info-sheet-toolbar">`,
+      `<span class="collection-info-sheet-kicker">Fiche Pokedex</span>`,
+      `<button class="collection-info-sheet-close" type="button" data-collection-sheet-close="pokedex">Fermer</button>`,
+      `</div>`,
+    ].join("")
+    : "";
+
+  pokedexInfoPanelEl.classList.remove("is-empty");
+  pokedexInfoPanelEl.classList.toggle("is-sheet-open", useSheetLayout);
   pokedexInfoPanelEl.innerHTML = [
     `<article class="pokemon-info-card pokemon-info-card--pokedex pokemon-info-state--${discoveryTone}">`,
+    sheetToolbar,
     `<header class="pokemon-info-head">`,
     `<div class="pokemon-info-title-wrap">`,
     `<h3 class="pokemon-info-title">${displayName}</h3>`,
@@ -3121,6 +3296,12 @@ function createPokedexCardButton(entry) {
   button.type = "button";
   button.className = "boxes-mon-btn pokedex-mon-btn";
   button.classList.add(`is-${entry.discoveryState}`);
+  if (entry.id === Number(state.ui.pokedexHoverPokemonId || 0)) {
+    button.classList.add("is-selected");
+    button.setAttribute("aria-pressed", "true");
+  } else {
+    button.setAttribute("aria-pressed", "false");
+  }
   button.dataset.pokedexId = String(entry.id);
   button.setAttribute(
     "aria-label",
@@ -3265,6 +3446,7 @@ function renderPokedexGrid() {
   if (!pokedexGridEl || !state.saveData) {
     return;
   }
+  const useSheetLayout = isPhoneUiViewport();
   cancelQueuedPokedexGridRender();
   cancelQueuedPokedexViewportRender();
   invalidatePokedexEntriesCache();
@@ -3319,7 +3501,7 @@ function renderPokedexGrid() {
   }
 
   let hoverEntry = entries.find((entry) => entry.id === Number(state.ui.pokedexHoverPokemonId || 0)) || null;
-  if (!hoverEntry) {
+  if (!hoverEntry && !useSheetLayout) {
     hoverEntry = entries[0] || null;
     state.ui.pokedexHoverPokemonId = hoverEntry ? hoverEntry.id : null;
   }
@@ -3328,7 +3510,9 @@ function renderPokedexGrid() {
   }
   renderPokedexViewportSlice({ force: true });
   setPokedexInfoFromEntry(hoverEntry);
-  void ensurePokedexEntryDefinitionLoaded(hoverEntry);
+  if (hoverEntry) {
+    void ensurePokedexEntryDefinitionLoaded(hoverEntry);
+  }
 }
 
 function openPokedexModal() {
@@ -3364,7 +3548,10 @@ function setBoxesInfoFromEntry(entry) {
   if (!boxesInfoPanelEl) {
     return;
   }
+  const useSheetLayout = isPhoneUiViewport();
   if (!entry) {
+    boxesInfoPanelEl.classList.add("is-empty");
+    boxesInfoPanelEl.classList.remove("is-sheet-open");
     boxesInfoPanelEl.innerHTML = [
       `<article class="pokemon-info-card pokemon-info-card--empty">`,
       `<p class="pokemon-info-empty-title">Infos Pokémon</p>`,
@@ -3434,8 +3621,20 @@ function setBoxesInfoFromEntry(entry) {
     ),
   ].join("");
 
+  const sheetToolbar = useSheetLayout
+    ? [
+      `<div class="collection-info-sheet-toolbar">`,
+      `<span class="collection-info-sheet-kicker">Fiche equipe</span>`,
+      `<button class="collection-info-sheet-close" type="button" data-collection-sheet-close="boxes">Fermer</button>`,
+      `</div>`,
+    ].join("")
+    : "";
+
+  boxesInfoPanelEl.classList.remove("is-empty");
+  boxesInfoPanelEl.classList.toggle("is-sheet-open", useSheetLayout);
   boxesInfoPanelEl.innerHTML = [
     `<article class="pokemon-info-card pokemon-info-card--boxes">`,
+    sheetToolbar,
     `<header class="pokemon-info-head">`,
     `<div class="pokemon-info-title-wrap">`,
     `<h3 class="pokemon-info-title">${displayName || speciesLabel}</h3>`,
@@ -3499,6 +3698,7 @@ function renderBoxesGrid() {
   if (!boxesGridEl || !state.saveData || !Array.isArray(state.saveData.team)) {
     return;
   }
+  const useSheetLayout = isPhoneUiViewport();
 
   const targetSlotIndex = clamp(toSafeInt(state.ui.boxesTargetSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
   const currentTargetId = targetSlotIndex >= 0 ? Number(state.saveData.team[targetSlotIndex] || 0) : 0;
@@ -3560,7 +3760,7 @@ function renderBoxesGrid() {
   }
 
   let hoverEntry = entries.find((entry) => entry.id === Number(state.ui.boxesHoverEntityId || 0)) || null;
-  if (!hoverEntry) {
+  if (!hoverEntry && !useSheetLayout) {
     hoverEntry = entries.find((entry) => entry.id === currentTargetId) || entries[0];
   }
 
@@ -3574,8 +3774,15 @@ function renderBoxesGrid() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "boxes-mon-btn";
+    button.dataset.boxEntityId = String(entry.id);
     if (isCurrent) {
       button.classList.add("is-current");
+    }
+    if (entry.id === Number(state.ui.boxesHoverEntityId || 0)) {
+      button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
     }
     if (inAnotherSlot || unavailable || hasFamilyConflict) {
       button.classList.add("is-disabled");
@@ -3664,6 +3871,12 @@ function renderBoxesGrid() {
       setBoxesInfoFromEntry(entry);
     });
     button.addEventListener("click", () => {
+      if (useSheetLayout && Number(state.ui.boxesHoverEntityId || 0) !== entry.id) {
+        state.ui.boxesHoverEntityId = entry.id;
+        setBoxesInfoFromEntry(entry);
+        renderBoxesGrid();
+        return;
+      }
       if (unavailable) {
         setTopMessage("Pokemon indisponible dans les routes chargees.", 1600);
         return;
@@ -3753,7 +3966,7 @@ function openBoxesForTeamSlot(slotIndex) {
   setShopOpen(false);
   state.ui.boxesOpen = true;
   state.ui.boxesTargetSlotIndex = index;
-  state.ui.boxesHoverEntityId = currentId;
+  state.ui.boxesHoverEntityId = isPhoneUiViewport() ? null : currentId;
   bindBoxesSearchEventsIfNeeded();
   syncBoxesSearchInputValue();
   showModalWithTween(boxesModalEl);
@@ -4294,6 +4507,11 @@ function handleCanvasClick(event) {
   const layout = state.layout || computeLayout();
   const hoveredTeamSlot = findHoveredTeamSlot(worldX, worldY, layout);
   if (!hoveredTeamSlot) {
+    return;
+  }
+  if (isPhoneUiViewport()) {
+    setHoveredTeamSlotIndex(hoveredTeamSlot.slotIndex);
+    showHoverPopup(hoveredTeamSlot.member, event.clientX, event.clientY);
     return;
   }
   openBoxesForTeamSlot(hoveredTeamSlot.slotIndex);
@@ -5004,6 +5222,23 @@ function applyPokemonTalentCsvToDefinitions(defsById = state.pokemonDefsById) {
   }
 }
 
+function preloadConfiguredSpriteAssets(...collections) {
+  const spritePaths = new Set();
+  for (const collection of collections) {
+    const entries = Array.isArray(collection) ? collection : [];
+    for (const entry of entries) {
+      const spritePath = String(entry?.spritePath || "").trim();
+      if (spritePath) {
+        spritePaths.add(spritePath);
+      }
+    }
+  }
+  if (spritePaths.size <= 0) {
+    return;
+  }
+  void Promise.all(Array.from(spritePaths.values()).map((spritePath) => loadImage(spritePath))).catch(() => {});
+}
+
 function setBallConfigState(payload) {
   const nextConfigByType = cloneConfigMap(DEFAULT_BALL_CONFIG_BY_TYPE);
   const sourceEntries =
@@ -5022,6 +5257,7 @@ function setBallConfigState(payload) {
   replaceConfigMap(BALL_CONFIG_BY_TYPE, nextConfigByType);
   refreshBallConfigDerivedState();
   rebuildShopItemConfigState();
+  preloadConfiguredSpriteAssets(Object.values(BALL_CONFIG_BY_TYPE), Object.values(SHOP_ITEM_CONFIG_BY_ID));
   state.ballConfigCsvLoaded = sourceEntries.length > 0;
   state.configRevisions.ball += 1;
 }
@@ -5044,6 +5280,7 @@ function setShopItemConfigState(payload) {
   replaceConfigMap(EXTRA_SHOP_ITEM_CONFIG_BY_ID, nextExtraShopItemsById);
   rebuildEvolutionStoneConfigState(EXTRA_SHOP_ITEM_CONFIG_BY_ID);
   rebuildShopItemConfigState();
+  preloadConfiguredSpriteAssets(Object.values(BALL_CONFIG_BY_TYPE), Object.values(SHOP_ITEM_CONFIG_BY_ID));
   state.shopItemConfigCsvLoaded = sourceEntries.length > 0;
   state.configRevisions.shopItem += 1;
 }
@@ -5210,7 +5447,7 @@ function buildRouteDataPath(routeId) {
 
 async function loadRouteData(routeId = DEFAULT_ROUTE_ID) {
   const routePath = buildRouteDataPath(routeId);
-  const response = await fetch(routePath, { cache: "no-store" });
+  const response = await fetch(routePath);
   if (!response.ok) {
     throw new Error("Impossible de charger " + routePath);
   }
@@ -5299,6 +5536,73 @@ async function preloadRouteBackgrounds(routeInput) {
   return new Map(entries);
 }
 
+function buildRouteDialogueDataPath(dialogueId) {
+  const id = String(dialogueId || "").trim();
+  return id ? `map_data/dialogues/${encodeURIComponent(id)}.json` : "";
+}
+
+function collectRouteDialogueIds(routeInput) {
+  const routeDataList = getRouteDataListFromInput(routeInput);
+  const dialogueIds = new Set();
+  for (const routeData of routeDataList) {
+    const arrivalDialogueIds = Array.isArray(routeData?.arrival_dialogue_ids_once) ? routeData.arrival_dialogue_ids_once : [];
+    for (const dialogueId of arrivalDialogueIds) {
+      const normalizedId = String(dialogueId || "").trim();
+      if (normalizedId) {
+        dialogueIds.add(normalizedId);
+      }
+    }
+    const zoneActions = Array.isArray(routeData?.zone_actions) ? routeData.zone_actions : [];
+    for (const action of zoneActions) {
+      if (String(action?.kind || "dialogue").trim() !== "dialogue") {
+        continue;
+      }
+      const dialogueId = String(action?.dialogue_id || "").trim();
+      if (dialogueId) {
+        dialogueIds.add(dialogueId);
+      }
+    }
+  }
+  return Array.from(dialogueIds.values());
+}
+
+function preloadDialogueAsset(dialogueId) {
+  const id = String(dialogueId || "").trim();
+  if (!id) {
+    return Promise.resolve(null);
+  }
+  if (pendingDialogueWarmupLoads.has(id)) {
+    return pendingDialogueWarmupLoads.get(id);
+  }
+  const task = fetch(buildRouteDialogueDataPath(id))
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.text();
+    })
+    .catch((error) => {
+      console.warn(
+        `Impossible de precharger le dialogue ${id}:`,
+        error instanceof Error ? error.message : String(error || ""),
+      );
+      return null;
+    })
+    .finally(() => {
+      pendingDialogueWarmupLoads.delete(id);
+    });
+  pendingDialogueWarmupLoads.set(id, task);
+  return task;
+}
+
+async function preloadRouteDialogues(routeInput) {
+  const dialogueIds = collectRouteDialogueIds(routeInput);
+  if (dialogueIds.length <= 0) {
+    return [];
+  }
+  return Promise.all(dialogueIds.map((dialogueId) => preloadDialogueAsset(dialogueId)));
+}
+
 function queueDeferredRouteAssetWarmup(preloadedRouteIds = []) {
   if (!(state.routeCatalog instanceof Map) || state.routeCatalog.size <= 0) {
     return;
@@ -5323,7 +5627,11 @@ function queueDeferredRouteAssetWarmup(preloadedRouteIds = []) {
       scheduleNextChunk();
       return;
     }
-    Promise.all([loadPokemonDefinitions(routeDataList, { append: true }), preloadRouteBackgrounds(routeDataList)])
+    Promise.all([
+      loadPokemonDefinitions(routeDataList, { append: true }),
+      preloadRouteBackgrounds(routeDataList),
+      preloadRouteDialogues(routeDataList),
+    ])
       .then(([, warmBackgrounds]) => {
         if (warmBackgrounds instanceof Map && warmBackgrounds.size > 0) {
           state.routeBackgroundsById = new Map([...state.routeBackgroundsById, ...warmBackgrounds]);
@@ -5429,12 +5737,17 @@ function ensureRouteDefinitionsLoaded(routeData) {
   pendingRouteDefinitionLoads.set(routeId, task);
 }
 
+function ensureRouteDialoguesLoaded(routeData) {
+  void preloadRouteDialogues([routeData]);
+}
+
 function ensureRouteAssetsLoaded(routeData) {
   if (!routeData || typeof routeData !== "object") {
     return;
   }
   ensureRouteBackgroundLoaded(routeData);
   ensureRouteDefinitionsLoaded(routeData);
+  ensureRouteDialoguesLoaded(routeData);
 }
 
 function ensureUnlockedRoutesForCurrentCatalog() {

@@ -230,5 +230,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/3_venusaur_cry.ogg",
+    "source": "latest"
+  }
 }

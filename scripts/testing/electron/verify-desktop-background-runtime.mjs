@@ -1,5 +1,4 @@
 import fs from "node:fs/promises";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +12,6 @@ const executablePath = path.join(repoRoot, "output", "electron-dist", "win-unpac
 const artifactDir = path.join(repoRoot, "output", "playwright", "desktop-background-runtime");
 const reportPath = path.join(artifactDir, "report.json");
 const screenshotPath = path.join(artifactDir, "restored-window.png");
-const host = "127.0.0.1";
 const minimizeDurationMs = 8000;
 const unfocusDurationMs = 2500;
 const RESTORE_RESPONSIVENESS_TIMEOUT_MS = 1500;
@@ -25,90 +23,9 @@ const saveFilePath = path.join(
   "pokeidle_save_v4c.json",
 );
 
-const MIME_TYPES = new Map([
-  [".html", "text/html; charset=utf-8"],
-  [".js", "text/javascript; charset=utf-8"],
-  [".mjs", "text/javascript; charset=utf-8"],
-  [".css", "text/css; charset=utf-8"],
-  [".json", "application/json; charset=utf-8"],
-  [".png", "image/png"],
-  [".jpg", "image/jpeg"],
-  [".jpeg", "image/jpeg"],
-  [".gif", "image/gif"],
-  [".svg", "image/svg+xml"],
-  [".ico", "image/x-icon"],
-  [".webp", "image/webp"],
-  [".wav", "audio/wav"],
-  [".mp3", "audio/mpeg"],
-  [".ogg", "audio/ogg"],
-  [".txt", "text/plain; charset=utf-8"],
-  [".csv", "text/csv; charset=utf-8"],
-]);
-
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function getContentType(filePath) {
-  return MIME_TYPES.get(path.extname(filePath).toLowerCase()) || "application/octet-stream";
-}
-
-async function resolveStaticFile(rootDir, urlPath) {
-  const normalizedPath = urlPath === "/" ? "/index.html" : urlPath;
-  const decodedPath = decodeURIComponent(normalizedPath);
-  const resolvedPath = path.resolve(rootDir, `.${decodedPath}`);
-  if (!resolvedPath.startsWith(rootDir)) {
-    return null;
-  }
-  try {
-    const stats = await fs.stat(resolvedPath);
-    if (stats.isDirectory()) {
-      const indexPath = path.join(resolvedPath, "index.html");
-      await fs.access(indexPath);
-      return indexPath;
-    }
-    return resolvedPath;
-  } catch {
-    return null;
-  }
-}
-
-function createStaticServer(rootDir) {
-  return http.createServer(async (request, response) => {
-    try {
-      const requestUrl = new URL(request.url || "/", `http://${host}`);
-      const filePath = await resolveStaticFile(rootDir, requestUrl.pathname);
-      if (!filePath) {
-        response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-        response.end("Not found");
-        return;
-      }
-      const body = await fs.readFile(filePath);
-      response.writeHead(200, {
-        "Content-Type": getContentType(filePath),
-        "Cache-Control": "no-store",
-      });
-      response.end(body);
-    } catch (error) {
-      response.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-      response.end(String(error?.message || error || "Server error"));
-    }
-  });
-}
-
-async function listen(server) {
-  return new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, host, () => {
-      const address = server.address();
-      if (!address || typeof address === "string") {
-        reject(new Error("Impossible de recuperer le port du serveur local."));
-        return;
-      }
-      resolve(address.port);
-    });
-  });
 }
 
 async function ensureArtifactsDirectory() {
@@ -222,9 +139,6 @@ async function main() {
   await fs.access(executablePath);
   await ensureArtifactsDirectory();
 
-  const server = createStaticServer(repoRoot);
-  const port = await listen(server);
-  const remoteUrl = `http://${host}:${port}/`;
   const saveBackup = await backupSaveFile();
   let electronApp = null;
 
@@ -233,7 +147,6 @@ async function main() {
 
     electronApp = await electron.launch({
       executablePath,
-      args: [`--remote-url=${remoteUrl}`],
     });
 
     const page = await electronApp.firstWindow();
@@ -255,6 +168,12 @@ async function main() {
       desktopMeta: await window.pokeidleDesktop?.getMeta?.(),
       bridgeWindowState: window.pokeidleDesktop?.getWindowState?.() || null,
     }));
+    const resourceEntries = await page.evaluate(() =>
+      performance
+        .getEntriesByType("resource")
+        .map((entry) => String(entry?.name || "")),
+    );
+    const githubPagesRequests = resourceEntries.filter((entry) => entry.includes("ash2ops.github.io/pokeidle_html_codex"));
 
     const starterClick = await page.evaluate(() => {
       const button = document.querySelector(".starter-choice");
@@ -413,11 +332,11 @@ async function main() {
     const refocusStateValid = isForegroundActivityState(afterRefocus);
 
     const report = {
-      remoteUrl,
       executablePath,
       minimizeDurationMs,
       unfocusDurationMs,
       meta,
+      githubPagesRequests,
       starterClick,
       beforeMinimize,
       minimizedWindow,
@@ -445,7 +364,12 @@ async function main() {
       unfocusStateObserved,
       restoredStateValid,
       refocusStateValid,
-      pass: minimizeHandled && unfocusHandled && restoredStateValid && refocusStateValid,
+      pass: minimizeHandled
+        && unfocusHandled
+        && restoredStateValid
+        && refocusStateValid
+        && githubPagesRequests.length === 0
+        && meta.desktopMeta?.assetMode === "local",
       artifacts: {
         reportPath,
         screenshotPath,
@@ -471,15 +395,21 @@ async function main() {
         })}`,
       );
     }
+    if (githubPagesRequests.length > 0 || meta.desktopMeta?.assetMode !== "local") {
+      throw new Error(
+        `Le build desktop n'utilise pas exclusivement le bundle local: ${JSON.stringify({
+          assetMode: meta.desktopMeta?.assetMode || null,
+          locationHref: meta.locationHref,
+          githubPagesRequests,
+        })}`,
+      );
+    }
 
     console.log(JSON.stringify(report, null, 2));
   } finally {
     if (electronApp) {
       await electronApp.close().catch(() => {});
     }
-    await new Promise((resolve) => {
-      server.close(() => resolve());
-    });
     await restoreSaveFile(saveBackup);
   }
 }

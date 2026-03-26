@@ -248,5 +248,9 @@
   "forms_switchable": true,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/310_manectric_cry.ogg",
+    "source": "latest"
+  }
 }

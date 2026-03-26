@@ -265,5 +265,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/33_nidorino_cry.ogg",
+    "source": "latest"
+  }
 }

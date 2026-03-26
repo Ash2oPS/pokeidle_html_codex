@@ -244,5 +244,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/486_regigigas_cry.ogg",
+    "source": "latest"
+  }
 }

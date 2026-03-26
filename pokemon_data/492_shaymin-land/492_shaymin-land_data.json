@@ -93,5 +93,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/492_shaymin-land_cry.ogg",
+    "source": "latest"
+  }
 }

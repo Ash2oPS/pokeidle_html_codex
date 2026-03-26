@@ -38,6 +38,16 @@ export function isLocalDevelopmentServerLocation(locationLike) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
 }
 
+export function isNativeAppRuntime(runtimeContext = null) {
+  if (runtimeContext?.pokeidleDesktop) {
+    return true;
+  }
+  if (typeof runtimeContext?.Capacitor?.isNativePlatform === "function") {
+    return Boolean(runtimeContext.Capacitor.isNativePlatform());
+  }
+  return Boolean(runtimeContext?.Capacitor?.isNativePlatform);
+}
+
 export function getGithubRepositoryFromLocation(
   locationLike,
   fallbackOwner = POKEIDLE_GITHUB_REPO_OWNER,
@@ -54,8 +64,12 @@ export function getGithubRepositoryFromLocation(
   };
 }
 
-export function getDisplayedAppVersion(locationLike, baseVersion = POKEIDLE_APP_VERSION) {
-  return isProductionGithubPagesLocation(locationLike)
+export function getDisplayedAppVersion(
+  locationLike,
+  baseVersion = POKEIDLE_APP_VERSION,
+  runtimeContext = null,
+) {
+  return isProductionGithubPagesLocation(locationLike) || isNativeAppRuntime(runtimeContext)
     ? String(baseVersion || "")
     : `${String(baseVersion || "")} dev-mode`;
 }
@@ -164,5 +178,5 @@ export function isVersionAtLeast(versionLike, minVersionLike) {
 
 if (typeof window !== "undefined") {
   window.POKEIDLE_APP_VERSION = POKEIDLE_APP_VERSION;
-  window.POKEIDLE_DISPLAY_VERSION = getDisplayedAppVersion(window.location);
+  window.POKEIDLE_DISPLAY_VERSION = getDisplayedAppVersion(window.location, POKEIDLE_APP_VERSION, window);
 }

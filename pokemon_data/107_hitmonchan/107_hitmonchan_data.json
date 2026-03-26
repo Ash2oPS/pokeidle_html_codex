@@ -277,5 +277,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/107_hitmonchan_cry.ogg",
+    "source": "latest"
+  }
 }

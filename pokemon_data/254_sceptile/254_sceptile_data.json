@@ -436,5 +436,9 @@
   "forms_switchable": true,
   "color": "green",
   "shape": "upright",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/254_sceptile_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -269,5 +269,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/256_combusken_cry.ogg",
+    "source": "latest"
+  }
 }

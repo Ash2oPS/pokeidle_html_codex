@@ -204,5 +204,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/174_igglybuff_cry.ogg",
+    "source": "latest"
+  }
 }

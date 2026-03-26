@@ -227,5 +227,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/400_bibarel_cry.ogg",
+    "source": "latest"
+  }
 }

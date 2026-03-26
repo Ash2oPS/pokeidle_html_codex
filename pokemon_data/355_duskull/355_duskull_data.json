@@ -206,5 +206,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "arms",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/355_duskull_cry.ogg",
+    "source": "latest"
+  }
 }

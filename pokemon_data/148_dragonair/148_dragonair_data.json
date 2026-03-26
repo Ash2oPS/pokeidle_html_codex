@@ -293,5 +293,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "squiggle",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/148_dragonair_cry.ogg",
+    "source": "latest"
+  }
 }

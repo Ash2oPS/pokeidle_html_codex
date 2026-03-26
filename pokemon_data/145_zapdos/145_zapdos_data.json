@@ -274,5 +274,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "wings",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/145_zapdos_cry.ogg",
+    "source": "latest"
+  }
 }

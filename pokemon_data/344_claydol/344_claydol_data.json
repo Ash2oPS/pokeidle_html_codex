@@ -196,5 +196,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "arms",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/344_claydol_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -191,5 +191,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "blob",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/442_spiritomb_cry.ogg",
+    "source": "latest"
+  }
 }

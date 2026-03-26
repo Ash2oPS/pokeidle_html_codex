@@ -179,5 +179,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "blob",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/345_lileep_cry.ogg",
+    "source": "latest"
+  }
 }

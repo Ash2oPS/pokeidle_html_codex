@@ -261,5 +261,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "legs",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/233_porygon2_cry.ogg",
+    "source": "latest"
+  }
 }

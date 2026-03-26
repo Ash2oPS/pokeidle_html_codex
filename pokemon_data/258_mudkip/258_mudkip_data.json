@@ -378,5 +378,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "quadruped",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/258_mudkip_cry.ogg",
+    "source": "latest"
+  }
 }

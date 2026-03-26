@@ -295,5 +295,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/66_machop_cry.ogg",
+    "source": "latest"
+  }
 }

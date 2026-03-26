@@ -363,5 +363,9 @@
   "forms_switchable": true,
   "color": "white",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/475_gallade_cry.ogg",
+    "source": "latest"
+  }
 }

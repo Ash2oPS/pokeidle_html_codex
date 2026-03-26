@@ -290,5 +290,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "armor",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/98_krabby_cry.ogg",
+    "source": "latest"
+  }
 }

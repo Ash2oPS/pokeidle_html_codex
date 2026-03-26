@@ -304,5 +304,9 @@
   "forms_switchable": true,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/65_alakazam_cry.ogg",
+    "source": "latest"
+  }
 }

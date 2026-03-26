@@ -298,5 +298,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "ball",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/268_cascoon_cry.ogg",
+    "source": "latest"
+  }
 }

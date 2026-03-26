@@ -288,5 +288,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "ball",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/101_electrode_cry.ogg",
+    "source": "latest"
+  }
 }

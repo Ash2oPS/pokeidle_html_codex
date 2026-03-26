@@ -295,5 +295,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/108_lickitung_cry.ogg",
+    "source": "latest"
+  }
 }

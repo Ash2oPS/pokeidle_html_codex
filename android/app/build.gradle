@@ -1,4 +1,16 @@
+import groovy.json.JsonSlurper
+
 apply plugin: 'com.android.application'
+
+def packageJson = new JsonSlurper().parse(file('../../package.json'))
+def appVersionName = String.valueOf(packageJson.version ?: '0.0.0')
+def appVersionParts = appVersionName.tokenize('.').collect { segment ->
+    segment.isInteger() ? segment.toInteger() : 0
+}
+while (appVersionParts.size() < 3) {
+    appVersionParts << 0
+}
+def appVersionCode = (appVersionParts[0] * 1000000) + (appVersionParts[1] * 1000) + appVersionParts[2]
 
 android {
     namespace = "com.ash2ops.pokeidle"
@@ -7,8 +19,8 @@ android {
         applicationId "com.ash2ops.pokeidle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

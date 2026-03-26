@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "quadruped",
-  "habitat": "rough-terrain"
+  "habitat": "rough-terrain",
+  "cry": {
+    "path": "cries/372_shelgon_cry.ogg",
+    "source": "latest"
+  }
 }

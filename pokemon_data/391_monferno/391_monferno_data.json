@@ -238,5 +238,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/391_monferno_cry.ogg",
+    "source": "latest"
+  }
 }

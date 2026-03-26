@@ -232,5 +232,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/348_armaldo_cry.ogg",
+    "source": "latest"
+  }
 }

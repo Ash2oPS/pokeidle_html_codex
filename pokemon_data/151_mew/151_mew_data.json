@@ -729,5 +729,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "rare"
+  "habitat": "rare",
+  "cry": {
+    "path": "cries/151_mew_cry.ogg",
+    "source": "latest"
+  }
 }

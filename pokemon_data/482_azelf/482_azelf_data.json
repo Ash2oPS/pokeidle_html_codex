@@ -89,5 +89,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/482_azelf_cry.ogg",
+    "source": "latest"
+  }
 }

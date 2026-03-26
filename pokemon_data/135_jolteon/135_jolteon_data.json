@@ -367,5 +367,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "quadruped",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/135_jolteon_cry.ogg",
+    "source": "latest"
+  }
 }

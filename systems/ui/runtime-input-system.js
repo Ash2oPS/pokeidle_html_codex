@@ -125,6 +125,8 @@ export function createRuntimeInputSystem({
   const chooseActiveDialogueChoice = asFunction(actions.chooseActiveDialogueChoice);
   const triggerZoneAction = asFunction(actions.triggerZoneAction);
   const levelUpAllOwnedPokemonFromDev = asFunction(actions.levelUpAllOwnedPokemonFromDev);
+  const setBoxesInfoFromEntry = asFunction(actions.setBoxesInfoFromEntry);
+  const setPokedexInfoFromEntry = asFunction(actions.setPokedexInfoFromEntry);
 
   const ElementCtor = typeof Element !== "undefined" ? Element : null;
   const HTMLElementCtor = typeof HTMLElement !== "undefined" ? HTMLElement : null;
@@ -185,6 +187,7 @@ export function createRuntimeInputSystem({
       actionDockPokeballVisualEl = null,
       actionDockFullscreenMenuEl = null,
       actionDockFullscreenGridEl = null,
+      hoverPopupEl = null,
       routeNavPanelEl = null,
       routeNavDrawerToggleButtonEl = null,
       routeNavDrawerEl = null,
@@ -211,7 +214,9 @@ export function createRuntimeInputSystem({
       renameInputEl = null,
       renameFormEl = null,
       boxesCloseButtonEl = null,
+      boxesInfoPanelEl = null,
       pokedexCloseButtonEl = null,
+      pokedexInfoPanelEl = null,
       appearanceCloseButtonEl = null,
       appearanceShinyToggleButtonEl = null,
       appearanceUltraShinyToggleButtonEl = null,
@@ -240,6 +245,39 @@ export function createRuntimeInputSystem({
       setRouteNavDrawerOpen(false);
     }
 
+    function isPhoneUiViewport() {
+      return Boolean(state?.layout?.viewportProfile?.phone);
+    }
+
+    function refreshUiOnboardingIndicators() {
+      if (routeNavDrawerToggleButtonEl) {
+        const routeNavHintVisible = !Boolean(state?.ui?.routeNavOnboardingSeen) && !Boolean(state?.ui?.routeNavDrawerOpen);
+        routeNavDrawerToggleButtonEl.classList.toggle("is-onboarding-pulse", routeNavHintVisible);
+        routeNavDrawerToggleButtonEl.setAttribute("data-onboarding-visible", routeNavHintVisible ? "true" : "false");
+      }
+      if (actionDockPokeballToggleButtonEl) {
+        const actionMenuHintVisible = !Boolean(state?.ui?.actionMenuOnboardingSeen) && !isActionDockFullscreenMenuOpen();
+        actionDockPokeballToggleButtonEl.classList.toggle("is-onboarding-pulse", actionMenuHintVisible);
+        actionDockPokeballToggleButtonEl.setAttribute("data-onboarding-visible", actionMenuHintVisible ? "true" : "false");
+      }
+    }
+
+    function dismissRouteNavOnboarding() {
+      if (!state?.ui) {
+        return;
+      }
+      state.ui.routeNavOnboardingSeen = true;
+      refreshUiOnboardingIndicators();
+    }
+
+    function dismissActionMenuOnboarding() {
+      if (!state?.ui) {
+        return;
+      }
+      state.ui.actionMenuOnboardingSeen = true;
+      refreshUiOnboardingIndicators();
+    }
+
     function handleRouteNavigationTargetClick(event) {
       const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
       const routeButton = canResolveTarget ? event.target.closest("[data-route-id]") : null;
@@ -252,7 +290,6 @@ export function createRuntimeInputSystem({
         openRouteNavigationInfo(routeId);
         return;
       }
-      dismissRouteNavigationSurfaces();
       applyRouteChange(routeId);
     }
 
@@ -447,13 +484,50 @@ export function createRuntimeInputSystem({
         closeBallCaptureMenu();
       }
       const clickedInsideRouteNav = Boolean(routeNavPanelEl && routeNavPanelEl.contains(target));
+      const clickedInsideRouteNavDrawer = Boolean(routeNavDrawerEl && routeNavDrawerEl.contains(target));
       const clickedInsideMapInfo = Boolean(mapConnectionsInfoPanelEl && mapConnectionsInfoPanelEl.contains(target));
       const clickedInsideMapList = Boolean(mapConnectionsListEl && mapConnectionsListEl.contains(target));
-      if (state?.ui?.routeNavDrawerOpen && !clickedInsideRouteNav) {
+      if (state?.ui?.routeNavDrawerOpen && !clickedInsideRouteNav && !clickedInsideRouteNavDrawer) {
         setRouteNavDrawerOpen(false);
       }
-      if (state?.ui?.routeNavInfoRouteId && !clickedInsideRouteNav && !clickedInsideMapInfo && !clickedInsideMapList) {
+      if (
+        state?.ui?.routeNavInfoRouteId
+        && !clickedInsideRouteNav
+        && !clickedInsideRouteNavDrawer
+        && !clickedInsideMapInfo
+        && !clickedInsideMapList
+      ) {
         closeRouteNavigationInfo();
+      }
+      if (
+        isPhoneUiViewport()
+        && hoverPopupEl
+        && !hoverPopupEl.classList.contains("hidden")
+        && !hoverPopupEl.contains(target)
+      ) {
+        clearCanvasHoverState();
+      }
+      if (
+        isPhoneUiViewport()
+        && state?.ui?.boxesOpen
+        && boxesModalEl
+        && boxesModalEl.contains(target)
+        && boxesInfoPanelEl
+        && !boxesInfoPanelEl.contains(target)
+      ) {
+        state.ui.boxesHoverEntityId = null;
+        setBoxesInfoFromEntry(null);
+      }
+      if (
+        isPhoneUiViewport()
+        && state?.ui?.pokedexOpen
+        && pokedexModalEl
+        && pokedexModalEl.contains(target)
+        && pokedexInfoPanelEl
+        && !pokedexInfoPanelEl.contains(target)
+      ) {
+        state.ui.pokedexHoverPokemonId = null;
+        setPokedexInfoFromEntry(null);
       }
     });
 
@@ -488,6 +562,7 @@ export function createRuntimeInputSystem({
       void toggleWindowsNotificationSystemFromButton();
     });
     register(actionDockPokeballToggleButtonEl, "click", () => {
+      dismissActionMenuOnboarding();
       toggleActionDockFullscreenMenu();
     });
     register(actionDockPokeballVisualEl, "animationend", () => {
@@ -511,13 +586,34 @@ export function createRuntimeInputSystem({
         sourceButton.click();
       }
     });
-    register(routeNavDrawerToggleButtonEl, "click", () => toggleRouteNavDrawer());
+    register(routeNavDrawerToggleButtonEl, "click", () => {
+      dismissRouteNavOnboarding();
+      toggleRouteNavDrawer();
+    });
     register(routeNavDrawerCloseButtonEl, "click", () => setRouteNavDrawerOpen(false));
     register(routeNavDestinationsEl, "click", handleRouteNavigationTargetClick);
     register(routeNavDrawerListEl, "click", handleRouteNavigationTargetClick);
     register(mapConnectionsListEl, "click", handleRouteNavigationTargetClick);
     register(routeNavInfoPanelEl, "click", handleRouteNavigationInfoDismiss);
     register(mapConnectionsInfoPanelEl, "click", handleRouteNavigationInfoDismiss);
+    register(boxesInfoPanelEl, "click", (event) => {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const closeButton = canResolveTarget ? event.target.closest("[data-collection-sheet-close='boxes']") : null;
+      if (!closeButton) {
+        return;
+      }
+      state.ui.boxesHoverEntityId = null;
+      setBoxesInfoFromEntry(null);
+    });
+    register(pokedexInfoPanelEl, "click", (event) => {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const closeButton = canResolveTarget ? event.target.closest("[data-collection-sheet-close='pokedex']") : null;
+      if (!closeButton) {
+        return;
+      }
+      state.ui.pokedexHoverPokemonId = null;
+      setPokedexInfoFromEntry(null);
+    });
     register(closeShopButtonEl, "click", () => setShopOpen(false));
     register(gachaCloseButtonEl, "click", () => closeGachaModal());
     register(gachaSpinButtonEl, "click", () => {
@@ -704,6 +800,7 @@ export function createRuntimeInputSystem({
 
     const handleLayoutResize = () => {
       resizeCanvas();
+      refreshUiOnboardingIndicators();
       if (!state?.ui?.mapOpen) {
         return;
       }
@@ -760,6 +857,8 @@ export function createRuntimeInputSystem({
       });
       dispose();
     });
+
+    refreshUiOnboardingIndicators();
   }
 
   return {

@@ -176,5 +176,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "quadruped",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/411_bastiodon_cry.ogg",
+    "source": "latest"
+  }
 }

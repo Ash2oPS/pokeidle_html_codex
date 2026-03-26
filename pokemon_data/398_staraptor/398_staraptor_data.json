@@ -109,5 +109,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/398_staraptor_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -202,5 +202,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "armor",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/342_crawdaunt_cry.ogg",
+    "source": "latest"
+  }
 }

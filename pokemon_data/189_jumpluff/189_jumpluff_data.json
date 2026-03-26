@@ -174,5 +174,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "upright",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/189_jumpluff_cry.ogg",
+    "source": "latest"
+  }
 }

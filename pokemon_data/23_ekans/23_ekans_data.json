@@ -291,5 +291,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "squiggle",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/23_ekans_cry.ogg",
+    "source": "latest"
+  }
 }

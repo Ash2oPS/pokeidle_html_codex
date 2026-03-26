@@ -190,5 +190,9 @@
   "forms_switchable": false,
   "color": "white",
   "shape": "ball",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/266_silcoon_cry.ogg",
+    "source": "latest"
+  }
 }

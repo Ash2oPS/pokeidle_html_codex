@@ -244,5 +244,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/170_chinchou_cry.ogg",
+    "source": "latest"
+  }
 }

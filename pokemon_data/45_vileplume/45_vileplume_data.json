@@ -301,5 +301,9 @@
   "forms_switchable": false,
   "color": "red",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/45_vileplume_cry.ogg",
+    "source": "latest"
+  }
 }

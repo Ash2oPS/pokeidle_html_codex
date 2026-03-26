@@ -111,5 +111,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "wings",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/396_starly_cry.ogg",
+    "source": "latest"
+  }
 }

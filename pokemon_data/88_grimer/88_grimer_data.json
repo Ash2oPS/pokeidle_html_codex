@@ -215,5 +215,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "arms",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/88_grimer_cry.ogg",
+    "source": "latest"
+  }
 }

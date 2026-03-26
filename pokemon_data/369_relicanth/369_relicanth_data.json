@@ -214,5 +214,9 @@
   "forms_switchable": false,
   "color": "gray",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/369_relicanth_cry.ogg",
+    "source": "latest"
+  }
 }

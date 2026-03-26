@@ -210,5 +210,9 @@
   "forms_switchable": true,
   "color": "gray",
   "shape": "ball",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/351_castform_cry.ogg",
+    "source": "latest"
+  }
 }

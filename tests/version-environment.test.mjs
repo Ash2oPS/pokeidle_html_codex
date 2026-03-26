@@ -5,6 +5,7 @@ import {
   compareSemver,
   getDisplayedAppVersion,
   isLocalDevelopmentServerLocation,
+  isNativeAppRuntime,
   isProductionGithubPagesLocation,
   isVersionAtLeast,
 } from "../version.js";
@@ -105,6 +106,36 @@ test("getDisplayedAppVersion appends dev-mode outside production GitHub Pages", 
     ),
     "0.1.1 dev-mode",
   );
+  assert.equal(
+    getDisplayedAppVersion(
+      {
+        protocol: "http:",
+        hostname: "127.0.0.1",
+        pathname: "/",
+      },
+      "0.1.1",
+      {
+        pokeidleDesktop: {
+          getMeta() {},
+        },
+      },
+    ),
+    "0.1.1",
+  );
+});
+
+test("isNativeAppRuntime detects Electron and Capacitor runtimes", () => {
+  assert.equal(isNativeAppRuntime({ pokeidleDesktop: {} }), true);
+  assert.equal(isNativeAppRuntime({
+    Capacitor: {
+      isNativePlatform: () => true,
+    },
+  }), true);
+  assert.equal(isNativeAppRuntime({
+    Capacitor: {
+      isNativePlatform: () => false,
+    },
+  }), false);
 });
 
 test("compareSemver respects prerelease precedence", () => {

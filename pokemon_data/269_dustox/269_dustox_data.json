@@ -205,5 +205,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "bug-wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/269_dustox_cry.ogg",
+    "source": "latest"
+  }
 }

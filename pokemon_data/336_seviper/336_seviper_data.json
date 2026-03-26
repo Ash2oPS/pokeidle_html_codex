@@ -268,5 +268,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "squiggle",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/336_seviper_cry.ogg",
+    "source": "latest"
+  }
 }

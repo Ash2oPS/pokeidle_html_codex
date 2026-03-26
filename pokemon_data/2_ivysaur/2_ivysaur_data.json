@@ -254,5 +254,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/2_ivysaur_cry.ogg",
+    "source": "latest"
+  }
 }

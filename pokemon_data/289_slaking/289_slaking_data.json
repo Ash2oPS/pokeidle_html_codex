@@ -298,5 +298,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/289_slaking_cry.ogg",
+    "source": "latest"
+  }
 }

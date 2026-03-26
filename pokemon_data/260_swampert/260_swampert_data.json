@@ -245,5 +245,9 @@
   "forms_switchable": true,
   "color": "blue",
   "shape": "upright",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/260_swampert_cry.ogg",
+    "source": "latest"
+  }
 }

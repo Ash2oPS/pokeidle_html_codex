@@ -114,5 +114,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/454_toxicroak_cry.ogg",
+    "source": "latest"
+  }
 }

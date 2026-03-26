@@ -179,5 +179,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "bug-wings",
-  "habitat": "waters-edge"
+  "habitat": "waters-edge",
+  "cry": {
+    "path": "cries/284_masquerain_cry.ogg",
+    "source": "latest"
+  }
 }

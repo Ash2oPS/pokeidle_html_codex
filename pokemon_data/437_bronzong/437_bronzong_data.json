@@ -115,5 +115,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/437_bronzong_cry.ogg",
+    "source": "latest"
+  }
 }

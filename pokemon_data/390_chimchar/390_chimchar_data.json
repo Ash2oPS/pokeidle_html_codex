@@ -310,5 +310,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/390_chimchar_cry.ogg",
+    "source": "latest"
+  }
 }

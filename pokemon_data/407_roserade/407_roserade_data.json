@@ -299,5 +299,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/407_roserade_cry.ogg",
+    "source": "latest"
+  }
 }

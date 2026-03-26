@@ -259,5 +259,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/63_abra_cry.ogg",
+    "source": "latest"
+  }
 }

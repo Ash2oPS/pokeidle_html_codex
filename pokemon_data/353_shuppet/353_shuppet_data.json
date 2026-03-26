@@ -255,5 +255,9 @@
   "forms_switchable": false,
   "color": "black",
   "shape": "ball",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/353_shuppet_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -111,5 +111,9 @@
   "forms_switchable": true,
   "color": "white",
   "shape": "upright",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/460_abomasnow_cry.ogg",
+    "source": "latest"
+  }
 }

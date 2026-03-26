@@ -373,5 +373,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/104_cubone_cry.ogg",
+    "source": "latest"
+  }
 }

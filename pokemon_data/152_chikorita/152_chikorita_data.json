@@ -343,5 +343,9 @@
   "forms_switchable": false,
   "color": "green",
   "shape": "quadruped",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/152_chikorita_cry.ogg",
+    "source": "latest"
+  }
 }

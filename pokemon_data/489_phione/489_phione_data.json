@@ -95,5 +95,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "arms",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/489_phione_cry.ogg",
+    "source": "latest"
+  }
 }

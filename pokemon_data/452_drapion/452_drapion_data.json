@@ -115,5 +115,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "armor",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/452_drapion_cry.ogg",
+    "source": "latest"
+  }
 }

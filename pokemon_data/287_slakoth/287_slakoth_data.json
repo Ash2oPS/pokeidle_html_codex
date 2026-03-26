@@ -216,5 +216,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "quadruped",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/287_slakoth_cry.ogg",
+    "source": "latest"
+  }
 }

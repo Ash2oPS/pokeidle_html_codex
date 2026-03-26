@@ -325,5 +325,9 @@
   "forms_switchable": false,
   "color": "brown",
   "shape": "humanoid",
-  "habitat": "urban"
+  "habitat": "urban",
+  "cry": {
+    "path": "cries/106_hitmonlee_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -254,5 +254,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "fish",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/171_lanturn_cry.ogg",
+    "source": "latest"
+  }
 }

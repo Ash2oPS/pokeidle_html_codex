@@ -239,5 +239,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "bug-wings",
-  "habitat": "forest"
+  "habitat": "forest",
+  "cry": {
+    "path": "cries/49_venomoth_cry.ogg",
+    "source": "latest"
+  }
 }

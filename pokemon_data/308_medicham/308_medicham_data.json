@@ -268,5 +268,9 @@
   "forms_switchable": true,
   "color": "red",
   "shape": "humanoid",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/308_medicham_cry.ogg",
+    "source": "latest"
+  }
 }

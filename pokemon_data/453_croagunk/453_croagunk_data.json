@@ -116,5 +116,9 @@
   "forms_switchable": false,
   "color": "blue",
   "shape": "humanoid",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/453_croagunk_cry.ogg",
+    "source": "latest"
+  }
 }

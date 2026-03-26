@@ -283,5 +283,9 @@
   "forms_switchable": false,
   "color": "pink",
   "shape": "upright",
-  "habitat": "mountain"
+  "habitat": "mountain",
+  "cry": {
+    "path": "cries/173_cleffa_cry.ogg",
+    "source": "latest"
+  }
 }

@@ -104,5 +104,9 @@
   "forms_switchable": true,
   "color": "purple",
   "shape": "legs",
-  "habitat": null
+  "habitat": null,
+  "cry": {
+    "path": "cries/421_cherrim_cry.ogg",
+    "source": "latest"
+  }
 }

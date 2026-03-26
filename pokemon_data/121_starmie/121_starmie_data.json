@@ -298,5 +298,9 @@
   "forms_switchable": false,
   "color": "purple",
   "shape": "blob",
-  "habitat": "sea"
+  "habitat": "sea",
+  "cry": {
+    "path": "cries/121_starmie_cry.ogg",
+    "source": "latest"
+  }
 }

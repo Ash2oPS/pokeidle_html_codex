@@ -576,5 +576,9 @@
   "forms_switchable": false,
   "color": "yellow",
   "shape": "humanoid",
-  "habitat": "grassland"
+  "habitat": "grassland",
+  "cry": {
+    "path": "cries/97_hypno_cry.ogg",
+    "source": "latest"
+  }
 }
