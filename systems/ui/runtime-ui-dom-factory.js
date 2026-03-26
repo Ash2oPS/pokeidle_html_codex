@@ -210,10 +210,19 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             <section id="action-dock-fullscreen-menu" class="action-dock-fullscreen-menu hidden" aria-label="Menu principal plein &eacute;cran">
               <div class="action-dock-fullscreen-shell">
                 <div class="action-dock-fullscreen-header">
-                  <span class="action-dock-fullscreen-title">Menu</span>
-                  <span class="action-dock-fullscreen-kicker">Actions principales</span>
+                  <div class="action-dock-fullscreen-heading">
+                    <span class="action-dock-fullscreen-title">Menu</span>
+                    <span class="action-dock-fullscreen-kicker">Actions principales</span>
+                  </div>
+                  <p class="action-dock-fullscreen-copy">Le hub de progression reste devant. Les utilitaires et la save passent en dessous.</p>
                 </div>
                 <div id="action-dock-fullscreen-grid" class="action-dock-fullscreen-grid" role="menu" aria-label="Actions du menu">
+                  <section class="action-dock-fullscreen-group is-primary" aria-label="Progression">
+                    <div class="action-dock-fullscreen-group-head">
+                      <span class="action-dock-fullscreen-group-kicker">Progression</span>
+                      <span class="action-dock-fullscreen-group-copy">Exploration, collection et &eacute;conomie du run.</span>
+                    </div>
+                    <div class="action-dock-fullscreen-group-grid">
                   <button class="action-dock-fullscreen-btn" type="button" data-action-kind="map" data-action-target="map-btn" role="menuitem">
                     <span class="action-dock-fullscreen-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" class="action-dock-fullscreen-icon-svg">
@@ -269,6 +278,14 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       <span class="action-dock-fullscreen-sub">R&eacute;compenses visuelles</span>
                     </span>
                   </button>
+                    </div>
+                  </section>
+                  <section class="action-dock-fullscreen-group is-utility" aria-label="Utilitaires">
+                    <div class="action-dock-fullscreen-group-head">
+                      <span class="action-dock-fullscreen-group-kicker">Utilitaires</span>
+                      <span class="action-dock-fullscreen-group-copy">Rappels syst&egrave;me et gestion locale de la partie.</span>
+                    </div>
+                    <div class="action-dock-fullscreen-group-grid">
                   <button
                     class="action-dock-fullscreen-btn"
                     type="button"
@@ -321,6 +338,14 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       <span class="action-dock-fullscreen-sub">Charger un fichier JSON</span>
                     </span>
                   </button>
+                    </div>
+                  </section>
+                  <section class="action-dock-fullscreen-group is-danger" aria-label="Danger">
+                    <div class="action-dock-fullscreen-group-head">
+                      <span class="action-dock-fullscreen-group-kicker">Danger</span>
+                      <span class="action-dock-fullscreen-group-copy">Action destructive isol&eacute;e du reste du menu.</span>
+                    </div>
+                    <div class="action-dock-fullscreen-group-grid">
                   <button
                     class="action-dock-fullscreen-btn is-danger"
                     type="button"
@@ -339,6 +364,8 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                       <span class="action-dock-fullscreen-sub">Action irr&eacute;versible</span>
                     </span>
                   </button>
+                    </div>
+                  </section>
                 </div>
               </div>
             </section>
@@ -399,56 +426,60 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
 
     <section id="shop-modal" class="shop-modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
       <div class="shop-modal-card">
-        <div class="shop-modal-header">
-          <div>
-            <h2 class="shop-modal-title">Shop</h2>
-            <p id="shop-modal-subtitle" class="shop-modal-subtitle">Ach&egrave;te des objets utiles pour progresser.</p>
+        <div class="shop-overview-shell">
+          <div class="shop-modal-header">
+            <div>
+              <h2 class="shop-modal-title">Shop</h2>
+              <p id="shop-modal-subtitle" class="shop-modal-subtitle">Ach&egrave;te des objets utiles pour progresser.</p>
+            </div>
+            <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
           </div>
-          <button id="close-shop-btn" class="shop-close-btn" type="button">Fermer</button>
+
+          <div id="shop-wallet-panel" class="shop-wallet-panel" aria-live="polite">
+            <div class="shop-wallet-item">
+              <span class="shop-wallet-label">Pok&eacute;dollars</span>
+              <span id="shop-wallet-money-value" class="shop-wallet-value">0 Poke$</span>
+            </div>
+            <div class="shop-wallet-item">
+              <span class="shop-wallet-label">Poke Balls</span>
+              <span id="shop-wallet-pokeballs-value" class="shop-wallet-value">0</span>
+            </div>
+            <div id="shop-wallet-qty-item" class="shop-wallet-item">
+              <span class="shop-wallet-label">Achat rapide</span>
+              <span id="shop-wallet-qty-value" class="shop-wallet-value">x1</span>
+            </div>
+          </div>
         </div>
 
-        <div id="shop-wallet-panel" class="shop-wallet-panel" aria-live="polite">
-          <div class="shop-wallet-item">
-            <span class="shop-wallet-label">Pok&eacute;dollars</span>
-            <span id="shop-wallet-money-value" class="shop-wallet-value">0 Poke$</span>
+        <div class="shop-control-shell">
+          <div class="shop-tabs" role="tablist" aria-label="Onglets du shop">
+            <button id="shop-tab-pokeballs" class="shop-tab-btn is-active" type="button" data-shop-tab="pokeballs">
+              Poke Balls
+            </button>
+            <button id="shop-tab-combat" class="shop-tab-btn" type="button" data-shop-tab="combat">
+              Combats
+            </button>
+            <button id="shop-tab-evolutions" class="shop-tab-btn" type="button" data-shop-tab="evolutions">
+              &Eacute;volutions
+            </button>
           </div>
-          <div class="shop-wallet-item">
-            <span class="shop-wallet-label">Poke Balls</span>
-            <span id="shop-wallet-pokeballs-value" class="shop-wallet-value">0</span>
-          </div>
-          <div id="shop-wallet-qty-item" class="shop-wallet-item">
-            <span class="shop-wallet-label">Achat rapide</span>
-            <span id="shop-wallet-qty-value" class="shop-wallet-value">x1</span>
-          </div>
-        </div>
 
-        <div class="shop-tabs" role="tablist" aria-label="Onglets du shop">
-          <button id="shop-tab-pokeballs" class="shop-tab-btn is-active" type="button" data-shop-tab="pokeballs">
-            Poke Balls
-          </button>
-          <button id="shop-tab-combat" class="shop-tab-btn" type="button" data-shop-tab="combat">
-            Combats
-          </button>
-          <button id="shop-tab-evolutions" class="shop-tab-btn" type="button" data-shop-tab="evolutions">
-            &Eacute;volutions
-          </button>
-        </div>
-
-        <div id="shop-pokeball-qty-panel" class="shop-qty-panel">
-          <div class="shop-qty-label">Quantit&eacute; &agrave; acheter</div>
-          <div class="shop-qty-presets">
-            <button class="shop-qty-btn is-active" type="button" data-shop-qty="1">x1</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="5">x5</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="10">x10</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="50">x50</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="100">x100</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="max">MAX</button>
-            <button class="shop-qty-btn" type="button" data-shop-qty="custom">Custom</button>
+          <div id="shop-pokeball-qty-panel" class="shop-qty-panel">
+            <div class="shop-qty-label">Quantit&eacute; &agrave; acheter</div>
+            <div class="shop-qty-presets">
+              <button class="shop-qty-btn is-active" type="button" data-shop-qty="1">x1</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="5">x5</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="10">x10</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="50">x50</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="100">x100</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="max">MAX</button>
+              <button class="shop-qty-btn" type="button" data-shop-qty="custom">Custom</button>
+            </div>
+            <label class="shop-custom-qty-wrap" for="shop-custom-qty-input">
+              Valeur custom
+              <input id="shop-custom-qty-input" class="shop-custom-qty-input" type="number" min="1" max="9999" step="1" value="1" />
+            </label>
           </div>
-          <label class="shop-custom-qty-wrap" for="shop-custom-qty-input">
-            Valeur custom
-            <input id="shop-custom-qty-input" class="shop-custom-qty-input" type="number" min="1" max="9999" step="1" value="1" />
-          </label>
         </div>
 
         <div id="shop-grid" class="shop-grid"></div>
@@ -457,51 +488,61 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
 
     <section id="gacha-modal" class="gacha-modal hidden" role="dialog" aria-modal="true" aria-label="Machine Gacha">
       <div id="gacha-card" class="gacha-card">
-        <div class="gacha-header">
-          <div>
-            <h2 class="gacha-title">Machine Gacha Skins</h2>
-            <p id="gacha-subtitle" class="gacha-subtitle">Capsules en silhouettes noires. Le skin obtenu est r&eacute;v&eacute;l&eacute; uniquement &agrave; la fin du tirage.</p>
+        <div class="gacha-overview-shell">
+          <div class="gacha-header">
+            <div>
+              <h2 class="gacha-title">Machine Gacha Skins</h2>
+              <p id="gacha-subtitle" class="gacha-subtitle">Capsules en silhouettes noires. Le skin obtenu est r&eacute;v&eacute;l&eacute; uniquement &agrave; la fin du tirage.</p>
+            </div>
+            <button id="gacha-close-btn" class="gacha-close-btn" type="button">Fermer</button>
           </div>
-          <button id="gacha-close-btn" class="gacha-close-btn" type="button">Fermer</button>
+
+          <div id="gacha-wallet" class="gacha-wallet" aria-live="polite">
+            <div class="gacha-wallet-item">
+              <span class="gacha-wallet-label">Coins</span>
+              <span id="gacha-wallet-coins" class="gacha-wallet-value">0</span>
+            </div>
+            <div class="gacha-wallet-item">
+              <span class="gacha-wallet-label">Prix</span>
+              <span id="gacha-wallet-cost" class="gacha-wallet-value">10 Coins</span>
+            </div>
+            <div class="gacha-wallet-item">
+              <span class="gacha-wallet-label">Skins restants (Kanto #001-151)</span>
+              <span id="gacha-wallet-remaining" class="gacha-wallet-value">0</span>
+            </div>
+          </div>
         </div>
 
-        <div id="gacha-wallet" class="gacha-wallet" aria-live="polite">
-          <div class="gacha-wallet-item">
-            <span class="gacha-wallet-label">Coins</span>
-            <span id="gacha-wallet-coins" class="gacha-wallet-value">0</span>
+        <div class="gacha-stage-shell">
+          <div id="gacha-machine" class="gacha-machine">
+            <div class="gacha-lights" aria-hidden="true"></div>
+            <div id="gacha-reel-window" class="gacha-reel-window">
+              <div id="gacha-reel-track" class="gacha-reel-track"></div>
+              <div class="gacha-reel-pointer" aria-hidden="true"></div>
+            </div>
+            <div id="gacha-batch-reveal" class="gacha-batch-reveal hidden" aria-live="polite"></div>
           </div>
-          <div class="gacha-wallet-item">
-            <span class="gacha-wallet-label">Prix</span>
-            <span id="gacha-wallet-cost" class="gacha-wallet-value">10 Coins</span>
-          </div>
-          <div class="gacha-wallet-item">
-            <span class="gacha-wallet-label">Skins restants (Kanto #001-151)</span>
-            <span id="gacha-wallet-remaining" class="gacha-wallet-value">0</span>
-          </div>
-        </div>
+          <p id="gacha-status" class="gacha-status" aria-live="polite"></p>
 
-        <div id="gacha-machine" class="gacha-machine">
-          <div class="gacha-lights" aria-hidden="true"></div>
-          <div id="gacha-reel-window" class="gacha-reel-window">
-            <div id="gacha-reel-track" class="gacha-reel-track"></div>
-            <div class="gacha-reel-pointer" aria-hidden="true"></div>
+          <div id="gacha-result" class="gacha-result hidden">
+            <div id="gacha-result-kicker" class="gacha-result-kicker">Nouveau skin d&eacute;bloqu&eacute;</div>
+            <div id="gacha-result-name" class="gacha-result-name">-</div>
+            <div id="gacha-result-skin" class="gacha-result-skin">-</div>
+            <div id="gacha-result-preview" class="gacha-result-preview"></div>
+            <div id="gacha-result-list" class="gacha-result-list hidden"></div>
           </div>
-          <div id="gacha-batch-reveal" class="gacha-batch-reveal hidden" aria-live="polite"></div>
         </div>
         <div id="gacha-batch-spotlight" class="gacha-batch-spotlight hidden" aria-hidden="true"></div>
-        <p id="gacha-status" class="gacha-status" aria-live="polite"></p>
 
-        <div id="gacha-result" class="gacha-result hidden">
-          <div id="gacha-result-kicker" class="gacha-result-kicker">Nouveau skin d&eacute;bloqu&eacute;</div>
-          <div id="gacha-result-name" class="gacha-result-name">-</div>
-          <div id="gacha-result-skin" class="gacha-result-skin">-</div>
-          <div id="gacha-result-preview" class="gacha-result-preview"></div>
-          <div id="gacha-result-list" class="gacha-result-list hidden"></div>
-        </div>
-
-        <div class="gacha-spin-buttons">
-          <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin al&eacute;atoire (10 Coins)</button>
-          <button id="gacha-spin-10-btn" class="gacha-spin-btn gacha-spin-btn-batch" type="button">Obtenir 10 skins (100 Coins)</button>
+        <div class="gacha-action-bar">
+          <div class="gacha-action-copy">
+            <span class="gacha-action-kicker">Tirages</span>
+            <span class="gacha-action-sub">x1 pour viser. x10 pour d&eacute;bloquer plus vite les variantes.</span>
+          </div>
+          <div class="gacha-spin-buttons">
+            <button id="gacha-spin-btn" class="gacha-spin-btn" type="button">Obtenir 1 skin al&eacute;atoire (10 Coins)</button>
+            <button id="gacha-spin-10-btn" class="gacha-spin-btn gacha-spin-btn-batch" type="button">Obtenir 10 skins (100 Coins)</button>
+          </div>
         </div>
       </div>
     </section>

@@ -10645,6 +10645,7 @@ function buyShopItem(itemId) {
 function createShopItemCard(item) {
   const card = document.createElement("article");
   card.className = "shop-item-card";
+  card.dataset.shopItemType = String(item.itemType || "generic");
 
   const media = document.createElement("div");
   media.className = "shop-item-media";
@@ -10663,6 +10664,19 @@ function createShopItemCard(item) {
 
   const content = document.createElement("div");
   content.className = "shop-item-content";
+
+  const kickerEl = document.createElement("div");
+  kickerEl.className = "shop-item-kicker";
+  if (item.itemType === "ball") {
+    kickerEl.textContent = "Capture";
+  } else if (item.itemType === "boost") {
+    kickerEl.textContent = "Boost combat";
+  } else if (item.itemType === "stone") {
+    kickerEl.textContent = "\u00c9volution";
+  } else {
+    kickerEl.textContent = "Objet";
+  }
+  content.appendChild(kickerEl);
 
   const nameEl = document.createElement("div");
   nameEl.className = "shop-item-name";
@@ -10694,7 +10708,7 @@ function createShopItemCard(item) {
 
   const primaryButton = document.createElement("button");
   primaryButton.type = "button";
-  primaryButton.className = "shop-item-buy-btn";
+  primaryButton.className = "shop-item-buy-btn is-primary";
   primaryButton.textContent = "Acheter";
   primaryButton.addEventListener("click", () => {
     buyShopItem(item.id);
@@ -10760,6 +10774,7 @@ function createShopItemCard(item) {
       stockEl.textContent += ` | Manque: ${formatPokeDollarValue(missingMoney)} Poke$`;
     }
   } else if (item.itemType === "stone") {
+    card.classList.add("has-secondary-action");
     const stoneStock = getShopItemCount(item.stoneType);
     const totalCost = Math.max(0, toSafeInt(item.price, 0));
     const canAfford = currentMoney >= totalCost;

@@ -1628,7 +1628,31 @@ function positionFloatingMenuElement(menuEl, clientX, clientY) {
   menuEl.style.top = `${Math.round(clamp(top, viewportPadding, maxTop))}px`;
 }
 
-function setBallCaptureToggleButtonState(buttonEl, label, enabled) {
+function setContextMenuButtonContent(buttonEl, title, meta = "") {
+  if (!buttonEl) {
+    return;
+  }
+  buttonEl.textContent = "";
+  const copyEl = document.createElement("span");
+  copyEl.className = "team-context-menu-copy";
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "team-context-menu-btn-title";
+  titleEl.textContent = String(title || "");
+  copyEl.appendChild(titleEl);
+
+  const metaText = String(meta || "").trim();
+  if (metaText) {
+    const metaEl = document.createElement("span");
+    metaEl.className = "team-context-menu-btn-meta";
+    metaEl.textContent = metaText;
+    copyEl.appendChild(metaEl);
+  }
+
+  buttonEl.appendChild(copyEl);
+}
+
+function setBallCaptureToggleButtonState(buttonEl, label, enabled, description = "") {
   if (!buttonEl) {
     return;
   }
@@ -1649,8 +1673,20 @@ function setBallCaptureToggleButtonState(buttonEl, label, enabled) {
   labelEl.className = "ball-capture-toggle-label";
   labelEl.textContent = label;
 
+  const copyEl = document.createElement("span");
+  copyEl.className = "ball-capture-toggle-copy";
+  copyEl.appendChild(labelEl);
+
+  const descriptionText = String(description || "").trim();
+  if (descriptionText) {
+    const descriptionEl = document.createElement("span");
+    descriptionEl.className = "ball-capture-toggle-description";
+    descriptionEl.textContent = descriptionText;
+    copyEl.appendChild(descriptionEl);
+  }
+
   buttonEl.appendChild(checkEl);
-  buttonEl.appendChild(labelEl);
+  buttonEl.appendChild(copyEl);
 
 }
 
@@ -1667,13 +1703,13 @@ function refreshBallCaptureMenu() {
   const rules = getBallCaptureRulesForType(ballType);
 
   if (ballCaptureMenuTitleEl) {
-    ballCaptureMenuTitleEl.textContent = `${config.nameFr} | R\u00e9glages capture`;
+    ballCaptureMenuTitleEl.textContent = `${config.nameFr} \u2022 R\u00e9glages capture`;
   }
 
   for (const definition of BALL_CAPTURE_TOGGLE_DEFINITIONS) {
     const key = definition.key;
     const enabled = Boolean(rules[key]);
-    setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled);
+    setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled, definition.description);
   }
 }
 
@@ -1758,23 +1794,31 @@ function refreshTeamContextMenu() {
   const hasNickname = Boolean(getPokemonNicknameById(pokemonId));
 
   if (teamContextMenuTitleEl) {
-    teamContextMenuTitleEl.textContent = `${name} | ${getTeamSlotLabel(slotIndex)}`;
+    teamContextMenuTitleEl.textContent = `${name} \u2022 ${getTeamSlotLabel(slotIndex)}`;
   }
   if (teamContextMenuRenameButtonEl) {
     teamContextMenuRenameButtonEl.disabled = slotIndex < 0 || pokemonId <= 0;
-    teamContextMenuRenameButtonEl.textContent = hasNickname ? "Renommer (surnom actif)" : "Renommer";
+    setContextMenuButtonContent(
+      teamContextMenuRenameButtonEl,
+      hasNickname ? "G\u00e9rer le surnom" : "Ajouter un surnom",
+      "Applique le changement \u00e0 la famille \u00e9volutive.",
+    );
   }
   if (teamContextMenuBoxesButtonEl) {
     teamContextMenuBoxesButtonEl.disabled = slotIndex < 0 || pokemonId <= 0 || !boxesAccess.allowed;
-    teamContextMenuBoxesButtonEl.textContent = boxesAccess.allowed
-      ? "Echanger avec la boite"
-      : "Echanger avec la boite (verrouille)";
+    setContextMenuButtonContent(
+      teamContextMenuBoxesButtonEl,
+      boxesAccess.allowed ? "\u00c9changer avec la bo\u00eete" : "Bo\u00eete verrouill\u00e9e",
+      boxesAccess.allowed ? "Choisir un rempla\u00e7ant pour ce slot." : "Disponible plus tard dans la progression.",
+    );
   }
   if (teamContextMenuAppearanceButtonEl) {
     teamContextMenuAppearanceButtonEl.disabled = slotIndex < 0 || pokemonId <= 0 || !appearanceUnlocked;
-    teamContextMenuAppearanceButtonEl.textContent = appearanceUnlocked
-      ? "Changer l'apparence"
-      : `Changer l'apparence (niv ${APPEARANCE_UNLOCK_LEVEL})`;
+    setContextMenuButtonContent(
+      teamContextMenuAppearanceButtonEl,
+      appearanceUnlocked ? "Changer l'apparence" : "Apparence verrouill\u00e9e",
+      appearanceUnlocked ? "\u00c9quipe un sprite d\u00e9j\u00e0 d\u00e9bloqu\u00e9." : `D\u00e9bloque au niv. ${APPEARANCE_UNLOCK_LEVEL}.`,
+    );
   }
 }
 
@@ -4058,18 +4102,19 @@ function renderAppearanceModal() {
     appearanceTitleEl.textContent = `Apparence | ${def.nameFr}`;
   }
   if (appearanceSubtitleEl) {
-    appearanceSubtitleEl.textContent =
-      `${ownedVariants.length}/${variants.length} sprites debloques | Clic gauche: boites | Clic droit: apparence`;
+    appearanceSubtitleEl.textContent = ownedVariants.length < variants.length
+      ? `${ownedVariants.length}/${variants.length} sprites d\u00e9bloqu\u00e9s. \u00c9quipe le skin actif et passe par la gacha pour le reste.`
+      : `${ownedVariants.length}/${variants.length} sprites d\u00e9bloqu\u00e9s. Tous les skins de cette esp\u00e8ce sont pr\u00eats.`;
   }
   if (appearanceShinyToggleButtonEl) {
     appearanceShinyToggleButtonEl.disabled = !shinyUnlocked;
-    appearanceShinyToggleButtonEl.textContent = shinyModeActive ? "Mode shiny: ON" : "Mode shiny: OFF";
+    appearanceShinyToggleButtonEl.textContent = shinyModeActive ? "Shiny famille ON" : "Shiny famille OFF";
   }
   if (appearanceUltraShinyToggleButtonEl) {
     appearanceUltraShinyToggleButtonEl.disabled = !ultraShinyUnlocked;
     appearanceUltraShinyToggleButtonEl.textContent = ultraShinyModeActive
-      ? "Mode ultra shiny: ON"
-      : "Mode ultra shiny: OFF";
+      ? "Ultra famille ON"
+      : "Ultra famille OFF";
   }
   if (appearanceShinyStatusEl) {
     if (!shinyUnlocked) {
@@ -4125,6 +4170,7 @@ function renderAppearanceModal() {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "appearance-card-btn";
+    card.dataset.appearanceState = !owned ? "locked" : (selected ? "equipped" : "owned");
     if (owned) {
       card.classList.add("is-owned");
     } else {
@@ -4157,6 +4203,13 @@ function renderAppearanceModal() {
     }
     card.appendChild(preview);
 
+    const stateEl = document.createElement("span");
+    stateEl.className = "appearance-variant-state";
+    stateEl.textContent = owned
+      ? (selected ? "\u00c9quip\u00e9" : "D\u00e9bloqu\u00e9")
+      : "Gacha";
+    card.appendChild(stateEl);
+
     const name = document.createElement("span");
     name.className = "appearance-variant-name";
     name.textContent = owned ? getSpriteVariantDisplayLabel(variant) : "Skin mystere";
@@ -4165,9 +4218,9 @@ function renderAppearanceModal() {
     const action = document.createElement("span");
     action.className = "appearance-variant-action";
     if (owned) {
-      action.textContent = selected ? "Equipe" : "Utiliser";
+      action.textContent = selected ? "Actif" : "\u00c9quiper";
     } else {
-      action.textContent = "Verrouille (Gacha)";
+      action.textContent = "Verrouill\u00e9";
     }
     card.appendChild(action);
 

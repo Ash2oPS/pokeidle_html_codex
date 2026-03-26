@@ -11970,3 +11970,1140 @@ body.update-required-active {
     padding-bottom: 8px;
   }
 }
+
+/* Runtime UI hierarchy polish: stronger focal points inside the existing blue/glass language. */
+#game-capture-root {
+  --ui-collection-desktop-grid-ratio-pct: 68%;
+  --ui-collection-desktop-detail-ratio-pct: 32%;
+  --ui-collection-mobile-detail-sheet-height-vh: 50svh;
+  --ui-action-menu-desktop-max-width-px: 820px;
+  --ui-action-menu-mobile-grid-columns: 1;
+}
+
+.action-dock-fullscreen-header {
+  width: 100%;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.action-dock-fullscreen-heading {
+  display: grid;
+  gap: 2px;
+}
+
+.action-dock-fullscreen-copy {
+  margin: 0;
+  max-width: 36ch;
+  color: rgba(190, 219, 232, 0.82);
+  font: 800 11px/1.35 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  text-align: right;
+}
+
+.action-dock-fullscreen-grid {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+}
+
+.action-dock-fullscreen-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(145, 220, 236, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(8, 24, 37, 0.7), rgba(5, 16, 24, 0.8)),
+    radial-gradient(circle at 0% 0%, rgba(126, 200, 223, 0.08), transparent 42%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 20px rgba(1, 7, 12, 0.18);
+}
+
+.action-dock-fullscreen-group.is-danger {
+  border-color: rgba(255, 147, 137, 0.22);
+  background:
+    linear-gradient(180deg, rgba(39, 18, 22, 0.7), rgba(24, 8, 12, 0.84)),
+    radial-gradient(circle at 100% 0%, rgba(255, 147, 137, 0.08), transparent 44%);
+}
+
+.action-dock-fullscreen-group-head {
+  display: grid;
+  gap: 2px;
+}
+
+.action-dock-fullscreen-group-kicker {
+  color: rgba(238, 248, 255, 0.9);
+  font: 800 10px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.action-dock-fullscreen-group-copy {
+  color: rgba(180, 212, 228, 0.74);
+  font: 700 10px/1.3 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.action-dock-fullscreen-group-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn {
+  min-height: 88px;
+}
+
+#action-dock-fullscreen-menu .action-dock-fullscreen-btn.is-danger {
+  box-shadow:
+    0 18px 30px rgba(29, 4, 8, 0.36),
+    0 0 0 1px rgba(255, 147, 137, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -18px 28px rgba(255, 147, 137, 0.18);
+}
+
+.shop-modal-card,
+.boxes-card,
+.appearance-card,
+.tutorial-card {
+  padding: 12px;
+  gap: 10px;
+  border-radius: 18px;
+}
+
+.shop-overview-shell,
+.shop-control-shell,
+.gacha-overview-shell,
+.gacha-stage-shell,
+.gacha-action-bar {
+  border: 1px solid rgba(145, 220, 236, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(9, 24, 37, 0.78), rgba(5, 16, 24, 0.84)),
+    radial-gradient(circle at 0% 0%, rgba(126, 200, 223, 0.08), transparent 40%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 20px rgba(1, 7, 12, 0.16);
+}
+
+.shop-overview-shell,
+.gacha-overview-shell,
+.gacha-stage-shell {
+  padding: 12px;
+}
+
+.shop-overview-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(250px, 0.95fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.shop-control-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, auto);
+  gap: 12px;
+  padding: 12px;
+  align-items: start;
+}
+
+.shop-modal-header {
+  border-bottom: 0;
+  padding-bottom: 0;
+  align-items: start;
+}
+
+.shop-modal-title {
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 0.98;
+}
+
+.shop-modal-subtitle {
+  margin-top: 4px;
+  max-width: 36ch;
+  font-size: 13px;
+}
+
+.shop-wallet-panel {
+  align-self: stretch;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.shop-wallet-item {
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border-color: rgba(166, 201, 241, 0.26);
+  background:
+    linear-gradient(180deg, rgba(23, 51, 78, 0.96), rgba(11, 27, 42, 0.96)),
+    radial-gradient(circle at 0% 0%, rgba(134, 192, 238, 0.1), transparent 42%);
+}
+
+#shop-wallet-qty-item {
+  border-color: rgba(246, 213, 107, 0.34);
+  background:
+    linear-gradient(180deg, rgba(58, 46, 18, 0.94), rgba(32, 24, 9, 0.96)),
+    radial-gradient(circle at 0% 0%, rgba(246, 213, 107, 0.12), transparent 44%);
+}
+
+.shop-tabs {
+  align-self: start;
+  gap: 6px;
+}
+
+.shop-tab-btn {
+  min-height: 42px;
+  border-radius: 12px;
+}
+
+.shop-qty-panel {
+  min-width: min(100%, 320px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.shop-qty-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(206, 231, 255, 0.84);
+}
+
+.shop-grid {
+  padding: 12px;
+  gap: 12px;
+  border-radius: 16px;
+}
+
+.shop-item-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px;
+  gap: 8px 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 18px rgba(1, 7, 12, 0.12);
+}
+
+.shop-item-kicker {
+  color: rgba(181, 217, 242, 0.76);
+  font: 800 9px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-item-content {
+  gap: 4px;
+}
+
+.shop-item-name {
+  font-size: 18px;
+  line-height: 1;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.shop-item-desc {
+  min-height: 0;
+}
+
+.shop-item-footer {
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.shop-item-actions {
+  min-width: 136px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.shop-item-card.has-secondary-action .shop-item-actions {
+  flex-direction: row;
+  min-width: 0;
+}
+
+.shop-item-buy-btn.is-primary {
+  min-height: 38px;
+  border-radius: 10px;
+  font: 800 11px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 14px rgba(6, 25, 40, 0.16);
+}
+
+.shop-item-card.is-affordable .shop-item-buy-btn.is-primary {
+  border-color: rgba(182, 240, 205, 0.72);
+  background: linear-gradient(180deg, rgba(42, 138, 112, 0.98), rgba(18, 88, 73, 0.98));
+}
+
+.shop-item-card.is-expensive .shop-item-buy-btn.is-primary {
+  border-color: rgba(255, 177, 177, 0.48);
+  background: linear-gradient(180deg, rgba(109, 58, 70, 0.96), rgba(71, 34, 43, 0.98));
+}
+
+.gacha-card {
+  gap: 12px;
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.gacha-overview-shell,
+.gacha-stage-shell {
+  display: grid;
+  gap: 10px;
+}
+
+.gacha-title {
+  font-size: clamp(26px, 3.2vw, 42px);
+}
+
+.gacha-subtitle {
+  max-width: 36ch;
+}
+
+.gacha-wallet {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.gacha-wallet-item {
+  min-height: 64px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 17, 27, 0.92), rgba(7, 11, 18, 0.96)),
+    radial-gradient(circle at 0% 0%, rgba(255, 211, 127, 0.08), transparent 42%);
+}
+
+.gacha-wallet-value {
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+
+.gacha-stage-shell {
+  background:
+    linear-gradient(180deg, rgba(23, 15, 6, 0.78), rgba(12, 8, 4, 0.84)),
+    radial-gradient(circle at 0% 0%, rgba(255, 211, 127, 0.08), transparent 40%);
+}
+
+.gacha-status {
+  min-height: 28px;
+}
+
+.gacha-result {
+  width: min(100%, 660px);
+  margin: 0 auto;
+}
+
+.gacha-action-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(26, 18, 8, 0.78), rgba(15, 10, 4, 0.84)),
+    radial-gradient(circle at 100% 0%, rgba(255, 211, 127, 0.08), transparent 40%);
+}
+
+.gacha-action-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.gacha-action-kicker {
+  color: rgba(255, 236, 195, 0.84);
+  font: 800 10px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gacha-action-sub {
+  color: rgba(245, 223, 173, 0.84);
+  font: 700 11px/1.3 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.gacha-spin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.gacha-spin-btn {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+}
+
+.boxes-layout,
+.pokedex-card .boxes-layout {
+  gap: 12px;
+}
+
+.boxes-grid,
+.appearance-grid {
+  padding: 12px;
+  gap: 10px;
+  border-radius: 16px;
+}
+
+.collection-search-row {
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.collection-search-input {
+  min-height: 40px;
+}
+
+.boxes-info-panel {
+  align-items: stretch;
+}
+
+.boxes-info-panel .pokemon-info-card {
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+}
+
+.boxes-mon-btn,
+.pokedex-mon-btn {
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 18px rgba(1, 7, 12, 0.1);
+}
+
+.boxes-mon-btn.is-current {
+  box-shadow:
+    0 0 0 1px rgba(243, 219, 142, 0.34),
+    0 18px 28px rgba(25, 18, 6, 0.22);
+}
+
+.boxes-mon-btn.is-selected,
+.pokedex-mon-btn.is-selected {
+  transform: translateY(-1px);
+}
+
+.pokedex-card .pokedex-header-copy {
+  gap: 8px;
+}
+
+.pokedex-card .pokedex-header-stats {
+  gap: 6px;
+  grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
+}
+
+.pokedex-card .pokedex-global-completion,
+.pokedex-card .pokedex-header-stat {
+  min-height: 64px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(16, 38, 58, 0.92), rgba(8, 20, 31, 0.96)),
+    radial-gradient(circle at 0% 0%, rgba(126, 200, 223, 0.08), transparent 40%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 16px rgba(1, 7, 12, 0.12);
+}
+
+.pokemon-info-card {
+  border-radius: 16px;
+  padding: 12px;
+  gap: 10px;
+}
+
+.pokemon-info-head {
+  align-items: end;
+}
+
+.pokemon-info-feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pokemon-info-card--pokedex .pokemon-info-feature-grid,
+.pokemon-info-card--pokedex .pokemon-info-stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.appearance-header {
+  align-items: start;
+  gap: 12px;
+}
+
+.appearance-controls {
+  padding: 10px 12px;
+  border-radius: 16px;
+  align-items: start;
+}
+
+.appearance-toggle-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1;
+}
+
+.appearance-shiny-toggle-btn {
+  min-width: 0;
+  min-height: 42px;
+  border-radius: 12px;
+}
+
+.appearance-shiny-status {
+  max-width: 38ch;
+  line-height: 1.3;
+}
+
+.appearance-grid {
+  grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
+}
+
+.appearance-card-btn {
+  justify-items: start;
+  align-content: start;
+  text-align: left;
+  padding: 10px;
+  gap: 6px;
+  border-radius: 14px;
+}
+
+.appearance-preview {
+  width: 100%;
+  height: 96px;
+}
+
+.appearance-preview img {
+  max-width: 72px;
+  max-height: 72px;
+}
+
+.appearance-variant-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(169, 198, 236, 0.34);
+  background: rgba(13, 31, 49, 0.72);
+  color: #d9ecff;
+  font: 800 9px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.appearance-card-btn.is-selected .appearance-variant-state {
+  border-color: rgba(243, 219, 142, 0.72);
+  background: rgba(72, 56, 18, 0.86);
+  color: #fff1bf;
+}
+
+.appearance-card-btn.is-locked .appearance-variant-state {
+  border-color: rgba(112, 132, 158, 0.26);
+  color: rgba(205, 220, 237, 0.74);
+}
+
+.appearance-variant-name {
+  font-size: 12px;
+}
+
+.team-context-menu {
+  width: min(300px, calc(100vw - 16px));
+  padding: 8px;
+}
+
+.team-context-menu-title {
+  padding: 8px 10px 10px;
+}
+
+.team-context-menu-btn {
+  padding: 10px 11px;
+  border-radius: 14px;
+}
+
+.team-context-menu-copy,
+.ball-capture-toggle-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.team-context-menu-btn-title,
+.ball-capture-toggle-label {
+  color: #eef8ff;
+  font: 800 11px/1.1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.team-context-menu-btn-meta,
+.ball-capture-toggle-description {
+  color: rgba(185, 214, 230, 0.76);
+  font: 700 9px/1.3 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+}
+
+.ball-capture-menu {
+  max-width: 300px;
+  padding: 6px;
+}
+
+.ball-capture-menu .ball-capture-menu-btn {
+  align-items: start;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 9px;
+  border-radius: 12px;
+}
+
+.ball-capture-toggle-check {
+  margin-top: 2px;
+}
+
+.tutorial-card {
+  border-radius: 18px;
+}
+
+.tutorial-body {
+  border: 1px solid rgba(145, 220, 236, 0.18);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, rgba(10, 28, 42, 0.92), rgba(6, 18, 28, 0.96)),
+    radial-gradient(circle at 0% 0%, rgba(126, 200, 223, 0.08), transparent 40%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.tutorial-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.tutorial-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dialogue-modal-card {
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow:
+    0 18px 40px rgba(18, 14, 8, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.dialogue-text {
+  min-height: 112px;
+  padding: 14px 15px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+
+.dialogue-choice-btn,
+.dialogue-next-btn,
+.dialogue-close-btn {
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.route-nav-modal-card {
+  width: min(920px, calc(100vw - 32px));
+  gap: 12px;
+  padding: 16px;
+}
+
+.route-nav-modal-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.route-nav-drawer-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.route-nav-destination-card {
+  min-height: 148px;
+}
+
+.route-nav-destination-content.has-supporting-copy {
+  align-content: end;
+  justify-items: start;
+  text-align: left;
+  min-height: 148px;
+  gap: 6px;
+  padding: 14px;
+}
+
+.route-nav-destination-meta {
+  color: rgba(214, 234, 244, 0.82);
+  font: 800 9px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-destination-label {
+  max-width: 13ch;
+}
+
+.route-nav-destination-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.route-nav-destination-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(171, 239, 251, 0.28);
+  border-radius: 999px;
+  background: rgba(9, 24, 37, 0.72);
+  color: #eef8ff;
+  font: 800 9px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-destination-status.is-open {
+  border-color: rgba(132, 229, 169, 0.34);
+  background: rgba(14, 49, 40, 0.78);
+  color: #dff8ea;
+}
+
+.route-nav-destination-status.is-locked {
+  border-color: rgba(243, 198, 124, 0.38);
+  background: rgba(53, 32, 10, 0.78);
+  color: #ffe4ba;
+}
+
+.route-nav-destination-reason {
+  max-width: 24ch;
+  color: rgba(214, 234, 244, 0.86);
+  font: 700 11px/1.3 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  text-shadow: 0 2px 8px rgba(2, 10, 18, 0.66);
+}
+
+.route-nav-info-card {
+  gap: 10px;
+}
+
+.route-nav-info-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  border: 1px solid rgba(145, 220, 236, 0.22);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 20px rgba(1, 7, 12, 0.16);
+}
+
+.route-nav-zone-preview.is-info-hero {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(17, 46, 67, 0.78), rgba(7, 20, 32, 0.92)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 56%);
+  box-shadow: none;
+}
+
+.route-nav-info-hero-copy {
+  position: relative;
+  z-index: 1;
+  min-height: 160px;
+  padding: 14px;
+  display: grid;
+  align-content: end;
+  gap: 5px;
+}
+
+.route-nav-info-hero-meta {
+  color: rgba(211, 233, 244, 0.84);
+  font: 800 10px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-info-hero-title {
+  color: #f6fbff;
+  font: 900 clamp(22px, 2.5vw, 30px)/0.98 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  text-shadow:
+    0 4px 16px rgba(2, 10, 18, 0.84),
+    0 1px 0 rgba(0, 0, 0, 0.36);
+}
+
+.route-nav-info-hero-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font: 800 9px/1 var(--zone-ui-font, "Trebuchet MS", "Verdana", sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.route-nav-info-hero-status.is-open {
+  border: 1px solid rgba(132, 229, 169, 0.34);
+  background: rgba(14, 49, 40, 0.84);
+  color: #dff8ea;
+}
+
+.route-nav-info-hero-status.is-locked {
+  border: 1px solid rgba(243, 198, 124, 0.38);
+  background: rgba(53, 32, 10, 0.84);
+  color: #ffe4ba;
+}
+
+.route-nav-info-header {
+  justify-content: space-between;
+  align-items: start;
+  gap: 8px;
+}
+
+@media (max-width: 960px) {
+  .shop-overview-shell,
+  .shop-control-shell,
+  .gacha-action-bar,
+  .route-nav-modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .action-dock-fullscreen-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shop-item-actions {
+    flex-direction: row;
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .shop-item-buy-btn {
+    flex: 1;
+  }
+
+  .pokedex-card .pokedex-header-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pokedex-card .pokedex-global-completion {
+    grid-column: 1 / -1;
+  }
+
+  .route-nav-drawer-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .action-dock-fullscreen-header {
+    align-items: start;
+  }
+
+  .action-dock-fullscreen-copy {
+    max-width: none;
+    text-align: left;
+  }
+
+  .action-dock-fullscreen-group {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .action-dock-fullscreen-group-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .shop-modal-card,
+  .boxes-card,
+  .appearance-card,
+  .tutorial-card,
+  .gacha-card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .shop-overview-shell,
+  .shop-control-shell,
+  .gacha-overview-shell,
+  .gacha-stage-shell,
+  .gacha-action-bar {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .shop-wallet-panel,
+  .appearance-toggle-group,
+  .pokemon-info-feature-grid,
+  .pokemon-info-card--pokedex .pokemon-info-feature-grid,
+  .pokemon-info-card--pokedex .pokemon-info-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appearance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .appearance-preview {
+    height: 98px;
+  }
+
+  .gacha-spin-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gacha-spin-btn {
+    width: 100%;
+  }
+
+  .route-nav-modal-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .route-nav-destination-content.has-supporting-copy {
+    min-height: 132px;
+    padding: 12px;
+  }
+
+  .route-nav-info-hero,
+  .route-nav-info-hero-copy {
+    min-height: 136px;
+  }
+
+  .boxes-info-panel.is-sheet-open {
+    max-width: 600px;
+    max-height: 52svh;
+    border: 1px solid rgba(145, 220, 236, 0.2);
+    background:
+      linear-gradient(180deg, rgba(10, 28, 42, 0.96), rgba(6, 18, 28, 0.98)),
+      radial-gradient(circle at 0% 0%, rgba(126, 200, 223, 0.08), transparent 40%);
+  }
+
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-feature-grid,
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-micro-grid--summary,
+  .boxes-info-panel.is-sheet-open .pokemon-info-card--boxes .pokemon-info-micro-grid--stats,
+  .boxes-info-panel.is-sheet-open .pokemon-info-stat-grid,
+  .boxes-info-panel.is-sheet-open .pokemon-info-feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 961px) {
+  .action-dock-fullscreen-menu {
+    place-items: center;
+    padding: 20px 18px calc(136px + env(safe-area-inset-bottom));
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-shell {
+    width: min(980px, calc(100vw - 40px));
+    margin-bottom: 20px;
+    padding: 16px;
+    gap: 12px;
+    justify-items: stretch;
+  }
+
+  .action-dock-fullscreen-header {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    padding: 0;
+  }
+
+  .action-dock-fullscreen-copy {
+    max-width: 46ch;
+    text-align: left;
+  }
+
+  .action-dock-fullscreen-grid {
+    grid-template-columns: minmax(0, 1.14fr) minmax(260px, 0.86fr);
+    grid-template-areas:
+      "primary utility"
+      "primary danger";
+    align-items: start;
+    gap: 12px;
+  }
+
+  .action-dock-fullscreen-group {
+    min-width: 0;
+    align-self: start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .action-dock-fullscreen-group.is-primary {
+    grid-area: primary;
+  }
+
+  .action-dock-fullscreen-group.is-utility {
+    grid-area: utility;
+  }
+
+  .action-dock-fullscreen-group.is-danger {
+    grid-area: danger;
+  }
+
+  .action-dock-fullscreen-group.is-primary .action-dock-fullscreen-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .action-dock-fullscreen-group.is-utility .action-dock-fullscreen-group-grid,
+  .action-dock-fullscreen-group.is-danger .action-dock-fullscreen-group-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 78px;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-icon-svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-texts {
+    gap: 3px;
+    align-content: center;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-label {
+    font-size: clamp(17px, 1.25vw, 20px);
+    line-height: 1.04;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-sub {
+    max-width: 18ch;
+    font-size: 11px;
+    line-height: 1.18;
+  }
+
+  .boxes-card:not(.pokedex-card) .boxes-layout {
+    grid-template-columns: minmax(260px, 0.88fr) minmax(320px, 1.12fr);
+    align-items: stretch;
+  }
+
+  .boxes-card:not(.pokedex-card) .boxes-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .boxes-card:not(.pokedex-card) .boxes-mon-btn {
+    min-height: 156px;
+    padding: 12px;
+    justify-items: start;
+    align-content: start;
+    text-align: left;
+    gap: 5px;
+  }
+
+  .boxes-card:not(.pokedex-card) .boxes-mon-visual {
+    width: 72px;
+    height: 72px;
+  }
+
+  .boxes-card:not(.pokedex-card) .boxes-mon-btn img,
+  .boxes-card:not(.pokedex-card) .boxes-mon-fallback {
+    width: 72px;
+    height: 72px;
+    max-width: 72px;
+    max-height: 72px;
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-modal-body {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.94fr);
+    align-items: start;
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-drawer-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-destination-card.is-selected {
+    grid-column: 1 / -1;
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-destination-card.is-selected .route-nav-destination-content.has-supporting-copy {
+    min-height: 176px;
+  }
+
+  .route-nav-drawer.has-route-nav-info .route-nav-info-panel {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+}
+
+#boxes-info-panel.is-sheet-open {
+  max-height: 46svh;
+}
+
+@media (max-width: 760px) {
+  #action-dock-fullscreen-menu {
+    place-items: start center;
+    overflow-y: auto;
+    padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 112px));
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-shell {
+    width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    max-width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
+    margin-top: 4px;
+    margin-bottom: 16px;
+    justify-items: stretch;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-copy {
+    max-width: 26ch;
+  }
+}
+
+.action-dock-pokeball-toggle[aria-expanded="true"] {
+  transform: translateY(8px) scale(0.82) !important;
+  filter: saturate(0.96) brightness(0.98);
+}
+
+.action-dock-pokeball-toggle[aria-expanded="true"] .action-dock-loading-pokeball {
+  width: clamp(58px, 8.2vw, 84px);
+}
+
+@media (max-width: 760px) {
+  .action-dock-pokeball-toggle[aria-expanded="true"] {
+    transform: translateY(6px) scale(0.76) !important;
+  }
+
+  .action-dock-pokeball-toggle[aria-expanded="true"] .action-dock-loading-pokeball {
+    width: clamp(54px, 16vw, 68px);
+  }
+}

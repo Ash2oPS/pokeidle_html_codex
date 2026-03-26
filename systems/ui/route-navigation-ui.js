@@ -159,6 +159,7 @@ export function createRouteNavigationUi({
 
   function buildRouteDestinationCard(routeState, options = {}) {
     const variant = String(options?.variant || "desktop-inline").toLowerCase().trim();
+    const showSupportingCopy = variant !== "map-panel";
     const button = createElement("button");
     button.type = "button";
     button.className = "route-nav-destination-card";
@@ -174,12 +175,51 @@ export function createRouteNavigationUi({
 
     const contentEl = createElement("span");
     contentEl.className = "route-nav-destination-content";
+    contentEl.classList.toggle("has-supporting-copy", showSupportingCopy);
+
+    if (showSupportingCopy) {
+      const metaEl = createElement("span");
+      metaEl.className = "route-nav-destination-meta";
+      metaEl.textContent = normalizeUiDisplayText(
+        `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || ""}`,
+        { frenchTypography: true },
+      );
+      contentEl.appendChild(metaEl);
+    }
 
     const labelEl = createElement("span");
     labelEl.className = "route-nav-destination-label";
     labelEl.textContent = formatPrimaryRouteHeaderLabel(routeState?.routeNameFr || "", routeState?.regionLabel || "")
       || String(routeState?.routeNameFr || "");
     contentEl.appendChild(labelEl);
+
+    if (showSupportingCopy) {
+      const footerEl = createElement("span");
+      footerEl.className = "route-nav-destination-footer";
+
+      const statusEl = createElement("span");
+      statusEl.className = "route-nav-destination-status";
+      statusEl.classList.toggle("is-open", Boolean(routeState?.unlocked));
+      statusEl.classList.toggle("is-locked", !routeState?.unlocked);
+      statusEl.textContent = routeState?.unlocked
+        ? normalizeUiDisplayText("Voyage direct", { frenchTypography: true })
+        : String(routeState?.statusLabel || "Verrouill\u00e9e");
+      footerEl.appendChild(statusEl);
+      contentEl.appendChild(footerEl);
+
+      const reasonText = String(
+        routeState?.progressionRequirementFr
+        || routeState?.blockedReasonFr
+        || routeState?.connectionHintFr
+        || "",
+      ).trim();
+      if (!routeState?.unlocked && hasDistinctUiCopy(reasonText, routeState?.statusLabel, routeState?.routeNameFr)) {
+        const reasonEl = createElement("span");
+        reasonEl.className = "route-nav-destination-reason";
+        reasonEl.textContent = reasonText;
+        contentEl.appendChild(reasonEl);
+      }
+    }
     button.appendChild(contentEl);
 
     const requirementsSummary = String(routeState?.accessRequirementsSummary || "");
@@ -198,6 +238,39 @@ export function createRouteNavigationUi({
     const wrapperEl = createElement("div");
     wrapperEl.className = "route-nav-info-card";
 
+    const heroEl = createElement("div");
+    heroEl.className = "route-nav-info-hero";
+    appendRouteBackgroundPreview(heroEl, routeState, {
+      variant: "info-hero",
+    });
+
+    const heroCopyEl = createElement("div");
+    heroCopyEl.className = "route-nav-info-hero-copy";
+
+    const heroMetaEl = createElement("div");
+    heroMetaEl.className = "route-nav-info-hero-meta";
+    heroMetaEl.textContent = normalizeUiDisplayText(
+      `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || ""}`,
+      { frenchTypography: true },
+    );
+    heroCopyEl.appendChild(heroMetaEl);
+
+    const heroTitleEl = createElement("div");
+    heroTitleEl.className = "route-nav-info-hero-title";
+    heroTitleEl.textContent = routeState?.routeNameFr || "Zone";
+    heroCopyEl.appendChild(heroTitleEl);
+
+    const heroStatusEl = createElement("span");
+    heroStatusEl.className = "route-nav-info-hero-status";
+    heroStatusEl.classList.toggle("is-open", Boolean(routeState?.unlocked));
+    heroStatusEl.classList.toggle("is-locked", !routeState?.unlocked);
+    heroStatusEl.textContent = routeState?.unlocked
+      ? normalizeUiDisplayText("Zone ouverte", { frenchTypography: true })
+      : String(routeState?.statusLabel || "Verrouill\u00e9e");
+    heroCopyEl.appendChild(heroStatusEl);
+    heroEl.appendChild(heroCopyEl);
+    wrapperEl.appendChild(heroEl);
+
     const headerEl = createElement("div");
     headerEl.className = "route-nav-info-header";
 
@@ -206,15 +279,14 @@ export function createRouteNavigationUi({
 
     const titleEl = createElement("div");
     titleEl.className = "route-nav-info-title";
-    titleEl.textContent = routeState?.routeNameFr || "Zone";
+    titleEl.textContent = normalizeUiDisplayText("D\u00e9tails d'acc\u00e8s", { frenchTypography: true });
     titleWrapEl.appendChild(titleEl);
 
     const subtitleEl = createElement("div");
     subtitleEl.className = "route-nav-info-subtitle";
-    subtitleEl.textContent = normalizeUiDisplayText(
-      `${routeState?.zoneTypeLabel || "Zone"} \u2022 ${routeState?.regionLabel || ""}`,
-      { frenchTypography: true },
-    );
+    subtitleEl.textContent = routeState?.unlocked
+      ? normalizeUiDisplayText("Cette destination est d\u00e9j\u00e0 disponible.", { frenchTypography: true })
+      : normalizeUiDisplayText("Objectifs, conditions et chemin pour cette destination.", { frenchTypography: true });
     titleWrapEl.appendChild(subtitleEl);
     headerEl.appendChild(titleWrapEl);
 
