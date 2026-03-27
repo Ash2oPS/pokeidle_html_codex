@@ -65,6 +65,7 @@ test("sanitizeMaintenanceConfig normalizes invalid and custom values", () => {
         daysOfWeek: ["Monday", "monday", "wed"],
         startTimeLocal: "09:00",
         endTimeLocal: "17:59",
+        message: "  Message de creneau\nSpecifique.  ",
       },
       {
         daysOfWeek: ["friday"],
@@ -85,6 +86,7 @@ test("sanitizeMaintenanceConfig normalizes invalid and custom values", () => {
         daysOfWeek: ["monday", "wednesday"],
         startTimeLocal: "09:00",
         endTimeLocal: "17:59",
+        message: "Message de creneau\nSpecifique.",
         startMinuteOfDay: 540,
         endMinuteOfDay: 1079,
       },
@@ -114,6 +116,7 @@ test("sanitizeMaintenanceConfig normalizes invalid and custom values", () => {
         daysOfWeek: ["monday"],
         startTimeLocal: "09:00",
         endTimeLocal: "17:59",
+        message: "",
         startMinuteOfDay: 540,
         endMinuteOfDay: 1079,
       },
@@ -468,18 +471,21 @@ test("bootstrapGame supports local maintenance preview without enabling runtime"
 
 test("bootstrapGame blocks production only during configured weekly maintenance windows", async () => {
   const maintenanceDom = createBootDom("https://ash2ops.github.io/pokeidle_html_codex/");
+  const scheduledMaintenanceMessage = "Maintenance weekday window\nMerci de revenir a 18h.";
   const maintenanceResult = await bootstrapGame({
     windowRef: maintenanceDom.window,
     documentRef: maintenanceDom.window.document,
     maintenanceConfigImporter: async () => ({
       MAINTENANCE_CONFIG: {
         enabled: true,
+        message: "Message global qui ne doit pas sortir ici.",
         timezone: "Europe/Paris",
         weeklyWindows: [
           {
             daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
             startTimeLocal: "09:00",
             endTimeLocal: "17:59",
+            message: scheduledMaintenanceMessage,
           },
         ],
       },
@@ -491,6 +497,15 @@ test("bootstrapGame blocks production only during configured weekly maintenance 
   });
 
   assert.equal(maintenanceResult.mode, "maintenance");
+  assert.equal(maintenanceResult.message, scheduledMaintenanceMessage);
+  assert.equal(maintenanceDom.window.document.getElementById("loading-screen-text").textContent, scheduledMaintenanceMessage);
+  assert.deepEqual(JSON.parse(maintenanceDom.window.render_game_to_text()), {
+    mode: "maintenance",
+    boot_phase: "maintenance",
+    loading_overlay_visible: true,
+    visual_ready: true,
+    message: scheduledMaintenanceMessage,
+  });
 
   const runtimeDom = createBootDom("https://ash2ops.github.io/pokeidle_html_codex/");
   const loadedScripts = [];
@@ -501,12 +516,14 @@ test("bootstrapGame blocks production only during configured weekly maintenance 
     maintenanceConfigImporter: async () => ({
       MAINTENANCE_CONFIG: {
         enabled: true,
+        message: "Message global hors creneau",
         timezone: "Europe/Paris",
         weeklyWindows: [
           {
             daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
             startTimeLocal: "09:00",
             endTimeLocal: "17:59",
+            message: scheduledMaintenanceMessage,
           },
         ],
       },

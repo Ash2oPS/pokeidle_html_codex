@@ -8,6 +8,7 @@ const WEEKDAY_OFFICE_HOURS_WINDOW = Object.freeze({
   ]),
   startTimeLocal: "09:00",
   endTimeLocal: "17:59",
+  message: "",
 });
 
 // `enabled: true` active le gate de maintenance sur le web de prod.
@@ -16,6 +17,7 @@ const WEEKDAY_OFFICE_HOURS_WINDOW = Object.freeze({
 // `weeklyWindows` accepte une liste de creneaux hebdo avec:
 // - `daysOfWeek`: `monday` ... `sunday`
 // - `startTimeLocal` / `endTimeLocal`: format `HH:MM` sur 24h, borne de fin incluse
+// - `message`: override optionnel du message global pour ce creneau precis
 // Laisse `message` vide pour reutiliser le message par defaut.
 export const MAINTENANCE_CONFIG = Object.freeze({
   enabled: true,

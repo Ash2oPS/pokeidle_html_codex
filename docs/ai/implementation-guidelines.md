@@ -29,6 +29,7 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Maintenance mode:
   - bootstrap web + `maintenance-config.js`
   - schedule hebdo et timezone definies dans `maintenance-config.js`
+  - chaque creneau peut definir un message override optionnel
 
 ### Quand s'arreter et reconsiderer
 
