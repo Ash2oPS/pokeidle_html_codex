@@ -8,7 +8,7 @@ const WEEKDAY_OFFICE_HOURS_WINDOW = Object.freeze({
   ]),
   startTimeLocal: "09:00",
   endTimeLocal: "17:59",
-  message: "",
+  message: "Pas de PokéIdle pendant les heures de taf ! >:( \n(lundi -> vendredi, 9h -> 18h)",
 });
 
 // `enabled: true` active le gate de maintenance sur le web de prod.
