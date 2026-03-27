@@ -115,6 +115,13 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
    - couvre la transition par des tests
 5. Ne masque pas un vrai probleme avec un fallback silencieux.
 
+### Push sur main
+
+1. Termine les commits locaux prevus.
+2. Juste avant le push final sur `main`, verifie si `origin/main` a avance.
+3. Si un nouveau commit est apparu, y compris le bump automatique de version cree par GitHub, pull `main`.
+4. Ne pousse sur `main` qu'apres avoir reintegre cet etat distant a jour.
+
 ## Validation Matrix
 
 ### Config design

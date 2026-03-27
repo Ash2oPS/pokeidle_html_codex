@@ -192,8 +192,10 @@
   "arrival_dialogue_ids_once": [],
   "zone_actions": [],
   "access_rules": {
-    "requires_flags_all": [],
+    "requires_flags_all": [
+      "kanto_pewter_gym_brock_cleared"
+    ],
     "requires_flags_any": [],
-    "blocked_reason_fr": ""
+    "blocked_reason_fr": "Pierre bloque encore la sortie d'Argenta."
   }
 }

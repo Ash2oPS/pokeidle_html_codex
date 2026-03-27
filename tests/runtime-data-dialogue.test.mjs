@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { validateDialoguePayload, validateRouteDataPayload } from "../lib/runtime-data.js";
+import {
+  validateDialoguePayload,
+  validateRouteDataPayload,
+  validateTrainerBattlePayload,
+} from "../lib/runtime-data.js";
 
 test("validateRouteDataPayload accepts the unified zone metadata fields", () => {
   const route = validateRouteDataPayload(
@@ -35,6 +39,48 @@ test("validateRouteDataPayload accepts the unified zone metadata fields", () => 
   assert.deepEqual(route.arrival_dialogue_ids_once, ["kanto_viridian_arrival_once"]);
   assert.equal(route.zone_actions[0].kind, "dialogue");
   assert.equal(route.access_rules.requires_flags_all[0], "guide_spoken");
+});
+
+test("validateRouteDataPayload and validateTrainerBattlePayload accept trainer battle content", () => {
+  const route = validateRouteDataPayload(
+    {
+      route_id: "kanto_city_pewter_city",
+      route_name_fr: "Argenta",
+      zone_type: "town",
+      combat_enabled: false,
+      zone_actions: [
+        {
+          action_id: "kanto_pewter_gym_brock",
+          label_fr: "Defier Pierre",
+          kind: "trainer_battle",
+          trainer_battle_id: "kanto_pewter_gym_brock",
+          desktop_anchor_pct: { x: 42, y: 14 },
+          mobile_anchor_pct: { x: 42, y: 15 },
+        },
+      ],
+      encounters: [],
+    },
+    "route",
+  );
+  const trainerBattle = validateTrainerBattlePayload(
+    {
+      trainer_battle_id: "kanto_pewter_gym_brock",
+      trainer_name_fr: "Pierre",
+      route_id: "kanto_city_pewter_city",
+      victory_flag_id: "kanto_pewter_gym_brock_cleared",
+      roster: [
+        { pokemon_id: 74, level: 8 },
+        { pokemon_id: 138, level: 9 },
+        { pokemon_id: 95, level: 11 },
+      ],
+    },
+    "trainer battle",
+  );
+
+  assert.equal(route.zone_actions[0].kind, "trainer_battle");
+  assert.equal(route.zone_actions[0].trainer_battle_id, "kanto_pewter_gym_brock");
+  assert.equal(trainerBattle.trainer_name_fr, "Pierre");
+  assert.equal(trainerBattle.roster[2].pokemon_id, 95);
 });
 
 test("validateDialoguePayload normalizes branching dialogue payloads", () => {

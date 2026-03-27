@@ -600,6 +600,48 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       </div>
     </section>
 
+    <section
+      id="trainer-battle-setup-modal"
+      class="boxes-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="trainer-battle-setup-title"
+      aria-describedby="trainer-battle-setup-subtitle"
+    >
+      <div class="boxes-card trainer-battle-setup-card">
+        <div class="boxes-header trainer-battle-setup-header">
+          <div>
+            <h2 id="trainer-battle-setup-title" class="boxes-title">Combat contre Pierre</h2>
+            <p id="trainer-battle-setup-subtitle" class="boxes-subtitle">
+              Choisis 3 Pok&eacute;mon diff&eacute;rents pour le combat d'ar&egrave;ne.
+            </p>
+          </div>
+          <button id="trainer-battle-setup-close-btn" class="boxes-close-btn" type="button">Annuler</button>
+        </div>
+        <div class="trainer-battle-setup-body">
+          <section class="trainer-battle-setup-panel">
+            <h3 class="trainer-battle-setup-panel-title">Pierre</h3>
+            <div id="trainer-battle-setup-roster" class="trainer-battle-setup-roster"></div>
+          </section>
+          <section class="trainer-battle-setup-panel">
+            <h3 class="trainer-battle-setup-panel-title">R&egrave;gles</h3>
+            <div id="trainer-battle-setup-rules" class="trainer-battle-setup-rules"></div>
+          </section>
+          <section class="trainer-battle-setup-panel">
+            <h3 class="trainer-battle-setup-panel-title">Equipe temporaire</h3>
+            <div id="trainer-battle-setup-slots" class="trainer-battle-setup-slots"></div>
+            <p id="trainer-battle-setup-status" class="trainer-battle-setup-status" aria-live="polite"></p>
+          </section>
+        </div>
+        <div class="trainer-battle-setup-actions">
+          <button id="trainer-battle-setup-cancel-btn" class="boxes-close-btn" type="button">Annuler</button>
+          <button id="trainer-battle-setup-confirm-btn" class="route-nav-travel-btn" type="button">
+            Lancer le combat
+          </button>
+        </div>
+      </div>
+    </section>
+
     <section id="pokedex-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Pokédex">
       <div class="boxes-card pokedex-card">
         <div class="boxes-header">
@@ -907,6 +949,16 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   boxesSearchInputEl: "boxes-search-input",
   boxesSubtitleEl: "boxes-subtitle",
   boxesShinyCounterEl: "boxes-shiny-counter",
+  trainerBattleSetupModalEl: "trainer-battle-setup-modal",
+  trainerBattleSetupTitleEl: "trainer-battle-setup-title",
+  trainerBattleSetupSubtitleEl: "trainer-battle-setup-subtitle",
+  trainerBattleSetupRosterEl: "trainer-battle-setup-roster",
+  trainerBattleSetupRulesEl: "trainer-battle-setup-rules",
+  trainerBattleSetupSlotsEl: "trainer-battle-setup-slots",
+  trainerBattleSetupStatusEl: "trainer-battle-setup-status",
+  trainerBattleSetupCloseButtonEl: "trainer-battle-setup-close-btn",
+  trainerBattleSetupCancelButtonEl: "trainer-battle-setup-cancel-btn",
+  trainerBattleSetupConfirmButtonEl: "trainer-battle-setup-confirm-btn",
   pokedexModalEl: "pokedex-modal",
   pokedexGridEl: "pokedex-grid",
   pokedexInfoPanelEl: "pokedex-info-panel",
@@ -1064,6 +1116,16 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "boxes-search-input",
   "boxes-subtitle",
   "boxes-shiny-counter",
+  "trainer-battle-setup-modal",
+  "trainer-battle-setup-title",
+  "trainer-battle-setup-subtitle",
+  "trainer-battle-setup-roster",
+  "trainer-battle-setup-rules",
+  "trainer-battle-setup-slots",
+  "trainer-battle-setup-status",
+  "trainer-battle-setup-close-btn",
+  "trainer-battle-setup-cancel-btn",
+  "trainer-battle-setup-confirm-btn",
   "pokedex-modal",
   "pokedex-grid",
   "pokedex-info-panel",
@@ -1125,6 +1187,7 @@ export const RUNTIME_UI_CRITICAL_REF_KEYS = Object.freeze([
   "shopModalEl",
   "gachaModalEl",
   "boxesModalEl",
+  "trainerBattleSetupModalEl",
   "pokedexModalEl",
   "appearanceModalEl",
   "tutorialModalEl",

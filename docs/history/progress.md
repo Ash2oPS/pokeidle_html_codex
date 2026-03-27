@@ -7370,3 +7370,37 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile fullscreen menu: `output/ui-state-gallery/mobile-portrait/menu.png`
   - desktop gallery contact sheet: `output/ui-state-gallery/desktop-landscape/_contact-sheet.png`
   - mobile gallery contact sheet: `output/ui-state-gallery/mobile-portrait/_contact-sheet.png`
+
+## 2026-03-27 - Trainer battle vs Pierre at Argenta
+
+- Added a runtime-only `trainer_battle` flow for Argenta/Pewter City:
+  - new trainer battle content file `map_data/trainer_battles/kanto_pewter_gym_brock.json`;
+  - roster fixed to Racaillou lvl 8, Amonita lvl 9, Onix lvl 11;
+  - trainer enemies now use `trainerBattleEnemyHpMultiplier` and the per-enemy `trainerBattleEnemyTimerMs` design config values.
+- Extended route content/runtime validation:
+  - `zone_actions` now accept `kind: "trainer_battle"` and `trainer_battle_id`;
+  - Route 3 now requires the `kanto_pewter_gym_brock_cleared` flag before travel is allowed.
+- Added the Argenta city action and the full trainer-battle setup UI:
+  - city action button `Defier Pierre` is mounted from route data on desktop and mobile;
+  - new setup modal lets the player pick exactly 3 box Pokemon;
+  - selection is temporary, rejects same-family duplicates, and restores the original persistent team after the trainer battle ends.
+- Integrated trainer-battle runtime behavior without changing save schema:
+  - battle lifecycle now routes between wild route fights and trainer fights;
+  - trainer fights skip capture/reward flows and advance through Brock's fixed roster only;
+  - trainer-battle background behavior freezes the fight/timer completely and resumes without catch-up loss;
+  - win sets `kanto_pewter_gym_brock_cleared`, loss returns the player to normal Argenta state.
+- Added focused regression coverage:
+  - `tests/runtime-data-dialogue.test.mjs`
+  - `tests/zone-dialogue-runtime.test.mjs`
+  - `tests/runtime-orchestrator.test.mjs`
+  - `tests/runtime-ui-interaction-system.test.mjs`
+- Validation:
+  - `node --test tests/game-design-config-runtime.test.mjs tests/runtime-data-dialogue.test.mjs tests/zone-dialogue-runtime.test.mjs tests/battle-lifecycle-system.test.mjs tests/runtime-orchestrator.test.mjs tests/runtime-input-system.test.mjs tests/runtime-ui-interaction-system.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+  - `npm run test:background:matrix` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop trainer action: `output/ui-state-gallery/desktop-landscape/pewter-trainer-action.png`
+  - desktop trainer setup: `output/ui-state-gallery/desktop-landscape/trainer-battle-setup.png`
+  - mobile trainer action: `output/ui-state-gallery/mobile-portrait/pewter-trainer-action.png`
+  - mobile trainer setup: `output/ui-state-gallery/mobile-portrait/trainer-battle-setup.png`

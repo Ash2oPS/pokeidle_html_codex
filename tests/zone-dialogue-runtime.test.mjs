@@ -13,6 +13,11 @@ function createFixture(options = {}) {
           dialogue_id: "guide_intro",
           kind: "dialogue",
         },
+        {
+          action_id: "fight-brock",
+          trainer_battle_id: "kanto_pewter_gym_brock",
+          kind: "trainer_battle",
+        },
       ],
     },
     saveData: {
@@ -45,6 +50,7 @@ function createFixture(options = {}) {
     updateHud: 0,
     persistSaveDataForSimulationEvent: 0,
     tryOpenPendingTutorialFlow: 0,
+    trainerBattleActions: [],
     topMessages: [],
     fetchCalls: [],
   };
@@ -203,6 +209,13 @@ function createFixture(options = {}) {
     tryOpenPendingTutorialFlow: () => {
       counters.tryOpenPendingTutorialFlow += 1;
     },
+    triggerTrainerBattleAction: (trainerBattleId, payload = {}) => {
+      counters.trainerBattleActions.push({
+        trainerBattleId: String(trainerBattleId || ""),
+        payload,
+      });
+      return true;
+    },
   });
 
   return {
@@ -283,4 +296,22 @@ test("zone dialogue runtime fetches static dialogue files without explicit no-st
 
   assert.equal(opened, true);
   assert.deepEqual(counters.fetchCalls, ["map_data/dialogues/guide_intro.json"]);
+});
+
+test("zone dialogue runtime forwards trainer battle zone actions without opening dialogue", () => {
+  const { runtime, state, counters } = createFixture();
+
+  const triggered = runtime.triggerZoneAction("fight-brock");
+
+  assert.equal(triggered, true);
+  assert.equal(state.ui.dialogueOpen, false);
+  assert.deepEqual(counters.trainerBattleActions, [
+    {
+      trainerBattleId: "kanto_pewter_gym_brock",
+      payload: {
+        routeId: "kanto_city_pallet_town",
+        sourceActionId: "fight-brock",
+      },
+    },
+  ]);
 });

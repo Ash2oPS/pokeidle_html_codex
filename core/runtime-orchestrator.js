@@ -33,6 +33,7 @@ export function createRuntimeOrchestrator({
   flushDeferredSaveIfNeeded,
   persistSaveData,
   render,
+  shouldFreezeBackgroundSimulation,
   hiddenSimBudgetMs,
   backgroundPumpMaxWorkMs,
   foregroundCatchupPumpMaxWorkMs,
@@ -59,6 +60,10 @@ export function createRuntimeOrchestrator({
     typeof flushDeferredSaveIfNeeded === "function" ? flushDeferredSaveIfNeeded : () => {};
   const persistSaveDataFn = typeof persistSaveData === "function" ? persistSaveData : () => {};
   const renderFn = typeof render === "function" ? render : () => {};
+  const shouldFreezeBackgroundSimulationFn =
+    typeof shouldFreezeBackgroundSimulation === "function"
+      ? shouldFreezeBackgroundSimulation
+      : () => false;
   const markSimulationPumpFn = typeof markSimulationPump === "function" ? markSimulationPump : () => {};
   const hiddenBudgetMs = Math.max(1, Number(hiddenSimBudgetMs) || 1);
   const backgroundPumpWorkLimitMs = Number.isFinite(Number(backgroundPumpMaxWorkMs))
@@ -158,9 +163,26 @@ export function createRuntimeOrchestrator({
     const backgroundRuntime = ensureBackgroundRuntimeState();
     const activityState = transition.activityState;
     const backgroundActivity = isBackgroundActivityState(activityState);
+    const freezeBackgroundSimulation = Boolean(shouldFreezeBackgroundSimulationFn());
 
     if (backgroundActivity) {
       stopForegroundCatchupPumpFn();
+      if (freezeBackgroundSimulation) {
+        stopBackgroundTickerFn();
+        queueRealtimeElapsedMsFn(now, {
+          activityState,
+          maxElapsedMs: 0,
+          skipForegroundClamp: true,
+        });
+        maybePersistLifecycleState(now, {
+          force: activityState === RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED || Boolean(options.forcePersist),
+        });
+        return {
+          activityState,
+          resumeCatchupMs: 0,
+          consumedMs: 0,
+        };
+      }
       ensureBackgroundTickerFn();
       const consumedMs = tickSimulationFromRealtimeFn({
         activityState,
@@ -187,6 +209,20 @@ export function createRuntimeOrchestrator({
     let resumeCatchupMs = 0;
     if (transition.resumedFromBackground) {
       stopForegroundCatchupPumpFn();
+      if (freezeBackgroundSimulation) {
+        queueRealtimeElapsedMsFn(now, {
+          activityState,
+          maxElapsedMs: 0,
+          skipForegroundClamp: true,
+        });
+        backgroundRuntime.lastResumeCatchupMs = 0;
+        renderFn();
+        return {
+          activityState,
+          resumeCatchupMs: 0,
+          consumedMs: 0,
+        };
+      }
       resumeCatchupMs = queueResumeCatchupFromRealtimeFn(now, {
         activityState,
         maxCatchupMs: resumeCatchupLimit,
@@ -229,6 +265,7 @@ export function createRuntimeOrchestrator({
   function handlePageLifecyclePersist(snapshot = {}, options = {}) {
     const now = Math.max(0, safeToInt(options.nowMs, readNowMs()));
     const source = String(options.source || snapshot.source || "pagehide");
+    const freezeBackgroundSimulation = Boolean(shouldFreezeBackgroundSimulationFn());
     const persistedSnapshot = {
       ...snapshot,
       activityState: snapshot.activityState || RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED,
@@ -241,7 +278,16 @@ export function createRuntimeOrchestrator({
     queueRealtimeElapsedMsFn(now, {
       activityState: persistedSnapshot.activityState,
       skipForegroundClamp: true,
+      ...(freezeBackgroundSimulation ? { maxElapsedMs: 0 } : {}),
     });
+    if (freezeBackgroundSimulation) {
+      stopBackgroundTickerFn();
+      maybePersistLifecycleState(now, { force: true });
+      return {
+        activityState: persistedSnapshot.activityState,
+        consumedMs: 0,
+      };
+    }
     const consumedMs = consumePendingSimulationFn({
       activityState: persistedSnapshot.activityState,
       forceIdleMode: true,

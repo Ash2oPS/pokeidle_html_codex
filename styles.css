@@ -1357,6 +1357,217 @@ body {
   cursor: not-allowed;
 }
 
+.trainer-battle-setup-card {
+  width: min(980px, calc(100vw - 20px));
+  max-height: min(88dvh, 860px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.trainer-battle-setup-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(260px, 1.2fr);
+  gap: 10px;
+  overflow: auto;
+}
+
+.trainer-battle-setup-panel {
+  min-height: 0;
+  border: 1px solid rgba(175, 204, 239, 0.26);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(11, 32, 47, 0.92), rgba(6, 20, 31, 0.9)),
+    radial-gradient(circle at top, rgba(115, 186, 224, 0.1), transparent 56%);
+  padding: 11px;
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.trainer-battle-setup-panel-title {
+  margin: 0;
+  color: #eef8ff;
+  font: 800 14px "Trebuchet MS", "Verdana", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.trainer-battle-setup-roster,
+.trainer-battle-setup-rules,
+.trainer-battle-setup-slots {
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.trainer-battle-setup-roster-card {
+  border: 1px solid rgba(172, 203, 236, 0.28);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(7, 24, 37, 0.84);
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.trainer-battle-setup-roster-visual,
+.trainer-battle-setup-slot-visual {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(180, 210, 245, 0.24);
+  background: radial-gradient(circle at top, rgba(106, 152, 196, 0.2), rgba(8, 22, 35, 0.96));
+}
+
+.trainer-battle-setup-roster-visual img,
+.trainer-battle-setup-slot-visual img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.trainer-battle-setup-roster-copy,
+.trainer-battle-setup-slot-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.trainer-battle-setup-roster-copy strong,
+.trainer-battle-setup-slot-copy strong {
+  color: #eef8ff;
+  font: 800 14px "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.trainer-battle-setup-roster-copy span,
+.trainer-battle-setup-slot-copy span,
+.trainer-battle-setup-slot-kicker,
+.trainer-battle-setup-slot-empty,
+.trainer-battle-setup-status,
+.trainer-battle-setup-rule {
+  color: #bfd4f0;
+  font: 700 12px/1.35 "Trebuchet MS", "Verdana", sans-serif;
+}
+
+.trainer-battle-setup-rule {
+  margin: 0;
+  padding-left: 14px;
+  position: relative;
+}
+
+.trainer-battle-setup-rule::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f3db8e, #c99945);
+  box-shadow: 0 0 0 2px rgba(243, 219, 142, 0.12);
+}
+
+.trainer-battle-setup-slots {
+  align-content: start;
+}
+
+.trainer-battle-setup-slot {
+  border: 1px solid rgba(175, 204, 239, 0.28);
+  border-radius: 12px;
+  background: rgba(8, 24, 38, 0.82);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.trainer-battle-setup-slot.is-empty {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.trainer-battle-setup-slot:hover,
+.trainer-battle-setup-slot:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(181, 224, 255, 0.68);
+  background: rgba(12, 32, 50, 0.92);
+}
+
+.trainer-battle-setup-slot-kicker {
+  grid-column: 1 / -1;
+  color: #f3db8e;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+
+.trainer-battle-setup-slot-hint {
+  color: #90c7ef;
+}
+
+.trainer-battle-setup-slot-empty {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(175, 204, 239, 0.24);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.trainer-battle-setup-status {
+  margin: 0;
+  min-height: 18px;
+}
+
+.trainer-battle-setup-status.is-ready {
+  color: #9ee3a0;
+}
+
+.trainer-battle-setup-status.is-error {
+  color: #ffb2b2;
+}
+
+.trainer-battle-setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 960px) {
+  .trainer-battle-setup-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .trainer-battle-setup-card {
+    width: min(100vw - 12px, 640px);
+    max-height: min(88dvh, 900px);
+  }
+
+  .trainer-battle-setup-slot {
+    grid-template-columns: 50px minmax(0, 1fr);
+    padding: 9px;
+  }
+
+  .trainer-battle-setup-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .boxes-mon-visual {
   position: relative;
   width: 64px;

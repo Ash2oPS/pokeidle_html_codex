@@ -1,0 +1,20 @@
+{
+  "trainer_battle_id": "kanto_pewter_gym_brock",
+  "trainer_name_fr": "Pierre",
+  "route_id": "kanto_city_pewter_city",
+  "victory_flag_id": "kanto_pewter_gym_brock_cleared",
+  "roster": [
+    {
+      "pokemon_id": 74,
+      "level": 8
+    },
+    {
+      "pokemon_id": 138,
+      "level": 9
+    },
+    {
+      "pokemon_id": 95,
+      "level": 11
+    }
+  ]
+}

@@ -169,18 +169,23 @@ function normalizeZoneActionPayload(valueRaw, fallback = null, options = {}) {
   const previous = fallback && typeof fallback === "object" ? fallback : {};
   const strict = options.strict === true;
   const actionId = sanitizeText(base.action_id, sanitizeText(previous.action_id));
+  const requestedKind = sanitizeText(base.kind, sanitizeText(previous.kind, "dialogue")).toLowerCase();
+  const kind = requestedKind === "trainer_battle" ? "trainer_battle" : "dialogue";
   const dialogueId = sanitizeText(base.dialogue_id, sanitizeText(previous.dialogue_id));
-  if (!actionId || !dialogueId) {
+  const trainerBattleId = sanitizeText(base.trainer_battle_id, sanitizeText(previous.trainer_battle_id));
+  const targetId = kind === "trainer_battle" ? trainerBattleId : dialogueId;
+  if (!actionId || !targetId) {
     if (strict) {
-      throw new Error("Chaque action de zone doit avoir un action_id et un dialogue_id.");
+      throw new Error("Chaque action de zone doit avoir un action_id et sa cible (dialogue_id ou trainer_battle_id).");
     }
     return null;
   }
   return {
     action_id: actionId,
-    label_fr: sanitizeText(base.label_fr, sanitizeText(previous.label_fr, dialogueId)),
-    kind: "dialogue",
-    dialogue_id: dialogueId,
+    label_fr: sanitizeText(base.label_fr, sanitizeText(previous.label_fr, targetId)),
+    kind,
+    dialogue_id: kind === "dialogue" ? dialogueId : "",
+    trainer_battle_id: kind === "trainer_battle" ? trainerBattleId : "",
     desktop_anchor_pct: {
       x: clampPercent(base?.desktop_anchor_pct?.x, previous?.desktop_anchor_pct?.x ?? 50),
       y: clampPercent(base?.desktop_anchor_pct?.y, previous?.desktop_anchor_pct?.y ?? 50),

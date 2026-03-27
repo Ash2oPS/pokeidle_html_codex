@@ -5,6 +5,10 @@ export function createBattleLifecycleSystem({
   refreshLayoutIfNeeded,
   createBattleManager,
   getCurrentAttackIntervalMs,
+  getBattleSourceKind,
+  canStartBattleForSource,
+  canTeamAttackForBattleSource,
+  createEnemyInstanceForSource,
   createRouteEnemyInstance,
   handleEnemySpawn,
   handleEnemyDefeated,
@@ -20,6 +24,20 @@ export function createBattleLifecycleSystem({
   const createBattleManagerFn = typeof createBattleManager === "function" ? createBattleManager : () => null;
   const getCurrentAttackIntervalMsFn =
     typeof getCurrentAttackIntervalMs === "function" ? getCurrentAttackIntervalMs : () => 0;
+  const getBattleSourceKindFn =
+    typeof getBattleSourceKind === "function" ? getBattleSourceKind : () => "route_wild";
+  const canStartBattleForSourceFn =
+    typeof canStartBattleForSource === "function"
+      ? canStartBattleForSource
+      : () => isCurrentRouteCombatEnabledFn();
+  const canTeamAttackForBattleSourceFn =
+    typeof canTeamAttackForBattleSource === "function"
+      ? canTeamAttackForBattleSource
+      : () => isCurrentRouteCombatEnabledFn();
+  const createEnemyInstanceForSourceFn =
+    typeof createEnemyInstanceForSource === "function"
+      ? createEnemyInstanceForSource
+      : () => createRouteEnemyInstanceFn();
   const createRouteEnemyInstanceFn =
     typeof createRouteEnemyInstance === "function" ? createRouteEnemyInstance : () => null;
   const handleEnemySpawnFn = typeof handleEnemySpawn === "function" ? handleEnemySpawn : () => {};
@@ -34,6 +52,12 @@ export function createBattleLifecycleSystem({
     typeof isCurrentRouteCombatEnabled === "function" ? isCurrentRouteCombatEnabled : () => false;
   const hideHoverPopupFn = typeof hideHoverPopup === "function" ? hideHoverPopup : () => {};
 
+  function resolveBattleSourceKind() {
+    return String(getBattleSourceKindFn() || "route_wild").trim() === "trainer_battle"
+      ? "trainer_battle"
+      : "route_wild";
+  }
+
   function rebuildTeamAndSyncBattle() {
     state.team = hydrateTeamFromSaveFn();
     if (state.battle && typeof state.battle.syncTeam === "function") {
@@ -43,8 +67,9 @@ export function createBattleLifecycleSystem({
   }
 
   function startBattle() {
+    const battleSource = resolveBattleSourceKind();
     refreshLayoutIfNeededFn({ force: true, nowMs: state.timeMs });
-    if (!Array.isArray(state.team) || state.team.length <= 0 || !isCurrentRouteCombatEnabledFn()) {
+    if (!Array.isArray(state.team) || state.team.length <= 0 || !canStartBattleForSourceFn(battleSource)) {
       state.battle = null;
       state.enemy = null;
       return;
@@ -54,18 +79,18 @@ export function createBattleLifecycleSystem({
       team: state.team,
       attackIntervalMs: getCurrentAttackIntervalMsFn(),
       getAttackIntervalMs: () => getCurrentAttackIntervalMsFn(),
-      createEnemy: createRouteEnemyInstanceFn,
-      onEnemySpawn: handleEnemySpawnFn,
-      onEnemyDefeated: handleEnemyDefeatedFn,
-      getEnemyTimerConfig: (enemy) => getEnemyTimerConfigForBattleFn(enemy),
-      onEnemyTimerExpired: handleEnemyTimerExpiredFn,
-      canTeamAttack: () => isCurrentRouteCombatEnabledFn(),
+      createEnemy: () => createEnemyInstanceForSourceFn(resolveBattleSourceKind()),
+      onEnemySpawn: (enemy) => handleEnemySpawnFn(enemy, resolveBattleSourceKind()),
+      onEnemyDefeated: (enemy) => handleEnemyDefeatedFn(enemy, resolveBattleSourceKind()),
+      getEnemyTimerConfig: (enemy) => getEnemyTimerConfigForBattleFn(enemy, resolveBattleSourceKind()),
+      onEnemyTimerExpired: (enemy) => handleEnemyTimerExpiredFn(enemy, resolveBattleSourceKind()),
+      canTeamAttack: () => canTeamAttackForBattleSourceFn(resolveBattleSourceKind()),
     });
     state.enemy = typeof state.battle?.getEnemy === "function" ? state.battle.getEnemy() : null;
   }
 
   function syncBattleForRouteChange() {
-    if (isCurrentRouteCombatEnabledFn()) {
+    if (canStartBattleForSourceFn(resolveBattleSourceKind())) {
       if (!state.battle) {
         startBattle();
       } else {

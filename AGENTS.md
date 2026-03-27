@@ -192,6 +192,13 @@ Quand tu ajoutes ou deplaces une valeur de design:
 4. Ajoute ou adapte un test cible.
 5. Si pertinent, expose-la dans `design_config_snapshot` de `render_game_to_text`.
 
+## Git Workflow
+
+- Chaque push sur `main` declenche un push automatique GitHub qui bump la version du jeu.
+- Si l'utilisateur demande un push sur `main`, verifie toujours juste avant le push final si `origin/main` a bouge entre-temps.
+- Si un bump automatique ou tout autre commit distant est apparu, pull `main` avant de push.
+- Ne considere jamais qu'un `main` local prepare plus tot est encore a jour au moment du push final.
+
 ## Documentation Maintenance
 
 - Si tu modifies un guardrail repo-wide, mets a jour `AGENTS.md` d'abord.

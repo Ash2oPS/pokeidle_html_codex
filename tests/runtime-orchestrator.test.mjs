@@ -8,7 +8,7 @@ import {
   RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
 } from "../lib/runtime-platform-utils.js";
 
-function createFixture() {
+function createFixture(options = {}) {
   const state = {
     pendingSimMs: 0,
     backgroundRuntime: {
@@ -93,6 +93,7 @@ function createFixture() {
     render() {
       calls.render += 1;
     },
+    shouldFreezeBackgroundSimulation: () => options.freezeBackgroundSimulation === true,
     hiddenSimBudgetMs: 180,
     backgroundPumpMaxWorkMs: 4,
     foregroundCatchupPumpMaxWorkMs: 6,
@@ -237,4 +238,31 @@ test("page lifecycle persist flushes current realtime and forces persistence", (
   assert.equal(fixture.calls.persistSaveData, 1);
   assert.equal(fixture.state.backgroundRuntime.activityState, RUNTIME_ACTIVITY_BACKGROUND_SUSPENDED);
   assert.equal(fixture.state.backgroundRuntime.lastBackgroundReason, "page_lifecycle_persist");
+});
+
+test("background transitions freeze trainer simulation without catchup when requested", () => {
+  const fixture = createFixture({ freezeBackgroundSimulation: true });
+  fixture.state.backgroundRuntime.activityState = RUNTIME_ACTIVITY_BACKGROUND_LIVE;
+  fixture.setNow(8200);
+
+  const resumed = fixture.orchestrator.handleRuntimeActivityChange({
+    activityState: RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
+    backgroundReason: "foreground_active",
+    suspendRequested: false,
+  }, {
+    source: "window:focus",
+  });
+
+  assert.equal(resumed.activityState, RUNTIME_ACTIVITY_FOREGROUND_ACTIVE);
+  assert.equal(resumed.resumeCatchupMs, 0);
+  assert.equal(fixture.calls.queueResumeCatchupFromRealtime.length, 0);
+  assert.equal(fixture.calls.consumePendingSimulation.length, 0);
+  assert.deepEqual(fixture.calls.queueRealtimeElapsedMs[0], {
+    inputNowMs: 8200,
+    options: {
+      activityState: RUNTIME_ACTIVITY_FOREGROUND_ACTIVE,
+      maxElapsedMs: 0,
+      skipForegroundClamp: true,
+    },
+  });
 });

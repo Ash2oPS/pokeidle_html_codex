@@ -229,6 +229,7 @@ function createUiInteractionSystem(overrides = {}) {
       mapOpen: false,
       gachaOpen: false,
       boxesOpen: false,
+      boxesMode: "team",
       boxesTargetSlotIndex: -1,
       boxesSearchQuery: "",
       pokedexOpen: false,
@@ -242,6 +243,15 @@ function createUiInteractionSystem(overrides = {}) {
       ballCaptureMenuOpen: false,
       ballCaptureMenuBallType: "",
       tutorialOpen: false,
+      trainerBattleSetupOpen: false,
+    },
+    trainerBattle: {
+      active: null,
+      selectedTeamIds: [],
+      setupTrainerBattleId: "",
+      setupSourceActionId: "",
+      setupTargetSlotIndex: -1,
+      definitionsById: new Map(),
     },
     gacha: {
       spinning: false,
@@ -353,6 +363,9 @@ function createUiInteractionSystem(overrides = {}) {
     TEAM_DRAG_CLICK_SUPPRESS_MS: 200,
     TEAM_DRAG_START_DISTANCE_PX: 8,
     TEAM_SPRITE_SCALE: 1,
+    TRAINER_BATTLE_TEAM_SIZE_COUNT: 3,
+    TRAINER_BATTLE_ENEMY_HP_MULTIPLIER: 5,
+    TRAINER_BATTLE_ENEMY_TIMER_MS: 60000,
     TYPE_ICON_ASSET_DIR: "assets/type-icons",
     UNKNOWN_CAVE_ROUTE_ID: "unknown_cave",
     animatedSpriteFramesCache: new Map(),
@@ -488,6 +501,7 @@ function createUiInteractionSystem(overrides = {}) {
     isAppearanceEditorUnlocked: () => false,
     isCurrentRouteCombatEnabled: () => true,
     isEntityUnlocked: () => false,
+    isTrainerBattleActive: () => false,
     isShinyAppearanceUnlockedForRecord: () => false,
     isUltraShinyAppearanceUnlockedForRecord: () => false,
     loadImage: async () => null,
@@ -605,10 +619,21 @@ function createUiInteractionSystem(overrides = {}) {
     teamContextMenuEl: createHiddenTestElement("div"),
     teamContextMenuRenameButtonEl: { disabled: false },
     teamContextMenuTitleEl: { textContent: "" },
+    trainerBattleSetupCancelButtonEl: createTestElement("button"),
+    trainerBattleSetupCloseButtonEl: createTestElement("button"),
+    trainerBattleSetupConfirmButtonEl: createTestElement("button"),
+    trainerBattleSetupModalEl: { classList: createClassList(true) },
+    trainerBattleSetupRosterEl: createTestElement("div"),
+    trainerBattleSetupRulesEl: createTestElement("div"),
+    trainerBattleSetupSlotsEl: createTestElement("div"),
+    trainerBattleSetupStatusEl: { textContent: "", classList: createClassList(false) },
+    trainerBattleSetupSubtitleEl: { textContent: "" },
+    trainerBattleSetupTitleEl: { textContent: "" },
     toSafeInt: (value, fallback = 0) => {
       const numeric = Number(value);
       return Number.isFinite(numeric) ? Math.floor(numeric) : fallback;
     },
+    getTrainerBattleSetupDefinition: () => null,
     tryOpenPendingTutorialFlow: () => {},
     update: () => {},
     updateEvolutionAnimation: () => {},
@@ -654,6 +679,13 @@ function findDescendantByClassName(element, className) {
     }
   }
   return null;
+}
+
+function findChildByDatasetValue(element, key, value) {
+  if (!element || !Array.isArray(element.children)) {
+    return null;
+  }
+  return element.children.find((child) => String(child?.dataset?.[key] || "") === String(value)) || null;
 }
 
 test("runtime ui interaction system exposes evolution animation helpers without dynamic factories", () => {
@@ -1525,6 +1557,169 @@ test("runtime ui interaction system uses first tap to open the mobile boxes deta
   assert.equal(state.ui.boxesHoverEntityId, 32);
   assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), true);
   assert.match(bindings.boxesInfoPanelEl.innerHTML, /Fiche equipe/);
+});
+
+test("runtime ui interaction system keeps trainer battle box selection temporary", async () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+      getBaseStatTotal: () => 273,
+      getCapturedTotal: () => 1,
+      getXpToNextLevelForSpecies: () => 100,
+      computeStatsAtLevel: () => ({}),
+      resolveSpriteAppearanceForEntity: (pokemonId) => ({
+        spritePath: `pokemon_data/${pokemonId}.png`,
+        variant: null,
+        shinyVisual: false,
+        shinyNegativeFallbackVisual: false,
+        ultraShinyVisual: false,
+      }),
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[String(pokemonId)] || null,
+      isEntityUnlocked: (record) => Boolean(record?.entity_unlocked),
+      showModalWithTween: () => {},
+      hideModalWithTween: () => {},
+      showPopupWithTween: () => {},
+      setTopMessage: () => {},
+    },
+  });
+
+  state.saveData = {
+    team: [25, 4, 7, 0, 0, 0],
+    pokemon_entities: {
+      4: { id: 4, level: 12, entity_unlocked: true, captured_normal: 1 },
+      7: { id: 7, level: 12, entity_unlocked: true, captured_normal: 1 },
+      25: { id: 25, level: 18, entity_unlocked: true, captured_normal: 1 },
+      32: { id: 32, level: 10, entity_unlocked: true, captured_normal: 1 },
+    },
+  };
+  for (const [id, nameFr] of [[4, "Salameche"], [7, "Carapuce"], [25, "Pikachu"], [32, "Nidoran"]]) {
+    state.pokemonDefsById.set(id, {
+      id,
+      nameFr,
+      spritePath: `pokemon_data/${id}.png`,
+      attackMode: "projectiles",
+      offensiveType: "normal",
+      defensiveTypes: ["normal"],
+    });
+  }
+  state.ui.boxesOpen = true;
+  state.ui.boxesMode = "trainer_battle";
+  state.ui.boxesTargetSlotIndex = 0;
+  state.ui.trainerBattleSetupOpen = true;
+  state.trainerBattle.selectedTeamIds = [25, 4, 7];
+
+  system.renderBoxesGrid();
+
+  const nidoranButton = findChildByDatasetValue(bindings.boxesGridEl, "boxEntityId", 32);
+  assert.ok(nidoranButton);
+
+  await nidoranButton.trigger("click");
+
+  assert.deepEqual(state.saveData.team, [25, 4, 7, 0, 0, 0]);
+  assert.deepEqual(state.trainerBattle.selectedTeamIds, [32, 4, 7]);
+  assert.equal(state.ui.boxesOpen, false);
+  assert.equal(state.ui.trainerBattleSetupOpen, true);
+});
+
+test("runtime ui interaction system disables trainer battle confirm until the temporary team is valid", () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[String(pokemonId)] || null,
+      isEntityUnlocked: (record) => Boolean(record?.entity_unlocked),
+      getEvolutionFamilySpeciesIds: (pokemonId) => {
+        if (pokemonId === 1 || pokemonId === 2) {
+          return [1, 2, 3];
+        }
+        return [pokemonId];
+      },
+      getTrainerBattleSetupDefinition: () => ({
+        trainer_battle_id: "kanto_pewter_gym_brock",
+        trainer_name_fr: "Pierre",
+        roster: [
+          { pokemon_id: 74, level: 8 },
+          { pokemon_id: 138, level: 9 },
+          { pokemon_id: 95, level: 11 },
+        ],
+      }),
+    },
+  });
+
+  state.saveData = {
+    team: [1, 2, 7, 0, 0, 0],
+    pokemon_entities: {
+      1: { id: 1, level: 10, entity_unlocked: true },
+      2: { id: 2, level: 11, entity_unlocked: true },
+      4: { id: 4, level: 9, entity_unlocked: true },
+      7: { id: 7, level: 8, entity_unlocked: true },
+    },
+  };
+  for (const [id, nameFr] of [[1, "Bulbizarre"], [2, "Herbizarre"], [4, "Salameche"], [7, "Carapuce"], [74, "Racaillou"], [95, "Onix"], [138, "Amonita"]]) {
+    state.pokemonDefsById.set(id, {
+      id,
+      nameFr,
+      spritePath: `pokemon_data/${id}.png`,
+      attackMode: "projectiles",
+      offensiveType: "normal",
+      defensiveTypes: ["normal"],
+    });
+  }
+  state.trainerBattle.selectedTeamIds = [1, 2, 7];
+
+  system.renderTrainerBattleSetupModal();
+
+  assert.equal(bindings.trainerBattleSetupConfirmButtonEl.disabled, true);
+  assert.match(bindings.trainerBattleSetupStatusEl.textContent, /Conflit de famille/);
+  assert.match(bindings.trainerBattleSetupTitleEl.textContent, /Combat contre Pierre/);
+
+  state.trainerBattle.selectedTeamIds = [1, 4, 7];
+  system.renderTrainerBattleSetupModal();
+
+  assert.equal(bindings.trainerBattleSetupConfirmButtonEl.disabled, false);
+  assert.match(bindings.trainerBattleSetupStatusEl.textContent, /Equipe prete|Équipe prête/);
+  assert.equal(bindings.trainerBattleSetupSlotsEl.children.length, 3);
+});
+
+test("runtime ui interaction system blocks collection and team editors during active trainer battles", () => {
+  const topMessages = [];
+  const { state, system } = createUiInteractionSystem({
+    bindings: {
+      isTrainerBattleActive: () => true,
+      isAppearanceEditorUnlocked: () => true,
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[String(pokemonId)] || null,
+      isEntityUnlocked: (record) => Boolean(record?.entity_unlocked),
+      setTopMessage: (message) => {
+        topMessages.push(String(message || ""));
+      },
+    },
+  });
+
+  state.saveData = {
+    team: [25, 4, 7, 0, 0, 0],
+    pokemon_entities: {
+      25: { id: 25, level: 18, entity_unlocked: true },
+    },
+  };
+  state.pokemonDefsById.set(25, {
+    id: 25,
+    nameFr: "Pikachu",
+    spritePath: "pokemon_data/25.png",
+    attackMode: "projectiles",
+    offensiveType: "electric",
+    defensiveTypes: ["electric"],
+  });
+
+  system.openPokedexModal();
+  system.openBoxesForTeamSlot(0);
+  const appearanceOpened = system.openAppearanceForPokemon(25);
+
+  assert.equal(system.isCanvasBattleInteractionBlocked(), true);
+  assert.equal(state.ui.pokedexOpen, false);
+  assert.equal(state.ui.boxesOpen, false);
+  assert.equal(state.ui.appearanceOpen, false);
+  assert.equal(appearanceOpened, false);
+  assert.equal(topMessages.length, 3);
+  assert.match(topMessages[0], /combat de dresseur/);
 });
 
 test("runtime ui interaction system anchors the mobile ball capture menu as a bottom sheet", () => {

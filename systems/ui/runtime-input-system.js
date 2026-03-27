@@ -75,6 +75,7 @@ export function createRuntimeInputSystem({
   const closeAppearanceModal = asFunction(actions.closeAppearanceModal);
   const closePokedexModal = asFunction(actions.closePokedexModal);
   const closeBoxesModal = asFunction(actions.closeBoxesModal);
+  const closeTrainerBattleSetupModal = asFunction(actions.closeTrainerBattleSetupModal);
   const toggleFullscreen = asPromiseFunction(actions.toggleFullscreen);
   const handleCanvasPointerDown = asFunction(actions.handleCanvasPointerDown);
   const handleCanvasPointerMove = asFunction(actions.handleCanvasPointerMove);
@@ -90,7 +91,9 @@ export function createRuntimeInputSystem({
   const cancelTeamContextTouchHold = asFunction(actions.cancelTeamContextTouchHold);
   const openRenameModalForTeamSlot = asFunction(actions.openRenameModalForTeamSlot);
   const openBoxesForTeamSlot = asFunction(actions.openBoxesForTeamSlot);
+  const openBoxesForTrainerBattleSlot = asFunction(actions.openBoxesForTrainerBattleSlot);
   const openAppearanceForTeamSlot = asFunction(actions.openAppearanceForTeamSlot);
+  const confirmTrainerBattleSetup = asFunction(actions.confirmTrainerBattleSetup);
   const toggleBallCaptureRule = asFunction(actions.toggleBallCaptureRule);
   const exportSaveToFile = asPromiseFunction(actions.exportSaveToFile);
   const importSaveFromFile = asPromiseFunction(actions.importSaveFromFile);
@@ -237,6 +240,11 @@ export function createRuntimeInputSystem({
       dialogueChoiceListEl = null,
       dialogueNextButtonEl = null,
       dialogueCloseButtonEl = null,
+      trainerBattleSetupModalEl = null,
+      trainerBattleSetupSlotsEl = null,
+      trainerBattleSetupCloseButtonEl = null,
+      trainerBattleSetupCancelButtonEl = null,
+      trainerBattleSetupConfirmButtonEl = null,
       worldUiLayerEl = null,
     } = elements;
 
@@ -389,6 +397,11 @@ export function createRuntimeInputSystem({
       if (key === "escape" && state?.ui?.boxesOpen) {
         event.preventDefault();
         closeBoxesModal();
+        return;
+      }
+      if (key === "escape" && state?.ui?.trainerBattleSetupOpen) {
+        event.preventDefault();
+        closeTrainerBattleSetupModal();
         return;
       }
       if (key === "f") {
@@ -688,6 +701,18 @@ export function createRuntimeInputSystem({
       applyRenameModal();
     });
     register(boxesCloseButtonEl, "click", () => closeBoxesModal());
+    register(trainerBattleSetupCloseButtonEl, "click", () => closeTrainerBattleSetupModal());
+    register(trainerBattleSetupCancelButtonEl, "click", () => closeTrainerBattleSetupModal());
+    register(trainerBattleSetupConfirmButtonEl, "click", () => confirmTrainerBattleSetup());
+    register(trainerBattleSetupSlotsEl, "click", (event) => {
+      const canResolveTarget = ElementCtor && event?.target instanceof ElementCtor;
+      const slotButton = canResolveTarget ? event.target.closest("[data-trainer-battle-slot-index]") : null;
+      const slotIndex = toSafeInt(slotButton?.getAttribute("data-trainer-battle-slot-index"), -1);
+      if (slotIndex < 0) {
+        return;
+      }
+      openBoxesForTrainerBattleSlot(slotIndex);
+    });
     register(pokedexCloseButtonEl, "click", () => closePokedexModal());
     register(appearanceCloseButtonEl, "click", () => closeAppearanceModal());
     register(appearanceShinyToggleButtonEl, "click", () => toggleAppearanceShinyMode());
@@ -793,6 +818,11 @@ export function createRuntimeInputSystem({
     register(dialogueModalEl, "click", (event) => {
       if (event?.target === dialogueModalEl) {
         closeDialogueModal();
+      }
+    });
+    register(trainerBattleSetupModalEl, "click", (event) => {
+      if (event?.target === trainerBattleSetupModalEl) {
+        closeTrainerBattleSetupModal();
       }
     });
 

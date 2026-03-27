@@ -249,6 +249,13 @@ export const GAME_DESIGN_CONFIG = {
     enemyTimerStyleOnlyOne: "only-one",
   },
 
+  /** Reglages globaux des combats contre dresseur. */
+  trainerBattle: {
+    trainerBattleTeamSizeCount: 3,
+    trainerBattleEnemyHpMultiplier: 5,
+    trainerBattleEnemyTimerMs: 60000,
+  },
+
   /** Gacha et skins. */
   gacha: {
     spinCostCoins: 10,

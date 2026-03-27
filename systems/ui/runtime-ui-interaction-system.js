@@ -91,6 +91,9 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "TEAM_DRAG_CLICK_SUPPRESS_MS",
   "TEAM_DRAG_START_DISTANCE_PX",
   "TEAM_SPRITE_SCALE",
+  "TRAINER_BATTLE_ENEMY_HP_MULTIPLIER",
+  "TRAINER_BATTLE_ENEMY_TIMER_MS",
+  "TRAINER_BATTLE_TEAM_SIZE_COUNT",
   "TYPE_ICON_ASSET_DIR",
   "UNKNOWN_CAVE_ROUTE_ID",
   "animatedSpriteFramesCache",
@@ -177,6 +180,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "getTeamBoxesAccessState",
   "getTeamBoxesLockedMessage",
   "getTeamSpriteScale",
+  "isTrainerBattleActive",
   "getTutorialFlowDefinition",
   "getTypeMultiplier",
   "getUiAnimationState",
@@ -259,6 +263,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "reconcileAppearanceForEntityRecord",
   "refreshBallConfigDerivedState",
   "refreshRouteUi",
+  "refreshZoneActionButtons",
   "renameCharCountEl",
   "renameInputEl",
   "renameModalEl",
@@ -291,11 +296,22 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "teamContextMenuRenameButtonEl",
   "teamContextMenuTitleEl",
   "toSafeInt",
+  "trainerBattleSetupCancelButtonEl",
+  "trainerBattleSetupCloseButtonEl",
+  "trainerBattleSetupConfirmButtonEl",
+  "trainerBattleSetupModalEl",
+  "trainerBattleSetupRosterEl",
+  "trainerBattleSetupRulesEl",
+  "trainerBattleSetupSlotsEl",
+  "trainerBattleSetupStatusEl",
+  "trainerBattleSetupSubtitleEl",
+  "trainerBattleSetupTitleEl",
   "tryOpenPendingTutorialFlow",
   "update",
   "updateEvolutionAnimation",
   "updateHud",
   "validateRouteDataPayload",
+  "getTrainerBattleSetupDefinition",
 ]);
 
 export function createRuntimeUiInteractionSystem(options = {}) {
@@ -379,6 +395,9 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     TEAM_DRAG_CLICK_SUPPRESS_MS,
     TEAM_DRAG_START_DISTANCE_PX,
     TEAM_SPRITE_SCALE,
+    TRAINER_BATTLE_ENEMY_HP_MULTIPLIER,
+    TRAINER_BATTLE_ENEMY_TIMER_MS,
+    TRAINER_BATTLE_TEAM_SIZE_COUNT,
     TYPE_ICON_ASSET_DIR,
     UNKNOWN_CAVE_ROUTE_ID,
     animatedSpriteFramesCache,
@@ -553,6 +572,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     reconcileAppearanceForEntityRecord,
     refreshBallConfigDerivedState,
     refreshRouteUi,
+    refreshZoneActionButtons,
     renameCharCountEl,
     renameInputEl,
     renameModalEl,
@@ -590,12 +610,24 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     teamContextMenuRenameButtonEl,
     teamContextMenuTitleEl,
     toSafeInt,
+    trainerBattleSetupCancelButtonEl,
+    trainerBattleSetupCloseButtonEl,
+    trainerBattleSetupConfirmButtonEl,
+    trainerBattleSetupModalEl,
+    trainerBattleSetupRosterEl,
+    trainerBattleSetupRulesEl,
+    trainerBattleSetupSlotsEl,
+    trainerBattleSetupStatusEl,
+    trainerBattleSetupSubtitleEl,
+    trainerBattleSetupTitleEl,
     tryOpenPendingTutorialFlow,
     update,
     updateEvolutionAnimation,
     updateHud,
     validateRouteDataPayload,
-    window
+    window,
+    getTrainerBattleSetupDefinition = () => null,
+    isTrainerBattleActive = () => false,
   } = scope;
   const pendingPokedexDefinitionLoads = new Map();
   const pendingDialogueWarmupLoads = new Map();
@@ -613,6 +645,7 @@ function getWorldCoordinatesFromPointerEvent(event) {
 }
 
 function isCanvasBattleInteractionBlocked() {
+  const trainerBattleActive = typeof isTrainerBattleActive === "function" && isTrainerBattleActive();
   return Boolean(
     state.mode !== "ready"
     || state.ui.boxesOpen
@@ -620,10 +653,19 @@ function isCanvasBattleInteractionBlocked() {
     || state.ui.appearanceOpen
     || state.ui.renameOpen
     || state.ui.tutorialOpen
+    || state.ui.trainerBattleSetupOpen
     || state.ui.mapOpen
     || state.ui.shopOpen
     || state.ui.gachaOpen
+    || trainerBattleActive
     || state.evolutionAnimation.current,
+  );
+}
+
+function isTrainerBattleUiLocked() {
+  return Boolean(
+    state.ui.trainerBattleSetupOpen
+    || (typeof isTrainerBattleActive === "function" && isTrainerBattleActive()),
   );
 }
 
@@ -1858,24 +1900,52 @@ function getPokemonDisplayNameById(pokemonId) {
   return state.pokemonDefsById.get(id)?.nameFr || "Pokemon " + String(id);
 }
 
-function findTeamFamilyConflictSlotIndex(candidatePokemonId, ignoredSlotIndex = -1) {
+function getTrainerBattleTeamSizeCount() {
+  return Math.max(1, toSafeInt(TRAINER_BATTLE_TEAM_SIZE_COUNT, 3));
+}
+
+function getTrainerBattleSelectedTeamIds() {
+  const teamSize = getTrainerBattleTeamSizeCount();
+  if (!state.trainerBattle || typeof state.trainerBattle !== "object") {
+    state.trainerBattle = {};
+  }
+  const rawTeamIds = Array.isArray(state.trainerBattle.selectedTeamIds)
+    ? state.trainerBattle.selectedTeamIds
+    : [];
+  const normalized = Array.from({ length: teamSize }, (_, index) => {
+    const pokemonId = Number(rawTeamIds[index] || 0);
+    return pokemonId > 0 ? pokemonId : 0;
+  });
+  state.trainerBattle.selectedTeamIds = normalized.slice();
+  return normalized;
+}
+
+function findFamilyConflictSlotIndexInTeamIds(teamIds, candidatePokemonId, ignoredSlotIndex = -1) {
   const candidateId = Number(candidatePokemonId || 0);
-  if (candidateId <= 0 || !state.saveData || !Array.isArray(state.saveData.team)) {
+  if (candidateId <= 0 || !Array.isArray(teamIds)) {
     return -1;
   }
   const ignoredIndex = toSafeInt(ignoredSlotIndex, -1);
   const familyIds = getEvolutionFamilySpeciesIds(candidateId);
-  const familyIdSet = new Set((familyIds.length > 0 ? familyIds : [candidateId]).map((id) => Number(id || 0)).filter((id) => id > 0));
-  for (let index = 0; index < state.saveData.team.length; index += 1) {
+  const familyIdSet = new Set(
+    (familyIds.length > 0 ? familyIds : [candidateId])
+      .map((id) => Number(id || 0))
+      .filter((id) => id > 0),
+  );
+  for (let index = 0; index < teamIds.length; index += 1) {
     if (index === ignoredIndex) {
       continue;
     }
-    const teamPokemonId = Number(state.saveData.team[index] || 0);
+    const teamPokemonId = Number(teamIds[index] || 0);
     if (teamPokemonId > 0 && familyIdSet.has(teamPokemonId)) {
       return index;
     }
   }
   return -1;
+}
+
+function findTeamFamilyConflictSlotIndex(candidatePokemonId, ignoredSlotIndex = -1) {
+  return findFamilyConflictSlotIndexInTeamIds(state.saveData?.team, candidatePokemonId, ignoredSlotIndex);
 }
 
 function getCapturedEntityBoxesEntries() {
@@ -3566,6 +3636,10 @@ function openPokedexModal() {
   if (state.ui.tutorialOpen) {
     return;
   }
+  if (isTrainerBattleUiLocked()) {
+    setTopMessage("Impossible d'ouvrir le Pokedex pendant un combat de dresseur.", 1800);
+    return;
+  }
   closeTeamContextMenu();
   closeBallCaptureMenu();
   clearCanvasHoverState();
@@ -3717,7 +3791,13 @@ function setBoxesInfoFromEntry(entry) {
 }
 
 function closeBoxesModal() {
+  const previousMode = String(state.ui.boxesMode || "team").toLowerCase().trim();
+  const shouldReturnToTrainerSetup =
+    previousMode === "trainer_battle"
+    && Boolean(state.ui.trainerBattleSetupOpen)
+    && Boolean(trainerBattleSetupModalEl);
   state.ui.boxesOpen = false;
+  state.ui.boxesMode = "team";
   state.ui.boxesTargetSlotIndex = -1;
   state.ui.boxesHoverEntityId = null;
   clearBoxesSearchQuery();
@@ -3736,39 +3816,77 @@ function closeBoxesModal() {
     boxesGridEl.innerHTML = "";
   }
   setBoxesInfoFromEntry(null);
+  if (shouldReturnToTrainerSetup) {
+    renderTrainerBattleSetupModal();
+    showModalWithTween(trainerBattleSetupModalEl);
+  }
 }
 
 function renderBoxesGrid() {
-  if (!boxesGridEl || !state.saveData || !Array.isArray(state.saveData.team)) {
+  if (!boxesGridEl || !state.saveData) {
     return;
   }
   const useSheetLayout = isPhoneUiViewport();
+  const boxesMode = String(state.ui.boxesMode || "team").toLowerCase().trim() === "trainer_battle"
+    ? "trainer_battle"
+    : "team";
+  const activeTeamIds =
+    boxesMode === "trainer_battle"
+      ? getTrainerBattleSelectedTeamIds()
+      : (Array.isArray(state.saveData.team) ? state.saveData.team : []);
 
   const targetSlotIndex = clamp(toSafeInt(state.ui.boxesTargetSlotIndex, -1), -1, MAX_TEAM_SIZE - 1);
-  const currentTargetId = targetSlotIndex >= 0 ? Number(state.saveData.team[targetSlotIndex] || 0) : 0;
+  const currentTargetId = targetSlotIndex >= 0 ? Number(activeTeamIds[targetSlotIndex] || 0) : 0;
   const currentTargetName = currentTargetId > 0 ? getPokemonDisplayNameById(currentTargetId) : "Pokemon";
   const allEntries = getCapturedEntityBoxesEntries();
   const entries = getFilteredBoxesEntries(allEntries);
   const searchQuery = String(state.ui?.boxesSearchQuery || "");
+  const selectedSlotIndexByPokemonId = new Map();
+  for (let index = 0; index < activeTeamIds.length; index += 1) {
+    const pokemonId = Number(activeTeamIds[index] || 0);
+    if (pokemonId > 0 && !selectedSlotIndexByPokemonId.has(pokemonId)) {
+      selectedSlotIndexByPokemonId.set(pokemonId, index);
+    }
+  }
 
   if (boxesSubtitleEl) {
     let subtitle = "";
     if (targetSlotIndex >= 0) {
-      subtitle =
-        "Remplacement " +
-        getTeamSlotLabel(targetSlotIndex) +
-        " (" +
-        currentTargetName +
-        ") | " +
-        String(entries.length) +
-        (searchQuery.trim() ? " / " + String(allEntries.length) : "") +
-        " entites capturees";
+      subtitle = boxesMode === "trainer_battle"
+        ? (
+          "Preparation combat | "
+          + getTeamSlotLabel(targetSlotIndex)
+          + " ("
+          + currentTargetName
+          + ") | "
+          + String(entries.length)
+          + (searchQuery.trim() ? " / " + String(allEntries.length) : "")
+          + " entites capturees"
+        )
+        : (
+          "Remplacement "
+          + getTeamSlotLabel(targetSlotIndex)
+          + " ("
+          + currentTargetName
+          + ") | "
+          + String(entries.length)
+          + (searchQuery.trim() ? " / " + String(allEntries.length) : "")
+          + " entites capturees"
+        );
     } else {
-      subtitle =
-        "Boite complete | " +
-        String(entries.length) +
-        (searchQuery.trim() ? " / " + String(allEntries.length) : "") +
-        " entites capturees";
+      subtitle = boxesMode === "trainer_battle"
+        ? (
+          "Boite combat dresseur | "
+          + String(entries.length)
+          + (searchQuery.trim() ? " / " + String(allEntries.length) : "")
+          + " entites capturees"
+        )
+        : (
+          "Boite complete | "
+          + String(entries.length)
+          + (searchQuery.trim() ? " / " + String(allEntries.length) : "")
+          + " entites capturees"
+        );
     }
     boxesSubtitleEl.textContent = normalizeUiDisplayText(subtitle, {
       frenchTypography: true,
@@ -3810,9 +3928,10 @@ function renderBoxesGrid() {
 
   for (const entry of entries) {
     const isCurrent = entry.id === currentTargetId;
-    const inAnotherSlot = entry.inTeamIndex >= 0 && entry.inTeamIndex !== targetSlotIndex;
+    const selectedSlotIndex = selectedSlotIndexByPokemonId.get(entry.id);
+    const inAnotherSlot = selectedSlotIndex >= 0 && selectedSlotIndex !== targetSlotIndex;
     const unavailable = !entry.usableInTeam;
-    const familyConflictSlotIndex = findTeamFamilyConflictSlotIndex(entry.id, targetSlotIndex);
+    const familyConflictSlotIndex = findFamilyConflictSlotIndexInTeamIds(activeTeamIds, entry.id, targetSlotIndex);
     const hasFamilyConflict = familyConflictSlotIndex >= 0;
 
     const button = document.createElement("button");
@@ -3896,11 +4015,11 @@ function renderBoxesGrid() {
     if (unavailable) {
       tagEl.textContent = "Indispo dans cette version";
     } else if (inAnotherSlot) {
-      tagEl.textContent = "Deja en " + getTeamSlotLabel(entry.inTeamIndex);
+      tagEl.textContent = "Deja en " + getTeamSlotLabel(selectedSlotIndex);
     } else if (hasFamilyConflict) {
       tagEl.textContent = "Famille deja en " + getTeamSlotLabel(familyConflictSlotIndex);
     } else if (isCurrent) {
-      tagEl.textContent = "Slot actuel";
+      tagEl.textContent = boxesMode === "trainer_battle" ? "Choix actuel" : "Slot actuel";
     } else {
       tagEl.textContent = "Choisir";
     }
@@ -3934,10 +4053,13 @@ function renderBoxesGrid() {
         return;
       }
       const targetIndex = state.ui.boxesTargetSlotIndex;
-      if (targetIndex < 0 || targetIndex >= MAX_TEAM_SIZE) {
+      const targetTeamSize = boxesMode === "trainer_battle"
+        ? getTrainerBattleTeamSizeCount()
+        : MAX_TEAM_SIZE;
+      if (targetIndex < 0 || targetIndex >= targetTeamSize) {
         return;
       }
-      const currentId = Number(state.saveData?.team?.[targetIndex] || 0);
+      const currentId = Number(activeTeamIds[targetIndex] || 0);
       if (currentId === entry.id) {
         closeBoxesModal();
         return;
@@ -3947,16 +4069,25 @@ function renderBoxesGrid() {
         setTopMessage("Pokemon non disponible dans la boite.", 1500);
         return;
       }
-      const duplicateIndex = state.saveData.team.findIndex((id, idx) => idx !== targetIndex && Number(id) === entry.id);
+      const duplicateIndex = activeTeamIds.findIndex((id, idx) => idx !== targetIndex && Number(id) === entry.id);
       if (duplicateIndex >= 0) {
         setTopMessage("Impossible: ce Pokemon est deja dans l'equipe.", 1600);
         renderBoxesGrid();
         return;
       }
-      const duplicateFamilyIndex = findTeamFamilyConflictSlotIndex(entry.id, targetIndex);
+      const duplicateFamilyIndex = findFamilyConflictSlotIndexInTeamIds(activeTeamIds, entry.id, targetIndex);
       if (duplicateFamilyIndex >= 0) {
         setTopMessage("Impossible: un Pokemon de la meme famille est deja dans l'equipe.", 1700);
         renderBoxesGrid();
+        return;
+      }
+      if (boxesMode === "trainer_battle") {
+        const nextSelectedTeamIds = getTrainerBattleSelectedTeamIds();
+        nextSelectedTeamIds[targetIndex] = entry.id;
+        state.trainerBattle.selectedTeamIds = nextSelectedTeamIds;
+        state.trainerBattle.setupTargetSlotIndex = targetIndex;
+        closeBoxesModal();
+        renderTrainerBattleSetupModal();
         return;
       }
       const oldName = currentId > 0 ? getPokemonDisplayNameForOwnedEntity(currentId) : "Pokemon";
@@ -3974,6 +4105,10 @@ function renderBoxesGrid() {
     button.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       event.stopPropagation();
+      if (boxesMode === "trainer_battle") {
+        setTopMessage("Apparence indisponible pendant la preparation du combat.", 1700);
+        return;
+      }
       if (unavailable) {
         setTopMessage("Pokemon indisponible dans les routes chargees.", 1600);
         return;
@@ -3993,6 +4128,10 @@ function openBoxesForTeamSlot(slotIndex) {
   if (!boxesModalEl || !state.saveData || !Array.isArray(state.saveData.team)) {
     return;
   }
+  if (isTrainerBattleUiLocked()) {
+    setTopMessage("Equipe verrouillee pendant un combat de dresseur.", 1800);
+    return;
+  }
   const index = clamp(toSafeInt(slotIndex, -1), -1, MAX_TEAM_SIZE - 1);
   const currentId = Number(state.saveData.team[index] || 0);
   if (index < 0 || currentId <= 0) {
@@ -4009,12 +4148,238 @@ function openBoxesForTeamSlot(slotIndex) {
   closeRenameModal();
   setShopOpen(false);
   state.ui.boxesOpen = true;
+  state.ui.boxesMode = "team";
   state.ui.boxesTargetSlotIndex = index;
   state.ui.boxesHoverEntityId = isPhoneUiViewport() ? null : currentId;
   bindBoxesSearchEventsIfNeeded();
   syncBoxesSearchInputValue();
   showModalWithTween(boxesModalEl);
   renderBoxesGrid();
+}
+
+function openBoxesForTrainerBattleSlot(slotIndex) {
+  if (!boxesModalEl || !state.saveData || !state.ui?.trainerBattleSetupOpen) {
+    return false;
+  }
+  const teamSize = getTrainerBattleTeamSizeCount();
+  const index = clamp(toSafeInt(slotIndex, -1), -1, teamSize - 1);
+  if (index < 0) {
+    return false;
+  }
+  const selectedTeamIds = getTrainerBattleSelectedTeamIds();
+  const currentId = Number(selectedTeamIds[index] || 0);
+  closeTeamContextMenu();
+  clearCanvasHoverState();
+  closeRenameModal();
+  setShopOpen(false);
+  state.ui.boxesOpen = true;
+  state.ui.boxesMode = "trainer_battle";
+  state.ui.boxesTargetSlotIndex = index;
+  state.ui.boxesHoverEntityId = isPhoneUiViewport() ? null : (currentId > 0 ? currentId : null);
+  state.trainerBattle.setupTargetSlotIndex = index;
+  if (trainerBattleSetupModalEl) {
+    hideModalWithTween(trainerBattleSetupModalEl);
+  }
+  bindBoxesSearchEventsIfNeeded();
+  syncBoxesSearchInputValue();
+  showModalWithTween(boxesModalEl);
+  renderBoxesGrid();
+  return true;
+}
+
+function renderTrainerBattleSetupModal() {
+  if (
+    !trainerBattleSetupRosterEl
+    || !trainerBattleSetupRulesEl
+    || !trainerBattleSetupSlotsEl
+    || !trainerBattleSetupStatusEl
+    || !trainerBattleSetupConfirmButtonEl
+  ) {
+    return;
+  }
+  const definition = typeof getTrainerBattleSetupDefinition === "function"
+    ? getTrainerBattleSetupDefinition()
+    : null;
+  const trainerNameFr = normalizeUiDisplayText(
+    String(definition?.trainer_name_fr || "Dresseur"),
+    { frenchTypography: true },
+  );
+  const teamSize = getTrainerBattleTeamSizeCount();
+  const selectedTeamIds = getTrainerBattleSelectedTeamIds();
+  const normalizedSelection = Array.from({ length: teamSize }, (_, index) => Number(selectedTeamIds[index] || 0));
+  let validSelectionCount = 0;
+  let familyConflictSlotIndex = -1;
+  const seenFamilies = new Set();
+
+  for (let index = 0; index < normalizedSelection.length; index += 1) {
+    const pokemonId = Number(normalizedSelection[index] || 0);
+    if (pokemonId <= 0 || !isEntityUnlocked(getPokemonEntityRecord(pokemonId))) {
+      continue;
+    }
+    const familyIds = getEvolutionFamilySpeciesIds(pokemonId);
+    const familyKey = String(
+      Math.min(...(familyIds.length > 0 ? familyIds : [pokemonId]).map((id) => Number(id || 0)).filter((id) => id > 0)),
+    );
+    if (seenFamilies.has(familyKey)) {
+      familyConflictSlotIndex = index;
+      continue;
+    }
+    seenFamilies.add(familyKey);
+    validSelectionCount += 1;
+  }
+
+  const selectionReady = validSelectionCount === teamSize && familyConflictSlotIndex < 0;
+
+  if (trainerBattleSetupTitleEl) {
+    trainerBattleSetupTitleEl.textContent = normalizeUiDisplayText(
+      `Combat contre ${trainerNameFr}`,
+      { frenchTypography: true },
+    );
+  }
+  if (trainerBattleSetupSubtitleEl) {
+    trainerBattleSetupSubtitleEl.textContent = normalizeUiDisplayText(
+      `Prépare ${teamSize} Pokémon temporaires pour ce combat de dresseur.`,
+      { frenchTypography: true },
+    );
+  }
+
+  trainerBattleSetupRosterEl.innerHTML = "";
+  const rosterEntries = Array.isArray(definition?.roster) ? definition.roster : [];
+  for (const rosterEntry of rosterEntries) {
+    const pokemonId = Number(rosterEntry?.pokemon_id || 0);
+    const def = state.pokemonDefsById.get(pokemonId) || null;
+    const cardEl = document.createElement("article");
+    cardEl.className = "trainer-battle-setup-roster-card";
+    const spriteWrapEl = document.createElement("div");
+    spriteWrapEl.className = "trainer-battle-setup-roster-visual";
+    const spritePath = String(def?.spritePath || "").trim();
+    if (spritePath) {
+      const spriteEl = document.createElement("img");
+      spriteEl.src = spritePath;
+      spriteEl.alt = String(def?.nameFr || `Pokemon ${pokemonId}`);
+      spriteWrapEl.appendChild(spriteEl);
+    } else {
+      const fallbackEl = document.createElement("span");
+      fallbackEl.className = "boxes-mon-fallback";
+      fallbackEl.textContent = String(def?.nameFr || `Pokemon ${pokemonId}`).slice(0, 1).toUpperCase();
+      spriteWrapEl.appendChild(fallbackEl);
+    }
+    const copyEl = document.createElement("div");
+    copyEl.className = "trainer-battle-setup-roster-copy";
+    const nameEl = document.createElement("strong");
+    nameEl.textContent = normalizeUiDisplayText(String(def?.nameFr || `Pokemon ${pokemonId}`), {
+      frenchTypography: true,
+    });
+    const levelEl = document.createElement("span");
+    levelEl.textContent = normalizeUiDisplayText(`Niv. ${Math.max(1, toSafeInt(rosterEntry?.level, 1))}`, {
+      frenchTypography: true,
+    });
+    copyEl.appendChild(nameEl);
+    copyEl.appendChild(levelEl);
+    cardEl.appendChild(spriteWrapEl);
+    cardEl.appendChild(copyEl);
+    trainerBattleSetupRosterEl.appendChild(cardEl);
+  }
+
+  trainerBattleSetupRulesEl.innerHTML = "";
+  const ruleLines = [
+    `${teamSize} Pokémon exactement.`,
+    "Pas deux Pokémon de la même famille.",
+    `Timer de ${Math.max(1, Math.round(Number(TRAINER_BATTLE_ENEMY_TIMER_MS || 0) / 1000))} s par adversaire.`,
+    `PV des Pokémon de dresseur x${Math.max(1, Number(TRAINER_BATTLE_ENEMY_HP_MULTIPLIER || 1))}.`,
+    "Aucune capture et aucune Poké Ball lancée.",
+    "Ton équipe normale revient à la fin du combat.",
+  ];
+  for (const line of ruleLines) {
+    const ruleEl = document.createElement("p");
+    ruleEl.className = "trainer-battle-setup-rule";
+    ruleEl.textContent = normalizeUiDisplayText(line, { frenchTypography: true });
+    trainerBattleSetupRulesEl.appendChild(ruleEl);
+  }
+
+  trainerBattleSetupSlotsEl.innerHTML = "";
+  for (let index = 0; index < teamSize; index += 1) {
+    const pokemonId = Number(normalizedSelection[index] || 0);
+    const def = pokemonId > 0 ? state.pokemonDefsById.get(pokemonId) || null : null;
+    const record = pokemonId > 0 ? getPokemonEntityRecord(pokemonId) : null;
+    const buttonEl = document.createElement("button");
+    buttonEl.type = "button";
+    buttonEl.className = "trainer-battle-setup-slot";
+    buttonEl.dataset.trainerBattleSlotIndex = String(index);
+
+    const slotKickerEl = document.createElement("span");
+    slotKickerEl.className = "trainer-battle-setup-slot-kicker";
+    slotKickerEl.textContent = normalizeUiDisplayText(`Slot ${index + 1}`, { frenchTypography: true });
+    buttonEl.appendChild(slotKickerEl);
+
+    if (pokemonId > 0 && def && isEntityUnlocked(record)) {
+      const visualEl = document.createElement("div");
+      visualEl.className = "trainer-battle-setup-slot-visual";
+      if (def.spritePath) {
+        const spriteEl = document.createElement("img");
+        spriteEl.src = def.spritePath;
+        spriteEl.alt = def.nameFr;
+        visualEl.appendChild(spriteEl);
+      }
+      const copyEl = document.createElement("div");
+      copyEl.className = "trainer-battle-setup-slot-copy";
+      const nameEl = document.createElement("strong");
+      nameEl.textContent = normalizeUiDisplayText(getPokemonDisplayNameForOwnedEntity(pokemonId), {
+        frenchTypography: true,
+      });
+      const metaEl = document.createElement("span");
+      metaEl.textContent = normalizeUiDisplayText(
+        `${def.nameFr} • Niv. ${Math.max(1, toSafeInt(record?.level, 1))}`,
+        { frenchTypography: true },
+      );
+      const hintEl = document.createElement("span");
+      hintEl.className = "trainer-battle-setup-slot-hint";
+      hintEl.textContent = normalizeUiDisplayText("Changer dans les boîtes", { frenchTypography: true });
+      copyEl.appendChild(nameEl);
+      copyEl.appendChild(metaEl);
+      copyEl.appendChild(hintEl);
+      buttonEl.appendChild(visualEl);
+      buttonEl.appendChild(copyEl);
+    } else {
+      buttonEl.classList.add("is-empty");
+      const emptyEl = document.createElement("span");
+      emptyEl.className = "trainer-battle-setup-slot-empty";
+      emptyEl.textContent = normalizeUiDisplayText("Choisir un Pokémon dans les boîtes", {
+        frenchTypography: true,
+      });
+      buttonEl.appendChild(emptyEl);
+    }
+
+    trainerBattleSetupSlotsEl.appendChild(buttonEl);
+  }
+
+  if (familyConflictSlotIndex >= 0) {
+    trainerBattleSetupStatusEl.textContent = normalizeUiDisplayText(
+      `Conflit de famille détecté dans le slot ${familyConflictSlotIndex + 1}.`,
+      { frenchTypography: true },
+    );
+    trainerBattleSetupStatusEl.classList.add("is-error");
+    trainerBattleSetupStatusEl.classList.remove("is-ready");
+  } else if (selectionReady) {
+    trainerBattleSetupStatusEl.textContent = normalizeUiDisplayText(
+      "Équipe prête. Le combat utilisera seulement cette sélection temporaire.",
+      { frenchTypography: true },
+    );
+    trainerBattleSetupStatusEl.classList.add("is-ready");
+    trainerBattleSetupStatusEl.classList.remove("is-error");
+  } else {
+    trainerBattleSetupStatusEl.textContent = normalizeUiDisplayText(
+      `Sélection actuelle: ${validSelectionCount}/${teamSize}.`,
+      { frenchTypography: true },
+    );
+    trainerBattleSetupStatusEl.classList.remove("is-ready", "is-error");
+  }
+
+  trainerBattleSetupConfirmButtonEl.disabled = !selectionReady || !definition;
+  trainerBattleSetupConfirmButtonEl.setAttribute(
+    "aria-disabled",
+    trainerBattleSetupConfirmButtonEl.disabled ? "true" : "false",
+  );
 }
 
 function closeAppearanceModal() {
@@ -4031,6 +4396,10 @@ function closeAppearanceModal() {
 
 function openAppearanceForPokemon(pokemonId, options = {}) {
   if (!appearanceModalEl || !state.saveData) {
+    return false;
+  }
+  if (isTrainerBattleUiLocked()) {
+    setTopMessage("Impossible de changer l'apparence pendant un combat de dresseur.", 1800);
     return false;
   }
   if (!isAppearanceEditorUnlocked()) {
@@ -5842,6 +6211,9 @@ function setActiveRoute(routeId, options = {}) {
   }
   queueRoute1TutorialIfNeeded(routeData.route_id);
   refreshRouteUi();
+  if (typeof refreshZoneActionButtons === "function") {
+    refreshZoneActionButtons();
+  }
   tryOpenPendingTutorialFlow();
   ensureRouteAssetsLoaded(routeData);
   return true;
@@ -5986,6 +6358,8 @@ function tryUnlockNextRouteAfterDefeat(routeId) {
     closeBoxesModal,
     renderBoxesGrid,
     openBoxesForTeamSlot,
+    openBoxesForTrainerBattleSlot,
+    renderTrainerBattleSetupModal,
     closeAppearanceModal,
     openAppearanceForPokemon,
     renderAppearanceModal,

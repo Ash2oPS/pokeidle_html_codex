@@ -863,10 +863,15 @@ export function createPokemonBattleRuntime(deps = {}) {
     this.resetQueuedAttackState();
     this.lastImpact = null;
     this.lastTurnEvent = null;
+    let expirationResult = null;
     try {
-      this.onEnemyTimerExpired(expiredEnemy);
+      expirationResult = this.onEnemyTimerExpired(expiredEnemy) || null;
     } catch {
       // Ignore callback failures and continue the combat loop.
+    }
+    if (Boolean(expirationResult?.battle_finished)) {
+      this.resetEnemyTimer();
+      return;
     }
     this.spawnEnemy();
   }
@@ -1252,6 +1257,17 @@ export function createPokemonBattleRuntime(deps = {}) {
         captureResult = this.onEnemyDefeated(defeatedEnemy) || captureResult;
       } catch {
         captureResult = { captured: false, capture_attempted: false };
+      }
+      if (Boolean(captureResult?.battle_finished)) {
+        this.captureSequence = null;
+        this.pendingRespawnMs = 0;
+        this.koAnimMs = 0;
+        this.resetEnemyTimer();
+        this.clearProjectiles();
+        this.clearLasers();
+        this.resetCombatVisualTweens();
+        this.hitEffects = [];
+        return true;
       }
 
       const captured = Boolean(captureResult?.captured);

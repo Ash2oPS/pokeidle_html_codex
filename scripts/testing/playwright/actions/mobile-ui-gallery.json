@@ -4,16 +4,18 @@
       "waitForState": {
         "mode": "ready",
         "boot_phase": "ready",
-        "visual_ready": true,
-        "starter_modal_visible": true
+        "visual_ready": true
       },
       "waitStateTimeoutMs": 20000
     },
     {
+      "skipUnlessState": {
+        "starter_modal_visible": true
+      },
       "captureName": "starter-modal"
     },
     {
-      "clickSelector": "#starter-modal:not(.hidden) .starter-choice",
+      "clickSelectorIfVisible": "#starter-modal:not(.hidden) .starter-choice",
       "waitMs": 500
     },
     {
@@ -23,7 +25,6 @@
         },
         "starter_modal_visible": false,
         "visual_ready": true,
-        "route_id": "kanto_route_1",
         "route_nav_state.hasDestinations": true
       },
       "waitStateTimeoutMs": 15000
@@ -32,6 +33,19 @@
       "evaluate": {
         "expression": "window.__galleryInvokeBinding=async(name,...args)=>{const response=await window.__pokeidle_invoke_binding(name,...args);if(!response?.ok){throw new Error(response?.error||('binding-failed:'+name));}return response.result;};window.__galleryTryBinding=async(name,...args)=>{const response=await window.__pokeidle_invoke_binding(name,...args);return response?.ok?response.result:null;};window.__galleryOpenTeamContextMenu=async(slotIndex=0)=>{const snapshot=window.__pokeidle_get_binding_snapshot(['team']);const member=Array.isArray(snapshot.team)?snapshot.team[slotIndex]:null;if(!member){throw new Error('missing-team-member');}const x=Math.round(window.innerWidth*0.52);const y=Math.round(window.innerHeight*0.56);await window.__galleryInvokeBinding('openTeamContextMenu',slotIndex,member,x,y);};window.__galleryOpenBallCaptureMenu=async()=>{const snapshot=window.__pokeidle_get_binding_snapshot(['ballOverlayHitboxes']);const hitbox=Array.isArray(snapshot.ballOverlayHitboxes)?snapshot.ballOverlayHitboxes[0]:null;if(!hitbox){throw new Error('missing-ball-overlay-hitbox');}const ballType=hitbox.ballType||hitbox.type||'poke_ball';const centerX=Number(hitbox.centerX??(Number(hitbox.x||0)+Number(hitbox.width||0)/2));const centerY=Number(hitbox.centerY??(Number(hitbox.y||0)+Number(hitbox.height||0)/2));await window.__galleryInvokeBinding('openBallCaptureMenu',ballType,centerX,centerY);};window.__galleryShowLoadingScreen=(text='Chargement des interfaces zone UI...')=>{const screen=document.getElementById('loading-screen');const label=document.getElementById('loading-screen-text');if(screen){screen.classList.remove('hidden','is-exiting');screen.classList.add('is-visible');}if(label){label.textContent=text;}return true;};window.__galleryHideLoadingScreen=()=>{const screen=document.getElementById('loading-screen');if(screen){screen.classList.remove('is-visible','is-exiting');screen.classList.add('hidden');}return true;};window.__galleryDismissUpdateModal=()=>{const modal=document.getElementById('update-required-modal');if(modal){modal.classList.add('hidden');}document.body.classList.remove('update-required-active');return true;};window.__galleryCloseFloatingMenus=async()=>{await window.__galleryTryBinding('closeBallCaptureMenu');await window.__galleryTryBinding('closeTeamContextMenu');await window.__galleryTryBinding('hideHoverPopup');const teamMenu=document.getElementById('team-context-menu');if(teamMenu){teamMenu.classList.add('hidden');}const ballMenu=document.getElementById('ball-capture-menu');if(ballMenu){ballMenu.classList.add('hidden');}const hover=document.getElementById('hover-popup');if(hover){hover.classList.add('hidden');}return true;};window.__galleryShowTeamHoverPopup=()=>{const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';const state=raw?JSON.parse(raw):null;const member=Array.isArray(state?.team)?state.team[0]:null;const canvas=document.querySelector('canvas');if(!member||!canvas){throw new Error('missing-hover-target');}const rect=canvas.getBoundingClientRect();const clientX=rect.left+Number(member.x||0);const clientY=rect.top+Number(member.y||0);const event=new PointerEvent('pointermove',{bubbles:true,cancelable:true,composed:true,clientX,clientY,pointerType:'mouse',isPrimary:true,buttons:0});canvas.dispatchEvent(event);return {clientX,clientY};};window.__gallerySetNotificationVisibility=(visible)=>{const stack=document.getElementById('notification-stack');if(stack){stack.style.display=visible===false?'none':'';}return visible!==false;};return true;"
       }
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setActiveRoute','kanto_route_1');"
+      }
+    },
+    {
+      "waitForState": {
+        "visual_ready": true,
+        "route_id": "kanto_route_1",
+        "route_nav_state.hasDestinations": true
+      },
+      "waitStateTimeoutMs": 12000
     },
     {
       "waitForState": {
@@ -498,6 +512,45 @@
         "expression": "return window.__gallerySetNotificationVisibility(false);"
       },
       "waitMs": 250
+    },
+    {
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setActiveRoute','kanto_city_pewter_city');"
+      }
+    },
+    {
+      "waitForState": {
+        "route_id": "kanto_city_pewter_city",
+        "visual_ready": true
+      },
+      "waitStateTimeoutMs": 12000
+    },
+    {
+      "evaluate": {
+        "expression": "const readState=()=>{const raw=typeof window.render_game_to_text==='function'?window.render_game_to_text():'';return raw?JSON.parse(raw):{};};const wait=(ms)=>new Promise((resolve)=>window.setTimeout(resolve,ms));for(let attempt=0;attempt<12;attempt+=1){const state=readState();if(!state?.tutorial_open){await wait(250);if(!readState()?.tutorial_open){return true;}}await wait(150);await window.__galleryTryBinding('closeTutorialModal');const button=document.getElementById('tutorial-close-btn');if(button instanceof HTMLElement && !button.closest('.hidden')){button.click();}await wait(350);}const finalState=readState();throw new Error(`tutorial-still-open:${finalState?.tutorial_flow_id||'unknown'}`);"
+      }
+    },
+    {
+      "waitForSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
+      "waitMs": 500
+    },
+    {
+      "captureName": "pewter-trainer-action"
+    },
+    {
+      "clickSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
+      "waitMs": 300
+    },
+    {
+      "waitForSelector": "#trainer-battle-setup-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "captureName": "trainer-battle-setup"
+    },
+    {
+      "clickSelectorIfVisible": "#trainer-battle-setup-close-btn",
+      "waitMs": 300
     },
     {
       "evaluate": {
