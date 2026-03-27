@@ -7,6 +7,7 @@ import { JSDOM } from "jsdom";
 import {
   BOOT_VENDOR_SCRIPTS,
   DEFAULT_MAINTENANCE_MESSAGE,
+  DEFAULT_MAINTENANCE_TIMEZONE,
   bootstrapGame,
   loadBootVendorScripts,
   loadMaintenanceConfig,
@@ -46,16 +47,77 @@ test("sanitizeMaintenanceConfig normalizes invalid and custom values", () => {
   });
   assert.deepEqual(fallbackConfig, {
     enabled: false,
+    alwaysOn: false,
     message: DEFAULT_MAINTENANCE_MESSAGE,
+    timezone: DEFAULT_MAINTENANCE_TIMEZONE,
+    scheduleConfigured: false,
+    scheduleValid: true,
+    weeklyWindows: [],
   });
 
   const customConfig = sanitizeMaintenanceConfig({
     enabled: true,
+    alwaysOn: true,
     message: "  Maintenance custom\nMerci de patienter.  ",
+    timezone: "Europe/Paris",
+    weeklyWindows: [
+      {
+        daysOfWeek: ["Monday", "monday", "wed"],
+        startTimeLocal: "09:00",
+        endTimeLocal: "17:59",
+      },
+      {
+        daysOfWeek: ["friday"],
+        startTimeLocal: "18:00",
+        endTimeLocal: "17:59",
+      },
+    ],
   });
   assert.deepEqual(customConfig, {
     enabled: true,
+    alwaysOn: true,
     message: "Maintenance custom\nMerci de patienter.",
+    timezone: "Europe/Paris",
+    scheduleConfigured: true,
+    scheduleValid: true,
+    weeklyWindows: [
+      {
+        daysOfWeek: ["monday", "wednesday"],
+        startTimeLocal: "09:00",
+        endTimeLocal: "17:59",
+        startMinuteOfDay: 540,
+        endMinuteOfDay: 1079,
+      },
+    ],
+  });
+
+  const invalidScheduleConfig = sanitizeMaintenanceConfig({
+    enabled: true,
+    timezone: "Mars/Olympus",
+    weeklyWindows: [
+      {
+        daysOfWeek: ["monday"],
+        startTimeLocal: "09:00",
+        endTimeLocal: "17:59",
+      },
+    ],
+  });
+  assert.deepEqual(invalidScheduleConfig, {
+    enabled: true,
+    alwaysOn: false,
+    message: DEFAULT_MAINTENANCE_MESSAGE,
+    timezone: "Mars/Olympus",
+    scheduleConfigured: true,
+    scheduleValid: false,
+    weeklyWindows: [
+      {
+        daysOfWeek: ["monday"],
+        startTimeLocal: "09:00",
+        endTimeLocal: "17:59",
+        startMinuteOfDay: 540,
+        endMinuteOfDay: 1079,
+      },
+    ],
   });
 });
 
@@ -70,7 +132,12 @@ test("loadMaintenanceConfig fails open when maintenance-config.js cannot be load
 
   assert.deepEqual(config, {
     enabled: false,
+    alwaysOn: false,
     message: DEFAULT_MAINTENANCE_MESSAGE,
+    timezone: DEFAULT_MAINTENANCE_TIMEZONE,
+    scheduleConfigured: false,
+    scheduleValid: true,
+    weeklyWindows: [],
   });
   assert.equal(warnings.length, 1);
   assert.match(String(warnings[0][0]), /\[maintenance\]/);
@@ -81,6 +148,69 @@ test("shouldShowMaintenanceScreen stays prod-only and supports local preview", (
     locationLike: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
     config: sanitizeMaintenanceConfig({ enabled: true }),
   }), true);
+
+  assert.equal(shouldShowMaintenanceScreen({
+    locationLike: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    nowDate: new Date("2026-03-23T08:30:00.000Z"),
+    config: sanitizeMaintenanceConfig({
+      enabled: true,
+      timezone: "Europe/Paris",
+      weeklyWindows: [
+        {
+          daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+          startTimeLocal: "09:00",
+          endTimeLocal: "17:59",
+        },
+      ],
+    }),
+  }), true);
+
+  assert.equal(shouldShowMaintenanceScreen({
+    locationLike: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    nowDate: new Date("2026-03-23T18:00:00.000Z"),
+    config: sanitizeMaintenanceConfig({
+      enabled: true,
+      timezone: "Europe/Paris",
+      weeklyWindows: [
+        {
+          daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+          startTimeLocal: "09:00",
+          endTimeLocal: "17:59",
+        },
+      ],
+    }),
+  }), false);
+
+  assert.equal(shouldShowMaintenanceScreen({
+    locationLike: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    nowDate: new Date("2026-03-28T08:30:00.000Z"),
+    config: sanitizeMaintenanceConfig({
+      enabled: true,
+      timezone: "Europe/Paris",
+      weeklyWindows: [
+        {
+          daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+          startTimeLocal: "09:00",
+          endTimeLocal: "17:59",
+        },
+      ],
+    }),
+  }), false);
+
+  assert.equal(shouldShowMaintenanceScreen({
+    locationLike: new URL("https://ash2ops.github.io/pokeidle_html_codex/"),
+    config: sanitizeMaintenanceConfig({
+      enabled: true,
+      timezone: "Mars/Olympus",
+      weeklyWindows: [
+        {
+          daysOfWeek: ["monday"],
+          startTimeLocal: "09:00",
+          endTimeLocal: "17:59",
+        },
+      ],
+    }),
+  }), false);
 
   assert.equal(shouldShowMaintenanceScreen({
     locationLike: new URL("https://example.com/pokeidle/"),
@@ -198,6 +328,7 @@ test("bootstrapGame stops before vendors/runtime when production maintenance is 
       MAINTENANCE_CONFIG: {
         enabled: true,
         message: maintenanceMessage,
+        alwaysOn: true,
       },
     }),
     scriptLoader: async (scriptPath) => {
@@ -238,6 +369,7 @@ test("bootstrapGame ignores enabled maintenance in local/dev and still boots run
     maintenanceConfigImporter: async () => ({
       MAINTENANCE_CONFIG: {
         enabled: true,
+        alwaysOn: true,
         message: "Ne devrait jamais bloquer le local.",
       },
     }),
@@ -287,6 +419,7 @@ test("bootstrapGame waits for the offline service worker before booting runtime 
     maintenanceConfigImporter: async () => ({
       MAINTENANCE_CONFIG: {
         enabled: false,
+        alwaysOn: false,
         message: "",
       },
     }),
@@ -314,6 +447,7 @@ test("bootstrapGame supports local maintenance preview without enabling runtime"
     maintenanceConfigImporter: async () => ({
       MAINTENANCE_CONFIG: {
         enabled: false,
+        alwaysOn: false,
         message: "",
       },
     }),
@@ -330,6 +464,65 @@ test("bootstrapGame supports local maintenance preview without enabling runtime"
   assert.deepEqual(loadedScripts, []);
   assert.equal(runtimeLoadCount, 0);
   assert.equal(dom.window.document.getElementById("loading-screen-text").textContent, DEFAULT_MAINTENANCE_MESSAGE);
+});
+
+test("bootstrapGame blocks production only during configured weekly maintenance windows", async () => {
+  const maintenanceDom = createBootDom("https://ash2ops.github.io/pokeidle_html_codex/");
+  const maintenanceResult = await bootstrapGame({
+    windowRef: maintenanceDom.window,
+    documentRef: maintenanceDom.window.document,
+    maintenanceConfigImporter: async () => ({
+      MAINTENANCE_CONFIG: {
+        enabled: true,
+        timezone: "Europe/Paris",
+        weeklyWindows: [
+          {
+            daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            startTimeLocal: "09:00",
+            endTimeLocal: "17:59",
+          },
+        ],
+      },
+    }),
+    runtimeModuleImporter: async () => {
+      throw new Error("runtime should stay blocked during scheduled maintenance");
+    },
+    nowDate: new Date("2026-03-23T08:30:00.000Z"),
+  });
+
+  assert.equal(maintenanceResult.mode, "maintenance");
+
+  const runtimeDom = createBootDom("https://ash2ops.github.io/pokeidle_html_codex/");
+  const loadedScripts = [];
+  let runtimeLoadCount = 0;
+  const runtimeResult = await bootstrapGame({
+    windowRef: runtimeDom.window,
+    documentRef: runtimeDom.window.document,
+    maintenanceConfigImporter: async () => ({
+      MAINTENANCE_CONFIG: {
+        enabled: true,
+        timezone: "Europe/Paris",
+        weeklyWindows: [
+          {
+            daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            startTimeLocal: "09:00",
+            endTimeLocal: "17:59",
+          },
+        ],
+      },
+    }),
+    scriptLoader: async (scriptPath) => {
+      loadedScripts.push(scriptPath);
+    },
+    runtimeModuleImporter: async () => {
+      runtimeLoadCount += 1;
+    },
+    nowDate: new Date("2026-03-28T10:00:00.000Z"),
+  });
+
+  assert.equal(runtimeResult.mode, "runtime");
+  assert.deepEqual(loadedScripts, BOOT_VENDOR_SCRIPTS);
+  assert.equal(runtimeLoadCount, 1);
 });
 
 test("game.js boots through the maintenance bootstrap instead of importing game-runtime directly", () => {

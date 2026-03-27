@@ -28,6 +28,7 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - styles dans `styles.css`
 - Maintenance mode:
   - bootstrap web + `maintenance-config.js`
+  - schedule hebdo et timezone definies dans `maintenance-config.js`
 
 ### Quand s'arreter et reconsiderer
 
@@ -99,7 +100,8 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 3. Garde le comportement prod-only GitHub Pages.
 4. Garde le preview QA uniquement via `?previewMaintenance=1` hors prod.
 5. Preserve le fail-open en cas de config absente, invalide ou illisible.
-6. Relis les captures desktop et mobile portrait de l'ecran obtenu.
+6. Si une schedule est ajoutee, garde une timezone explicite et des tests sur dans/hors creneau.
+7. Relis les captures desktop et mobile portrait de l'ecran obtenu.
 
 ### Faire une migration ou remplacer un flow
 
