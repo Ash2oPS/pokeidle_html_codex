@@ -7514,3 +7514,14 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile route drawer: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
   - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
   - mobile fullscreen menu: `output/ui-state-gallery/mobile-portrait/menu.png`
+
+## 2026-03-30 - Mobile team context gallery uses real canvas long-press
+
+- Removed the last mobile gallery shortcut that still opened the team context menu through a direct runtime binding.
+  - `scripts/testing/playwright/actions/mobile-ui-gallery.json` now simulates a touch-like `pointerdown` hold on the canvas team slot, waits past the runtime touch-hold delay, then releases with `pointerup`.
+  - This keeps the gallery aligned with the real canvas-first mobile interaction path instead of bypassing it with `openTeamContextMenu(...)`.
+- Validation:
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+  - mobile hover popup: `output/ui-state-gallery/mobile-portrait/hover-popup.png`
