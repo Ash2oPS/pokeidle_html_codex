@@ -1192,6 +1192,18 @@ function getElementClientHeight(element) {
   return Math.max(0, Number(rect?.height) || 0);
 }
 
+function getRootCssPixelValue(name) {
+  if (!name || !document?.documentElement || typeof window?.getComputedStyle !== "function") {
+    return 0;
+  }
+  const value = window.getComputedStyle(document.documentElement).getPropertyValue(name);
+  return Math.max(0, parseFloat(value || "0") || 0);
+}
+
+function getRuntimeShellMetricHeight(element, cssVariableName) {
+  return getRootCssPixelValue(cssVariableName) || getElementClientHeight(element);
+}
+
 function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY }) {
   const positions = [];
   if (count <= 0) {
@@ -1312,10 +1324,10 @@ function computeLayout() {
   const profile = getBattleViewportProfile(width, height);
   const overlayPadding = getOverlayPaddingSnapshot();
   const topHudHeight =
-    getElementClientHeight(uiTopbarEl)
+    getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px")
     || clamp(height * (profile.phone ? 0.17 : profile.compact ? 0.13 : 0.1), 54, profile.phone ? 122 : 92);
   const bottomHudHeight =
-    getElementClientHeight(actionDockEl)
+    getRuntimeShellMetricHeight(actionDockEl, "--ui-runtime-dock-height-px")
     || clamp(height * (profile.phone ? 0.1 : profile.compact ? 0.085 : 0.072), 44, profile.phone ? 74 : 64);
 
   let safeTop = overlayPadding.top + topHudHeight + (profile.phone ? 8 : profile.compact ? 12 : 14);
@@ -3506,7 +3518,7 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
     ? clamp(state.viewport.height * 0.01, 8, 12)
     : clamp(state.viewport.height * 0.012, 10, 18);
   const overlayPaddingTop = getOverlayPaddingSnapshot().top;
-  const topHudHeight = getElementClientHeight(uiTopbarEl);
+  const topHudHeight = getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px");
   const hudAnchorY = overlayPaddingTop + topHudHeight + (compactHud ? 2 : 4);
   const yFromSafeBounds = Number.isFinite(safeTop)
     ? safeTop + verticalOffset
@@ -6755,7 +6767,7 @@ function drawBallInventoryOverlay(layout) {
   const overlayPadding = getOverlayPaddingSnapshot();
   const overlayPaddingLeft = overlayPadding.left;
   const overlayPaddingTop = overlayPadding.top;
-  const topHudHeight = getElementClientHeight(uiTopbarEl);
+  const topHudHeight = getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px");
   const panelXDefault = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
   const panelXPhoneAligned = clamp(overlayPaddingLeft, 6, state.viewport.width - panelWidth - 6);
   const panelX = isPhone ? panelXPhoneAligned : panelXDefault;

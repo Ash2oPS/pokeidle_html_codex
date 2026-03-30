@@ -775,6 +775,30 @@ function setUiDesignCssVariable(target, name, value, unit = "px") {
   target.style.setProperty(name, `${numeric}${unit}`);
 }
 
+const RUNTIME_UI_TOPBAR_HEIGHT_CSS_VAR = "--ui-runtime-topbar-height-px";
+const RUNTIME_UI_DOCK_HEIGHT_CSS_VAR = "--ui-runtime-dock-height-px";
+
+function getElementMeasuredHeightPx(element) {
+  if (!(element instanceof Element)) {
+    return 0;
+  }
+  const rect = element.getBoundingClientRect?.();
+  return Math.max(0, Number(rect?.height) || Number(element.offsetHeight) || 0);
+}
+
+function applyRuntimeShellMetricCssVariables(rootTargets = [], metrics = {}) {
+  const uniqueTargets = [...new Set(rootTargets.filter((target) => target?.style?.setProperty))];
+  if (uniqueTargets.length <= 0) {
+    return;
+  }
+  const topbarHeightPx = Math.max(0, Number(metrics.topbarHeightPx) || 0);
+  const dockHeightPx = Math.max(0, Number(metrics.dockHeightPx) || 0);
+  for (const target of uniqueTargets) {
+    setUiDesignCssVariable(target, RUNTIME_UI_TOPBAR_HEIGHT_CSS_VAR, topbarHeightPx);
+    setUiDesignCssVariable(target, RUNTIME_UI_DOCK_HEIGHT_CSS_VAR, dockHeightPx);
+  }
+}
+
 function applyRuntimeUiDesignTokens(rootTargets = []) {
   const uniqueTargets = [...new Set(rootTargets.filter((target) => target?.style?.setProperty))];
   if (uniqueTargets.length <= 0) {
@@ -903,6 +927,8 @@ let evolutionItemChoiceResolver = null;
 let evolutionItemChoiceStoneType = "";
 let evolutionItemChoiceCandidates = [];
 let loadingScreenHideTimerId = 0;
+let runtimeShellMetricsResizeObserver = null;
+let runtimeShellMetricsCacheKey = "";
 const DIALOGUE_DATA_DIR = "map_data/dialogues";
 const TRAINER_BATTLE_SOURCE_ROUTE_WILD = "route_wild";
 const TRAINER_BATTLE_SOURCE_TRAINER = "trainer_battle";
@@ -12853,6 +12879,42 @@ function syncCaptureRootLayoutMode(layout = state.layout) {
   captureRootEl.dataset.layoutMode = layoutMode;
 }
 
+function syncRuntimeShellMetrics(options = {}) {
+  const topbarHeightPx = getElementMeasuredHeightPx(uiTopbarEl);
+  const dockHeightPx = getElementMeasuredHeightPx(actionDockEl);
+  const nextCacheKey = `${topbarHeightPx}:${dockHeightPx}`;
+  if (options?.force !== true && nextCacheKey === runtimeShellMetricsCacheKey) {
+    return false;
+  }
+  runtimeShellMetricsCacheKey = nextCacheKey;
+  applyRuntimeShellMetricCssVariables([document.documentElement, captureRootEl], {
+    topbarHeightPx,
+    dockHeightPx,
+  });
+  if (options?.refreshLayout === false) {
+    return true;
+  }
+  refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
+  refreshZoneActionButtons();
+  render();
+  return true;
+}
+
+function ensureRuntimeShellMetricsObserver() {
+  if (runtimeShellMetricsResizeObserver || typeof ResizeObserver !== "function") {
+    return;
+  }
+  runtimeShellMetricsResizeObserver = new ResizeObserver(() => {
+    syncRuntimeShellMetrics();
+  });
+  if (uiTopbarEl instanceof Element) {
+    runtimeShellMetricsResizeObserver.observe(uiTopbarEl);
+  }
+  if (actionDockEl instanceof Element) {
+    runtimeShellMetricsResizeObserver.observe(actionDockEl);
+  }
+}
+
 function projectWorldToRuntimeStage(worldX, worldY, options = {}) {
   const layout = options?.layout || state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   return projectWorldToStage({
@@ -13222,6 +13284,7 @@ function resizeCanvas() {
     baseRenderScale: renderScale,
     laserCrowdRenderScalePenalty: 0,
   };
+  syncRuntimeShellMetrics({ force: true, refreshLayout: false });
   refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   refreshZoneActionButtons();
   render();
@@ -13613,6 +13676,7 @@ state.devLayout.settings = createDefaultDevLayoutSettings();
 
 applyInitialPerformanceProfile();
 resizeCanvas();
+ensureRuntimeShellMetricsObserver();
 state.realClockLastMs = Date.now();
 state.lastSimulationPumpAtMs = state.realClockLastMs;
 applyRuntimeActivityTransition("bootstrap");
@@ -13623,7 +13687,7 @@ function bootstrapRuntimeStartup() {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
   initializeScene();
-  refreshZoneActionButtons();
+  syncRuntimeShellMetrics();
   queueArrivalDialoguesForRoute(state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
   ensureDesktopRuntimeWatchdog();
   if (shouldRunBackgroundTicker()) {

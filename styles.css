@@ -11911,6 +11911,8 @@ body.update-required-active {
   --ui-mobile-side-inset-px: 12px;
   --ui-mobile-bottom-offset-px: 12px;
   --ui-mobile-quick-card-height-px: 148px;
+  --ui-runtime-topbar-height-px: 110px;
+  --ui-runtime-dock-height-px: 92px;
 }
 
 .currency-pill-mobile-label {
@@ -12077,10 +12079,24 @@ body.update-required-active {
   position: fixed !important;
   left: 50% !important;
   top: auto !important;
-  bottom: calc(var(--context-sheet-bottom-offset-px, var(--ui-mobile-bottom-offset-px, 12px)) + env(safe-area-inset-bottom));
+  bottom: calc(
+    var(--ui-runtime-dock-height-px, 92px)
+    + var(--context-sheet-bottom-offset-px, var(--ui-mobile-bottom-offset-px, 12px))
+    + env(safe-area-inset-bottom)
+  );
   width: min(var(--context-sheet-max-width, 360px), calc(100vw - (max(var(--ui-mobile-side-inset-px, 12px), env(safe-area-inset-left)) * 2)));
   max-width: calc(100vw - (max(var(--ui-mobile-side-inset-px, 12px), env(safe-area-inset-left)) * 2));
-  max-height: min(78svh, calc(100dvh - 110px - env(safe-area-inset-bottom)));
+  max-height: min(
+    78svh,
+    calc(
+      100dvh
+      - var(--ui-runtime-topbar-height-px, 110px)
+      - var(--ui-runtime-dock-height-px, 92px)
+      - env(safe-area-inset-top)
+      - env(safe-area-inset-bottom)
+      - 24px
+    )
+  );
   transform: translateX(-50%);
   border-radius: 22px;
   pointer-events: auto;
@@ -12304,7 +12320,11 @@ body.update-required-active {
   .notification-stack {
     right: auto;
     left: 50%;
-    bottom: calc(92px + env(safe-area-inset-bottom) + var(--ui-notification-mobile-bottom-offset-px, 12px));
+    bottom: calc(
+      var(--ui-runtime-dock-height-px, 92px)
+      + env(safe-area-inset-bottom)
+      + var(--ui-notification-mobile-bottom-offset-px, 12px)
+    );
     width: calc(100vw - 24px);
     transform: translateX(-50%);
   }
@@ -12318,7 +12338,7 @@ body.update-required-active {
     padding:
       max(16px, env(safe-area-inset-top))
       max(var(--ui-modal-mobile-side-inset-px, 12px), env(safe-area-inset-right))
-      max(116px, calc(env(safe-area-inset-bottom) + 92px))
+      calc(env(safe-area-inset-bottom) + var(--ui-runtime-dock-height-px, 92px) + 24px)
       max(var(--ui-modal-mobile-side-inset-px, 12px), env(safe-area-inset-left));
   }
 

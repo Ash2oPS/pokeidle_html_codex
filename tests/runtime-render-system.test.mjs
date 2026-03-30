@@ -16,6 +16,7 @@ const __dirname = path.dirname(__filename);
 const runtimeRenderSystemPath = path.resolve(__dirname, "../systems/ui/runtime-render-system.js");
 const gameRuntimePath = path.resolve(__dirname, "../game-runtime.js");
 const gameplayUiConfigPath = path.resolve(__dirname, "../lib/gameplay-ui-config.js");
+const stylesPath = path.resolve(__dirname, "../styles.css");
 
 function createRenderSystem(overrides = {}) {
   return createRuntimeRenderSystem({
@@ -348,6 +349,23 @@ test("pokemon sprite render sizing follows source pixels instead of pokemon data
   assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_DATA_SPRITE_SCALE_MAX/);
   assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MIN/);
   assert.doesNotMatch(gameplayUiConfigSource, /POKEMON_SPRITE_COMMON_PPU_MULTIPLIER_MAX/);
+});
+
+test("runtime shell metrics stay synchronized between CSS overlays and canvas layout", () => {
+  const renderSource = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+  const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
+  const stylesSource = fs.readFileSync(stylesPath, "utf8");
+
+  assert.match(renderSource, /function getRuntimeShellMetricHeight\(/);
+  assert.match(renderSource, /--ui-runtime-topbar-height-px/);
+  assert.match(renderSource, /--ui-runtime-dock-height-px/);
+  assert.match(gameRuntimeSource, /function syncRuntimeShellMetrics\(/);
+  assert.match(gameRuntimeSource, /function ensureRuntimeShellMetricsObserver\(/);
+  assert.match(gameRuntimeSource, /new ResizeObserver\(/);
+  assert.match(stylesSource, /--ui-runtime-topbar-height-px:\s*110px;/);
+  assert.match(stylesSource, /--ui-runtime-dock-height-px:\s*92px;/);
+  assert.match(stylesSource, /bottom:\s*calc\(\s*var\(--ui-runtime-dock-height-px,\s*92px\)/);
+  assert.match(stylesSource, /max-height:\s*min\(\s*78svh,\s*calc\(\s*100dvh\s*-\s*var\(--ui-runtime-topbar-height-px,\s*110px\)/s);
 });
 
 test("computeSpriteOpaqueDrawPlacement preserves uniform pixel density when render size follows source ppu", () => {
