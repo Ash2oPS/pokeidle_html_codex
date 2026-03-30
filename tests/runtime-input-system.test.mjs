@@ -632,6 +632,114 @@ test("pointerdown inside the route nav drawer keeps drawer and info open", () =>
   fixture.cleanup();
 });
 
+test("pointerdown on canvas-owned runtime overlays does not dismiss open team or ball menus", () => {
+  const dom = new JSDOM(`
+    <!doctype html>
+    <html>
+      <body>
+        <canvas id="canvas"></canvas>
+        <div id="team-context-menu"></div>
+        <div id="ball-capture-menu"></div>
+      </body>
+    </html>
+  `, { pretendToBeVisual: true });
+  const previousElement = globalThis.Element;
+  const previousHTMLElement = globalThis.HTMLElement;
+  globalThis.Element = dom.window.Element;
+  globalThis.HTMLElement = dom.window.HTMLElement;
+
+  const documentRef = dom.window.document;
+  const windowRef = dom.window;
+  const canvas = documentRef.getElementById("canvas");
+  canvas.getBoundingClientRect = () => ({
+    left: 0,
+    top: 0,
+    width: 320,
+    height: 200,
+    right: 320,
+    bottom: 200,
+  });
+
+  const teamContextMenuEl = documentRef.getElementById("team-context-menu");
+  const ballCaptureMenuEl = documentRef.getElementById("ball-capture-menu");
+  const calls = [];
+  const state = {
+    viewport: { width: 320, height: 200 },
+    ui: {
+      routeNavDrawerOpen: false,
+      routeNavInfoRouteId: null,
+      mapOpen: false,
+      tutorialOpen: false,
+      dialogueOpen: false,
+      shopOpen: false,
+      gachaOpen: false,
+      appearanceOpen: false,
+      pokedexOpen: false,
+      boxesOpen: false,
+      renameOpen: false,
+      ballCaptureMenuOpen: true,
+      teamContextMenuOpen: true,
+      evolutionItemChoiceOpen: false,
+      teamDragActive: false,
+      teamDragMoved: false,
+      canvasOverlayActionHitboxes: [
+        { x: 24, y: 24, width: 160, height: 92, interactive: true },
+      ],
+    },
+    tutorial: {
+      active: null,
+    },
+  };
+
+  const system = createRuntimeInputSystem({
+    documentRef,
+    windowRef,
+    canvas,
+    state,
+    constants: {
+      TEAM_DRAG_CLICK_SUPPRESS_MS: 80,
+      MAX_TEAM_SIZE: 6,
+    },
+    elements: {
+      teamContextMenuEl,
+      ballCaptureMenuEl,
+    },
+    actions: {
+      clearTeamDragState() {},
+      clearCanvasHoverState() {},
+      render() {},
+      handleRuntimeLifecycleSignal() {},
+      closeTeamContextMenu() {
+        calls.push("team");
+        state.ui.teamContextMenuOpen = false;
+      },
+      closeBallCaptureMenu() {
+        calls.push("ball");
+        state.ui.ballCaptureMenuOpen = false;
+      },
+      toggleFullscreen() {
+        return Promise.resolve();
+      },
+    },
+  });
+
+  system.init();
+  canvas.dispatchEvent(new dom.window.MouseEvent("pointerdown", {
+    bubbles: true,
+    clientX: 80,
+    clientY: 60,
+  }));
+
+  assert.deepEqual(calls, []);
+  assert.equal(state.ui.teamContextMenuOpen, true);
+  assert.equal(state.ui.ballCaptureMenuOpen, true);
+
+  system.dispose();
+  globalThis.Element = previousElement;
+  globalThis.HTMLElement = previousHTMLElement;
+  dom.window.close();
+});
+
 test("onboarding pulse is shown until the route header is opened once", () => {
   const fixture = createDomOnboardingFixture();
   const routeButton = fixture.documentRef.getElementById("route-nav-drawer-toggle");

@@ -6889,6 +6889,588 @@ function drawBallInventoryOverlay(layout) {
   ctx.restore();
 }
 
+function getCanvasRuntimeOverlayBounds(layout) {
+  const safeBounds = layout?.safeBounds || {};
+  return {
+    left: clamp(Number(safeBounds.left) || 8, 8, Math.max(8, state.viewport.width - 24)),
+    top: clamp(Number(safeBounds.top) || 8, 8, Math.max(8, state.viewport.height - 24)),
+    right: clamp(Number(safeBounds.right) || (state.viewport.width - 8), 24, state.viewport.width - 8),
+    bottom: clamp(Number(safeBounds.bottom) || (state.viewport.height - 8), 24, state.viewport.height - 8),
+  };
+}
+
+function resolveCanvasRuntimeOverlayRect(anchorX, anchorY, width, height, layout, options = {}) {
+  const bounds = getCanvasRuntimeOverlayBounds(layout);
+  const safeWidth = clamp(Number(width) || 0, 120, Math.max(120, bounds.right - bounds.left));
+  const safeHeight = clamp(Number(height) || 0, 60, Math.max(60, bounds.bottom - bounds.top));
+  const offsetX = Number(options.offsetX || 0);
+  const offsetY = Number(options.offsetY || 0);
+  const margin = Math.max(8, Number(options.margin || 12));
+  const minLeft = bounds.left;
+  const maxLeft = Math.max(minLeft, bounds.right - safeWidth);
+  const minTop = bounds.top;
+  const maxTop = Math.max(minTop, bounds.bottom - safeHeight);
+
+  let left = Number(anchorX || 0) + offsetX;
+  let top = Number(anchorY || 0) + offsetY;
+  if (left + safeWidth + margin > bounds.right) {
+    left = Number(anchorX || 0) - safeWidth - Math.max(10, Math.abs(offsetX));
+  }
+  if (top + safeHeight + margin > bounds.bottom) {
+    top = Number(anchorY || 0) - safeHeight - Math.max(10, Math.abs(offsetY));
+  }
+
+  return {
+    x: clamp(left, minLeft, maxLeft),
+    y: clamp(top, minTop, maxTop),
+    width: safeWidth,
+    height: safeHeight,
+  };
+}
+
+function drawCanvasRuntimeOverlayText(text, x, y, options = {}) {
+  const value = String(text || "");
+  if (!value) {
+    return;
+  }
+  const fontSize = Math.max(9, Number(options.fontSize) || 12);
+  const weight = String(options.weight || "700");
+  const fillStyle = String(options.fillStyle || ZONE_UI_CANVAS_THEME.panel.text);
+  const strokeStyle = String(options.strokeStyle || "rgba(7, 14, 22, 0.84)");
+  ctx.save();
+  ctx.font = `${weight} ${fontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  ctx.textAlign = String(options.textAlign || "left");
+  ctx.textBaseline = String(options.textBaseline || "top");
+  ctx.lineWidth = Number(options.lineWidth || 2.6);
+  ctx.strokeStyle = strokeStyle;
+  ctx.fillStyle = fillStyle;
+  ctx.strokeText(value, x, y);
+  ctx.fillText(value, x, y);
+  ctx.restore();
+}
+
+function drawCanvasRuntimeOverlayPill(x, y, width, height, label, options = {}) {
+  const fillTop = String(options.fillTop || ZONE_UI_CANVAS_THEME.subpanel.fillTop);
+  const fillBottom = String(options.fillBottom || ZONE_UI_CANVAS_THEME.subpanel.fillBottom);
+  const border = String(options.border || ZONE_UI_CANVAS_THEME.subpanel.border);
+  drawRetroHudPanel(x, y, width, height, {
+    cut: 8,
+    fillTop,
+    fillMid: fillTop,
+    fillBottom,
+    border,
+    highlight: "rgba(255, 255, 255, 0.2)",
+    shadow: "rgba(0, 0, 0, 0.26)",
+    borderWidth: 1.15,
+    pill: true,
+    radius: height * 0.5,
+  });
+  drawCanvasRuntimeOverlayText(label, x + width * 0.5, y + height * 0.5, {
+    fontSize: Math.max(9, Math.round(height * 0.42)),
+    textAlign: "center",
+    textBaseline: "middle",
+    fillStyle: String(options.textFill || ZONE_UI_CANVAS_THEME.panel.text),
+    strokeStyle: "rgba(8, 16, 24, 0.84)",
+    lineWidth: 2.2,
+  });
+}
+
+function drawCanvasRuntimeHoverPopup(layout) {
+  const model = state.ui.canvasHoverPopupModel;
+  if (!model || layout?.viewportProfile?.phone) {
+    return;
+  }
+  const badges = Array.isArray(model.badges) ? model.badges : [];
+  const metrics = Array.isArray(model.metrics) ? model.metrics.slice(0, 6) : [];
+  const progress = Array.isArray(model.progress) ? model.progress.slice(0, 3) : [];
+  const width = clamp(state.viewport.width * 0.28, 276, 332);
+  const headerHeight = 54;
+  const badgeHeight = badges.length > 0 ? 28 : 0;
+  const calloutHeight = 58 + (model.passiveDescription ? 18 : 0);
+  const typeHeight = model.typeSummaryText ? 26 : 0;
+  const metricRows = Math.max(1, Math.ceil(metrics.length / 2));
+  const metricsHeight = metricRows * 48 + Math.max(0, metricRows - 1) * 8;
+  const progressHeight = progress.length > 0 ? 58 : 0;
+  const height = headerHeight + badgeHeight + calloutHeight + typeHeight + metricsHeight + progressHeight + 38;
+  const rect = resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
+    offsetX: 16,
+    offsetY: -20,
+  });
+
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: 12,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.5,
+  });
+
+  const contentX = rect.x + 14;
+  const contentWidth = rect.width - 28;
+  let cursorY = rect.y + 12;
+  ctx.save();
+  ctx.font = `800 16px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  const titleText = fitTextToWidthWithEllipsis(model.title, contentWidth - 8);
+  ctx.restore();
+  drawCanvasRuntimeOverlayText(titleText, contentX, cursorY, { fontSize: 16, weight: "800" });
+  cursorY += 20;
+  if (model.subtitle) {
+    ctx.save();
+    ctx.font = `700 11px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const subtitleText = fitTextToWidthWithEllipsis(model.subtitle, contentWidth);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(subtitleText, contentX, cursorY, {
+      fontSize: 11,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(8, 16, 24, 0.76)",
+    });
+    cursorY += 18;
+  }
+
+  if (badges.length > 0) {
+    let pillX = contentX;
+    for (const badge of badges.slice(0, 3)) {
+      ctx.save();
+      ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const badgeText = fitTextToWidthWithEllipsis(badge, 88);
+      const pillWidth = Math.max(56, Math.min(96, Math.ceil(ctx.measureText(badgeText).width) + 18));
+      ctx.restore();
+      drawCanvasRuntimeOverlayPill(pillX, cursorY, pillWidth, 22, badgeText, {
+        fillTop: "rgba(38, 57, 79, 0.96)",
+        fillBottom: "rgba(25, 39, 56, 0.96)",
+      });
+      pillX += pillWidth + 8;
+    }
+    cursorY += 30;
+  }
+
+  drawRetroHudPanel(contentX, cursorY, contentWidth, calloutHeight, {
+    cut: 10,
+    fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: "rgba(0, 0, 0, 0.2)",
+    borderWidth: 1.2,
+  });
+  drawCanvasRuntimeOverlayText("Talent", contentX + 10, cursorY + 8, {
+    fontSize: 10,
+    fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+    strokeStyle: "rgba(8, 16, 24, 0.72)",
+  });
+  if (model.passivePill) {
+    ctx.save();
+    ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const pillText = fitTextToWidthWithEllipsis(model.passivePill, 96);
+    const pillWidth = Math.max(62, Math.min(108, Math.ceil(ctx.measureText(pillText).width) + 18));
+    ctx.restore();
+    drawCanvasRuntimeOverlayPill(contentX + contentWidth - pillWidth - 10, cursorY + 6, pillWidth, 22, pillText, {
+      fillTop: "rgba(64, 121, 255, 0.96)",
+      fillBottom: "rgba(41, 83, 180, 0.96)",
+      border: "rgba(180, 215, 255, 0.8)",
+    });
+  }
+  drawCanvasRuntimeOverlayText(model.passiveLabel, contentX + 10, cursorY + 28, {
+    fontSize: 12,
+    weight: "800",
+  });
+  if (model.passiveDescription) {
+    ctx.save();
+    ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const passiveDescription = fitTextToWidthWithEllipsis(model.passiveDescription, contentWidth - 20);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(passiveDescription, contentX + 10, cursorY + 44, {
+      fontSize: 10,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(8, 16, 24, 0.72)",
+    });
+  }
+  cursorY += calloutHeight + 10;
+
+  if (model.typeSummaryText) {
+    drawCanvasRuntimeOverlayText(model.typeSummaryText, contentX, cursorY, {
+      fontSize: 11,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(8, 16, 24, 0.74)",
+    });
+    cursorY += 26;
+  }
+
+  const metricWidth = Math.floor((contentWidth - 8) / 2);
+  for (let index = 0; index < metrics.length; index += 1) {
+    const metric = metrics[index];
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const boxX = contentX + column * (metricWidth + 8);
+    const boxY = cursorY + row * 56;
+    const tone = String(metric.tone || "");
+    const accentFillTop = tone === "accent"
+      ? "rgba(63, 118, 220, 0.96)"
+      : tone === "danger"
+        ? "rgba(136, 43, 55, 0.96)"
+        : tone === "warn"
+          ? "rgba(126, 91, 30, 0.96)"
+          : tone === "weak"
+            ? "rgba(66, 52, 96, 0.96)"
+            : ZONE_UI_CANVAS_THEME.subpanel.fillTop;
+    const accentFillBottom = tone === "accent"
+      ? "rgba(38, 72, 151, 0.96)"
+      : tone === "danger"
+        ? "rgba(90, 24, 33, 0.96)"
+        : tone === "warn"
+          ? "rgba(92, 58, 18, 0.96)"
+          : tone === "weak"
+            ? "rgba(42, 31, 68, 0.96)"
+            : ZONE_UI_CANVAS_THEME.subpanel.fillBottom;
+    drawRetroHudPanel(boxX, boxY, metricWidth, 48, {
+      cut: 8,
+      fillTop: accentFillTop,
+      fillMid: accentFillTop,
+      fillBottom: accentFillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: "rgba(0, 0, 0, 0.18)",
+      borderWidth: 1.1,
+    });
+    drawCanvasRuntimeOverlayText(metric.label, boxX + 8, boxY + 7, {
+      fontSize: 9,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(8, 16, 24, 0.72)",
+    });
+    ctx.save();
+    ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const metricValue = fitTextToWidthWithEllipsis(metric.value, metricWidth - 16);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(metricValue, boxX + 8, boxY + 20, {
+      fontSize: 12,
+      weight: "800",
+    });
+    if (metric.detail) {
+      ctx.save();
+      ctx.font = `700 9px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const metricDetail = fitTextToWidthWithEllipsis(metric.detail, metricWidth - 16);
+      ctx.restore();
+      drawCanvasRuntimeOverlayText(metricDetail, boxX + 8, boxY + 34, {
+        fontSize: 9,
+        fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+        strokeStyle: "rgba(8, 16, 24, 0.72)",
+      });
+    }
+  }
+  cursorY += metricRows * 56 - 8;
+
+  if (progress.length > 0) {
+    const progressGap = 8;
+    const progressWidth = Math.floor((contentWidth - progressGap * (progress.length - 1)) / progress.length);
+    for (let index = 0; index < progress.length; index += 1) {
+      const item = progress[index];
+      const boxX = contentX + index * (progressWidth + progressGap);
+      const boxY = cursorY;
+      drawRetroHudPanel(boxX, boxY, progressWidth, 50, {
+        cut: 8,
+        fillTop: item.tone === "accent" ? "rgba(68, 122, 229, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+        fillMid: item.tone === "accent" ? "rgba(68, 122, 229, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+        fillBottom: item.tone === "accent" ? "rgba(42, 79, 172, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+        border: ZONE_UI_CANVAS_THEME.subpanel.border,
+        highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+        shadow: "rgba(0, 0, 0, 0.18)",
+        borderWidth: 1.1,
+      });
+      drawCanvasRuntimeOverlayText(item.label, boxX + 8, boxY + 7, {
+        fontSize: 9,
+        fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+        strokeStyle: "rgba(8, 16, 24, 0.72)",
+      });
+      drawCanvasRuntimeOverlayText(item.value, boxX + 8, boxY + 20, {
+        fontSize: 12,
+        weight: "800",
+      });
+      if (item.detail) {
+        ctx.save();
+        ctx.font = `700 8px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+        const detailText = fitTextToWidthWithEllipsis(item.detail, progressWidth - 16);
+        ctx.restore();
+        drawCanvasRuntimeOverlayText(detailText, boxX + 8, boxY + 34, {
+          fontSize: 8,
+          fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+          strokeStyle: "rgba(8, 16, 24, 0.72)",
+        });
+      }
+    }
+  }
+}
+
+function drawCanvasRuntimeTeamContextMenu(layout, hitboxes) {
+  const model = state.ui.canvasTeamContextMenuModel;
+  if (!model || layout?.viewportProfile?.phone) {
+    return;
+  }
+  const buttonHeight = 54;
+  const width = clamp(state.viewport.width * 0.24, 260, 308);
+  const height = 62 + model.buttons.length * buttonHeight + Math.max(0, model.buttons.length - 1) * 8 + 18;
+  const rect = resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
+    offsetX: 14,
+    offsetY: 12,
+  });
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: 12,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.5,
+  });
+  hitboxes.push({
+    id: "team-context-panel",
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    interactive: false,
+  });
+  drawCanvasRuntimeOverlayText(model.title, rect.x + 14, rect.y + 12, {
+    fontSize: 14,
+    weight: "800",
+  });
+  let cursorY = rect.y + 40;
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  for (const button of model.buttons) {
+    const isHovered = hoveredActionId === button.id && !button.disabled;
+    const buttonX = rect.x + 12;
+    const buttonWidth = rect.width - 24;
+    drawRetroHudPanel(buttonX, cursorY, buttonWidth, buttonHeight, {
+      cut: 9,
+      fillTop: button.disabled
+        ? "rgba(51, 59, 70, 0.9)"
+        : isHovered
+          ? "rgba(63, 118, 220, 0.98)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: button.disabled
+        ? "rgba(51, 59, 70, 0.9)"
+        : isHovered
+          ? "rgba(63, 118, 220, 0.98)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillBottom: button.disabled
+        ? "rgba(36, 43, 52, 0.94)"
+        : isHovered
+          ? "rgba(38, 72, 151, 0.98)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: isHovered ? "rgba(80, 150, 255, 0.32)" : "rgba(0, 0, 0, 0.16)",
+      borderWidth: isHovered ? 1.35 : 1.1,
+    });
+    ctx.save();
+    ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const label = fitTextToWidthWithEllipsis(button.label, buttonWidth - 20);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(label, buttonX + 10, cursorY + 10, {
+      fontSize: 12,
+      weight: "800",
+      fillStyle: button.disabled ? "rgba(214, 225, 236, 0.72)" : ZONE_UI_CANVAS_THEME.panel.text,
+    });
+    if (button.meta) {
+      ctx.save();
+      ctx.font = `700 9px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const meta = fitTextToWidthWithEllipsis(button.meta, buttonWidth - 20);
+      ctx.restore();
+      drawCanvasRuntimeOverlayText(meta, buttonX + 10, cursorY + 28, {
+        fontSize: 9,
+        fillStyle: "rgba(219, 231, 241, 0.82)",
+        strokeStyle: "rgba(8, 16, 24, 0.7)",
+      });
+    }
+    hitboxes.push({
+      id: button.id,
+      x: buttonX,
+      y: cursorY,
+      width: buttonWidth,
+      height: buttonHeight,
+      interactive: !button.disabled,
+      actionType: button.actionType,
+      slotIndex: model.slotIndex,
+    });
+    cursorY += buttonHeight + 8;
+  }
+}
+
+function drawCanvasRuntimeBallCaptureMenu(layout, hitboxes) {
+  const model = state.ui.canvasBallCaptureMenuModel;
+  if (!model || layout?.viewportProfile?.phone) {
+    return;
+  }
+  const tabHeight = 40;
+  const toggleHeight = 46;
+  const width = clamp(state.viewport.width * 0.28, 286, 344);
+  const height = 78 + tabHeight + model.toggles.length * toggleHeight + Math.max(0, model.toggles.length - 1) * 8 + 22;
+  const rect = resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
+    offsetX: 16,
+    offsetY: 14,
+  });
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: 12,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.5,
+  });
+  hitboxes.push({
+    id: "ball-capture-panel",
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    interactive: false,
+  });
+  drawCanvasRuntimeOverlayText(model.title, rect.x + 14, rect.y + 12, {
+    fontSize: 14,
+    weight: "800",
+  });
+  drawCanvasRuntimeOverlayText(model.summary, rect.x + 14, rect.y + 32, {
+    fontSize: 10,
+    fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+    strokeStyle: "rgba(8, 16, 24, 0.72)",
+  });
+
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const tabGap = 8;
+  const tabWidth = Math.floor((rect.width - 28 - tabGap * 2) / 3);
+  let cursorY = rect.y + 52;
+  for (let index = 0; index < model.tabs.length; index += 1) {
+    const tab = model.tabs[index];
+    const tabX = rect.x + 14 + index * (tabWidth + tabGap);
+    const isHovered = hoveredActionId === tab.id;
+    drawRetroHudPanel(tabX, cursorY, tabWidth, tabHeight, {
+      cut: 8,
+      fillTop: tab.selected
+        ? "rgba(63, 118, 220, 0.98)"
+        : isHovered
+          ? "rgba(54, 88, 147, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: tab.selected
+        ? "rgba(63, 118, 220, 0.98)"
+        : isHovered
+          ? "rgba(54, 88, 147, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillBottom: tab.selected
+        ? "rgba(38, 72, 151, 0.98)"
+        : isHovered
+          ? "rgba(39, 64, 108, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: isHovered || tab.selected ? "rgba(80, 150, 255, 0.28)" : "rgba(0, 0, 0, 0.16)",
+      borderWidth: tab.selected ? 1.35 : 1.1,
+    });
+    drawCanvasRuntimeOverlayText(tab.label, tabX + tabWidth * 0.5, cursorY + 11, {
+      fontSize: 10,
+      weight: "800",
+      textAlign: "center",
+    });
+    drawCanvasRuntimeOverlayText(formatCompactNumber(tab.count), tabX + tabWidth * 0.5, cursorY + 24, {
+      fontSize: 10,
+      textAlign: "center",
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(8, 16, 24, 0.72)",
+    });
+    hitboxes.push({
+      id: tab.id,
+      x: tabX,
+      y: cursorY,
+      width: tabWidth,
+      height: tabHeight,
+      interactive: true,
+      actionType: "ball-tab",
+      ballType: tab.ballType,
+    });
+  }
+  cursorY += tabHeight + 12;
+
+  for (const toggle of model.toggles) {
+    const rowX = rect.x + 14;
+    const rowWidth = rect.width - 28;
+    const isHovered = hoveredActionId === toggle.id;
+    drawRetroHudPanel(rowX, cursorY, rowWidth, toggleHeight, {
+      cut: 9,
+      fillTop: toggle.enabled
+        ? "rgba(44, 107, 74, 0.96)"
+        : isHovered
+          ? "rgba(54, 88, 147, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: toggle.enabled
+        ? "rgba(44, 107, 74, 0.96)"
+        : isHovered
+          ? "rgba(54, 88, 147, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillBottom: toggle.enabled
+        ? "rgba(27, 74, 49, 0.98)"
+        : isHovered
+          ? "rgba(39, 64, 108, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: isHovered || toggle.enabled ? "rgba(80, 150, 255, 0.24)" : "rgba(0, 0, 0, 0.16)",
+      borderWidth: isHovered || toggle.enabled ? 1.3 : 1.1,
+    });
+    drawCanvasRuntimeOverlayPill(rowX + 8, cursorY + 11, 28, 24, toggle.enabled ? "ON" : "OFF", {
+      fillTop: toggle.enabled ? "rgba(89, 205, 138, 0.98)" : "rgba(90, 103, 120, 0.96)",
+      fillBottom: toggle.enabled ? "rgba(52, 148, 98, 0.98)" : "rgba(56, 66, 82, 0.96)",
+      border: toggle.enabled ? "rgba(208, 252, 222, 0.86)" : "rgba(187, 198, 214, 0.62)",
+    });
+    ctx.save();
+    ctx.font = `800 11px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const label = fitTextToWidthWithEllipsis(toggle.label, rowWidth - 54);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(label, rowX + 44, cursorY + 9, {
+      fontSize: 11,
+      weight: "800",
+    });
+    if (toggle.description) {
+      ctx.save();
+      ctx.font = `700 9px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const description = fitTextToWidthWithEllipsis(toggle.description, rowWidth - 54);
+      ctx.restore();
+      drawCanvasRuntimeOverlayText(description, rowX + 44, cursorY + 25, {
+        fontSize: 9,
+        fillStyle: "rgba(219, 231, 241, 0.82)",
+        strokeStyle: "rgba(8, 16, 24, 0.7)",
+      });
+    }
+    hitboxes.push({
+      id: toggle.id,
+      x: rowX,
+      y: cursorY,
+      width: rowWidth,
+      height: toggleHeight,
+      interactive: true,
+      actionType: "ball-rule",
+      ruleKey: toggle.ruleKey,
+    });
+    cursorY += toggleHeight + 8;
+  }
+}
+
+function drawCanvasRuntimeOverlays(layout) {
+  state.ui.canvasOverlayActionHitboxes = [];
+  if (layout?.viewportProfile?.phone) {
+    return;
+  }
+  const hitboxes = [];
+  drawCanvasRuntimeHoverPopup(layout);
+  drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
+  drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);
+  state.ui.canvasOverlayActionHitboxes = hitboxes;
+}
+
 function drawBattleUiOverlay(layout, options = {}) {
   const allowOverflowPositions = shouldAllowDevLayoutOverflowPositions();
   if (options.showEnemyUi && state.enemy) {
@@ -7270,6 +7852,7 @@ function render() {
   drawRouteDefeatTimerBar(routeDefeatTimer, layout);
   drawEvolutionAnimationOverlay(layout);
   drawBallInventoryOverlay(layout);
+  drawCanvasRuntimeOverlays(layout);
   drawVersionOverlay();
 }
 

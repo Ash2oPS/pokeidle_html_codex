@@ -512,12 +512,51 @@ export function createRuntimeInputSystem({
     register(ballCaptureToggleShinyButtonEl, "click", () => toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_SHINY));
     register(ballCaptureToggleUltraButtonEl, "click", () => toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_ULTRA_SHINY));
 
+    const isCanvasRuntimeOverlayPointerEvent = (event) => {
+      if (event?.target !== canvas || !state?.ui || !Array.isArray(state.ui.canvasOverlayActionHitboxes)) {
+        return false;
+      }
+      const rect = typeof canvas?.getBoundingClientRect === "function"
+        ? canvas.getBoundingClientRect()
+        : null;
+      if (!rect) {
+        return false;
+      }
+      const width = Math.max(1, Number(rect.width) || Number(state.viewport?.width) || 1);
+      const height = Math.max(1, Number(rect.height) || Number(state.viewport?.height) || 1);
+      const localX = ((Number(event.clientX || 0) - Number(rect.left || 0)) / width) * Math.max(1, Number(state.viewport?.width) || 1);
+      const localY = ((Number(event.clientY || 0) - Number(rect.top || 0)) / height) * Math.max(1, Number(state.viewport?.height) || 1);
+      return state.ui.canvasOverlayActionHitboxes.some((hitbox) => {
+        const hitboxX = Number(hitbox?.x || 0);
+        const hitboxY = Number(hitbox?.y || 0);
+        const hitboxWidth = Number(hitbox?.width || 0);
+        const hitboxHeight = Number(hitbox?.height || 0);
+        return (
+          hitboxWidth > 0
+          && hitboxHeight > 0
+          && localX >= hitboxX
+          && localY >= hitboxY
+          && localX <= hitboxX + hitboxWidth
+          && localY <= hitboxY + hitboxHeight
+        );
+      });
+    };
+
     register(documentRef, "pointerdown", (event) => {
       const target = event?.target;
-      if (state?.ui?.teamContextMenuOpen && (!teamContextMenuEl || !teamContextMenuEl.contains(target))) {
+      const hitsCanvasRuntimeOverlay = isCanvasRuntimeOverlayPointerEvent(event);
+      if (
+        state?.ui?.teamContextMenuOpen
+        && !hitsCanvasRuntimeOverlay
+        && (!teamContextMenuEl || !teamContextMenuEl.contains(target))
+      ) {
         closeTeamContextMenu();
       }
-      if (state?.ui?.ballCaptureMenuOpen && (!ballCaptureMenuEl || !ballCaptureMenuEl.contains(target))) {
+      if (
+        state?.ui?.ballCaptureMenuOpen
+        && !hitsCanvasRuntimeOverlay
+        && (!ballCaptureMenuEl || !ballCaptureMenuEl.contains(target))
+      ) {
         closeBallCaptureMenu();
       }
       const clickedInsideRouteNav = Boolean(routeNavPanelEl && routeNavPanelEl.contains(target));

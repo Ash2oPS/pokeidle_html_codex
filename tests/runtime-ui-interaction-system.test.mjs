@@ -1531,6 +1531,137 @@ test("runtime ui interaction system renders live team hover tooltip combat metri
   assert.match(hoverPopupEl.innerHTML, /pokemon-info-zone-label">Types</);
 });
 
+test("runtime ui interaction system promotes desktop hover and menus to canvas-owned overlay models", () => {
+  const member = {
+    id: 25,
+    nameFr: "Pikachu",
+    level: 18,
+    hpCurrent: 35,
+    hpMax: 52,
+    xp: 42,
+    xpToNext: 100,
+    attackMode: "projectiles",
+    offensiveType: "electric",
+    defensiveTypes: ["electric"],
+    talent: "STATIC",
+  };
+  const { bindings, state, system } = createUiInteractionSystem({
+    state: {
+      mode: "ready",
+      viewport: { width: 1280, height: 720, renderScale: 1 },
+      performance: { quality: "medium", shortFrameMsEma: 16.67, renderFrameMsEma: 16.67, cpuFrameMsEma: 4.72 },
+      battle: createBattleStub(),
+      enemy: null,
+      team: [member],
+      routeData: null,
+      routeCatalog: new Map(),
+      routeBackgroundsById: new Map(),
+      saveData: { team: [25], ball_capture_rules: {} },
+      ui: {
+        hoveredTeamSlotIndex: -1,
+        teamDragActive: false,
+        teamDragMoved: false,
+        teamDragSourceSlotIndex: -1,
+        teamDragTargetSlotIndex: -1,
+        shopOpen: false,
+        mapOpen: false,
+        gachaOpen: false,
+        boxesOpen: false,
+        boxesTargetSlotIndex: -1,
+        boxesSearchQuery: "",
+        pokedexOpen: false,
+        pokedexHoverPokemonId: 0,
+        pokedexSearchQuery: "",
+        appearanceOpen: false,
+        appearanceTargetSlotIndex: -1,
+        appearancePokemonId: 0,
+        teamContextMenuOpen: false,
+        teamContextMenuSlotIndex: -1,
+        ballCaptureMenuOpen: false,
+        ballCaptureMenuBallType: "",
+        tutorialOpen: false,
+      },
+      gacha: { spinning: false, lastReward: null, lastRewards: [] },
+      notifications: { items: [] },
+      moneyHud: { displayValue: 0 },
+      teamLevelUpEffects: [],
+      teamXpGainEffects: [],
+      backgroundDrift: { currentX: 0, currentY: 0 },
+      tutorial: { active: null },
+      evolutionAnimation: { current: null, queue: [] },
+      pokemonDefsById: new Map([[25, member]]),
+      pokedexSpeciesCsvByPokemonId: new Map(),
+    },
+    bindings: {
+      BALL_CONFIG_BY_TYPE: {
+        poke_ball: { nameFr: "Poké Ball", spritePath: "poke.png" },
+        super_ball: { nameFr: "Super Ball", spritePath: "super.png" },
+        hyper_ball: { nameFr: "Hyper Ball", spritePath: "hyper.png" },
+      },
+      BALL_TYPE_FALLBACK_ORDER: ["poke_ball", "super_ball", "hyper_ball"],
+      BALL_CAPTURE_TOGGLE_DEFINITIONS: [
+        { key: "all", label: "Tout", description: "Capture tout", buttonEl: createTestElement("button") },
+        { key: "unowned", label: "Nouveau", description: "Capture les nouveaux", buttonEl: createTestElement("button") },
+      ],
+      getSpeciesStatsSummary: () => ({
+        encountered_total: 12,
+        encountered_normal: 12,
+        encountered_shiny: 0,
+        encountered_ultra_shiny: 0,
+        defeated_total: 4,
+        defeated_normal: 4,
+        defeated_shiny: 0,
+        defeated_ultra_shiny: 0,
+        captured_total: 1,
+        captured_normal: 1,
+        captured_shiny: 0,
+        captured_ultra_shiny: 0,
+      }),
+      getBallInventoryCount: (ballType) => {
+        switch (ballType) {
+          case "poke_ball":
+            return 12;
+          case "super_ball":
+            return 5;
+          case "hyper_ball":
+            return 2;
+          default:
+            return 0;
+        }
+      },
+      getBallCaptureRulesForType: () => ({
+        all: true,
+        unowned: true,
+      }),
+      teamContextMenuRenameButtonEl: createTestElement("button"),
+      teamContextMenuBoxesButtonEl: createTestElement("button"),
+      teamContextMenuAppearanceButtonEl: createTestElement("button"),
+      getTeamBoxesAccessState: () => ({ allowed: true }),
+      isAppearanceEditorUnlocked: () => true,
+      resolveTalentDefinition: () => ({
+        id: "STATIC",
+        nameFr: "Statik",
+        nameEn: "Static",
+        descriptionFr: "Peut paralyser au contact.",
+      }),
+      showPopupWithTween: (element) => element.classList.remove("hidden"),
+      showTooltipWithTween: (element) => element.classList.remove("hidden"),
+    },
+  });
+
+  system.showHoverPopup(member, 120, 90);
+  assert.equal(state.ui.canvasHoverPopupModel?.title, "Pikachu");
+  assert.match(state.ui.canvasHoverPopupModel?.typeSummaryText || "", /Déf\./);
+
+  system.openTeamContextMenu(0, member, 120, 90);
+  assert.equal(state.ui.canvasTeamContextMenuModel?.buttons?.length, 3);
+  assert.equal(state.ui.canvasHoverPopupModel, null);
+
+  system.openBallCaptureMenu("poke_ball", 120, 90);
+  assert.equal(state.ui.canvasBallCaptureMenuModel?.tabs?.length, 3);
+  assert.equal(state.ui.canvasTeamContextMenuModel, null);
+});
+
 test("runtime ui interaction system renders the mobile team hover as a quick bottom sheet", () => {
   const dom = new JSDOM("<!doctype html><html><body><div id='hover-popup'></div></body></html>", {
     pretendToBeVisual: true,

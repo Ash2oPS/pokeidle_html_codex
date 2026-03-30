@@ -702,10 +702,16 @@ function syncCanvasInteractionCursor() {
     return;
   }
   const hasOverlayHover = Boolean(state.ui.hoveredBallOverlayType);
+  const hasCanvasOverlayHoverAction = Boolean(state.ui.canvasOverlayHoveredActionId);
   canvas.style.cursor =
-    (state.ui.hoveredTeamSlotIndex >= 0 || hasOverlayHover)
-      && !state.ui.teamContextMenuOpen
-      && !state.ui.ballCaptureMenuOpen
+    (
+      hasCanvasOverlayHoverAction
+      || (
+        (state.ui.hoveredTeamSlotIndex >= 0 || hasOverlayHover)
+        && !state.ui.teamContextMenuOpen
+        && !state.ui.ballCaptureMenuOpen
+      )
+    )
       && !isCanvasBattleInteractionBlocked()
       ? "pointer"
       : "default";
@@ -729,6 +735,16 @@ function setHoveredTeamSlotIndex(slotIndex) {
     return;
   }
   state.ui.hoveredTeamSlotIndex = nextIndex;
+  syncCanvasInteractionCursor();
+}
+
+function setHoveredCanvasOverlayActionId(actionId = "") {
+  const nextId = String(actionId || "").trim();
+  if (state.ui.canvasOverlayHoveredActionId === nextId) {
+    syncCanvasInteractionCursor();
+    return;
+  }
+  state.ui.canvasOverlayHoveredActionId = nextId;
   syncCanvasInteractionCursor();
 }
 
@@ -1000,6 +1016,10 @@ function getBallCaptureMenuBallType() {
 function closeBallCaptureMenu() {
   state.ui.ballCaptureMenuOpen = false;
   state.ui.ballCaptureMenuBallType = "";
+  state.ui.canvasBallCaptureMenuModel = null;
+  state.ui.canvasOverlayActionHitboxes = [];
+  setHoveredCanvasOverlayActionId("");
+  syncCanvasRuntimeOverlayDomOwnership();
   if (ballCaptureMenuEl) {
     hidePopupWithTween(ballCaptureMenuEl);
   }
@@ -1010,6 +1030,10 @@ function closeTeamContextMenu() {
   state.ui.teamContextMenuOpen = false;
   state.ui.teamContextMenuSlotIndex = -1;
   state.ui.teamContextMenuPokemonId = null;
+  state.ui.canvasTeamContextMenuModel = null;
+  state.ui.canvasOverlayActionHitboxes = [];
+  setHoveredCanvasOverlayActionId("");
+  syncCanvasRuntimeOverlayDomOwnership();
   if (teamContextMenuEl) {
     hidePopupWithTween(teamContextMenuEl);
   }
@@ -1112,10 +1136,256 @@ function clearCanvasHoverState() {
   }
   setHoveredTeamSlotIndex(-1);
   setHoveredBallOverlayType("");
+  setHoveredCanvasOverlayActionId("");
   hideHoverPopup();
 }
 
+function isDesktopCanvasRuntimeOverlayMode() {
+  return !isPhoneUiViewport();
+}
+
+function setCanvasRuntimeOwnedFlag(element, owned) {
+  if (!element || typeof element !== "object" || !element.dataset) {
+    return;
+  }
+  if (owned) {
+    element.dataset.canvasRuntimeOwned = "true";
+  } else {
+    delete element.dataset.canvasRuntimeOwned;
+  }
+}
+
+function syncCanvasRuntimeOverlayDomOwnership() {
+  const useCanvasOverlay = isDesktopCanvasRuntimeOverlayMode();
+  setCanvasRuntimeOwnedFlag(hoverPopupEl, useCanvasOverlay && Boolean(state.ui.canvasHoverPopupModel));
+  setCanvasRuntimeOwnedFlag(teamContextMenuEl, useCanvasOverlay && Boolean(state.ui.canvasTeamContextMenuModel));
+  setCanvasRuntimeOwnedFlag(ballCaptureMenuEl, useCanvasOverlay && Boolean(state.ui.canvasBallCaptureMenuModel));
+}
+
+function getCanvasLocalCoordinatesFromClient(clientX, clientY) {
+  const fallbackX = Number.isFinite(Number(clientX)) ? Number(clientX) : (Number(state.viewport?.width) || 0) * 0.5;
+  const fallbackY = Number.isFinite(Number(clientY)) ? Number(clientY) : (Number(state.viewport?.height) || 0) * 0.5;
+  if (!canvas || typeof canvas.getBoundingClientRect !== "function") {
+    return { x: fallbackX, y: fallbackY };
+  }
+  const rect = canvas.getBoundingClientRect();
+  const width = Math.max(1, Number(rect?.width) || Number(state.viewport?.width) || 1);
+  const height = Math.max(1, Number(rect?.height) || Number(state.viewport?.height) || 1);
+  return {
+    x: ((fallbackX - Number(rect?.left || 0)) / width) * Math.max(1, Number(state.viewport?.width) || 1),
+    y: ((fallbackY - Number(rect?.top || 0)) / height) * Math.max(1, Number(state.viewport?.height) || 1),
+  };
+}
+
+function getCanvasLocalCoordinatesFromPointerEvent(event) {
+  return getCanvasLocalCoordinatesFromClient(event?.clientX, event?.clientY);
+}
+
+function findCanvasOverlayHitboxAtPoint(x, y, options = {}) {
+  const hitboxes = Array.isArray(state.ui.canvasOverlayActionHitboxes) ? state.ui.canvasOverlayActionHitboxes : [];
+  const interactiveOnly = options?.interactiveOnly === true;
+  for (let index = hitboxes.length - 1; index >= 0; index -= 1) {
+    const hitbox = hitboxes[index];
+    const width = Number(hitbox?.width || 0);
+    const height = Number(hitbox?.height || 0);
+    if (width <= 0 || height <= 0) {
+      continue;
+    }
+    if (interactiveOnly && hitbox?.interactive === false) {
+      continue;
+    }
+    const hitboxX = Number(hitbox?.x || 0);
+    const hitboxY = Number(hitbox?.y || 0);
+    if (x < hitboxX || y < hitboxY || x > hitboxX + width || y > hitboxY + height) {
+      continue;
+    }
+    return hitbox;
+  }
+  return null;
+}
+
+function buildCanvasHoverPopupModel({
+  entity,
+  clientX,
+  clientY,
+  anchorX,
+  anchorY,
+  title,
+  subtitle,
+  badges,
+  passiveLabel,
+  passivePill,
+  passiveDescription,
+  typeSummaryText,
+  metrics,
+  progress,
+} = {}) {
+  const anchor = Number.isFinite(Number(anchorX)) && Number.isFinite(Number(anchorY))
+    ? { x: Number(anchorX), y: Number(anchorY) }
+    : getCanvasLocalCoordinatesFromClient(clientX, clientY);
+  return {
+    anchorX: anchor.x,
+    anchorY: anchor.y,
+    title: String(title || entity?.nameFr || ""),
+    subtitle: String(subtitle || ""),
+    badges: Array.isArray(badges) ? badges.map((value) => String(value || "").trim()).filter(Boolean) : [],
+    passiveLabel: String(passiveLabel || "").trim(),
+    passivePill: String(passivePill || "").trim(),
+    passiveDescription: String(passiveDescription || "").trim(),
+    typeSummaryText: String(typeSummaryText || "").trim(),
+    metrics: Array.isArray(metrics) ? metrics.map((metric) => ({
+      label: String(metric?.label || "").trim(),
+      value: String(metric?.value || "").trim(),
+      detail: String(metric?.detail || "").trim(),
+      tone: String(metric?.tone || "").trim(),
+    })).filter((metric) => metric.label && metric.value) : [],
+    progress: Array.isArray(progress) ? progress.map((entry) => ({
+      label: String(entry?.label || "").trim(),
+      value: String(entry?.value || "").trim(),
+      detail: String(entry?.detail || "").trim(),
+      tone: String(entry?.tone || "").trim(),
+    })).filter((entry) => entry.label && entry.value) : [],
+  };
+}
+
+function buildCanvasTeamContextMenuModel(slotIndex, member, clientX, clientY, options = {}) {
+  if (!member) {
+    return null;
+  }
+  const pokemonId = Number(member.id || 0);
+  const name = member?.nameFr || getPokemonDisplayNameById(pokemonId);
+  const appearanceUnlocked = isAppearanceEditorUnlocked();
+  const boxesAccess = getTeamBoxesAccessState();
+  const hasNickname = Boolean(getPokemonNicknameById(pokemonId));
+  const anchor = Number.isFinite(Number(options?.anchorX)) && Number.isFinite(Number(options?.anchorY))
+    ? { x: Number(options.anchorX), y: Number(options.anchorY) }
+    : getCanvasLocalCoordinatesFromClient(clientX, clientY);
+  return {
+    anchorX: anchor.x,
+    anchorY: anchor.y,
+    slotIndex: clamp(toSafeInt(slotIndex, -1), 0, MAX_TEAM_SIZE - 1),
+    title: `${name} • ${getTeamSlotLabel(slotIndex)}`,
+    buttons: [
+      {
+        id: "team-context-rename",
+        actionType: "rename",
+        label: hasNickname ? "Gérer le surnom" : "Ajouter un surnom",
+        meta: "Applique le changement à la famille évolutive.",
+        disabled: slotIndex < 0 || pokemonId <= 0,
+      },
+      {
+        id: "team-context-boxes",
+        actionType: "boxes",
+        label: boxesAccess.allowed ? "Échanger avec la boîte" : "Boîte verrouillée",
+        meta: boxesAccess.allowed ? "Choisir un remplaçant pour ce slot." : "Disponible plus tard dans la progression.",
+        disabled: slotIndex < 0 || pokemonId <= 0 || !boxesAccess.allowed,
+      },
+      {
+        id: "team-context-appearance",
+        actionType: "appearance",
+        label: appearanceUnlocked ? "Changer l'apparence" : "Apparence verrouillée",
+        meta: appearanceUnlocked ? "Équipe un sprite déjà débloqué." : `Débloque au niv. ${APPEARANCE_UNLOCK_LEVEL}.`,
+        disabled: slotIndex < 0 || pokemonId <= 0 || !appearanceUnlocked,
+      },
+    ],
+  };
+}
+
+function buildCanvasBallCaptureMenuModel(ballType, clientX, clientY, options = {}) {
+  const type = getPreferredBallCaptureMenuType(ballType);
+  if (!type) {
+    return null;
+  }
+  const config = BALL_CONFIG_BY_TYPE[type];
+  const count = Math.max(0, toSafeInt(getBallInventoryCount?.(type), 0));
+  const rules = getBallCaptureRulesForType(type);
+  const anchor = Number.isFinite(Number(options?.anchorX)) && Number.isFinite(Number(options?.anchorY))
+    ? { x: Number(options.anchorX), y: Number(options.anchorY) }
+    : getCanvasLocalCoordinatesFromClient(clientX, clientY);
+  return {
+    anchorX: anchor.x,
+    anchorY: anchor.y,
+    ballType: type,
+    title: "Réglages capture",
+    summary: `${config.nameFr} • ${count} disponibles`,
+    tabs: [
+      "poke_ball",
+      "super_ball",
+      "hyper_ball",
+    ].map((candidateType) => {
+      const candidateConfig = BALL_CONFIG_BY_TYPE[candidateType] || {};
+      return {
+        id: `ball-tab-${candidateType}`,
+        ballType: candidateType,
+        label: String(candidateConfig.nameFr || candidateType || "Ball"),
+        count: Math.max(0, toSafeInt(getBallInventoryCount?.(candidateType), 0)),
+        selected: candidateType === type,
+      };
+    }),
+    toggles: Array.isArray(BALL_CAPTURE_TOGGLE_DEFINITIONS)
+      ? BALL_CAPTURE_TOGGLE_DEFINITIONS.map((definition) => ({
+        id: `ball-rule-${String(definition?.key || "")}`,
+        ruleKey: String(definition?.key || ""),
+        label: String(definition?.label || "").trim(),
+        description: String(definition?.description || "").trim(),
+        enabled: Boolean(rules[String(definition?.key || "")]),
+      })).filter((definition) => definition.ruleKey && definition.label)
+      : [],
+  };
+}
+
+function getCanvasRuntimeOverlayHitboxFromPointerEvent(event, options = {}) {
+  if (!isDesktopCanvasRuntimeOverlayMode()) {
+    return null;
+  }
+  const point = getCanvasLocalCoordinatesFromPointerEvent(event);
+  return findCanvasOverlayHitboxAtPoint(point.x, point.y, options);
+}
+
+function syncCanvasRuntimeOverlayHoverFromPointerEvent(event) {
+  const hitbox = getCanvasRuntimeOverlayHitboxFromPointerEvent(event);
+  setHoveredCanvasOverlayActionId(hitbox?.interactive === false ? "" : String(hitbox?.id || ""));
+  return hitbox;
+}
+
+function handleCanvasRuntimeOverlayAction(hitbox) {
+  const actionType = String(hitbox?.actionType || "").trim();
+  if (!actionType || hitbox?.interactive === false) {
+    return false;
+  }
+  switch (actionType) {
+    case "rename":
+      closeTeamContextMenu();
+      openRenameModalForTeamSlot(hitbox.slotIndex);
+      render();
+      return true;
+    case "boxes":
+      closeTeamContextMenu();
+      openBoxesForTeamSlot(hitbox.slotIndex);
+      render();
+      return true;
+    case "appearance":
+      closeTeamContextMenu();
+      openAppearanceForTeamSlot(hitbox.slotIndex);
+      render();
+      return true;
+    case "ball-tab":
+      if (setBallCaptureMenuBallType(hitbox.ballType)) {
+        render();
+        return true;
+      }
+      return false;
+    case "ball-rule":
+      toggleBallCaptureRule(hitbox.ruleKey);
+      return true;
+    default:
+      return false;
+  }
+}
+
 function hideHoverPopup() {
+  state.ui.canvasHoverPopupModel = null;
+  syncCanvasRuntimeOverlayDomOwnership();
   if (!hoverPopupEl) {
     return;
   }
@@ -1452,7 +1722,8 @@ function showHoverPopup(entity, clientX, clientY) {
   );
   const subtitleLabel = normalizeUiDisplayText(`${speciesLabel} • ${roleLabel}`, { frenchTypography: true });
   const attackModeLabel = formatPokemonAttackModeLabelFr(entity?.attackMode, isEnemy ? "projectile" : "");
-  const safeTalentLabel = escapeHtml(formatTalentLabelFr(talent, entity?.id));
+  const talentLabelPlain = formatTalentLabelFr(talent, entity?.id);
+  const safeTalentLabel = escapeHtml(talentLabelPlain);
   const hpCurrent = Math.max(0, toSafeInt(entity?.hpCurrent, 0));
   const hpMax = Math.max(hpCurrent, toSafeInt(entity?.hpMax, 0));
   const hasHpMetric = hpMax > 0;
@@ -1479,48 +1750,78 @@ function showHoverPopup(entity, clientX, clientY) {
     `<span class="pokemon-info-badge is-active">Niv. ${escapeHtml(String(levelLabel || ""))}</span>`,
     `<span class="pokemon-info-badge hover-popup-badge--mode">${escapeHtml(String(attackModeLabel || ""))}</span>`,
   ];
+  const badgeLabels = [
+    `Niv. ${String(levelLabel || "").trim()}`,
+    String(attackModeLabel || "").trim(),
+  ];
   if (isUltraShiny) {
     badgeMarkup.push(`<span class="pokemon-info-badge pokemon-info-badge--ultra is-active">Ultra shiny</span>`);
+    badgeLabels.push("Ultra shiny");
   } else if (isShiny) {
     badgeMarkup.push(`<span class="pokemon-info-badge is-active">Shiny</span>`);
+    badgeLabels.push("Shiny");
   }
 
   const typeSummaryMarkup = isTeamMember
     ? buildPokemonTypeSummaryMarkup(entity?.defensiveTypes, offensiveType)
     : `<div class="pokemon-info-type-grid hover-popup-type-grid--single">${buildPokemonTypeGroupMarkup("Défensif", entity?.defensiveTypes, "normal")}</div>`;
 
+  const defensiveTypesLabel = formatTypeListFr(entity?.defensiveTypes, "normal");
+  const offensiveTypeLabel = isTeamMember ? formatTypeLabelFr(offensiveType) : "";
+  const typeSummaryText = isTeamMember
+    ? `Déf. ${defensiveTypesLabel} • Off. ${offensiveTypeLabel}`
+    : `Déf. ${defensiveTypesLabel}`;
+
   const liveMetricsMarkup = [];
+  const liveMetricsModel = [];
   if (hasHpMetric) {
     const hpRatio = hpMax > 0 ? clamp(hpCurrent / hpMax, 0, 1) : 0;
+    const hpDetailLabel = hpRatio >= 0.999 ? "plein" : `${Math.round(hpRatio * 100)}% restants`;
     const hpToneClass = hpRatio <= 0.35 ? " hover-popup-metric--danger" : hpRatio <= 0.65 ? " hover-popup-metric--warn" : "";
     liveMetricsMarkup.push(
       buildHoverPopupMetricMarkup(
         "PV",
         `${formatCompactNumber(hpCurrent)}/${formatCompactNumber(hpMax)}`,
-        hpRatio >= 0.999 ? "plein" : `${Math.round(hpRatio * 100)}% restants`,
+        hpDetailLabel,
         hpToneClass,
       ),
     );
+    liveMetricsModel.push({
+      label: "PV",
+      value: `${formatCompactNumber(hpCurrent)}/${formatCompactNumber(hpMax)}`,
+      detail: hpDetailLabel,
+      tone: hpToneClass.includes("danger") ? "danger" : hpToneClass.includes("warn") ? "warn" : "",
+    });
   }
   if (isTeamMember) {
     const xpCurrent = Math.max(0, toSafeInt(entity?.xp, 0));
     const xpToNext = Math.max(1, toSafeInt(entity?.xpToNext, 1));
+    const xpValue = levelValue >= MAX_LEVEL
+      ? "Max"
+      : `${formatCompactNumber(xpCurrent)}/${formatCompactNumber(xpToNext)}`;
+    const xpDetail = levelValue >= MAX_LEVEL ? "niveau max" : `vers niv. ${Math.min(MAX_LEVEL, levelValue + 1)}`;
     liveMetricsMarkup.push(
       buildHoverPopupMetricMarkup(
         "XP",
-        levelValue >= MAX_LEVEL
-          ? "Max"
-          : `${formatCompactNumber(xpCurrent)}/${formatCompactNumber(xpToNext)}`,
-        levelValue >= MAX_LEVEL ? "niveau max" : `vers niv. ${Math.min(MAX_LEVEL, levelValue + 1)}`,
+        xpValue,
+        xpDetail,
         " pokemon-info-micro--accent",
       ),
     );
+    liveMetricsModel.push({
+      label: "XP",
+      value: xpValue,
+      detail: xpDetail,
+      tone: "accent",
+    });
     if (Number.isFinite(typeMultiplierVsEnemy)) {
+      const matchupValue = formatHoverPopupMultiplier(typeMultiplierVsEnemy);
+      const matchupDetail = formatHoverPopupEffectivenessLabel(typeMultiplierVsEnemy);
       liveMetricsMarkup.push(
         buildHoverPopupMetricMarkup(
           "Matchup",
-          formatHoverPopupMultiplier(typeMultiplierVsEnemy),
-          formatHoverPopupEffectivenessLabel(typeMultiplierVsEnemy),
+          matchupValue,
+          matchupDetail,
           typeMultiplierVsEnemy > 1.01
             ? " pokemon-info-micro--accent"
             : typeMultiplierVsEnemy < 0.99
@@ -1528,26 +1829,46 @@ function showHoverPopup(entity, clientX, clientY) {
               : "",
         ),
       );
+      liveMetricsModel.push({
+        label: "Matchup",
+        value: matchupValue,
+        detail: matchupDetail,
+        tone: typeMultiplierVsEnemy > 1.01 ? "accent" : typeMultiplierVsEnemy < 0.99 ? "weak" : "",
+      });
     }
     if (teamAuraAttackBonusRatio > 0.001) {
+      const auraValue = formatHoverPopupPercent(teamAuraAttackBonusRatio * 100);
       liveMetricsMarkup.push(
         buildHoverPopupMetricMarkup(
           "Aura",
-          formatHoverPopupPercent(teamAuraAttackBonusRatio * 100),
+          auraValue,
           "attaque équipe",
           " pokemon-info-micro--accent",
         ),
       );
+      liveMetricsModel.push({
+        label: "Aura",
+        value: auraValue,
+        detail: "attaque équipe",
+        tone: "accent",
+      });
     }
     if (teleportDamageBoostMultiplier > 1.001) {
+      const teleportValue = formatHoverPopupMultiplier(teleportDamageBoostMultiplier);
       liveMetricsMarkup.push(
         buildHoverPopupMetricMarkup(
           "Téléport",
-          formatHoverPopupMultiplier(teleportDamageBoostMultiplier),
+          teleportValue,
           "prochain tir",
           " pokemon-info-micro--accent",
         ),
       );
+      liveMetricsModel.push({
+        label: "Téléport",
+        value: teleportValue,
+        detail: "prochain tir",
+        tone: "accent",
+      });
     }
   } else {
     const balanceTeamSize = Math.max(1, toSafeInt(entity?.balanceTeamSize, 1));
@@ -1556,56 +1877,96 @@ function showHoverPopup(entity, clientX, clientY) {
     liveMetricsMarkup.push(
       buildHoverPopupMetricMarkup("Groupe", formatCompactNumber(balanceTeamSize), "slots visés"),
     );
+    liveMetricsModel.push({
+      label: "Groupe",
+      value: formatCompactNumber(balanceTeamSize),
+      detail: "slots visés",
+      tone: "",
+    });
     if (balanceHpMultiplier > 1.001) {
+      const hpBonusValue = formatHoverPopupMultiplier(balanceHpMultiplier);
       liveMetricsMarkup.push(
-        buildHoverPopupMetricMarkup("PV bonus", formatHoverPopupMultiplier(balanceHpMultiplier), "échelle terrain"),
+        buildHoverPopupMetricMarkup("PV bonus", hpBonusValue, "échelle terrain"),
       );
+      liveMetricsModel.push({
+        label: "PV bonus",
+        value: hpBonusValue,
+        detail: "échelle terrain",
+        tone: "",
+      });
     }
     if (balanceRewardMultiplier > 1.001) {
+      const rewardValue = formatHoverPopupMultiplier(balanceRewardMultiplier);
       liveMetricsMarkup.push(
         buildHoverPopupMetricMarkup(
           "Butin",
-          formatHoverPopupMultiplier(balanceRewardMultiplier),
+          rewardValue,
           "récompense",
           " pokemon-info-micro--accent",
         ),
       );
+      liveMetricsModel.push({
+        label: "Butin",
+        value: rewardValue,
+        detail: "récompense",
+        tone: "accent",
+      });
     }
   }
 
-  const progressionMarkup = [
-    buildHoverPopupProgressStatMarkup(
-      "Vu",
-      formatCompactNumber(
+  const progressionModel = [
+    {
+      label: "Vu",
+      value: formatCompactNumber(
         Math.max(0, toSafeInt(stats.encountered_total, 0)) + Math.max(0, toSafeInt(stats.encountered_ultra_shiny, 0)),
       ),
-      formatHoverPopupCountBreakdown(
+      detail: formatHoverPopupCountBreakdown(
         stats.encountered_normal,
         stats.encountered_shiny,
         stats.encountered_ultra_shiny,
       ),
-    ),
-    buildHoverPopupProgressStatMarkup(
-      "KO",
-      formatCompactNumber(
+      tone: "",
+    },
+    {
+      label: "KO",
+      value: formatCompactNumber(
         Math.max(0, toSafeInt(stats.defeated_total, 0)) + Math.max(0, toSafeInt(stats.defeated_ultra_shiny, 0)),
       ),
-      formatHoverPopupCountBreakdown(
+      detail: formatHoverPopupCountBreakdown(
         stats.defeated_normal,
         stats.defeated_shiny,
         stats.defeated_ultra_shiny,
       ),
-    ),
-    buildHoverPopupProgressStatMarkup(
-      "Capt.",
-      formatCompactNumber(
+      tone: "",
+    },
+    {
+      label: "Capt.",
+      value: formatCompactNumber(
         Math.max(0, toSafeInt(stats.captured_total, 0)) + Math.max(0, toSafeInt(stats.captured_ultra_shiny, 0)),
       ),
-      formatHoverPopupCountBreakdown(
+      detail: formatHoverPopupCountBreakdown(
         stats.captured_normal,
         stats.captured_shiny,
         stats.captured_ultra_shiny,
       ),
+      tone: "accent",
+    },
+  ];
+  const progressionMarkup = [
+    buildHoverPopupProgressStatMarkup(
+      progressionModel[0].label,
+      progressionModel[0].value,
+      progressionModel[0].detail,
+    ),
+    buildHoverPopupProgressStatMarkup(
+      progressionModel[1].label,
+      progressionModel[1].value,
+      progressionModel[1].detail,
+    ),
+    buildHoverPopupProgressStatMarkup(
+      progressionModel[2].label,
+      progressionModel[2].value,
+      progressionModel[2].detail,
       " hover-popup-progress-stat--accent",
     ),
   ].join("");
@@ -1671,6 +2032,8 @@ function showHoverPopup(entity, clientX, clientY) {
     ].join("");
 
     showTooltipWithTween(hoverPopupEl);
+    state.ui.canvasHoverPopupModel = null;
+    syncCanvasRuntimeOverlayDomOwnership();
     positionBottomSheetElement(hoverPopupEl, {
       maxWidthPx: 360,
       bottomOffsetPx: getActionDockBottomSheetOffsetPx(),
@@ -1711,6 +2074,23 @@ function showHoverPopup(entity, clientX, clientY) {
   ].join("");
 
   showTooltipWithTween(hoverPopupEl);
+  state.ui.canvasHoverPopupModel = isDesktopCanvasRuntimeOverlayMode()
+    ? buildCanvasHoverPopupModel({
+      entity,
+      clientX,
+      clientY,
+      title: String(entity?.nameFr || ""),
+      subtitle: subtitleLabel,
+      badges: badgeLabels,
+      passiveLabel: talentLabelPlain,
+      passivePill: passivePillLabel,
+      passiveDescription,
+      typeSummaryText,
+      metrics: liveMetricsModel,
+      progress: progressionModel,
+    })
+    : null;
+  syncCanvasRuntimeOverlayDomOwnership();
   positionFloatingMenuElement(hoverPopupEl, clientX, clientY);
 }
 
@@ -1918,6 +2298,14 @@ function refreshBallCaptureMenu() {
     const enabled = Boolean(rules[key]);
     setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled, definition.description);
   }
+  const existingModel = state.ui.canvasBallCaptureMenuModel;
+  state.ui.canvasBallCaptureMenuModel = isDesktopCanvasRuntimeOverlayMode()
+    ? buildCanvasBallCaptureMenuModel(ballType, null, null, {
+      anchorX: existingModel?.anchorX,
+      anchorY: existingModel?.anchorY,
+    })
+    : null;
+  syncCanvasRuntimeOverlayDomOwnership();
 }
 
 function openBallCaptureMenu(ballType, clientX, clientY) {
@@ -1934,6 +2322,10 @@ function openBallCaptureMenu(ballType, clientX, clientY) {
   setBallCaptureMenuBallType(type);
   setHoveredTeamSlotIndex(-1);
   hideHoverPopup();
+  state.ui.canvasBallCaptureMenuModel = isDesktopCanvasRuntimeOverlayMode()
+    ? buildCanvasBallCaptureMenuModel(type, clientX, clientY)
+    : null;
+  syncCanvasRuntimeOverlayDomOwnership();
   showPopupWithTween(ballCaptureMenuEl);
   positionCenteredModalElement(ballCaptureMenuEl, {
     maxWidthPx: isPhoneUiViewport() ? 420 : 460,
@@ -2031,6 +2423,14 @@ function refreshTeamContextMenu() {
       appearanceUnlocked ? "\u00c9quipe un sprite d\u00e9j\u00e0 d\u00e9bloqu\u00e9." : `D\u00e9bloque au niv. ${APPEARANCE_UNLOCK_LEVEL}.`,
     );
   }
+  const existingModel = state.ui.canvasTeamContextMenuModel;
+  state.ui.canvasTeamContextMenuModel = isDesktopCanvasRuntimeOverlayMode() && member
+    ? buildCanvasTeamContextMenuModel(slotIndex, member, null, null, {
+      anchorX: existingModel?.anchorX,
+      anchorY: existingModel?.anchorY,
+    })
+    : null;
+  syncCanvasRuntimeOverlayDomOwnership();
 }
 
 function openTeamContextMenu(slotIndex, member, clientX, clientY) {
@@ -2047,6 +2447,10 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   setHoveredTeamSlotIndex(slotIndex);
   hideHoverPopup();
   refreshTeamContextMenu();
+  state.ui.canvasTeamContextMenuModel = isDesktopCanvasRuntimeOverlayMode()
+    ? buildCanvasTeamContextMenuModel(slotIndex, member, clientX, clientY)
+    : null;
+  syncCanvasRuntimeOverlayDomOwnership();
 
   showPopupWithTween(teamContextMenuEl);
   if (isPhoneUiViewport()) {
@@ -5139,6 +5543,11 @@ function handleCanvasPointerDown(event) {
   if (!isPrimaryCanvasPointerEvent(event)) {
     return;
   }
+  const canvasOverlayHitbox = getCanvasRuntimeOverlayHitboxFromPointerEvent(event);
+  if (canvasOverlayHitbox) {
+    setHoveredCanvasOverlayActionId(canvasOverlayHitbox?.interactive === false ? "" : String(canvasOverlayHitbox?.id || ""));
+    return;
+  }
   if (isCanvasBattleInteractionBlocked()) {
     clearTeamDragState();
     return;
@@ -5243,6 +5652,7 @@ function handleCanvasPointerMove(event) {
   }
 
   if (pointerType !== "mouse") {
+    setHoveredCanvasOverlayActionId("");
     setHoveredBallOverlayType("");
     setHoveredTeamSlotIndex(-1);
     hideHoverPopup();
@@ -5251,11 +5661,16 @@ function handleCanvasPointerMove(event) {
   }
 
   if (state.ui.teamContextMenuOpen || state.ui.ballCaptureMenuOpen) {
+    const canvasOverlayHitbox = syncCanvasRuntimeOverlayHoverFromPointerEvent(event);
     setHoveredTeamSlotIndex(-1);
     hideHoverPopup();
+    if (canvasOverlayHitbox) {
+      return;
+    }
     syncCanvasInteractionCursor();
     return;
   }
+  setHoveredCanvasOverlayActionId("");
   const hoveredBallOverlay = findHoveredBallOverlayHitbox(worldX, worldY);
   setHoveredBallOverlayType(hoveredBallOverlay?.ballType || "");
   if (hoveredBallOverlay) {
@@ -5311,6 +5726,11 @@ function handleCanvasClick(event) {
   if (typeof event.button === "number" && event.button !== 0) {
     return;
   }
+  const canvasOverlayHitbox = getCanvasRuntimeOverlayHitboxFromPointerEvent(event);
+  if (canvasOverlayHitbox) {
+    handleCanvasRuntimeOverlayAction(canvasOverlayHitbox);
+    return;
+  }
   closeTeamContextMenu();
   if (isCanvasBattleInteractionBlocked()) {
     closeBallCaptureMenu();
@@ -5339,6 +5759,11 @@ function handleCanvasClick(event) {
 function handleCanvasContextMenu(event) {
   cancelTeamContextTouchHold(event.pointerId);
   event.preventDefault();
+  const canvasOverlayHitbox = getCanvasRuntimeOverlayHitboxFromPointerEvent(event);
+  if (canvasOverlayHitbox) {
+    setHoveredCanvasOverlayActionId(canvasOverlayHitbox?.interactive === false ? "" : String(canvasOverlayHitbox?.id || ""));
+    return;
+  }
   if (state.ui.teamDragActive) {
     clearTeamDragState({
       suppressClickMs: state.ui.teamDragMoved ? TEAM_DRAG_CLICK_SUPPRESS_MS : 0,

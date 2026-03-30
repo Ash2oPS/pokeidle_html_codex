@@ -12927,20 +12927,6 @@ function projectWorldToRuntimeStage(worldX, worldY, options = {}) {
   });
 }
 
-function extractClientPointFromArgs(args = []) {
-  const numericArgs = Array.isArray(args)
-    ? args.filter((value) => Number.isFinite(Number(value))).map((value) => Number(value))
-    : [];
-  const count = numericArgs.length;
-  if (count < 2) {
-    return { clientX: 0, clientY: 0 };
-  }
-  return {
-    clientX: numericArgs[count - 2],
-    clientY: numericArgs[count - 1],
-  };
-}
-
 function positionWorldUiElementInStage(element, clientX, clientY, options = {}) {
   if (!(element instanceof HTMLElement) || !(worldUiLayerEl instanceof HTMLElement)) {
     return null;
@@ -12989,64 +12975,13 @@ function decorateRuntimeUiInteractionSystem(system) {
     }
     return normalizedPointerType === "touch" || normalizedPointerType === "pen";
   };
-  const getTeamContextTouchHoldCancelDistancePx = (pointerType) => {
-    const activationDistancePx =
-      typeof system.getTeamDragActivationDistancePx === "function"
-        ? Number(system.getTeamDragActivationDistancePx(pointerType))
-        : TEAM_DRAG_START_DISTANCE_PX;
-    const safeActivationDistancePx = Number.isFinite(activationDistancePx)
-      ? activationDistancePx
-      : TEAM_DRAG_START_DISTANCE_PX;
-    return Math.max(TEAM_CONTEXT_TOUCH_HOLD_CANCEL_DISTANCE_PX, safeActivationDistancePx);
-  };
-  const originalShowHoverPopup =
-    typeof system.showHoverPopup === "function" ? system.showHoverPopup.bind(system) : null;
-  const originalOpenTeamContextMenu =
-    typeof system.openTeamContextMenu === "function" ? system.openTeamContextMenu.bind(system) : null;
-  const originalOpenBallCaptureMenu =
-    typeof system.openBallCaptureMenu === "function" ? system.openBallCaptureMenu.bind(system) : null;
   const originalHandleCanvasPointerDown =
     typeof system.handleCanvasPointerDown === "function" ? system.handleCanvasPointerDown.bind(system) : null;
+  const originalHandleCanvasPointerMove =
+    typeof system.handleCanvasPointerMove === "function" ? system.handleCanvasPointerMove.bind(system) : null;
 
   system.positionFloatingMenuElement = (element, clientX, clientY, options = {}) =>
     positionWorldUiElementInStage(element, clientX, clientY, options);
-
-  if (originalShowHoverPopup) {
-    system.showHoverPopup = (...args) => {
-      const result = originalShowHoverPopup(...args);
-      const { clientX, clientY } = extractClientPointFromArgs(args);
-      const layoutMode = state.layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
-      positionWorldUiElementInStage(hoverPopupEl, clientX, clientY, {
-        offsetX: layoutMode === "mobilePortrait" ? -18 : 12,
-        offsetY: layoutMode === "mobilePortrait" ? -52 : -24,
-      });
-      return result;
-    };
-  }
-
-  if (originalOpenTeamContextMenu) {
-    system.openTeamContextMenu = (...args) => {
-      const result = originalOpenTeamContextMenu(...args);
-      const { clientX, clientY } = extractClientPointFromArgs(args);
-      positionWorldUiElementInStage(teamContextMenuEl, clientX, clientY, {
-        offsetX: -16,
-        offsetY: 12,
-      });
-      return result;
-    };
-  }
-
-  if (originalOpenBallCaptureMenu) {
-    system.openBallCaptureMenu = (...args) => {
-      const result = originalOpenBallCaptureMenu(...args);
-      const { clientX, clientY } = extractClientPointFromArgs(args);
-      positionWorldUiElementInStage(ballCaptureMenuEl, clientX, clientY, {
-        offsetX: -20,
-        offsetY: 12,
-      });
-      return result;
-    };
-  }
 
   if (originalHandleCanvasPointerDown) {
     system.handleCanvasPointerDown = (event) => {
@@ -13058,128 +12993,13 @@ function decorateRuntimeUiInteractionSystem(system) {
     };
   }
 
-  if (typeof system.handleCanvasPointerMove === "function") {
+  if (originalHandleCanvasPointerMove) {
     system.handleCanvasPointerMove = (event) => {
       const pointerType = getNormalizedPointerTypeSafe(event?.pointerType);
-      const isTouchLikePointer = isTouchLikePointerTypeSafe(pointerType);
-      if (state.ui.teamDragActive && !system.isEventFromActiveTeamDragPointer(event)) {
-        return;
+      if (state.ui.teamDragActive && isTouchLikePointerTypeSafe(pointerType) && event?.cancelable) {
+        event.preventDefault();
       }
-      if (system.isCanvasBattleInteractionBlocked()) {
-        if (state.ui.teamDragActive) {
-          system.clearTeamDragState();
-        }
-        system.clearCanvasHoverState();
-        return;
-      }
-
-      const { worldX, worldY } = system.getWorldCoordinatesFromPointerEvent(event);
-      const layout = state.layout || computeLayout();
-      if (state.ui.teamDragActive) {
-        if (isTouchLikePointer && event?.cancelable) {
-          event.preventDefault();
-        }
-        state.ui.teamDragCurrentWorldX = worldX;
-        state.ui.teamDragCurrentWorldY = worldY;
-        const dx = Number(event?.clientX || 0) - Number(state.ui.teamDragStartClientX || 0);
-        const dy = Number(event?.clientY || 0) - Number(state.ui.teamDragStartClientY || 0);
-        const distanceSquared = dx * dx + dy * dy;
-        if (isTouchLikePointer) {
-          const pointerId = toSafeInt(event?.pointerId, -1);
-          if (pointerId >= 0 && toSafeInt(state.ui.teamContextTouchHoldPointerId, -1) === pointerId) {
-            state.ui.teamContextTouchHoldClientX = Number(
-              event?.clientX || state.ui.teamContextTouchHoldClientX || 0,
-            );
-            state.ui.teamContextTouchHoldClientY = Number(
-              event?.clientY || state.ui.teamContextTouchHoldClientY || 0,
-            );
-            const holdDx =
-              state.ui.teamContextTouchHoldClientX
-              - Number(state.ui.teamContextTouchHoldStartClientX || 0);
-            const holdDy =
-              state.ui.teamContextTouchHoldClientY
-              - Number(state.ui.teamContextTouchHoldStartClientY || 0);
-            const holdDistanceSquared = holdDx * holdDx + holdDy * holdDy;
-            const cancelDistancePx = getTeamContextTouchHoldCancelDistancePx(pointerType);
-            if (holdDistanceSquared >= cancelDistancePx * cancelDistancePx) {
-              system.cancelTeamContextTouchHold(pointerId);
-            } else {
-              const slotIndex = clamp(
-                toSafeInt(state.ui.teamContextTouchHoldSlotIndex, -1),
-                -1,
-                MAX_TEAM_SIZE - 1,
-              );
-              const hoveredSlot = system.findHoveredTeamSlot(worldX, worldY, layout, {
-                pointerType: event?.pointerType,
-              });
-              if (!hoveredSlot || hoveredSlot.slotIndex !== slotIndex) {
-                system.cancelTeamContextTouchHold(pointerId);
-              }
-            }
-          }
-        }
-        const activationDistancePx = system.getTeamDragActivationDistancePx(pointerType);
-        const activationDistanceSquared = activationDistancePx * activationDistancePx;
-        if (!state.ui.teamDragMoved && distanceSquared >= activationDistanceSquared) {
-          system.cancelTeamContextTouchHold(event?.pointerId);
-          if (!system.isTeamSlotSwapAllowed()) {
-            setTopMessage(getTeamBoxesLockedMessage(), 2100);
-            system.clearTeamDragState({ suppressClickMs: TEAM_DRAG_CLICK_SUPPRESS_MS });
-            system.setHoveredTeamSlotIndex(-1);
-            system.hideHoverPopup();
-            return;
-          }
-          state.ui.teamDragMoved = true;
-          system.closeTeamContextMenu();
-          system.closeBallCaptureMenu();
-          system.syncCanvasInteractionCursor();
-        }
-
-        if (state.ui.teamDragMoved) {
-          const hoveredTeamSlot = system.findHoveredTeamSlot(worldX, worldY, layout, { pointerType });
-          const sourceSlotIndex = clamp(
-            toSafeInt(state.ui.teamDragSourceSlotIndex, -1),
-            -1,
-            MAX_TEAM_SIZE - 1,
-          );
-          const targetSlotIndex =
-            hoveredTeamSlot && hoveredTeamSlot.slotIndex !== sourceSlotIndex
-              ? hoveredTeamSlot.slotIndex
-              : -1;
-          state.ui.teamDragTargetSlotIndex = targetSlotIndex;
-          system.setHoveredBallOverlayType("");
-          system.setHoveredTeamSlotIndex(targetSlotIndex >= 0 ? targetSlotIndex : sourceSlotIndex);
-          system.hideHoverPopup();
-          render();
-          return;
-        }
-      }
-
-      if (pointerType !== "mouse") {
-        system.setHoveredBallOverlayType("");
-        system.setHoveredTeamSlotIndex(-1);
-        system.hideHoverPopup();
-        system.syncCanvasInteractionCursor();
-        return;
-      }
-
-      if (state.ui.teamContextMenuOpen || state.ui.ballCaptureMenuOpen) {
-        system.setHoveredTeamSlotIndex(-1);
-        system.hideHoverPopup();
-        system.syncCanvasInteractionCursor();
-        return;
-      }
-      const hoveredBallOverlay = system.findHoveredBallOverlayHitbox(worldX, worldY);
-      system.setHoveredBallOverlayType(hoveredBallOverlay?.ballType || "");
-      if (hoveredBallOverlay) {
-        system.setHoveredTeamSlotIndex(-1);
-        system.hideHoverPopup();
-        return;
-      }
-      const hoveredTeamSlot = system.findHoveredTeamSlot(worldX, worldY, layout);
-      system.setHoveredTeamSlotIndex(hoveredTeamSlot?.slotIndex ?? -1);
-      const hovered = system.findHoveredPokemon(worldX, worldY, layout);
-      system.showHoverPopup(hovered, event?.clientX, event?.clientY);
+      return originalHandleCanvasPointerMove(event);
     };
   }
 

@@ -208,6 +208,17 @@ test("runtime render system suppresses the legacy ball canvas overlay when the t
   assert.match(source, /if \(topbarBallSummaryVisible\) \{\s*return;\s*\}/);
 });
 
+test("runtime render system draws canvas-owned runtime overlays after the HUD layer", () => {
+  const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.match(source, /function drawCanvasRuntimeOverlays\(layout\)/);
+  assert.match(source, /drawCanvasRuntimeHoverPopup\(layout\);/);
+  assert.match(source, /drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);/);
+  assert.match(source, /drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/);
+  assert.match(source, /state\.ui\.canvasOverlayActionHitboxes = hitboxes;/);
+  assert.match(source, /drawBallInventoryOverlay\(layout\);\s*drawCanvasRuntimeOverlays\(layout\);\s*drawVersionOverlay\(\);/);
+});
+
 test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {
   const renderSystem = createRuntimeRenderSystem({
     bindings: {

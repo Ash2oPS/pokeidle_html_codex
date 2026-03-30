@@ -3247,6 +3247,15 @@ body {
   --stage-inline-padding: 8px;
 }
 
+#game-capture-root[data-layout-mode="desktopLandscape"] #hover-popup[data-canvas-runtime-owned="true"],
+#game-capture-root[data-layout-mode="desktopLandscape"] #team-context-menu[data-canvas-runtime-owned="true"],
+#game-capture-root[data-layout-mode="desktopLandscape"] #ball-capture-menu[data-canvas-runtime-owned="true"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
 #game-capture-root[data-layout-mode="mobilePortrait"] {
   --stage-inline-padding: 10px;
 }
