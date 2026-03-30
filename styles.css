@@ -3461,7 +3461,6 @@ body {
   .map-modal-card {
     width: 100%;
     max-width: 100%;
-    max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
   }
@@ -3477,7 +3476,6 @@ body {
   .shop-modal-card {
     width: 100%;
     max-width: 100%;
-    max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
   }
@@ -3554,7 +3552,6 @@ body {
   .boxes-card {
     width: 100%;
     max-width: 100%;
-    max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
   }
@@ -3608,7 +3605,6 @@ body {
   .appearance-card {
     width: 100%;
     max-width: 100%;
-    max-height: min(90dvh, 920px);
     padding: 9px;
     gap: 8px;
   }
