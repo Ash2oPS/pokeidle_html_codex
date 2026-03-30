@@ -321,9 +321,9 @@ export const GAME_DESIGN_CONFIG = {
       mobileMaxHeightVh: 88,
     },
     actionMenu: {
-      desktopPanelMaxWidthPx: 720,
+      desktopPanelMaxWidthPx: 820,
       desktopGridColumns: 4,
-      mobileGridColumns: 2,
+      mobileGridColumns: 1,
       onboardingPulseDurationMs: 2200,
       onboardingPulseRepeatDelayMs: 1800,
     },
@@ -335,10 +335,10 @@ export const GAME_DESIGN_CONFIG = {
       mobileBottomOffsetPx: 12,
     },
     collectionLayout: {
-      desktopGridRatioPercent: 72,
-      desktopDetailRatioPercent: 28,
-      mobileDetailSheetHeightVh: 48,
-      mobileMapMinHeightVh: 42,
+      desktopGridRatioPercent: 68,
+      desktopDetailRatioPercent: 32,
+      mobileDetailSheetHeightVh: 50,
+      mobileMapMinHeightVh: 36,
     },
     mobileSafeArea: {
       sideInsetPx: 12,

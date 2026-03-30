@@ -11809,7 +11809,7 @@ body.update-required-active {
   .route-nav-modal-card {
     width: calc(100vw - 12px);
     padding: 12px;
-    gap: 12px;
+    gap: 10px;
     border-radius: 20px;
   }
 
@@ -11826,8 +11826,8 @@ body.update-required-active {
   }
 
   .route-nav-modal-current {
-    padding: 12px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .route-nav-modal-current-value {
@@ -11844,22 +11844,28 @@ body.update-required-active {
   }
 
   .route-nav-drawer-list {
-    gap: 10px;
+    gap: 8px;
   }
 
   .route-nav-destination-card {
-    min-height: 104px;
+    min-height: 96px;
     border-radius: 18px;
   }
 
   .route-nav-destination-content {
-    min-height: 104px;
-    padding: 14px;
+    min-height: 96px;
+    padding: 12px;
   }
 
   .route-nav-destination-label {
     max-width: 14ch;
     font-size: clamp(18px, 6vw, 24px);
+  }
+
+  .route-nav-destination-content.has-supporting-copy {
+    min-height: 114px;
+    gap: 5px;
+    padding: 12px;
   }
 }
 
@@ -11874,18 +11880,18 @@ body.update-required-active {
   --ui-modal-mobile-side-inset-px: 12px;
   --ui-modal-mobile-radius-px: 20px;
   --ui-modal-mobile-max-height-vh: 88svh;
-  --ui-action-menu-desktop-max-width-px: 720px;
+  --ui-action-menu-desktop-max-width-px: 820px;
   --ui-action-menu-desktop-grid-columns: 4;
-  --ui-action-menu-mobile-grid-columns: 2;
+  --ui-action-menu-mobile-grid-columns: 1;
   --ui-action-menu-pulse-duration-ms: 2200ms;
   --ui-action-menu-pulse-repeat-delay-ms: 1800ms;
   --ui-notification-desktop-max-width-px: 420px;
   --ui-notification-mobile-card-height-px: 72px;
   --ui-notification-mobile-bottom-offset-px: 12px;
-  --ui-collection-desktop-grid-ratio-pct: 72%;
-  --ui-collection-desktop-detail-ratio-pct: 28%;
-  --ui-collection-mobile-detail-sheet-height-vh: 48svh;
-  --ui-collection-mobile-map-min-height-vh: 42svh;
+  --ui-collection-desktop-grid-ratio-pct: 68%;
+  --ui-collection-desktop-detail-ratio-pct: 32%;
+  --ui-collection-mobile-detail-sheet-height-vh: 50svh;
+  --ui-collection-mobile-map-min-height-vh: 36svh;
   --ui-mobile-side-inset-px: 12px;
   --ui-mobile-bottom-offset-px: 12px;
   --ui-mobile-quick-card-height-px: 148px;
@@ -12267,11 +12273,16 @@ body.update-required-active {
 
   .map-modal-body {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(var(--ui-collection-mobile-map-min-height-vh, 42svh), auto) auto;
+    grid-template-rows: minmax(var(--ui-collection-mobile-map-min-height-vh, 36svh), auto) auto;
+    gap: 10px;
   }
 
   .map-stage {
-    min-height: var(--ui-collection-mobile-map-min-height-vh, 42svh);
+    min-height: var(--ui-collection-mobile-map-min-height-vh, 36svh);
+  }
+
+  .map-connections-panel {
+    gap: 8px;
   }
 
   .notification-stack {
@@ -12389,13 +12400,6 @@ body.update-required-active {
 }
 
 /* Runtime UI hierarchy polish: stronger focal points inside the existing blue/glass language. */
-#game-capture-root {
-  --ui-collection-desktop-grid-ratio-pct: 68%;
-  --ui-collection-desktop-detail-ratio-pct: 32%;
-  --ui-collection-mobile-detail-sheet-height-vh: 50svh;
-  --ui-action-menu-desktop-max-width-px: 820px;
-  --ui-action-menu-mobile-grid-columns: 1;
-}
 
 .action-dock-fullscreen-header {
   width: 100%;
@@ -12777,10 +12781,12 @@ body.update-required-active {
 .collection-search-row {
   border-radius: 12px;
   padding: 8px 10px;
+  min-height: calc(var(--ui-touch-target-min-px, 44px) + 10px);
+  align-items: center;
 }
 
 .collection-search-input {
-  min-height: 40px;
+  min-height: max(var(--ui-touch-target-min-px, 44px), 40px);
 }
 
 .boxes-info-panel {
@@ -13012,24 +13018,41 @@ body.update-required-active {
 }
 
 .dialogue-modal-card {
+  width: min(var(--ui-modal-size-m-max-width-px, 760px), calc(100vw - 28px));
+  max-height: min(820px, calc(100dvh - 28px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-items: stretch;
   border-radius: 20px;
   padding: 16px;
+  gap: 12px;
   box-shadow:
     0 18px 40px rgba(18, 14, 8, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.74);
 }
 
+.dialogue-modal-body {
+  min-height: 0;
+  overflow: auto;
+}
+
 .dialogue-text {
-  min-height: 112px;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
   padding: 14px 15px;
   border-radius: 16px;
   font-size: 15px;
 }
 
+.dialogue-choice-list {
+  gap: 10px;
+}
+
 .dialogue-choice-btn,
 .dialogue-next-btn,
 .dialogue-close-btn {
-  min-height: 40px;
+  min-height: var(--ui-touch-target-min-px, 44px);
   border-radius: 12px;
 }
 
@@ -13198,6 +13221,45 @@ body.update-required-active {
   gap: 8px;
 }
 
+.map-modal-card,
+.shop-modal-card,
+.gacha-card,
+.trainer-battle-setup-card {
+  overflow: hidden;
+}
+
+.map-modal-body,
+.shop-grid,
+.gacha-stage-shell,
+.trainer-battle-setup-body,
+.trainer-battle-setup-panel,
+.trainer-battle-setup-roster,
+.trainer-battle-setup-rules,
+.trainer-battle-setup-slots {
+  min-height: 0;
+}
+
+.map-modal-body,
+.trainer-battle-setup-body {
+  align-items: start;
+}
+
+.map-connections-panel,
+.gacha-stage-shell,
+.trainer-battle-setup-panel {
+  overflow: auto;
+}
+
+.trainer-battle-setup-panel {
+  align-content: start;
+}
+
+.trainer-battle-setup-roster,
+.trainer-battle-setup-rules,
+.trainer-battle-setup-slots {
+  align-content: start;
+}
+
 @media (max-width: 960px) {
   .shop-overview-shell,
   .shop-control-shell,
@@ -13257,7 +13319,8 @@ body.update-required-active {
   .boxes-card,
   .appearance-card,
   .tutorial-card,
-  .gacha-card {
+  .gacha-card,
+  .trainer-battle-setup-card {
     padding: 10px;
     gap: 10px;
   }
@@ -13279,6 +13342,26 @@ body.update-required-active {
     grid-template-columns: 1fr;
   }
 
+  .shop-wallet-item {
+    min-height: 52px;
+    padding: 7px 8px;
+  }
+
+  .shop-tab-btn,
+  .gacha-spin-btn {
+    min-height: max(var(--ui-touch-target-min-px, 44px), 40px);
+  }
+
+  .shop-grid {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .shop-item-card {
+    padding: 10px;
+    gap: 6px 10px;
+  }
+
   .appearance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -13292,8 +13375,18 @@ body.update-required-active {
     align-items: stretch;
   }
 
+  .gacha-wallet-item {
+    min-height: 56px;
+    padding: 7px 8px;
+  }
+
+  .gacha-action-copy {
+    gap: 2px;
+  }
+
   .gacha-spin-btn {
     width: 100%;
+    padding: 0 12px;
   }
 
   .route-nav-modal-card {
@@ -13302,18 +13395,49 @@ body.update-required-active {
   }
 
   .route-nav-destination-content.has-supporting-copy {
-    min-height: 132px;
+    min-height: 114px;
     padding: 12px;
   }
 
   .route-nav-info-hero,
   .route-nav-info-hero-copy {
-    min-height: 136px;
+    min-height: 120px;
+  }
+
+  .trainer-battle-setup-card {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .trainer-battle-setup-body {
+    grid-template-columns: 1fr;
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 8px;
+    overflow: auto;
+    padding-right: 2px;
+  }
+
+  .trainer-battle-setup-panel {
+    padding: 10px;
+  }
+
+  .trainer-battle-setup-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 8px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+  }
+
+  .trainer-battle-setup-actions > * {
+    width: 100%;
+    min-width: 0;
   }
 
   .boxes-info-panel.is-sheet-open {
     max-width: 600px;
-    max-height: 52svh;
+    max-height: var(--ui-collection-mobile-detail-sheet-height-vh, 50svh);
     border: 1px solid rgba(145, 220, 236, 0.2);
     background:
       linear-gradient(180deg, rgba(10, 28, 42, 0.96), rgba(6, 18, 28, 0.98)),
@@ -13428,22 +13552,25 @@ body.update-required-active {
   }
 
   .boxes-card:not(.pokedex-card) .boxes-layout {
-    grid-template-columns: minmax(0, 1.48fr) minmax(268px, 332px);
+    grid-template-columns: minmax(0, 1fr) clamp(248px, 24vw, 312px);
     align-items: stretch;
   }
 
   .boxes-card:not(.pokedex-card) .boxes-grid {
-    grid-template-columns: repeat(auto-fit, minmax(176px, 176px));
-    justify-content: start;
+    grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+    justify-content: stretch;
+    justify-items: center;
     align-content: start;
   }
 
   .boxes-card:not(.pokedex-card) .boxes-mon-btn {
+    width: min(100%, 198px);
     min-height: 148px;
     padding: 12px;
-    justify-items: start;
+    justify-items: center;
+    justify-self: center;
     align-content: start;
-    text-align: left;
+    text-align: center;
     gap: 5px;
   }
 
@@ -13465,7 +13592,7 @@ body.update-required-active {
   }
 
   .boxes-card:not(.pokedex-card) .boxes-info-panel .pokemon-info-card {
-    width: min(100%, 320px);
+    width: 100%;
     min-height: auto;
     padding: 10px;
     gap: 8px;
@@ -13828,22 +13955,30 @@ body.update-required-active {
 
 @media (max-width: 760px) {
   .ui-topbar {
-    --ui-mobile-topbar-pill-height-px: 76px;
-    grid-template-columns: minmax(118px, 1.04fr) minmax(0, 1.5fr) minmax(118px, 1.04fr);
-    gap: 6px;
+    --ui-mobile-topbar-route-height-px: var(--ui-hud-mobile-zone-header-height-px, 68px);
+    --ui-mobile-topbar-row-height-px: max(var(--ui-hud-mobile-resource-row-height-px, 52px), var(--ui-touch-target-min-px, 44px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "route route"
+      "balls resources";
+    gap: 8px;
     align-items: stretch;
-    min-height: var(--ui-mobile-topbar-pill-height-px);
+    min-height: 0;
   }
 
   .topbar-balls-pill {
-    display: flex;
-    grid-column: 1;
+    display: grid;
+    grid-area: balls;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-self: stretch;
-    min-height: var(--ui-mobile-topbar-pill-height-px);
+    min-height: var(--ui-mobile-topbar-row-height-px);
+    padding: 8px 10px;
+    gap: 4px;
+    border-radius: 20px;
   }
 
   .ui-topbar .route-nav-wrap {
-    grid-column: 2;
+    grid-area: route;
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -13851,18 +13986,18 @@ body.update-required-active {
   }
 
   .ui-topbar .resource-strip.currency-stack {
-    grid-column: 3;
+    grid-area: resources;
     width: 100%;
     max-width: none;
     min-width: 0;
-    min-height: var(--ui-mobile-topbar-pill-height-px);
+    min-height: var(--ui-mobile-topbar-row-height-px);
     justify-self: stretch;
     align-self: stretch;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: auto;
-    gap: 6px;
+    gap: 8px;
     padding: 8px 10px;
-    border-radius: 22px;
+    border-radius: 20px;
   }
 
   .ui-topbar #save-pill {
@@ -13871,7 +14006,7 @@ body.update-required-active {
 
   .ui-topbar #money-pill,
   .ui-topbar #coins-pill {
-    min-height: 0;
+    min-height: var(--ui-mobile-topbar-row-height-px);
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -13909,38 +14044,45 @@ body.update-required-active {
 
   .ui-topbar .route-nav-current-trigger {
     height: 100%;
-    min-height: var(--ui-mobile-topbar-pill-height-px);
-    border-radius: 22px;
+    min-height: var(--ui-mobile-topbar-route-height-px);
+    border-radius: 20px;
   }
 
   .ui-topbar .route-nav-current-trigger .route-nav-summary-panel {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    min-height: var(--ui-mobile-topbar-pill-height-px);
-    padding: 8px 12px;
-    gap: 8px;
+    min-height: var(--ui-mobile-topbar-route-height-px);
+    padding: 10px 12px;
+    gap: 10px;
   }
 
   .ui-topbar .route-nav-current-trigger .route-nav-summary-copy {
-    gap: 2px;
-    justify-items: center;
-    text-align: center;
+    gap: 3px;
+    justify-items: start;
+    text-align: left;
   }
 
-  .ui-topbar .route-nav-current-trigger .route-nav-region,
-  .ui-topbar .route-nav-drawer-toggle-count {
-    display: none;
+  .ui-topbar .route-nav-current-trigger .route-nav-region {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
   }
 
   .ui-topbar .route-nav-current {
-    font-size: clamp(16px, 4.6vw, 19px);
+    font-size: clamp(17px, 4.5vw, 20px);
     line-height: 1.04;
   }
 
   .ui-topbar .route-nav-current-meta {
     display: inline-flex;
     align-items: center;
-    gap: 0;
+    gap: 6px;
+  }
+
+  .ui-topbar .route-nav-drawer-toggle-count {
+    min-width: 38px;
+    min-height: 24px;
+    padding: 0 8px;
   }
 
   .ui-topbar .route-nav-current-chevron {
@@ -13973,8 +14115,11 @@ body.update-required-active {
 
 @media (max-width: 420px) {
   .ui-topbar {
-    --ui-mobile-topbar-pill-height-px: 72px;
-    grid-template-columns: minmax(110px, 1fr) minmax(0, 1.42fr) minmax(110px, 1fr);
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "route"
+      "balls"
+      "resources";
     gap: 4px;
   }
 
@@ -13992,15 +14137,25 @@ body.update-required-active {
   }
 
   .ui-topbar .resource-strip.currency-stack {
+    grid-template-columns: minmax(0, 1fr);
     gap: 5px;
     padding: 8px 9px;
+  }
+
+  .ui-topbar #money-pill,
+  .ui-topbar #coins-pill {
+    min-height: 0;
+  }
+
+  .trainer-battle-setup-actions {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (min-width: 761px) {
   .ui-topbar {
-    --ui-desktop-topbar-pill-height-px: 86px;
-    grid-template-columns: minmax(184px, 214px) minmax(0, 1fr) minmax(172px, 196px);
+    --ui-desktop-topbar-pill-height-px: var(--ui-hud-desktop-current-zone-height-px, 84px);
+    grid-template-columns: minmax(208px, 0.94fr) minmax(0, 1.38fr) minmax(208px, 0.98fr);
     gap: 12px;
     align-items: stretch;
   }
@@ -14066,7 +14221,7 @@ body.update-required-active {
     align-self: stretch;
     grid-template-columns: minmax(0, 1fr);
     grid-auto-rows: auto;
-    gap: 8px;
+    gap: 6px;
     padding: 10px 12px;
     border-radius: var(--zone-ui-radius-panel, 26px);
   }
@@ -14273,6 +14428,8 @@ body.update-required-active {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
   padding: 8px 10px;
+  min-height: calc(var(--ui-touch-target-min-px, 44px) + 10px);
+  align-items: center;
   border-radius: 16px;
   border: 1px solid var(--pokedex-tile-border);
   background:
@@ -14292,7 +14449,7 @@ body.update-required-active {
 }
 
 .pokedex-card .pokedex-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(292px, 324px);
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 23vw, 320px);
   gap: 10px;
   min-height: 0;
   align-items: stretch;
