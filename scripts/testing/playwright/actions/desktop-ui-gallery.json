@@ -76,7 +76,6 @@
       "captureName": "idle"
     },
     {
-      "waitForSelector": "#topbar-balls-pill",
       "waitMs": 250
     },
     {
@@ -148,7 +147,9 @@
       "waitStateTimeoutMs": 12000
     },
     {
-      "clickSelector": "#route-nav-drawer-toggle"
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('toggleRouteNavDrawer');"
+      }
     },
     {
       "waitForSelector": "#route-nav-drawer:not(.hidden)",
@@ -226,7 +227,9 @@
       "waitMs": 250
     },
     {
-      "clickSelector": "#map-btn"
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setMapOpen',true);"
+      }
     },
     {
       "waitForState": {
@@ -298,7 +301,9 @@
       "waitMs": 700
     },
     {
-      "clickSelector": "#shop-btn"
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setShopOpen',true);"
+      }
     },
     {
       "waitForState": {
@@ -319,7 +324,9 @@
       "waitMs": 700
     },
     {
-      "clickSelector": "#gacha-btn"
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('setGachaOpen',true);"
+      }
     },
     {
       "waitForState": {
@@ -533,14 +540,15 @@
       }
     },
     {
-      "waitForSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
       "waitMs": 500
     },
     {
       "captureName": "pewter-trainer-action"
     },
     {
-      "clickSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('triggerZoneAction','kanto_pewter_gym_brock');"
+      },
       "waitMs": 300
     },
     {

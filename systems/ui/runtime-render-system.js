@@ -338,8 +338,10 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "ULTRA_SHINY_SCINTILLATION_FLASH_MS",
   "ULTRA_SHINY_SCINTILLATION_PERIOD_MS",
   "actionDockEl",
+  "actionDockPokeballToggleButtonEl",
   "blendRgb",
   "clamp",
+  "coinsValueEl",
   "ctx",
   "drawEnemyDefensiveTypeHud",
   "drawRetroHudPanel",
@@ -377,11 +379,19 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "isEvolutionFamilyOwned",
   "isLikelySmartphoneBrowser",
   "lerpNumber",
+  "moneyPillEl",
+  "moneyValueEl",
   "normalizeRgbColor",
   "normalizeType",
   "pseudoRandomUnit",
   "resolveEntitySpriteDrawSource",
   "rgba",
+  "routeNavCurrentEl",
+  "routeNavDrawerToggleButtonEl",
+  "routeNavDrawerToggleCountEl",
+  "routeNavPanelEl",
+  "routeNavRegionEl",
+  "saveBackendValueEl",
   "shouldAllowDevLayoutOverflowPositions",
   "shouldFlipTeamSprite",
   "shouldForceUltraShinyAllPokemon",
@@ -392,8 +402,10 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "spriteTintBufferCanvas",
   "spriteTintBufferCtx",
   "state",
+  "topbarBallsPillEl",
   "toSafeInt",
   "uiTopbarEl",
+  "zoneActionButtonsById",
 ]);
 
 export function createRuntimeRenderSystem(options = {}) {
@@ -467,8 +479,10 @@ export function createRuntimeRenderSystem(options = {}) {
     ULTRA_SHINY_SCINTILLATION_FLASH_MS,
     ULTRA_SHINY_SCINTILLATION_PERIOD_MS,
     actionDockEl,
+    actionDockPokeballToggleButtonEl,
     blendRgb,
     clamp,
+    coinsValueEl,
     ctx,
     document,
     drawEnemyDefensiveTypeHud,
@@ -507,12 +521,20 @@ export function createRuntimeRenderSystem(options = {}) {
     isEvolutionFamilyOwned,
     isLikelySmartphoneBrowser,
     lerpNumber,
+    moneyPillEl,
+    moneyValueEl,
     normalizeRgbColor,
     normalizeType,
     parseFloat,
     pseudoRandomUnit,
     resolveEntitySpriteDrawSource,
     rgba,
+    routeNavCurrentEl,
+    routeNavDrawerToggleButtonEl,
+    routeNavDrawerToggleCountEl,
+    routeNavPanelEl,
+    routeNavRegionEl,
+    saveBackendValueEl,
     shouldAllowDevLayoutOverflowPositions,
     shouldFlipTeamSprite,
     shouldForceUltraShinyAllPokemon,
@@ -523,8 +545,10 @@ export function createRuntimeRenderSystem(options = {}) {
     spriteTintBufferCanvas,
     spriteTintBufferCtx,
     state,
+    topbarBallsPillEl,
     toSafeInt,
     uiTopbarEl,
+    zoneActionButtonsById,
     undefined,
     window
   } = scope;
@@ -6975,6 +6999,385 @@ function drawCanvasRuntimeOverlayPill(x, y, width, height, label, options = {}) 
   });
 }
 
+function getCanvasRectFromDomElement(element) {
+  if (!element || typeof element.getBoundingClientRect !== "function") {
+    return null;
+  }
+  const sourceRect = element.getBoundingClientRect();
+  const widthPx = Math.max(0, Number(sourceRect?.width) || (Number(sourceRect?.right) - Number(sourceRect?.left)) || 0);
+  const heightPx = Math.max(0, Number(sourceRect?.height) || (Number(sourceRect?.bottom) - Number(sourceRect?.top)) || 0);
+  if (widthPx <= 0 || heightPx <= 0) {
+    return null;
+  }
+  const canvasRect = typeof ctx?.canvas?.getBoundingClientRect === "function"
+    ? ctx.canvas.getBoundingClientRect()
+    : { left: 0, top: 0, width: state.viewport.width, height: state.viewport.height };
+  const canvasWidth = Math.max(1, Number(canvasRect?.width) || Number(state.viewport.width) || 1);
+  const canvasHeight = Math.max(1, Number(canvasRect?.height) || Number(state.viewport.height) || 1);
+  const scaleX = Math.max(1, Number(state.viewport.width) || 1) / canvasWidth;
+  const scaleY = Math.max(1, Number(state.viewport.height) || 1) / canvasHeight;
+  return {
+    x: (Number(sourceRect?.left || 0) - Number(canvasRect?.left || 0)) * scaleX,
+    y: (Number(sourceRect?.top || 0) - Number(canvasRect?.top || 0)) * scaleY,
+    width: widthPx * scaleX,
+    height: heightPx * scaleY,
+  };
+}
+
+function getElementText(element, fallback = "") {
+  const text = String(element?.textContent || "").trim();
+  return text || String(fallback || "");
+}
+
+function getClosestElement(element, selector) {
+  return element && typeof element.closest === "function" ? element.closest(selector) : null;
+}
+
+function drawCanvasRuntimeDesktopShellTopbar(hitboxes) {
+  const rect = getCanvasRectFromDomElement(topbarBallsPillEl);
+  if (!rect) {
+    return;
+  }
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const isHovered = hoveredActionId === "runtime-shell-topbar-balls";
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: 14,
+    fillTop: isHovered ? "rgba(26, 70, 102, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: isHovered ? "rgba(18, 54, 82, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: isHovered ? "rgba(8, 28, 44, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: isHovered ? "rgba(80, 150, 255, 0.32)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered ? 1.55 : 1.35,
+    radius: 24,
+  });
+  drawCanvasRuntimeOverlayText("Capture", rect.x + 12, rect.y + 9, {
+    fontSize: 10,
+    fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+    strokeStyle: "rgba(7, 14, 22, 0.72)",
+  });
+
+  const itemDefinitions = [
+    { ballType: "poke_ball", itemId: "#topbar-ball-poke-item", countId: "#topbar-ball-poke-count" },
+    { ballType: "super_ball", itemId: "#topbar-ball-super-item", countId: "#topbar-ball-super-count" },
+    { ballType: "hyper_ball", itemId: "#topbar-ball-hyper-item", countId: "#topbar-ball-hyper-count" },
+  ];
+  const gridY = rect.y + 24;
+  const gridHeight = Math.max(28, rect.height - 32);
+  const cellGap = 6;
+  const cellWidth = Math.max(36, (rect.width - 20 - cellGap * 2) / 3);
+  const activeBallType = String(state.saveData?.active_ball_type || "").toLowerCase().trim();
+  itemDefinitions.forEach((definition, index) => {
+    const itemEl = topbarBallsPillEl?.querySelector?.(definition.itemId) || null;
+    const countEl = topbarBallsPillEl?.querySelector?.(definition.countId) || null;
+    const isActive = Boolean(itemEl?.classList?.contains?.("is-active")) || definition.ballType === activeBallType;
+    const cellX = rect.x + 10 + index * (cellWidth + cellGap);
+    drawRetroHudPanel(cellX, gridY, cellWidth, gridHeight, {
+      cut: 9,
+      fillTop: isActive ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: isActive ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+      fillBottom: isActive ? "rgba(33, 74, 166, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: isActive ? "rgba(197, 228, 255, 0.86)" : ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: isActive ? "rgba(80, 150, 255, 0.24)" : "rgba(0, 0, 0, 0.18)",
+      borderWidth: isActive ? 1.35 : 1.1,
+      radius: 18,
+    });
+    drawPokeball(cellX + cellWidth * 0.5, gridY + gridHeight * 0.42, Math.min(cellWidth, gridHeight) * 0.22, {
+      alpha: isActive ? 0.98 : 0.9,
+      ball_type: definition.ballType,
+    });
+    drawCanvasRuntimeOverlayText(getElementText(countEl, "0"), cellX + cellWidth * 0.5, gridY + gridHeight - 18, {
+      fontSize: 11,
+      weight: "800",
+      textAlign: "center",
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.text,
+    });
+  });
+
+  hitboxes.push({
+    id: "runtime-shell-topbar-balls",
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    interactive: true,
+    actionType: "topbar-ball-menu",
+  });
+}
+
+function drawCanvasRuntimeDesktopShellRouteSummary(hitboxes) {
+  const shellRect = getCanvasRectFromDomElement(routeNavPanelEl?.parentElement || routeNavPanelEl);
+  const buttonRect = getCanvasRectFromDomElement(routeNavDrawerToggleButtonEl) || shellRect;
+  if (!shellRect || !buttonRect) {
+    return;
+  }
+  const destinationCount = Math.max(0, toSafeInt(getElementText(routeNavDrawerToggleCountEl, "0"), 0));
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const interactive = destinationCount > 0;
+  const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
+  const drawerOpen = Boolean(state.ui.routeNavDrawerOpen);
+  drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
+    cut: 14,
+    fillTop: drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: isHovered || drawerOpen ? "rgba(80, 150, 255, 0.28)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered || drawerOpen ? 1.5 : 1.35,
+    radius: 18,
+  });
+  drawCanvasRuntimeOverlayText("Zone active", shellRect.x + 14, shellRect.y + 10, {
+    fontSize: 10,
+    fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+    strokeStyle: "rgba(7, 14, 22, 0.72)",
+  });
+
+  const currentText = getElementText(routeNavCurrentEl, "Zone");
+  const regionText = getElementText(routeNavRegionEl, "");
+  ctx.save();
+  ctx.font = `800 15px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  const title = fitTextToWidthWithEllipsis(currentText, Math.max(80, shellRect.width - 96));
+  ctx.restore();
+  drawCanvasRuntimeOverlayText(title, shellRect.x + 14, shellRect.y + 28, {
+    fontSize: 15,
+    weight: "800",
+  });
+  if (regionText) {
+    drawCanvasRuntimeOverlayText(regionText, shellRect.x + 14, shellRect.y + shellRect.height - 22, {
+      fontSize: 10,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(7, 14, 22, 0.72)",
+    });
+  }
+
+  const pillWidth = 38;
+  const pillHeight = 28;
+  const pillX = shellRect.x + shellRect.width - pillWidth - 14;
+  const pillY = shellRect.y + Math.max(12, (shellRect.height - pillHeight) * 0.5);
+  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(destinationCount), {
+    fillTop: interactive ? "rgba(69, 132, 237, 0.98)" : "rgba(78, 89, 102, 0.94)",
+    fillBottom: interactive ? "rgba(37, 82, 171, 0.98)" : "rgba(48, 57, 70, 0.96)",
+    border: interactive ? "rgba(205, 230, 255, 0.84)" : "rgba(166, 176, 189, 0.52)",
+  });
+  drawCanvasRuntimeOverlayText("›", shellRect.x + shellRect.width - 18, shellRect.y + shellRect.height * 0.5, {
+    fontSize: 18,
+    textAlign: "center",
+    textBaseline: "middle",
+    fillStyle: interactive ? ZONE_UI_CANVAS_THEME.panel.text : "rgba(208, 214, 220, 0.58)",
+  });
+
+  hitboxes.push({
+    id: "runtime-shell-route-nav-toggle",
+    x: buttonRect.x,
+    y: buttonRect.y,
+    width: buttonRect.width,
+    height: buttonRect.height,
+    interactive,
+    actionType: "route-nav-drawer-toggle",
+  });
+}
+
+function drawCanvasRuntimeDesktopShellResourceStrip() {
+  const stripRect = getCanvasRectFromDomElement(moneyPillEl?.parentElement);
+  if (!stripRect) {
+    return;
+  }
+  drawRetroHudPanel(stripRect.x, stripRect.y, stripRect.width, stripRect.height, {
+    cut: 14,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.35,
+    radius: 18,
+  });
+
+  const pillEntries = [
+    moneyPillEl,
+    getClosestElement(coinsValueEl, ".resource-pill"),
+    getClosestElement(saveBackendValueEl, ".resource-pill"),
+  ].filter(Boolean);
+
+  for (const pillEl of pillEntries) {
+    const pillRect = getCanvasRectFromDomElement(pillEl);
+    if (!pillRect) {
+      continue;
+    }
+    const iconText = getElementText(pillEl.querySelector?.(".currency-pill-icon"), "");
+    const captionText = getElementText(pillEl.querySelector?.(".currency-pill-caption"), "");
+    const valueText = getElementText(
+      pillEl.querySelector?.(".currency-pill-value") || pillEl.querySelector?.("#save-backend-value"),
+      "",
+    );
+    drawRetroHudPanel(pillRect.x, pillRect.y, pillRect.width, pillRect.height, {
+      cut: 10,
+      fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+      fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: "rgba(0, 0, 0, 0.16)",
+      borderWidth: 1.1,
+      radius: 14,
+    });
+    const iconRadius = Math.min(11, pillRect.height * 0.24);
+    const iconCenterX = pillRect.x + 16;
+    const iconCenterY = pillRect.y + pillRect.height * 0.5;
+    const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
+    iconGradient.addColorStop(0, "#fff2b5");
+    iconGradient.addColorStop(1, "#d59b2d");
+    ctx.save();
+    ctx.fillStyle = iconGradient;
+    ctx.beginPath();
+    ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(iconText, iconCenterX, iconCenterY, {
+      fontSize: 10,
+      weight: "800",
+      textAlign: "center",
+      textBaseline: "middle",
+      fillStyle: "rgba(24, 38, 56, 0.96)",
+      strokeStyle: "rgba(255, 255, 255, 0.22)",
+      lineWidth: 1.6,
+    });
+    ctx.save();
+    ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const valueLabel = fitTextToWidthWithEllipsis(valueText, Math.max(36, pillRect.width - 44));
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(valueLabel, pillRect.x + 32, pillRect.y + 9, {
+      fontSize: 12,
+      weight: "800",
+    });
+    drawCanvasRuntimeOverlayText(captionText, pillRect.x + 32, pillRect.y + pillRect.height - 16, {
+      fontSize: 8,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(7, 14, 22, 0.68)",
+    });
+  }
+}
+
+function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
+  const shellRect = getCanvasRectFromDomElement(actionDockEl);
+  const buttonRect = getCanvasRectFromDomElement(actionDockPokeballToggleButtonEl);
+  if (!shellRect || !buttonRect) {
+    return;
+  }
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const isHovered = hoveredActionId === "runtime-shell-action-dock-toggle";
+  const menuOpen = Boolean(actionDockPokeballToggleButtonEl?.getAttribute?.("aria-expanded") === "true");
+  drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
+    cut: 14,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.35,
+    radius: 18,
+  });
+  const label = getElementText(
+    actionDockPokeballToggleButtonEl?.querySelector?.(".action-dock-pokeball-toggle-label"),
+    "Menu",
+  );
+  drawRetroHudPanel(buttonRect.x, buttonRect.y, buttonRect.width, buttonRect.height, {
+    cut: 14,
+    fillTop: menuOpen ? "rgba(63, 118, 220, 0.98)" : isHovered ? "rgba(54, 88, 147, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: menuOpen ? "rgba(63, 118, 220, 0.98)" : isHovered ? "rgba(54, 88, 147, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+    fillBottom: menuOpen ? "rgba(38, 72, 151, 0.98)" : isHovered ? "rgba(39, 64, 108, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+    border: menuOpen ? "rgba(208, 232, 255, 0.86)" : ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: isHovered || menuOpen ? "rgba(80, 150, 255, 0.28)" : "rgba(0, 0, 0, 0.18)",
+    borderWidth: isHovered || menuOpen ? 1.4 : 1.12,
+    radius: 22,
+  });
+  drawPokeball(buttonRect.x + 22, buttonRect.y + buttonRect.height * 0.5, Math.min(buttonRect.width, buttonRect.height) * 0.19, {
+    alpha: 0.96,
+    ball_type: "poke_ball",
+  });
+  drawCanvasRuntimeOverlayText(label, buttonRect.x + 42, buttonRect.y + buttonRect.height * 0.5 - 10, {
+    fontSize: 14,
+    weight: "800",
+    textBaseline: "middle",
+  });
+  drawCanvasRuntimeOverlayText("Actions principales", buttonRect.x + 42, buttonRect.y + buttonRect.height * 0.5 + 8, {
+    fontSize: 9,
+    fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+    strokeStyle: "rgba(7, 14, 22, 0.72)",
+    textBaseline: "middle",
+  });
+  hitboxes.push({
+    id: "runtime-shell-action-dock-toggle",
+    x: buttonRect.x,
+    y: buttonRect.y,
+    width: buttonRect.width,
+    height: buttonRect.height,
+    interactive: true,
+    actionType: "action-dock-menu-toggle",
+  });
+}
+
+function drawCanvasRuntimeZoneActions(hitboxes) {
+  if (!(zoneActionButtonsById instanceof Map) || zoneActionButtonsById.size <= 0) {
+    return;
+  }
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  for (const [actionId, buttonEl] of zoneActionButtonsById.entries()) {
+    if (!buttonEl || buttonEl.hidden || buttonEl.disabled) {
+      continue;
+    }
+    const rect = getCanvasRectFromDomElement(buttonEl);
+    if (!rect) {
+      continue;
+    }
+    const id = `runtime-zone-action-${String(actionId || "").trim()}`;
+    const isHovered = hoveredActionId === id;
+    drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+      cut: 10,
+      fillTop: isHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: isHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+      fillBottom: isHovered ? "rgba(38, 72, 151, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: isHovered ? "rgba(80, 150, 255, 0.26)" : "rgba(0, 0, 0, 0.18)",
+      borderWidth: isHovered ? 1.35 : 1.1,
+      radius: 14,
+    });
+    ctx.save();
+    ctx.font = `800 11px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const label = fitTextToWidthWithEllipsis(getElementText(buttonEl, actionId), Math.max(28, rect.width - 18));
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(label, rect.x + rect.width * 0.5, rect.y + rect.height * 0.5, {
+      fontSize: 11,
+      weight: "800",
+      textAlign: "center",
+      textBaseline: "middle",
+    });
+    hitboxes.push({
+      id,
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      interactive: true,
+      actionType: "zone-action",
+      actionId,
+    });
+  }
+}
+
+function drawCanvasRuntimeDesktopShell(hitboxes) {
+  drawCanvasRuntimeDesktopShellTopbar(hitboxes);
+  drawCanvasRuntimeDesktopShellRouteSummary(hitboxes);
+  drawCanvasRuntimeDesktopShellResourceStrip();
+  drawCanvasRuntimeDesktopShellActionDock(hitboxes);
+}
+
 function drawCanvasRuntimeHoverPopup(layout) {
   const model = state.ui.canvasHoverPopupModel;
   if (!model || layout?.viewportProfile?.phone) {
@@ -7461,10 +7864,12 @@ function drawCanvasRuntimeBallCaptureMenu(layout, hitboxes) {
 
 function drawCanvasRuntimeOverlays(layout) {
   state.ui.canvasOverlayActionHitboxes = [];
-  if (layout?.viewportProfile?.phone) {
+  if (layout?.viewportProfile?.phone || layout?.layoutMode !== "desktopLandscape") {
     return;
   }
   const hitboxes = [];
+  drawCanvasRuntimeDesktopShell(hitboxes);
+  drawCanvasRuntimeZoneActions(hitboxes);
   drawCanvasRuntimeHoverPopup(layout);
   drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
   drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);

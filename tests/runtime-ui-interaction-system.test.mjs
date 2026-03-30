@@ -622,6 +622,9 @@ function createUiInteractionSystem(overrides = {}) {
     showModalWithTween: () => {},
     showPopupWithTween: () => {},
     showTooltipWithTween: () => {},
+    toggleActionDockFullscreenMenu: () => {},
+    toggleRouteNavDrawer: () => {},
+    triggerZoneAction: () => {},
     mapConnectionsInfoPanelEl: { classList: createClassList(true), replaceChildren() {} },
     routeNavInfoPanelEl: { classList: createClassList(true), replaceChildren() {} },
     routeNavPanelEl: createTestElement("div"),
@@ -1386,6 +1389,104 @@ test("runtime ui interaction system keeps floating hover popups inside runtime s
 
   assert.equal(hoverPopupEl.style.left, "200px");
   assert.equal(hoverPopupEl.style.top, "316px");
+});
+
+test("runtime ui interaction system dispatches canvas shell overlay actions", () => {
+  let popupShowCount = 0;
+  let popupHideCount = 0;
+  let toggleRouteNavDrawerCallCount = 0;
+  let toggleActionDockFullscreenMenuCallCount = 0;
+  const triggeredZoneActionIds = [];
+  let renderCallCount = 0;
+  const shellHitboxes = [
+    {
+      id: "runtime-shell-topbar-balls",
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 40,
+      interactive: true,
+      actionType: "topbar-ball-menu",
+    },
+    {
+      id: "runtime-shell-route-nav-toggle",
+      x: 100,
+      y: 10,
+      width: 110,
+      height: 44,
+      interactive: true,
+      actionType: "route-nav-drawer-toggle",
+    },
+    {
+      id: "runtime-shell-action-dock-toggle",
+      x: 220,
+      y: 10,
+      width: 120,
+      height: 44,
+      interactive: true,
+      actionType: "action-dock-menu-toggle",
+    },
+    {
+      id: "runtime-zone-action-camp",
+      x: 350,
+      y: 10,
+      width: 140,
+      height: 40,
+      interactive: true,
+      actionType: "zone-action",
+      actionId: "camp",
+    },
+  ];
+
+  const { system, state } = createUiInteractionSystem({
+    bindings: {
+      BALL_CONFIG_BY_TYPE: {
+        poke_ball: { type: "poke_ball", icon: "P" },
+      },
+      getBallCaptureRulesForType: () => ({}),
+      showPopupWithTween: () => {
+        popupShowCount += 1;
+      },
+      hidePopupWithTween: () => {
+        popupHideCount += 1;
+      },
+      toggleRouteNavDrawer: () => {
+        toggleRouteNavDrawerCallCount += 1;
+      },
+      toggleActionDockFullscreenMenu: () => {
+        toggleActionDockFullscreenMenuCallCount += 1;
+      },
+      triggerZoneAction: (actionId) => {
+        triggeredZoneActionIds.push(String(actionId || ""));
+      },
+      render: () => {
+        renderCallCount += 1;
+      },
+    },
+  });
+
+  state.ui.canvasOverlayActionHitboxes = shellHitboxes.map((hitbox) => ({ ...hitbox }));
+  system.handleCanvasClick({ button: 0, clientX: 40, clientY: 30 });
+  assert.equal(state.ui.ballCaptureMenuOpen, true);
+
+  state.ui.ballCaptureMenuOpen = true;
+  state.ui.canvasOverlayActionHitboxes = shellHitboxes.map((hitbox) => ({ ...hitbox }));
+  system.handleCanvasClick({ button: 0, clientX: 40, clientY: 30 });
+  assert.equal(state.ui.ballCaptureMenuOpen, false);
+
+  state.ui.canvasOverlayActionHitboxes = shellHitboxes.map((hitbox) => ({ ...hitbox }));
+  system.handleCanvasClick({ button: 0, clientX: 130, clientY: 28 });
+  state.ui.canvasOverlayActionHitboxes = shellHitboxes.map((hitbox) => ({ ...hitbox }));
+  system.handleCanvasClick({ button: 0, clientX: 250, clientY: 28 });
+  state.ui.canvasOverlayActionHitboxes = shellHitboxes.map((hitbox) => ({ ...hitbox }));
+  system.handleCanvasClick({ button: 0, clientX: 380, clientY: 28 });
+
+  assert.equal(popupShowCount, 1);
+  assert.equal(popupHideCount, 2);
+  assert.equal(toggleRouteNavDrawerCallCount, 1);
+  assert.equal(toggleActionDockFullscreenMenuCallCount, 1);
+  assert.deepEqual(triggeredZoneActionIds, ["camp"]);
+  assert.equal(renderCallCount, 2);
 });
 
 test("runtime ui interaction system renders live team hover tooltip combat metrics", () => {

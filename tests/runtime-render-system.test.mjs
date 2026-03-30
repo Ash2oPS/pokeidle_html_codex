@@ -212,11 +212,47 @@ test("runtime render system draws canvas-owned runtime overlays after the HUD la
   const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
 
   assert.match(source, /function drawCanvasRuntimeOverlays\(layout\)/);
+  assert.match(source, /layout\?\.layoutMode !== "desktopLandscape"/);
+  assert.match(source, /drawCanvasRuntimeDesktopShell\(hitboxes\);/);
+  assert.match(source, /drawCanvasRuntimeZoneActions\(hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeHoverPopup\(layout\);/);
   assert.match(source, /drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/);
   assert.match(source, /state\.ui\.canvasOverlayActionHitboxes = hitboxes;/);
   assert.match(source, /drawBallInventoryOverlay\(layout\);\s*drawCanvasRuntimeOverlays\(layout\);\s*drawVersionOverlay\(\);/);
+});
+
+test("runtime render system hides desktop DOM shell owners once canvas shell rendering takes over", () => {
+  const stylesSource = fs.readFileSync(stylesPath, "utf8");
+
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.topbar-balls-pill,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.ui-topbar \.route-nav-wrap,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.resource-strip\.currency-stack,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.action-dock,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.world-ui-layer \.zone-action-btn/);
+  assert.match(stylesSource, /visibility:\s*hidden !important;/);
+  assert.match(stylesSource, /pointer-events:\s*none !important;/);
+});
+
+test("runtime shell canvas bindings stay exposed through game runtime getters", () => {
+  const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
+
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.topbarBallsPillEl = \(\) => topbarBallsPillEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.moneyPillEl = \(\) => moneyPillEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.moneyValueEl = \(\) => moneyValueEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.coinsValueEl = \(\) => coinsValueEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.saveBackendValueEl = \(\) => saveBackendValueEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavPanelEl = \(\) => routeNavPanelEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavCurrentEl = \(\) => routeNavCurrentEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavRegionEl = \(\) => routeNavRegionEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleButtonEl = \(\) => routeNavDrawerToggleButtonEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleCountEl = \(\) => routeNavDrawerToggleCountEl;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.zoneActionButtonsById = \(\) => zoneActionButtonsById;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setMapOpen = \(\) => setMapOpen;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setShopOpen = \(\) => setShopOpen;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setGachaOpen = \(\) => setGachaOpen;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.toggleRouteNavDrawer = \(\) => toggleRouteNavDrawer;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.triggerZoneAction = \(\) => triggerZoneAction;/);
 });
 
 test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {

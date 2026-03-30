@@ -15055,8 +15055,17 @@ body.update-required-active {
     border-radius: 12px;
   }
 
-  .pokemon-info-card--pokedex .pokemon-info-feature-grid--pokedex,
-  .pokemon-info-card--pokedex .pokemon-info-detail-grid {
-    grid-template-columns: 1fr;
+.pokemon-info-card--pokedex .pokemon-info-feature-grid--pokedex,
+.pokemon-info-card--pokedex .pokemon-info-detail-grid {
+  grid-template-columns: 1fr;
   }
+}
+
+#game-capture-root[data-layout-mode="desktopLandscape"] .topbar-balls-pill,
+#game-capture-root[data-layout-mode="desktopLandscape"] .ui-topbar .route-nav-wrap,
+#game-capture-root[data-layout-mode="desktopLandscape"] .resource-strip.currency-stack,
+#game-capture-root[data-layout-mode="desktopLandscape"] .action-dock,
+#game-capture-root[data-layout-mode="desktopLandscape"] .world-ui-layer .zone-action-btn {
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

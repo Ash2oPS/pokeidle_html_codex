@@ -308,6 +308,8 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "teamContextMenuRenameButtonEl",
   "teamContextMenuTitleEl",
   "toSafeInt",
+  "toggleActionDockFullscreenMenu",
+  "toggleRouteNavDrawer",
   "trainerBattleSetupCancelButtonEl",
   "trainerBattleSetupCloseButtonEl",
   "trainerBattleSetupConfirmButtonEl",
@@ -318,6 +320,7 @@ export const RUNTIME_UI_INTERACTION_BINDING_KEYS = Object.freeze([
   "trainerBattleSetupStatusEl",
   "trainerBattleSetupSubtitleEl",
   "trainerBattleSetupTitleEl",
+  "triggerZoneAction",
   "tryOpenPendingTutorialFlow",
   "update",
   "updateEvolutionAnimation",
@@ -634,6 +637,8 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     teamContextMenuRenameButtonEl,
     teamContextMenuTitleEl,
     toSafeInt,
+    toggleActionDockFullscreenMenu,
+    toggleRouteNavDrawer,
     trainerBattleSetupCancelButtonEl,
     trainerBattleSetupCloseButtonEl,
     trainerBattleSetupConfirmButtonEl,
@@ -644,6 +649,7 @@ export function createRuntimeUiInteractionSystem(options = {}) {
     trainerBattleSetupStatusEl,
     trainerBattleSetupSubtitleEl,
     trainerBattleSetupTitleEl,
+    triggerZoneAction,
     tryOpenPendingTutorialFlow,
     update,
     updateEvolutionAnimation,
@@ -1369,6 +1375,20 @@ function handleCanvasRuntimeOverlayAction(hitbox) {
       openAppearanceForTeamSlot(hitbox.slotIndex);
       render();
       return true;
+    case "topbar-ball-menu":
+      if (state.ui.ballCaptureMenuOpen) {
+        closeBallCaptureMenu();
+      } else {
+        openTopbarBallCaptureMenu();
+      }
+      render();
+      return true;
+    case "route-nav-drawer-toggle":
+      toggleRouteNavDrawer();
+      return true;
+    case "action-dock-menu-toggle":
+      toggleActionDockFullscreenMenu();
+      return true;
     case "ball-tab":
       if (setBallCaptureMenuBallType(hitbox.ballType)) {
         render();
@@ -1377,6 +1397,9 @@ function handleCanvasRuntimeOverlayAction(hitbox) {
       return false;
     case "ball-rule":
       toggleBallCaptureRule(hitbox.ruleKey);
+      return true;
+    case "zone-action":
+      triggerZoneAction(hitbox.actionId);
       return true;
     default:
       return false;
