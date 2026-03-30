@@ -3423,7 +3423,6 @@ body {
   .notification-stack {
     left: calc(8px + env(safe-area-inset-left));
     right: calc(8px + env(safe-area-inset-right));
-    bottom: calc(72px + env(safe-area-inset-bottom));
     align-items: stretch;
     gap: 6px;
     max-width: none;
@@ -3786,7 +3785,6 @@ body {
   }
 
   .notification-stack {
-    bottom: calc(84px + env(safe-area-inset-bottom));
     gap: 5px;
   }
 
@@ -7830,7 +7828,6 @@ body.update-required-active {
   .notification-stack {
     left: calc(6px + env(safe-area-inset-left));
     right: calc(6px + env(safe-area-inset-right));
-    bottom: calc(124px + env(safe-area-inset-bottom));
     align-items: stretch;
     max-width: none;
     gap: 6px;
@@ -7880,9 +7877,6 @@ body.update-required-active {
     min-height: 30px;
   }
 
-  .notification-stack {
-    bottom: calc(120px + env(safe-area-inset-bottom));
-  }
 }
 
 /* Temporary bottom menu replacement + fullscreen action menu */
@@ -8028,7 +8022,10 @@ body.update-required-active {
   padding:
     max(18px, env(safe-area-inset-top))
     max(14px, env(safe-area-inset-right))
-    max(120px, calc(env(safe-area-inset-bottom) + 96px))
+    max(
+      calc(var(--ui-runtime-dock-height-px, 92px) + 28px),
+      calc(env(safe-area-inset-bottom) + var(--ui-runtime-dock-height-px, 92px) + 4px)
+    )
     max(14px, env(safe-area-inset-left));
   background:
     radial-gradient(circle at 20% 12%, rgba(232, 246, 255, 0.12), transparent 38%),
