@@ -366,6 +366,9 @@ test("runtime shell metrics stay synchronized between CSS overlays and canvas la
   assert.match(stylesSource, /--ui-runtime-dock-height-px:\s*92px;/);
   assert.match(stylesSource, /bottom:\s*calc\(\s*var\(--ui-runtime-dock-height-px,\s*92px\)/);
   assert.match(stylesSource, /max-height:\s*min\(\s*78svh,\s*calc\(\s*100dvh\s*-\s*var\(--ui-runtime-topbar-height-px,\s*110px\)/s);
+  assert.match(stylesSource, /calc\(var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*40px\)/);
+  assert.match(stylesSource, /calc\(var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*44px\)/);
+  assert.match(stylesSource, /calc\(env\(safe-area-inset-bottom\)\s*\+\s*var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*20px\)/);
 });
 
 test("computeSpriteOpaqueDrawPlacement preserves uniform pixel density when render size follows source ppu", () => {

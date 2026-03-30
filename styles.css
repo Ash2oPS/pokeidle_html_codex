@@ -12167,7 +12167,7 @@ body.update-required-active {
     position: fixed;
     inset: 0;
     place-items: end center;
-    padding: 24px 24px calc(132px + env(safe-area-inset-bottom));
+    padding: 24px 24px calc(var(--ui-runtime-dock-height-px, 92px) + env(safe-area-inset-bottom) + 40px);
     background:
       radial-gradient(circle at 50% 100%, rgba(147, 220, 235, 0.1), transparent 36%),
       linear-gradient(180deg, rgba(2, 8, 13, 0.24), rgba(2, 8, 13, 0.48));
@@ -13557,7 +13557,7 @@ body.update-required-active {
 @media (min-width: 961px) {
   .action-dock-fullscreen-menu {
     place-items: center;
-    padding: 20px 18px calc(136px + env(safe-area-inset-bottom));
+    padding: 20px 18px calc(var(--ui-runtime-dock-height-px, 92px) + env(safe-area-inset-bottom) + 44px);
   }
 
   #action-dock-fullscreen-menu .action-dock-fullscreen-shell {
@@ -13771,7 +13771,10 @@ body.update-required-active {
   #action-dock-fullscreen-menu {
     place-items: start center;
     overflow-y: auto;
-    padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 112px));
+    padding-bottom: max(
+      calc(var(--ui-runtime-dock-height-px, 92px) + 40px),
+      calc(env(safe-area-inset-bottom) + var(--ui-runtime-dock-height-px, 92px) + 20px)
+    );
   }
 
   #action-dock-fullscreen-menu .action-dock-fullscreen-shell {
