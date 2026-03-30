@@ -7438,3 +7438,23 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop evolution reveal: `output/evolution-animation-rework/desktop/reveal.png`
   - mobile evolution oscillation: `output/evolution-animation-rework/mobile/oscillation.png`
   - mobile evolution reveal: `output/evolution-animation-rework/mobile/reveal.png`
+
+## 2026-03-30 - Mobile canvas shell interaction parity
+
+- Completed the last missing runtime-shell interaction pass for the mobile canvas-first shell.
+  - `systems/ui/runtime-ui-interaction-system.js` now resolves canvas shell hitboxes in both `desktopLandscape` and `mobilePortrait` instead of rejecting everything outside the old desktop-only mode.
+  - This keeps desktop floating overlay ownership rules intact while making the mobile canvas shell actually clickable for:
+    - topbar ball capture entry
+    - route navigation toggle
+    - action dock menu toggle
+    - zone action buttons
+- Added focused regression coverage in `tests/runtime-ui-interaction-system.test.mjs` for mobile canvas shell clicks.
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs tests/runtime-input-system.test.mjs tests/runtime-render-system.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - mobile top HUD: `output/ui-state-gallery/mobile-portrait/mobile-top-hud.png`
+  - mobile route nav drawer: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
+  - mobile trainer zone action: `output/ui-state-gallery/mobile-portrait/pewter-trainer-action.png`
+  - desktop topbar sanity: `output/ui-state-gallery/desktop-landscape/topbar-pill-layout.png`

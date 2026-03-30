@@ -1150,6 +1150,11 @@ function isDesktopCanvasRuntimeOverlayMode() {
   return !isPhoneUiViewport();
 }
 
+function isCanvasRuntimeShellMode() {
+  const layoutMode = String(state?.layout?.layoutMode || "").trim();
+  return layoutMode === "desktopLandscape" || layoutMode === "mobilePortrait" || !isPhoneUiViewport();
+}
+
 function setCanvasRuntimeOwnedFlag(element, owned) {
   if (!element || typeof element !== "object" || !element.dataset) {
     return;
@@ -1341,7 +1346,7 @@ function buildCanvasBallCaptureMenuModel(ballType, clientX, clientY, options = {
 }
 
 function getCanvasRuntimeOverlayHitboxFromPointerEvent(event, options = {}) {
-  if (!isDesktopCanvasRuntimeOverlayMode()) {
+  if (!isCanvasRuntimeShellMode()) {
     return null;
   }
   const point = getCanvasLocalCoordinatesFromPointerEvent(event);
