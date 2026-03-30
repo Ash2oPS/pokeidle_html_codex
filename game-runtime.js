@@ -12762,6 +12762,9 @@ RUNTIME_BINDING_GETTERS.routeNavRegionEl = () => routeNavRegionEl;
 RUNTIME_BINDING_GETTERS.routeNavDrawerToggleButtonEl = () => routeNavDrawerToggleButtonEl;
 RUNTIME_BINDING_GETTERS.routeNavDrawerToggleCountEl = () => routeNavDrawerToggleCountEl;
 RUNTIME_BINDING_GETTERS.zoneActionButtonsById = () => zoneActionButtonsById;
+RUNTIME_BINDING_GETTERS.canvasOverlayActionHitboxes = () => Array.isArray(state?.ui?.canvasOverlayActionHitboxes)
+  ? state.ui.canvasOverlayActionHitboxes
+  : [];
 RUNTIME_BINDING_GETTERS.setMapOpen = () => setMapOpen;
 RUNTIME_BINDING_GETTERS.setShopOpen = () => setShopOpen;
 RUNTIME_BINDING_GETTERS.setGachaOpen = () => setGachaOpen;

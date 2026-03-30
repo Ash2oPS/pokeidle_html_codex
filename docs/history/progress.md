@@ -7485,3 +7485,32 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
   - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
   - desktop ball capture sanity: `output/ui-state-gallery/desktop-landscape/ball-capture-menu.png`
+
+## 2026-03-30 - Gallery canvas interaction parity for runtime shell and overlays
+
+- Rewired the Playwright UI galleries so the migrated runtime shell and overlay flows are exercised through real canvas hitboxes instead of direct state-binding shortcuts where canvas-first ownership already exists.
+  - `scripts/testing/playwright/actions/desktop-ui-gallery.json` now opens:
+    - route navigation
+    - ball capture
+    - fullscreen action dock
+    - trainer zone actions
+    - desktop team context via canvas-driven interactions
+  - `scripts/testing/playwright/actions/mobile-ui-gallery.json` now opens:
+    - route navigation
+    - ball capture
+    - fullscreen action dock
+    - trainer zone actions
+    through canvas hitbox taps instead of DOM/binding bypasses.
+- Exposed `canvasOverlayActionHitboxes` explicitly in `game-runtime.js` so `window.__pokeidle_get_binding_snapshot(...)` can serialize the live canvas action map for gallery helpers.
+- Added source-level regression coverage in `tests/runtime-render-system.test.mjs` to lock the runtime getter exposure.
+- Validation:
+  - `node --test tests/runtime-render-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop route lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - desktop ball capture menu: `output/ui-state-gallery/desktop-landscape/ball-capture-menu.png`
+  - desktop fullscreen menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - mobile route drawer: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
+  - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
+  - mobile fullscreen menu: `output/ui-state-gallery/mobile-portrait/menu.png`

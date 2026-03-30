@@ -261,6 +261,7 @@ test("runtime shell canvas bindings stay exposed through game runtime getters", 
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleButtonEl = \(\) => routeNavDrawerToggleButtonEl;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleCountEl = \(\) => routeNavDrawerToggleCountEl;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.zoneActionButtonsById = \(\) => zoneActionButtonsById;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.canvasOverlayActionHitboxes = \(\) => Array\.isArray\(state\?\.ui\?\.canvasOverlayActionHitboxes\)/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setMapOpen = \(\) => setMapOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setShopOpen = \(\) => setShopOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setGachaOpen = \(\) => setGachaOpen;/);
