@@ -1522,6 +1522,64 @@ test("runtime ui interaction system renders the mobile team hover as a quick bot
   dom.window.close();
 });
 
+test("runtime ui interaction system keeps mobile bottom-sheet offsets to dock protrusion only", () => {
+  const dom = new JSDOM(
+    "<!doctype html><html><body><button id='action-dock-pokeball-toggle'></button><div id='team-context-menu'></div></body></html>",
+    { pretendToBeVisual: true },
+  );
+  Object.defineProperty(dom.window, "innerWidth", { value: 390, configurable: true });
+  Object.defineProperty(dom.window, "innerHeight", { value: 844, configurable: true });
+  dom.window.document.documentElement.style.setProperty("--ui-mobile-bottom-offset-px", "12px");
+  dom.window.document.documentElement.style.setProperty("--ui-runtime-dock-height-px", "92px");
+
+  const dockToggleEl = dom.window.document.getElementById("action-dock-pokeball-toggle");
+  dockToggleEl.getBoundingClientRect = () => ({
+    width: 92,
+    height: 92,
+    left: 0,
+    top: 710,
+    right: 92,
+    bottom: 802,
+  });
+
+  const teamContextMenuEl = dom.window.document.getElementById("team-context-menu");
+  teamContextMenuEl.classList.add("hidden");
+
+  const { state, system } = createUiInteractionSystem({
+    window: dom.window,
+    layout: {
+      centerX: 195,
+      centerY: 422,
+      teamSlots: [],
+      viewportProfile: { phone: true },
+    },
+    bindings: {
+      document: dom.window.document,
+      Element: dom.window.Element,
+      HTMLElement: dom.window.HTMLElement,
+      HTMLButtonElement: dom.window.HTMLButtonElement,
+      HTMLImageElement: dom.window.HTMLImageElement,
+      teamContextMenuEl,
+      teamContextMenuTitleEl: dom.window.document.createElement("div"),
+      teamContextMenuRenameButtonEl: dom.window.document.createElement("button"),
+      teamContextMenuBoxesButtonEl: dom.window.document.createElement("button"),
+      teamContextMenuAppearanceButtonEl: dom.window.document.createElement("button"),
+      showPopupWithTween: (element) => {
+        element.classList.remove("hidden");
+      },
+    },
+  });
+
+  state.layout.viewportProfile = { phone: true };
+  state.team = [{ id: 1, nameFr: "Bulbizarre", level: 5 }];
+
+  system.openTeamContextMenu(0, state.team[0], 120, 90);
+
+  assert.equal(teamContextMenuEl.classList.contains("is-mobile-bottom-sheet"), true);
+  assert.equal(teamContextMenuEl.style.getPropertyValue("--context-sheet-bottom-offset-px"), "54px");
+  dom.window.close();
+});
+
 test("runtime ui interaction system requires explicit mobile confirmation in boxes", async () => {
   const { bindings, state, system } = createUiInteractionSystem({
     bindings: {

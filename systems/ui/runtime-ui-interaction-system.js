@@ -1158,6 +1158,7 @@ function readRootCssNumberVariable(variableName, fallback = 0) {
 
 function getActionDockBottomSheetOffsetPx() {
   const fallbackOffsetPx = readRootCssNumberVariable("--ui-mobile-bottom-offset-px", 12);
+  const runtimeDockHeightPx = Math.max(0, readRootCssNumberVariable("--ui-runtime-dock-height-px", 92));
   if (typeof document === "undefined") {
     return fallbackOffsetPx;
   }
@@ -1172,7 +1173,9 @@ function getActionDockBottomSheetOffsetPx() {
   if (!Number.isFinite(top) || top <= 0 || height <= 0 || viewportHeight <= 0) {
     return fallbackOffsetPx;
   }
-  return Math.max(fallbackOffsetPx, Math.ceil((viewportHeight - top) + fallbackOffsetPx));
+  const dockTop = Math.max(0, viewportHeight - runtimeDockHeightPx);
+  const toggleProtrusionPx = Math.max(0, dockTop - top);
+  return Math.max(fallbackOffsetPx, Math.ceil(toggleProtrusionPx + fallbackOffsetPx));
 }
 
 function clearResponsiveFloatingMenuPosition(menuEl) {
