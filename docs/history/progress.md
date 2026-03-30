@@ -7546,3 +7546,16 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop route lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
   - mobile menu: `output/ui-state-gallery/mobile-portrait/menu.png`
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+
+## 2026-03-30 - Gallery helper cleanup after canvas-first migration
+
+- Removed gallery helper dead code that was left behind after switching the runtime shell and overlay scenarios to real canvas interactions.
+  - `scripts/testing/playwright/actions/desktop-ui-gallery.json`
+  - `scripts/testing/playwright/actions/mobile-ui-gallery.json`
+  no longer define the old unused binding-based `__galleryOpenTeamContextMenu` / `__galleryOpenBallCaptureMenu` helpers.
+- Validation:
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
