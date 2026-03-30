@@ -7322,6 +7322,283 @@ function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
   });
 }
 
+function drawCanvasRuntimeMobileShellRouteSummary(hitboxes) {
+  const shellRect = getCanvasRectFromDomElement(routeNavPanelEl?.parentElement || routeNavPanelEl);
+  const buttonRect = getCanvasRectFromDomElement(routeNavDrawerToggleButtonEl) || shellRect;
+  if (!shellRect || !buttonRect) {
+    return;
+  }
+  const destinationCount = Math.max(0, toSafeInt(getElementText(routeNavDrawerToggleCountEl, "0"), 0));
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const interactive = destinationCount > 0;
+  const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
+  const drawerOpen = Boolean(state.ui.routeNavDrawerOpen);
+  drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
+    cut: 16,
+    fillTop: drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: isHovered || drawerOpen ? "rgba(80, 150, 255, 0.3)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered || drawerOpen ? 1.55 : 1.35,
+    radius: 20,
+  });
+  const currentText = getElementText(routeNavCurrentEl, "Zone");
+  const regionText = getElementText(routeNavRegionEl, "");
+  ctx.save();
+  ctx.font = `800 18px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  const title = fitTextToWidthWithEllipsis(currentText, Math.max(76, shellRect.width - 98));
+  ctx.restore();
+  drawCanvasRuntimeOverlayText(title, shellRect.x + shellRect.width * 0.5, shellRect.y + 18, {
+    fontSize: 18,
+    weight: "800",
+    textAlign: "center",
+  });
+  if (regionText) {
+    drawCanvasRuntimeOverlayText(regionText, shellRect.x + shellRect.width * 0.5, shellRect.y + shellRect.height - 22, {
+      fontSize: 10,
+      textAlign: "center",
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(7, 14, 22, 0.72)",
+    });
+  }
+  const pillWidth = 34;
+  const pillHeight = 24;
+  const pillX = shellRect.x + shellRect.width - pillWidth - 18;
+  const pillY = shellRect.y + Math.max(10, (shellRect.height - pillHeight) * 0.5);
+  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(destinationCount), {
+    fillTop: interactive ? "rgba(69, 132, 237, 0.98)" : "rgba(78, 89, 102, 0.94)",
+    fillBottom: interactive ? "rgba(37, 82, 171, 0.98)" : "rgba(48, 57, 70, 0.96)",
+    border: interactive ? "rgba(205, 230, 255, 0.84)" : "rgba(166, 176, 189, 0.52)",
+  });
+  drawCanvasRuntimeOverlayText("›", shellRect.x + shellRect.width - 10, shellRect.y + shellRect.height * 0.5, {
+    fontSize: 16,
+    textAlign: "center",
+    textBaseline: "middle",
+    fillStyle: interactive ? ZONE_UI_CANVAS_THEME.panel.text : "rgba(208, 214, 220, 0.58)",
+  });
+  hitboxes.push({
+    id: "runtime-shell-route-nav-toggle",
+    x: buttonRect.x,
+    y: buttonRect.y,
+    width: buttonRect.width,
+    height: buttonRect.height,
+    interactive,
+    actionType: "route-nav-drawer-toggle",
+  });
+}
+
+function drawCanvasRuntimeMobileShellTopbar(hitboxes) {
+  const rect = getCanvasRectFromDomElement(topbarBallsPillEl);
+  if (!rect) {
+    return;
+  }
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const isHovered = hoveredActionId === "runtime-shell-topbar-balls";
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: 14,
+    fillTop: isHovered ? "rgba(26, 70, 102, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: isHovered ? "rgba(18, 54, 82, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: isHovered ? "rgba(8, 28, 44, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: isHovered ? "rgba(80, 150, 255, 0.3)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered ? 1.5 : 1.3,
+    radius: 18,
+  });
+  const itemDefinitions = [
+    { ballType: "poke_ball", countId: "#topbar-ball-poke-count" },
+    { ballType: "super_ball", countId: "#topbar-ball-super-count" },
+    { ballType: "hyper_ball", countId: "#topbar-ball-hyper-count" },
+  ];
+  const activeBallType = String(state.saveData?.active_ball_type || "").toLowerCase().trim();
+  const innerLeft = rect.x + 10;
+  const innerRight = rect.x + rect.width - 10;
+  const itemWidth = (innerRight - innerLeft) / itemDefinitions.length;
+  itemDefinitions.forEach((definition, index) => {
+    const countEl = topbarBallsPillEl?.querySelector?.(definition.countId) || null;
+    const centerX = innerLeft + itemWidth * index + itemWidth * 0.5;
+    const iconY = rect.y + rect.height * 0.37;
+    const countY = rect.y + rect.height - 14;
+    const isActive = definition.ballType === activeBallType;
+    if (index > 0) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(176, 205, 229, 0.24)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(innerLeft + itemWidth * index, rect.y + 10);
+      ctx.lineTo(innerLeft + itemWidth * index, rect.y + rect.height - 10);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (isActive) {
+      drawCanvasRuntimeOverlayPill(centerX - 18, rect.y + 7, 36, 16, "", {
+        fillTop: "rgba(61, 120, 224, 0.32)",
+        fillBottom: "rgba(33, 74, 166, 0.24)",
+        border: "rgba(197, 228, 255, 0.4)",
+      });
+    }
+    drawPokeball(centerX, iconY, Math.min(itemWidth, rect.height) * 0.14, {
+      alpha: isActive ? 0.98 : 0.9,
+      ball_type: definition.ballType,
+    });
+    drawCanvasRuntimeOverlayText(getElementText(countEl, "0"), centerX, countY, {
+      fontSize: 11,
+      weight: "800",
+      textAlign: "center",
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.text,
+    });
+  });
+  hitboxes.push({
+    id: "runtime-shell-topbar-balls",
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    interactive: true,
+    actionType: "topbar-ball-menu",
+  });
+}
+
+function drawCanvasRuntimeMobileShellResourceStrip() {
+  const stripRect = getCanvasRectFromDomElement(moneyPillEl?.parentElement);
+  if (!stripRect) {
+    return;
+  }
+  drawRetroHudPanel(stripRect.x, stripRect.y, stripRect.width, stripRect.height, {
+    cut: 14,
+    fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.panel.border,
+    highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+    shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: 1.3,
+    radius: 16,
+  });
+  const pillEntries = [
+    moneyPillEl,
+    getClosestElement(coinsValueEl, ".resource-pill"),
+    getClosestElement(saveBackendValueEl, ".resource-pill"),
+  ].filter(Boolean);
+  for (const pillEl of pillEntries) {
+    const pillRect = getCanvasRectFromDomElement(pillEl);
+    if (!pillRect) {
+      continue;
+    }
+    const iconText = getElementText(pillEl.querySelector?.(".currency-pill-icon"), "");
+    const valueText = getElementText(
+      pillEl.querySelector?.(".currency-pill-value") || pillEl.querySelector?.("#save-backend-value"),
+      "",
+    );
+    drawRetroHudPanel(pillRect.x, pillRect.y, pillRect.width, pillRect.height, {
+      cut: 10,
+      fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+      fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.subpanel.border,
+      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+      shadow: "rgba(0, 0, 0, 0.16)",
+      borderWidth: 1.1,
+      radius: 14,
+    });
+    const iconRadius = Math.min(9, pillRect.height * 0.24);
+    const iconCenterX = pillRect.x + 14;
+    const iconCenterY = pillRect.y + pillRect.height * 0.5;
+    const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
+    iconGradient.addColorStop(0, "#fff2b5");
+    iconGradient.addColorStop(1, "#d59b2d");
+    ctx.save();
+    ctx.fillStyle = iconGradient;
+    ctx.beginPath();
+    ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(iconText, iconCenterX, iconCenterY, {
+      fontSize: 9,
+      weight: "800",
+      textAlign: "center",
+      textBaseline: "middle",
+      fillStyle: "rgba(24, 38, 56, 0.96)",
+      strokeStyle: "rgba(255, 255, 255, 0.22)",
+      lineWidth: 1.5,
+    });
+    drawCanvasRuntimeOverlayText(valueText, pillRect.x + pillRect.width - 12, pillRect.y + pillRect.height * 0.5, {
+      fontSize: 12,
+      weight: "800",
+      textAlign: "right",
+      textBaseline: "middle",
+    });
+  }
+}
+
+function drawCanvasRuntimeMobileShellActionDock(hitboxes) {
+  const buttonRect = getCanvasRectFromDomElement(actionDockPokeballToggleButtonEl);
+  if (!buttonRect) {
+    return;
+  }
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const isHovered = hoveredActionId === "runtime-shell-action-dock-toggle";
+  const menuOpen = Boolean(actionDockPokeballToggleButtonEl?.getAttribute?.("aria-expanded") === "true");
+  const label = getElementText(
+    actionDockPokeballToggleButtonEl?.querySelector?.(".action-dock-pokeball-toggle-label"),
+    "MENU",
+  ).toUpperCase();
+  const centerX = buttonRect.x + buttonRect.width * 0.5;
+  const circleRadius = Math.min(buttonRect.width * 0.38, Math.max(22, buttonRect.height * 0.32));
+  const circleCenterY = buttonRect.y + circleRadius + 4;
+  ctx.save();
+  ctx.shadowColor = menuOpen || isHovered ? "rgba(80, 150, 255, 0.34)" : "rgba(0, 0, 0, 0.22)";
+  ctx.shadowBlur = menuOpen || isHovered ? 18 : 12;
+  ctx.fillStyle = menuOpen ? "rgba(224, 242, 255, 0.98)" : "rgba(244, 249, 255, 0.96)";
+  ctx.beginPath();
+  ctx.arc(centerX, circleCenterY, circleRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.lineWidth = menuOpen || isHovered ? 2.4 : 2;
+  ctx.strokeStyle = menuOpen || isHovered ? "rgba(99, 166, 255, 0.9)" : "rgba(34, 54, 74, 0.84)";
+  ctx.beginPath();
+  ctx.arc(centerX, circleCenterY, circleRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  drawPokeball(centerX, circleCenterY, circleRadius * 0.76, {
+    alpha: 0.98,
+    ball_type: "poke_ball",
+  });
+  const labelWidth = Math.min(buttonRect.width * 0.7, 54);
+  const labelHeight = 15;
+  const labelX = centerX - labelWidth * 0.5;
+  const labelY = buttonRect.y + buttonRect.height - labelHeight - 4;
+  drawRetroHudPanel(labelX, labelY, labelWidth, labelHeight, {
+    cut: 8,
+    fillTop: menuOpen ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: menuOpen ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+    fillBottom: menuOpen ? "rgba(38, 72, 151, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+    border: menuOpen ? "rgba(208, 232, 255, 0.86)" : ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: "rgba(0, 0, 0, 0.18)",
+    borderWidth: 1.05,
+    radius: 8,
+  });
+  drawCanvasRuntimeOverlayText(label, centerX, labelY + labelHeight * 0.5, {
+    fontSize: 8,
+    weight: "800",
+    textAlign: "center",
+    textBaseline: "middle",
+  });
+  hitboxes.push({
+    id: "runtime-shell-action-dock-toggle",
+    x: buttonRect.x,
+    y: buttonRect.y,
+    width: buttonRect.width,
+    height: buttonRect.height,
+    interactive: true,
+    actionType: "action-dock-menu-toggle",
+  });
+}
+
 function drawCanvasRuntimeZoneActions(hitboxes) {
   if (!(zoneActionButtonsById instanceof Map) || zoneActionButtonsById.size <= 0) {
     return;
@@ -7376,6 +7653,13 @@ function drawCanvasRuntimeDesktopShell(hitboxes) {
   drawCanvasRuntimeDesktopShellRouteSummary(hitboxes);
   drawCanvasRuntimeDesktopShellResourceStrip();
   drawCanvasRuntimeDesktopShellActionDock(hitboxes);
+}
+
+function drawCanvasRuntimeMobileShell(hitboxes) {
+  drawCanvasRuntimeMobileShellRouteSummary(hitboxes);
+  drawCanvasRuntimeMobileShellTopbar(hitboxes);
+  drawCanvasRuntimeMobileShellResourceStrip();
+  drawCanvasRuntimeMobileShellActionDock(hitboxes);
 }
 
 function drawCanvasRuntimeHoverPopup(layout) {
@@ -7864,15 +8148,20 @@ function drawCanvasRuntimeBallCaptureMenu(layout, hitboxes) {
 
 function drawCanvasRuntimeOverlays(layout) {
   state.ui.canvasOverlayActionHitboxes = [];
-  if (layout?.viewportProfile?.phone || layout?.layoutMode !== "desktopLandscape") {
+  const hitboxes = [];
+  if (layout?.layoutMode === "desktopLandscape") {
+    drawCanvasRuntimeDesktopShell(hitboxes);
+    drawCanvasRuntimeZoneActions(hitboxes);
+    drawCanvasRuntimeHoverPopup(layout);
+    drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
+    drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);
+    state.ui.canvasOverlayActionHitboxes = hitboxes;
     return;
   }
-  const hitboxes = [];
-  drawCanvasRuntimeDesktopShell(hitboxes);
-  drawCanvasRuntimeZoneActions(hitboxes);
-  drawCanvasRuntimeHoverPopup(layout);
-  drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
-  drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);
+  if (layout?.layoutMode === "mobilePortrait" || layout?.viewportProfile?.phone) {
+    drawCanvasRuntimeMobileShell(hitboxes);
+    drawCanvasRuntimeZoneActions(hitboxes);
+  }
   state.ui.canvasOverlayActionHitboxes = hitboxes;
 }
 

@@ -76,7 +76,6 @@
       "captureName": "idle"
     },
     {
-      "waitForSelector": "#money-pill:not(.hidden)",
       "waitMs": 250
     },
     {
@@ -142,7 +141,9 @@
       "waitMs": 250
     },
     {
-      "clickSelector": "#route-nav-drawer-toggle"
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('toggleRouteNavDrawer');"
+      }
     },
     {
       "waitForState": {
@@ -532,14 +533,15 @@
       }
     },
     {
-      "waitForSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
       "waitMs": 500
     },
     {
       "captureName": "pewter-trainer-action"
     },
     {
-      "clickSelector": "[data-zone-action-id='kanto_pewter_gym_brock']",
+      "evaluate": {
+        "expression": "return window.__galleryInvokeBinding('triggerZoneAction','kanto_pewter_gym_brock');"
+      },
       "waitMs": 300
     },
     {

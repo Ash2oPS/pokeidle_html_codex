@@ -212,8 +212,10 @@ test("runtime render system draws canvas-owned runtime overlays after the HUD la
   const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
 
   assert.match(source, /function drawCanvasRuntimeOverlays\(layout\)/);
-  assert.match(source, /layout\?\.layoutMode !== "desktopLandscape"/);
+  assert.match(source, /layout\?\.layoutMode === "desktopLandscape"/);
+  assert.match(source, /layout\?\.layoutMode === "mobilePortrait" \|\| layout\?\.viewportProfile\?\.phone/);
   assert.match(source, /drawCanvasRuntimeDesktopShell\(hitboxes\);/);
+  assert.match(source, /drawCanvasRuntimeMobileShell\(hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeZoneActions\(hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeHoverPopup\(layout\);/);
   assert.match(source, /drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);/);
@@ -226,10 +228,15 @@ test("runtime render system hides desktop DOM shell owners once canvas shell ren
   const stylesSource = fs.readFileSync(stylesPath, "utf8");
 
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.topbar-balls-pill,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.topbar-balls-pill,/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.ui-topbar \.route-nav-wrap,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.ui-topbar \.route-nav-wrap,/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.resource-strip\.currency-stack,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.resource-strip\.currency-stack,/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.action-dock,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.action-dock,/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.world-ui-layer \.zone-action-btn/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.world-ui-layer \.zone-action-btn,/);
   assert.match(stylesSource, /visibility:\s*hidden !important;/);
   assert.match(stylesSource, /pointer-events:\s*none !important;/);
 });

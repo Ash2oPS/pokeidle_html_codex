@@ -15065,6 +15065,11 @@ body.update-required-active {
 #game-capture-root[data-layout-mode="desktopLandscape"] .ui-topbar .route-nav-wrap,
 #game-capture-root[data-layout-mode="desktopLandscape"] .resource-strip.currency-stack,
 #game-capture-root[data-layout-mode="desktopLandscape"] .action-dock,
+#game-capture-root[data-layout-mode="mobilePortrait"] .topbar-balls-pill,
+#game-capture-root[data-layout-mode="mobilePortrait"] .ui-topbar .route-nav-wrap,
+#game-capture-root[data-layout-mode="mobilePortrait"] .resource-strip.currency-stack,
+#game-capture-root[data-layout-mode="mobilePortrait"] .action-dock,
+#game-capture-root[data-layout-mode="mobilePortrait"] .world-ui-layer .zone-action-btn,
 #game-capture-root[data-layout-mode="desktopLandscape"] .world-ui-layer .zone-action-btn {
   visibility: hidden !important;
   pointer-events: none !important;
