@@ -1178,6 +1178,39 @@ function getActionDockBottomSheetOffsetPx() {
   return Math.max(fallbackOffsetPx, Math.ceil(toggleProtrusionPx + fallbackOffsetPx));
 }
 
+function getFloatingMenuViewportBounds(viewportWidth, viewportHeight) {
+  const viewportPadding = 8;
+  const fallbackBounds = {
+    left: viewportPadding,
+    top: viewportPadding,
+    right: Math.max(viewportPadding, viewportWidth - viewportPadding),
+    bottom: Math.max(viewportPadding, viewportHeight - viewportPadding),
+  };
+  if (viewportWidth <= 0 || viewportHeight <= 0) {
+    return fallbackBounds;
+  }
+  const runtimeTopbarHeightPx = Math.max(0, readRootCssNumberVariable("--ui-runtime-topbar-height-px", 0));
+  const runtimeDockHeightPx = Math.max(0, readRootCssNumberVariable("--ui-runtime-dock-height-px", 0));
+  const top = Math.max(viewportPadding, Math.ceil(runtimeTopbarHeightPx + viewportPadding));
+  const bottom = Math.max(
+    top,
+    Math.min(
+      viewportHeight - viewportPadding,
+      viewportHeight - Math.ceil(runtimeDockHeightPx + viewportPadding),
+    ),
+  );
+  const usableHeight = bottom - top;
+  if (usableHeight < Math.min(96, viewportHeight * 0.25)) {
+    return fallbackBounds;
+  }
+  return {
+    left: viewportPadding,
+    top,
+    right: fallbackBounds.right,
+    bottom,
+  };
+}
+
 function clearResponsiveFloatingMenuPosition(menuEl) {
   if (!isStylableUiElement(menuEl)) {
     return;
@@ -1688,30 +1721,30 @@ function positionFloatingMenuElement(menuEl, clientX, clientY) {
   clearResponsiveFloatingMenuPosition(menuEl);
   const viewportWidth = Math.max(0, Number(window.innerWidth) || 0);
   const viewportHeight = Math.max(0, Number(window.innerHeight) || 0);
+  const viewportBounds = getFloatingMenuViewportBounds(viewportWidth, viewportHeight);
   const anchorX = Number.isFinite(Number(clientX)) ? Number(clientX) : viewportWidth / 2;
   const anchorY = Number.isFinite(Number(clientY)) ? Number(clientY) : viewportHeight / 2;
-  const viewportPadding = 8;
   const menuRect = typeof menuEl.getBoundingClientRect === "function"
     ? menuEl.getBoundingClientRect()
     : { width: 0, height: 0 };
   let left = anchorX + 12;
   let top = anchorY + 12;
-  if (left + menuRect.width > viewportWidth - viewportPadding) {
+  if (left + menuRect.width > viewportBounds.right) {
     left = anchorX - menuRect.width - 12;
   }
-  if (top + menuRect.height > viewportHeight - viewportPadding) {
+  if (top + menuRect.height > viewportBounds.bottom) {
     top = anchorY - menuRect.height - 12;
   }
-  const maxLeft = Math.max(viewportPadding, viewportWidth - menuRect.width - viewportPadding);
-  const maxTop = Math.max(viewportPadding, viewportHeight - menuRect.height - viewportPadding);
-  if (menuRect.width + viewportPadding * 2 > viewportWidth) {
-    left = viewportPadding;
+  const maxLeft = Math.max(viewportBounds.left, viewportBounds.right - menuRect.width);
+  const maxTop = Math.max(viewportBounds.top, viewportBounds.bottom - menuRect.height);
+  if (menuRect.width > viewportBounds.right - viewportBounds.left) {
+    left = viewportBounds.left;
   }
-  if (menuRect.height + viewportPadding * 2 > viewportHeight) {
-    top = viewportPadding;
+  if (menuRect.height > viewportBounds.bottom - viewportBounds.top) {
+    top = viewportBounds.top;
   }
-  menuEl.style.left = `${Math.round(clamp(left, viewportPadding, maxLeft))}px`;
-  menuEl.style.top = `${Math.round(clamp(top, viewportPadding, maxTop))}px`;
+  menuEl.style.left = `${Math.round(clamp(left, viewportBounds.left, maxLeft))}px`;
+  menuEl.style.top = `${Math.round(clamp(top, viewportBounds.top, maxTop))}px`;
 }
 
 function setContextMenuButtonContent(buttonEl, title, meta = "") {

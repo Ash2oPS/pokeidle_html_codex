@@ -1297,6 +1297,97 @@ test("runtime ui interaction system renders a compact enemy hover tooltip and cl
   assert.equal(hoverPopupEl.style.top, "8px");
 });
 
+test("runtime ui interaction system keeps floating hover popups inside runtime shell bounds", () => {
+  const dom = new JSDOM("<!doctype html><html><body><div id='hover-popup'></div></body></html>", {
+    pretendToBeVisual: true,
+  });
+  const hoverPopupEl = dom.window.document.getElementById("hover-popup");
+  hoverPopupEl.classList.add("hidden");
+  hoverPopupEl.getBoundingClientRect = () => ({
+    width: 180,
+    height: 140,
+    left: 0,
+    top: 0,
+    right: 180,
+    bottom: 140,
+  });
+  dom.window.document.documentElement.style.setProperty("--ui-runtime-topbar-height-px", "64px");
+  dom.window.document.documentElement.style.setProperty("--ui-runtime-dock-height-px", "56px");
+  Object.defineProperty(dom.window, "innerWidth", {
+    configurable: true,
+    value: 400,
+  });
+  Object.defineProperty(dom.window, "innerHeight", {
+    configurable: true,
+    value: 520,
+  });
+
+  const { system } = createUiInteractionSystem({
+    window: dom.window,
+    bindings: {
+      document: dom.window.document,
+      hoverPopupEl,
+      getSpeciesStatsSummary: () => ({
+        encountered_total: 4,
+        encountered_normal: 4,
+        encountered_shiny: 0,
+        encountered_ultra_shiny: 0,
+        defeated_total: 1,
+        defeated_normal: 1,
+        defeated_shiny: 0,
+        defeated_ultra_shiny: 0,
+        captured_total: 0,
+        captured_normal: 0,
+        captured_shiny: 0,
+        captured_ultra_shiny: 0,
+      }),
+      resolveTalentDefinition: () => ({
+        id: "OVERGROW",
+        nameFr: "Engrais",
+        nameEn: "Overgrow",
+        descriptionFr: "Booste les attaques plante quand les PV baissent.",
+      }),
+      showTooltipWithTween: (element) => {
+        element.classList.remove("hidden");
+      },
+    },
+  });
+
+  system.showHoverPopup({
+    id: 1,
+    nameFr: "Bulbizarre",
+    level: 12,
+    attackMode: "laser",
+    hpCurrent: 19,
+    hpMax: 30,
+    defensiveTypes: ["grass", "poison"],
+    balanceTeamSize: 2,
+    balanceHpMultiplier: 1.5,
+    balanceRewardMultiplier: 1.25,
+    talent: "OVERGROW",
+  }, 18, 18);
+
+  assert.equal(hoverPopupEl.style.left, "30px");
+  assert.equal(hoverPopupEl.style.top, "72px");
+
+  system.showHoverPopup({
+    id: 1,
+    nameFr: "Bulbizarre",
+    level: 12,
+    attackMode: "laser",
+    hpCurrent: 19,
+    hpMax: 30,
+    defensiveTypes: ["grass", "poison"],
+    balanceTeamSize: 2,
+    balanceHpMultiplier: 1.5,
+    balanceRewardMultiplier: 1.25,
+    talent: "OVERGROW",
+  }, 392, 508);
+
+  assert.equal(hoverPopupEl.style.left, "200px");
+  assert.equal(hoverPopupEl.style.top, "316px");
+});
+
 test("runtime ui interaction system renders live team hover tooltip combat metrics", () => {
   const hoverPopupEl = createTestElement("div");
   hoverPopupEl.getBoundingClientRect = () => ({
