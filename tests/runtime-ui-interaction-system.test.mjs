@@ -1887,6 +1887,7 @@ test("runtime ui interaction system renders the mobile team hover as a quick bot
   const { state, system } = createUiInteractionSystem({
     window: dom.window,
     layout: {
+      layoutMode: "mobilePortrait",
       centerX: 640,
       centerY: 360,
       teamSlots: [],
@@ -1934,6 +1935,106 @@ test("runtime ui interaction system renders the mobile team hover as a quick bot
   assert.equal(hoverPopupEl.classList.contains("is-mobile-bottom-sheet"), true);
   assert.equal(hoverPopupEl.style.getPropertyValue("--context-sheet-max-width"), "360px");
   assert.equal(hoverPopupEl.style.left, "50%");
+  assert.equal(state.ui.canvasHoverPopupModel?.variant, "mobileQuick");
+  assert.equal(hoverPopupEl.dataset.canvasRuntimeOwned, "true");
+  dom.window.close();
+});
+
+test("runtime ui interaction system promotes mobile quick sheets to canvas-owned overlay models", () => {
+  const dom = new JSDOM(
+    "<!doctype html><html><body><div id='team-menu' class='hidden'></div><div id='ball-menu' class='hidden'></div><button id='ball-tab-poke'></button><button id='ball-tab-super'></button><button id='ball-tab-hyper'></button></body></html>",
+    { pretendToBeVisual: true },
+  );
+  const documentRef = dom.window.document;
+  const teamContextMenuEl = documentRef.getElementById("team-menu");
+  const ballCaptureMenuEl = documentRef.getElementById("ball-menu");
+  const ballCaptureTabPokeButtonEl = documentRef.getElementById("ball-tab-poke");
+  const ballCaptureTabSuperButtonEl = documentRef.getElementById("ball-tab-super");
+  const ballCaptureTabHyperButtonEl = documentRef.getElementById("ball-tab-hyper");
+
+  const member = {
+    id: 25,
+    nameFr: "Pikachu",
+    level: 18,
+    hpCurrent: 35,
+    hpMax: 52,
+    xp: 42,
+    xpToNext: 100,
+    attackMode: "projectiles",
+    offensiveType: "electric",
+    defensiveTypes: ["electric"],
+    talent: "STATIC",
+  };
+
+  const { state, system } = createUiInteractionSystem({
+    window: dom.window,
+    layout: {
+      layoutMode: "mobilePortrait",
+      centerX: 640,
+      centerY: 360,
+      teamSlots: [],
+      viewportProfile: { phone: true },
+    },
+    bindings: {
+      document: documentRef,
+      Element: dom.window.Element,
+      HTMLElement: dom.window.HTMLElement,
+      HTMLButtonElement: dom.window.HTMLButtonElement,
+      HTMLImageElement: dom.window.HTMLImageElement,
+      teamContextMenuEl,
+      teamContextMenuTitleEl: documentRef.createElement("div"),
+      teamContextMenuRenameButtonEl: documentRef.createElement("button"),
+      teamContextMenuBoxesButtonEl: documentRef.createElement("button"),
+      teamContextMenuAppearanceButtonEl: documentRef.createElement("button"),
+      ballCaptureMenuEl,
+      ballCaptureMenuTitleEl: documentRef.createElement("div"),
+      ballCaptureMenuSummaryEl: documentRef.createElement("p"),
+      ballCaptureMenuCloseButtonEl: documentRef.createElement("button"),
+      ballCaptureMenuTabsEl: documentRef.createElement("div"),
+      ballCaptureTabPokeButtonEl,
+      ballCaptureTabSuperButtonEl,
+      ballCaptureTabHyperButtonEl,
+      ballCaptureToggleAllButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleUnownedButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleOwnedButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleShinyButtonEl: documentRef.createElement("button"),
+      ballCaptureToggleUltraButtonEl: documentRef.createElement("button"),
+      BALL_CONFIG_BY_TYPE: {
+        poke_ball: { type: "poke_ball", nameFr: "Poké Ball", spritePath: "" },
+        super_ball: { type: "super_ball", nameFr: "Super Ball", spritePath: "" },
+        hyper_ball: { type: "hyper_ball", nameFr: "Hyper Ball", spritePath: "" },
+      },
+      getBallInventoryCount: (ballType) => {
+        switch (ballType) {
+          case "poke_ball":
+            return 12;
+          case "super_ball":
+            return 5;
+          case "hyper_ball":
+            return 2;
+          default:
+            return 0;
+        }
+      },
+      getBallCaptureRulesForType: () => ({
+        all: true,
+        unowned: true,
+      }),
+      getTeamBoxesAccessState: () => ({ allowed: true }),
+      isAppearanceEditorUnlocked: () => true,
+      showPopupWithTween: (element) => element.classList.remove("hidden"),
+    },
+  });
+  state.team = [member];
+
+  system.openTeamContextMenu(0, member, 120, 90);
+  assert.equal(state.ui.canvasTeamContextMenuModel?.buttons?.length, 3);
+  assert.equal(teamContextMenuEl.dataset.canvasRuntimeOwned, "true");
+
+  system.openBallCaptureMenu("poke_ball", 120, 90);
+  assert.equal(state.ui.canvasTeamContextMenuModel, null);
+  assert.equal(state.ui.canvasBallCaptureMenuModel?.tabs?.length, 3);
+  assert.equal(ballCaptureMenuEl.dataset.canvasRuntimeOwned, "true");
   dom.window.close();
 });
 

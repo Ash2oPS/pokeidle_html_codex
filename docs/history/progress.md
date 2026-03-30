@@ -7458,3 +7458,30 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile route nav drawer: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
   - mobile trainer zone action: `output/ui-state-gallery/mobile-portrait/pewter-trainer-action.png`
   - desktop topbar sanity: `output/ui-state-gallery/desktop-landscape/topbar-pill-layout.png`
+
+## 2026-03-30 - Mobile runtime overlays canvas-first visuals
+
+- Migrated the remaining mobile runtime overlay visuals to canvas-first ownership while keeping the DOM shadows only for state and gallery compatibility.
+  - `systems/ui/runtime-ui-interaction-system.js` now materializes mobile canvas models for:
+    - quick team hover cards
+    - team context menu
+    - ball capture menu
+  - `systems/ui/runtime-render-system.js` now draws those mobile overlays directly on canvas:
+    - hover quick sheet above the dock
+    - team context bottom sheet
+    - centered ball capture modal
+  - Added a canvas close control for the ball capture menu so the replacement keeps an explicit dismiss affordance.
+- Updated the shadow-hiding CSS in `styles.css` so mobile overlay DOM owners are hidden when canvas owns the visual output.
+- Added focused regression coverage:
+  - mobile quick hover now asserts canvas ownership
+  - mobile team/ball sheets now assert canvas model promotion
+  - render source tests now lock the mobile overlay draw path and mobile DOM-shadow hide selectors
+- Validation:
+  - `node --test tests/runtime-ui-interaction-system.test.mjs tests/runtime-render-system.test.mjs tests/runtime-input-system.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - mobile hover popup: `output/ui-state-gallery/mobile-portrait/hover-popup.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+  - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
+  - desktop ball capture sanity: `output/ui-state-gallery/desktop-landscape/ball-capture-menu.png`

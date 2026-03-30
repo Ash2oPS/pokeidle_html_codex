@@ -1150,9 +1150,13 @@ function isDesktopCanvasRuntimeOverlayMode() {
   return !isPhoneUiViewport();
 }
 
-function isCanvasRuntimeShellMode() {
+function isCanvasRuntimeOverlayMode() {
   const layoutMode = String(state?.layout?.layoutMode || "").trim();
   return layoutMode === "desktopLandscape" || layoutMode === "mobilePortrait" || !isPhoneUiViewport();
+}
+
+function isCanvasRuntimeShellMode() {
+  return isCanvasRuntimeOverlayMode();
 }
 
 function setCanvasRuntimeOwnedFlag(element, owned) {
@@ -1167,7 +1171,7 @@ function setCanvasRuntimeOwnedFlag(element, owned) {
 }
 
 function syncCanvasRuntimeOverlayDomOwnership() {
-  const useCanvasOverlay = isDesktopCanvasRuntimeOverlayMode();
+  const useCanvasOverlay = isCanvasRuntimeOverlayMode();
   setCanvasRuntimeOwnedFlag(hoverPopupEl, useCanvasOverlay && Boolean(state.ui.canvasHoverPopupModel));
   setCanvasRuntimeOwnedFlag(teamContextMenuEl, useCanvasOverlay && Boolean(state.ui.canvasTeamContextMenuModel));
   setCanvasRuntimeOwnedFlag(ballCaptureMenuEl, useCanvasOverlay && Boolean(state.ui.canvasBallCaptureMenuModel));
@@ -1221,6 +1225,7 @@ function buildCanvasHoverPopupModel({
   clientY,
   anchorX,
   anchorY,
+  variant,
   title,
   subtitle,
   badges,
@@ -1237,6 +1242,7 @@ function buildCanvasHoverPopupModel({
   return {
     anchorX: anchor.x,
     anchorY: anchor.y,
+    variant: String(variant || "").trim(),
     title: String(title || entity?.nameFr || ""),
     subtitle: String(subtitle || ""),
     badges: Array.isArray(badges) ? badges.map((value) => String(value || "").trim()).filter(Boolean) : [],
@@ -1393,6 +1399,10 @@ function handleCanvasRuntimeOverlayAction(hitbox) {
       return true;
     case "action-dock-menu-toggle":
       toggleActionDockFullscreenMenu();
+      return true;
+    case "close-ball-menu":
+      closeBallCaptureMenu();
+      render();
       return true;
     case "ball-tab":
       if (setBallCaptureMenuBallType(hitbox.ballType)) {
@@ -2002,6 +2012,7 @@ function showHoverPopup(entity, clientX, clientY) {
   const useMobileQuickCard = isPhoneUiViewport() && isTeamMember;
   if (useMobileQuickCard) {
     const quickMetricsMarkup = [];
+    const quickMetricsModel = [];
     if (hasHpMetric) {
       quickMetricsMarkup.push(
         buildHoverPopupMetricMarkup(
@@ -2010,6 +2021,12 @@ function showHoverPopup(entity, clientX, clientY) {
           hpMax > 0 ? `${Math.round(clamp(hpCurrent / hpMax, 0, 1) * 100)}%` : "",
         ),
       );
+      quickMetricsModel.push({
+        label: "PV",
+        value: `${formatCompactNumber(hpCurrent)}/${formatCompactNumber(hpMax)}`,
+        detail: hpMax > 0 ? `${Math.round(clamp(hpCurrent / hpMax, 0, 1) * 100)}%` : "",
+        tone: "",
+      });
     }
     const xpCurrent = Math.max(0, toSafeInt(entity?.xp, 0));
     const xpToNext = Math.max(1, toSafeInt(entity?.xpToNext, 1));
@@ -2023,6 +2040,14 @@ function showHoverPopup(entity, clientX, clientY) {
         " pokemon-info-micro--accent",
       ),
     );
+    quickMetricsModel.push({
+      label: "XP",
+      value: levelValue >= MAX_LEVEL
+        ? "Max"
+        : `${formatCompactNumber(xpCurrent)}/${formatCompactNumber(xpToNext)}`,
+      detail: levelValue >= MAX_LEVEL ? "niveau max" : `niv. ${Math.min(MAX_LEVEL, levelValue + 1)}`,
+      tone: "accent",
+    });
     quickMetricsMarkup.push(
       buildHoverPopupMetricMarkup(
         "Attaque",
@@ -2030,6 +2055,12 @@ function showHoverPopup(entity, clientX, clientY) {
         "",
       ),
     );
+    quickMetricsModel.push({
+      label: "Attaque",
+      value: attackModeLabel,
+      detail: "",
+      tone: "",
+    });
     const quickTagMarkup = [];
     if (passivePillLabel) {
       quickTagMarkup.push(`<span class="hover-popup-pill">${escapeHtml(passivePillLabel)}</span>`);
@@ -2060,7 +2091,23 @@ function showHoverPopup(entity, clientX, clientY) {
     ].join("");
 
     showTooltipWithTween(hoverPopupEl);
-    state.ui.canvasHoverPopupModel = null;
+    state.ui.canvasHoverPopupModel = isCanvasRuntimeOverlayMode()
+      ? buildCanvasHoverPopupModel({
+        entity,
+        clientX,
+        clientY,
+        variant: "mobileQuick",
+        title: safeDisplayName || safeSpeciesLabel,
+        subtitle: subtitleLabel,
+        badges: badgeLabels,
+        passiveLabel: talentLabelPlain,
+        passivePill: passivePillLabel,
+        passiveDescription: "",
+        typeSummaryText,
+        metrics: quickMetricsModel,
+        progress: [],
+      })
+      : null;
     syncCanvasRuntimeOverlayDomOwnership();
     positionBottomSheetElement(hoverPopupEl, {
       maxWidthPx: 360,
@@ -2102,11 +2149,12 @@ function showHoverPopup(entity, clientX, clientY) {
   ].join("");
 
   showTooltipWithTween(hoverPopupEl);
-  state.ui.canvasHoverPopupModel = isDesktopCanvasRuntimeOverlayMode()
+  state.ui.canvasHoverPopupModel = isCanvasRuntimeOverlayMode()
     ? buildCanvasHoverPopupModel({
       entity,
       clientX,
       clientY,
+      variant: "full",
       title: String(entity?.nameFr || ""),
       subtitle: subtitleLabel,
       badges: badgeLabels,
@@ -2327,7 +2375,7 @@ function refreshBallCaptureMenu() {
     setBallCaptureToggleButtonState(definition.buttonEl, definition.label, enabled, definition.description);
   }
   const existingModel = state.ui.canvasBallCaptureMenuModel;
-  state.ui.canvasBallCaptureMenuModel = isDesktopCanvasRuntimeOverlayMode()
+  state.ui.canvasBallCaptureMenuModel = isCanvasRuntimeOverlayMode()
     ? buildCanvasBallCaptureMenuModel(ballType, null, null, {
       anchorX: existingModel?.anchorX,
       anchorY: existingModel?.anchorY,
@@ -2350,7 +2398,7 @@ function openBallCaptureMenu(ballType, clientX, clientY) {
   setBallCaptureMenuBallType(type);
   setHoveredTeamSlotIndex(-1);
   hideHoverPopup();
-  state.ui.canvasBallCaptureMenuModel = isDesktopCanvasRuntimeOverlayMode()
+  state.ui.canvasBallCaptureMenuModel = isCanvasRuntimeOverlayMode()
     ? buildCanvasBallCaptureMenuModel(type, clientX, clientY)
     : null;
   syncCanvasRuntimeOverlayDomOwnership();
@@ -2452,7 +2500,7 @@ function refreshTeamContextMenu() {
     );
   }
   const existingModel = state.ui.canvasTeamContextMenuModel;
-  state.ui.canvasTeamContextMenuModel = isDesktopCanvasRuntimeOverlayMode() && member
+  state.ui.canvasTeamContextMenuModel = isCanvasRuntimeOverlayMode() && member
     ? buildCanvasTeamContextMenuModel(slotIndex, member, null, null, {
       anchorX: existingModel?.anchorX,
       anchorY: existingModel?.anchorY,
@@ -2475,7 +2523,7 @@ function openTeamContextMenu(slotIndex, member, clientX, clientY) {
   setHoveredTeamSlotIndex(slotIndex);
   hideHoverPopup();
   refreshTeamContextMenu();
-  state.ui.canvasTeamContextMenuModel = isDesktopCanvasRuntimeOverlayMode()
+  state.ui.canvasTeamContextMenuModel = isCanvasRuntimeOverlayMode()
     ? buildCanvasTeamContextMenuModel(slotIndex, member, clientX, clientY)
     : null;
   syncCanvasRuntimeOverlayDomOwnership();

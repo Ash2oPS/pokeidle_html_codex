@@ -213,7 +213,7 @@ test("runtime render system draws canvas-owned runtime overlays after the HUD la
 
   assert.match(source, /function drawCanvasRuntimeOverlays\(layout\)/);
   assert.match(source, /layout\?\.layoutMode === "desktopLandscape"/);
-  assert.match(source, /layout\?\.layoutMode === "mobilePortrait" \|\| layout\?\.viewportProfile\?\.phone/);
+  assert.match(source, /if \(layout\?\.layoutMode === "mobilePortrait" \|\| layout\?\.viewportProfile\?\.phone\) \{\s*drawCanvasRuntimeMobileShell\(hitboxes\);\s*drawCanvasRuntimeZoneActions\(hitboxes\);\s*drawCanvasRuntimeHoverPopup\(layout\);\s*drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);\s*drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/s);
   assert.match(source, /drawCanvasRuntimeDesktopShell\(hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeMobileShell\(hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeZoneActions\(hitboxes\);/);
@@ -237,6 +237,12 @@ test("runtime render system hides desktop DOM shell owners once canvas shell ren
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.action-dock,/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] \.world-ui-layer \.zone-action-btn/);
   assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] \.world-ui-layer \.zone-action-btn,/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] #hover-popup\[data-canvas-runtime-owned="true"\],/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] #hover-popup\[data-canvas-runtime-owned="true"\],/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] #team-context-menu\[data-canvas-runtime-owned="true"\],/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] #team-context-menu\[data-canvas-runtime-owned="true"\],/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="desktopLandscape"\] #ball-capture-menu\[data-canvas-runtime-owned="true"\],/);
+  assert.match(stylesSource, /#game-capture-root\[data-layout-mode="mobilePortrait"\] #ball-capture-menu\[data-canvas-runtime-owned="true"\]/);
   assert.match(stylesSource, /visibility:\s*hidden !important;/);
   assert.match(stylesSource, /pointer-events:\s*none !important;/);
 });

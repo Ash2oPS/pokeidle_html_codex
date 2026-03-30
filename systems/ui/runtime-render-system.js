@@ -6952,6 +6952,45 @@ function resolveCanvasRuntimeOverlayRect(anchorX, anchorY, width, height, layout
   };
 }
 
+function resolveCanvasRuntimeBottomSheetRect(width, height, layout, options = {}) {
+  const bounds = getCanvasRuntimeOverlayBounds(layout);
+  const sideInset = Math.max(8, Number(options.sideInset || 12));
+  const bottomOffset = Math.max(0, Number(options.bottomOffset || 0));
+  const maxWidth = Math.max(120, bounds.right - bounds.left - sideInset * 2);
+  const safeWidth = clamp(Number(width) || 0, 120, maxWidth);
+  const safeHeight = clamp(Number(height) || 0, 60, Math.max(60, bounds.bottom - bounds.top));
+  const minLeft = bounds.left;
+  const maxLeft = Math.max(minLeft, bounds.right - safeWidth);
+  const left = clamp((state.viewport.width - safeWidth) * 0.5, minLeft, maxLeft);
+  const top = Math.max(bounds.top, bounds.bottom - safeHeight - bottomOffset);
+  return {
+    x: left,
+    y: top,
+    width: safeWidth,
+    height: safeHeight,
+  };
+}
+
+function resolveCanvasRuntimeCenteredModalRect(width, height, layout, options = {}) {
+  const bounds = getCanvasRuntimeOverlayBounds(layout);
+  const sideInset = Math.max(8, Number(options.sideInset || 12));
+  const maxWidth = Math.max(120, bounds.right - bounds.left - sideInset * 2);
+  const safeWidth = clamp(Number(width) || 0, 120, maxWidth);
+  const safeHeight = clamp(Number(height) || 0, 60, Math.max(60, bounds.bottom - bounds.top));
+  const minLeft = bounds.left;
+  const maxLeft = Math.max(minLeft, bounds.right - safeWidth);
+  const minTop = bounds.top;
+  const maxTop = Math.max(minTop, bounds.bottom - safeHeight);
+  const left = clamp((state.viewport.width - safeWidth) * 0.5, minLeft, maxLeft);
+  const top = clamp((state.viewport.height - safeHeight) * 0.5, minTop, maxTop);
+  return {
+    x: left,
+    y: top,
+    width: safeWidth,
+    height: safeHeight,
+  };
+}
+
 function drawCanvasRuntimeOverlayText(text, x, y, options = {}) {
   const value = String(text || "");
   if (!value) {
@@ -7664,12 +7703,154 @@ function drawCanvasRuntimeMobileShell(hitboxes) {
 
 function drawCanvasRuntimeHoverPopup(layout) {
   const model = state.ui.canvasHoverPopupModel;
-  if (!model || layout?.viewportProfile?.phone) {
+  if (!model) {
     return;
   }
   const badges = Array.isArray(model.badges) ? model.badges : [];
   const metrics = Array.isArray(model.metrics) ? model.metrics.slice(0, 6) : [];
   const progress = Array.isArray(model.progress) ? model.progress.slice(0, 3) : [];
+  if (layout?.viewportProfile?.phone) {
+    const compactMetrics = metrics.slice(0, 3);
+    const width = clamp(state.viewport.width - 24, 268, 360);
+    const tagCount = (model.passivePill ? 1 : 0) + (model.typeSummaryText ? 1 : 0);
+    const tagHeight = tagCount > 0 ? 24 : 0;
+    const talentHeight = model.passiveLabel ? 18 : 0;
+    const metricsHeight = compactMetrics.length > 0 ? 48 : 0;
+    const height = 72 + tagHeight + talentHeight + metricsHeight + 16;
+    const rect = resolveCanvasRuntimeBottomSheetRect(width, height, layout, {
+      sideInset: 12,
+    });
+
+    drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+      cut: 12,
+      fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
+      fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
+      fillBottom: ZONE_UI_CANVAS_THEME.panel.fillBottom,
+      border: ZONE_UI_CANVAS_THEME.panel.border,
+      highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
+      shadow: ZONE_UI_CANVAS_THEME.panel.shadow,
+      borderWidth: 1.5,
+    });
+
+    const contentX = rect.x + 14;
+    const contentWidth = rect.width - 28;
+    let cursorY = rect.y + 12;
+    ctx.save();
+    ctx.font = `800 15px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const titleText = fitTextToWidthWithEllipsis(model.title, contentWidth);
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(titleText, contentX, cursorY, {
+      fontSize: 15,
+      weight: "800",
+    });
+    cursorY += 20;
+    if (model.subtitle) {
+      ctx.save();
+      ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const subtitleText = fitTextToWidthWithEllipsis(model.subtitle, contentWidth);
+      ctx.restore();
+      drawCanvasRuntimeOverlayText(subtitleText, contentX, cursorY, {
+        fontSize: 10,
+        fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+        strokeStyle: "rgba(8, 16, 24, 0.74)",
+      });
+      cursorY += 18;
+    }
+    if (tagCount > 0) {
+      let pillX = contentX;
+      if (model.passivePill) {
+        ctx.save();
+        ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+        const pillText = fitTextToWidthWithEllipsis(model.passivePill, 120);
+        const pillWidth = Math.max(70, Math.min(128, Math.ceil(ctx.measureText(pillText).width) + 18));
+        ctx.restore();
+        drawCanvasRuntimeOverlayPill(pillX, cursorY, pillWidth, 22, pillText, {
+          fillTop: "rgba(64, 121, 255, 0.96)",
+          fillBottom: "rgba(41, 83, 180, 0.96)",
+          border: "rgba(180, 215, 255, 0.8)",
+        });
+        pillX += pillWidth + 8;
+      }
+      if (model.typeSummaryText && pillX < contentX + contentWidth - 52) {
+        ctx.save();
+        ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+        const typeText = fitTextToWidthWithEllipsis(
+          model.typeSummaryText,
+          Math.max(72, contentWidth - (pillX - contentX) - 8),
+        );
+        const pillWidth = Math.max(72, Math.min(contentWidth - (pillX - contentX), Math.ceil(ctx.measureText(typeText).width) + 18));
+        ctx.restore();
+        drawCanvasRuntimeOverlayPill(pillX, cursorY, pillWidth, 22, typeText, {
+          fillTop: "rgba(38, 57, 79, 0.96)",
+          fillBottom: "rgba(25, 39, 56, 0.96)",
+        });
+      }
+      cursorY += 30;
+    }
+    if (model.passiveLabel) {
+      ctx.save();
+      ctx.font = `700 10px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+      const passiveText = fitTextToWidthWithEllipsis(model.passiveLabel, contentWidth);
+      ctx.restore();
+      drawCanvasRuntimeOverlayText(passiveText, contentX, cursorY, {
+        fontSize: 10,
+        fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+        strokeStyle: "rgba(8, 16, 24, 0.74)",
+      });
+      cursorY += 18;
+    }
+    if (compactMetrics.length > 0) {
+      const metricGap = 8;
+      const metricWidth = Math.floor((contentWidth - metricGap * Math.max(0, compactMetrics.length - 1)) / compactMetrics.length);
+      for (let index = 0; index < compactMetrics.length; index += 1) {
+        const metric = compactMetrics[index];
+        const boxX = contentX + index * (metricWidth + metricGap);
+        const boxY = cursorY;
+        const tone = String(metric.tone || "");
+        const accentFillTop = tone === "accent"
+          ? "rgba(63, 118, 220, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillTop;
+        const accentFillBottom = tone === "accent"
+          ? "rgba(38, 72, 151, 0.96)"
+          : ZONE_UI_CANVAS_THEME.subpanel.fillBottom;
+        drawRetroHudPanel(boxX, boxY, metricWidth, 44, {
+          cut: 8,
+          fillTop: accentFillTop,
+          fillMid: accentFillTop,
+          fillBottom: accentFillBottom,
+          border: ZONE_UI_CANVAS_THEME.subpanel.border,
+          highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+          shadow: "rgba(0, 0, 0, 0.18)",
+          borderWidth: 1.1,
+        });
+        drawCanvasRuntimeOverlayText(metric.label, boxX + 8, boxY + 7, {
+          fontSize: 9,
+          fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+          strokeStyle: "rgba(8, 16, 24, 0.72)",
+        });
+        ctx.save();
+        ctx.font = `800 11px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+        const metricValue = fitTextToWidthWithEllipsis(metric.value, metricWidth - 16);
+        ctx.restore();
+        drawCanvasRuntimeOverlayText(metricValue, boxX + 8, boxY + 20, {
+          fontSize: 11,
+          weight: "800",
+        });
+        if (metric.detail) {
+          ctx.save();
+          ctx.font = `700 8px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+          const metricDetail = fitTextToWidthWithEllipsis(metric.detail, metricWidth - 16);
+          ctx.restore();
+          drawCanvasRuntimeOverlayText(metricDetail, boxX + 8, boxY + 32, {
+            fontSize: 8,
+            fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+            strokeStyle: "rgba(8, 16, 24, 0.72)",
+          });
+        }
+      }
+    }
+    return;
+  }
   const width = clamp(state.viewport.width * 0.28, 276, 332);
   const headerHeight = 54;
   const badgeHeight = badges.length > 0 ? 28 : 0;
@@ -7893,16 +8074,23 @@ function drawCanvasRuntimeHoverPopup(layout) {
 
 function drawCanvasRuntimeTeamContextMenu(layout, hitboxes) {
   const model = state.ui.canvasTeamContextMenuModel;
-  if (!model || layout?.viewportProfile?.phone) {
+  if (!model) {
     return;
   }
   const buttonHeight = 54;
-  const width = clamp(state.viewport.width * 0.24, 260, 308);
+  const phoneMode = Boolean(layout?.viewportProfile?.phone);
+  const width = phoneMode
+    ? clamp(state.viewport.width - 24, 284, 360)
+    : clamp(state.viewport.width * 0.24, 260, 308);
   const height = 62 + model.buttons.length * buttonHeight + Math.max(0, model.buttons.length - 1) * 8 + 18;
-  const rect = resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
-    offsetX: 14,
-    offsetY: 12,
-  });
+  const rect = phoneMode
+    ? resolveCanvasRuntimeBottomSheetRect(width, height, layout, {
+      sideInset: 12,
+    })
+    : resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
+      offsetX: 14,
+      offsetY: 12,
+    });
   drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 12,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -7989,17 +8177,24 @@ function drawCanvasRuntimeTeamContextMenu(layout, hitboxes) {
 
 function drawCanvasRuntimeBallCaptureMenu(layout, hitboxes) {
   const model = state.ui.canvasBallCaptureMenuModel;
-  if (!model || layout?.viewportProfile?.phone) {
+  if (!model) {
     return;
   }
+  const phoneMode = Boolean(layout?.viewportProfile?.phone);
   const tabHeight = 40;
   const toggleHeight = 46;
-  const width = clamp(state.viewport.width * 0.28, 286, 344);
+  const width = phoneMode
+    ? clamp(state.viewport.width - 24, 300, 372)
+    : clamp(state.viewport.width * 0.28, 286, 344);
   const height = 78 + tabHeight + model.toggles.length * toggleHeight + Math.max(0, model.toggles.length - 1) * 8 + 22;
-  const rect = resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
-    offsetX: 16,
-    offsetY: 14,
-  });
+  const rect = phoneMode
+    ? resolveCanvasRuntimeCenteredModalRect(width, height, layout, {
+      sideInset: 12,
+    })
+    : resolveCanvasRuntimeOverlayRect(model.anchorX, model.anchorY, width, height, layout, {
+      offsetX: 16,
+      offsetY: 14,
+    });
   drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 12,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -8022,13 +8217,42 @@ function drawCanvasRuntimeBallCaptureMenu(layout, hitboxes) {
     fontSize: 14,
     weight: "800",
   });
+  const closeButtonSize = 24;
+  const closeButtonX = rect.x + rect.width - closeButtonSize - 10;
+  const closeButtonY = rect.y + 10;
+  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
+  const closeHovered = hoveredActionId === "ball-capture-close";
+  drawRetroHudPanel(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, {
+    cut: 7,
+    fillTop: closeHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillMid: closeHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+    fillBottom: closeHovered ? "rgba(38, 72, 151, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+    border: ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: closeHovered ? "rgba(80, 150, 255, 0.28)" : "rgba(0, 0, 0, 0.14)",
+    borderWidth: closeHovered ? 1.3 : 1.1,
+  });
+  drawCanvasRuntimeOverlayText("×", closeButtonX + closeButtonSize * 0.5, closeButtonY + closeButtonSize * 0.5, {
+    fontSize: 12,
+    weight: "900",
+    textAlign: "center",
+    textBaseline: "middle",
+  });
+  hitboxes.push({
+    id: "ball-capture-close",
+    x: closeButtonX,
+    y: closeButtonY,
+    width: closeButtonSize,
+    height: closeButtonSize,
+    interactive: true,
+    actionType: "close-ball-menu",
+  });
   drawCanvasRuntimeOverlayText(model.summary, rect.x + 14, rect.y + 32, {
     fontSize: 10,
     fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
     strokeStyle: "rgba(8, 16, 24, 0.72)",
   });
 
-  const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
   const tabGap = 8;
   const tabWidth = Math.floor((rect.width - 28 - tabGap * 2) / 3);
   let cursorY = rect.y + 52;
@@ -8161,6 +8385,9 @@ function drawCanvasRuntimeOverlays(layout) {
   if (layout?.layoutMode === "mobilePortrait" || layout?.viewportProfile?.phone) {
     drawCanvasRuntimeMobileShell(hitboxes);
     drawCanvasRuntimeZoneActions(hitboxes);
+    drawCanvasRuntimeHoverPopup(layout);
+    drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
+    drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);
   }
   state.ui.canvasOverlayActionHitboxes = hitboxes;
 }
