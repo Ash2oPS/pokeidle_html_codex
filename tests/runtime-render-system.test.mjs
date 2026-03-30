@@ -269,6 +269,16 @@ test("runtime shell canvas bindings stay exposed through game runtime getters", 
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.triggerZoneAction = \(\) => triggerZoneAction;/);
 });
 
+test("game runtime marks hidden DOM shell shadows inert when canvas-first layouts own the shell", () => {
+  const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
+
+  assert.match(gameRuntimeSource, /function syncCanvasRuntimeShellDomAccessibility\(layout = state\.layout\)/);
+  assert.match(gameRuntimeSource, /const shellDomShadows = \[\s*uiTopbarEl,\s*actionDockEl,\s*worldUiLayerEl,\s*\];/);
+  assert.match(gameRuntimeSource, /element\.toggleAttribute\("inert", useCanvasRuntimeShell\);/);
+  assert.match(gameRuntimeSource, /element\.setAttribute\("aria-hidden", "true"\);/);
+  assert.match(gameRuntimeSource, /syncCanvasRuntimeShellDomAccessibility\(layout\);/);
+});
+
 test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {
   const renderSystem = createRuntimeRenderSystem({
     bindings: {

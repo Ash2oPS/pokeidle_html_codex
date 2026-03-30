@@ -7525,3 +7525,24 @@ pm run test:visual:gallery:vfx:combat:mobile`n
 - Visual artifacts reviewed manually:
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
   - mobile hover popup: `output/ui-state-gallery/mobile-portrait/hover-popup.png`
+
+## 2026-03-30 - Canvas shell cleanup makes DOM shadows inert
+
+- Hardened the runtime shell cleanup path in `game-runtime.js` so the hidden DOM shell owners are no longer just visually suppressed when canvas-first layouts own the shell.
+  - `uiTopbarEl`
+  - `actionDockEl`
+  - `worldUiLayerEl`
+  are now toggled `inert` and `aria-hidden="true"` in canvas-first desktop/mobile layouts.
+- This reduces the remaining DOM/canvas double-path risk:
+  - no stray focus navigation into hidden shell shadows
+  - no accidental accessibility exposure of runtime shell copies that canvas now owns visually
+- Added source-level regression coverage in `tests/runtime-render-system.test.mjs`.
+- Validation:
+  - `node --test tests/runtime-render-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - desktop route lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - mobile menu: `output/ui-state-gallery/mobile-portrait/menu.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`

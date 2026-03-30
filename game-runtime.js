@@ -509,6 +509,7 @@ import {
 } from "./lib/shop-config-runtime.js";
 import {
   PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE,
+  PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT,
   projectWorldToStage,
 } from "./lib/runtime-stage-layout.js";
 
@@ -12896,6 +12897,28 @@ function syncCaptureRootLayoutMode(layout = state.layout) {
   }
   const layoutMode = String(layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
   captureRootEl.dataset.layoutMode = layoutMode;
+  syncCanvasRuntimeShellDomAccessibility(layout);
+}
+
+function syncCanvasRuntimeShellDomAccessibility(layout = state.layout) {
+  const layoutMode = String(layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
+  const useCanvasRuntimeShell = layoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE || layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT;
+  const shellDomShadows = [
+    uiTopbarEl,
+    actionDockEl,
+    worldUiLayerEl,
+  ];
+  shellDomShadows.forEach((element) => {
+    if (!(element instanceof Element)) {
+      return;
+    }
+    element.toggleAttribute("inert", useCanvasRuntimeShell);
+    if (useCanvasRuntimeShell) {
+      element.setAttribute("aria-hidden", "true");
+      return;
+    }
+    element.removeAttribute("aria-hidden");
+  });
 }
 
 function syncRuntimeShellMetrics(options = {}) {
