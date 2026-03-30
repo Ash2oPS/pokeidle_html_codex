@@ -12393,9 +12393,35 @@ body.update-required-active {
     max-width: 420px;
   }
 
+  .team-context-menu.is-mobile-bottom-sheet,
+  .ball-capture-menu.is-mobile-bottom-sheet {
+    padding: 10px;
+    gap: 8px;
+  }
+
   .ball-capture-menu.is-mobile-bottom-sheet .team-context-menu-title,
   .team-context-menu.is-mobile-bottom-sheet .team-context-menu-title {
     padding-bottom: 8px;
+  }
+
+  .team-context-menu.is-mobile-bottom-sheet .team-context-menu-btn {
+    min-height: max(var(--ui-touch-target-min-px, 44px), 48px);
+    padding: 9px 10px;
+  }
+
+  .ball-capture-menu.is-mobile-bottom-sheet .ball-capture-menu-tabs {
+    gap: 6px;
+  }
+
+  .ball-capture-menu.is-mobile-bottom-sheet .ball-capture-menu-tab {
+    min-height: 58px;
+    border-radius: 14px;
+    gap: 3px;
+  }
+
+  .ball-capture-menu.is-mobile-bottom-sheet .ball-capture-menu-btn {
+    min-height: max(var(--ui-touch-target-min-px, 44px), 48px);
+    padding: 8px 10px;
   }
 }
 
@@ -13315,6 +13341,11 @@ body.update-required-active {
     gap: 8px;
   }
 
+  .action-dock-fullscreen-group.is-primary .action-dock-fullscreen-group-grid,
+  .action-dock-fullscreen-group.is-utility .action-dock-fullscreen-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .shop-modal-card,
   .boxes-card,
   .appearance-card,
@@ -13481,9 +13512,6 @@ body.update-required-active {
 
   .action-dock-fullscreen-grid {
     grid-template-columns: minmax(0, 1.14fr) minmax(260px, 0.86fr);
-    grid-template-areas:
-      "primary utility"
-      "primary danger";
     align-items: start;
     gap: 12px;
   }
@@ -13496,15 +13524,18 @@ body.update-required-active {
   }
 
   .action-dock-fullscreen-group.is-primary {
-    grid-area: primary;
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .action-dock-fullscreen-group.is-utility {
-    grid-area: utility;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .action-dock-fullscreen-group.is-danger {
-    grid-area: danger;
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .action-dock-fullscreen-group.is-primary .action-dock-fullscreen-group-grid {
@@ -13683,6 +13714,28 @@ body.update-required-active {
 
   #action-dock-fullscreen-menu .action-dock-fullscreen-copy {
     max-width: 26ch;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-group-head {
+    gap: 1px;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-group-copy {
+    font-size: 9px;
+    line-height: 1.22;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-btn {
+    min-height: 76px;
+    padding: 11px 12px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  #action-dock-fullscreen-menu .action-dock-fullscreen-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
   }
 }
 
