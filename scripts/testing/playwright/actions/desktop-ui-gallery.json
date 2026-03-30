@@ -76,11 +76,11 @@
       "captureName": "idle"
     },
     {
-      "waitForSelector": "#save-pill:not(.hidden)",
+      "waitForSelector": "#topbar-balls-pill",
       "waitMs": 250
     },
     {
-      "captureName": "save-pill"
+      "captureName": "topbar-pill-layout"
     },
     {
       "captureName": "combat-hud"

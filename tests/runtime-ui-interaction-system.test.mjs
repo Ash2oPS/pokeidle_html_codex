@@ -231,6 +231,7 @@ function createUiInteractionSystem(overrides = {}) {
       boxesOpen: false,
       boxesMode: "team",
       boxesTargetSlotIndex: -1,
+      boxesHoverEntityId: null,
       boxesSearchQuery: "",
       pokedexOpen: false,
       pokedexHoverPokemonId: 0,
@@ -385,8 +386,20 @@ function createUiInteractionSystem(overrides = {}) {
     assertValidShopItemConfig: (value) => value,
     ballCaptureMenuEl: createHiddenTestElement("div"),
     ballCaptureMenuTitleEl: { textContent: "" },
+    ballCaptureMenuSummaryEl: { textContent: "" },
+    ballCaptureMenuCloseButtonEl: createTestElement("button"),
+    ballCaptureMenuTabsEl: createTestElement("div"),
+    ballCaptureTabPokeButtonEl: createTestElement("button"),
+    ballCaptureTabSuperButtonEl: createTestElement("button"),
+    ballCaptureTabHyperButtonEl: createTestElement("button"),
     boxesGridEl: createTestElement("div"),
+    boxesHeaderCopyEl: createTestElement("div"),
+    boxesHeaderDefaultEl: createTestElement("div"),
     boxesInfoPanelEl: createTestElement("aside"),
+    boxesMobileSelectionActionsEl: createTestElement("div"),
+    boxesMobileSelectionCancelButtonEl: createTestElement("button"),
+    boxesMobileSelectionConfirmButtonEl: createTestElement("button"),
+    boxesMobileSelectionSummaryEl: createTestElement("div"),
     boxesSearchInputEl: createTestElement("input"),
     boxesModalEl: { classList: createClassList(true) },
     boxesShinyCounterEl: { textContent: "" },
@@ -1509,7 +1522,7 @@ test("runtime ui interaction system renders the mobile team hover as a quick bot
   dom.window.close();
 });
 
-test("runtime ui interaction system uses first tap to open the mobile boxes detail sheet", async () => {
+test("runtime ui interaction system requires explicit mobile confirmation in boxes", async () => {
   const { bindings, state, system } = createUiInteractionSystem({
     bindings: {
       getBaseStatTotal: () => 273,
@@ -1550,13 +1563,64 @@ test("runtime ui interaction system uses first tap to open the mobile boxes deta
 
   assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), false);
   assert.equal(state.saveData.team[0], 25);
+  assert.equal(bindings.boxesMobileSelectionSummaryEl.classList.contains("hidden"), true);
 
   await bindings.boxesGridEl.children[1].trigger("click");
 
   assert.equal(state.saveData.team[0], 25);
   assert.equal(state.ui.boxesHoverEntityId, 32);
-  assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), true);
-  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Fiche equipe/);
+  assert.equal(bindings.boxesInfoPanelEl.classList.contains("is-sheet-open"), false);
+  assert.equal(bindings.boxesHeaderDefaultEl.classList.contains("hidden"), true);
+  assert.equal(bindings.boxesMobileSelectionSummaryEl.classList.contains("hidden"), false);
+  assert.match(bindings.boxesMobileSelectionSummaryEl.innerHTML, /Nidoran/);
+  assert.equal(bindings.boxesMobileSelectionConfirmButtonEl.disabled, false);
+
+  system.confirmBoxesSelection();
+
+  assert.equal(state.saveData.team[0], 32);
+  assert.equal(state.ui.boxesOpen, false);
+});
+
+test("runtime ui interaction system cancels the pending mobile boxes selection", async () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      getBaseStatTotal: () => 273,
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[pokemonId] || null,
+      isEntityUnlocked: () => true,
+    },
+  });
+
+  state.layout.viewportProfile = { phone: true };
+  state.saveData = {
+    team: [25, 0, 0, 0, 0, 0],
+    pokemon_entities: {
+      25: { id: 25, captured_normal: 1 },
+      32: { id: 32, level: 1, captured_normal: 1 },
+    },
+  };
+  for (const [id, nameFr, type] of [[25, "Pikachu", "electric"], [32, "Nidoran", "poison"]]) {
+    state.pokemonDefsById.set(id, {
+      id,
+      nameFr,
+      spritePath: `pokemon_data/${id}.png`,
+      attackMode: "projectiles",
+      offensiveType: type,
+      defensiveTypes: [type],
+    });
+  }
+  state.ui.boxesOpen = true;
+  state.ui.boxesTargetSlotIndex = 0;
+
+  system.renderBoxesGrid();
+  await bindings.boxesGridEl.children[1].trigger("click");
+
+  assert.equal(state.ui.boxesHoverEntityId, 32);
+
+  system.clearBoxesPendingSelection({ rerender: true });
+
+  assert.equal(state.ui.boxesHoverEntityId, null);
+  assert.equal(bindings.boxesHeaderDefaultEl.classList.contains("hidden"), false);
+  assert.equal(bindings.boxesMobileSelectionSummaryEl.classList.contains("hidden"), true);
 });
 
 test("runtime ui interaction system keeps trainer battle box selection temporary", async () => {
@@ -1614,6 +1678,75 @@ test("runtime ui interaction system keeps trainer battle box selection temporary
   assert.ok(nidoranButton);
 
   await nidoranButton.trigger("click");
+
+  assert.deepEqual(state.saveData.team, [25, 4, 7, 0, 0, 0]);
+  assert.deepEqual(state.trainerBattle.selectedTeamIds, [32, 4, 7]);
+  assert.equal(state.ui.boxesOpen, false);
+  assert.equal(state.ui.trainerBattleSetupOpen, true);
+});
+
+test("runtime ui interaction system keeps trainer battle mobile confirmation temporary", async () => {
+  const { bindings, state, system } = createUiInteractionSystem({
+    bindings: {
+      document: createTestDocument(),
+      getBaseStatTotal: () => 273,
+      getCapturedTotal: () => 1,
+      getXpToNextLevelForSpecies: () => 100,
+      computeStatsAtLevel: () => ({}),
+      resolveSpriteAppearanceForEntity: (pokemonId) => ({
+        spritePath: `pokemon_data/${pokemonId}.png`,
+        variant: null,
+        shinyVisual: false,
+        shinyNegativeFallbackVisual: false,
+        ultraShinyVisual: false,
+      }),
+      getPokemonEntityRecord: (pokemonId) => state.saveData?.pokemon_entities?.[String(pokemonId)] || null,
+      isEntityUnlocked: (record) => Boolean(record?.entity_unlocked),
+      showModalWithTween: () => {},
+      hideModalWithTween: () => {},
+      showPopupWithTween: () => {},
+      setTopMessage: () => {},
+    },
+  });
+
+  state.layout.viewportProfile = { phone: true };
+  state.saveData = {
+    team: [25, 4, 7, 0, 0, 0],
+    pokemon_entities: {
+      4: { id: 4, level: 12, entity_unlocked: true, captured_normal: 1 },
+      7: { id: 7, level: 12, entity_unlocked: true, captured_normal: 1 },
+      25: { id: 25, level: 18, entity_unlocked: true, captured_normal: 1 },
+      32: { id: 32, level: 10, entity_unlocked: true, captured_normal: 1 },
+    },
+  };
+  for (const [id, nameFr] of [[4, "Salameche"], [7, "Carapuce"], [25, "Pikachu"], [32, "Nidoran"]]) {
+    state.pokemonDefsById.set(id, {
+      id,
+      nameFr,
+      spritePath: `pokemon_data/${id}.png`,
+      attackMode: "projectiles",
+      offensiveType: "normal",
+      defensiveTypes: ["normal"],
+    });
+  }
+  state.ui.boxesOpen = true;
+  state.ui.boxesMode = "trainer_battle";
+  state.ui.boxesTargetSlotIndex = 0;
+  state.ui.trainerBattleSetupOpen = true;
+  state.trainerBattle.selectedTeamIds = [25, 4, 7];
+
+  system.renderBoxesGrid();
+
+  const nidoranButton = findChildByDatasetValue(bindings.boxesGridEl, "boxEntityId", 32);
+  assert.ok(nidoranButton);
+
+  await nidoranButton.trigger("click");
+
+  assert.deepEqual(state.saveData.team, [25, 4, 7, 0, 0, 0]);
+  assert.deepEqual(state.trainerBattle.selectedTeamIds, [25, 4, 7]);
+  assert.equal(bindings.boxesMobileSelectionSummaryEl.classList.contains("hidden"), false);
+
+  system.confirmBoxesSelection();
 
   assert.deepEqual(state.saveData.team, [25, 4, 7, 0, 0, 0]);
   assert.deepEqual(state.trainerBattle.selectedTeamIds, [32, 4, 7]);
@@ -1722,14 +1855,17 @@ test("runtime ui interaction system blocks collection and team editors during ac
   assert.match(topMessages[0], /combat de dresseur/);
 });
 
-test("runtime ui interaction system anchors the mobile ball capture menu as a bottom sheet", () => {
+test("runtime ui interaction system centers the ball capture menu and updates icon tabs", () => {
   const dom = new JSDOM(
-    "<!doctype html><html><body><div id='team-menu' class='hidden'></div><div id='ball-menu' class='hidden'></div></body></html>",
+    "<!doctype html><html><body><div id='team-menu' class='hidden'></div><div id='ball-menu' class='hidden'></div><button id='ball-tab-poke'></button><button id='ball-tab-super'></button><button id='ball-tab-hyper'></button></body></html>",
     { pretendToBeVisual: true },
   );
   const documentRef = dom.window.document;
   const teamContextMenuEl = documentRef.getElementById("team-menu");
   const ballCaptureMenuEl = documentRef.getElementById("ball-menu");
+  const ballCaptureTabPokeButtonEl = documentRef.getElementById("ball-tab-poke");
+  const ballCaptureTabSuperButtonEl = documentRef.getElementById("ball-tab-super");
+  const ballCaptureTabHyperButtonEl = documentRef.getElementById("ball-tab-hyper");
 
   const { state, system } = createUiInteractionSystem({
     window: dom.window,
@@ -1746,6 +1882,12 @@ test("runtime ui interaction system anchors the mobile ball capture menu as a bo
       teamContextMenuAppearanceButtonEl: documentRef.createElement("button"),
       ballCaptureMenuEl,
       ballCaptureMenuTitleEl: documentRef.createElement("div"),
+      ballCaptureMenuSummaryEl: documentRef.createElement("p"),
+      ballCaptureMenuCloseButtonEl: documentRef.createElement("button"),
+      ballCaptureMenuTabsEl: documentRef.createElement("div"),
+      ballCaptureTabPokeButtonEl,
+      ballCaptureTabSuperButtonEl,
+      ballCaptureTabHyperButtonEl,
       ballCaptureToggleAllButtonEl: documentRef.createElement("button"),
       ballCaptureToggleUnownedButtonEl: documentRef.createElement("button"),
       ballCaptureToggleOwnedButtonEl: documentRef.createElement("button"),
@@ -1754,8 +1896,18 @@ test("runtime ui interaction system anchors the mobile ball capture menu as a bo
       BALL_CONFIG_BY_TYPE: {
         poke_ball: {
           nameFr: "Pokeball",
+          spritePath: "assets/items/poke_ball.png",
+        },
+        super_ball: {
+          nameFr: "Super Ball",
+          spritePath: "assets/items/super_ball.png",
+        },
+        hyper_ball: {
+          nameFr: "Hyper Ball",
+          spritePath: "assets/items/hyper_ball.png",
         },
       },
+      BALL_TYPE_FALLBACK_ORDER: ["poke_ball", "super_ball", "hyper_ball"],
       getBallCaptureRulesForType: () => ({
         all: true,
         unowned: true,
@@ -1763,6 +1915,19 @@ test("runtime ui interaction system anchors the mobile ball capture menu as a bo
         shiny: true,
         ultra_shiny: true,
       }),
+      getBallInventoryCount: (type) => {
+        switch (type) {
+          case "poke_ball":
+            return 12;
+          case "super_ball":
+            return 5;
+          case "hyper_ball":
+            return 2;
+          default:
+            return 0;
+        }
+      },
+      getActiveBallType: () => "super_ball",
       isAppearanceEditorUnlocked: () => true,
       getTeamBoxesAccessState: () => ({ allowed: true }),
       showPopupWithTween: (element) => {
@@ -1779,8 +1944,18 @@ test("runtime ui interaction system anchors the mobile ball capture menu as a bo
   assert.equal(state.ui.teamContextMenuOpen, true);
 
   system.openBallCaptureMenu("poke_ball", 120, 80);
-  assert.equal(ballCaptureMenuEl.classList.contains("is-mobile-bottom-sheet"), true);
+  assert.equal(ballCaptureMenuEl.classList.contains("is-centered-modal"), true);
   assert.equal(ballCaptureMenuEl.style.left, "50%");
+  assert.equal(ballCaptureMenuEl.style.top, "50%");
+  assert.equal(state.ui.ballCaptureMenuBallType, "poke_ball");
+  assert.equal(ballCaptureTabPokeButtonEl.getAttribute("aria-selected"), "true");
+  assert.equal(ballCaptureTabSuperButtonEl.getAttribute("aria-selected"), "false");
+
+  system.setBallCaptureMenuBallType("super_ball");
+  assert.equal(state.ui.ballCaptureMenuBallType, "super_ball");
+  assert.equal(ballCaptureTabPokeButtonEl.getAttribute("aria-selected"), "false");
+  assert.equal(ballCaptureTabSuperButtonEl.getAttribute("aria-selected"), "true");
+  assert.match(ballCaptureTabSuperButtonEl.textContent, /5/);
 
   dom.window.close();
 });
@@ -1805,8 +1980,8 @@ test("runtime ui interaction system renders compact boxes info cards", () => {
   });
 
   system.setBoxesInfoFromEntry(null);
-  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Infos Pokémon/);
-  assert.match(bindings.boxesInfoPanelEl.innerHTML, /boîte/);
+  assert.match(bindings.boxesInfoPanelEl.innerHTML, /Infos Pokemon/);
+  assert.match(bindings.boxesInfoPanelEl.innerHTML, /boite/);
 
   system.setBoxesInfoFromEntry({
     id: 32,
@@ -1897,11 +2072,14 @@ test("runtime ui interaction system renders accented pokemon type chips with ico
     encounterZoneLabels: ["Mont S\u00e9l\u00e9nite"],
   });
 
-  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /pokemon-info-zone pokemon-info-zone--types/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /pokemon-info-hero-visual/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /pokemon-info-hero-types/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /assets\/type-icons\/fairy\.png/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /F\u00e9e/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Attaque/);
   assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Laser/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /Mont S\u00e9l\u00e9nite/);
+  assert.match(bindings.pokedexInfoPanelEl.innerHTML, /pokemon-info-breakdown-grid/);
 });
 
 test("runtime ui interaction system reloads missing pokedex definitions to restore accented type chips", async () => {

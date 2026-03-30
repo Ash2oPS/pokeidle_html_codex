@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  computeEvolutionAnimationBeatState,
+  computeEvolutionAnimationViewportCenter,
   computeSpriteOpaqueDrawPlacement,
   createRuntimeRenderSystem,
 } from "../systems/ui/runtime-render-system.js";
@@ -197,6 +199,14 @@ test("runtime render system trims laser visuals with per-end insets", () => {
   assert.match(source, /const visibleSegment = getVisibleLaserSegment\(laser\);/);
 });
 
+test("runtime render system suppresses the legacy ball canvas overlay when the topbar summary exists", () => {
+  const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
+
+  assert.match(source, /topbarBallSummaryVisible/);
+  assert.match(source, /#topbar-balls-pill/);
+  assert.match(source, /if \(topbarBallSummaryVisible\) \{\s*return;\s*\}/);
+});
+
 test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {
   const renderSystem = createRuntimeRenderSystem({
     bindings: {
@@ -244,6 +254,72 @@ test("computeSpriteOpaqueDrawPlacement recenters asymmetric opaque bounds", () =
   assert.equal(placement.visibleWidth, 60);
   assert.equal(placement.visibleHeight, 72);
   assert.equal(placement.visibleBottomY, 36);
+});
+
+test("computeEvolutionAnimationViewportCenter recenters the overlay on the viewport", () => {
+  const center = computeEvolutionAnimationViewportCenter(
+    {
+      centerX: 640,
+      centerY: 286,
+    },
+    {
+      width: 1280,
+      height: 720,
+    },
+  );
+
+  assert.deepEqual(center, {
+    centerX: 640,
+    centerY: 360,
+  });
+});
+
+test("computeEvolutionAnimationViewportCenter falls back to the combat layout when viewport data is unavailable", () => {
+  const center = computeEvolutionAnimationViewportCenter({
+    centerX: 412,
+    centerY: 244,
+  });
+
+  assert.deepEqual(center, {
+    centerX: 412,
+    centerY: 244,
+  });
+});
+
+test("computeEvolutionAnimationBeatState accelerates white swap timings before the final reveal", () => {
+  const beatState = computeEvolutionAnimationBeatState({
+    elapsedMs: 700,
+    totalMs: 3600,
+    whiteMs: 280,
+    flashMs: 360,
+    revealMs: 980,
+    swapCount: 7,
+  });
+
+  assert.equal(beatState.stage, "oscillate");
+  assert.equal(beatState.pulseCount, 7);
+  assert.equal(beatState.pulseDurationsMs.length, 7);
+  assert.ok(beatState.pulseDurationsMs[0] > beatState.pulseDurationsMs[6]);
+  assert.ok(beatState.fromWhiteRatio >= 1);
+  assert.ok(beatState.toWhiteRatio >= 1);
+});
+
+test("computeEvolutionAnimationBeatState ends on a colored evolution reveal with fireworks", () => {
+  const beatState = computeEvolutionAnimationBeatState({
+    elapsedMs: 3300,
+    totalMs: 3600,
+    whiteMs: 280,
+    flashMs: 360,
+    revealMs: 980,
+    swapCount: 7,
+  });
+
+  assert.equal(beatState.stage, "reveal");
+  assert.equal(beatState.dominantSprite, "to");
+  assert.equal(beatState.fromAlpha, 0);
+  assert.ok(beatState.toWhiteRatio < 1);
+  assert.ok(beatState.toScale > 1);
+  assert.ok(beatState.fireworkRatio > 0);
 });
 
 test("runtime render system removes phone-only sprite multipliers and mobile min floors", () => {

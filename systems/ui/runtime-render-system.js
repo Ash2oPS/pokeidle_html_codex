@@ -98,6 +98,185 @@ export function computeSpriteOpaqueDrawPlacement({
   };
 }
 
+export function computeEvolutionAnimationViewportCenter(layout = {}, viewport = {}) {
+  const fallbackCenterX = Number(layout?.centerX) || 0;
+  const fallbackCenterY = Number(layout?.centerY) || 0;
+  const viewportWidth = Math.max(0, Number(viewport?.width) || 0);
+  const viewportHeight = Math.max(0, Number(viewport?.height) || 0);
+
+  return {
+    centerX: viewportWidth > 0 ? viewportWidth * 0.5 : fallbackCenterX,
+    centerY: viewportHeight > 0 ? viewportHeight * 0.5 : fallbackCenterY,
+  };
+}
+
+function clampTimelineValue(value, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, Number(value) || 0));
+}
+
+function easeInOutTimelineValue(value) {
+  const ratio = clampTimelineValue(value, 0, 1);
+  return 0.5 - Math.cos(ratio * Math.PI) * 0.5;
+}
+
+function buildEvolutionPulseDurations(totalMs = 0, pulseCount = 1) {
+  const safeTotalMs = Math.max(0, Number(totalMs) || 0);
+  const safePulseCount = Math.max(1, Math.round(Number(pulseCount) || 1));
+  const weightSum = (safePulseCount * (safePulseCount + 1)) / 2;
+  const durations = [];
+  let remainingMs = safeTotalMs;
+  for (let index = 0; index < safePulseCount; index += 1) {
+    const weight = safePulseCount - index;
+    const rawDuration = index === safePulseCount - 1
+      ? remainingMs
+      : (safeTotalMs * weight) / Math.max(1, weightSum);
+    const durationMs = Math.max(0, rawDuration);
+    durations.push(durationMs);
+    remainingMs = Math.max(0, remainingMs - durationMs);
+  }
+  return durations;
+}
+
+export function computeEvolutionAnimationBeatState({
+  elapsedMs = 0,
+  totalMs = 0,
+  whiteMs = 0,
+  flashMs = 0,
+  revealMs = 0,
+  swapCount = 1,
+} = {}) {
+  const safeTotalMs = Math.max(1, Number(totalMs) || 1);
+  const safeElapsedMs = clampTimelineValue(elapsedMs, 0, safeTotalMs);
+  const safeIntroMs = clampTimelineValue(whiteMs, 0, safeTotalMs);
+  const remainingAfterIntroMs = Math.max(0, safeTotalMs - safeIntroMs);
+  const safeRevealMs = clampTimelineValue(revealMs, 0, remainingAfterIntroMs);
+  const remainingBeforeRevealMs = Math.max(0, remainingAfterIntroMs - safeRevealMs);
+  const safeFinalGrowMs = clampTimelineValue(flashMs, 0, remainingBeforeRevealMs);
+  const oscillationMs = Math.max(0, remainingBeforeRevealMs - safeFinalGrowMs);
+  const safeSwapCount = Math.max(1, Math.round(Number(swapCount) || 1));
+  const pulseDurationsMs = buildEvolutionPulseDurations(oscillationMs, safeSwapCount);
+  const oscillationEndMs = safeIntroMs + oscillationMs;
+  const finalGrowEndMs = oscillationEndMs + safeFinalGrowMs;
+
+  const result = {
+    stage: "complete",
+    elapsedMs: safeElapsedMs,
+    introMs: safeIntroMs,
+    oscillationMs,
+    finalGrowMs: safeFinalGrowMs,
+    revealMs: safeRevealMs,
+    pulseCount: safeSwapCount,
+    pulseDurationsMs,
+    pulseIndex: pulseDurationsMs.length > 0 ? pulseDurationsMs.length - 1 : 0,
+    pulseRatio: 1,
+    dominantSprite: "to",
+    fromAlpha: 0,
+    fromScale: 0.36,
+    fromWhiteRatio: 1,
+    toAlpha: 1,
+    toScale: 1.16,
+    toWhiteRatio: 0,
+    orbAlpha: 0.18,
+    orbRadiusRatio: 0.72,
+    energyRatio: 0.68,
+    fireworkRatio: 1,
+  };
+
+  if (safeElapsedMs < safeIntroMs) {
+    const introRatio = safeIntroMs > 0 ? safeElapsedMs / safeIntroMs : 1;
+    const introEase = easeInOutTimelineValue(introRatio);
+    result.stage = "intro";
+    result.dominantSprite = "from";
+    result.fromAlpha = 1;
+    result.fromScale = 1.04 - introEase * 0.04;
+    result.fromWhiteRatio = introEase;
+    result.toAlpha = 0;
+    result.toScale = 0.38;
+    result.toWhiteRatio = 1;
+    result.orbAlpha = 0.24 + introEase * 0.28;
+    result.orbRadiusRatio = 0.34 + introEase * 0.1;
+    result.energyRatio = 0.34 + introEase * 0.26;
+    result.fireworkRatio = 0;
+    return result;
+  }
+
+  if (safeElapsedMs < oscillationEndMs && oscillationMs > 0) {
+    const oscillationElapsedMs = safeElapsedMs - safeIntroMs;
+    let segmentStartMs = 0;
+    let pulseIndex = 0;
+    let pulseDurationMs = pulseDurationsMs[0] || oscillationMs;
+    for (let index = 0; index < pulseDurationsMs.length; index += 1) {
+      const durationMs = pulseDurationsMs[index];
+      if (oscillationElapsedMs <= segmentStartMs + durationMs || index === pulseDurationsMs.length - 1) {
+        pulseIndex = index;
+        pulseDurationMs = durationMs;
+        break;
+      }
+      segmentStartMs += durationMs;
+    }
+    const pulseRatio = pulseDurationMs > 0
+      ? clampTimelineValue((oscillationElapsedMs - segmentStartMs) / pulseDurationMs, 0, 1)
+      : 1;
+    const pulseEase = easeInOutTimelineValue(pulseRatio);
+    const startsFromSprite = pulseIndex % 2 === 0;
+    const fromPresence = startsFromSprite ? 1 - pulseEase : pulseEase;
+    const toPresence = 1 - fromPresence;
+    const pulseWave = Math.sin(pulseRatio * Math.PI);
+
+    result.stage = "oscillate";
+    result.pulseIndex = pulseIndex;
+    result.pulseRatio = pulseRatio;
+    result.dominantSprite = toPresence >= fromPresence ? "to" : "from";
+    result.fromAlpha = 0.16 + fromPresence * 0.84;
+    result.fromScale = 0.34 + fromPresence * 0.74;
+    result.fromWhiteRatio = 1;
+    result.toAlpha = 0.16 + toPresence * 0.84;
+    result.toScale = 0.34 + toPresence * 0.74;
+    result.toWhiteRatio = 1;
+    result.orbAlpha = 0.42 + pulseWave * 0.22;
+    result.orbRadiusRatio = 0.42 + pulseWave * 0.1;
+    result.energyRatio = 0.62 + pulseWave * 0.22;
+    result.fireworkRatio = 0;
+    return result;
+  }
+
+  if (safeElapsedMs < finalGrowEndMs && safeFinalGrowMs > 0) {
+    const finalGrowRatio = safeFinalGrowMs > 0 ? (safeElapsedMs - oscillationEndMs) / safeFinalGrowMs : 1;
+    const finalGrowEase = easeInOutTimelineValue(finalGrowRatio);
+    result.stage = "finalGrow";
+    result.dominantSprite = "to";
+    result.fromAlpha = 0.12 * (1 - finalGrowEase);
+    result.fromScale = 0.5 - finalGrowEase * 0.14;
+    result.fromWhiteRatio = 1;
+    result.toAlpha = 0.78 + finalGrowEase * 0.22;
+    result.toScale = 0.98 + finalGrowEase * 0.18;
+    result.toWhiteRatio = 1;
+    result.orbAlpha = 0.7 + finalGrowEase * 0.18;
+    result.orbRadiusRatio = 0.5 + finalGrowEase * 0.16;
+    result.energyRatio = 0.84 + finalGrowEase * 0.12;
+    result.fireworkRatio = 0;
+    return result;
+  }
+
+  const revealRatio = safeRevealMs > 0
+    ? clampTimelineValue((safeElapsedMs - finalGrowEndMs) / safeRevealMs, 0, 1)
+    : 1;
+  const revealEase = easeInOutTimelineValue(revealRatio);
+  result.stage = safeElapsedMs >= safeTotalMs ? "complete" : "reveal";
+  result.dominantSprite = "to";
+  result.fromAlpha = 0;
+  result.fromScale = 0.36;
+  result.fromWhiteRatio = 1;
+  result.toAlpha = 1;
+  result.toScale = 1.08 + revealEase * 0.08;
+  result.toWhiteRatio = 1 - revealEase;
+  result.orbAlpha = (1 - revealEase) * 0.52;
+  result.orbRadiusRatio = 0.66 + revealEase * 0.08;
+  result.energyRatio = 0.86 - revealEase * 0.24;
+  result.fireworkRatio = revealRatio;
+  return result;
+}
+
 export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "BALL_CONFIG_BY_TYPE",
   "BALL_OVERLAY_UI_STYLE_BY_TYPE",
@@ -123,6 +302,7 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "EVOLUTION_ANIM_BACKDROP_FADE_MS",
   "EVOLUTION_ANIM_FLASH_MS",
   "EVOLUTION_ANIM_REVEAL_MS",
+  "EVOLUTION_ANIM_SWAP_COUNT",
   "EVOLUTION_ANIM_TOTAL_MS",
   "EVOLUTION_ANIM_WHITE_MS",
   "FLOATING_TEXT_TONE_CRITICAL",
@@ -245,6 +425,7 @@ export function createRuntimeRenderSystem(options = {}) {
     EVOLUTION_ANIM_BACKDROP_FADE_MS,
     EVOLUTION_ANIM_FLASH_MS,
     EVOLUTION_ANIM_REVEAL_MS,
+    EVOLUTION_ANIM_SWAP_COUNT,
     EVOLUTION_ANIM_TOTAL_MS,
     EVOLUTION_ANIM_WHITE_MS,
     Element,
@@ -6295,21 +6476,27 @@ function drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, 
     }
 
     const ratio = clamp(ageMs / durationMs, 0, 1);
-    const alpha = Math.sin(ratio * Math.PI) * 0.72;
+    const travelRatio = Math.sin(ratio * Math.PI * 0.5);
+    const fadeRatio = ratio < 0.62 ? 1 : 1 - clamp((ratio - 0.62) / 0.38, 0, 1);
+    const alpha = fadeRatio * (0.22 + (1 - ratio) * 0.66);
     if (alpha <= 0.01) {
       continue;
     }
     const baseAngle = Number(particle.baseAngle) || 0;
-    const angle = baseAngle + ratio * (Number(particle.spinTurns) || 0) * Math.PI * 2;
-    const orbitRadius = spriteSize * ((Number(particle.radiusStart) || 0.2) + ratio * (Number(particle.radiusGrow) || 0.12));
-    const x = centerX + Math.cos(angle) * orbitRadius;
+    const curveAngle = baseAngle + (Number(particle.spinTurns) || 0) * ratio * Math.PI;
+    const distance = spriteSize * (
+      (Number(particle.radiusStart) || 0.08)
+      + travelRatio * (Number(particle.radiusGrow) || 0.44)
+    );
+    const wobble = spriteSize * 0.04 * (1 - ratio);
+    const x = centerX + Math.cos(baseAngle) * distance + Math.cos(curveAngle + Math.PI * 0.5) * wobble;
     const y =
       centerY
+      + Math.sin(baseAngle) * distance
       + (Number(particle.heightOffset) || 0) * spriteSize
-      + Math.sin(angle * 0.7 + baseAngle) * spriteSize * 0.08
-      - ratio * spriteSize * (Number(particle.lift) || 0.14);
-    const size = Math.max(0.8, (Number(particle.size) || 2) * (0.82 + (1 - ratio) * 0.35));
-    const color = Array.isArray(particle.color) ? particle.color : [190, 225, 255];
+      - travelRatio * spriteSize * (Number(particle.lift) || 0.1);
+    const size = Math.max(0.9, (Number(particle.size) || 2) * (1.12 - ratio * 0.5));
+    const color = Array.isArray(particle.color) ? particle.color : [255, 255, 255];
 
     const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 3.2);
     glow.addColorStop(0, rgba(color, alpha));
@@ -6333,21 +6520,19 @@ function drawEvolutionAnimationOverlay(layout) {
     return;
   }
 
-  const whiteEnd = Math.max(1, EVOLUTION_ANIM_WHITE_MS);
-  const flashEnd = whiteEnd + Math.max(1, EVOLUTION_ANIM_FLASH_MS);
-  const revealEnd = flashEnd + Math.max(1, EVOLUTION_ANIM_REVEAL_MS);
   const elapsed = clamp(current.elapsedMs, 0, current.totalMs);
-  const centerX = layout.centerX;
-  const centerY = layout.centerY - layout.enemySize * 0.03;
+  const viewportCenter = computeEvolutionAnimationViewportCenter(layout, state.viewport);
+  const centerX = viewportCenter.centerX;
+  const centerY = viewportCenter.centerY;
   const spriteSize = clamp(layout.enemySize * 1.5, 170, 300);
-  const growthRatio = clamp(elapsed / whiteEnd, 0, 1);
-  const growthEase = easeInOutSine(growthRatio);
-  const flashRatio =
-    elapsed <= whiteEnd ? 0 : clamp((elapsed - whiteEnd) / Math.max(1, EVOLUTION_ANIM_FLASH_MS), 0, 1);
-  const flashEase = easeInOutSine(flashRatio);
-  const revealRatio =
-    elapsed <= flashEnd ? 0 : clamp((elapsed - flashEnd) / Math.max(1, EVOLUTION_ANIM_REVEAL_MS), 0, 1);
-  const revealEase = easeInOutSine(revealRatio);
+  const beatState = computeEvolutionAnimationBeatState({
+    elapsedMs: elapsed,
+    totalMs: current.totalMs,
+    whiteMs: EVOLUTION_ANIM_WHITE_MS,
+    flashMs: EVOLUTION_ANIM_FLASH_MS,
+    revealMs: EVOLUTION_ANIM_REVEAL_MS,
+    swapCount: Number(EVOLUTION_ANIM_SWAP_COUNT) || 7,
+  });
   const backdropFadeMs = clamp(
     Math.min(EVOLUTION_ANIM_BACKDROP_FADE_MS, current.totalMs * 0.26),
     120,
@@ -6359,7 +6544,7 @@ function drawEvolutionAnimationOverlay(layout) {
   const backdropPresence = clamp(Math.min(fadeIn, fadeOut), 0, 1);
 
   ctx.save();
-  const baseBackdropAlpha = clamp((0.54 + (1 - revealEase) * 0.16) * backdropPresence, 0, 0.86);
+  const baseBackdropAlpha = clamp((0.54 + beatState.energyRatio * 0.18) * backdropPresence, 0, 0.88);
   ctx.fillStyle = `rgba(2, 6, 12, ${baseBackdropAlpha.toFixed(3)})`;
   ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
 
@@ -6372,67 +6557,48 @@ function drawEvolutionAnimationOverlay(layout) {
     centerY,
     vignetteRadius,
   );
-  const vignetteAlpha = clamp((0.36 + (1 - revealEase) * 0.34) * backdropPresence, 0, 0.9);
+  const vignetteAlpha = clamp((0.34 + beatState.energyRatio * 0.36) * backdropPresence, 0, 0.9);
   vignette.addColorStop(0, `rgba(4, 9, 17, ${(vignetteAlpha * 0.06).toFixed(3)})`);
   vignette.addColorStop(0.52, `rgba(4, 9, 17, ${(vignetteAlpha * 0.4).toFixed(3)})`);
   vignette.addColorStop(1, `rgba(4, 9, 17, ${vignetteAlpha.toFixed(3)})`);
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
 
-  const focusRadius = spriteSize * 1.3;
+  const focusRadius = spriteSize * (1.08 + beatState.orbRadiusRatio * 0.8);
   const focus = ctx.createRadialGradient(centerX, centerY, spriteSize * 0.12, centerX, centerY, focusRadius);
-  focus.addColorStop(0, `rgba(255, 255, 255, ${(0.18 + (1 - revealEase) * 0.1).toFixed(3)})`);
+  focus.addColorStop(0, `rgba(255, 255, 255, ${(0.16 + beatState.energyRatio * 0.16).toFixed(3)})`);
   focus.addColorStop(1, "rgba(255, 255, 255, 0)");
   ctx.fillStyle = focus;
   ctx.beginPath();
   ctx.arc(centerX, centerY, focusRadius, 0, Math.PI * 2);
   ctx.fill();
-  drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsed);
 
   let title = `${current.fromNameFr} evolue !`;
   let subtitle = "";
-  const baseOrbRadius = spriteSize * 0.52;
-  const maxOrbRadius = spriteSize * 0.64;
-  const minOrbRadius = spriteSize * 0.08;
-  let orbRadius = baseOrbRadius;
-  let orbAlpha = 0;
+  const orbRadius = spriteSize * (0.3 + beatState.orbRadiusRatio * 0.44);
+  const orbAlpha = clamp(beatState.orbAlpha, 0, 1);
+  const spriteLayers = [
+    {
+      entity: current.fromDef,
+      alpha: beatState.fromAlpha,
+      scale: beatState.fromScale,
+      whiteRatio: beatState.fromWhiteRatio,
+    },
+    {
+      entity: current.toDef,
+      alpha: beatState.toAlpha,
+      scale: beatState.toScale,
+      whiteRatio: beatState.toWhiteRatio,
+    },
+  ]
+    .filter((layer) => layer.alpha > 0.01 && layer.scale > 0.02)
+    .sort((left, right) => left.scale - right.scale);
 
-  if (elapsed < whiteEnd) {
-    const whiteRatio = clamp(0.16 + growthEase * 0.84, 0, 1);
-    const scale = lerpNumber(1.03, 0.52, growthEase);
-    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
-      alpha: clamp(1 - growthEase * 0.94, 0.05, 1),
-      scale,
-      whiteRatio,
-    });
-    orbRadius = lerpNumber(baseOrbRadius, maxOrbRadius, growthEase);
-    orbAlpha = clamp(0.82 + growthEase * 0.18, 0, 1);
-  } else if (elapsed < flashEnd) {
-    const pulse = Math.sin(flashEase * Math.PI);
-    drawEvolutionSpriteFrame(current.fromDef, centerX, centerY, spriteSize, {
-      alpha: 0.03,
-      scale: 0.5,
-      whiteRatio: 1,
-    });
-    orbRadius = maxOrbRadius * (0.98 + pulse * 0.03);
-    orbAlpha = 1;
-    const flashAlpha = 0.05 + pulse * 0.12;
-    ctx.fillStyle = "rgba(255, 255, 255, " + flashAlpha.toFixed(3) + ")";
-    ctx.fillRect(0, 0, state.viewport.width, state.viewport.height);
-  } else {
-    orbRadius = lerpNumber(maxOrbRadius, minOrbRadius, revealEase);
-    orbAlpha = clamp(1 - revealEase * 1.08, 0, 1);
-    const whiteRatio = clamp(1 - revealEase * 1.08, 0, 1);
-    const scale = lerpNumber(0.82, 1.04, revealEase);
-    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {
-      alpha: clamp(0.18 + revealEase * 0.82, 0, 1),
-      scale,
-      whiteRatio,
-    });
-    if (revealRatio > 0.18) {
-      subtitle = `${current.toNameFr} !`;
-    }
+  for (const layer of spriteLayers) {
+    drawEvolutionSpriteFrame(layer.entity, centerX, centerY, spriteSize, layer);
   }
+
+  drawEvolutionAnimationParticles(current, centerX, centerY, spriteSize, elapsed);
 
   if (orbAlpha > 0.001 && orbRadius > 1) {
     ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, orbAlpha).toFixed(3)})`;
@@ -6446,12 +6612,7 @@ function drawEvolutionAnimationOverlay(layout) {
     ctx.stroke();
   }
 
-  if (elapsed >= revealEnd) {
-    drawEvolutionSpriteFrame(current.toDef, centerX, centerY, spriteSize, {
-      alpha: 1,
-      scale: 1.04,
-      whiteRatio: 0,
-    });
+  if (beatState.stage === "reveal" || beatState.stage === "complete") {
     subtitle = `${current.toNameFr} !`;
   }
 
@@ -6550,6 +6711,10 @@ function drawBallInventoryOverlay(layout) {
   if (rows.length <= 0) {
     return;
   }
+  const topbarBallSummaryVisible = Boolean(uiTopbarEl?.querySelector?.("#topbar-balls-pill"));
+  if (topbarBallSummaryVisible) {
+    return;
+  }
 
   const safeBounds = layout?.safeBounds || {
     left: 8,
@@ -6559,6 +6724,9 @@ function drawBallInventoryOverlay(layout) {
   };
   const viewportProfile = layout?.viewportProfile || {};
   const isPhone = Boolean(viewportProfile.phone);
+  if (isPhone) {
+    return;
+  }
   const compact = Boolean(isPhone || viewportProfile.compact);
   const iconSize = isPhone ? 14 : compact ? 16 : 22;
   const rowGap = isPhone ? 3 : compact ? 4 : 6;
@@ -6584,11 +6752,17 @@ function drawBallInventoryOverlay(layout) {
   const targetCompactRowWidth = isPhone ? 102 : 116;
   const panelWidth = Math.max(dynamicPanelWidth, (compact ? targetCompactRowWidth : targetDesktopRowWidth) + 6);
   const panelHeight = Math.ceil(panelPaddingY * 2 + rows.length * rowHeight + Math.max(0, rows.length - 1) * rowGap);
-  const panelX = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
-  const overlayPaddingTop = getOverlayPaddingSnapshot().top;
+  const overlayPadding = getOverlayPaddingSnapshot();
+  const overlayPaddingLeft = overlayPadding.left;
+  const overlayPaddingTop = overlayPadding.top;
+  const topHudHeight = getElementClientHeight(uiTopbarEl);
+  const panelXDefault = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
+  const panelXPhoneAligned = clamp(overlayPaddingLeft, 6, state.viewport.width - panelWidth - 6);
+  const panelX = isPhone ? panelXPhoneAligned : panelXDefault;
   const panelTopDefault = safeBounds.top + 6;
   const panelTopDesktopAligned = overlayPaddingTop + 6;
-  const panelTop = compact ? panelTopDefault : panelTopDesktopAligned;
+  const panelTopPhoneAligned = overlayPaddingTop + Math.max(0, Math.round((Math.max(topHudHeight, panelHeight) - panelHeight) * 0.5));
+  const panelTop = isPhone ? panelTopPhoneAligned : compact ? panelTopDefault : panelTopDesktopAligned;
   const panelY = clamp(panelTop, 6, state.viewport.height - panelHeight - 6);
 
   drawRetroHudPanel(panelX, panelY, panelWidth, panelHeight, {

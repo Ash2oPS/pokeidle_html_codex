@@ -35,3 +35,13 @@ test("dev level-all button stays hidden while starter or tutorial blockers are o
   assert.match(source, /#starter-modal:not\(\.hidden\)\s*~\s*\.dev-level-all-button/);
   assert.match(source, /#tutorial-modal:not\(\.hidden\)\s*~\s*\.dev-level-all-button/);
 });
+
+test("dev level-all button keeps the bottom-right corner free for the FPS overlay", () => {
+  const source = readStylesSource();
+
+  assert.match(source, /\.dev-level-all-button\s*\{[\s\S]*?right:\s*calc\(84px \+ env\(safe-area-inset-right\)\);/);
+  assert.match(
+    source,
+    /@media \(max-width: 640px\)\s*\{[\s\S]*?\.dev-level-all-button\s*\{[\s\S]*?right:\s*calc\(76px \+ env\(safe-area-inset-right\)\);/,
+  );
+});

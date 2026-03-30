@@ -28,6 +28,7 @@
     "test:visual:gallery:vfx:combat:mobile": "powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/mobile-vfx-combat-gallery.ps1",
     "test:visual:gallery": "npm run test:visual:gallery:desktop && npm run test:visual:gallery:mobile",
     "test:visual:gallery:vfx:combat": "npm run test:visual:gallery:vfx:combat:desktop && npm run test:visual:gallery:vfx:combat:mobile",
+    "test:visual:boxes:compact-preview": "node scripts/testing/playwright/preview-boxes-compact-ui.mjs",
     "test:visual": "npm run test:visual:desktop && npm run test:visual:mobile",
     "test:visual:maintenance:desktop": "powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/desktop-maintenance-preview.ps1",
     "test:visual:maintenance:mobile": "powershell -ExecutionPolicy Bypass -File scripts/testing/playwright/mobile-maintenance-preview.ps1",

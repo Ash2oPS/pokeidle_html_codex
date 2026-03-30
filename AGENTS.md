@@ -7,6 +7,7 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
 - `AGENTS.md` est la source de verite des guardrails IA du repo.
 - Docs de support:
   - `docs/ai/README.md`
+  - `docs/ai/ui-style-guidelines.md`
   - `docs/ai/implementation-guidelines.md`
 - Si une doc de support contredit ce fichier, `AGENTS.md` gagne.
 
@@ -19,11 +20,20 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
 - Aucun nombre magique de tuning ne doit etre ajoute dans `game-runtime.js`, `systems/` ou `domain/`.
 - `domain/` reste pur: pas de DOM, pas de `window`, pas d'acces save, pas d'effets de bord.
 - `systems/` orchestrent les flux. Ils ne doivent pas redefinir une balance cachee.
-- L'UI runtime reste pilotee en JS:
+- Etat actuel de l'UI runtime:
   - structure DOM dans `systems/ui/runtime-ui-dom-factory.js`
   - interactions dans `systems/ui/runtime-ui-interaction-system.js`
   - rendu dans `systems/ui/runtime-render-system.js`
   - styles dans `styles.css`
+- Direction cible:
+  - toute UI runtime de gameplay doit tendre vers un rendu JS canvas-first
+  - ne pas introduire de nouvelle UI runtime majeure en DOM/CSS sans raison technique explicite documentee dans la tache
+  - toute migration DOM -> canvas doit preserver la parite fonctionnelle complete de l'ecran ou du flow migre
+  - ne jamais pretendre qu'une UI est deja migree si ce n'est pas le cas
+- Les exceptions non-gameplay peuvent rester en DOM tant qu'elles ne sont pas migrees explicitement:
+  - bootstrap
+  - maintenance gate
+  - overlays purement techniques ou dev
 - Il est interdit de reintroduire `game-settings.json`, `lib/game-settings-runtime.js` ou une logique store mobile.
 - Il est interdit de changer le schema de save, les cles de save, `window.render_game_to_text` ou `window.advanceTime` sans demande explicite.
 
@@ -38,6 +48,19 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
 - Toute copy UI FR doit passer par `normalizeUiDisplayText(..., { frenchTypography: true })` ou par la couche runtime de normalisation UI partagee.
 - Toute copy UI FR hardcodee dans un template JS, une config UI, un `textContent`, un `innerHTML`, un `aria-label`, un `title`, un `placeholder` ou un `alt` doit etre correcte a la source. Ne compte jamais sur le normalizer pour corriger une source volontairement cassee.
 - Toute modification UI doit preserver un style visuel coherent a l'echelle de tout le jeu. Interdiction de traiter chaque ecran, modal ou panneau comme un mini-projet graphique different.
+- Le detail operationnel du style UI attendu est documente dans `docs/ai/ui-style-guidelines.md`.
+- Toute UI doit rester lisible, non coupee, non chevauchee et fonctionnelle sur desktop et mobile portrait.
+- Aucun element non lie ne doit se superposer a un autre ni sembler groupe avec lui par erreur visuelle.
+- Les elements lies doivent etre plus proches entre eux que des elements non lies.
+- Aucun element important ne doit dependre d'une hauteur fixe si son contenu peut varier.
+- Toute zone principale doit absorber des variations raisonnables de contenu sans casser la structure.
+- Prefere `grid`, `flex`, `minmax()` et `clamp()` avec des tokens coherents aux placements rigides ou tailles magiques.
+- Evite les largeurs et hauteurs hardcodees sauf besoin explicite de gameplay, de sprite ou de contrainte technique documentee.
+- Toute UI plein ecran doit vraiment occuper le viewport utile. Sur mobile, tiens compte des safe areas et du viewport dynamique.
+- La version mobile ne doit jamais etre une simple version desktop ecrasee.
+- Quand l'espace manque, restructure d'abord le layout avant de miniaturiser aveuglement le contenu.
+- Les composants interactifs doivent garder un contenu proprement centre, une zone cliquable fiable et des etats lisibles.
+- Supprime les textes, badges, aides et compteurs qui n'aident pas l'action ou la comprehension immediates.
 - Pour toute nouvelle UI ou refonte UI, reutilise d'abord les patterns visuels deja presents:
   - palette
   - contrastes
@@ -48,6 +71,23 @@ Ce repo est un vrai jeu web. Il ne doit pas etre traite comme une playable ad.
   - densite d'espacement
   - formes de cartes, boutons, pills et modales
 - N'introduis une nouvelle variante visuelle que si elle sert une vraie hierarchie UX ou un besoin de gameplay clair. Ne cree jamais une nouvelle direction artistique locale par confort.
+
+## UI Runtime Robustness
+
+- Toute UI runtime majeure creee ou refondue doit resister aux variations raisonnables de contenu:
+  - texte court
+  - texte long
+  - compteurs qui changent
+  - etats actifs/inactifs
+- Toute taille ou densite pilotee a la fois par JS et CSS doit avoir une source de verite claire ou rester explicitement synchronisee.
+- Si une liste ou une grille est virtualisee, la densite reelle doit etre validee avec les constantes JS de virtualisation et pas seulement avec le CSS.
+- Toute UI canvas doit gerer proprement:
+  - device pixel ratio
+  - mapping de coordonnees
+  - hitboxes
+  - safe areas
+  - lisibilite du texte
+- Toute migration DOM -> canvas doit conserver les informations utiles, les etats et les interactions de l'UI remplacee avant d'ajouter des raffinements visuels.
 
 ## Rendering And VFX
 
@@ -220,11 +260,15 @@ Quand tu ajoutes ou deplaces une valeur de design:
 - Aucun import direct interdit de `game-design-config.js` n'a ete ajoute.
 - Aucun nombre magique equivalent n'est reste planque ailleurs.
 - Aucun texte UI nouveau n'introduit de mojibake ou de FR casse.
+- Toute UI majeure respecte la direction canvas-first ou documente explicitement pourquoi elle reste temporairement en DOM/CSS.
 - Aucun code mort, style orphelin, selector obsolete ou script inutile n'a ete laisse apres le changement.
 - Aucun nouveau fallback silencieux ou double chemin inutile n'a ete introduit.
 - Toute nouvelle commande `scripts/` est soit branchee dans `package.json`, soit documentee explicitement.
 - Tout nouveau flag debug/query param/hook runtime a une portee claire et une raison d'exister.
 - Pour toute modif UI, les screenshots desktop et mobile portrait ont ete generes et relus.
+- Pour toute modif UI, aucun overlap non voulu, aucun texte coupe et aucune cassure responsive n'ont ete laisses.
+- Pour toute modif UI, les composants interactifs restent centres, lisibles et cliquables sur desktop comme sur mobile.
+- Si la densite ou le layout depend de constantes JS ou de virtualisation, elles ont ete revues avec le CSS correspondant.
 - La modif UI reste alignee avec le langage visuel existant du jeu.
 - Pour toute modif runtime/lifecycle/background, les preuves minimales existent:
   - tests unitaires touches

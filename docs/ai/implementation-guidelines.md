@@ -4,6 +4,8 @@ Ce document detaille l'application pratique de `AGENTS.md`.
 
 Si une regle ici contredit `AGENTS.md`, `AGENTS.md` gagne.
 
+Pour la direction visuelle UI attendue, voir aussi `docs/ai/ui-style-guidelines.md`.
+
 ## Goal
 
 L'IA doit produire des changements fiables, incrementaux, et compatibles avec le jeu existant.
@@ -22,10 +24,11 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - `map_data/`
   - `pokemon_data/`
 - UI runtime:
-  - DOM dans `systems/ui/runtime-ui-dom-factory.js`
+  - etat actuel DOM dans `systems/ui/runtime-ui-dom-factory.js`
   - interactions dans `systems/ui/runtime-ui-interaction-system.js`
   - rendu dans `systems/ui/runtime-render-system.js`
   - styles dans `styles.css`
+  - direction cible canvas-first pour les UI runtime majeures
 - Maintenance mode:
   - bootstrap web + `maintenance-config.js`
   - schedule hebdo et timezone definies dans `maintenance-config.js`
@@ -36,6 +39,8 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Si tu veux lire `game-design-config.js` depuis `game-runtime.js`, `systems/` ou `domain/`.
 - Si tu veux mettre du contenu CSV/JSON dans une config globale.
 - Si tu penses qu'une UI peut etre validee sans screenshots desktop et mobile portrait.
+- Si tu veux introduire une nouvelle UI runtime majeure en DOM/CSS sans raison technique explicite.
+- Si tu penses qu'une UI est robuste sans verifier les variations de contenu, la lisibilite et l'absence d'overlap.
 - Si tu veux regler une perf en baissant la resolution interne.
 - Si tu crois devoir toucher au schema de save sans demande explicite.
 
@@ -67,19 +72,52 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 
 ### Toucher a l'UI
 
-1. Termine la modif.
-2. Lance `npm run test:visual:gallery:desktop`.
-3. Lance `npm run test:visual:gallery:mobile`.
-4. Ouvre et relis vraiment les screenshots.
-5. Verifie:
+1. Identifie si tu modifies une UI DOM existante ou une UI runtime majeure qui doit suivre la direction canvas-first.
+2. Si tu restes en DOM/CSS pour une UI runtime majeure, documente la raison technique explicite dans la tache.
+3. Applique `docs/ai/ui-style-guidelines.md` pour la densite, la coherence, le scaling et la hierarchie visuelle.
+4. Verifie avant screenshots:
+   - lisibilite
+   - absence d'overlap entre elements non lies
+   - regroupement visuel correct des elements lies
+   - contenu interactif centre
+   - variation raisonnable de contenu sans casse
+   - mobile restructure proprement au lieu d'etre seulement compresse
+5. Si l'UI touche du canvas, verifie en plus:
+   - device pixel ratio
+   - hitboxes
+   - mapping de coordonnees
+   - safe areas
+6. Si l'UI touche une grille ou liste virtualisee, relis aussi les constantes JS qui pilotent la densite reelle.
+7. Lance `npm run test:visual:gallery:desktop`.
+8. Lance `npm run test:visual:gallery:mobile`.
+9. Ouvre et relis vraiment les screenshots.
+10. Verifie:
    - lisibilite
    - overlap / clipping
    - safe areas
    - etats importants
    - coherence visuelle avec les panneaux voisins
-6. Si la galerie ne couvre pas le flow:
+   - compacite utile plutot que chrome inutile
+   - plein ecran correct sur le format cible
+   - texte non coupe
+   - composants interactifs centres et cliquables
+11. Si la galerie ne couvre pas le flow:
    - utilise un scenario visuel cible supplementaire
-7. Ne cloture pas la tache tant que desktop et mobile portrait ne sont pas relus.
+12. Ne cloture pas la tache tant que desktop et mobile portrait ne sont pas relus.
+
+### Creer ou migrer une UI runtime majeure
+
+1. Pars de la direction canvas-first.
+2. Definis la parite fonctionnelle minimale a conserver avant toute retouche cosmetique.
+3. Si l'ecran reste temporairement en DOM/CSS:
+   - documente pourquoi
+   - evite de creer une seconde architecture parallele
+4. Si l'ecran migre vers canvas:
+   - conserve les etats utiles
+   - conserve les informations utiles
+   - conserve les interactions
+   - valide la nettete et les hitboxes
+5. Retire les chemins legacy devenus inutiles dans la meme tache ou documente strictement la transition si elle est temporaire.
 
 ### Toucher au runtime, lifecycle ou background
 
@@ -148,6 +186,9 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - `npm run test:visual:gallery:mobile`
 - Verification requise:
   - relecture effective des captures desktop et mobile portrait
+  - verification de la lisibilite, de la non-superposition, du centrage et de la densite utile
+  - verification de la version mobile restructuree proprement
+  - verification des hitboxes et de la nettete si canvas
 
 ### Runtime / background / lifecycle
 
@@ -177,4 +218,4 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 - Si tu modifies les docs IA:
   - garde les doublons au minimum
   - garde les pointeurs de compatibilite utiles
-  - mets a jour `docs/ai/README.md` si la structure change
+  - mets a jour `docs/ai/README.md` si la structure ou la portee des docs change

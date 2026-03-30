@@ -24,6 +24,10 @@ test("mountRuntimeUi returns stable refs for critical runtime UI nodes", () => {
   assert.equal(Array.isArray(refs.shopQtyPresetButtonEls), true);
   assert.equal(refs.shopQtyPresetButtonEls.length >= 7, true);
   assert.equal(refs.actionDockPokeballVisualEl?.classList?.contains("action-dock-loading-pokeball"), true);
+  assert.equal(refs.topbarBallsPillEl?.id, "topbar-balls-pill");
+  assert.equal(refs.ballCaptureTabPokeButtonEl?.id, "ball-capture-tab-poke");
+  assert.equal(refs.ballCaptureTabSuperButtonEl?.id, "ball-capture-tab-super");
+  assert.equal(refs.ballCaptureTabHyperButtonEl?.id, "ball-capture-tab-hyper");
 });
 
 test("mountRuntimeUi remounts without duplicating root runtime stage nodes", () => {
@@ -44,6 +48,8 @@ test("mountRuntimeUi normalizes static French copy and labels", () => {
   assert.equal(refs.canvas?.getAttribute("aria-label"), "Zone de jeu Pok\u00e9mon idle");
   assert.equal(refs.teamContextMenuTitleEl?.textContent?.trim(), "Pok\u00e9mon");
   assert.equal(refs.ballCaptureMenuEl?.getAttribute("aria-label"), "R\u00e9glages de capture par ball");
+  assert.equal(refs.ballCaptureMenuCloseButtonEl?.getAttribute("aria-label"), "Fermer les r\u00e9glages de capture");
+  assert.equal(refs.ballCaptureMenuSummaryEl?.textContent?.trim(), "Choisis une ball pour ajuster ses filtres.");
   assert.equal(refs.moneyValueEl?.closest("#money-pill")?.querySelector(".currency-pill-icon")?.textContent, "\u20bd");
   assert.equal(refs.pokedexButtonEl?.querySelector(".btn-label")?.textContent, "Pok\u00e9dex");
   assert.equal(refs.actionDockPokeballToggleButtonEl?.querySelector(".action-dock-pokeball-toggle-label")?.textContent, "Menu");

@@ -1,0 +1,331 @@
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sidebar-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.14);
+  color: var(--paper);
+  font: 900 9px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.sidebar-screen {
+  border-radius: var(--radius-card);
+  background: var(--screen-ivory);
+  border: var(--stroke-strong) solid var(--frame);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+}
+
+.sidebar-primary {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.sidebar-visual {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, var(--screen-ivory-2));
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-visual img {
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  max-height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sidebar-name {
+  margin: 0;
+  color: var(--ink);
+  font: 900 19px/0.96 var(--font-ui);
+  letter-spacing: -0.04em;
+  text-align: center;
+}
+
+.sidebar-type {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sidebar-type span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #fffdf9;
+  color: var(--ink-soft);
+  font: 900 8px/1 var(--font-ui);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.sidebar-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.sidebar-stat {
+  border-radius: var(--radius-pill);
+  background: #fffdf9;
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+}
+
+.sidebar-stat-label {
+  color: var(--ink-soft);
+  font: 900 8px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-stat-value {
+  color: var(--ink);
+  font: 900 12px/1.08 var(--font-ui);
+}
+
+.main-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.main-tab {
+  border: 1px solid #d9cfc2;
+  border-radius: var(--radius-pill);
+  background: #fffaf4;
+  min-height: 32px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.main-tab strong {
+  color: var(--ink);
+  font: 900 10px/1 var(--font-ui);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.main-tab.is-active {
+  border-color: var(--pokedex-red);
+  background: linear-gradient(180deg, #fff2f3, #ffe3e6);
+}
+
+.main-tab.is-active strong {
+  color: var(--pokedex-red-dark);
+}
+
+.main-search input {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid #d7cabb;
+  border-radius: var(--radius-pill);
+  background: #fffaf4;
+  color: var(--ink);
+  padding: 0 10px;
+  font: 800 12px/1 var(--font-ui);
+}
+
+.main-grid {
+  border: 1px solid #ddcfbf;
+  border-radius: calc(var(--radius-card) + 2px);
+  background: #ede3d5;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
+  align-content: start;
+  min-height: 0;
+  overflow: auto;
+}
+
+.main-slot {
+  border: 2px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--slot-bg);
+  color: var(--slot-text);
+  padding: 5px 4px 5px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 72px;
+  position: relative;
+  box-shadow: inset 0 0 0 1px var(--slot-border);
+  text-align: center;
+}
+
+.main-slot::before {
+  content: "";
+  width: 22px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--pokedex-red);
+}
+
+.main-slot.is-selected {
+  border-color: var(--slot-selected-border);
+  background: var(--slot-selected-bg);
+  box-shadow: inset 0 0 0 1px rgba(93, 212, 243, 0.2);
+}
+
+.main-slot.is-selected::before {
+  background: var(--slot-selected-border);
+}
+
+.main-slot.is-disabled {
+  opacity: 0.42;
+  background: var(--slot-disabled-bg);
+}
+
+.main-slot.is-disabled::before {
+  background: #9f978d;
+}
+
+.main-slot-visual {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+
+.main-slot-visual img,
+.main-slot-fallback {
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.main-slot-fallback {
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 36, 48, 0.08);
+  color: #76839a;
+  font: 800 16px/1 var(--font-ui);
+}
+
+.main-slot-name {
+  color: var(--slot-text);
+  font: 800 9px/1.02 var(--font-ui);
+  text-align: center;
+}
+
+.main-slot-level {
+  color: var(--slot-subtext);
+  font: 900 8px/1 var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .sidebar-screen {
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+  }
+
+  .sidebar-primary {
+    gap: 4px;
+    align-content: center;
+  }
+
+  .sidebar-visual {
+    width: 58px;
+    height: 58px;
+  }
+
+  .sidebar-visual img {
+    width: 46px;
+    height: 46px;
+    max-width: 46px;
+    max-height: 46px;
+  }
+
+  .sidebar-name {
+    font-size: 18px;
+    text-align: left;
+    width: 100%;
+  }
+
+  .sidebar-type {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .sidebar-stats {
+    height: 100%;
+    align-content: center;
+  }
+
+  .main-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .main-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .main-slot {
+    min-height: 68px;
+    padding: 4px 3px 4px;
+  }
+
+  .main-slot-visual {
+    width: 28px;
+    height: 28px;
+  }
+
+  .main-slot-visual img,
+  .main-slot-fallback {
+    width: 28px;
+    height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+  }
+
+  .main-slot-name {
+    font-size: 8px;
+  }
+
+  .main-slot-level {
+    font-size: 7px;
+  }
+}

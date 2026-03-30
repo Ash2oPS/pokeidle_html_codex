@@ -7404,3 +7404,37 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop trainer setup: `output/ui-state-gallery/desktop-landscape/trainer-battle-setup.png`
   - mobile trainer action: `output/ui-state-gallery/mobile-portrait/pewter-trainer-action.png`
   - mobile trainer setup: `output/ui-state-gallery/mobile-portrait/trainer-battle-setup.png`
+
+## 2026-03-30 - Mobile route navigation drawer centering
+
+- Fixed the mobile route navigation drawer vertical placement in `styles.css`.
+  - The mobile breakpoint was overriding the base centered overlay with `place-items: end center`, which pinned the zone-travel modal to the bottom of the screen.
+  - The drawer now keeps the same centered overlay placement on phone as on larger layouts.
+- Validation:
+  - `node --test tests/route-navigation-ui.test.mjs tests/runtime-input-system.test.mjs tests/runtime-ui-dom-factory.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS on rerun after one flaky first attempt timing out while waiting for `#route-nav-drawer:not(.hidden)`
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop route-nav lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - mobile route-nav drawer: `output/ui-state-gallery/mobile-portrait/route-nav-drawer.png`
+  - mobile route-nav lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
+
+## 2026-03-30 - Evolution animation rework
+
+- Rebuilt the evolution overlay choreography in `systems/ui/runtime-render-system.js`.
+  - The base form now appears, turns white, then alternates against the evolved silhouette with accelerating swap timings.
+  - The final stage locks onto the evolved form, restores its color, and emits white fireworks.
+- Added `evolutionAnimSwapCount` to `game-design-config.js` and sanitized it in `lib/game-design-config-runtime.js`.
+- Updated evolution particle generation in `game-runtime.js` so the final burst uses white fireworks timing instead of the previous mixed-color orbit.
+- Added renderer-side timeline coverage in `tests/runtime-render-system.test.mjs`.
+- Validation:
+  - `node --test tests/runtime-render-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop combat gallery: `output/ui-state-gallery/desktop-landscape/combat-hud.png`
+  - mobile combat gallery: `output/ui-state-gallery/mobile-portrait/combat-hud.png`
+  - desktop evolution oscillation: `output/evolution-animation-rework/desktop/oscillation.png`
+  - desktop evolution reveal: `output/evolution-animation-rework/desktop/reveal.png`
+  - mobile evolution oscillation: `output/evolution-animation-rework/mobile/oscillation.png`
+  - mobile evolution reveal: `output/evolution-animation-rework/mobile/reveal.png`

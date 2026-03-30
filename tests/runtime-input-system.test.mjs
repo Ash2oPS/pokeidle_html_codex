@@ -663,3 +663,50 @@ test("onboarding pulse is shown until the action menu is opened once", () => {
   assert.equal(actionButton.getAttribute("data-onboarding-visible"), "false");
   fixture.cleanup();
 });
+
+test("mobile topbar balls pill and centered menu controls forward to the capture actions", () => {
+  const topbarBallsPillEl = new FakeEventTarget();
+  const ballCaptureMenuCloseButtonEl = new FakeEventTarget();
+  const ballCaptureTabPokeButtonEl = new FakeEventTarget();
+  const ballCaptureTabSuperButtonEl = new FakeEventTarget();
+  const ballCaptureTabHyperButtonEl = new FakeEventTarget();
+  const calls = [];
+  const fixture = createFixture({
+    elements: {
+      topbarBallsPillEl,
+      ballCaptureMenuCloseButtonEl,
+      ballCaptureTabPokeButtonEl,
+      ballCaptureTabSuperButtonEl,
+      ballCaptureTabHyperButtonEl,
+    },
+    actions: {
+      openTopbarBallCaptureMenu() {
+        calls.push("open");
+      },
+      closeBallCaptureMenu() {
+        calls.push("close");
+      },
+      setBallCaptureMenuBallType(ballType) {
+        calls.push(ballType);
+      },
+    },
+  });
+  fixture.system.init();
+
+  topbarBallsPillEl.dispatchEvent("click");
+  fixture.state.ui.ballCaptureMenuOpen = true;
+  topbarBallsPillEl.dispatchEvent("click");
+  ballCaptureMenuCloseButtonEl.dispatchEvent("click");
+  ballCaptureTabPokeButtonEl.dispatchEvent("click");
+  ballCaptureTabSuperButtonEl.dispatchEvent("click");
+  ballCaptureTabHyperButtonEl.dispatchEvent("click");
+
+  assert.deepEqual(calls, [
+    "open",
+    "close",
+    "close",
+    "poke_ball",
+    "super_ball",
+    "hyper_ball",
+  ]);
+});

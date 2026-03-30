@@ -94,6 +94,8 @@ export function createRuntimeInputSystem({
   const openBoxesForTrainerBattleSlot = asFunction(actions.openBoxesForTrainerBattleSlot);
   const openAppearanceForTeamSlot = asFunction(actions.openAppearanceForTeamSlot);
   const confirmTrainerBattleSetup = asFunction(actions.confirmTrainerBattleSetup);
+  const openTopbarBallCaptureMenu = asFunction(actions.openTopbarBallCaptureMenu);
+  const setBallCaptureMenuBallType = asFunction(actions.setBallCaptureMenuBallType);
   const toggleBallCaptureRule = asFunction(actions.toggleBallCaptureRule);
   const exportSaveToFile = asPromiseFunction(actions.exportSaveToFile);
   const importSaveFromFile = asPromiseFunction(actions.importSaveFromFile);
@@ -128,6 +130,8 @@ export function createRuntimeInputSystem({
   const chooseActiveDialogueChoice = asFunction(actions.chooseActiveDialogueChoice);
   const triggerZoneAction = asFunction(actions.triggerZoneAction);
   const levelUpAllOwnedPokemonFromDev = asFunction(actions.levelUpAllOwnedPokemonFromDev);
+  const clearBoxesPendingSelection = asFunction(actions.clearBoxesPendingSelection);
+  const confirmBoxesSelection = asFunction(actions.confirmBoxesSelection);
   const setBoxesInfoFromEntry = asFunction(actions.setBoxesInfoFromEntry);
   const setPokedexInfoFromEntry = asFunction(actions.setPokedexInfoFromEntry);
 
@@ -173,11 +177,16 @@ export function createRuntimeInputSystem({
       teamContextMenuBoxesButtonEl = null,
       teamContextMenuAppearanceButtonEl = null,
       ballCaptureMenuEl = null,
+      ballCaptureMenuCloseButtonEl = null,
+      ballCaptureTabPokeButtonEl = null,
+      ballCaptureTabSuperButtonEl = null,
+      ballCaptureTabHyperButtonEl = null,
       ballCaptureToggleAllButtonEl = null,
       ballCaptureToggleUnownedButtonEl = null,
       ballCaptureToggleOwnedButtonEl = null,
       ballCaptureToggleShinyButtonEl = null,
       ballCaptureToggleUltraButtonEl = null,
+      topbarBallsPillEl = null,
       exportSaveButtonEl = null,
       importSaveButtonEl = null,
       resetSaveButtonEl = null,
@@ -217,6 +226,8 @@ export function createRuntimeInputSystem({
       renameInputEl = null,
       renameFormEl = null,
       boxesCloseButtonEl = null,
+      boxesMobileSelectionCancelButtonEl = null,
+      boxesMobileSelectionConfirmButtonEl = null,
       boxesInfoPanelEl = null,
       pokedexCloseButtonEl = null,
       pokedexInfoPanelEl = null,
@@ -482,6 +493,19 @@ export function createRuntimeInputSystem({
         openAppearanceForTeamSlot(slotIndex);
       }
     });
+    register(topbarBallsPillEl, "click", () => {
+      if (state?.ui?.ballCaptureMenuOpen) {
+        closeBallCaptureMenu();
+        return;
+      }
+      openTopbarBallCaptureMenu();
+    });
+    register(ballCaptureMenuCloseButtonEl, "click", () => {
+      closeBallCaptureMenu();
+    });
+    register(ballCaptureTabPokeButtonEl, "click", () => setBallCaptureMenuBallType("poke_ball"));
+    register(ballCaptureTabSuperButtonEl, "click", () => setBallCaptureMenuBallType("super_ball"));
+    register(ballCaptureTabHyperButtonEl, "click", () => setBallCaptureMenuBallType("hyper_ball"));
     register(ballCaptureToggleAllButtonEl, "click", () => toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_ALL));
     register(ballCaptureToggleUnownedButtonEl, "click", () => toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_UNOWNED));
     register(ballCaptureToggleOwnedButtonEl, "click", () => toggleBallCaptureRule(BALL_CAPTURE_RULE_CAPTURE_OWNED));
@@ -519,17 +543,6 @@ export function createRuntimeInputSystem({
         && !hoverPopupEl.contains(target)
       ) {
         clearCanvasHoverState();
-      }
-      if (
-        isPhoneUiViewport()
-        && state?.ui?.boxesOpen
-        && boxesModalEl
-        && boxesModalEl.contains(target)
-        && boxesInfoPanelEl
-        && !boxesInfoPanelEl.contains(target)
-      ) {
-        state.ui.boxesHoverEntityId = null;
-        setBoxesInfoFromEntry(null);
       }
       if (
         isPhoneUiViewport()
@@ -701,6 +714,8 @@ export function createRuntimeInputSystem({
       applyRenameModal();
     });
     register(boxesCloseButtonEl, "click", () => closeBoxesModal());
+    register(boxesMobileSelectionCancelButtonEl, "click", () => clearBoxesPendingSelection({ rerender: true }));
+    register(boxesMobileSelectionConfirmButtonEl, "click", () => confirmBoxesSelection());
     register(trainerBattleSetupCloseButtonEl, "click", () => closeTrainerBattleSetupModal());
     register(trainerBattleSetupCancelButtonEl, "click", () => closeTrainerBattleSetupModal());
     register(trainerBattleSetupConfirmButtonEl, "click", () => confirmTrainerBattleSetup());

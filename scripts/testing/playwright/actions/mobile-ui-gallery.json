@@ -76,11 +76,11 @@
       "captureName": "idle"
     },
     {
-      "waitForSelector": "#save-pill:not(.hidden)",
+      "waitForSelector": "#money-pill:not(.hidden)",
       "waitMs": 250
     },
     {
-      "captureName": "save-pill"
+      "captureName": "mobile-top-hud"
     },
     {
       "captureName": "combat-hud"
@@ -202,8 +202,9 @@
     },
     {
       "evaluate": {
-        "expression": "return window.__galleryInvokeBinding('openBallCaptureMenu','poke_ball',Math.round(window.innerWidth*0.74),Math.round(window.innerHeight*0.72));"
-      }
+        "expression": "return window.__galleryInvokeBinding('openTopbarBallCaptureMenu');"
+      },
+      "waitMs": 250
     },
     {
       "waitForState": {
@@ -434,7 +435,7 @@
       "waitMs": 250
     },
     {
-      "waitForSelector": "#boxes-info-panel.is-sheet-open",
+      "waitForSelector": "#boxes-mobile-selection-actions:not(.hidden)",
       "waitMs": 250
     },
     {
@@ -547,6 +548,35 @@
     },
     {
       "captureName": "trainer-battle-setup"
+    },
+    {
+      "clickSelector": "[data-trainer-battle-slot-index='0']",
+      "waitMs": 300
+    },
+    {
+      "waitForSelector": "#boxes-modal:not(.hidden)",
+      "waitMs": 500
+    },
+    {
+      "evaluate": {
+        "expression": "const preferredButton=document.querySelector('#boxes-grid .boxes-mon-btn:not(.is-current):not(.is-disabled)');const fallbackButton=document.querySelector('#boxes-grid .boxes-mon-btn:not(.is-disabled)')||document.querySelector('#boxes-grid .boxes-mon-btn');const button=preferredButton||fallbackButton;if(!(button instanceof HTMLButtonElement)){throw new Error('missing-trainer-battle-boxes-target');}button.click();return button.dataset.boxEntityId||true;"
+      },
+      "waitMs": 250
+    },
+    {
+      "waitForSelector": "#boxes-mobile-selection-actions:not(.hidden)",
+      "waitMs": 250
+    },
+    {
+      "captureName": "trainer-battle-boxes-selection"
+    },
+    {
+      "clickSelectorIfVisible": "#boxes-close-btn",
+      "waitMs": 300
+    },
+    {
+      "waitForSelector": "#trainer-battle-setup-modal:not(.hidden)",
+      "waitMs": 300
     },
     {
       "clickSelectorIfVisible": "#trainer-battle-setup-close-btn",

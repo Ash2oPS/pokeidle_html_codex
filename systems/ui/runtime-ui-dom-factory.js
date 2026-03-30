@@ -28,47 +28,119 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                 Changer l'apparence
               </button>
             </div>
-            <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="menu" aria-label="R&eacute;glages de capture par ball">
-              <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
-              <button
-                id="ball-capture-toggle-all"
-                class="team-context-menu-btn ball-capture-menu-btn"
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked="true"
-              ></button>
-              <button
-                id="ball-capture-toggle-unowned"
-                class="team-context-menu-btn ball-capture-menu-btn"
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked="true"
-              ></button>
-              <button
-                id="ball-capture-toggle-owned"
-                class="team-context-menu-btn ball-capture-menu-btn"
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked="true"
-              ></button>
-              <button
-                id="ball-capture-toggle-shiny"
-                class="team-context-menu-btn ball-capture-menu-btn"
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked="true"
-              ></button>
-              <button
-                id="ball-capture-toggle-ultra"
-                class="team-context-menu-btn ball-capture-menu-btn"
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked="true"
-              ></button>
+            <div id="ball-capture-menu" class="team-context-menu ball-capture-menu hidden" role="dialog" aria-modal="false" aria-label="R&eacute;glages de capture par ball">
+              <div class="ball-capture-menu-header">
+                <div class="ball-capture-menu-heading">
+                  <div id="ball-capture-menu-title" class="team-context-menu-title">R&eacute;glages capture</div>
+                  <p id="ball-capture-menu-summary" class="ball-capture-menu-summary">Choisis une ball pour ajuster ses filtres.</p>
+                </div>
+                <button
+                  id="ball-capture-menu-close"
+                  class="ball-capture-menu-close"
+                  type="button"
+                  aria-label="Fermer les r&eacute;glages de capture"
+                >
+                  &times;
+                </button>
+              </div>
+              <div id="ball-capture-menu-tabs" class="ball-capture-menu-tabs" role="tablist" aria-label="Choix de ball">
+                <button
+                  id="ball-capture-tab-poke"
+                  class="ball-capture-menu-tab"
+                  type="button"
+                  role="tab"
+                  data-ball-type="poke_ball"
+                  aria-selected="true"
+                ></button>
+                <button
+                  id="ball-capture-tab-super"
+                  class="ball-capture-menu-tab"
+                  type="button"
+                  role="tab"
+                  data-ball-type="super_ball"
+                  aria-selected="false"
+                ></button>
+                <button
+                  id="ball-capture-tab-hyper"
+                  class="ball-capture-menu-tab"
+                  type="button"
+                  role="tab"
+                  data-ball-type="hyper_ball"
+                  aria-selected="false"
+                ></button>
+              </div>
+              <div id="ball-capture-menu-rules" class="ball-capture-menu-rules">
+                <button
+                  id="ball-capture-toggle-all"
+                  class="team-context-menu-btn ball-capture-menu-btn"
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked="true"
+                ></button>
+                <button
+                  id="ball-capture-toggle-unowned"
+                  class="team-context-menu-btn ball-capture-menu-btn"
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked="true"
+                ></button>
+                <button
+                  id="ball-capture-toggle-owned"
+                  class="team-context-menu-btn ball-capture-menu-btn"
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked="true"
+                ></button>
+                <button
+                  id="ball-capture-toggle-shiny"
+                  class="team-context-menu-btn ball-capture-menu-btn"
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked="true"
+                ></button>
+                <button
+                  id="ball-capture-toggle-ultra"
+                  class="team-context-menu-btn ball-capture-menu-btn"
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked="true"
+                ></button>
+              </div>
             </div>
           </div>
           <div class="game-overlay">
             <header class="ui-topbar">
+              <button
+                id="topbar-balls-pill"
+                class="topbar-mobile-pill topbar-balls-pill"
+                type="button"
+                aria-label="R&eacute;glages de capture"
+              >
+                <span
+                  id="topbar-ball-poke-item"
+                  class="topbar-ball-summary-item topbar-ball-summary-item--poke"
+                  data-ball-type="poke_ball"
+                >
+                  <img class="topbar-ball-summary-icon" src="assets/items/poke_ball.png" alt="" aria-hidden="true">
+                  <span id="topbar-ball-poke-count" class="topbar-ball-summary-count">0</span>
+                </span>
+                <span
+                  id="topbar-ball-super-item"
+                  class="topbar-ball-summary-item topbar-ball-summary-item--super"
+                  data-ball-type="super_ball"
+                >
+                  <img class="topbar-ball-summary-icon" src="assets/items/super_ball.png" alt="" aria-hidden="true">
+                  <span id="topbar-ball-super-count" class="topbar-ball-summary-count">0</span>
+                </span>
+                <span
+                  id="topbar-ball-hyper-item"
+                  class="topbar-ball-summary-item topbar-ball-summary-item--hyper"
+                  data-ball-type="hyper_ball"
+                >
+                  <img class="topbar-ball-summary-icon" src="assets/items/hyper_ball.png" alt="" aria-hidden="true">
+                  <span id="topbar-ball-hyper-count" class="topbar-ball-summary-count">0</span>
+                </span>
+              </button>
               <div class="route-nav-wrap">
                 <section id="route-nav-panel" class="route-nav" aria-label="Navigation des zones">
                   <button
@@ -571,10 +643,17 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
     <section id="boxes-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Bo&icirc;tes Pok&eacute;mon">
       <div class="boxes-card">
         <div class="boxes-header">
-          <div>
-            <h2 class="boxes-title">Bo&icirc;tes</h2>
-            <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pok&eacute;mon pour remplacer ton slot d'&eacute;quipe.</p>
-            <p id="boxes-shiny-counter" class="boxes-shiny-counter">Captures shiny (global): 0</p>
+          <div id="boxes-header-copy" class="boxes-header-copy">
+            <div id="boxes-header-default" class="boxes-header-default">
+              <h2 class="boxes-title">Bo&icirc;tes</h2>
+              <p id="boxes-subtitle" class="boxes-subtitle">Choisis un Pok&eacute;mon pour remplacer ton slot d'&eacute;quipe.</p>
+              <p id="boxes-shiny-counter" class="boxes-shiny-counter">Captures shiny (global): 0</p>
+            </div>
+            <div
+              id="boxes-mobile-selection-summary"
+              class="boxes-mobile-selection-summary hidden"
+              aria-live="polite"
+            ></div>
           </div>
           <button id="boxes-close-btn" class="boxes-close-btn" type="button">Fermer</button>
         </div>
@@ -596,6 +675,22 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
           <aside id="boxes-info-panel" class="boxes-info-panel">
             Survole un Pok&eacute;mon de la bo&icirc;te pour voir ses infos d&eacute;taill&eacute;es.
           </aside>
+        </div>
+        <div id="boxes-mobile-selection-actions" class="boxes-mobile-selection-actions hidden">
+          <button
+            id="boxes-mobile-selection-cancel-btn"
+            class="boxes-mobile-selection-action-btn boxes-mobile-selection-action-btn--cancel"
+            type="button"
+          >
+            Annuler
+          </button>
+          <button
+            id="boxes-mobile-selection-confirm-btn"
+            class="boxes-mobile-selection-action-btn boxes-mobile-selection-action-btn--confirm"
+            type="button"
+          >
+            Confirmer
+          </button>
         </div>
       </div>
     </section>
@@ -642,33 +737,33 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
       </div>
     </section>
 
-    <section id="pokedex-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Pokédex">
+    <section id="pokedex-modal" class="boxes-modal hidden" role="dialog" aria-modal="true" aria-label="Pok&eacute;dex">
       <div class="boxes-card pokedex-card">
-        <div class="boxes-header">
+        <div class="boxes-header pokedex-header">
           <div class="pokedex-header-copy">
-            <h2 class="boxes-title">Pokédex</h2>
-            <p id="pokedex-subtitle" class="boxes-subtitle">Toutes les espèces du jeu.</p>
+            <h2 class="boxes-title">Pok&eacute;dex</h2>
+            <p id="pokedex-subtitle" class="boxes-subtitle">Toutes les esp&egrave;ces du jeu.</p>
             <div id="pokedex-counter" class="pokedex-header-stats" aria-live="polite">
               <p id="pokedex-global-completion" class="pokedex-global-completion">
-                Complétion générale du Pokédex: 0%.
+                Compl&eacute;tion g&eacute;n&eacute;rale du Pok&eacute;dex: 0%.
               </p>
               <p id="pokedex-stat-encountered" class="pokedex-header-stat">
-                Espèces rencontrées: 0 sur 0 (0%).
+                Esp&egrave;ces rencontr&eacute;es: 0 sur 0 (0%).
               </p>
               <p id="pokedex-stat-captured" class="pokedex-header-stat">
-                Espèces capturées: 0 sur 0 (0%).
+                Esp&egrave;ces captur&eacute;es: 0 sur 0 (0%).
               </p>
               <p id="pokedex-stat-shiny" class="pokedex-header-stat">
-                Espèces capturées en shiny (hors ultra): 0 sur 0 (0%).
+                Esp&egrave;ces captur&eacute;es en shiny (hors ultra): 0 sur 0 (0%).
               </p>
               <p id="pokedex-stat-ultra" class="pokedex-header-stat">
-                Espèces capturées en ultra shiny: 0 sur 0 (0%).
+                Esp&egrave;ces captur&eacute;es en ultra shiny: 0 sur 0 (0%).
               </p>
             </div>
           </div>
           <button id="pokedex-close-btn" class="boxes-close-btn" type="button">Fermer</button>
         </div>
-        <div class="collection-search-row">
+        <div class="collection-search-row pokedex-search-row">
           <label class="collection-search-label" for="pokedex-search-input">Recherche</label>
           <input
             id="pokedex-search-input"
@@ -681,10 +776,10 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
             aria-label="Rechercher dans le Pok&eacute;dex"
           />
         </div>
-        <div class="boxes-layout">
+        <div class="boxes-layout pokedex-layout">
           <div id="pokedex-grid" class="boxes-grid pokedex-grid"></div>
-          <aside id="pokedex-info-panel" class="boxes-info-panel">
-            Survole un Pokémon du Pokédex pour voir ses infos.
+          <aside id="pokedex-info-panel" class="boxes-info-panel pokedex-info-panel">
+            Survole un Pok&eacute;mon du Pok&eacute;dex pour voir ses infos.
           </aside>
         </div>
       </div>
@@ -856,6 +951,19 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   teamContextMenuAppearanceButtonEl: "team-context-menu-appearance",
   ballCaptureMenuEl: "ball-capture-menu",
   ballCaptureMenuTitleEl: "ball-capture-menu-title",
+  ballCaptureMenuSummaryEl: "ball-capture-menu-summary",
+  ballCaptureMenuCloseButtonEl: "ball-capture-menu-close",
+  ballCaptureMenuTabsEl: "ball-capture-menu-tabs",
+  ballCaptureTabPokeButtonEl: "ball-capture-tab-poke",
+  ballCaptureTabSuperButtonEl: "ball-capture-tab-super",
+  ballCaptureTabHyperButtonEl: "ball-capture-tab-hyper",
+  topbarBallsPillEl: "topbar-balls-pill",
+  topbarBallPokeItemEl: "topbar-ball-poke-item",
+  topbarBallSuperItemEl: "topbar-ball-super-item",
+  topbarBallHyperItemEl: "topbar-ball-hyper-item",
+  topbarBallPokeCountEl: "topbar-ball-poke-count",
+  topbarBallSuperCountEl: "topbar-ball-super-count",
+  topbarBallHyperCountEl: "topbar-ball-hyper-count",
   ballCaptureToggleAllButtonEl: "ball-capture-toggle-all",
   ballCaptureToggleUnownedButtonEl: "ball-capture-toggle-unowned",
   ballCaptureToggleOwnedButtonEl: "ball-capture-toggle-owned",
@@ -947,6 +1055,12 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   boxesInfoPanelEl: "boxes-info-panel",
   boxesCloseButtonEl: "boxes-close-btn",
   boxesSearchInputEl: "boxes-search-input",
+  boxesHeaderCopyEl: "boxes-header-copy",
+  boxesHeaderDefaultEl: "boxes-header-default",
+  boxesMobileSelectionSummaryEl: "boxes-mobile-selection-summary",
+  boxesMobileSelectionActionsEl: "boxes-mobile-selection-actions",
+  boxesMobileSelectionCancelButtonEl: "boxes-mobile-selection-cancel-btn",
+  boxesMobileSelectionConfirmButtonEl: "boxes-mobile-selection-confirm-btn",
   boxesSubtitleEl: "boxes-subtitle",
   boxesShinyCounterEl: "boxes-shiny-counter",
   trainerBattleSetupModalEl: "trainer-battle-setup-modal",
@@ -1023,6 +1137,19 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "team-context-menu-appearance",
   "ball-capture-menu",
   "ball-capture-menu-title",
+  "ball-capture-menu-summary",
+  "ball-capture-menu-close",
+  "ball-capture-menu-tabs",
+  "ball-capture-tab-poke",
+  "ball-capture-tab-super",
+  "ball-capture-tab-hyper",
+  "topbar-balls-pill",
+  "topbar-ball-poke-item",
+  "topbar-ball-super-item",
+  "topbar-ball-hyper-item",
+  "topbar-ball-poke-count",
+  "topbar-ball-super-count",
+  "topbar-ball-hyper-count",
   "ball-capture-toggle-all",
   "ball-capture-toggle-unowned",
   "ball-capture-toggle-owned",
@@ -1114,6 +1241,12 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "boxes-info-panel",
   "boxes-close-btn",
   "boxes-search-input",
+  "boxes-header-copy",
+  "boxes-header-default",
+  "boxes-mobile-selection-summary",
+  "boxes-mobile-selection-actions",
+  "boxes-mobile-selection-cancel-btn",
+  "boxes-mobile-selection-confirm-btn",
   "boxes-subtitle",
   "boxes-shiny-counter",
   "trainer-battle-setup-modal",

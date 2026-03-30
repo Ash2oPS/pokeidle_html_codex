@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  --bg: #110d16;
+  --bg-2: #1a1220;
+  --frame: #2a1e2d;
+  --frame-line: #523648;
+  --pokedex-red: #e24e63;
+  --pokedex-red-dark: #bb364c;
+  --screen-ivory: #f3ede2;
+  --screen-ivory-2: #e9dfcf;
+  --cyan: #73ddff;
+  --yellow: #ffd461;
+  --ink: #1c2430;
+  --ink-soft: #566274;
+  --paper: #fff8ef;
+  --slot-bg: #fff8f1;
+  --slot-border: #dacdbd;
+  --slot-text: #253049;
+  --slot-subtext: #667387;
+  --slot-selected-bg: #e4f8ff;
+  --slot-selected-border: #5dd4f3;
+  --slot-disabled-bg: #cbc2b5;
+  --shadow: 0 20px 56px rgba(0, 0, 0, 0.34);
+  --radius-frame: 28px;
+  --radius-card: 16px;
+  --radius-pill: 14px;
+  --stroke-strong: 3px;
+  --font-ui: "Aptos", "Segoe UI Variable", "Segoe UI", "Trebuchet MS", sans-serif;
+}
