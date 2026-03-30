@@ -3676,9 +3676,6 @@ body {
   }
 
   .starter-modal-card {
-    width: 100%;
-    max-width: 100%;
-    max-height: var(--ui-modal-mobile-max-height-vh, 88svh);
     padding: 12px;
   }
 
@@ -5627,8 +5624,6 @@ body {
   }
 
   .shop-modal-card {
-    width: calc(100vw - 4px);
-    max-height: calc(100dvh - 4px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     padding: 6px;
     gap: 6px;
   }
@@ -7286,9 +7281,6 @@ body.update-required-active {
   }
 
   .gacha-card {
-    width: min(980px, calc(100vw - 12px));
-    max-height: calc(100dvh - 12px);
-    border-radius: 14px;
     padding: 9px;
     gap: 8px;
     overscroll-behavior: contain;
@@ -12285,10 +12277,13 @@ body.update-required-active {
   }
 
   .map-modal-card,
+  .shop-modal-card,
   .dialogue-modal-card,
   .rename-card,
   .evolution-item-card,
   .tutorial-card,
+  .starter-modal-card,
+  .gacha-card,
   .update-required-card {
     width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));
     max-width: calc(100vw - (var(--ui-modal-mobile-side-inset-px, 12px) * 2));

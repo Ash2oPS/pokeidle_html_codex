@@ -371,7 +371,7 @@ test("runtime shell metrics stay synchronized between CSS overlays and canvas la
   assert.match(stylesSource, /calc\(var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*40px\)/);
   assert.match(stylesSource, /calc\(var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*44px\)/);
   assert.match(stylesSource, /calc\(env\(safe-area-inset-bottom\)\s*\+\s*var\(--ui-runtime-dock-height-px,\s*92px\)\s*\+\s*20px\)/);
-  assert.match(stylesSource, /\.map-modal-card,[\s\S]*?max-height:\s*var\(--ui-modal-mobile-max-height-vh,\s*88svh\)/);
+  assert.match(stylesSource, /\.map-modal-card,[\s\S]*?\.shop-modal-card,[\s\S]*?\.dialogue-modal-card,[\s\S]*?\.tutorial-card,[\s\S]*?\.starter-modal-card,[\s\S]*?\.gacha-card,[\s\S]*?max-height:\s*var\(--ui-modal-mobile-max-height-vh,\s*88svh\)/);
   assert.match(stylesSource, /\.boxes-card,[\s\S]*?max-height:\s*var\(--ui-modal-mobile-max-height-vh,\s*88svh\)/);
   assert.doesNotMatch(stylesSource, /\.notification-stack\s*\{[^}]*bottom:\s*calc\(72px\s*\+\s*env\(safe-area-inset-bottom\)\)/s);
   assert.doesNotMatch(stylesSource, /\.notification-stack\s*\{[^}]*bottom:\s*calc\(84px\s*\+\s*env\(safe-area-inset-bottom\)\)/s);
@@ -381,6 +381,9 @@ test("runtime shell metrics stay synchronized between CSS overlays and canvas la
   assert.doesNotMatch(stylesSource, /\.shop-modal-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
   assert.doesNotMatch(stylesSource, /\.boxes-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
   assert.doesNotMatch(stylesSource, /\.appearance-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
+  assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.shop-modal-card\s*\{[^}]*max-height:\s*calc\(100dvh - 4px - env\(safe-area-inset-top\) - env\(safe-area-inset-bottom\)\)/s);
+  assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.starter-modal-card\s*\{[^}]*width:\s*100%[^}]*max-width:\s*100%[^}]*max-height:\s*var\(--ui-modal-mobile-max-height-vh,\s*88svh\)/s);
+  assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.gacha-card\s*\{[^}]*max-height:\s*calc\(100dvh - 12px\)/s);
 });
 
 test("computeSpriteOpaqueDrawPlacement preserves uniform pixel density when render size follows source ppu", () => {
