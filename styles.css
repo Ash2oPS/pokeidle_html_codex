@@ -5951,8 +5951,6 @@ body {
   }
 
   .boxes-card {
-    width: calc(100vw - 4px);
-    max-height: calc(100dvh - 4px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     padding: 6px;
     gap: 6px;
   }
@@ -6110,8 +6108,6 @@ body {
 
 @media (max-width: 760px) {
   .rename-card {
-    width: calc(100vw - 4px);
-    max-height: calc(100dvh - 4px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     padding: 6px;
     gap: 6px;
   }
@@ -11808,7 +11804,6 @@ body.update-required-active {
   }
 
   .route-nav-modal-card {
-    width: calc(100vw - 12px);
     padding: 12px;
     gap: 10px;
     border-radius: 20px;

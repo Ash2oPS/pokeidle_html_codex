@@ -381,6 +381,9 @@ test("runtime shell metrics stay synchronized between CSS overlays and canvas la
   assert.doesNotMatch(stylesSource, /\.shop-modal-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
   assert.doesNotMatch(stylesSource, /\.boxes-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
   assert.doesNotMatch(stylesSource, /\.appearance-card\s*\{[^}]*max-height:\s*min\(90dvh,\s*920px\)/s);
+  assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.boxes-card\s*\{[^}]*width:\s*calc\(100vw - 4px\)[^}]*max-height:\s*calc\(100dvh - 4px - env\(safe-area-inset-top\) - env\(safe-area-inset-bottom\)\)/s);
+  assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.rename-card\s*\{[^}]*width:\s*calc\(100vw - 4px\)[^}]*max-height:\s*calc\(100dvh - 4px - env\(safe-area-inset-top\) - env\(safe-area-inset-bottom\)\)/s);
+  assert.doesNotMatch(stylesSource, /\.route-nav-modal-card\s*\{[^}]*width:\s*calc\(100vw - 12px\)/s);
   assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.shop-modal-card\s*\{[^}]*max-height:\s*calc\(100dvh - 4px - env\(safe-area-inset-top\) - env\(safe-area-inset-bottom\)\)/s);
   assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.starter-modal-card\s*\{[^}]*width:\s*100%[^}]*max-width:\s*100%[^}]*max-height:\s*var\(--ui-modal-mobile-max-height-vh,\s*88svh\)/s);
   assert.doesNotMatch(stylesSource, /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.gacha-card\s*\{[^}]*max-height:\s*calc\(100dvh - 12px\)/s);
