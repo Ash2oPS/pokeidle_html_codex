@@ -428,11 +428,15 @@ test("runtime shell metrics stay synchronized between CSS overlays and canvas la
   const stylesSource = fs.readFileSync(stylesPath, "utf8");
 
   assert.match(renderSource, /function getRuntimeShellMetricHeight\(/);
-  assert.match(renderSource, /--ui-runtime-topbar-height-px/);
-  assert.match(renderSource, /--ui-runtime-dock-height-px/);
+  assert.match(renderSource, /RUNTIME_SHELL_UI_TOKENS/);
+  assert.match(renderSource, /desktopTopbarHeightPx/);
+  assert.match(renderSource, /mobileDockHeightPx/);
   assert.match(gameRuntimeSource, /function syncRuntimeShellMetrics\(/);
-  assert.match(gameRuntimeSource, /function ensureRuntimeShellMetricsObserver\(/);
-  assert.match(gameRuntimeSource, /new ResizeObserver\(/);
+  assert.match(gameRuntimeSource, /function resolveRuntimeShellMetrics\(/);
+  assert.match(gameRuntimeSource, /RUNTIME_SHELL_UI_TOKENS/);
+  assert.doesNotMatch(gameRuntimeSource, /function ensureRuntimeShellMetricsObserver\(/);
+  assert.doesNotMatch(gameRuntimeSource, /new ResizeObserver\(/);
+  assert.doesNotMatch(gameRuntimeSource, /function getElementMeasuredHeightPx\(/);
   assert.match(stylesSource, /--ui-runtime-topbar-height-px:\s*110px;/);
   assert.match(stylesSource, /--ui-runtime-dock-height-px:\s*92px;/);
   assert.match(stylesSource, /bottom:\s*calc\(\s*var\(--ui-runtime-dock-height-px,\s*92px\)/);

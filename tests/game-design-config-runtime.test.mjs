@@ -29,6 +29,7 @@ import {
   DESKTOP_BACKGROUND_WATCHDOG_STALL_MS,
   MAX_LEVEL,
   MAX_RESUME_CATCHUP_MS,
+  RUNTIME_SHELL_UI_TOKENS,
   TARGET_FPS,
 } from "../lib/gameplay-ui-config.js";
 import {
@@ -71,6 +72,12 @@ test("game design runtime sanitizes invalid values and computes derived fields",
     },
     ui: {
       shopQuantityPresetValues: ["", "10", "10", "50"],
+      runtimeShell: {
+        desktopTopbarHeightPx: 0,
+        desktopDockHeightPx: 999999,
+        mobileTopbarHeightPx: 12,
+        mobileDockHeightPx: "bad",
+      },
     },
   });
 
@@ -104,6 +111,13 @@ test("game design runtime sanitizes invalid values and computes derived fields",
   assert.equal("renderScale" in sanitized.metrics.renderQualityPresets.medium, false);
   assert.equal("maxDpr" in sanitized.metrics.renderQualityPresets.medium, false);
   assert.deepEqual(sanitized.ui.shopQuantityPresetValues, ["10", "50"]);
+  assert.equal(sanitized.ui.runtimeShell.desktopTopbarHeightPx, 44);
+  assert.equal(sanitized.ui.runtimeShell.desktopDockHeightPx, 240);
+  assert.equal(sanitized.ui.runtimeShell.mobileTopbarHeightPx, 44);
+  assert.equal(
+    sanitized.ui.runtimeShell.mobileDockHeightPx,
+    GAME_DESIGN.ui.runtimeShell.mobileDockHeightPx,
+  );
 });
 
 test("game design runtime exposes a compact immutable snapshot", () => {
@@ -154,6 +168,10 @@ test("compatibility facades stay aligned with the sanitized design config", () =
   );
   assert.equal(MAX_LEVEL, GAME_DESIGN.progression.maxLevel);
   assert.equal(TARGET_FPS, GAME_DESIGN.metrics.targetFps);
+  assert.equal(RUNTIME_SHELL_UI_TOKENS.desktopTopbarHeightPx, GAME_DESIGN.ui.runtimeShell.desktopTopbarHeightPx);
+  assert.equal(RUNTIME_SHELL_UI_TOKENS.desktopDockHeightPx, GAME_DESIGN.ui.runtimeShell.desktopDockHeightPx);
+  assert.equal(RUNTIME_SHELL_UI_TOKENS.mobileTopbarHeightPx, GAME_DESIGN.ui.runtimeShell.mobileTopbarHeightPx);
+  assert.equal(RUNTIME_SHELL_UI_TOKENS.mobileDockHeightPx, GAME_DESIGN.ui.runtimeShell.mobileDockHeightPx);
   assert.equal(ROUTE_UNLOCK_DEFEATS, GAME_DESIGN.routeUnlock.routeUnlockDefeats);
   assert.equal(ONLY_ONE_ENCOUNTER_INTERVAL, GAME_DESIGN.routeUnlock.onlyOneEncounterInterval);
 });

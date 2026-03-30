@@ -7559,3 +7559,33 @@ pm run test:visual:gallery:vfx:combat:mobile`n
 - Visual artifacts reviewed manually:
   - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+
+## 2026-03-30 - Runtime shell metrics no longer depend on DOM shadow measurements
+
+- Moved the runtime shell spacing contract into explicit sanitized design tokens instead of measuring hidden DOM shell shadows at runtime.
+  - `game-design-config.js` now defines `ui.runtimeShell.*HeightPx`.
+  - `lib/game-design-config-runtime.js` sanitizes and clamps the new shell metrics.
+  - `lib/gameplay-ui-config.js` exposes `RUNTIME_SHELL_UI_TOKENS`.
+- Rewired the runtime shell metric bridge in `game-runtime.js` so CSS vars are driven from layout-aware runtime tokens instead of `getBoundingClientRect()` + `ResizeObserver` on the inert DOM shell shadows.
+  - removed the DOM measurement helper
+  - removed the runtime shell `ResizeObserver`
+  - `computeLayout()` / `refreshLayoutIfNeeded()` now sync shell metrics from the resolved layout mode
+- Rewired `systems/ui/runtime-render-system.js` so the canvas layout itself also reads the same runtime shell tokens directly.
+  - canvas safe top/bottom reservations no longer depend on DOM shadow height measurements
+  - mobile/desktop shell spacing now comes from the same token source for both canvas and CSS overlays
+- Added regression coverage in:
+  - `tests/game-design-config-runtime.test.mjs`
+  - `tests/runtime-render-system.test.mjs`
+- Validation:
+  - `node --test tests/game-design-config-runtime.test.mjs tests/runtime-render-system.test.mjs` -> PASS
+  - `node --test tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop topbar pill layout: `output/ui-state-gallery/desktop-landscape/topbar-pill-layout.png`
+  - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - desktop route lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - mobile menu: `output/ui-state-gallery/mobile-portrait/menu.png`
+  - mobile route lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+  - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`

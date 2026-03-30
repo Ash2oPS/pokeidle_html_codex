@@ -312,6 +312,12 @@ export const GAME_DESIGN_CONFIG = {
       secondaryTextMinFontSizeDesktopPx: 11,
       secondaryTextMinFontSizeMobilePx: 12,
     },
+    runtimeShell: {
+      desktopTopbarHeightPx: 110,
+      desktopDockHeightPx: 92,
+      mobileTopbarHeightPx: 110,
+      mobileDockHeightPx: 92,
+    },
     modal: {
       sizeSMaxWidthPx: 480,
       sizeMMaxWidthPx: 760,

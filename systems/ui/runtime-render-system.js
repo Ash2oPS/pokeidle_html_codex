@@ -2,10 +2,12 @@ import {
   enrichRuntimeLayout,
   enrichViewportProfile,
   isPhoneLikeViewport,
+  PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE,
+  PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT,
   resolveProductLayoutMode,
 } from '../../lib/runtime-stage-layout.js';
 import { COMBAT_VFX_CONFIG } from '../../lib/combat-balance-config.js';
-import { ZONE_UI_CANVAS_THEME } from '../../lib/gameplay-ui-config.js';
+import { RUNTIME_SHELL_UI_TOKENS, ZONE_UI_CANVAS_THEME } from '../../lib/gameplay-ui-config.js';
 import {
   getLaserTypeVfxProfile,
   getProjectileTrailTypeVfxProfile as getSharedProjectileTrailTypeVfxProfile,
@@ -1208,24 +1210,30 @@ function getOverlayPaddingSnapshot() {
   };
 }
 
-function getElementClientHeight(element) {
-  if (!(element instanceof Element)) {
-    return 0;
+function resolveRuntimeShellLayoutMode(layout = state.layout) {
+  const explicitLayoutMode = String(layout?.layoutMode || "").trim();
+  if (
+    explicitLayoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE
+    || explicitLayoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT
+  ) {
+    return explicitLayoutMode;
   }
-  const rect = element.getBoundingClientRect();
-  return Math.max(0, Number(rect?.height) || 0);
+  const viewportProfile =
+    layout?.viewportProfile
+    || getBattleViewportProfile(Number(state.viewport?.width) || 0, Number(state.viewport?.height) || 0);
+  return resolveProductLayoutMode(viewportProfile);
 }
 
-function getRootCssPixelValue(name) {
-  if (!name || !document?.documentElement || typeof window?.getComputedStyle !== "function") {
-    return 0;
+function getRuntimeShellMetricHeight(metricName, layout = state.layout) {
+  const layoutMode = resolveRuntimeShellLayoutMode(layout);
+  if (metricName === "topbar") {
+    return layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT
+      ? Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.mobileTopbarHeightPx) || 0)
+      : Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.desktopTopbarHeightPx) || 0);
   }
-  const value = window.getComputedStyle(document.documentElement).getPropertyValue(name);
-  return Math.max(0, parseFloat(value || "0") || 0);
-}
-
-function getRuntimeShellMetricHeight(element, cssVariableName) {
-  return getRootCssPixelValue(cssVariableName) || getElementClientHeight(element);
+  return layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT
+    ? Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.mobileDockHeightPx) || 0)
+    : Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.desktopDockHeightPx) || 0);
 }
 
 function buildArcSlotPositions({ count, axis, spreadMain, arcDepth, baseX, baseY }) {
@@ -1346,12 +1354,13 @@ function computeLayout() {
   const width = Math.max(260, Number(state.viewport.width) || 0);
   const height = Math.max(220, Number(state.viewport.height) || 0);
   const profile = getBattleViewportProfile(width, height);
+  const layoutMode = resolveProductLayoutMode(profile);
   const overlayPadding = getOverlayPaddingSnapshot();
   const topHudHeight =
-    getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px")
+    getRuntimeShellMetricHeight("topbar", { layoutMode, viewportProfile: profile })
     || clamp(height * (profile.phone ? 0.17 : profile.compact ? 0.13 : 0.1), 54, profile.phone ? 122 : 92);
   const bottomHudHeight =
-    getRuntimeShellMetricHeight(actionDockEl, "--ui-runtime-dock-height-px")
+    getRuntimeShellMetricHeight("dock", { layoutMode, viewportProfile: profile })
     || clamp(height * (profile.phone ? 0.1 : profile.compact ? 0.085 : 0.072), 44, profile.phone ? 74 : 64);
 
   let safeTop = overlayPadding.top + topHudHeight + (profile.phone ? 8 : profile.compact ? 12 : 14);
@@ -3542,7 +3551,7 @@ function drawRouteDefeatTimerBar(timerState, layout = null) {
     ? clamp(state.viewport.height * 0.01, 8, 12)
     : clamp(state.viewport.height * 0.012, 10, 18);
   const overlayPaddingTop = getOverlayPaddingSnapshot().top;
-  const topHudHeight = getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px");
+  const topHudHeight = getRuntimeShellMetricHeight("topbar", layout);
   const hudAnchorY = overlayPaddingTop + topHudHeight + (compactHud ? 2 : 4);
   const yFromSafeBounds = Number.isFinite(safeTop)
     ? safeTop + verticalOffset
@@ -6791,7 +6800,7 @@ function drawBallInventoryOverlay(layout) {
   const overlayPadding = getOverlayPaddingSnapshot();
   const overlayPaddingLeft = overlayPadding.left;
   const overlayPaddingTop = overlayPadding.top;
-  const topHudHeight = getRuntimeShellMetricHeight(uiTopbarEl, "--ui-runtime-topbar-height-px");
+  const topHudHeight = getRuntimeShellMetricHeight("topbar", layout);
   const panelXDefault = clamp(safeBounds.left + 6, 6, state.viewport.width - panelWidth - 6);
   const panelXPhoneAligned = clamp(overlayPaddingLeft, 6, state.viewport.width - panelWidth - 6);
   const panelX = isPhone ? panelXPhoneAligned : panelXDefault;

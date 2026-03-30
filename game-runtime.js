@@ -469,6 +469,7 @@ import {
   ANIMATED_SPRITE_CACHE_MAX_ENTRIES,
   ACTION_DOCK_FULLSCREEN_MENU_TRANSITION_MS,
   HUD_UI_TOKENS,
+  RUNTIME_SHELL_UI_TOKENS,
   MODAL_UI_TOKENS,
   ACTION_MENU_UI_TOKENS,
   NOTIFICATION_UI_TOKENS,
@@ -510,6 +511,8 @@ import {
 import {
   PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE,
   PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT,
+  isPhoneLikeViewport,
+  resolveProductLayoutMode,
   projectWorldToStage,
 } from "./lib/runtime-stage-layout.js";
 
@@ -779,14 +782,6 @@ function setUiDesignCssVariable(target, name, value, unit = "px") {
 const RUNTIME_UI_TOPBAR_HEIGHT_CSS_VAR = "--ui-runtime-topbar-height-px";
 const RUNTIME_UI_DOCK_HEIGHT_CSS_VAR = "--ui-runtime-dock-height-px";
 
-function getElementMeasuredHeightPx(element) {
-  if (!(element instanceof Element)) {
-    return 0;
-  }
-  const rect = element.getBoundingClientRect?.();
-  return Math.max(0, Number(rect?.height) || Number(element.offsetHeight) || 0);
-}
-
 function applyRuntimeShellMetricCssVariables(rootTargets = [], metrics = {}) {
   const uniqueTargets = [...new Set(rootTargets.filter((target) => target?.style?.setProperty))];
   if (uniqueTargets.length <= 0) {
@@ -798,6 +793,45 @@ function applyRuntimeShellMetricCssVariables(rootTargets = [], metrics = {}) {
     setUiDesignCssVariable(target, RUNTIME_UI_TOPBAR_HEIGHT_CSS_VAR, topbarHeightPx);
     setUiDesignCssVariable(target, RUNTIME_UI_DOCK_HEIGHT_CSS_VAR, dockHeightPx);
   }
+}
+
+function resolveRuntimeShellLayoutMode(layout = state.layout, viewport = state.viewport) {
+  const explicitLayoutMode = String(layout?.layoutMode || state.layoutMode || "").trim();
+  if (
+    explicitLayoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE
+    || explicitLayoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT
+  ) {
+    return explicitLayoutMode;
+  }
+  const width = Math.max(0, Number(viewport?.width) || Number(window.innerWidth) || 0);
+  const height = Math.max(0, Number(viewport?.height) || Number(window.innerHeight) || 0);
+  const runtimeSmartphone =
+    typeof window.matchMedia === "function"
+    && window.matchMedia("(pointer: coarse)").matches;
+  const phone = isPhoneLikeViewport(width, height, { mobileSignal: runtimeSmartphone });
+  return resolveProductLayoutMode({
+    phone,
+    portrait: height > width * 1.05,
+  });
+}
+
+function getRuntimeShellMetricsForLayoutMode(layoutMode = PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE) {
+  if (layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT) {
+    return {
+      layoutMode,
+      topbarHeightPx: Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.mobileTopbarHeightPx) || 0),
+      dockHeightPx: Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.mobileDockHeightPx) || 0),
+    };
+  }
+  return {
+    layoutMode: PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE,
+    topbarHeightPx: Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.desktopTopbarHeightPx) || 0),
+    dockHeightPx: Math.max(0, Number(RUNTIME_SHELL_UI_TOKENS.desktopDockHeightPx) || 0),
+  };
+}
+
+function resolveRuntimeShellMetrics(layout = state.layout, viewport = state.viewport) {
+  return getRuntimeShellMetricsForLayoutMode(resolveRuntimeShellLayoutMode(layout, viewport));
 }
 
 function applyRuntimeUiDesignTokens(rootTargets = []) {
@@ -928,7 +962,6 @@ let evolutionItemChoiceResolver = null;
 let evolutionItemChoiceStoneType = "";
 let evolutionItemChoiceCandidates = [];
 let loadingScreenHideTimerId = 0;
-let runtimeShellMetricsResizeObserver = null;
 let runtimeShellMetricsCacheKey = "";
 const DIALOGUE_DATA_DIR = "map_data/dialogues";
 const TRAINER_BATTLE_SOURCE_ROUTE_WILD = "route_wild";
@@ -12866,6 +12899,7 @@ function computeLayout() {
   const nextLayout = getRuntimeRenderSystem().computeLayout();
   state.layoutMode = nextLayout?.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
   syncCaptureRootLayoutMode(nextLayout);
+  syncRuntimeShellMetrics({ layout: nextLayout, refreshLayout: false });
   return nextLayout;
 }
 
@@ -12873,6 +12907,7 @@ function refreshLayoutIfNeeded(options = {}) {
   const nextLayout = getRuntimeRenderSystem().refreshLayoutIfNeeded(options);
   state.layoutMode = nextLayout?.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE;
   syncCaptureRootLayoutMode(nextLayout);
+  syncRuntimeShellMetrics({ layout: nextLayout, refreshLayout: false });
   return nextLayout;
 }
 
@@ -12922,17 +12957,13 @@ function syncCanvasRuntimeShellDomAccessibility(layout = state.layout) {
 }
 
 function syncRuntimeShellMetrics(options = {}) {
-  const topbarHeightPx = getElementMeasuredHeightPx(uiTopbarEl);
-  const dockHeightPx = getElementMeasuredHeightPx(actionDockEl);
-  const nextCacheKey = `${topbarHeightPx}:${dockHeightPx}`;
+  const metrics = resolveRuntimeShellMetrics(options?.layout, options?.viewport);
+  const nextCacheKey = `${metrics.layoutMode}:${metrics.topbarHeightPx}:${metrics.dockHeightPx}`;
   if (options?.force !== true && nextCacheKey === runtimeShellMetricsCacheKey) {
     return false;
   }
   runtimeShellMetricsCacheKey = nextCacheKey;
-  applyRuntimeShellMetricCssVariables([document.documentElement, captureRootEl], {
-    topbarHeightPx,
-    dockHeightPx,
-  });
+  applyRuntimeShellMetricCssVariables([document.documentElement, captureRootEl], metrics);
   if (options?.refreshLayout === false) {
     return true;
   }
@@ -12940,21 +12971,6 @@ function syncRuntimeShellMetrics(options = {}) {
   refreshZoneActionButtons();
   render();
   return true;
-}
-
-function ensureRuntimeShellMetricsObserver() {
-  if (runtimeShellMetricsResizeObserver || typeof ResizeObserver !== "function") {
-    return;
-  }
-  runtimeShellMetricsResizeObserver = new ResizeObserver(() => {
-    syncRuntimeShellMetrics();
-  });
-  if (uiTopbarEl instanceof Element) {
-    runtimeShellMetricsResizeObserver.observe(uiTopbarEl);
-  }
-  if (actionDockEl instanceof Element) {
-    runtimeShellMetricsResizeObserver.observe(actionDockEl);
-  }
 }
 
 function projectWorldToRuntimeStage(worldX, worldY, options = {}) {
@@ -13146,7 +13162,6 @@ function resizeCanvas() {
     baseRenderScale: renderScale,
     laserCrowdRenderScalePenalty: 0,
   };
-  syncRuntimeShellMetrics({ force: true, refreshLayout: false });
   refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   refreshZoneActionButtons();
   render();
@@ -13538,7 +13553,6 @@ state.devLayout.settings = createDefaultDevLayoutSettings();
 
 applyInitialPerformanceProfile();
 resizeCanvas();
-ensureRuntimeShellMetricsObserver();
 state.realClockLastMs = Date.now();
 state.lastSimulationPumpAtMs = state.realClockLastMs;
 applyRuntimeActivityTransition("bootstrap");
@@ -13549,7 +13563,6 @@ function bootstrapRuntimeStartup() {
     initializeGithubUpdateChecker({ currentVersion: APP_VERSION });
   }
   initializeScene();
-  syncRuntimeShellMetrics();
   queueArrivalDialoguesForRoute(state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID);
   ensureDesktopRuntimeWatchdog();
   if (shouldRunBackgroundTicker()) {
