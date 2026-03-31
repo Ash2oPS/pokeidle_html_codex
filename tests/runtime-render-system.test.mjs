@@ -203,9 +203,9 @@ test("runtime render system trims laser visuals with per-end insets", () => {
 test("runtime render system suppresses the legacy ball canvas overlay when the topbar summary exists", () => {
   const source = fs.readFileSync(runtimeRenderSystemPath, "utf8");
 
-  assert.match(source, /topbarBallSummaryVisible/);
-  assert.match(source, /#topbar-balls-pill/);
-  assert.match(source, /if \(topbarBallSummaryVisible\) \{\s*return;\s*\}/);
+  assert.match(source, /const canvasOwnsTopbarSummary = \(/);
+  assert.match(source, /if \(canvasOwnsTopbarSummary\) \{\s*return;\s*\}/);
+  assert.doesNotMatch(source, /#topbar-balls-pill/);
 });
 
 test("runtime render system draws canvas-owned runtime overlays after the HUD layer", () => {
@@ -213,10 +213,10 @@ test("runtime render system draws canvas-owned runtime overlays after the HUD la
 
   assert.match(source, /function drawCanvasRuntimeOverlays\(layout\)/);
   assert.match(source, /layout\?\.layoutMode === "desktopLandscape"/);
-  assert.match(source, /if \(layout\?\.layoutMode === "mobilePortrait" \|\| layout\?\.viewportProfile\?\.phone\) \{\s*drawCanvasRuntimeMobileShell\(hitboxes\);\s*drawCanvasRuntimeZoneActions\(hitboxes\);\s*drawCanvasRuntimeHoverPopup\(layout\);\s*drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);\s*drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/s);
-  assert.match(source, /drawCanvasRuntimeDesktopShell\(hitboxes\);/);
-  assert.match(source, /drawCanvasRuntimeMobileShell\(hitboxes\);/);
-  assert.match(source, /drawCanvasRuntimeZoneActions\(hitboxes\);/);
+  assert.match(source, /if \(layout\?\.layoutMode === "mobilePortrait" \|\| layout\?\.viewportProfile\?\.phone\) \{\s*drawCanvasRuntimeMobileShell\(layout, hitboxes\);\s*drawCanvasRuntimeZoneActions\(layout, hitboxes\);\s*drawCanvasRuntimeHoverPopup\(layout\);\s*drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);\s*drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/s);
+  assert.match(source, /drawCanvasRuntimeDesktopShell\(layout, hitboxes\);/);
+  assert.match(source, /drawCanvasRuntimeMobileShell\(layout, hitboxes\);/);
+  assert.match(source, /drawCanvasRuntimeZoneActions\(layout, hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeHoverPopup\(layout\);/);
   assert.match(source, /drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/);
@@ -250,23 +250,29 @@ test("runtime render system hides desktop DOM shell owners once canvas shell ren
 test("runtime shell canvas bindings stay exposed through game runtime getters", () => {
   const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
 
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.topbarBallsPillEl = \(\) => topbarBallsPillEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.moneyPillEl = \(\) => moneyPillEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.moneyValueEl = \(\) => moneyValueEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.coinsValueEl = \(\) => coinsValueEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.saveBackendValueEl = \(\) => saveBackendValueEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavPanelEl = \(\) => routeNavPanelEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavCurrentEl = \(\) => routeNavCurrentEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavRegionEl = \(\) => routeNavRegionEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleButtonEl = \(\) => routeNavDrawerToggleButtonEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavDrawerToggleCountEl = \(\) => routeNavDrawerToggleCountEl;/);
-  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.zoneActionButtonsById = \(\) => zoneActionButtonsById;/);
+  assert.match(gameRuntimeSource, /const CANVAS_RUNTIME_SHELL_LEGACY_BINDING_KEYS = Object\.freeze\(\[/);
+  assert.match(gameRuntimeSource, /"actionDockEl"/);
+  assert.match(gameRuntimeSource, /"actionDockPokeballToggleButtonEl"/);
+  assert.match(gameRuntimeSource, /"moneyPillEl"/);
+  assert.match(gameRuntimeSource, /"routeNavPanelEl"/);
+  assert.match(gameRuntimeSource, /"topbarBallsPillEl"/);
+  assert.match(gameRuntimeSource, /"zoneActionButtonsById"/);
+  assert.match(gameRuntimeSource, /for \(const bindingKey of CANVAS_RUNTIME_SHELL_LEGACY_BINDING_KEYS\) \{\s*delete RUNTIME_BINDING_GETTERS\[bindingKey\];\s*\}/s);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.buildRouteNavigationViewModel = \(\) => buildRouteNavigationViewModel;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.getCurrentRouteZoneActions = \(\) => zoneDialogueRuntime\.getCurrentRouteZoneActions;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.isActionDockFullscreenMenuOpen = \(\) => isActionDockFullscreenMenuOpen;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.isTrainerBattleActive = \(\) => isTrainerBattleActive;/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.normalizeUiDisplayText = \(\) => normalizeUiDisplayText;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.canvasOverlayActionHitboxes = \(\) => Array\.isArray\(state\?\.ui\?\.canvasOverlayActionHitboxes\)/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setMapOpen = \(\) => setMapOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setShopOpen = \(\) => setShopOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setGachaOpen = \(\) => setGachaOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.toggleRouteNavDrawer = \(\) => toggleRouteNavDrawer;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.triggerZoneAction = \(\) => triggerZoneAction;/);
+  assert.doesNotMatch(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.topbarBallsPillEl = \(\) => topbarBallsPillEl;/);
+  assert.doesNotMatch(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.moneyPillEl = \(\) => moneyPillEl;/);
+  assert.doesNotMatch(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.routeNavPanelEl = \(\) => routeNavPanelEl;/);
+  assert.doesNotMatch(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.zoneActionButtonsById = \(\) => zoneActionButtonsById;/);
 });
 
 test("game runtime marks hidden DOM shell shadows inert when canvas-first layouts own the shell", () => {

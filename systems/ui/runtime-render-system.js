@@ -339,11 +339,9 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "ULTRA_SHINY_OUTLINE_PX",
   "ULTRA_SHINY_SCINTILLATION_FLASH_MS",
   "ULTRA_SHINY_SCINTILLATION_PERIOD_MS",
-  "actionDockEl",
-  "actionDockPokeballToggleButtonEl",
   "blendRgb",
+  "buildRouteNavigationViewModel",
   "clamp",
-  "coinsValueEl",
   "ctx",
   "drawEnemyDefensiveTypeHud",
   "drawRetroHudPanel",
@@ -355,6 +353,7 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "getBackgroundDriftRangePx",
   "getBallInventoryOverlayRows",
   "getCachedSpriteImage",
+  "getCurrentRouteZoneActions",
   "getDrawableImageDimensions",
   "getEntityOffensiveType",
   "getEnvironmentSnapshotForRender",
@@ -375,25 +374,20 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "getUltraShinyOutlineTexture",
   "hashStringToUnit",
   "isCoarsePointerDevice",
+  "isActionDockFullscreenMenuOpen",
   "isCurrentRouteCombatEnabled",
   "isDrawableImage",
   "isEntityUnlocked",
   "isEvolutionFamilyOwned",
   "isLikelySmartphoneBrowser",
+  "isTrainerBattleActive",
   "lerpNumber",
-  "moneyPillEl",
-  "moneyValueEl",
   "normalizeRgbColor",
+  "normalizeUiDisplayText",
   "normalizeType",
   "pseudoRandomUnit",
   "resolveEntitySpriteDrawSource",
   "rgba",
-  "routeNavCurrentEl",
-  "routeNavDrawerToggleButtonEl",
-  "routeNavDrawerToggleCountEl",
-  "routeNavPanelEl",
-  "routeNavRegionEl",
-  "saveBackendValueEl",
   "shouldAllowDevLayoutOverflowPositions",
   "shouldFlipTeamSprite",
   "shouldForceUltraShinyAllPokemon",
@@ -404,10 +398,7 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "spriteTintBufferCanvas",
   "spriteTintBufferCtx",
   "state",
-  "topbarBallsPillEl",
   "toSafeInt",
-  "uiTopbarEl",
-  "zoneActionButtonsById",
 ]);
 
 export function createRuntimeRenderSystem(options = {}) {
@@ -480,11 +471,9 @@ export function createRuntimeRenderSystem(options = {}) {
     ULTRA_SHINY_OUTLINE_PX,
     ULTRA_SHINY_SCINTILLATION_FLASH_MS,
     ULTRA_SHINY_SCINTILLATION_PERIOD_MS,
-    actionDockEl,
-    actionDockPokeballToggleButtonEl,
     blendRgb,
+    buildRouteNavigationViewModel,
     clamp,
-    coinsValueEl,
     ctx,
     document,
     drawEnemyDefensiveTypeHud,
@@ -497,6 +486,7 @@ export function createRuntimeRenderSystem(options = {}) {
     getBackgroundDriftRangePx,
     getBallInventoryOverlayRows,
     getCachedSpriteImage,
+    getCurrentRouteZoneActions,
     getDrawableImageDimensions,
     getEntityOffensiveType,
     getEnvironmentSnapshotForRender,
@@ -517,26 +507,21 @@ export function createRuntimeRenderSystem(options = {}) {
     getUltraShinyOutlineTexture,
     hashStringToUnit,
     isCoarsePointerDevice,
+    isActionDockFullscreenMenuOpen,
     isCurrentRouteCombatEnabled,
     isDrawableImage,
     isEntityUnlocked,
     isEvolutionFamilyOwned,
     isLikelySmartphoneBrowser,
+    isTrainerBattleActive,
     lerpNumber,
-    moneyPillEl,
-    moneyValueEl,
     normalizeRgbColor,
+    normalizeUiDisplayText,
     normalizeType,
     parseFloat,
     pseudoRandomUnit,
     resolveEntitySpriteDrawSource,
     rgba,
-    routeNavCurrentEl,
-    routeNavDrawerToggleButtonEl,
-    routeNavDrawerToggleCountEl,
-    routeNavPanelEl,
-    routeNavRegionEl,
-    saveBackendValueEl,
     shouldAllowDevLayoutOverflowPositions,
     shouldFlipTeamSprite,
     shouldForceUltraShinyAllPokemon,
@@ -547,10 +532,7 @@ export function createRuntimeRenderSystem(options = {}) {
     spriteTintBufferCanvas,
     spriteTintBufferCtx,
     state,
-    topbarBallsPillEl,
     toSafeInt,
-    uiTopbarEl,
-    zoneActionButtonsById,
     undefined,
     window
   } = scope;
@@ -6756,8 +6738,13 @@ function drawBallInventoryOverlay(layout) {
   if (rows.length <= 0) {
     return;
   }
-  const topbarBallSummaryVisible = Boolean(uiTopbarEl?.querySelector?.("#topbar-balls-pill"));
-  if (topbarBallSummaryVisible) {
+  const layoutMode = resolveRuntimeShellLayoutMode(layout);
+  const canvasOwnsTopbarSummary = (
+    layoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE
+    || layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT
+    || Boolean(layout?.viewportProfile?.phone)
+  );
+  if (canvasOwnsTopbarSummary) {
     return;
   }
 
@@ -7001,7 +6988,7 @@ function resolveCanvasRuntimeCenteredModalRect(width, height, layout, options = 
 }
 
 function drawCanvasRuntimeOverlayText(text, x, y, options = {}) {
-  const value = String(text || "");
+  const value = text == null ? "" : String(text);
   if (!value) {
     return;
   }
@@ -7047,42 +7034,339 @@ function drawCanvasRuntimeOverlayPill(x, y, width, height, label, options = {}) 
   });
 }
 
-function getCanvasRectFromDomElement(element) {
-  if (!element || typeof element.getBoundingClientRect !== "function") {
+function createCanvasRect(x, y, width, height) {
+  const safeWidth = Math.max(0, Number(width) || 0);
+  const safeHeight = Math.max(0, Number(height) || 0);
+  if (safeWidth <= 0 || safeHeight <= 0) {
     return null;
   }
-  const sourceRect = element.getBoundingClientRect();
-  const widthPx = Math.max(0, Number(sourceRect?.width) || (Number(sourceRect?.right) - Number(sourceRect?.left)) || 0);
-  const heightPx = Math.max(0, Number(sourceRect?.height) || (Number(sourceRect?.bottom) - Number(sourceRect?.top)) || 0);
-  if (widthPx <= 0 || heightPx <= 0) {
-    return null;
-  }
-  const canvasRect = typeof ctx?.canvas?.getBoundingClientRect === "function"
-    ? ctx.canvas.getBoundingClientRect()
-    : { left: 0, top: 0, width: state.viewport.width, height: state.viewport.height };
-  const canvasWidth = Math.max(1, Number(canvasRect?.width) || Number(state.viewport.width) || 1);
-  const canvasHeight = Math.max(1, Number(canvasRect?.height) || Number(state.viewport.height) || 1);
-  const scaleX = Math.max(1, Number(state.viewport.width) || 1) / canvasWidth;
-  const scaleY = Math.max(1, Number(state.viewport.height) || 1) / canvasHeight;
   return {
-    x: (Number(sourceRect?.left || 0) - Number(canvasRect?.left || 0)) * scaleX,
-    y: (Number(sourceRect?.top || 0) - Number(canvasRect?.top || 0)) * scaleY,
-    width: widthPx * scaleX,
-    height: heightPx * scaleY,
+    x: Number(x) || 0,
+    y: Number(y) || 0,
+    width: safeWidth,
+    height: safeHeight,
   };
 }
 
-function getElementText(element, fallback = "") {
-  const text = String(element?.textContent || "").trim();
-  return text || String(fallback || "");
+function computeFrColumns(totalWidth, gap, fractions = []) {
+  const safeFractions = Array.isArray(fractions) ? fractions : [];
+  const safeGap = Math.max(0, Number(gap) || 0);
+  const totalGap = safeGap * Math.max(0, safeFractions.length - 1);
+  const availableWidth = Math.max(0, (Number(totalWidth) || 0) - totalGap);
+  const totalFraction = safeFractions.reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+  if (safeFractions.length <= 0 || totalFraction <= 0) {
+    return [];
+  }
+  return safeFractions.map((value) => (availableWidth * Math.max(0, Number(value) || 0)) / totalFraction);
 }
 
-function getClosestElement(element, selector) {
-  return element && typeof element.closest === "function" ? element.closest(selector) : null;
+function normalizeCanvasRuntimeShellText(value, fallback = "") {
+  const rawValue = String(value ?? fallback ?? "");
+  const normalizedValue = typeof normalizeUiDisplayText === "function"
+    ? normalizeUiDisplayText(rawValue, { frenchTypography: true })
+    : rawValue;
+  const safeValue = String(normalizedValue || "").trim();
+  if (safeValue) {
+    return safeValue;
+  }
+  return String(fallback || "").trim();
 }
 
-function drawCanvasRuntimeDesktopShellTopbar(hitboxes) {
-  const rect = getCanvasRectFromDomElement(topbarBallsPillEl);
+function formatCanvasRuntimeShellCounter(value) {
+  const safeValue = Math.max(0, toSafeInt(value, 0));
+  return typeof formatCompactNumber === "function"
+    ? formatCompactNumber(safeValue, {
+      decimalsSmall: 2,
+      decimalsMedium: 1,
+      decimalsLarge: 0,
+    })
+    : String(safeValue);
+}
+
+function getCanvasRuntimeMoneyValue() {
+  return formatCanvasRuntimeShellCounter(state.moneyHud?.displayValue ?? state.saveData?.money);
+}
+
+function getCanvasRuntimeResourceEntries(layoutMode = resolveRuntimeShellLayoutMode()) {
+  const compactCaptions = layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT;
+  return [
+    {
+      id: "money",
+      icon: "₽",
+      value: getCanvasRuntimeMoneyValue(),
+      caption: compactCaptions ? "" : "Pokédollars",
+    },
+    {
+      id: "coins",
+      icon: "C",
+      value: formatCanvasRuntimeShellCounter(state.saveData?.coins),
+      caption: compactCaptions ? "" : "Coins",
+    },
+  ];
+}
+
+function getCanvasRuntimeBallSummaryItems() {
+  const activeBallType = String(state.saveData?.active_ball_type || "").toLowerCase().trim();
+  return [
+    {
+      ballType: "poke_ball",
+      count: Math.max(0, toSafeInt(state.saveData?.ball_inventory?.poke_ball, 0)),
+      active: activeBallType === "poke_ball",
+    },
+    {
+      ballType: "super_ball",
+      count: Math.max(0, toSafeInt(state.saveData?.ball_inventory?.super_ball, 0)),
+      active: activeBallType === "super_ball",
+    },
+    {
+      ballType: "hyper_ball",
+      count: Math.max(0, toSafeInt(state.saveData?.ball_inventory?.hyper_ball, 0)),
+      active: activeBallType === "hyper_ball",
+    },
+  ];
+}
+
+function getCanvasRuntimeRouteViewModel() {
+  const routeViewModel = typeof buildRouteNavigationViewModel === "function"
+    ? buildRouteNavigationViewModel()
+    : null;
+  const header = routeViewModel?.currentZoneHeader || {};
+  const activeRouteId = String(state.routeData?.route_id || state.saveData?.current_route_id || DEFAULT_ROUTE_ID || "");
+  const fallbackRouteLabel = typeof getRouteDisplayName === "function"
+    ? getRouteDisplayName(activeRouteId)
+    : activeRouteId;
+  const destinationCards = Array.isArray(routeViewModel?.destinationCards) ? routeViewModel.destinationCards : [];
+  return {
+    routeName: normalizeCanvasRuntimeShellText(header.routeNameFr || fallbackRouteLabel, "Zone"),
+    regionLabel: normalizeCanvasRuntimeShellText(header.regionLabel || "", ""),
+    destinationCount: destinationCards.length,
+    drawerOpen: Boolean(routeViewModel?.navigationDrawerOpen && destinationCards.length > 0),
+    sectionLabel: "Zone active",
+  };
+}
+
+function getCanvasRuntimeShellMetrics(layout) {
+  const overlayPadding = getOverlayPaddingSnapshot();
+  const layoutMode = resolveRuntimeShellLayoutMode(layout);
+  const viewportWidth = Math.max(1, Number(state.viewport.width) || 0);
+  const viewportHeight = Math.max(1, Number(state.viewport.height) || 0);
+  const topbarHeight = getRuntimeShellMetricHeight("topbar", layout);
+  const dockHeight = getRuntimeShellMetricHeight("dock", layout);
+  return {
+    layoutMode,
+    overlayPadding,
+    viewportWidth,
+    viewportHeight,
+    topbarHeight,
+    dockHeight,
+    contentLeft: overlayPadding.left,
+    contentRight: viewportWidth - overlayPadding.right,
+    topbarY: overlayPadding.top,
+    dockY: viewportHeight - overlayPadding.bottom - dockHeight,
+  };
+}
+
+function buildCanvasRuntimeDesktopShellRects(layout) {
+  const metrics = getCanvasRuntimeShellMetrics(layout);
+  const topbarWidth = Math.max(240, metrics.contentRight - metrics.contentLeft);
+  const pillGap = 12;
+  const pillHeight = clamp(
+    Math.round(metrics.topbarHeight - 26),
+    68,
+    Math.max(68, Math.round(metrics.topbarHeight - 12)),
+  );
+  const pillY = metrics.topbarY + Math.max(8, (metrics.topbarHeight - pillHeight) * 0.5);
+  const [ballsWidth = 0, routeWidth = 0, resourceWidth = 0] = computeFrColumns(topbarWidth, pillGap, [0.94, 1.38, 0.98]);
+  const ballsRect = createCanvasRect(metrics.contentLeft, pillY, ballsWidth, pillHeight);
+  const routeRect = createCanvasRect(metrics.contentLeft + ballsWidth + pillGap, pillY, routeWidth, pillHeight);
+  const resourceRect = createCanvasRect(metrics.contentLeft + ballsWidth + routeWidth + pillGap * 2, pillY, resourceWidth, pillHeight);
+  const dockShellWidth = clamp(Math.round(Math.min(topbarWidth * 0.24, 210)), 148, 210);
+  const dockShellRect = createCanvasRect(
+    (metrics.viewportWidth - dockShellWidth) * 0.5,
+    metrics.dockY,
+    dockShellWidth,
+    metrics.dockHeight,
+  );
+  const dockButtonRect = dockShellRect
+    ? createCanvasRect(
+      dockShellRect.x + 12,
+      dockShellRect.y + 8,
+      dockShellRect.width - 24,
+      Math.max(44, dockShellRect.height - 16),
+    )
+    : null;
+  return {
+    ballsRect,
+    routeRect,
+    resourceRect,
+    dockShellRect,
+    dockButtonRect,
+  };
+}
+
+function buildCanvasRuntimeMobileShellRects(layout) {
+  const metrics = getCanvasRuntimeShellMetrics(layout);
+  const topbarWidth = Math.max(220, metrics.contentRight - metrics.contentLeft);
+  const gap = 8;
+  const routeHeight = clamp(Math.round(metrics.topbarHeight * 0.46), 48, 58);
+  const lowerRowHeight = Math.max(44, metrics.topbarHeight - routeHeight - gap);
+  const routeRect = createCanvasRect(metrics.contentLeft, metrics.topbarY, topbarWidth, routeHeight);
+  const secondaryWidth = Math.max(88, (topbarWidth - gap) * 0.5);
+  const topbarBallsRect = createCanvasRect(metrics.contentLeft, metrics.topbarY + routeHeight + gap, secondaryWidth, lowerRowHeight);
+  const resourceRect = createCanvasRect(
+    metrics.contentLeft + secondaryWidth + gap,
+    metrics.topbarY + routeHeight + gap,
+    topbarWidth - secondaryWidth - gap,
+    lowerRowHeight,
+  );
+  const dockButtonRect = createCanvasRect(
+    (metrics.viewportWidth - clamp(Math.round(topbarWidth * 0.28), 86, 118)) * 0.5,
+    metrics.dockY,
+    clamp(Math.round(topbarWidth * 0.28), 86, 118),
+    metrics.dockHeight,
+  );
+  return {
+    routeRect,
+    topbarBallsRect,
+    resourceRect,
+    dockButtonRect,
+  };
+}
+
+function drawCanvasRuntimeResourceBadge(rect, entry, options = {}) {
+  if (!rect || !entry) {
+    return;
+  }
+  const compact = options.compact === true;
+  const tone = String(entry.id || "money");
+  const fillTop = tone === "coins" ? "rgba(39, 62, 86, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop;
+  const fillBottom = tone === "coins" ? "rgba(18, 34, 50, 0.99)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom;
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    cut: compact ? 8 : 10,
+    fillTop,
+    fillMid: fillTop,
+    fillBottom,
+    border: ZONE_UI_CANVAS_THEME.subpanel.border,
+    highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
+    shadow: "rgba(0, 0, 0, 0.16)",
+    borderWidth: 1.05,
+    radius: compact ? 12 : 14,
+  });
+  const iconRadius = Math.min(compact ? 9 : 11, rect.height * 0.24);
+  const iconCenterX = rect.x + (compact ? 14 : 16);
+  const iconCenterY = rect.y + rect.height * 0.5;
+  const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
+  iconGradient.addColorStop(0, tone === "coins" ? "#d0f1ff" : "#fff2b5");
+  iconGradient.addColorStop(1, tone === "coins" ? "#6ec7ef" : "#d59b2d");
+  ctx.save();
+  ctx.fillStyle = iconGradient;
+  ctx.beginPath();
+  ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  drawCanvasRuntimeOverlayText(entry.icon, iconCenterX, iconCenterY, {
+    fontSize: compact ? 9 : 10,
+    weight: "800",
+    textAlign: "center",
+    textBaseline: "middle",
+    fillStyle: "rgba(24, 38, 56, 0.96)",
+    strokeStyle: "rgba(255, 255, 255, 0.22)",
+    lineWidth: compact ? 1.5 : 1.6,
+  });
+  if (compact) {
+    drawCanvasRuntimeOverlayText(entry.value, rect.x + rect.width - 12, rect.y + rect.height * 0.5, {
+      fontSize: 12,
+      weight: "800",
+      textAlign: "right",
+      textBaseline: "middle",
+    });
+    return;
+  }
+  ctx.save();
+  ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+  const valueLabel = fitTextToWidthWithEllipsis(entry.value, Math.max(36, rect.width - 44));
+  ctx.restore();
+  drawCanvasRuntimeOverlayText(valueLabel, rect.x + 32, rect.y + 9, {
+    fontSize: 12,
+    weight: "800",
+  });
+  if (entry.caption) {
+    drawCanvasRuntimeOverlayText(entry.caption, rect.x + 32, rect.y + rect.height - 16, {
+      fontSize: 8,
+      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
+      strokeStyle: "rgba(7, 14, 22, 0.68)",
+    });
+  }
+}
+
+function shouldRenderCanvasRuntimeZoneActions() {
+  const routeActions = typeof getCurrentRouteZoneActions === "function"
+    ? getCurrentRouteZoneActions()
+    : [];
+  if (!Array.isArray(routeActions) || routeActions.length <= 0) {
+    return false;
+  }
+  return !state.ui.dialogueOpen
+    && !state.ui.tutorialOpen
+    && !state.ui.trainerBattleSetupOpen
+    && !state.ui.mapOpen
+    && !state.ui.shopOpen
+    && !state.ui.gachaOpen
+    && !state.ui.boxesOpen
+    && !state.ui.pokedexOpen
+    && !state.ui.appearanceOpen
+    && !(typeof isTrainerBattleActive === "function" && isTrainerBattleActive());
+}
+
+function getCanvasRuntimeZoneActions(layout) {
+  if (!shouldRenderCanvasRuntimeZoneActions()) {
+    return [];
+  }
+  const routeActions = typeof getCurrentRouteZoneActions === "function"
+    ? getCurrentRouteZoneActions()
+    : [];
+  const isPhoneViewport = Boolean(layout?.viewportProfile?.phone);
+  const bounds = getCanvasRuntimeOverlayBounds(layout);
+  const actions = [];
+  for (const action of routeActions) {
+    const actionId = String(action?.action_id || "").trim();
+    if (!actionId) {
+      continue;
+    }
+    const anchor = isPhoneViewport ? action?.mobile_anchor_pct : action?.desktop_anchor_pct;
+    const label = normalizeCanvasRuntimeShellText(action?.label_fr || action?.dialogue_id || actionId, actionId);
+    const fontSize = isPhoneViewport ? 12 : 11;
+    ctx.save();
+    ctx.font = `800 ${fontSize}px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const measuredWidth = ctx.measureText(label).width;
+    ctx.restore();
+    const width = clamp(Math.ceil(measuredWidth + (isPhoneViewport ? 26 : 24)), isPhoneViewport ? 92 : 84, isPhoneViewport ? 180 : 220);
+    const height = isPhoneViewport ? 40 : 36;
+    const anchorX = clamp(
+      ((Number(anchor?.x) || 50) / 100) * state.viewport.width,
+      bounds.left + width * 0.5,
+      bounds.right - width * 0.5,
+    );
+    const anchorY = clamp(
+      ((Number(anchor?.y) || 50) / 100) * state.viewport.height,
+      bounds.top + height * 0.5,
+      bounds.bottom - height * 0.5,
+    );
+    const rect = createCanvasRect(anchorX - width * 0.5, anchorY - height * 0.5, width, height);
+    if (!rect) {
+      continue;
+    }
+    actions.push({
+      actionId,
+      label,
+      rect,
+      fontSize,
+    });
+  }
+  return actions;
+}
+
+function drawCanvasRuntimeDesktopShellTopbar(rect, hitboxes) {
   if (!rect) {
     return;
   }
@@ -7105,37 +7389,29 @@ function drawCanvasRuntimeDesktopShellTopbar(hitboxes) {
     strokeStyle: "rgba(7, 14, 22, 0.72)",
   });
 
-  const itemDefinitions = [
-    { ballType: "poke_ball", itemId: "#topbar-ball-poke-item", countId: "#topbar-ball-poke-count" },
-    { ballType: "super_ball", itemId: "#topbar-ball-super-item", countId: "#topbar-ball-super-count" },
-    { ballType: "hyper_ball", itemId: "#topbar-ball-hyper-item", countId: "#topbar-ball-hyper-count" },
-  ];
+  const itemDefinitions = getCanvasRuntimeBallSummaryItems();
   const gridY = rect.y + 24;
   const gridHeight = Math.max(28, rect.height - 32);
   const cellGap = 6;
   const cellWidth = Math.max(36, (rect.width - 20 - cellGap * 2) / 3);
-  const activeBallType = String(state.saveData?.active_ball_type || "").toLowerCase().trim();
   itemDefinitions.forEach((definition, index) => {
-    const itemEl = topbarBallsPillEl?.querySelector?.(definition.itemId) || null;
-    const countEl = topbarBallsPillEl?.querySelector?.(definition.countId) || null;
-    const isActive = Boolean(itemEl?.classList?.contains?.("is-active")) || definition.ballType === activeBallType;
     const cellX = rect.x + 10 + index * (cellWidth + cellGap);
     drawRetroHudPanel(cellX, gridY, cellWidth, gridHeight, {
       cut: 9,
-      fillTop: isActive ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
-      fillMid: isActive ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
-      fillBottom: isActive ? "rgba(33, 74, 166, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
-      border: isActive ? "rgba(197, 228, 255, 0.86)" : ZONE_UI_CANVAS_THEME.subpanel.border,
+      fillTop: definition.active ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
+      fillMid: definition.active ? "rgba(61, 120, 224, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
+      fillBottom: definition.active ? "rgba(33, 74, 166, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
+      border: definition.active ? "rgba(197, 228, 255, 0.86)" : ZONE_UI_CANVAS_THEME.subpanel.border,
       highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
-      shadow: isActive ? "rgba(80, 150, 255, 0.24)" : "rgba(0, 0, 0, 0.18)",
-      borderWidth: isActive ? 1.35 : 1.1,
+      shadow: definition.active ? "rgba(80, 150, 255, 0.24)" : "rgba(0, 0, 0, 0.18)",
+      borderWidth: definition.active ? 1.35 : 1.1,
       radius: 18,
     });
     drawPokeball(cellX + cellWidth * 0.5, gridY + gridHeight * 0.42, Math.min(cellWidth, gridHeight) * 0.22, {
-      alpha: isActive ? 0.98 : 0.9,
+      alpha: definition.active ? 0.98 : 0.9,
       ball_type: definition.ballType,
     });
-    drawCanvasRuntimeOverlayText(getElementText(countEl, "0"), cellX + cellWidth * 0.5, gridY + gridHeight - 18, {
+    drawCanvasRuntimeOverlayText(formatCanvasRuntimeShellCounter(definition.count), cellX + cellWidth * 0.5, gridY + gridHeight - 18, {
       fontSize: 11,
       weight: "800",
       textAlign: "center",
@@ -7154,46 +7430,40 @@ function drawCanvasRuntimeDesktopShellTopbar(hitboxes) {
   });
 }
 
-function drawCanvasRuntimeDesktopShellRouteSummary(hitboxes) {
-  const shellRect = getCanvasRectFromDomElement(routeNavPanelEl?.parentElement || routeNavPanelEl);
-  const buttonRect = getCanvasRectFromDomElement(routeNavDrawerToggleButtonEl) || shellRect;
-  if (!shellRect || !buttonRect) {
+function drawCanvasRuntimeDesktopShellRouteSummary(rect, routeViewModel, hitboxes) {
+  if (!rect) {
     return;
   }
-  const destinationCount = Math.max(0, toSafeInt(getElementText(routeNavDrawerToggleCountEl, "0"), 0));
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
-  const interactive = destinationCount > 0;
+  const interactive = routeViewModel.destinationCount > 0;
   const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
-  const drawerOpen = Boolean(state.ui.routeNavDrawerOpen);
-  drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 14,
-    fillTop: drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
-    fillMid: drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
-    fillBottom: drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    fillTop: routeViewModel.drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: routeViewModel.drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: routeViewModel.drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
     border: ZONE_UI_CANVAS_THEME.panel.border,
     highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
-    shadow: isHovered || drawerOpen ? "rgba(80, 150, 255, 0.28)" : ZONE_UI_CANVAS_THEME.panel.shadow,
-    borderWidth: isHovered || drawerOpen ? 1.5 : 1.35,
+    shadow: isHovered || routeViewModel.drawerOpen ? "rgba(80, 150, 255, 0.28)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered || routeViewModel.drawerOpen ? 1.5 : 1.35,
     radius: 18,
   });
-  drawCanvasRuntimeOverlayText("Zone active", shellRect.x + 14, shellRect.y + 10, {
+  drawCanvasRuntimeOverlayText(routeViewModel.sectionLabel, rect.x + 14, rect.y + 10, {
     fontSize: 10,
     fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
     strokeStyle: "rgba(7, 14, 22, 0.72)",
   });
 
-  const currentText = getElementText(routeNavCurrentEl, "Zone");
-  const regionText = getElementText(routeNavRegionEl, "");
   ctx.save();
   ctx.font = `800 15px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
-  const title = fitTextToWidthWithEllipsis(currentText, Math.max(80, shellRect.width - 96));
+  const title = fitTextToWidthWithEllipsis(routeViewModel.routeName, Math.max(80, rect.width - 96));
   ctx.restore();
-  drawCanvasRuntimeOverlayText(title, shellRect.x + 14, shellRect.y + 28, {
+  drawCanvasRuntimeOverlayText(title, rect.x + 14, rect.y + 28, {
     fontSize: 15,
     weight: "800",
   });
-  if (regionText) {
-    drawCanvasRuntimeOverlayText(regionText, shellRect.x + 14, shellRect.y + shellRect.height - 22, {
+  if (routeViewModel.regionLabel) {
+    drawCanvasRuntimeOverlayText(routeViewModel.regionLabel, rect.x + 14, rect.y + rect.height - 22, {
       fontSize: 10,
       fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
       strokeStyle: "rgba(7, 14, 22, 0.72)",
@@ -7202,14 +7472,14 @@ function drawCanvasRuntimeDesktopShellRouteSummary(hitboxes) {
 
   const pillWidth = 38;
   const pillHeight = 28;
-  const pillX = shellRect.x + shellRect.width - pillWidth - 14;
-  const pillY = shellRect.y + Math.max(12, (shellRect.height - pillHeight) * 0.5);
-  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(destinationCount), {
+  const pillX = rect.x + rect.width - pillWidth - 14;
+  const pillY = rect.y + Math.max(12, (rect.height - pillHeight) * 0.5);
+  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(routeViewModel.destinationCount), {
     fillTop: interactive ? "rgba(69, 132, 237, 0.98)" : "rgba(78, 89, 102, 0.94)",
     fillBottom: interactive ? "rgba(37, 82, 171, 0.98)" : "rgba(48, 57, 70, 0.96)",
     border: interactive ? "rgba(205, 230, 255, 0.84)" : "rgba(166, 176, 189, 0.52)",
   });
-  drawCanvasRuntimeOverlayText("›", shellRect.x + shellRect.width - 18, shellRect.y + shellRect.height * 0.5, {
+  drawCanvasRuntimeOverlayText(">", rect.x + rect.width - 18, rect.y + rect.height * 0.5, {
     fontSize: 18,
     textAlign: "center",
     textBaseline: "middle",
@@ -7218,21 +7488,20 @@ function drawCanvasRuntimeDesktopShellRouteSummary(hitboxes) {
 
   hitboxes.push({
     id: "runtime-shell-route-nav-toggle",
-    x: buttonRect.x,
-    y: buttonRect.y,
-    width: buttonRect.width,
-    height: buttonRect.height,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
     interactive,
     actionType: "route-nav-drawer-toggle",
   });
 }
 
-function drawCanvasRuntimeDesktopShellResourceStrip() {
-  const stripRect = getCanvasRectFromDomElement(moneyPillEl?.parentElement);
-  if (!stripRect) {
+function drawCanvasRuntimeDesktopShellResourceStrip(rect) {
+  if (!rect) {
     return;
   }
-  drawRetroHudPanel(stripRect.x, stripRect.y, stripRect.width, stripRect.height, {
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 14,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
     fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
@@ -7243,81 +7512,31 @@ function drawCanvasRuntimeDesktopShellResourceStrip() {
     borderWidth: 1.35,
     radius: 18,
   });
-
-  const pillEntries = [
-    moneyPillEl,
-    getClosestElement(coinsValueEl, ".resource-pill"),
-    getClosestElement(saveBackendValueEl, ".resource-pill"),
-  ].filter(Boolean);
-
-  for (const pillEl of pillEntries) {
-    const pillRect = getCanvasRectFromDomElement(pillEl);
-    if (!pillRect) {
-      continue;
-    }
-    const iconText = getElementText(pillEl.querySelector?.(".currency-pill-icon"), "");
-    const captionText = getElementText(pillEl.querySelector?.(".currency-pill-caption"), "");
-    const valueText = getElementText(
-      pillEl.querySelector?.(".currency-pill-value") || pillEl.querySelector?.("#save-backend-value"),
-      "",
+  const entries = getCanvasRuntimeResourceEntries(PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
+  const insetX = 12;
+  const insetY = 10;
+  const gap = 6;
+  const rowHeight = Math.max(22, (rect.height - insetY * 2 - gap) / 2);
+  entries.forEach((entry, index) => {
+    const entryRect = createCanvasRect(
+      rect.x + insetX,
+      rect.y + insetY + index * (rowHeight + gap),
+      rect.width - insetX * 2,
+      rowHeight,
     );
-    drawRetroHudPanel(pillRect.x, pillRect.y, pillRect.width, pillRect.height, {
-      cut: 10,
-      fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
-      fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
-      fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
-      border: ZONE_UI_CANVAS_THEME.subpanel.border,
-      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
-      shadow: "rgba(0, 0, 0, 0.16)",
-      borderWidth: 1.1,
-      radius: 14,
-    });
-    const iconRadius = Math.min(11, pillRect.height * 0.24);
-    const iconCenterX = pillRect.x + 16;
-    const iconCenterY = pillRect.y + pillRect.height * 0.5;
-    const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
-    iconGradient.addColorStop(0, "#fff2b5");
-    iconGradient.addColorStop(1, "#d59b2d");
-    ctx.save();
-    ctx.fillStyle = iconGradient;
-    ctx.beginPath();
-    ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    drawCanvasRuntimeOverlayText(iconText, iconCenterX, iconCenterY, {
-      fontSize: 10,
-      weight: "800",
-      textAlign: "center",
-      textBaseline: "middle",
-      fillStyle: "rgba(24, 38, 56, 0.96)",
-      strokeStyle: "rgba(255, 255, 255, 0.22)",
-      lineWidth: 1.6,
-    });
-    ctx.save();
-    ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
-    const valueLabel = fitTextToWidthWithEllipsis(valueText, Math.max(36, pillRect.width - 44));
-    ctx.restore();
-    drawCanvasRuntimeOverlayText(valueLabel, pillRect.x + 32, pillRect.y + 9, {
-      fontSize: 12,
-      weight: "800",
-    });
-    drawCanvasRuntimeOverlayText(captionText, pillRect.x + 32, pillRect.y + pillRect.height - 16, {
-      fontSize: 8,
-      fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
-      strokeStyle: "rgba(7, 14, 22, 0.68)",
-    });
-  }
+    drawCanvasRuntimeResourceBadge(entryRect, entry);
+  });
 }
 
-function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
-  const shellRect = getCanvasRectFromDomElement(actionDockEl);
-  const buttonRect = getCanvasRectFromDomElement(actionDockPokeballToggleButtonEl);
+function drawCanvasRuntimeDesktopShellActionDock(shellRect, buttonRect, hitboxes) {
   if (!shellRect || !buttonRect) {
     return;
   }
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
   const isHovered = hoveredActionId === "runtime-shell-action-dock-toggle";
-  const menuOpen = Boolean(actionDockPokeballToggleButtonEl?.getAttribute?.("aria-expanded") === "true");
+  const menuOpen = typeof isActionDockFullscreenMenuOpen === "function"
+    ? Boolean(isActionDockFullscreenMenuOpen())
+    : Boolean(state.ui.actionDockFullscreenMenuOpen);
   drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
     cut: 14,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -7329,10 +7548,6 @@ function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
     borderWidth: 1.35,
     radius: 18,
   });
-  const label = getElementText(
-    actionDockPokeballToggleButtonEl?.querySelector?.(".action-dock-pokeball-toggle-label"),
-    "Menu",
-  );
   drawRetroHudPanel(buttonRect.x, buttonRect.y, buttonRect.width, buttonRect.height, {
     cut: 14,
     fillTop: menuOpen ? "rgba(63, 118, 220, 0.98)" : isHovered ? "rgba(54, 88, 147, 0.96)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
@@ -7348,7 +7563,7 @@ function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
     alpha: 0.96,
     ball_type: "poke_ball",
   });
-  drawCanvasRuntimeOverlayText(label, buttonRect.x + 42, buttonRect.y + buttonRect.height * 0.5 - 10, {
+  drawCanvasRuntimeOverlayText("Menu", buttonRect.x + 42, buttonRect.y + buttonRect.height * 0.5 - 10, {
     fontSize: 14,
     weight: "800",
     textBaseline: "middle",
@@ -7370,41 +7585,35 @@ function drawCanvasRuntimeDesktopShellActionDock(hitboxes) {
   });
 }
 
-function drawCanvasRuntimeMobileShellRouteSummary(hitboxes) {
-  const shellRect = getCanvasRectFromDomElement(routeNavPanelEl?.parentElement || routeNavPanelEl);
-  const buttonRect = getCanvasRectFromDomElement(routeNavDrawerToggleButtonEl) || shellRect;
-  if (!shellRect || !buttonRect) {
+function drawCanvasRuntimeMobileShellRouteSummary(rect, routeViewModel, hitboxes) {
+  if (!rect) {
     return;
   }
-  const destinationCount = Math.max(0, toSafeInt(getElementText(routeNavDrawerToggleCountEl, "0"), 0));
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
-  const interactive = destinationCount > 0;
+  const interactive = routeViewModel.destinationCount > 0;
   const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
-  const drawerOpen = Boolean(state.ui.routeNavDrawerOpen);
-  drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 16,
-    fillTop: drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
-    fillMid: drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
-    fillBottom: drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
+    fillTop: routeViewModel.drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
+    fillMid: routeViewModel.drawerOpen ? "rgba(20, 57, 97, 0.99)" : isHovered ? "rgba(16, 48, 77, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillMid,
+    fillBottom: routeViewModel.drawerOpen ? "rgba(10, 31, 56, 0.998)" : isHovered ? "rgba(8, 28, 47, 0.998)" : ZONE_UI_CANVAS_THEME.panel.fillBottom,
     border: ZONE_UI_CANVAS_THEME.panel.border,
     highlight: ZONE_UI_CANVAS_THEME.panel.highlight,
-    shadow: isHovered || drawerOpen ? "rgba(80, 150, 255, 0.3)" : ZONE_UI_CANVAS_THEME.panel.shadow,
-    borderWidth: isHovered || drawerOpen ? 1.55 : 1.35,
+    shadow: isHovered || routeViewModel.drawerOpen ? "rgba(80, 150, 255, 0.3)" : ZONE_UI_CANVAS_THEME.panel.shadow,
+    borderWidth: isHovered || routeViewModel.drawerOpen ? 1.55 : 1.35,
     radius: 20,
   });
-  const currentText = getElementText(routeNavCurrentEl, "Zone");
-  const regionText = getElementText(routeNavRegionEl, "");
   ctx.save();
   ctx.font = `800 18px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
-  const title = fitTextToWidthWithEllipsis(currentText, Math.max(76, shellRect.width - 98));
+  const title = fitTextToWidthWithEllipsis(routeViewModel.routeName, Math.max(76, rect.width - 98));
   ctx.restore();
-  drawCanvasRuntimeOverlayText(title, shellRect.x + shellRect.width * 0.5, shellRect.y + 18, {
+  drawCanvasRuntimeOverlayText(title, rect.x + rect.width * 0.5, rect.y + 18, {
     fontSize: 18,
     weight: "800",
     textAlign: "center",
   });
-  if (regionText) {
-    drawCanvasRuntimeOverlayText(regionText, shellRect.x + shellRect.width * 0.5, shellRect.y + shellRect.height - 22, {
+  if (routeViewModel.regionLabel) {
+    drawCanvasRuntimeOverlayText(routeViewModel.regionLabel, rect.x + rect.width * 0.5, rect.y + rect.height - 22, {
       fontSize: 10,
       textAlign: "center",
       fillStyle: ZONE_UI_CANVAS_THEME.panel.textSoft,
@@ -7413,14 +7622,14 @@ function drawCanvasRuntimeMobileShellRouteSummary(hitboxes) {
   }
   const pillWidth = 34;
   const pillHeight = 24;
-  const pillX = shellRect.x + shellRect.width - pillWidth - 18;
-  const pillY = shellRect.y + Math.max(10, (shellRect.height - pillHeight) * 0.5);
-  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(destinationCount), {
+  const pillX = rect.x + rect.width - pillWidth - 18;
+  const pillY = rect.y + Math.max(10, (rect.height - pillHeight) * 0.5);
+  drawCanvasRuntimeOverlayPill(pillX, pillY, pillWidth, pillHeight, String(routeViewModel.destinationCount), {
     fillTop: interactive ? "rgba(69, 132, 237, 0.98)" : "rgba(78, 89, 102, 0.94)",
     fillBottom: interactive ? "rgba(37, 82, 171, 0.98)" : "rgba(48, 57, 70, 0.96)",
     border: interactive ? "rgba(205, 230, 255, 0.84)" : "rgba(166, 176, 189, 0.52)",
   });
-  drawCanvasRuntimeOverlayText("›", shellRect.x + shellRect.width - 10, shellRect.y + shellRect.height * 0.5, {
+  drawCanvasRuntimeOverlayText(">", rect.x + rect.width - 10, rect.y + rect.height * 0.5, {
     fontSize: 16,
     textAlign: "center",
     textBaseline: "middle",
@@ -7428,17 +7637,16 @@ function drawCanvasRuntimeMobileShellRouteSummary(hitboxes) {
   });
   hitboxes.push({
     id: "runtime-shell-route-nav-toggle",
-    x: buttonRect.x,
-    y: buttonRect.y,
-    width: buttonRect.width,
-    height: buttonRect.height,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
     interactive,
     actionType: "route-nav-drawer-toggle",
   });
 }
 
-function drawCanvasRuntimeMobileShellTopbar(hitboxes) {
-  const rect = getCanvasRectFromDomElement(topbarBallsPillEl);
+function drawCanvasRuntimeMobileShellTopbar(rect, hitboxes) {
   if (!rect) {
     return;
   }
@@ -7455,21 +7663,15 @@ function drawCanvasRuntimeMobileShellTopbar(hitboxes) {
     borderWidth: isHovered ? 1.5 : 1.3,
     radius: 18,
   });
-  const itemDefinitions = [
-    { ballType: "poke_ball", countId: "#topbar-ball-poke-count" },
-    { ballType: "super_ball", countId: "#topbar-ball-super-count" },
-    { ballType: "hyper_ball", countId: "#topbar-ball-hyper-count" },
-  ];
-  const activeBallType = String(state.saveData?.active_ball_type || "").toLowerCase().trim();
+  const itemDefinitions = getCanvasRuntimeBallSummaryItems();
   const innerLeft = rect.x + 10;
   const innerRight = rect.x + rect.width - 10;
   const itemWidth = (innerRight - innerLeft) / itemDefinitions.length;
   itemDefinitions.forEach((definition, index) => {
-    const countEl = topbarBallsPillEl?.querySelector?.(definition.countId) || null;
     const centerX = innerLeft + itemWidth * index + itemWidth * 0.5;
     const iconY = rect.y + rect.height * 0.37;
     const countY = rect.y + rect.height - 14;
-    const isActive = definition.ballType === activeBallType;
+    const isActive = definition.active === true;
     if (index > 0) {
       ctx.save();
       ctx.strokeStyle = "rgba(176, 205, 229, 0.24)";
@@ -7491,7 +7693,7 @@ function drawCanvasRuntimeMobileShellTopbar(hitboxes) {
       alpha: isActive ? 0.98 : 0.9,
       ball_type: definition.ballType,
     });
-    drawCanvasRuntimeOverlayText(getElementText(countEl, "0"), centerX, countY, {
+    drawCanvasRuntimeOverlayText(formatCanvasRuntimeShellCounter(definition.count), centerX, countY, {
       fontSize: 11,
       weight: "800",
       textAlign: "center",
@@ -7509,12 +7711,11 @@ function drawCanvasRuntimeMobileShellTopbar(hitboxes) {
   });
 }
 
-function drawCanvasRuntimeMobileShellResourceStrip() {
-  const stripRect = getCanvasRectFromDomElement(moneyPillEl?.parentElement);
-  if (!stripRect) {
+function drawCanvasRuntimeMobileShellResourceStrip(rect) {
+  if (!rect) {
     return;
   }
-  drawRetroHudPanel(stripRect.x, stripRect.y, stripRect.width, stripRect.height, {
+  drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 14,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
     fillMid: ZONE_UI_CANVAS_THEME.panel.fillMid,
@@ -7525,74 +7726,33 @@ function drawCanvasRuntimeMobileShellResourceStrip() {
     borderWidth: 1.3,
     radius: 16,
   });
-  const pillEntries = [
-    moneyPillEl,
-    getClosestElement(coinsValueEl, ".resource-pill"),
-    getClosestElement(saveBackendValueEl, ".resource-pill"),
-  ].filter(Boolean);
-  for (const pillEl of pillEntries) {
-    const pillRect = getCanvasRectFromDomElement(pillEl);
-    if (!pillRect) {
-      continue;
-    }
-    const iconText = getElementText(pillEl.querySelector?.(".currency-pill-icon"), "");
-    const valueText = getElementText(
-      pillEl.querySelector?.(".currency-pill-value") || pillEl.querySelector?.("#save-backend-value"),
-      "",
+  const entries = getCanvasRuntimeResourceEntries(PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT);
+  const innerX = 8;
+  const innerY = 6;
+  const gap = 6;
+  const badgeWidth = Math.max(36, (rect.width - innerX * 2 - gap) / Math.max(1, entries.length));
+  const badgeHeight = Math.max(24, rect.height - innerY * 2);
+  entries.forEach((entry, index) => {
+    const badgeRect = createCanvasRect(
+      rect.x + innerX + index * (badgeWidth + gap),
+      rect.y + innerY,
+      badgeWidth,
+      badgeHeight,
     );
-    drawRetroHudPanel(pillRect.x, pillRect.y, pillRect.width, pillRect.height, {
-      cut: 10,
-      fillTop: ZONE_UI_CANVAS_THEME.subpanel.fillTop,
-      fillMid: ZONE_UI_CANVAS_THEME.subpanel.fillMid,
-      fillBottom: ZONE_UI_CANVAS_THEME.subpanel.fillBottom,
-      border: ZONE_UI_CANVAS_THEME.subpanel.border,
-      highlight: ZONE_UI_CANVAS_THEME.subpanel.highlight,
-      shadow: "rgba(0, 0, 0, 0.16)",
-      borderWidth: 1.1,
-      radius: 14,
-    });
-    const iconRadius = Math.min(9, pillRect.height * 0.24);
-    const iconCenterX = pillRect.x + 14;
-    const iconCenterY = pillRect.y + pillRect.height * 0.5;
-    const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
-    iconGradient.addColorStop(0, "#fff2b5");
-    iconGradient.addColorStop(1, "#d59b2d");
-    ctx.save();
-    ctx.fillStyle = iconGradient;
-    ctx.beginPath();
-    ctx.arc(iconCenterX, iconCenterY, iconRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    drawCanvasRuntimeOverlayText(iconText, iconCenterX, iconCenterY, {
-      fontSize: 9,
-      weight: "800",
-      textAlign: "center",
-      textBaseline: "middle",
-      fillStyle: "rgba(24, 38, 56, 0.96)",
-      strokeStyle: "rgba(255, 255, 255, 0.22)",
-      lineWidth: 1.5,
-    });
-    drawCanvasRuntimeOverlayText(valueText, pillRect.x + pillRect.width - 12, pillRect.y + pillRect.height * 0.5, {
-      fontSize: 12,
-      weight: "800",
-      textAlign: "right",
-      textBaseline: "middle",
-    });
-  }
+    drawCanvasRuntimeResourceBadge(badgeRect, entry, { compact: true });
+  });
 }
 
-function drawCanvasRuntimeMobileShellActionDock(hitboxes) {
-  const buttonRect = getCanvasRectFromDomElement(actionDockPokeballToggleButtonEl);
+function drawCanvasRuntimeMobileShellActionDock(buttonRect, hitboxes) {
   if (!buttonRect) {
     return;
   }
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
   const isHovered = hoveredActionId === "runtime-shell-action-dock-toggle";
-  const menuOpen = Boolean(actionDockPokeballToggleButtonEl?.getAttribute?.("aria-expanded") === "true");
-  const label = getElementText(
-    actionDockPokeballToggleButtonEl?.querySelector?.(".action-dock-pokeball-toggle-label"),
-    "MENU",
-  ).toUpperCase();
+  const menuOpen = typeof isActionDockFullscreenMenuOpen === "function"
+    ? Boolean(isActionDockFullscreenMenuOpen())
+    : Boolean(state.ui.actionDockFullscreenMenuOpen);
+  const label = "MENU";
   const centerX = buttonRect.x + buttonRect.width * 0.5;
   const circleRadius = Math.min(buttonRect.width * 0.38, Math.max(22, buttonRect.height * 0.32));
   const circleCenterY = buttonRect.y + circleRadius + 4;
@@ -7647,22 +7807,16 @@ function drawCanvasRuntimeMobileShellActionDock(hitboxes) {
   });
 }
 
-function drawCanvasRuntimeZoneActions(hitboxes) {
-  if (!(zoneActionButtonsById instanceof Map) || zoneActionButtonsById.size <= 0) {
+function drawCanvasRuntimeZoneActions(layout, hitboxes) {
+  const actions = getCanvasRuntimeZoneActions(layout);
+  if (actions.length <= 0) {
     return;
   }
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
-  for (const [actionId, buttonEl] of zoneActionButtonsById.entries()) {
-    if (!buttonEl || buttonEl.hidden || buttonEl.disabled) {
-      continue;
-    }
-    const rect = getCanvasRectFromDomElement(buttonEl);
-    if (!rect) {
-      continue;
-    }
-    const id = `runtime-zone-action-${String(actionId || "").trim()}`;
+  for (const action of actions) {
+    const id = `runtime-zone-action-${action.actionId}`;
     const isHovered = hoveredActionId === id;
-    drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
+    drawRetroHudPanel(action.rect.x, action.rect.y, action.rect.width, action.rect.height, {
       cut: 10,
       fillTop: isHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillTop,
       fillMid: isHovered ? "rgba(63, 118, 220, 0.98)" : ZONE_UI_CANVAS_THEME.subpanel.fillMid,
@@ -7673,41 +7827,41 @@ function drawCanvasRuntimeZoneActions(hitboxes) {
       borderWidth: isHovered ? 1.35 : 1.1,
       radius: 14,
     });
-    ctx.save();
-    ctx.font = `800 11px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
-    const label = fitTextToWidthWithEllipsis(getElementText(buttonEl, actionId), Math.max(28, rect.width - 18));
-    ctx.restore();
-    drawCanvasRuntimeOverlayText(label, rect.x + rect.width * 0.5, rect.y + rect.height * 0.5, {
-      fontSize: 11,
+    drawCanvasRuntimeOverlayText(action.label, action.rect.x + action.rect.width * 0.5, action.rect.y + action.rect.height * 0.5, {
+      fontSize: action.fontSize,
       weight: "800",
       textAlign: "center",
       textBaseline: "middle",
     });
     hitboxes.push({
       id,
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
+      x: action.rect.x,
+      y: action.rect.y,
+      width: action.rect.width,
+      height: action.rect.height,
       interactive: true,
       actionType: "zone-action",
-      actionId,
+      actionId: action.actionId,
     });
   }
 }
 
-function drawCanvasRuntimeDesktopShell(hitboxes) {
-  drawCanvasRuntimeDesktopShellTopbar(hitboxes);
-  drawCanvasRuntimeDesktopShellRouteSummary(hitboxes);
-  drawCanvasRuntimeDesktopShellResourceStrip();
-  drawCanvasRuntimeDesktopShellActionDock(hitboxes);
+function drawCanvasRuntimeDesktopShell(layout, hitboxes) {
+  const rects = buildCanvasRuntimeDesktopShellRects(layout);
+  const routeViewModel = getCanvasRuntimeRouteViewModel();
+  drawCanvasRuntimeDesktopShellTopbar(rects.ballsRect, hitboxes);
+  drawCanvasRuntimeDesktopShellRouteSummary(rects.routeRect, routeViewModel, hitboxes);
+  drawCanvasRuntimeDesktopShellResourceStrip(rects.resourceRect);
+  drawCanvasRuntimeDesktopShellActionDock(rects.dockShellRect, rects.dockButtonRect, hitboxes);
 }
 
-function drawCanvasRuntimeMobileShell(hitboxes) {
-  drawCanvasRuntimeMobileShellRouteSummary(hitboxes);
-  drawCanvasRuntimeMobileShellTopbar(hitboxes);
-  drawCanvasRuntimeMobileShellResourceStrip();
-  drawCanvasRuntimeMobileShellActionDock(hitboxes);
+function drawCanvasRuntimeMobileShell(layout, hitboxes) {
+  const rects = buildCanvasRuntimeMobileShellRects(layout);
+  const routeViewModel = getCanvasRuntimeRouteViewModel();
+  drawCanvasRuntimeMobileShellRouteSummary(rects.routeRect, routeViewModel, hitboxes);
+  drawCanvasRuntimeMobileShellTopbar(rects.topbarBallsRect, hitboxes);
+  drawCanvasRuntimeMobileShellResourceStrip(rects.resourceRect);
+  drawCanvasRuntimeMobileShellActionDock(rects.dockButtonRect, hitboxes);
 }
 
 function drawCanvasRuntimeHoverPopup(layout) {
@@ -8383,8 +8537,8 @@ function drawCanvasRuntimeOverlays(layout) {
   state.ui.canvasOverlayActionHitboxes = [];
   const hitboxes = [];
   if (layout?.layoutMode === "desktopLandscape") {
-    drawCanvasRuntimeDesktopShell(hitboxes);
-    drawCanvasRuntimeZoneActions(hitboxes);
+    drawCanvasRuntimeDesktopShell(layout, hitboxes);
+    drawCanvasRuntimeZoneActions(layout, hitboxes);
     drawCanvasRuntimeHoverPopup(layout);
     drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
     drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);
@@ -8392,8 +8546,8 @@ function drawCanvasRuntimeOverlays(layout) {
     return;
   }
   if (layout?.layoutMode === "mobilePortrait" || layout?.viewportProfile?.phone) {
-    drawCanvasRuntimeMobileShell(hitboxes);
-    drawCanvasRuntimeZoneActions(hitboxes);
+    drawCanvasRuntimeMobileShell(layout, hitboxes);
+    drawCanvasRuntimeZoneActions(layout, hitboxes);
     drawCanvasRuntimeHoverPopup(layout);
     drawCanvasRuntimeTeamContextMenu(layout, hitboxes);
     drawCanvasRuntimeBallCaptureMenu(layout, hitboxes);

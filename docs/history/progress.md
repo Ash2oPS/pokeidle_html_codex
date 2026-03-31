@@ -7589,3 +7589,23 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile route lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
   - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
+
+## 2026-03-31 - Runtime canvas shell stops exposing legacy DOM getters
+
+- Removed the last dev/runtime bridge exposure for DOM shell getters that are now canvas-owned visually.
+  - `game-runtime.js` now deletes the legacy shell binding keys after building `RUNTIME_BINDING_GETTERS`:
+    - topbar / resource strip DOM pills
+    - route summary DOM trigger nodes
+    - action dock DOM shell nodes
+    - zone action button map
+- This keeps the runtime binding bridge aligned with the current canvas-first ownership model instead of advertising stale DOM shell handles to gallery/dev helpers.
+- Added source-level regression coverage in `tests/runtime-render-system.test.mjs`.
+- Validation:
+  - `node --test tests/runtime-render-system.test.mjs tests/runtime-ui-interaction-system.test.mjs tests/runtime-input-system.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop topbar pill layout: `output/ui-state-gallery/desktop-landscape/topbar-pill-layout.png`
+  - desktop team context menu: `output/ui-state-gallery/desktop-landscape/team-context-menu.png`
+  - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
