@@ -29,6 +29,10 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
   - rendu dans `systems/ui/runtime-render-system.js`
   - styles dans `styles.css`
   - direction cible canvas-first pour les UI runtime majeures
+  - etat runtime actuel:
+    - shell runtime majeur et overlays de gameplay majeurs deja migres vers canvas-first sur les layouts actifs desktop/mobile
+    - les modales, drawers, bootstrap, maintenance gate et autres flows data-heavy restent majoritairement en DOM quand cela reste le chemin actif documente
+    - les ombres DOM du shell runtime encore presentes ne doivent pas redevenir des owners visuels ou interactifs implicites
 - Maintenance mode:
   - bootstrap web + `maintenance-config.js`
   - schedule hebdo et timezone definies dans `maintenance-config.js`
@@ -118,6 +122,9 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
    - conserve les interactions
    - valide la nettete et les hitboxes
 5. Retire les chemins legacy devenus inutiles dans la meme tache ou documente strictement la transition si elle est temporaire.
+6. Si une migration canvas-first est deja faite pour un shell ou un overlay runtime:
+   - nettoie les refs, selectors, listeners et variants DOM morts qui ne servent plus que de compat legacy
+   - garde uniquement les ombres DOM encore necessaires a un flow actif ou a une transition explicitement documentee
 
 ### Toucher au runtime, lifecycle ou background
 
