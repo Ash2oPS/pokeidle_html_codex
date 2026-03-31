@@ -12,7 +12,6 @@ function createRefs(documentRef) {
   const routeNavCurrentEl = documentRef.createElement("div");
   const routeNavBadgesEl = documentRef.createElement("div");
   const routeNavProgressChipsEl = documentRef.createElement("div");
-  const routeNavDestinationsEl = documentRef.createElement("div");
   const routeNavDrawerToggleCountEl = documentRef.createElement("span");
   const routeNavDrawerToggleButtonEl = documentRef.createElement("button");
   const routeNavDrawerEl = documentRef.createElement("div");
@@ -33,7 +32,6 @@ function createRefs(documentRef) {
     routeNavCurrentEl,
     routeNavBadgesEl,
     routeNavProgressChipsEl,
-    routeNavDestinationsEl,
     routeNavDrawerToggleCountEl,
     routeNavDrawerToggleButtonEl,
     routeNavDrawerEl,
@@ -48,7 +46,6 @@ function createRefs(documentRef) {
     routeNavCurrentEl,
     routeNavBadgesEl,
     routeNavProgressChipsEl,
-    routeNavDestinationsEl,
     routeNavDrawerToggleCountEl,
     routeNavDrawerToggleButtonEl,
     routeNavDrawerEl,

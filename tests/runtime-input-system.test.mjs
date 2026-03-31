@@ -134,7 +134,6 @@ function createDomRouteNavFixture(overrides = {}) {
         <canvas id="canvas"></canvas>
         <section id="route-nav-panel">
           <button id="route-nav-drawer-toggle" type="button">Sorties</button>
-          <div id="route-nav-destinations"></div>
         </section>
         <div id="route-nav-drawer">
           <button id="route-nav-drawer-close" type="button">Fermer</button>
@@ -196,7 +195,6 @@ function createDomRouteNavFixture(overrides = {}) {
       routeNavDrawerCloseButtonEl: documentRef.getElementById("route-nav-drawer-close"),
       routeNavDrawerListEl: documentRef.getElementById("route-nav-drawer-list"),
       routeNavInfoPanelEl: documentRef.getElementById("route-nav-info-panel"),
-      routeNavDestinationsEl: documentRef.getElementById("route-nav-destinations"),
       mapConnectionsListEl: documentRef.getElementById("map-connections-list"),
       mapConnectionsInfoPanelEl: documentRef.getElementById("map-connections-info-panel"),
       ...overrides.elements,
@@ -483,13 +481,13 @@ test("clicking the dev level-all button forwards to the dev boost action", () =>
 
 test("route navigation clicks travel for unlocked cards without pre-closing the drawer", () => {
   const fixture = createDomRouteNavFixture();
-  fixture.documentRef.getElementById("route-nav-destinations").innerHTML = `
+  fixture.documentRef.getElementById("route-nav-drawer-list").innerHTML = `
     <button type="button" data-route-id="kanto_route_2" data-route-action="travel"><span>Route 2</span></button>
   `;
 
   fixture.system.init();
   fixture.documentRef
-    .querySelector("[data-route-id='kanto_route_2']")
+    .querySelector("#route-nav-drawer-list [data-route-id='kanto_route_2']")
     ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
 
   assert.deepEqual(fixture.calls, [
@@ -500,13 +498,13 @@ test("route navigation clicks travel for unlocked cards without pre-closing the 
 
 test("route navigation opens info for locked cards", () => {
   const fixture = createDomRouteNavFixture();
-  fixture.documentRef.getElementById("route-nav-destinations").innerHTML = `
+  fixture.documentRef.getElementById("route-nav-drawer-list").innerHTML = `
     <button type="button" data-route-id="johto_route_29" data-route-action="info"><span>Route 29</span></button>
   `;
 
   fixture.system.init();
   fixture.documentRef
-    .querySelector("[data-route-id='johto_route_29']")
+    .querySelector("#route-nav-drawer-list [data-route-id='johto_route_29']")
     ?.dispatchEvent(new fixture.dom.window.MouseEvent("click", { bubbles: true }));
 
   assert.deepEqual(fixture.calls, [

@@ -227,7 +227,6 @@ export const RUNTIME_UI_TEMPLATE_HTML = String.raw`<div id="game-capture-root" c
                   <div id="route-nav-drawer-list" class="route-nav-drawer-list" aria-live="polite"></div>
                   <div id="route-nav-info-panel" class="route-nav-info-panel hidden" aria-live="polite"></div>
                 </div>
-                <div id="route-nav-destinations" class="route-nav-destinations hidden" aria-live="polite"></div>
               </div>
             </section>
 
@@ -1043,7 +1042,6 @@ export const RUNTIME_UI_ID_BY_KEY = Object.freeze({
   routeNavCurrentEl: "route-nav-current",
   routeNavBadgesEl: "route-nav-badges",
   routeNavProgressChipsEl: "route-nav-progress-chips",
-  routeNavDestinationsEl: "route-nav-destinations",
   routeNavDrawerToggleButtonEl: "route-nav-drawer-toggle",
   routeNavDrawerToggleCountEl: "route-nav-drawer-toggle-count",
   routeNavDrawerEl: "route-nav-drawer",
@@ -1229,7 +1227,6 @@ export const RUNTIME_UI_ID_LIST = Object.freeze([
   "route-nav-current",
   "route-nav-badges",
   "route-nav-progress-chips",
-  "route-nav-destinations",
   "route-nav-drawer-toggle",
   "route-nav-drawer-toggle-count",
   "route-nav-drawer",

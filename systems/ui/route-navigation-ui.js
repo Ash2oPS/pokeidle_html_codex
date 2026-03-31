@@ -158,7 +158,7 @@ export function createRouteNavigationUi({
   }
 
   function buildRouteDestinationCard(routeState, options = {}) {
-    const variant = String(options?.variant || "desktop-inline").toLowerCase().trim();
+    const variant = String(options?.variant || "drawer-list").toLowerCase().trim();
     const showSupportingCopy = variant !== "map-panel";
     const button = createElement("button");
     button.type = "button";
@@ -418,7 +418,6 @@ export function createRouteNavigationUi({
       routeNavCurrentEl,
       routeNavBadgesEl,
       routeNavProgressChipsEl,
-      routeNavDestinationsEl,
       routeNavDrawerToggleCountEl,
       routeNavDrawerToggleButtonEl,
       routeNavDrawerEl,
@@ -478,26 +477,6 @@ export function createRouteNavigationUi({
       replaceChildrenIfSignatureChanged(routeNavProgressChipsEl, buildRenderSignature(safeProgressChips), (targetEl) => {
         for (const chip of safeProgressChips) {
           targetEl.appendChild(buildRouteProgressChip(chip));
-        }
-      });
-    }
-    if (routeNavDestinationsEl) {
-      const safeDestinationCards = destinationCards || [];
-      const destinationsSignature = buildRenderSignature({
-        hasCatalog,
-        destinationCards: safeDestinationCards,
-        selectedLockedDestinationId: selectedLockedDestinationId || null,
-      });
-      replaceChildrenIfSignatureChanged(routeNavDestinationsEl, destinationsSignature, (targetEl) => {
-        if (!hasCatalog || safeDestinationCards.length <= 0) {
-          targetEl.appendChild(createRouteNavigationEmptyState("Aucune zone reli\u00e9e n'est configur\u00e9e pour cette zone."));
-          return;
-        }
-        for (const routeState of safeDestinationCards) {
-          targetEl.appendChild(buildRouteDestinationCard(routeState, {
-            variant: "desktop-inline",
-            selected: selectedLockedDestinationId === routeState.routeId,
-          }));
         }
       });
     }

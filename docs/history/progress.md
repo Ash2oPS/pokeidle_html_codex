@@ -7638,3 +7638,24 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - mobile fullpage runtime: `output/ui-state-gallery/mobile-portrait/fullpage.png`
   - mobile route lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+
+## 2026-03-31 - Remove dead route navigation inline legacy
+
+- Removed the dead `route-nav-destinations` inline branch that no longer had any active visual owner.
+  - `systems/ui/runtime-ui-dom-factory.js` no longer mounts the orphan container
+  - `systems/ui/route-navigation-ui.js` no longer renders a duplicate inline destination list
+  - `systems/ui/runtime-input-system.js` no longer registers delegated clicks on that dead branch
+  - `game-runtime.js` no longer passes that ref through the runtime route-navigation flow
+- Cleaned the matching dead route-nav CSS legacy in `styles.css`.
+  - removed stale `desktop-inline` route destination styling
+  - removed dead `route-nav-exits-panel`, `route-nav-header`, `route-nav-identity`, `route-nav-actions` and `route-nav-destinations-header` rules that no longer map to live DOM
+- Updated tests to target the real drawer/list contract instead of the removed dead branch.
+- Validation:
+  - `node --test tests/route-navigation-ui.test.mjs tests/runtime-input-system.test.mjs tests/runtime-ui-dom-factory.test.mjs tests/runtime-render-system.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop route lock info: `output/ui-state-gallery/desktop-landscape/route-nav-lock-info.png`
+  - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - mobile route lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
+  - mobile menu: `output/ui-state-gallery/mobile-portrait/menu.png`

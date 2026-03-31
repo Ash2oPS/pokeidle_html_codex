@@ -82,13 +82,13 @@ test("mountRuntimeUi exposes the route navigation HUD contract", () => {
   assert.equal(refs.routeNavCurrentEl?.id, "route-nav-current");
   assert.equal(refs.routeNavBadgesEl?.id, "route-nav-badges");
   assert.equal(refs.routeNavProgressChipsEl?.id, "route-nav-progress-chips");
-  assert.equal(refs.routeNavDestinationsEl?.id, "route-nav-destinations");
   assert.equal(refs.routeNavDrawerToggleButtonEl?.id, "route-nav-drawer-toggle");
   assert.equal(refs.routeNavDrawerToggleCountEl?.id, "route-nav-drawer-toggle-count");
   assert.equal(refs.routeNavDrawerEl?.id, "route-nav-drawer");
   assert.equal(refs.routeNavDrawerListEl?.id, "route-nav-drawer-list");
   assert.equal(refs.routeNavInfoPanelEl?.id, "route-nav-info-panel");
   assert.equal(refs.mapConnectionsInfoPanelEl?.id, "map-connections-info-panel");
+  assert.equal(document.getElementById("route-nav-destinations"), null);
 });
 
 test("mountRuntimeUi includes new route-navigation labels in French", () => {

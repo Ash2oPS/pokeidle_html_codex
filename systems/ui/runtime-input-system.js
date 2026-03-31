@@ -206,7 +206,6 @@ export function createRuntimeInputSystem({
       routeNavDrawerCloseButtonEl = null,
       routeNavDrawerListEl = null,
       routeNavInfoPanelEl = null,
-      routeNavDestinationsEl = null,
       closeShopButtonEl = null,
       gachaCloseButtonEl = null,
       gachaSpinButtonEl = null,
@@ -672,7 +671,6 @@ export function createRuntimeInputSystem({
       toggleRouteNavDrawer();
     });
     register(routeNavDrawerCloseButtonEl, "click", () => setRouteNavDrawerOpen(false));
-    register(routeNavDestinationsEl, "click", handleRouteNavigationTargetClick);
     register(routeNavDrawerListEl, "click", handleRouteNavigationTargetClick);
     register(mapConnectionsListEl, "click", handleRouteNavigationTargetClick);
     register(routeNavInfoPanelEl, "click", handleRouteNavigationInfoDismiss);
