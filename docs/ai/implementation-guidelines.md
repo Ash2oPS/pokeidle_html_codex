@@ -50,6 +50,23 @@ L'IA doit produire des changements fiables, incrementaux, et compatibles avec le
 
 ## Playbooks
 
+### Deleguer avec les sous-agents du projet
+
+1. Garde le lead sur tout changement cross-cutting ou touchant `game-runtime.js`.
+2. Choisis un seul specialiste si la tache est isolee:
+   - UI -> `ui-runtime-agent`
+   - gameplay -> `gameplay-core-agent`
+   - config/data -> `design-data-agent`
+   - save/platform -> `platform-save-agent`
+3. Ajoute `qa-validation-agent` pour toute tache qui touche:
+   - UI
+   - lifecycle/background
+   - save
+   - plateforme
+   - VFX/perf visible
+4. Ne depasse pas `2` sous-agents actifs sur une meme tache.
+5. Si une tache traverse plusieurs zones, fais implementer la partie la plus isolee par un specialiste puis reintegre au lead.
+
 ### Ajouter ou deplacer une valeur de design
 
 1. Mets la cle dans `game-design-config.js`.

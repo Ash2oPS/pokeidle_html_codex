@@ -22,6 +22,9 @@ Si deux docs se contredisent, l'ordre ci-dessus gagne.
 - `docs/ai/ui-style-guidelines.md`
   - Guide de direction visuelle UI.
   - Definis la densite, la compacite, la hierarchie, la lisibilite, le responsive, le scaling et la direction canvas-first du style UI.
+- `docs/ai/subagent-setup.md`
+  - Roster local de sous-agents du projet.
+  - Definit les roles fixes, les regles de routage et ce que le lead garde.
 - `docs/ai-guidelines.md`
   - Stub de compatibilite pour les anciens liens.
 - `docs/history/progress.md`
@@ -34,12 +37,14 @@ Si deux docs se contredisent, l'ordre ci-dessus gagne.
 - Si la direction generale du style UI change, mettre a jour `docs/ai/ui-style-guidelines.md` dans la meme tache.
 - Si la direction d'architecture UI runtime change, mettre a jour `AGENTS.md`, `docs/ai/ui-style-guidelines.md` et `docs/ai/implementation-guidelines.md` dans la meme tache.
 - Si la facon de travailler change, mettre a jour `docs/ai/implementation-guidelines.md` dans la meme tache.
+- Si le roster local de sous-agents change, mettre a jour `docs/ai/subagent-setup.md` dans la meme tache.
 - Si un chemin de doc change, laisser un pointeur de compatibilite quand c'est raisonnable.
 - Ne pas dupliquer une regle complete dans plusieurs fichiers sans raison.
 - Preferer:
   - `AGENTS.md` pour les regles
   - `docs/ai/ui-style-guidelines.md` pour la direction visuelle UI
   - `docs/ai/implementation-guidelines.md` pour les exemples, playbooks et matrices
+  - `docs/ai/subagent-setup.md` pour le routage des sous-agents
   - `docs/history/progress.md` pour l'historique
 
 ## Intent
