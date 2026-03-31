@@ -815,6 +815,11 @@ function resolveRuntimeShellLayoutMode(layout = state.layout, viewport = state.v
   });
 }
 
+function shouldUseCanvasRuntimeShellLayout(layout = state.layout, viewport = state.viewport) {
+  const layoutMode = resolveRuntimeShellLayoutMode(layout, viewport);
+  return layoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE || layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT;
+}
+
 function getRuntimeShellMetricsForLayoutMode(layoutMode = PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE) {
   if (layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT) {
     return {
@@ -1262,6 +1267,7 @@ const {
   clamp,
   randomRange,
   shouldRenderCelebrationParticles,
+  shouldUseCanvasRuntimeShellLayout,
   state,
   moneyPillEl,
   moneyValueEl,
@@ -4465,6 +4471,7 @@ function canOpenTutorialModalNow() {
 function refreshZoneActionButtons() {
   const layout = state.layout || refreshLayoutIfNeeded({ force: true, nowMs: state.timeMs });
   const isPhoneViewport = Boolean(layout?.viewportProfile?.phone);
+  const useCanvasRuntimeShell = shouldUseCanvasRuntimeShellLayout(layout, state.viewport);
   const shouldShowActions = !state.ui.dialogueOpen
     && !state.ui.tutorialOpen
     && !state.ui.trainerBattleSetupOpen
@@ -4478,8 +4485,8 @@ function refreshZoneActionButtons() {
   zoneDialogueUi.refreshZoneActionButtons({
     worldUiLayerEl,
     zoneActionButtonsById,
-    routeActions: zoneDialogueRuntime.getCurrentRouteZoneActions(),
-    shouldShowActions,
+    routeActions: useCanvasRuntimeShell ? [] : zoneDialogueRuntime.getCurrentRouteZoneActions(),
+    shouldShowActions: useCanvasRuntimeShell ? false : shouldShowActions,
     isPhoneViewport,
   });
 }
@@ -5325,6 +5332,7 @@ const runtimeSaveSystem = createRuntimeSaveSystem({
   saveBackendLabelDesktop: SAVE_BACKEND_LABEL_DESKTOP,
   saveBackendLabelUnavailable: SAVE_BACKEND_LABEL_UNAVAILABLE,
   saveBackendValueEl,
+  shouldUseCanvasRuntimeShellLayout,
   setTimeoutFn: window.setTimeout.bind(window),
   clearTimeoutFn: window.clearTimeout.bind(window),
   toSafeInt,
@@ -5357,6 +5365,10 @@ function syncSerializedSaveToBrowserStorage(serializedSave) {
 
 function updateSaveBackendIndicator() {
   runtimeSaveSystem.updateSaveBackendIndicator();
+}
+
+function getSaveBackendIndicatorLabel() {
+  return runtimeSaveSystem.getSaveBackendIndicatorLabel();
 }
 
 function getSaveBackendTelemetryValue() {
@@ -10882,18 +10894,19 @@ function closeRouteNavigationInfo() {
 
 function refreshRouteUi() {
   const routeViewModel = buildRouteNavigationViewModel();
+  const useCanvasRuntimeShell = shouldUseCanvasRuntimeShellLayout(state.layout, state.viewport);
   routeNavigationUi.renderPrimaryNavigation({
     viewModel: routeViewModel,
     refs: {
-      routeNavPanelEl,
+      routeNavPanelEl: useCanvasRuntimeShell ? null : routeNavPanelEl,
       routeNavZoneTypeEl,
-      routeNavRegionEl,
-      routeNavCurrentEl,
+      routeNavRegionEl: useCanvasRuntimeShell ? null : routeNavRegionEl,
+      routeNavCurrentEl: useCanvasRuntimeShell ? null : routeNavCurrentEl,
       routeNavBadgesEl,
       routeNavProgressChipsEl,
       routeNavDestinationsEl,
-      routeNavDrawerToggleCountEl,
-      routeNavDrawerToggleButtonEl,
+      routeNavDrawerToggleCountEl: useCanvasRuntimeShell ? null : routeNavDrawerToggleCountEl,
+      routeNavDrawerToggleButtonEl: useCanvasRuntimeShell ? null : routeNavDrawerToggleButtonEl,
       routeNavDrawerEl,
       routeNavDrawerListEl,
       routeNavInfoPanelEl,
@@ -12813,6 +12826,7 @@ RUNTIME_BINDING_GETTERS.normalizeUiDisplayText = () => normalizeUiDisplayText;
 RUNTIME_BINDING_GETTERS.canvasOverlayActionHitboxes = () => Array.isArray(state?.ui?.canvasOverlayActionHitboxes)
   ? state.ui.canvasOverlayActionHitboxes
   : [];
+RUNTIME_BINDING_GETTERS.getSaveBackendIndicatorLabel = () => getSaveBackendIndicatorLabel;
 RUNTIME_BINDING_GETTERS.setMapOpen = () => setMapOpen;
 RUNTIME_BINDING_GETTERS.setShopOpen = () => setShopOpen;
 RUNTIME_BINDING_GETTERS.setGachaOpen = () => setGachaOpen;
@@ -12950,8 +12964,7 @@ function syncCaptureRootLayoutMode(layout = state.layout) {
 }
 
 function syncCanvasRuntimeShellDomAccessibility(layout = state.layout) {
-  const layoutMode = String(layout?.layoutMode || state.layoutMode || PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
-  const useCanvasRuntimeShell = layoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE || layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT;
+  const useCanvasRuntimeShell = shouldUseCanvasRuntimeShellLayout(layout, state.viewport);
   const shellDomShadows = [
     uiTopbarEl,
     actionDockEl,

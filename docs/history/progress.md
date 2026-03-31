@@ -7609,3 +7609,32 @@ pm run test:visual:gallery:vfx:combat:mobile`n
   - desktop team context menu: `output/ui-state-gallery/desktop-landscape/team-context-menu.png`
   - mobile ball capture menu: `output/ui-state-gallery/mobile-portrait/ball-capture-menu.png`
   - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`
+
+## 2026-03-31 - Close runtime canvas-first shell parity
+
+- Stopped mutating hidden DOM shell shadows for wallet/save/runtime shell hints while the canvas owns the active shell layout.
+  - `lib/wallet-ui-runtime.js` now no-ops shell-only DOM writes when `shouldUseCanvasRuntimeShellLayout()` is active:
+    - topbar money / coins counters
+    - topbar ball summary
+    - money gain floaters
+  - `systems/save/runtime-save-system.js` now exposes `getSaveBackendIndicatorLabel()` so the canvas shell can render the save backend status without writing into the hidden DOM label.
+  - `systems/ui/runtime-input-system.js` now suppresses legacy DOM onboarding pulses when the runtime shell is canvas-owned.
+  - `game-runtime.js` now stops refreshing DOM-only route summary refs and zone action DOM shadows when the canvas shell owns the active layout.
+- Restored canvas parity for shell-only affordances in `systems/ui/runtime-render-system.js`.
+  - desktop resource strip now includes a compact save backend badge rendered directly on canvas
+  - canvas route summary / action dock now render the onboarding pulse hints instead of relying on hidden DOM classes
+- Added regression coverage in:
+  - `tests/runtime-save-system.test.mjs`
+  - `tests/runtime-render-system.test.mjs`
+- Validation:
+  - `node --test tests/runtime-save-system.test.mjs tests/runtime-input-system.test.mjs tests/runtime-render-system.test.mjs tests/ui-copy-encoding-guard.test.mjs` -> PASS
+  - `node --test tests/wallet-ui-runtime.test.mjs tests/runtime-hud-system.test.mjs tests/runtime-save-system-matrix.test.mjs` -> PASS
+  - `npm run test:visual:gallery:desktop` -> PASS
+  - `npm run test:visual:gallery:mobile` -> PASS
+- Visual artifacts reviewed manually:
+  - desktop topbar shell: `output/ui-state-gallery/desktop-landscape/topbar-pill-layout.png`
+  - desktop menu: `output/ui-state-gallery/desktop-landscape/menu.png`
+  - desktop ball capture menu: `output/ui-state-gallery/desktop-landscape/ball-capture-menu.png`
+  - mobile fullpage runtime: `output/ui-state-gallery/mobile-portrait/fullpage.png`
+  - mobile route lock info: `output/ui-state-gallery/mobile-portrait/route-nav-lock-info.png`
+  - mobile team context menu: `output/ui-state-gallery/mobile-portrait/team-context-menu.png`

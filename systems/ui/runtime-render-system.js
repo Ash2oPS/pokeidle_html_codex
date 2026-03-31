@@ -358,6 +358,7 @@ export const RUNTIME_RENDER_BINDING_KEYS = Object.freeze([
   "getEntityOffensiveType",
   "getEnvironmentSnapshotForRender",
   "getFamilyShinyCaptureCount",
+  "getSaveBackendIndicatorLabel",
   "getFamilyUltraShinyCaptureCount",
   "getFloatingTextTonePalette",
   "getLegendaryFieldPresence",
@@ -491,6 +492,7 @@ export function createRuntimeRenderSystem(options = {}) {
     getEntityOffensiveType,
     getEnvironmentSnapshotForRender,
     getFamilyShinyCaptureCount,
+    getSaveBackendIndicatorLabel,
     getFamilyUltraShinyCaptureCount,
     getFloatingTextTonePalette,
     getLegendaryFieldPresence,
@@ -7087,9 +7089,27 @@ function getCanvasRuntimeMoneyValue() {
   return formatCanvasRuntimeShellCounter(state.moneyHud?.displayValue ?? state.saveData?.money);
 }
 
+function getCanvasRuntimeSaveBackendLabel() {
+  const fallbackLabel = "Sauvegarde";
+  const runtimeLabel = typeof getSaveBackendIndicatorLabel === "function"
+    ? getSaveBackendIndicatorLabel()
+    : fallbackLabel;
+  const normalizedLabel = normalizeCanvasRuntimeShellText(runtimeLabel, fallbackLabel);
+  if (normalizedLabel === "Sauvegarde locale (Desktop)") {
+    return "Desktop";
+  }
+  if (normalizedLabel === "Sauvegarde navigateur") {
+    return "Navigateur";
+  }
+  if (normalizedLabel === "Sauvegarde indisponible") {
+    return "Indispo";
+  }
+  return normalizedLabel;
+}
+
 function getCanvasRuntimeResourceEntries(layoutMode = resolveRuntimeShellLayoutMode()) {
   const compactCaptions = layoutMode === PRODUCT_LAYOUT_MODE_MOBILE_PORTRAIT;
-  return [
+  const entries = [
     {
       id: "money",
       icon: "₽",
@@ -7103,6 +7123,15 @@ function getCanvasRuntimeResourceEntries(layoutMode = resolveRuntimeShellLayoutM
       caption: compactCaptions ? "" : "Coins",
     },
   ];
+  if (layoutMode === PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE) {
+    entries.push({
+      id: "save",
+      icon: "S",
+      value: getCanvasRuntimeSaveBackendLabel(),
+      caption: compactCaptions ? "" : "Sauvegarde",
+    });
+  }
+  return entries;
 }
 
 function getCanvasRuntimeBallSummaryItems() {
@@ -7142,6 +7171,17 @@ function getCanvasRuntimeRouteViewModel() {
     destinationCount: destinationCards.length,
     drawerOpen: Boolean(routeViewModel?.navigationDrawerOpen && destinationCards.length > 0),
     sectionLabel: "Zone active",
+  };
+}
+
+function getCanvasRuntimeShellOnboardingHints() {
+  const routeNavHintVisible = !Boolean(state?.ui?.routeNavOnboardingSeen) && !Boolean(state?.ui?.routeNavDrawerOpen);
+  const actionMenuOpen = typeof isActionDockFullscreenMenuOpen === "function"
+    ? Boolean(isActionDockFullscreenMenuOpen())
+    : Boolean(state?.ui?.actionDockFullscreenMenuOpen);
+  return {
+    routeNavHintVisible,
+    actionMenuHintVisible: !Boolean(state?.ui?.actionMenuOnboardingSeen) && !actionMenuOpen,
   };
 }
 
@@ -7256,8 +7296,8 @@ function drawCanvasRuntimeResourceBadge(rect, entry, options = {}) {
   const iconCenterX = rect.x + (compact ? 14 : 16);
   const iconCenterY = rect.y + rect.height * 0.5;
   const iconGradient = ctx.createLinearGradient(iconCenterX, iconCenterY - iconRadius, iconCenterX, iconCenterY + iconRadius);
-  iconGradient.addColorStop(0, tone === "coins" ? "#d0f1ff" : "#fff2b5");
-  iconGradient.addColorStop(1, tone === "coins" ? "#6ec7ef" : "#d59b2d");
+  iconGradient.addColorStop(0, tone === "coins" ? "#d0f1ff" : tone === "save" ? "#dcf7ff" : "#fff2b5");
+  iconGradient.addColorStop(1, tone === "coins" ? "#6ec7ef" : tone === "save" ? "#76d2e7" : "#d59b2d");
   ctx.save();
   ctx.fillStyle = iconGradient;
   ctx.beginPath();
@@ -7274,7 +7314,11 @@ function drawCanvasRuntimeResourceBadge(rect, entry, options = {}) {
     lineWidth: compact ? 1.5 : 1.6,
   });
   if (compact) {
-    drawCanvasRuntimeOverlayText(entry.value, rect.x + rect.width - 12, rect.y + rect.height * 0.5, {
+    ctx.save();
+    ctx.font = `800 12px ${ZONE_UI_CANVAS_THEME.fontFamily}`;
+    const compactValueLabel = fitTextToWidthWithEllipsis(String(entry.value || ""), Math.max(28, rect.width - 34));
+    ctx.restore();
+    drawCanvasRuntimeOverlayText(compactValueLabel, rect.x + rect.width - 12, rect.y + rect.height * 0.5, {
       fontSize: 12,
       weight: "800",
       textAlign: "right",
@@ -7297,6 +7341,31 @@ function drawCanvasRuntimeResourceBadge(rect, entry, options = {}) {
       strokeStyle: "rgba(7, 14, 22, 0.68)",
     });
   }
+}
+
+function drawCanvasRuntimeOnboardingPulse(rect, options = {}) {
+  if (!rect) {
+    return;
+  }
+  const inset = Math.max(0, Number(options.inset) || 0);
+  const pulse = 0.5 + Math.sin(state.timeMs * 0.006) * 0.5;
+  drawRetroHudPanel(
+    rect.x - inset,
+    rect.y - inset,
+    rect.width + inset * 2,
+    rect.height + inset * 2,
+    {
+      cut: Math.max(8, Number(options.cut) || 10),
+      fillTop: "rgba(0, 0, 0, 0)",
+      fillMid: "rgba(0, 0, 0, 0)",
+      fillBottom: "rgba(0, 0, 0, 0)",
+      border: `rgba(192, 239, 255, ${(0.34 + pulse * 0.28).toFixed(3)})`,
+      highlight: `rgba(255, 255, 255, ${(0.08 + pulse * 0.1).toFixed(3)})`,
+      shadow: `rgba(84, 176, 255, ${(0.2 + pulse * 0.24).toFixed(3)})`,
+      borderWidth: 1.15 + pulse * 0.55,
+      radius: Math.max(10, Number(options.radius) || 14),
+    },
+  );
 }
 
 function shouldRenderCanvasRuntimeZoneActions() {
@@ -7437,6 +7506,7 @@ function drawCanvasRuntimeDesktopShellRouteSummary(rect, routeViewModel, hitboxe
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
   const interactive = routeViewModel.destinationCount > 0;
   const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
+  const { routeNavHintVisible } = getCanvasRuntimeShellOnboardingHints();
   drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 14,
     fillTop: routeViewModel.drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -7485,6 +7555,13 @@ function drawCanvasRuntimeDesktopShellRouteSummary(rect, routeViewModel, hitboxe
     textBaseline: "middle",
     fillStyle: interactive ? ZONE_UI_CANVAS_THEME.panel.text : "rgba(208, 214, 220, 0.58)",
   });
+  if (interactive && routeNavHintVisible) {
+    drawCanvasRuntimeOnboardingPulse(rect, {
+      cut: 14,
+      radius: 18,
+      inset: 2,
+    });
+  }
 
   hitboxes.push({
     id: "runtime-shell-route-nav-toggle",
@@ -7513,18 +7590,19 @@ function drawCanvasRuntimeDesktopShellResourceStrip(rect) {
     radius: 18,
   });
   const entries = getCanvasRuntimeResourceEntries(PRODUCT_LAYOUT_MODE_DESKTOP_LANDSCAPE);
-  const insetX = 12;
-  const insetY = 10;
+  const insetX = 8;
+  const insetY = 8;
   const gap = 6;
-  const rowHeight = Math.max(22, (rect.height - insetY * 2 - gap) / 2);
+  const badgeWidth = Math.max(44, (rect.width - insetX * 2 - gap * (entries.length - 1)) / Math.max(1, entries.length));
+  const badgeHeight = Math.max(24, rect.height - insetY * 2);
   entries.forEach((entry, index) => {
     const entryRect = createCanvasRect(
-      rect.x + insetX,
-      rect.y + insetY + index * (rowHeight + gap),
-      rect.width - insetX * 2,
-      rowHeight,
+      rect.x + insetX + index * (badgeWidth + gap),
+      rect.y + insetY,
+      badgeWidth,
+      badgeHeight,
     );
-    drawCanvasRuntimeResourceBadge(entryRect, entry);
+    drawCanvasRuntimeResourceBadge(entryRect, entry, { compact: true });
   });
 }
 
@@ -7537,6 +7615,7 @@ function drawCanvasRuntimeDesktopShellActionDock(shellRect, buttonRect, hitboxes
   const menuOpen = typeof isActionDockFullscreenMenuOpen === "function"
     ? Boolean(isActionDockFullscreenMenuOpen())
     : Boolean(state.ui.actionDockFullscreenMenuOpen);
+  const { actionMenuHintVisible } = getCanvasRuntimeShellOnboardingHints();
   drawRetroHudPanel(shellRect.x, shellRect.y, shellRect.width, shellRect.height, {
     cut: 14,
     fillTop: ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -7574,6 +7653,13 @@ function drawCanvasRuntimeDesktopShellActionDock(shellRect, buttonRect, hitboxes
     strokeStyle: "rgba(7, 14, 22, 0.72)",
     textBaseline: "middle",
   });
+  if (!menuOpen && actionMenuHintVisible) {
+    drawCanvasRuntimeOnboardingPulse(buttonRect, {
+      cut: 14,
+      radius: 22,
+      inset: 2,
+    });
+  }
   hitboxes.push({
     id: "runtime-shell-action-dock-toggle",
     x: buttonRect.x,
@@ -7592,6 +7678,7 @@ function drawCanvasRuntimeMobileShellRouteSummary(rect, routeViewModel, hitboxes
   const hoveredActionId = String(state.ui.canvasOverlayHoveredActionId || "");
   const interactive = routeViewModel.destinationCount > 0;
   const isHovered = interactive && hoveredActionId === "runtime-shell-route-nav-toggle";
+  const { routeNavHintVisible } = getCanvasRuntimeShellOnboardingHints();
   drawRetroHudPanel(rect.x, rect.y, rect.width, rect.height, {
     cut: 16,
     fillTop: routeViewModel.drawerOpen ? "rgba(31, 73, 120, 0.99)" : isHovered ? "rgba(22, 63, 97, 0.995)" : ZONE_UI_CANVAS_THEME.panel.fillTop,
@@ -7635,6 +7722,13 @@ function drawCanvasRuntimeMobileShellRouteSummary(rect, routeViewModel, hitboxes
     textBaseline: "middle",
     fillStyle: interactive ? ZONE_UI_CANVAS_THEME.panel.text : "rgba(208, 214, 220, 0.58)",
   });
+  if (interactive && routeNavHintVisible) {
+    drawCanvasRuntimeOnboardingPulse(rect, {
+      cut: 16,
+      radius: 20,
+      inset: 2,
+    });
+  }
   hitboxes.push({
     id: "runtime-shell-route-nav-toggle",
     x: rect.x,
@@ -7752,6 +7846,7 @@ function drawCanvasRuntimeMobileShellActionDock(buttonRect, hitboxes) {
   const menuOpen = typeof isActionDockFullscreenMenuOpen === "function"
     ? Boolean(isActionDockFullscreenMenuOpen())
     : Boolean(state.ui.actionDockFullscreenMenuOpen);
+  const { actionMenuHintVisible } = getCanvasRuntimeShellOnboardingHints();
   const label = "MENU";
   const centerX = buttonRect.x + buttonRect.width * 0.5;
   const circleRadius = Math.min(buttonRect.width * 0.38, Math.max(22, buttonRect.height * 0.32));
@@ -7796,6 +7891,13 @@ function drawCanvasRuntimeMobileShellActionDock(buttonRect, hitboxes) {
     textAlign: "center",
     textBaseline: "middle",
   });
+  if (!menuOpen && actionMenuHintVisible) {
+    drawCanvasRuntimeOnboardingPulse(buttonRect, {
+      cut: 14,
+      radius: 20,
+      inset: 3,
+    });
+  }
   hitboxes.push({
     id: "runtime-shell-action-dock-toggle",
     x: buttonRect.x,

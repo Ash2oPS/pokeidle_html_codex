@@ -41,6 +41,7 @@ export function createRuntimeSaveSystem({
   saveBackendLabelDesktop,
   saveBackendLabelUnavailable,
   saveBackendValueEl,
+  shouldUseCanvasRuntimeShellLayout,
   setTimeoutFn,
   clearTimeoutFn,
   toSafeInt,
@@ -87,6 +88,8 @@ export function createRuntimeSaveSystem({
   const clearTimeoutSafe = typeof clearTimeoutFn === "function" ? clearTimeoutFn : clearTimeout;
   const safeToInt = typeof toSafeInt === "function" ? toSafeInt : fallbackToSafeInt;
   const readNowMs = typeof nowMs === "function" ? nowMs : () => Date.now();
+  const usesCanvasRuntimeShellLayout =
+    typeof shouldUseCanvasRuntimeShellLayout === "function" ? shouldUseCanvasRuntimeShellLayout : () => false;
 
   const sourceDesktop = String(saveSourceDesktop || "desktop");
   const sourceLocalStorage = String(saveSourceLocalStorage || "local_storage");
@@ -127,20 +130,25 @@ export function createRuntimeSaveSystem({
   }
 
   function updateSaveBackendIndicator() {
-    if (!saveBackendValueEl) {
-      return;
+    const nextLabel = getSaveBackendIndicatorLabel();
+    if (usesCanvasRuntimeShellLayout() || !saveBackendValueEl) {
+      return nextLabel;
     }
+    if (saveBackendValueEl.textContent !== nextLabel) {
+      saveBackendValueEl.textContent = nextLabel;
+    }
+    return nextLabel;
+  }
+
+  function getSaveBackendIndicatorLabel() {
     const desktopReady = hasDesktopBridgeFn()
       && state.saveBackend.desktopBridgeAvailable !== false
       && state.saveBackend.desktopLastPersistSucceeded !== false;
-    const nextLabel = desktopReady
+    return desktopReady
       ? labelDesktop
       : state.saveBackend.lastPersistSucceeded
         ? labelBrowser
         : labelUnavailable;
-    if (saveBackendValueEl.textContent !== nextLabel) {
-      saveBackendValueEl.textContent = nextLabel;
-    }
   }
 
   function scheduleBrowserSaveRetry() {
@@ -377,6 +385,7 @@ export function createRuntimeSaveSystem({
     clearDesktopSaveRetry,
     refreshSaveBackendStatus,
     updateSaveBackendIndicator,
+    getSaveBackendIndicatorLabel,
     queueBrowserSaveWrite,
     queueDesktopSaveWrite,
     syncSerializedSaveToBrowserStorage,

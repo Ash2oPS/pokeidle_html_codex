@@ -268,16 +268,32 @@ export function createRuntimeInputSystem({
       return Boolean(state?.layout?.viewportProfile?.phone);
     }
 
+    function shouldUseCanvasRuntimeShellLayout() {
+      const layoutMode = String(state?.layout?.layoutMode || "");
+      return (
+        layoutMode === "desktopLandscape"
+        || layoutMode === "mobilePortrait"
+        || Boolean(state?.layout?.viewportProfile?.phone)
+      );
+    }
+
     function refreshUiOnboardingIndicators() {
+      const useCanvasRuntimeShellLayout = shouldUseCanvasRuntimeShellLayout();
       if (routeNavDrawerToggleButtonEl) {
         const routeNavHintVisible = !Boolean(state?.ui?.routeNavOnboardingSeen) && !Boolean(state?.ui?.routeNavDrawerOpen);
-        routeNavDrawerToggleButtonEl.classList.toggle("is-onboarding-pulse", routeNavHintVisible);
-        routeNavDrawerToggleButtonEl.setAttribute("data-onboarding-visible", routeNavHintVisible ? "true" : "false");
+        routeNavDrawerToggleButtonEl.classList.toggle("is-onboarding-pulse", !useCanvasRuntimeShellLayout && routeNavHintVisible);
+        routeNavDrawerToggleButtonEl.setAttribute(
+          "data-onboarding-visible",
+          !useCanvasRuntimeShellLayout && routeNavHintVisible ? "true" : "false",
+        );
       }
       if (actionDockPokeballToggleButtonEl) {
         const actionMenuHintVisible = !Boolean(state?.ui?.actionMenuOnboardingSeen) && !isActionDockFullscreenMenuOpen();
-        actionDockPokeballToggleButtonEl.classList.toggle("is-onboarding-pulse", actionMenuHintVisible);
-        actionDockPokeballToggleButtonEl.setAttribute("data-onboarding-visible", actionMenuHintVisible ? "true" : "false");
+        actionDockPokeballToggleButtonEl.classList.toggle("is-onboarding-pulse", !useCanvasRuntimeShellLayout && actionMenuHintVisible);
+        actionDockPokeballToggleButtonEl.setAttribute(
+          "data-onboarding-visible",
+          !useCanvasRuntimeShellLayout && actionMenuHintVisible ? "true" : "false",
+        );
       }
     }
 

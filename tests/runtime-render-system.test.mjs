@@ -220,6 +220,13 @@ test("runtime render system draws canvas-owned runtime overlays after the HUD la
   assert.match(source, /drawCanvasRuntimeHoverPopup\(layout\);/);
   assert.match(source, /drawCanvasRuntimeTeamContextMenu\(layout, hitboxes\);/);
   assert.match(source, /drawCanvasRuntimeBallCaptureMenu\(layout, hitboxes\);/);
+  assert.match(source, /function getCanvasRuntimeSaveBackendLabel\(\)/);
+  assert.match(source, /getCanvasRuntimeShellOnboardingHints\(\)/);
+  assert.match(source, /drawCanvasRuntimeOnboardingPulse\(rect,/);
+  assert.match(source, /id:\s*"save"/);
+  assert.match(source, /getSaveBackendIndicatorLabel === "function"/);
+  assert.match(source, /routeNavHintVisible/);
+  assert.match(source, /actionMenuHintVisible/);
   assert.match(source, /state\.ui\.canvasOverlayActionHitboxes = hitboxes;/);
   assert.match(source, /drawBallInventoryOverlay\(layout\);\s*drawCanvasRuntimeOverlays\(layout\);\s*drawVersionOverlay\(\);/);
 });
@@ -264,6 +271,7 @@ test("runtime shell canvas bindings stay exposed through game runtime getters", 
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.isTrainerBattleActive = \(\) => isTrainerBattleActive;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.normalizeUiDisplayText = \(\) => normalizeUiDisplayText;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.canvasOverlayActionHitboxes = \(\) => Array\.isArray\(state\?\.ui\?\.canvasOverlayActionHitboxes\)/);
+  assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.getSaveBackendIndicatorLabel = \(\) => getSaveBackendIndicatorLabel;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setMapOpen = \(\) => setMapOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setShopOpen = \(\) => setShopOpen;/);
   assert.match(gameRuntimeSource, /RUNTIME_BINDING_GETTERS\.setGachaOpen = \(\) => setGachaOpen;/);
@@ -279,10 +287,24 @@ test("game runtime marks hidden DOM shell shadows inert when canvas-first layout
   const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
 
   assert.match(gameRuntimeSource, /function syncCanvasRuntimeShellDomAccessibility\(layout = state\.layout\)/);
+  assert.match(gameRuntimeSource, /function shouldUseCanvasRuntimeShellLayout\(layout = state\.layout, viewport = state\.viewport\)/);
   assert.match(gameRuntimeSource, /const shellDomShadows = \[\s*uiTopbarEl,\s*actionDockEl,\s*worldUiLayerEl,\s*\];/);
   assert.match(gameRuntimeSource, /element\.toggleAttribute\("inert", useCanvasRuntimeShell\);/);
   assert.match(gameRuntimeSource, /element\.setAttribute\("aria-hidden", "true"\);/);
   assert.match(gameRuntimeSource, /syncCanvasRuntimeShellDomAccessibility\(layout\);/);
+});
+
+test("game runtime stops refreshing DOM-only shell shadows when the canvas shell owns the active layout", () => {
+  const gameRuntimeSource = fs.readFileSync(gameRuntimePath, "utf8");
+
+  assert.match(gameRuntimeSource, /const useCanvasRuntimeShell = shouldUseCanvasRuntimeShellLayout\(layout, state\.viewport\);/);
+  assert.match(gameRuntimeSource, /routeActions: useCanvasRuntimeShell \? \[\] : zoneDialogueRuntime\.getCurrentRouteZoneActions\(\),/);
+  assert.match(gameRuntimeSource, /shouldShowActions: useCanvasRuntimeShell \? false : shouldShowActions,/);
+  assert.match(gameRuntimeSource, /routeNavPanelEl: useCanvasRuntimeShell \? null : routeNavPanelEl,/);
+  assert.match(gameRuntimeSource, /routeNavRegionEl: useCanvasRuntimeShell \? null : routeNavRegionEl,/);
+  assert.match(gameRuntimeSource, /routeNavCurrentEl: useCanvasRuntimeShell \? null : routeNavCurrentEl,/);
+  assert.match(gameRuntimeSource, /routeNavDrawerToggleCountEl: useCanvasRuntimeShell \? null : routeNavDrawerToggleCountEl,/);
+  assert.match(gameRuntimeSource, /routeNavDrawerToggleButtonEl: useCanvasRuntimeShell \? null : routeNavDrawerToggleButtonEl,/);
 });
 
 test("runtime render system falls back to browser globals for builtins omitted from bindings", () => {

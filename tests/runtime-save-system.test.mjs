@@ -82,6 +82,7 @@ function createFixture() {
     saveBackendLabelDesktop: "Sauvegarde locale (Desktop)",
     saveBackendLabelUnavailable: "Sauvegarde indisponible",
     saveBackendValueEl,
+    shouldUseCanvasRuntimeShellLayout: () => false,
     setTimeoutFn: (fn) => {
       fn();
       return 1;
@@ -141,6 +142,62 @@ test("syncSerializedSaveToBrowserStorage refreshes backend indicator label", () 
   assert.equal(fixture.saveBackendValueEl.textContent, "Sauvegarde navigateur");
 });
 
+test("canvas-owned runtime shell keeps save backend label available without mutating the hidden DOM shadow", () => {
+  const fixture = createFixture();
+  fixture.system = createRuntimeSaveSystem({
+    state: fixture.state,
+    hasIndexedDbSaveSupport: () => false,
+    hasDesktopSaveBridge: () => false,
+    serializeSaveData: (saveData) => `compact:${saveData.version}:${saveData.last_tick_epoch_ms}`,
+    readSaveDataFromDesktopBridge: async () => null,
+    readSaveDataFromLocalStorage: () => null,
+    readSaveDataFromIndexedDb: async () => null,
+    readRawLegacySaveDataFromDesktopBridge: async () => null,
+    readRawLegacySaveDataFromLocalStorage: () => null,
+    readRawLegacySaveDataFromSessionStorage: () => null,
+    readRawLegacySaveDataFromIndexedDb: async () => null,
+    writeSerializedSaveToIndexedDb: async () => true,
+    writeSerializedSaveToDesktopBridge: async () => true,
+    writeSerializedSaveToStorageKey: () => true,
+    removeLegacySaveDataFromLocalStorage: () => true,
+    removeLegacySaveDataFromSessionStorage: () => true,
+    deleteLegacySaveDataFromIndexedDb: async () => true,
+    deleteLegacySaveDataFromDesktopBridge: async () => true,
+    pickPreferredSaveCandidate: () => null,
+    createEmptySave: () => ({ version: 7, last_tick_epoch_ms: 0 }),
+    createSaveFromLegacyRawSave: async () => ({ version: 7, last_tick_epoch_ms: 0 }),
+    repairNormalizedSaveSnapshot: (saveData) => ({ saveData }),
+    readSeededDevSaveData: async () => null,
+    saveVersion: 7,
+    appVersion: "0.1.27",
+    saveKey: "pokeidle_save_v4c",
+    saveSourceDesktop: "desktop",
+    saveSourceLocalStorage: "local_storage",
+    saveSourceSessionStorage: "session_storage",
+    saveSourceIndexedDb: "indexed_db",
+    saveBackendLabelBrowser: "Sauvegarde navigateur",
+    saveBackendLabelDesktop: "Sauvegarde locale (Desktop)",
+    saveBackendLabelUnavailable: "Sauvegarde indisponible",
+    saveBackendValueEl: fixture.saveBackendValueEl,
+    shouldUseCanvasRuntimeShellLayout: () => true,
+    setTimeoutFn: (fn) => {
+      fn();
+      return 1;
+    },
+    clearTimeoutFn: () => {},
+    toSafeInt: (value, fallback = 0) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? Math.floor(numeric) : fallback;
+    },
+    nowMs: () => 123456,
+  });
+
+  fixture.system.syncSerializedSaveToBrowserStorage("{\"f\":\"pi4c\",\"v\":7}");
+
+  assert.equal(fixture.system.getSaveBackendIndicatorLabel(), "Sauvegarde navigateur");
+  assert.equal(fixture.saveBackendValueEl.textContent, "");
+});
+
 test("loadSaveData salvages legacy shiny entitlements when no current save exists", async () => {
   const fixture = createFixture();
   fixture.system = createRuntimeSaveSystem({
@@ -193,6 +250,7 @@ test("loadSaveData salvages legacy shiny entitlements when no current save exist
     saveBackendLabelDesktop: "Sauvegarde locale (Desktop)",
     saveBackendLabelUnavailable: "Sauvegarde indisponible",
     saveBackendValueEl: fixture.saveBackendValueEl,
+    shouldUseCanvasRuntimeShellLayout: () => false,
     setTimeoutFn: (fn) => {
       fn();
       return 1;
