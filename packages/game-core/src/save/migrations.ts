@@ -1,4 +1,6 @@
 import type {
+  ActiveBattleSessionState,
+  BattleEnemyState,
   FamilyProgressState,
   GameSaveV1,
   QuestProgressState,
@@ -105,6 +107,71 @@ function migrateActiveDialogueState(value: unknown): SliceActiveDialogueState | 
   };
 }
 
+function migrateBattleEnemyState(value: unknown): BattleEnemyState | null {
+  const record = isRecord(value) ? value : null;
+
+  if (!record) {
+    return null;
+  }
+
+  const defensiveTypes = Array.isArray(record.defensiveTypes)
+    ? record.defensiveTypes.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+    : [];
+
+  return {
+    speciesId: readString(record.speciesId, "unknown-species"),
+    level: readNumber(record.level, 1, 1),
+    currentHp: readNumber(record.currentHp, 1, 0),
+    maxHp: readNumber(record.maxHp, 1, 1),
+    defensiveTypes,
+    reactionState: record.reactionState === "wet" ? "wet" : null,
+  };
+}
+
+function migrateBattleSessionState(value: unknown): ActiveBattleSessionState | null {
+  const record = isRecord(value) ? value : null;
+
+  if (!record) {
+    return null;
+  }
+
+  const enemy = migrateBattleEnemyState(record.enemy);
+
+  if (!enemy) {
+    return null;
+  }
+
+  if (record.kind === "wild") {
+    return {
+      kind: "wild",
+      zoneId: readString(record.zoneId, DEFAULT_ACTIVE_ZONE_ID),
+      startedAt: readString(record.startedAt, new Date().toISOString()),
+      lastProcessedAt: readString(record.lastProcessedAt, new Date().toISOString()),
+      currentSlotIndex: readNumber(record.currentSlotIndex, 0, 0),
+      elapsedMs: readNumber(record.elapsedMs, 0, 0),
+      defeatsThisRun: readNumber(record.defeatsThisRun, 0, 0),
+      rngState: readNumber(record.rngState, 1, 1),
+      enemy,
+    };
+  }
+
+  if (record.kind === "gym") {
+    return {
+      kind: "gym",
+      zoneId: readString(record.zoneId, DEFAULT_ACTIVE_ZONE_ID),
+      battleId: readString(record.battleId, "unknown-battle"),
+      startedAt: readString(record.startedAt, new Date().toISOString()),
+      lastProcessedAt: readString(record.lastProcessedAt, new Date().toISOString()),
+      currentSlotIndex: readNumber(record.currentSlotIndex, 0, 0),
+      elapsedMs: readNumber(record.elapsedMs, 0, 0),
+      enemyIndex: readNumber(record.enemyIndex, 0, 0),
+      enemy,
+    };
+  }
+
+  return null;
+}
+
 function migrateRecord<T>(
   value: unknown,
   migrateEntry: (entry: unknown) => T,
@@ -140,6 +207,8 @@ export function migrateGameSave(raw: unknown): GameSaveV1 {
   }
 
   const version = readNumber(unwrapped.version, CURRENT_SAVE_VERSION);
+  const playerRecord = isRecord(unwrapped.player) ? unwrapped.player : null;
+  const playerTeamSlots = Array.isArray(playerRecord?.teamSlots) ? playerRecord.teamSlots : null;
 
   if (version !== CURRENT_SAVE_VERSION) {
     return base;
@@ -164,14 +233,36 @@ export function migrateGameSave(raw: unknown): GameSaveV1 {
     },
     player: {
       activeZoneId: readString(
-        isRecord(unwrapped.player) ? unwrapped.player.activeZoneId : undefined,
+        playerRecord?.activeZoneId,
         DEFAULT_ACTIVE_ZONE_ID,
       ),
-      pokedollars: readNumber(isRecord(unwrapped.player) ? unwrapped.player.pokedollars : undefined, 0),
+      pokedollars: readNumber(playerRecord?.pokedollars, 0),
+      starterChoice:
+        typeof playerRecord?.starterChoice === "string"
+          ? readString(playerRecord.starterChoice, "unknown-starter")
+          : null,
+      unlockedSpeciesIds:
+        Array.isArray(playerRecord?.unlockedSpeciesIds)
+          ? playerRecord.unlockedSpeciesIds.filter(
+              (entry): entry is string => typeof entry === "string" && entry.length > 0,
+            )
+          : [],
+      teamSlots:
+        playerTeamSlots
+          ? Array.from({ length: 6 }, (_, index) => {
+              const value = playerTeamSlots[index];
+              return typeof value === "string" && value.length > 0 ? value : null;
+            })
+          : [null, null, null, null, null, null],
     },
     slice: {
       activeDialogue: migrateActiveDialogueState(
         isRecord(unwrapped.slice) ? unwrapped.slice.activeDialogue : undefined,
+      ),
+    },
+    battle: {
+      activeSession: migrateBattleSessionState(
+        isRecord(unwrapped.battle) ? unwrapped.battle.activeSession : undefined,
       ),
     },
     species: migrateRecord(unwrapped.species, migrateSpeciesState),

@@ -145,6 +145,26 @@ export function ZoneEditorPanel({ registry }: ZoneEditorPanelProps) {
                   }
                 />
               </label>
+              <label>
+                <span>Enemy Level</span>
+                <input
+                  type="number"
+                  value={draft.battle.enemyLevel}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current.kind !== "combat"
+                        ? current
+                        : {
+                            ...current,
+                            battle: {
+                              ...current.battle,
+                              enemyLevel: Number(event.target.value),
+                            },
+                          },
+                    )
+                  }
+                />
+              </label>
             </div>
             <label>
               <span>Enemy Pool</span>

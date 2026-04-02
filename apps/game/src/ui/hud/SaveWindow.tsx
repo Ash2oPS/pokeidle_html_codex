@@ -6,6 +6,8 @@ import type { SaveManagerState } from "@pokeidle/game-core";
 interface SaveWindowProps {
   locale: Locale;
   saveState: SaveManagerState;
+  speciesId: string;
+  speciesLabel: string;
   onExport: () => void;
   onImport: (serializedSave: string) => Promise<void>;
   onReset: () => Promise<void>;
@@ -18,7 +20,6 @@ const copy = {
     title: "Save",
     status: "Status",
     savedAt: "Saved",
-    species: "Chimchar",
     encountered: "Seen",
     defeated: "Defeats",
     captured: "Captures",
@@ -29,13 +30,12 @@ const copy = {
   },
   fr: {
     title: "Sauvegarde",
-    status: "Etat",
-    savedAt: "Sauvee",
-    species: "Ouisticram",
+    status: "État",
+    savedAt: "Sauvegardée",
     encountered: "Vus",
     defeated: "Vaincus",
     captured: "Captures",
-    flush: "Flush",
+    flush: "Écrire",
     export: "Export",
     import: "Import",
     reset: "Reset",
@@ -53,7 +53,7 @@ const statusCopy = {
   fr: {
     idle: "Stable",
     loading: "Chargement",
-    dirty: "Dirty",
+    dirty: "Modifiée",
     saving: "Sauvegarde",
     error: "Erreur",
   },
@@ -63,9 +63,9 @@ function formatSavedAt(savedAt: string | null): string {
   return savedAt ? new Date(savedAt).toLocaleTimeString() : "--";
 }
 
-function readSpeciesProgress(state: SaveManagerState): SpeciesProgressState {
+function readSpeciesProgress(state: SaveManagerState, speciesId: string): SpeciesProgressState {
   return (
-    state.snapshot.species.chimchar ?? {
+    state.snapshot.species[speciesId] ?? {
       unlocked: false,
       level: 1,
       experience: 0,
@@ -82,6 +82,8 @@ function readSpeciesProgress(state: SaveManagerState): SpeciesProgressState {
 export function SaveWindow({
   locale,
   saveState,
+  speciesId,
+  speciesLabel,
   onExport,
   onImport,
   onReset,
@@ -91,7 +93,7 @@ export function SaveWindow({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const text = copy[locale];
   const statusText = statusCopy[locale][saveState.status];
-  const species = readSpeciesProgress(saveState);
+  const species = readSpeciesProgress(saveState, speciesId);
 
   const handleImportFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -120,7 +122,7 @@ export function SaveWindow({
           <strong>{formatSavedAt(saveState.snapshot.meta.lastSavedAt)}</strong>
         </div>
         <div className="focus-row focus-row--metric">
-          <span>{text.species}</span>
+          <span>{speciesLabel}</span>
           <strong>L{species.level}</strong>
         </div>
         <div className="save-counter-grid">

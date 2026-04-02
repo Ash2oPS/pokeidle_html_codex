@@ -8,6 +8,7 @@
   "battle": {
     "enemyPoolIds": ["starly", "bidoof", "shinx"],
     "enemyTimerSeconds": 8,
-    "defeatsRequired": 12
+    "defeatsRequired": 12,
+    "enemyLevel": 2
   }
 }

@@ -3,9 +3,23 @@
   "kind": "gym",
   "name": {
     "en": "Oreburgh Gym",
-    "fr": "Arene de Charbourg"
+    "fr": "Arène de Charbourg"
   },
   "timeLimitSeconds": 90,
   "teamSizeLimit": 3,
-  "unlockFlagOnWin": "oreburgh-gym-cleared"
+  "unlockFlagOnWin": "oreburgh-gym-cleared",
+  "enemyTeam": [
+    {
+      "speciesId": "geodude",
+      "level": 8
+    },
+    {
+      "speciesId": "onix",
+      "level": 10
+    },
+    {
+      "speciesId": "cranidos",
+      "level": 12
+    }
+  ]
 }

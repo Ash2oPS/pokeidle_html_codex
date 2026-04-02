@@ -35,6 +35,7 @@ export interface ZoneBattleSettings {
   enemyPoolIds: string[];
   enemyTimerSeconds: number;
   defeatsRequired: number;
+  enemyLevel: number;
 }
 
 export interface ZoneDialogueNpcActivity {
@@ -90,15 +91,48 @@ export interface BaseStats {
   speed: number;
 }
 
-export interface PokemonSpeciesSummary {
+export interface BattleEnemyDefinition {
+  speciesId: string;
+  level: number;
+}
+
+export interface BattleEnemyState {
+  speciesId: string;
+  level: number;
+  currentHp: number;
+  maxHp: number;
+  defensiveTypes: string[];
+  reactionState: "wet" | null;
+}
+
+export interface PokemonSpeciesDefinition {
   id: string;
   dexNumber: number;
   familyId: string;
   name: LocalizedText;
-  primaryType: string;
-  secondaryType?: string | undefined;
+  defensiveTypes: string[];
+  defaultOffensiveType: string;
   spriteUrl: string;
   baseStats: BaseStats;
+  evolvesFromSpeciesId?: string | undefined;
+  evolvesToSpeciesIds: string[];
+  talentId: string | null;
+}
+
+export interface CombatTuningDefinition {
+  id: string;
+  slotIntervalMs: number;
+  levelStatScalar: number;
+  enemyHpMultiplier: number;
+  damageConstant: number;
+  wildActingXp: number;
+  wildBenchXp: number;
+  wildPokedollars: number;
+  gymActingXp: number;
+  gymBenchXp: number;
+  gymClearPokedollars: number;
+  xpBase: number;
+  xpPerLevel: number;
 }
 
 export interface DialogueParticipant {
@@ -181,6 +215,7 @@ export interface BattleDefinition {
   timeLimitSeconds: number;
   teamSizeLimit?: number | undefined;
   unlockFlagOnWin?: string | undefined;
+  enemyTeam?: BattleEnemyDefinition[] | undefined;
 }
 
 export * from "./save";

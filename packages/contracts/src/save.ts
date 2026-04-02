@@ -42,6 +42,9 @@ export interface SavePreferencesState {
 export interface SavePlayerState {
   activeZoneId: string;
   pokedollars: number;
+  starterChoice: string | null;
+  unlockedSpeciesIds: string[];
+  teamSlots: Array<string | null>;
 }
 
 export interface SliceActiveDialogueState {
@@ -53,6 +56,36 @@ export interface SliceActiveDialogueState {
 
 export interface SliceProgressState {
   activeDialogue: SliceActiveDialogueState | null;
+}
+
+export interface WildBattleSessionState {
+  kind: "wild";
+  zoneId: string;
+  startedAt: string;
+  lastProcessedAt: string;
+  currentSlotIndex: number;
+  elapsedMs: number;
+  defeatsThisRun: number;
+  rngState: number;
+  enemy: import("./index").BattleEnemyState;
+}
+
+export interface GymBattleSessionState {
+  kind: "gym";
+  zoneId: string;
+  battleId: string;
+  startedAt: string;
+  lastProcessedAt: string;
+  currentSlotIndex: number;
+  elapsedMs: number;
+  enemyIndex: number;
+  enemy: import("./index").BattleEnemyState;
+}
+
+export type ActiveBattleSessionState = WildBattleSessionState | GymBattleSessionState;
+
+export interface BattleProgressState {
+  activeSession: ActiveBattleSessionState | null;
 }
 
 export interface GameSaveMeta {
@@ -67,6 +100,7 @@ export interface GameSaveV1 {
   preferences: SavePreferencesState;
   player: SavePlayerState;
   slice: SliceProgressState;
+  battle: BattleProgressState;
   species: Record<string, SpeciesProgressState>;
   families: Record<string, FamilyProgressState>;
   zones: Record<string, ZoneProgressState>;

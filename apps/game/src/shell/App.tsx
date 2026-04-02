@@ -1,13 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadContentRegistry } from "@pokeidle/content-data";
 import type { LayoutMode, Locale } from "@pokeidle/contracts";
 import {
+  STARTER_IDS,
   applySliceAction,
+  canResumeBattle,
+  canStartGymBattle,
+  chooseStarter,
+  countFilledTeamSlots,
+  deriveCombatView,
   deriveSliceView,
   detectPreferredLocale,
+  hasCombatStepDue,
   pickLocalizedText,
   resolveLayoutMode,
-  syncSliceProgressionState,
+  setTeamSlot,
+  startGymBattle,
+  startWildBattle,
+  syncGameRuntimeState,
 } from "@pokeidle/game-core";
 import type { SaveManagerState, SliceAction } from "@pokeidle/game-core";
 import { SaveWindow } from "../ui/hud/SaveWindow";
@@ -18,33 +28,37 @@ import { DialogueWindow } from "../ui/windows/DialogueWindow";
 import { MapWindow } from "../ui/windows/MapWindow";
 import { PlaceholderWindow } from "../ui/windows/PlaceholderWindow";
 import { QuestsWindow } from "../ui/windows/QuestsWindow";
+import { StarterChoiceWindow } from "../ui/windows/StarterChoiceWindow";
+import { TeamWindow } from "../ui/windows/TeamWindow";
 import { gameSaveManager } from "./save-manager";
 import "./shell.css";
 
-const placeholderCopy = {
+const uiCopy = {
   en: {
     dexTitle: "Pokedex",
-    dexRows: ["Sinnoh slice data", "Species pipeline later", "Tracking stays local"],
-    teamTitle: "Team",
-    teamRows: ["Team management is not wired yet", "Current slice validates towns", "Combat runtime comes next"],
+    dexRows: ["Sinnoh species", "Capture layer later", "Full dex views later"],
     sceneTown: "Town",
     sceneCombat: "Combat",
     sceneGym: "Gym",
     noQuest: "No main quest",
-    slots: "Slots 3/6",
+    noEnemy: "No enemy",
+    idleProgress: "--",
+    slotsPrefix: "Slots",
+    reactionWet: "wet",
     contentError: "Content registry failed to load.",
   },
   fr: {
     dexTitle: "Pokedex",
-    dexRows: ["Donnees slice Sinnoh", "Pipeline especes plus tard", "Suivi sauvegarde en local"],
-    teamTitle: "Equipe",
-    teamRows: ["Gestion d'equipe pas encore branchee", "La slice valide villes et progression", "Le runtime combat arrive ensuite"],
+    dexRows: ["Espèces Sinnoh", "Capture plus tard", "Vue dex complète plus tard"],
     sceneTown: "Ville",
     sceneCombat: "Combat",
-    sceneGym: "Arene",
-    noQuest: "Pas de quete main",
-    slots: "Slots 3/6",
-    contentError: "Le registre de contenu a echoue au chargement.",
+    sceneGym: "Arène",
+    noQuest: "Pas de quête principale",
+    noEnemy: "Aucun ennemi",
+    idleProgress: "--",
+    slotsPrefix: "Slots",
+    reactionWet: "mouillé",
+    contentError: "Le registre de contenu a échoué au chargement.",
   },
 } as const;
 
@@ -61,7 +75,7 @@ function readLayoutMode(): LayoutMode {
 }
 
 function getQuestChipLabel(locale: Locale, questTitle: string | null): string {
-  return questTitle ?? placeholderCopy[locale].noQuest;
+  return questTitle ?? uiCopy[locale].noQuest;
 }
 
 export function App() {
@@ -70,6 +84,8 @@ export function App() {
   const [activeWindow, setActiveWindow] = useState<WindowKey | null>(null);
   const [saveState, setSaveState] = useState<SaveManagerState>(() => gameSaveManager.getState());
   const [selectedMapZoneId, setSelectedMapZoneId] = useState<string>("town-1");
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const latestSnapshotRef = useRef(saveState.snapshot);
   const registryState = useMemo(() => {
     try {
       return {
@@ -83,6 +99,10 @@ export function App() {
       };
     }
   }, []);
+
+  useEffect(() => {
+    latestSnapshotRef.current = saveState.snapshot;
+  }, [saveState.snapshot]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -111,7 +131,7 @@ export function App() {
     void (async () => {
       await gameSaveManager.load();
       gameSaveManager.update((draft) => {
-        syncSliceProgressionState(draft, registry);
+        syncGameRuntimeState(draft, registry);
       }, { immediate: true });
     })();
 
@@ -121,8 +141,32 @@ export function App() {
     };
   }, [registryState.registry]);
 
+  useEffect(() => {
+    const registry = registryState.registry;
+
+    if (!registry || !saveState.snapshot.battle.activeSession) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      const nowIso = new Date().toISOString();
+      setNowMs(Date.now());
+
+      if (hasCombatStepDue(latestSnapshotRef.current, registry, nowIso)) {
+        gameSaveManager.update((draft) => {
+          syncGameRuntimeState(draft, registry, nowIso);
+        });
+      }
+    }, 250);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [registryState.registry, saveState.snapshot.battle.activeSession]);
+
   const locale = saveState.snapshot.preferences.localeOverride ?? deviceLocale;
-  const text = placeholderCopy[locale];
+  const text = uiCopy[locale];
+  const nowIso = useMemo(() => new Date(nowMs).toISOString(), [nowMs]);
 
   const sliceView = useMemo(() => {
     if (!registryState.registry) {
@@ -131,6 +175,14 @@ export function App() {
 
     return deriveSliceView(saveState.snapshot, registryState.registry);
   }, [registryState.registry, saveState.snapshot]);
+
+  const combatView = useMemo(() => {
+    if (!registryState.registry) {
+      return null;
+    }
+
+    return deriveCombatView(saveState.snapshot, registryState.registry, nowIso);
+  }, [nowIso, registryState.registry, saveState.snapshot]);
 
   useEffect(() => {
     if (sliceView) {
@@ -148,19 +200,7 @@ export function App() {
     URL.revokeObjectURL(href);
   };
 
-  const runSliceAction = (action: SliceAction) => {
-    const registry = registryState.registry;
-
-    if (!registry) {
-      return;
-    }
-
-    gameSaveManager.update((draft) => {
-      applySliceAction(draft, registry, action);
-    }, { immediate: true });
-  };
-
-  if (registryState.error || !sliceView) {
+  if (registryState.error || !sliceView || !combatView) {
     return (
       <main className="game-shell game-shell--error">
         <section className="game-error">
@@ -171,6 +211,21 @@ export function App() {
     );
   }
 
+  const registry = registryState.registry!;
+  const runSliceAction = (action: SliceAction) => {
+    gameSaveManager.update((draft) => {
+      applySliceAction(draft, registry, action);
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const unlockedSpecies = saveState.snapshot.player.unlockedSpeciesIds
+    .map((speciesId) => registry.speciesById[speciesId])
+    .filter((species): species is NonNullable<typeof species> => Boolean(species))
+    .sort((left, right) => left.dexNumber - right.dexNumber);
+  const starterSpecies = STARTER_IDS
+    .map((speciesId) => registry.speciesById[speciesId])
+    .filter((species): species is NonNullable<typeof species> => Boolean(species));
   const firstMainQuest =
     sliceView.mainQuests.find((entry) => entry.progress.state === "active") ??
     sliceView.mainQuests.find((entry) => entry.progress.state === "available") ??
@@ -180,51 +235,130 @@ export function App() {
     locale,
     firstMainQuest ? pickLocalizedText(firstMainQuest.quest.title, locale) : null,
   );
-  const timerLabel =
-    sliceView.activeZone.zone.kind === "combat"
-      ? `${sliceView.activeZone.zone.battle.enemyTimerSeconds}s`
-      : "--";
+  const sceneKind =
+    combatView.session?.kind === "gym"
+      ? "gym"
+      : combatView.session?.kind === "wild"
+        ? "combat"
+        : sliceView.activeZone.sceneKind;
   const sceneLabel =
-    sliceView.activeZone.sceneKind === "combat"
+    sceneKind === "combat"
       ? text.sceneCombat
-      : sliceView.activeZone.sceneKind === "gym"
+      : sceneKind === "gym"
         ? text.sceneGym
         : text.sceneTown;
+  const enemyLabel =
+    combatView.enemySpecies ? pickLocalizedText(combatView.enemySpecies.name, locale) : text.noEnemy;
+  const timerLabel =
+    combatView.remainingTimerLabel ??
+    (sliceView.activeZone.zone.kind === "combat"
+      ? `${sliceView.activeZone.zone.battle.enemyTimerSeconds}s`
+      : text.idleProgress);
+  const progressLabel =
+    combatView.defeatProgressLabel ??
+    (sliceView.activeZone.zone.kind === "combat"
+      ? `0/${sliceView.activeZone.zone.battle.defeatsRequired}`
+      : text.idleProgress);
+  const slotsLabel = `${text.slotsPrefix} ${countFilledTeamSlots(saveState.snapshot)}/6`;
+  const reactionLabel =
+    combatView.reactionLabel === "wet" ? text.reactionWet : combatView.reactionLabel;
+  const showStarterChoice =
+    saveState.snapshot.flags["talked-to-rowan"] === true &&
+    !saveState.snapshot.player.starterChoice &&
+    !sliceView.activeDialogue;
+
+  const handleImport = async (serializedSave: string) => {
+    await gameSaveManager.importFromString(serializedSave);
+    gameSaveManager.update((draft) => {
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const handleChooseStarter = (speciesId: string) => {
+    gameSaveManager.update((draft) => {
+      chooseStarter(draft, registry, speciesId);
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const handleSetTeamSlot = (slotIndex: number, speciesId: string | null) => {
+    gameSaveManager.update((draft) => {
+      setTeamSlot(draft, registry, slotIndex, speciesId);
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const handleStartWildBattle = (zoneId: string) => {
+    gameSaveManager.update((draft) => {
+      if (!canResumeBattle(draft, { kind: "wild", zoneId })) {
+        startWildBattle(draft, registry, zoneId);
+      }
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const handleStartGymBattle = (zoneId: string, battleId: string) => {
+    gameSaveManager.update((draft) => {
+      if (!canResumeBattle(draft, { kind: "gym", battleId })) {
+        startGymBattle(draft, registry, zoneId, battleId);
+      }
+      syncGameRuntimeState(draft, registry);
+    }, { immediate: true });
+  };
+
+  const saveCounterSpeciesId =
+    saveState.snapshot.player.starterChoice ??
+    saveState.snapshot.player.unlockedSpeciesIds[0] ??
+    "chimchar";
 
   return (
     <main className={`game-shell game-shell--${layoutMode}`}>
       <BattleCanvas
+        activeSlotIndex={combatView.activeSlotIndex}
+        enemyHpPercent={combatView.enemyHpPercent}
+        enemyLabel={combatView.enemySpecies ? pickLocalizedText(combatView.enemySpecies.name, locale) : null}
         layoutMode={layoutMode}
-        sceneKind={sliceView.activeZone.sceneKind}
+        progressLabel={combatView.defeatProgressLabel}
+        reactionLabel={reactionLabel}
+        sceneKind={sceneKind}
+        teamSlots={saveState.snapshot.player.teamSlots}
+        timerLabel={combatView.remainingTimerLabel}
         zoneLabel={zoneLabel}
       />
+
       <CompactHud
-        locale={locale}
-        layoutMode={layoutMode}
         activeWindow={activeWindow}
-        zoneLabel={zoneLabel}
-        questLabel={questLabel}
-        timerLabel={timerLabel}
-        slotsLabel={text.slots}
-        sceneLabel={sceneLabel}
+        enemyLabel={enemyLabel}
+        layoutMode={layoutMode}
+        locale={locale}
         onToggleWindow={(window) => {
           setActiveWindow((current) => (current === window ? null : window));
         }}
+        progressLabel={progressLabel}
+        questLabel={questLabel}
+        reactionLabel={reactionLabel}
+        sceneLabel={sceneLabel}
+        slotsLabel={slotsLabel}
+        timerLabel={timerLabel}
+        zoneLabel={zoneLabel}
       />
 
       <CurrentZonePanel
-        locale={locale}
-        view={sliceView}
-        onCompleteZone={(zoneId) => {
-          runSliceAction({ type: "complete_zone_debug", zoneId });
+        canResumeGymBattle={(battleId) => canResumeBattle(saveState.snapshot, { kind: "gym", battleId })}
+        canResumeWildBattle={(zoneId) => canResumeBattle(saveState.snapshot, { kind: "wild", zoneId })}
+        canStartGymBattle={(battleId) => {
+          const battle = registry.battlesById[battleId];
+          return battle ? canStartGymBattle(saveState.snapshot, battle) : false;
         }}
+        combatView={combatView}
+        locale={locale}
+        onEnterWildBattle={handleStartWildBattle}
         onOpenTeam={() => setActiveWindow("team")}
         onStartDialogue={(zoneId, activityId) => {
           runSliceAction({ type: "start_dialogue_activity", zoneId, activityId });
         }}
-        onWinBattle={(battleId) => {
-          runSliceAction({ type: "win_battle_debug", battleId });
-        }}
+        onStartGymBattle={handleStartGymBattle}
+        view={sliceView}
       />
 
       {sliceView.activeDialogue ? (
@@ -236,20 +370,27 @@ export function App() {
         />
       ) : null}
 
+      {showStarterChoice ? (
+        <StarterChoiceWindow
+          locale={locale}
+          onChoose={handleChooseStarter}
+          starters={starterSpecies}
+        />
+      ) : null}
+
       <aside className={activeWindow ? "focus-window is-visible" : "focus-window"}>
         {activeWindow === "save" ? (
           <SaveWindow
             locale={locale}
-            saveState={saveState}
             onExport={handleExport}
             onFlush={() => gameSaveManager.flush()}
-            onImport={(serializedSave) => gameSaveManager.importFromString(serializedSave)}
+            onImport={handleImport}
             onIncrementCounter={(field) => {
-              gameSaveManager.incrementSpeciesCounters("chimchar", { [field]: 1 });
+              gameSaveManager.incrementSpeciesCounters(saveCounterSpeciesId, { [field]: 1 });
             }}
             onReset={async () => {
               const confirmed = window.confirm(
-                locale === "fr" ? "Reset la sauvegarde locale ?" : "Reset local save?",
+                locale === "fr" ? "Réinitialiser la sauvegarde locale ?" : "Reset local save?",
               );
 
               if (!confirmed) {
@@ -257,12 +398,17 @@ export function App() {
               }
 
               await gameSaveManager.reset();
-              if (registryState.registry) {
-                gameSaveManager.update((draft) => {
-                  syncSliceProgressionState(draft, registryState.registry!);
-                }, { immediate: true });
-              }
+              gameSaveManager.update((draft) => {
+                syncGameRuntimeState(draft, registry);
+              }, { immediate: true });
             }}
+            saveState={saveState}
+            speciesId={saveCounterSpeciesId}
+            speciesLabel={
+              registry.speciesById[saveCounterSpeciesId]
+                ? pickLocalizedText(registry.speciesById[saveCounterSpeciesId].name, locale)
+                : saveCounterSpeciesId
+            }
           />
         ) : null}
 
@@ -273,6 +419,9 @@ export function App() {
             view={sliceView}
             onSelectZone={setSelectedMapZoneId}
             onTravel={(zoneId) => {
+              if (saveState.snapshot.battle.activeSession) {
+                return;
+              }
               runSliceAction({ type: "travel_to_zone", zoneId });
               setActiveWindow(null);
             }}
@@ -293,7 +442,13 @@ export function App() {
         ) : null}
 
         {activeWindow === "team" ? (
-          <PlaceholderWindow rows={text.teamRows} title={text.teamTitle} />
+          <TeamWindow
+            locale={locale}
+            onSetTeamSlot={handleSetTeamSlot}
+            speciesProgressById={saveState.snapshot.species}
+            teamSlots={saveState.snapshot.player.teamSlots}
+            unlockedSpecies={unlockedSpecies}
+          />
         ) : null}
       </aside>
     </main>

@@ -22,15 +22,15 @@ const copy = {
     rewardClaimed: "Reward Claimed",
   },
   fr: {
-    title: "Quetes",
+    title: "Quêtes",
     main: "Main",
     side: "Secondaires",
-    claim: "Recuperer",
-    locked: "Bloquee",
+    claim: "Récupérer",
+    locked: "Bloquée",
     available: "Disponible",
     active: "Active",
-    completed: "Completee",
-    rewardClaimed: "Recompense prise",
+    completed: "Terminée",
+    rewardClaimed: "Récompense reçue",
   },
 } as const;
 

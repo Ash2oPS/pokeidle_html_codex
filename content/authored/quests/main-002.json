@@ -7,7 +7,7 @@
   },
   "summary": {
     "en": "Complete both combat routes, then unlock Oreburgh City.",
-    "fr": "Complete les deux zones de combat, puis debloque Charbourg."
+    "fr": "Complète les deux zones de combat, puis débloque Charbourg."
   },
   "prerequisiteQuestIds": ["main-001"],
   "requiredFlags": ["talked-to-rowan"],
@@ -17,7 +17,7 @@
       "id": "clear-route-1",
       "description": {
         "en": "Complete Route 201.",
-        "fr": "Completer la Route 201."
+        "fr": "Compléter la Route 201."
       },
       "zoneId": "route-1"
     },
@@ -26,7 +26,7 @@
       "id": "clear-route-2",
       "description": {
         "en": "Complete Oreburgh Gate.",
-        "fr": "Completer la Porte de Charbourg."
+        "fr": "Compléter la Porte de Charbourg."
       },
       "zoneId": "route-2"
     }

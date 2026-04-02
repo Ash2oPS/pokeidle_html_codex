@@ -1,6 +1,8 @@
 import type {
   BattleDefinition,
+  CombatTuningDefinition,
   DialogueDocument,
+  PokemonSpeciesDefinition,
   QuestDefinition,
   WorldMapDefinition,
   ZoneActivityDefinition,
@@ -8,7 +10,9 @@ import type {
 } from "@pokeidle/contracts";
 import {
   battleDefinitionSchema,
+  combatTuningDefinitionSchema,
   dialogueDocumentSchema,
+  pokemonSpeciesDefinitionSchema,
   questDefinitionSchema,
   worldMapDefinitionSchema,
   zoneDefinitionSchema,
@@ -22,6 +26,8 @@ export interface RawContentRegistryInput {
   dialogues: readonly unknown[];
   quests: readonly unknown[];
   battles: readonly unknown[];
+  species: readonly unknown[];
+  progression: unknown;
 }
 
 export interface ContentRegistry {
@@ -30,6 +36,8 @@ export interface ContentRegistry {
   dialoguesById: Record<string, DialogueDocument>;
   questsById: Record<string, QuestDefinition>;
   battlesById: Record<string, BattleDefinition>;
+  speciesById: Record<string, PokemonSpeciesDefinition>;
+  progression: CombatTuningDefinition;
 }
 
 export class ContentRegistryError extends Error {
@@ -159,6 +167,50 @@ function validateZoneActivityReferences(
   });
 }
 
+function validateSpeciesReferences(
+  zonesById: Record<string, ZoneDefinition>,
+  battlesById: Record<string, BattleDefinition>,
+  speciesById: Record<string, PokemonSpeciesDefinition>,
+): void {
+  Object.values(zonesById).forEach((zone) => {
+    if (zone.kind !== "combat") {
+      return;
+    }
+
+    zone.battle.enemyPoolIds.forEach((speciesId) => {
+      assertReference(speciesById[speciesId], "zone", zone.id, "enemyPoolIds", speciesId);
+    });
+  });
+
+  Object.values(battlesById).forEach((battle) => {
+    battle.enemyTeam?.forEach((enemy) => {
+      assertReference(speciesById[enemy.speciesId], "battle", battle.id, "enemyTeam.speciesId", enemy.speciesId);
+    });
+  });
+
+  Object.values(speciesById).forEach((species) => {
+    if (species.defensiveTypes.length === 0) {
+      throw new ContentRegistryError(
+        `Invalid species "${species.id}": defensiveTypes must contain at least one type.`,
+      );
+    }
+
+    if (!species.defensiveTypes.includes(species.defaultOffensiveType)) {
+      throw new ContentRegistryError(
+        `Invalid species "${species.id}": defaultOffensiveType "${species.defaultOffensiveType}" must be present in defensiveTypes.`,
+      );
+    }
+
+    if (species.evolvesFromSpeciesId) {
+      assertReference(speciesById[species.evolvesFromSpeciesId], "species", species.id, "evolvesFromSpeciesId", species.evolvesFromSpeciesId);
+    }
+
+    species.evolvesToSpeciesIds.forEach((speciesId) => {
+      assertReference(speciesById[speciesId], "species", species.id, "evolvesToSpeciesIds", speciesId);
+    });
+  });
+}
+
 function validateQuestReferences(
   questsById: Record<string, QuestDefinition>,
   zonesById: Record<string, ZoneDefinition>,
@@ -229,6 +281,10 @@ export function createContentRegistry(rawContent: RawContentRegistryInput): Cont
   const battles = rawContent.battles.map((battle, index) =>
     parseDocument("battle", `battles[${index}]`, battleDefinitionSchema, battle),
   );
+  const species = rawContent.species.map((speciesRecord, index) =>
+    parseDocument("species", `species[${index}]`, pokemonSpeciesDefinitionSchema, speciesRecord),
+  );
+  const progression = parseDocument("progression", "progression", combatTuningDefinitionSchema, rawContent.progression);
 
   const registry: ContentRegistry = {
     worldMap,
@@ -236,6 +292,8 @@ export function createContentRegistry(rawContent: RawContentRegistryInput): Cont
     dialoguesById: createDocumentMap("dialogue", dialogues),
     questsById: createDocumentMap("quest", quests),
     battlesById: createDocumentMap("battle", battles),
+    speciesById: createDocumentMap("species", species),
+    progression,
   };
 
   validateWorldMapReferences(registry.worldMap, registry.zonesById);
@@ -247,6 +305,7 @@ export function createContentRegistry(rawContent: RawContentRegistryInput): Cont
     registry.battlesById,
   );
   validateQuestReferences(registry.questsById, registry.zonesById, registry.battlesById);
+  validateSpeciesReferences(registry.zonesById, registry.battlesById, registry.speciesById);
 
   return registry;
 }

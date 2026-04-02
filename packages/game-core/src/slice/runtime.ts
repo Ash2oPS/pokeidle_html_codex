@@ -417,15 +417,11 @@ function getActiveZoneView(
   const zone = (registry.zonesById[save.player.activeZoneId] ??
     registry.zonesById[DEFAULT_ACTIVE_ZONE_ID])!;
   const progress = save.zones[zone.id] ?? createDefaultZoneProgressState();
-  const hasGymActivity =
-    zone.kind === "pacifist"
-      ? zone.activities.some((activity) => activity.kind === "gym_battle")
-      : false;
 
   return {
     zone,
     progress,
-    sceneKind: zone.kind === "combat" ? "combat" : hasGymActivity ? "gym" : "town",
+    sceneKind: zone.kind === "combat" ? "combat" : "town",
   };
 }
 

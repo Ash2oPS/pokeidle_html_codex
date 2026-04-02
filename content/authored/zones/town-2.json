@@ -12,7 +12,7 @@
       "npcId": "gym-guide",
       "label": {
         "en": "Gym Guide",
-        "fr": "Guide de l'arene"
+        "fr": "Guide de l’arène"
       },
       "dialogueId": "town-2-gym-intro",
       "grantsFlag": "talked-to-gym-guide",
@@ -23,7 +23,7 @@
       "id": "oreburgh-gym",
       "label": {
         "en": "Oreburgh Gym",
-        "fr": "Arene de Charbourg"
+        "fr": "Arène de Charbourg"
       },
       "battleId": "gym-001"
     }

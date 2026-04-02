@@ -17,9 +17,15 @@ export function createDefaultGameSave(nowIso = new Date().toISOString()): GameSa
     player: {
       activeZoneId: DEFAULT_ACTIVE_ZONE_ID,
       pokedollars: 0,
+      starterChoice: null,
+      unlockedSpeciesIds: [],
+      teamSlots: [null, null, null, null, null, null],
     },
     slice: {
       activeDialogue: null,
+    },
+    battle: {
+      activeSession: null,
     },
     species: {},
     families: {},

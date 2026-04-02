@@ -1,0 +1,15 @@
+{
+  "id": "combat-v1",
+  "slotIntervalMs": 1000,
+  "levelStatScalar": 0.18,
+  "enemyHpMultiplier": 6,
+  "damageConstant": 12,
+  "wildActingXp": 10,
+  "wildBenchXp": 4,
+  "wildPokedollars": 8,
+  "gymActingXp": 18,
+  "gymBenchXp": 8,
+  "gymClearPokedollars": 120,
+  "xpBase": 20,
+  "xpPerLevel": 10
+}

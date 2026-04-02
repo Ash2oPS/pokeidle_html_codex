@@ -21,11 +21,14 @@
 ## Critical Save Domains
 
 - unlocked species
+- starter choice
+- ordered 6-slot team composition
 - per-species progress
 - per-family capture mastery
 - zone progression
 - quests and flags
 - active slice dialogue state
+- active combat session state
 - currency and rewards
 - per-species encounter, defeat, and capture counters
 
@@ -40,3 +43,14 @@
 - imported JSON save files are migrated through the same pipeline as loaded saves
 - export format is inline minified JSON
 - per-species encounter, defeat, and capture counters are part of the saved state
+- the save now persists:
+  - unlocked starter and unlocked species ids
+  - ordered team slots
+  - active wild or gym battle session snapshots
+- battle session snapshots include:
+  - current enemy snapshot
+  - slot index
+  - elapsed combat time
+  - last processed timestamp
+  - zone streak or gym enemy index
+  - deterministic RNG state for wild encounters

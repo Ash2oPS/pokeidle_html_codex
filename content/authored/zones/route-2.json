@@ -8,6 +8,7 @@
   "battle": {
     "enemyPoolIds": ["zubat", "geodude", "machop"],
     "enemyTimerSeconds": 10,
-    "defeatsRequired": 18
+    "defeatsRequired": 18,
+    "enemyLevel": 5
   }
 }

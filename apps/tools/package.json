@@ -13,6 +13,7 @@
     "@pokeidle/content-data": "workspace:*",
     "@pokeidle/content-schema": "workspace:*",
     "@pokeidle/contracts": "workspace:*",
+    "@pokeidle/game-core": "workspace:*",
     "@pokeidle/ui-tokens": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

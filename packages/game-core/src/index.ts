@@ -33,4 +33,8 @@ export function pickLocalizedText(text: LocalizedText, locale: Locale): string {
 }
 
 export * from "./save";
+export * from "./runtime";
+export * from "./combat/runtime";
+export * from "./roster/runtime";
 export * from "./slice";
+export * from "./pokemon/scaling";

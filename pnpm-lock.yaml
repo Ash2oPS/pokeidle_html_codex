@@ -59,6 +59,9 @@ importers:
       '@pokeidle/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@pokeidle/game-core':
+        specifier: workspace:*
+        version: link:../../packages/game-core
       '@pokeidle/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens

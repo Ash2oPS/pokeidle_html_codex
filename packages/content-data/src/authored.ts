@@ -1,6 +1,8 @@
 import gym001Json from "../../../content/authored/battles/gym-001.json";
 import town1IntroJson from "../../../content/authored/dialogues/town-1-intro.json";
 import town2GymIntroJson from "../../../content/authored/dialogues/town-2-gym-intro.json";
+import combatProgressionJson from "../../../content/authored/progression/combat.v1.json";
+import pokemonSpeciesJson from "../../../content/generated/pokemon/species.v1.json";
 import main001Json from "../../../content/authored/quests/main-001.json";
 import main002Json from "../../../content/authored/quests/main-002.json";
 import side001Json from "../../../content/authored/quests/side-001.json";
@@ -16,4 +18,6 @@ export const authoredContentDocuments = {
   dialogues: [town1IntroJson, town2GymIntroJson],
   quests: [main001Json, main002Json, side001Json],
   battles: [gym001Json],
+  species: pokemonSpeciesJson,
+  progression: combatProgressionJson,
 } as const;

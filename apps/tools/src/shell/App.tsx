@@ -80,7 +80,7 @@ export function App() {
 
       <section className="studio-main">
         {activeModule === "zones" ? <ZoneEditorPanel registry={registry} /> : null}
-        {activeModule === "pokemon" ? <PokemonViewerPanel /> : null}
+        {activeModule === "pokemon" ? <PokemonViewerPanel registry={registry} /> : null}
         {activeModule === "dialogues" ? <DialogueEditorPanel registry={registry} /> : null}
       </section>
     </main>

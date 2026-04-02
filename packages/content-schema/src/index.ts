@@ -35,6 +35,7 @@ export const zoneBattleSettingsSchema = z.object({
   enemyPoolIds: z.array(idSchema).min(1),
   enemyTimerSeconds: z.number().positive(),
   defeatsRequired: z.number().int().positive(),
+  enemyLevel: z.number().int().positive(),
 });
 
 export const zoneDialogueNpcActivitySchema = z.object({
@@ -94,15 +95,39 @@ export const baseStatsSchema = z.object({
   speed: z.number().nonnegative(),
 });
 
-export const pokemonSpeciesSummarySchema = z.object({
+export const battleEnemyDefinitionSchema = z.object({
+  speciesId: idSchema,
+  level: z.number().int().positive(),
+});
+
+export const pokemonSpeciesDefinitionSchema = z.object({
   id: idSchema,
   dexNumber: z.number().int().positive(),
   familyId: idSchema,
   name: localizedTextSchema,
-  primaryType: idSchema,
-  secondaryType: idSchema.optional(),
+  defensiveTypes: z.array(idSchema).min(1),
+  defaultOffensiveType: idSchema,
   spriteUrl: z.string().url(),
   baseStats: baseStatsSchema,
+  evolvesFromSpeciesId: idSchema.optional(),
+  evolvesToSpeciesIds: z.array(idSchema),
+  talentId: z.string().nullable(),
+});
+
+export const combatTuningDefinitionSchema = z.object({
+  id: idSchema,
+  slotIntervalMs: z.number().int().positive(),
+  levelStatScalar: z.number().positive(),
+  enemyHpMultiplier: z.number().positive(),
+  damageConstant: z.number().positive(),
+  wildActingXp: z.number().int().positive(),
+  wildBenchXp: z.number().int().positive(),
+  wildPokedollars: z.number().int().positive(),
+  gymActingXp: z.number().int().positive(),
+  gymBenchXp: z.number().int().positive(),
+  gymClearPokedollars: z.number().int().positive(),
+  xpBase: z.number().int().positive(),
+  xpPerLevel: z.number().int().positive(),
 });
 
 export const dialogueParticipantSchema = z.object({
@@ -183,6 +208,7 @@ export const battleDefinitionSchema = z.object({
   timeLimitSeconds: z.number().positive(),
   teamSizeLimit: z.number().int().positive().optional(),
   unlockFlagOnWin: idSchema.optional(),
+  enemyTeam: z.array(battleEnemyDefinitionSchema).min(1).optional(),
 });
 
 export type WorldMapDefinitionInput = z.infer<typeof worldMapDefinitionSchema>;
@@ -190,7 +216,9 @@ export type WorldMapNodeInput = z.infer<typeof worldMapNodeSchema>;
 export type WorldMapLinkInput = z.infer<typeof worldMapLinkSchema>;
 export type ZoneActivityDefinitionInput = z.infer<typeof zoneActivityDefinitionSchema>;
 export type ZoneDefinitionInput = z.infer<typeof zoneDefinitionSchema>;
-export type PokemonSpeciesSummaryInput = z.infer<typeof pokemonSpeciesSummarySchema>;
+export type BattleEnemyDefinitionInput = z.infer<typeof battleEnemyDefinitionSchema>;
+export type PokemonSpeciesDefinitionInput = z.infer<typeof pokemonSpeciesDefinitionSchema>;
+export type CombatTuningDefinitionInput = z.infer<typeof combatTuningDefinitionSchema>;
 export type DialogueDocumentInput = z.infer<typeof dialogueDocumentSchema>;
 export type QuestDefinitionInput = z.infer<typeof questDefinitionSchema>;
 export type QuestObjectiveDefinitionInput = z.infer<typeof questObjectiveDefinitionSchema>;

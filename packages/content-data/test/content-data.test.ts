@@ -1,6 +1,8 @@
 import {
   battleDefinitionSchema,
+  combatTuningDefinitionSchema,
   dialogueDocumentSchema,
+  pokemonSpeciesDefinitionSchema,
   questDefinitionSchema,
   worldMapDefinitionSchema,
   zoneDefinitionSchema,
@@ -70,6 +72,7 @@ function createValidRawContent() {
           enemyPoolIds: ["starly"],
           enemyTimerSeconds: 8,
           defeatsRequired: 10,
+          enemyLevel: 2,
         },
       },
     ],
@@ -130,7 +133,7 @@ function createValidRawContent() {
             id: "clear-route",
             description: {
               en: "Complete the route.",
-              fr: "Completer la route.",
+              fr: "Compléter la route.",
             },
             zoneId: "route-1",
           },
@@ -139,7 +142,7 @@ function createValidRawContent() {
             id: "win-gym",
             description: {
               en: "Win the gym.",
-              fr: "Gagner l'arene.",
+              fr: "Gagner l’arène.",
             },
             battleId: "battle-1",
           },
@@ -162,11 +165,56 @@ function createValidRawContent() {
         kind: "gym",
         name: {
           en: "Gym",
-          fr: "Arene",
+          fr: "Arène",
         },
         timeLimitSeconds: 60,
+        enemyTeam: [
+          {
+            speciesId: "starly",
+            level: 8,
+          },
+        ],
       },
     ],
+    species: [
+      {
+        id: "starly",
+        dexNumber: 396,
+        familyId: "starly-family",
+        name: {
+          en: "Starly",
+          fr: "Etourmi",
+        },
+        defensiveTypes: ["normal", "flying"],
+        defaultOffensiveType: "flying",
+        spriteUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/396.png",
+        baseStats: {
+          hp: 40,
+          attack: 55,
+          defense: 30,
+          specialAttack: 30,
+          specialDefense: 30,
+          speed: 60,
+        },
+        evolvesToSpeciesIds: [],
+        talentId: null,
+      },
+    ],
+    progression: {
+      id: "combat-v1",
+      slotIntervalMs: 1000,
+      levelStatScalar: 0.18,
+      enemyHpMultiplier: 6,
+      damageConstant: 12,
+      wildActingXp: 10,
+      wildBenchXp: 4,
+      wildPokedollars: 8,
+      gymActingXp: 18,
+      gymBenchXp: 8,
+      gymClearPokedollars: 120,
+      xpBase: 20,
+      xpPerLevel: 10,
+    },
   };
 }
 
@@ -224,6 +272,16 @@ describe("content schemas", () => {
 
     expect(battleDefinitionSchema.safeParse(invalidBattle).success).toBe(false);
   });
+
+  it("accepts a valid species document", () => {
+    const raw = createValidRawContent();
+    expect(pokemonSpeciesDefinitionSchema.safeParse(raw.species[0]).success).toBe(true);
+  });
+
+  it("accepts a valid progression document", () => {
+    const raw = createValidRawContent();
+    expect(combatTuningDefinitionSchema.safeParse(raw.progression).success).toBe(true);
+  });
 });
 
 describe("content registry cross validation", () => {
@@ -253,5 +311,12 @@ describe("content registry cross validation", () => {
     raw.zones[0].activities[0].startsQuestId = "missing-quest";
 
     expect(() => createContentRegistry(raw)).toThrow(/startsQuestId "missing-quest"/);
+  });
+
+  it("rejects a broken species reference from a combat zone", () => {
+    const raw = createValidRawContent();
+    raw.zones[1].battle.enemyPoolIds = ["missing-species"];
+
+    expect(() => createContentRegistry(raw)).toThrow(/enemyPoolIds "missing-species"/);
   });
 });

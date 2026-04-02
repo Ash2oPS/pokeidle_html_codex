@@ -6,6 +6,13 @@ interface BattleCanvasProps {
   layoutMode: LayoutMode;
   sceneKind: "town" | "combat" | "gym";
   zoneLabel: string;
+  enemyLabel: string | null;
+  enemyHpPercent: number;
+  activeSlotIndex: number | null;
+  progressLabel: string | null;
+  timerLabel: string | null;
+  reactionLabel: string | null;
+  teamSlots: Array<string | null>;
 }
 
 function getScenePalette(sceneKind: BattleCanvasProps["sceneKind"]) {
@@ -38,7 +45,18 @@ function getScenePalette(sceneKind: BattleCanvasProps["sceneKind"]) {
   };
 }
 
-export function BattleCanvas({ layoutMode, sceneKind, zoneLabel }: BattleCanvasProps) {
+export function BattleCanvas({
+  layoutMode,
+  sceneKind,
+  zoneLabel,
+  enemyLabel,
+  enemyHpPercent,
+  activeSlotIndex,
+  progressLabel,
+  timerLabel,
+  reactionLabel,
+  teamSlots,
+}: BattleCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -73,7 +91,7 @@ export function BattleCanvas({ layoutMode, sceneKind, zoneLabel }: BattleCanvasP
       context.ellipse(width / 2, height * 0.78, width * 0.34, height * 0.13, 0, 0, Math.PI * 2);
       context.fill();
 
-      if (sceneKind === "town") {
+      if (sceneKind === "town" && !enemyLabel) {
         const buildingWidth = layoutMode === "mobile-portrait" ? 84 : 120;
         const buildingHeight = layoutMode === "mobile-portrait" ? 110 : 140;
 
@@ -116,16 +134,22 @@ export function BattleCanvas({ layoutMode, sceneKind, zoneLabel }: BattleCanvasP
         const radians = (angle * Math.PI) / 180;
         const x = centerX + Math.cos(radians) * slotDistance;
         const y = centerY + Math.sin(radians) * slotDistance * 0.7;
+        const filled = teamSlots[index] !== null;
+        const active = activeSlotIndex === index;
 
-        context.fillStyle = index < 3 ? uiTokens.colors.leaf : uiTokens.colors.panelStrong;
+        context.fillStyle = filled ? uiTokens.colors.leaf : uiTokens.colors.panelStrong;
         context.beginPath();
         context.roundRect(x - 28, y - 22, 56, 44, 16);
         context.fill();
 
+        context.lineWidth = active ? 4 : 2;
+        context.strokeStyle = active ? "#ffd85c" : "#1f4f87";
+        context.stroke();
+
         context.fillStyle = uiTokens.colors.ink;
         context.font = "700 12px 'Trebuchet MS', sans-serif";
         context.textAlign = "center";
-        context.fillText(String.fromCharCode(65 + index), x, y + 4);
+        context.fillText(String(index + 1), x, y + 4);
       });
 
       context.fillStyle = palette.banner;
@@ -136,6 +160,55 @@ export function BattleCanvas({ layoutMode, sceneKind, zoneLabel }: BattleCanvasP
       context.font = "700 15px 'Trebuchet MS', sans-serif";
       context.textAlign = "center";
       context.fillText(zoneLabel, width / 2, 48);
+
+      if (enemyLabel) {
+        context.fillStyle = "#ffffff";
+        context.beginPath();
+        context.roundRect(width / 2 - 120, 76, 240, 52, 18);
+        context.fill();
+        context.strokeStyle = "#1f4f87";
+        context.lineWidth = 2;
+        context.stroke();
+
+        context.fillStyle = uiTokens.colors.ink;
+        context.font = "700 14px 'Trebuchet MS', sans-serif";
+        context.fillText(enemyLabel, width / 2, 97);
+
+        context.fillStyle = "#dfeafb";
+        context.beginPath();
+        context.roundRect(width / 2 - 92, 106, 184, 10, 999);
+        context.fill();
+
+        context.fillStyle = "#ff8fa0";
+        context.beginPath();
+        context.roundRect(width / 2 - 92, 106, 184 * Math.max(0, Math.min(1, enemyHpPercent)), 10, 999);
+        context.fill();
+      }
+
+      if (progressLabel || timerLabel || reactionLabel) {
+        const cardX = width - 176;
+        context.fillStyle = "#ffffff";
+        context.beginPath();
+        context.roundRect(cardX, 84, 150, 74, 18);
+        context.fill();
+        context.strokeStyle = "#1f4f87";
+        context.lineWidth = 2;
+        context.stroke();
+
+        context.fillStyle = uiTokens.colors.ink;
+        context.font = "700 12px 'Trebuchet MS', sans-serif";
+        context.textAlign = "left";
+        if (timerLabel) {
+          context.fillText(timerLabel, cardX + 14, 108);
+        }
+        if (progressLabel) {
+          context.fillText(progressLabel, cardX + 14, 128);
+        }
+        if (reactionLabel) {
+          context.fillStyle = "#57b79d";
+          context.fillText(reactionLabel, cardX + 14, 148);
+        }
+      }
     };
 
     resizeAndDraw();
@@ -144,7 +217,18 @@ export function BattleCanvas({ layoutMode, sceneKind, zoneLabel }: BattleCanvasP
     return () => {
       window.removeEventListener("resize", resizeAndDraw);
     };
-  }, [layoutMode, sceneKind, zoneLabel]);
+  }, [
+    activeSlotIndex,
+    enemyHpPercent,
+    enemyLabel,
+    layoutMode,
+    progressLabel,
+    reactionLabel,
+    sceneKind,
+    teamSlots,
+    timerLabel,
+    zoneLabel,
+  ]);
 
   return <canvas ref={canvasRef} className="battle-canvas" aria-label="battle playfield" />;
 }

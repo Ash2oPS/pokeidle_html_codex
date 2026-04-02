@@ -36,10 +36,11 @@ The project is AI-assisted and must stay strongly constrained by documentation, 
 - All player-facing text must support English and French.
 - English is the default fallback language.
 - Do not hardcode single-language strings into gameplay content or UI flow.
+- Store all text-bearing source files in UTF-8.
+- Keep French accents and special characters intact in authored content and UI copy.
 
 ## Documentation Rules
 
 - Update documentation when architecture, content contracts, or workflow rules change.
 - Keep guideline files in English only.
 - If a temporary decision file exists, migrate it into permanent docs and remove the temporary file afterward.
-

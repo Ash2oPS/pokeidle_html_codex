@@ -1,31 +1,52 @@
-import { mockPokemonSpecies } from "./mockPokemonSpecies";
+import { useMemo, useState } from "react";
+import type { ContentRegistry } from "@pokeidle/content-data";
+import { scaleStat } from "@pokeidle/game-core";
+
+interface PokemonViewerPanelProps {
+  registry: ContentRegistry;
+}
 
 const levels = [1, 10, 25, 50];
 
-function scaleStat(baseStat: number, level: number) {
-  return Math.round(baseStat * (1 + level * 0.18));
-}
+export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
+  const speciesList = useMemo(
+    () => Object.values(registry.speciesById).sort((left, right) => left.dexNumber - right.dexNumber),
+    [registry],
+  );
+  const [activeSpeciesId, setActiveSpeciesId] = useState<string>(speciesList[0]?.id ?? "");
+  const species = speciesList.find((entry) => entry.id === activeSpeciesId) ?? speciesList[0];
 
-export function PokemonViewerPanel() {
-  const species = mockPokemonSpecies;
+  if (!species) {
+    return null;
+  }
 
   return (
     <section className="studio-window">
       <div className="studio-window__titlebar">
         <strong>Pokemon Viewer</strong>
-        <span>Mock generated data</span>
+        <span>{speciesList.length} generated species</span>
       </div>
       <div className="studio-window__body">
-        <div className="studio-note">
-          Generated Pokemon data is not wired yet. This panel is intentionally isolated from authored V1 content.
-        </div>
+        <label className="studio-field">
+          <span>Species</span>
+          <select value={species.id} onChange={(event) => setActiveSpeciesId(event.target.value)}>
+            {speciesList.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                #{entry.dexNumber} {entry.name.en}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="pokemon-viewer__header">
           <img alt={species.name.en} src={species.spriteUrl} />
           <div>
             <h2>{species.name.en}</h2>
             <p>{species.name.fr}</p>
             <div className="pokemon-tags">
-              <span>{species.primaryType}</span>
+              {species.defensiveTypes.map((type) => (
+                <span key={type}>{type}</span>
+              ))}
+              <span>off:{species.defaultOffensiveType}</span>
             </div>
           </div>
         </div>
@@ -47,9 +68,9 @@ export function PokemonViewerPanel() {
           {levels.map((level) => (
             <div key={level} className="studio-table__row">
               <span>{level}</span>
-              <span>{scaleStat(species.baseStats.attack, level)}</span>
-              <span>{scaleStat(species.baseStats.specialAttack, level)}</span>
-              <span>{scaleStat(species.baseStats.speed, level)}</span>
+              <span>{scaleStat(species.baseStats.attack, level, registry.progression.levelStatScalar)}</span>
+              <span>{scaleStat(species.baseStats.specialAttack, level, registry.progression.levelStatScalar)}</span>
+              <span>{scaleStat(species.baseStats.speed, level, registry.progression.levelStatScalar)}</span>
             </div>
           ))}
         </div>

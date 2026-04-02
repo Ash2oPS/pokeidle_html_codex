@@ -1,0 +1,795 @@
+[
+  {
+    "id": "zubat",
+    "dexNumber": 41,
+    "familyId": "zubat-family",
+    "name": {
+      "en": "Zubat",
+      "fr": "Nosferapti"
+    },
+    "defensiveTypes": [
+      "poison",
+      "flying"
+    ],
+    "defaultOffensiveType": "poison",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/41.png",
+    "baseStats": {
+      "hp": 40,
+      "attack": 45,
+      "defense": 35,
+      "specialAttack": 30,
+      "specialDefense": 40,
+      "speed": 55
+    },
+    "evolvesToSpeciesIds": [
+      "golbat"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "golbat",
+    "dexNumber": 42,
+    "familyId": "zubat-family",
+    "name": {
+      "en": "Golbat",
+      "fr": "Nosferalto"
+    },
+    "defensiveTypes": [
+      "poison",
+      "flying"
+    ],
+    "defaultOffensiveType": "poison",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/42.png",
+    "baseStats": {
+      "hp": 75,
+      "attack": 80,
+      "defense": 70,
+      "specialAttack": 65,
+      "specialDefense": 75,
+      "speed": 90
+    },
+    "evolvesFromSpeciesId": "zubat",
+    "evolvesToSpeciesIds": [
+      "crobat"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "machop",
+    "dexNumber": 66,
+    "familyId": "machop-family",
+    "name": {
+      "en": "Machop",
+      "fr": "Machoc"
+    },
+    "defensiveTypes": [
+      "fighting"
+    ],
+    "defaultOffensiveType": "fighting",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/66.png",
+    "baseStats": {
+      "hp": 70,
+      "attack": 80,
+      "defense": 50,
+      "specialAttack": 35,
+      "specialDefense": 35,
+      "speed": 35
+    },
+    "evolvesToSpeciesIds": [
+      "machoke"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "machoke",
+    "dexNumber": 67,
+    "familyId": "machop-family",
+    "name": {
+      "en": "Machoke",
+      "fr": "Machopeur"
+    },
+    "defensiveTypes": [
+      "fighting"
+    ],
+    "defaultOffensiveType": "fighting",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/67.png",
+    "baseStats": {
+      "hp": 80,
+      "attack": 100,
+      "defense": 70,
+      "specialAttack": 50,
+      "specialDefense": 60,
+      "speed": 45
+    },
+    "evolvesFromSpeciesId": "machop",
+    "evolvesToSpeciesIds": [
+      "machamp"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "machamp",
+    "dexNumber": 68,
+    "familyId": "machop-family",
+    "name": {
+      "en": "Machamp",
+      "fr": "Mackogneur"
+    },
+    "defensiveTypes": [
+      "fighting"
+    ],
+    "defaultOffensiveType": "fighting",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png",
+    "baseStats": {
+      "hp": 90,
+      "attack": 130,
+      "defense": 80,
+      "specialAttack": 65,
+      "specialDefense": 85,
+      "speed": 55
+    },
+    "evolvesFromSpeciesId": "machoke",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "geodude",
+    "dexNumber": 74,
+    "familyId": "geodude-family",
+    "name": {
+      "en": "Geodude",
+      "fr": "Racaillou"
+    },
+    "defensiveTypes": [
+      "rock",
+      "ground"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/74.png",
+    "baseStats": {
+      "hp": 40,
+      "attack": 80,
+      "defense": 100,
+      "specialAttack": 30,
+      "specialDefense": 30,
+      "speed": 20
+    },
+    "evolvesToSpeciesIds": [
+      "graveler"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "graveler",
+    "dexNumber": 75,
+    "familyId": "geodude-family",
+    "name": {
+      "en": "Graveler",
+      "fr": "Gravalanch"
+    },
+    "defensiveTypes": [
+      "rock",
+      "ground"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/75.png",
+    "baseStats": {
+      "hp": 55,
+      "attack": 95,
+      "defense": 115,
+      "specialAttack": 45,
+      "specialDefense": 45,
+      "speed": 35
+    },
+    "evolvesFromSpeciesId": "geodude",
+    "evolvesToSpeciesIds": [
+      "golem"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "golem",
+    "dexNumber": 76,
+    "familyId": "geodude-family",
+    "name": {
+      "en": "Golem",
+      "fr": "Grolem"
+    },
+    "defensiveTypes": [
+      "rock",
+      "ground"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/76.png",
+    "baseStats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 130,
+      "specialAttack": 55,
+      "specialDefense": 65,
+      "speed": 45
+    },
+    "evolvesFromSpeciesId": "graveler",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "onix",
+    "dexNumber": 95,
+    "familyId": "onix-family",
+    "name": {
+      "en": "Onix",
+      "fr": "Onix"
+    },
+    "defensiveTypes": [
+      "rock",
+      "ground"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png",
+    "baseStats": {
+      "hp": 35,
+      "attack": 45,
+      "defense": 160,
+      "specialAttack": 30,
+      "specialDefense": 45,
+      "speed": 70
+    },
+    "evolvesToSpeciesIds": [
+      "steelix"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "crobat",
+    "dexNumber": 169,
+    "familyId": "zubat-family",
+    "name": {
+      "en": "Crobat",
+      "fr": "Nostenfer"
+    },
+    "defensiveTypes": [
+      "poison",
+      "flying"
+    ],
+    "defaultOffensiveType": "poison",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/169.png",
+    "baseStats": {
+      "hp": 85,
+      "attack": 90,
+      "defense": 80,
+      "specialAttack": 70,
+      "specialDefense": 80,
+      "speed": 130
+    },
+    "evolvesFromSpeciesId": "golbat",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "steelix",
+    "dexNumber": 208,
+    "familyId": "onix-family",
+    "name": {
+      "en": "Steelix",
+      "fr": "Steelix"
+    },
+    "defensiveTypes": [
+      "steel",
+      "ground"
+    ],
+    "defaultOffensiveType": "steel",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/208.png",
+    "baseStats": {
+      "hp": 75,
+      "attack": 85,
+      "defense": 200,
+      "specialAttack": 55,
+      "specialDefense": 65,
+      "speed": 30
+    },
+    "evolvesFromSpeciesId": "onix",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "turtwig",
+    "dexNumber": 387,
+    "familyId": "turtwig-family",
+    "name": {
+      "en": "Turtwig",
+      "fr": "Tortipouss"
+    },
+    "defensiveTypes": [
+      "grass"
+    ],
+    "defaultOffensiveType": "grass",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/387.png",
+    "baseStats": {
+      "hp": 55,
+      "attack": 68,
+      "defense": 64,
+      "specialAttack": 45,
+      "specialDefense": 55,
+      "speed": 31
+    },
+    "evolvesToSpeciesIds": [
+      "grotle"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "grotle",
+    "dexNumber": 388,
+    "familyId": "turtwig-family",
+    "name": {
+      "en": "Grotle",
+      "fr": "Boskara"
+    },
+    "defensiveTypes": [
+      "grass"
+    ],
+    "defaultOffensiveType": "grass",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/388.png",
+    "baseStats": {
+      "hp": 75,
+      "attack": 89,
+      "defense": 85,
+      "specialAttack": 55,
+      "specialDefense": 65,
+      "speed": 36
+    },
+    "evolvesFromSpeciesId": "turtwig",
+    "evolvesToSpeciesIds": [
+      "torterra"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "torterra",
+    "dexNumber": 389,
+    "familyId": "turtwig-family",
+    "name": {
+      "en": "Torterra",
+      "fr": "Torterra"
+    },
+    "defensiveTypes": [
+      "grass",
+      "ground"
+    ],
+    "defaultOffensiveType": "grass",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/389.png",
+    "baseStats": {
+      "hp": 95,
+      "attack": 109,
+      "defense": 105,
+      "specialAttack": 75,
+      "specialDefense": 85,
+      "speed": 56
+    },
+    "evolvesFromSpeciesId": "grotle",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "chimchar",
+    "dexNumber": 390,
+    "familyId": "chimchar-family",
+    "name": {
+      "en": "Chimchar",
+      "fr": "Ouisticram"
+    },
+    "defensiveTypes": [
+      "fire"
+    ],
+    "defaultOffensiveType": "fire",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/390.png",
+    "baseStats": {
+      "hp": 44,
+      "attack": 58,
+      "defense": 44,
+      "specialAttack": 58,
+      "specialDefense": 44,
+      "speed": 61
+    },
+    "evolvesToSpeciesIds": [
+      "monferno"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "monferno",
+    "dexNumber": 391,
+    "familyId": "chimchar-family",
+    "name": {
+      "en": "Monferno",
+      "fr": "Chimpenfeu"
+    },
+    "defensiveTypes": [
+      "fire",
+      "fighting"
+    ],
+    "defaultOffensiveType": "fire",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/391.png",
+    "baseStats": {
+      "hp": 64,
+      "attack": 78,
+      "defense": 52,
+      "specialAttack": 78,
+      "specialDefense": 52,
+      "speed": 81
+    },
+    "evolvesFromSpeciesId": "chimchar",
+    "evolvesToSpeciesIds": [
+      "infernape"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "infernape",
+    "dexNumber": 392,
+    "familyId": "chimchar-family",
+    "name": {
+      "en": "Infernape",
+      "fr": "Simiabraz"
+    },
+    "defensiveTypes": [
+      "fire",
+      "fighting"
+    ],
+    "defaultOffensiveType": "fire",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png",
+    "baseStats": {
+      "hp": 76,
+      "attack": 104,
+      "defense": 71,
+      "specialAttack": 104,
+      "specialDefense": 71,
+      "speed": 108
+    },
+    "evolvesFromSpeciesId": "monferno",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "piplup",
+    "dexNumber": 393,
+    "familyId": "piplup-family",
+    "name": {
+      "en": "Piplup",
+      "fr": "Tiplouf"
+    },
+    "defensiveTypes": [
+      "water"
+    ],
+    "defaultOffensiveType": "water",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/393.png",
+    "baseStats": {
+      "hp": 53,
+      "attack": 51,
+      "defense": 53,
+      "specialAttack": 61,
+      "specialDefense": 56,
+      "speed": 40
+    },
+    "evolvesToSpeciesIds": [
+      "prinplup"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "prinplup",
+    "dexNumber": 394,
+    "familyId": "piplup-family",
+    "name": {
+      "en": "Prinplup",
+      "fr": "Prinplouf"
+    },
+    "defensiveTypes": [
+      "water"
+    ],
+    "defaultOffensiveType": "water",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/394.png",
+    "baseStats": {
+      "hp": 64,
+      "attack": 66,
+      "defense": 68,
+      "specialAttack": 81,
+      "specialDefense": 76,
+      "speed": 50
+    },
+    "evolvesFromSpeciesId": "piplup",
+    "evolvesToSpeciesIds": [
+      "empoleon"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "empoleon",
+    "dexNumber": 395,
+    "familyId": "piplup-family",
+    "name": {
+      "en": "Empoleon",
+      "fr": "Pingoléon"
+    },
+    "defensiveTypes": [
+      "water",
+      "steel"
+    ],
+    "defaultOffensiveType": "water",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/395.png",
+    "baseStats": {
+      "hp": 84,
+      "attack": 86,
+      "defense": 88,
+      "specialAttack": 111,
+      "specialDefense": 101,
+      "speed": 60
+    },
+    "evolvesFromSpeciesId": "prinplup",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "starly",
+    "dexNumber": 396,
+    "familyId": "starly-family",
+    "name": {
+      "en": "Starly",
+      "fr": "Étourmi"
+    },
+    "defensiveTypes": [
+      "normal",
+      "flying"
+    ],
+    "defaultOffensiveType": "flying",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/396.png",
+    "baseStats": {
+      "hp": 40,
+      "attack": 55,
+      "defense": 30,
+      "specialAttack": 30,
+      "specialDefense": 30,
+      "speed": 60
+    },
+    "evolvesToSpeciesIds": [
+      "staravia"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "staravia",
+    "dexNumber": 397,
+    "familyId": "starly-family",
+    "name": {
+      "en": "Staravia",
+      "fr": "Étourvol"
+    },
+    "defensiveTypes": [
+      "normal",
+      "flying"
+    ],
+    "defaultOffensiveType": "flying",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/397.png",
+    "baseStats": {
+      "hp": 55,
+      "attack": 75,
+      "defense": 50,
+      "specialAttack": 40,
+      "specialDefense": 40,
+      "speed": 80
+    },
+    "evolvesFromSpeciesId": "starly",
+    "evolvesToSpeciesIds": [
+      "staraptor"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "staraptor",
+    "dexNumber": 398,
+    "familyId": "starly-family",
+    "name": {
+      "en": "Staraptor",
+      "fr": "Étouraptor"
+    },
+    "defensiveTypes": [
+      "normal",
+      "flying"
+    ],
+    "defaultOffensiveType": "flying",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/398.png",
+    "baseStats": {
+      "hp": 85,
+      "attack": 120,
+      "defense": 70,
+      "specialAttack": 50,
+      "specialDefense": 60,
+      "speed": 100
+    },
+    "evolvesFromSpeciesId": "staravia",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "bidoof",
+    "dexNumber": 399,
+    "familyId": "bidoof-family",
+    "name": {
+      "en": "Bidoof",
+      "fr": "Keunotor"
+    },
+    "defensiveTypes": [
+      "normal"
+    ],
+    "defaultOffensiveType": "normal",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/399.png",
+    "baseStats": {
+      "hp": 59,
+      "attack": 45,
+      "defense": 40,
+      "specialAttack": 35,
+      "specialDefense": 40,
+      "speed": 31
+    },
+    "evolvesToSpeciesIds": [
+      "bibarel"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "bibarel",
+    "dexNumber": 400,
+    "familyId": "bidoof-family",
+    "name": {
+      "en": "Bibarel",
+      "fr": "Castorno"
+    },
+    "defensiveTypes": [
+      "normal",
+      "water"
+    ],
+    "defaultOffensiveType": "water",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/400.png",
+    "baseStats": {
+      "hp": 79,
+      "attack": 85,
+      "defense": 60,
+      "specialAttack": 55,
+      "specialDefense": 60,
+      "speed": 71
+    },
+    "evolvesFromSpeciesId": "bidoof",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "shinx",
+    "dexNumber": 403,
+    "familyId": "shinx-family",
+    "name": {
+      "en": "Shinx",
+      "fr": "Lixy"
+    },
+    "defensiveTypes": [
+      "electric"
+    ],
+    "defaultOffensiveType": "electric",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/403.png",
+    "baseStats": {
+      "hp": 45,
+      "attack": 65,
+      "defense": 34,
+      "specialAttack": 40,
+      "specialDefense": 34,
+      "speed": 45
+    },
+    "evolvesToSpeciesIds": [
+      "luxio"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "luxio",
+    "dexNumber": 404,
+    "familyId": "shinx-family",
+    "name": {
+      "en": "Luxio",
+      "fr": "Luxio"
+    },
+    "defensiveTypes": [
+      "electric"
+    ],
+    "defaultOffensiveType": "electric",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/404.png",
+    "baseStats": {
+      "hp": 60,
+      "attack": 85,
+      "defense": 49,
+      "specialAttack": 60,
+      "specialDefense": 49,
+      "speed": 60
+    },
+    "evolvesFromSpeciesId": "shinx",
+    "evolvesToSpeciesIds": [
+      "luxray"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "luxray",
+    "dexNumber": 405,
+    "familyId": "shinx-family",
+    "name": {
+      "en": "Luxray",
+      "fr": "Luxray"
+    },
+    "defensiveTypes": [
+      "electric"
+    ],
+    "defaultOffensiveType": "electric",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/405.png",
+    "baseStats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 79,
+      "specialAttack": 95,
+      "specialDefense": 79,
+      "speed": 70
+    },
+    "evolvesFromSpeciesId": "luxio",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  },
+  {
+    "id": "cranidos",
+    "dexNumber": 408,
+    "familyId": "cranidos-family",
+    "name": {
+      "en": "Cranidos",
+      "fr": "Kranidos"
+    },
+    "defensiveTypes": [
+      "rock"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/408.png",
+    "baseStats": {
+      "hp": 67,
+      "attack": 125,
+      "defense": 40,
+      "specialAttack": 30,
+      "specialDefense": 30,
+      "speed": 58
+    },
+    "evolvesToSpeciesIds": [
+      "rampardos"
+    ],
+    "talentId": null
+  },
+  {
+    "id": "rampardos",
+    "dexNumber": 409,
+    "familyId": "cranidos-family",
+    "name": {
+      "en": "Rampardos",
+      "fr": "Charkos"
+    },
+    "defensiveTypes": [
+      "rock"
+    ],
+    "defaultOffensiveType": "rock",
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/409.png",
+    "baseStats": {
+      "hp": 97,
+      "attack": 165,
+      "defense": 60,
+      "specialAttack": 65,
+      "specialDefense": 50,
+      "speed": 58
+    },
+    "evolvesFromSpeciesId": "cranidos",
+    "evolvesToSpeciesIds": [],
+    "talentId": null
+  }
+]

@@ -1,3 +1,4 @@
+import type { CombatViewState } from "@pokeidle/game-core";
 import type { SliceViewState } from "@pokeidle/game-core";
 import { pickLocalizedText } from "@pokeidle/game-core";
 import type { Locale } from "@pokeidle/contracts";
@@ -5,10 +6,14 @@ import type { Locale } from "@pokeidle/contracts";
 interface CurrentZonePanelProps {
   locale: Locale;
   view: SliceViewState;
-  onCompleteZone: (zoneId: string) => void;
+  combatView: CombatViewState;
+  canStartGymBattle: (battleId: string) => boolean;
+  canResumeGymBattle: (battleId: string) => boolean;
+  canResumeWildBattle: (zoneId: string) => boolean;
+  onEnterWildBattle: (zoneId: string) => void;
   onOpenTeam: () => void;
   onStartDialogue: (zoneId: string, activityId: string) => void;
-  onWinBattle: (battleId: string) => void;
+  onStartGymBattle: (zoneId: string, battleId: string) => void;
 }
 
 const copy = {
@@ -24,33 +29,41 @@ const copy = {
     actions: "Activities",
     talk: "Talk",
     team: "Team",
-    winGym: "Win Gym",
-    completeZone: "Complete Zone",
+    startGym: "Start Gym",
+    resume: "Resume",
+    enterZone: "Enter",
+    teamLimit: "Team limit",
   },
   fr: {
     title: "Zone active",
     combat: "Zone combat",
     pacifist: "Zone ville",
-    completed: "Completee",
-    active: "Active",
+    completed: "Terminée",
+    active: "En cours",
     timer: "Timer",
     defeats: "Victoires",
-    pool: "Pool",
-    actions: "Activites",
+    pool: "Groupe",
+    actions: "Activités",
     talk: "Parler",
-    team: "Equipe",
-    winGym: "Gagner l'arene",
-    completeZone: "Completer la zone",
+    team: "Équipe",
+    startGym: "Lancer l’arène",
+    resume: "Reprendre",
+    enterZone: "Entrer",
+    teamLimit: "Limite équipe",
   },
 } as const;
 
 export function CurrentZonePanel({
   locale,
   view,
-  onCompleteZone,
+  combatView,
+  canStartGymBattle,
+  canResumeGymBattle,
+  canResumeWildBattle,
+  onEnterWildBattle,
   onOpenTeam,
   onStartDialogue,
-  onWinBattle,
+  onStartGymBattle,
 }: CurrentZonePanelProps) {
   const text = copy[locale];
   const { zone, progress } = view.activeZone;
@@ -84,17 +97,17 @@ export function CurrentZonePanel({
               <div className="zone-panel__chips">
                 {zone.battle.enemyPoolIds.map((enemyId) => (
                   <span key={enemyId} className="zone-panel__chip">
-                    {enemyId}
+                    {registrySpeciesLabel(view, enemyId, locale)}
                   </span>
                 ))}
               </div>
             </div>
             <button
               className="zone-panel__action zone-panel__action--primary"
-              onClick={() => onCompleteZone(zone.id)}
+              onClick={() => onEnterWildBattle(zone.id)}
               type="button"
             >
-              {text.completeZone}
+              {canResumeWildBattle(zone.id) ? text.resume : text.enterZone}
             </button>
           </>
         ) : (
@@ -121,20 +134,40 @@ export function CurrentZonePanel({
                     </button>
                   ) : null}
                   {activity.kind === "gym_battle" ? (
-                    <button
-                      className="zone-panel__action zone-panel__action--primary"
-                      onClick={() => onWinBattle(activity.battleId)}
-                      type="button"
-                    >
-                      {text.winGym}
-                    </button>
+                    <div className="zone-panel__action-stack">
+                      <button
+                        className="zone-panel__action zone-panel__action--primary"
+                        disabled={!canResumeGymBattle(activity.battleId) && !canStartGymBattle(activity.battleId)}
+                        onClick={() => onStartGymBattle(zone.id, activity.battleId)}
+                        type="button"
+                      >
+                        {canResumeGymBattle(activity.battleId) ? text.resume : text.startGym}
+                      </button>
+                      {!canResumeGymBattle(activity.battleId) && !canStartGymBattle(activity.battleId) ? (
+                        <span>
+                          {text.teamLimit} {view.registry.battlesById[activity.battleId]?.teamSizeLimit ?? 6}
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {combatView.session ? (
+          <div className="zone-panel__battle-status">
+            <span>{combatView.enemySpecies ? pickLocalizedText(combatView.enemySpecies.name, locale) : "--"}</span>
+            <strong>{combatView.remainingTimerLabel ?? "--"}</strong>
+          </div>
+        ) : null}
       </div>
     </section>
   );
+}
+
+function registrySpeciesLabel(view: SliceViewState, speciesId: string, locale: Locale): string {
+  const species = view.registry.speciesById[speciesId];
+  return species ? pickLocalizedText(species.name, locale) : speciesId;
 }

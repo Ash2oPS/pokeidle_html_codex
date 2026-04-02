@@ -89,6 +89,10 @@ button {
   background: #ffd85c;
 }
 
+.hud-chip--reaction {
+  background: #7bd3b0;
+}
+
 .hud-actions {
   position: absolute;
   z-index: 2;
@@ -253,12 +257,30 @@ button {
   gap: 4px;
 }
 
+.zone-panel__action-stack {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
 .zone-panel__row span,
 .quest-window__summary,
 .dialogue-window__speaker,
 .dialogue-window__text,
 .map-window__node span {
   font-size: 0.78rem;
+}
+
+.zone-panel__battle-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 2px solid #8db5ef;
+  border-radius: 14px;
+  background: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .focus-window {
@@ -307,7 +329,8 @@ button {
 }
 
 .focus-window__body--save,
-.focus-window__body--quests {
+.focus-window__body--quests,
+.focus-window__body--team {
   align-content: start;
 }
 
@@ -348,6 +371,104 @@ button {
   border-radius: 22px;
   background: rgba(245, 248, 255, 0.98);
   box-shadow: 0 12px 0 rgba(31, 79, 135, 0.14);
+}
+
+.starter-window {
+  position: absolute;
+  inset: 96px 18px 96px 18px;
+  z-index: 5;
+  border: 2px solid #1f4f87;
+  border-radius: 22px;
+  background: rgba(245, 248, 255, 0.98);
+  box-shadow: 0 12px 0 rgba(31, 79, 135, 0.14);
+}
+
+.starter-window__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #dbe8ff 0%, #bdd7ff 100%);
+  border-bottom: 2px solid #1f4f87;
+  font-size: 0.88rem;
+}
+
+.starter-window__body {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.starter-window__subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.starter-window__grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.starter-card,
+.team-slot-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid #8db5ef;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.starter-card {
+  align-content: start;
+  justify-items: center;
+}
+
+.starter-card img,
+.team-slot-card__body img {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+}
+
+.team-window__slots {
+  display: grid;
+  gap: 10px;
+}
+
+.team-slot-card__header {
+  display: grid;
+  gap: 8px;
+}
+
+.team-slot-card__header select,
+.studio-field select {
+  border: 2px solid #8db5ef;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #14314f;
+  padding: 8px 10px;
+}
+
+.team-slot-card__body {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.team-slot-card__info {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.team-window__roster {
+  display: grid;
+  gap: 8px;
 }
 
 .dialogue-window__speaker {
@@ -530,5 +651,13 @@ button {
   .map-window__node {
     min-width: 78px;
     padding: 7px 8px;
+  }
+
+  .starter-window {
+    inset: 78px 14px 190px 14px;
+  }
+
+  .starter-window__grid {
+    grid-template-columns: 1fr;
   }
 }
