@@ -1,32 +1,7 @@
+<!-- doc-meta: {"status":"normative","scope":["combat-systems","battle-loop"],"readFirst":["combat-changes","battle-design"]} -->
 # Combat Overview
 
-## Core Loop
-
-- one enemy stands at the center
-- up to six player slots surround it
-- slots resolve in order
-- each slot consumes an action window
-- empty slots still waste that window
-
-## Combat Dimensions
-
-- slot order matters
-- typing matters
-- reactions matter
-- talents matter
-- some combat modes impose battle-level rules or maluses
-
-## Modes
-
-- normal zone combat
-- boss and event combat
-- trainer battles
-- gym battles built on trainer-battle rules
-
-## Talent Policy
-
-- talents are passive
-- talents hook into explicit combat phases
-- simple cases may be configured in data
-- advanced cases stay code-backed behind stable hooks
-
+- Combat resolves through ordered team slots around a single current enemy, and empty slots still consume action windows. [RULE:GAME-COMBAT-001]
+- Slot order, typing, reactions, talents, and battle-level modifiers are first-class combat dimensions and must remain legible in the UI. [RULE:GAME-COMBAT-002]
+- Type and reaction resolution are deterministic runtime systems rather than presentation-only effects. [RULE:GAME-COMBAT-003]
+- Zone, boss or event, trainer, and gym fights are distinct supported combat modes, with gym battles built on trainer-battle rules. [RULE:GAME-COMBAT-004]

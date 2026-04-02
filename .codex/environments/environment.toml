@@ -20,6 +20,11 @@ icon = "run"
 command = "corepack pnpm dev:tools"
 
 [[actions]]
+name = "Check Docs"
+icon = "run"
+command = "node scripts/validate-docs.mjs"
+
+[[actions]]
 name = "Check"
 icon = "run"
 command = "corepack pnpm check"

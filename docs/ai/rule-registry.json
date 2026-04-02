@@ -1,0 +1,1275 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/validate-docs.mjs",
+  "documents": [
+    {
+      "path": "AGENTS.md",
+      "status": "normative",
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "readFirst": [
+        "all-changes"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/ai/change-workflow.md",
+      "status": "normative",
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "readFirst": [
+        "all-changes"
+      ],
+      "ruleCount": 6
+    },
+    {
+      "path": "docs/ai/documentation-governance.md",
+      "status": "normative",
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "readFirst": [
+        "documentation-changes",
+        "new-guidance"
+      ],
+      "ruleCount": 6
+    },
+    {
+      "path": "docs/ai/quality-gates.md",
+      "status": "normative",
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "readFirst": [
+        "all-changes",
+        "release-checks"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/ai/README.md",
+      "status": "reference",
+      "scope": [
+        "ai-navigation",
+        "doc-precedence"
+      ],
+      "readFirst": [
+        "all-changes"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/ai/repository-constraints.md",
+      "status": "normative",
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "readFirst": [
+        "all-code-changes",
+        "new-feature-design"
+      ],
+      "ruleCount": 6
+    },
+    {
+      "path": "docs/ai/rule-coverage.md",
+      "status": "reference",
+      "scope": [
+        "rule-coverage",
+        "audit-history"
+      ],
+      "readFirst": [
+        "documentation-audit"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/architecture/content-pipeline.md",
+      "status": "normative",
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "readFirst": [
+        "content-changes",
+        "generator-work",
+        "tooling-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/architecture/dependency-and-ownership.md",
+      "status": "normative",
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "readFirst": [
+        "new-systems",
+        "refactors"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/architecture/runtime-architecture.md",
+      "status": "normative",
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "readFirst": [
+        "runtime-changes",
+        "combat-changes",
+        "save-changes"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/architecture/save-system.md",
+      "status": "normative",
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "readFirst": [
+        "save-changes",
+        "migration-work",
+        "runtime-state-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/gameplay/combat-overview.md",
+      "status": "normative",
+      "scope": [
+        "combat-systems",
+        "battle-loop"
+      ],
+      "readFirst": [
+        "combat-changes",
+        "battle-design"
+      ],
+      "ruleCount": 4
+    },
+    {
+      "path": "docs/gameplay/progression-systems.md",
+      "status": "normative",
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "readFirst": [
+        "progression-work",
+        "quest-work",
+        "capture-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/gameplay/talent-system.md",
+      "status": "normative",
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "readFirst": [
+        "talent-work",
+        "combat-hooks"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/gameplay/zone-and-battle-systems.md",
+      "status": "normative",
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "readFirst": [
+        "zone-work",
+        "trainer-work",
+        "gym-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/product/localization-policy.md",
+      "status": "normative",
+      "scope": [
+        "localization",
+        "player-facing-text"
+      ],
+      "readFirst": [
+        "ui-changes",
+        "content-changes",
+        "dialogue-work"
+      ],
+      "ruleCount": 4
+    },
+    {
+      "path": "docs/product/preproduction-decisions-archive.md",
+      "status": "archive",
+      "scope": [
+        "historical-preproduction"
+      ],
+      "readFirst": [],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/product/preproduction-decisions.md",
+      "status": "reference",
+      "scope": [
+        "archive-redirect"
+      ],
+      "readFirst": [
+        "archive-navigation"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/product/product-pillars.md",
+      "status": "reference",
+      "scope": [
+        "product-pillars",
+        "project-direction"
+      ],
+      "readFirst": [
+        "feature-scoping",
+        "product-context"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/product/vertical-slice-v1.md",
+      "status": "reference",
+      "scope": [
+        "vertical-slice",
+        "delivery-scope"
+      ],
+      "readFirst": [
+        "slice-scoping"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/README.md",
+      "status": "reference",
+      "scope": [
+        "documentation-index"
+      ],
+      "readFirst": [
+        "docs-navigation"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/testing/testing-strategy.md",
+      "status": "normative",
+      "scope": [
+        "testing-strategy",
+        "quality-policy"
+      ],
+      "readFirst": [
+        "test-planning",
+        "runtime-changes",
+        "ui-changes"
+      ],
+      "ruleCount": 4
+    },
+    {
+      "path": "docs/tooling/content-studio-v1.md",
+      "status": "reference",
+      "scope": [
+        "content-studio",
+        "current-foundation"
+      ],
+      "readFirst": [
+        "tooling-context"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/tooling/editable-data-policy.md",
+      "status": "normative",
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "readFirst": [
+        "tooling-work",
+        "content-work",
+        "balance-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "docs/ui/ui-principles.md",
+      "status": "normative",
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "readFirst": [
+        "ui-changes",
+        "hud-work",
+        "window-work"
+      ],
+      "ruleCount": 5
+    },
+    {
+      "path": "README.md",
+      "status": "reference",
+      "scope": [
+        "repository-readme",
+        "project-entry"
+      ],
+      "readFirst": [
+        "repo-overview"
+      ],
+      "ruleCount": 0
+    }
+  ],
+  "rules": [
+    {
+      "id": "AI-CONSTRAINTS-001",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 4,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Gameplay logic must not live in React components or canvas rendering code, and renderer or UI-only objects must never become gameplay or save state."
+    },
+    {
+      "id": "AI-CONSTRAINTS-002",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 5,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Important design values must live in structured content and documented tool workflows instead of scattered runtime constants."
+    },
+    {
+      "id": "AI-CONSTRAINTS-003",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 6,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Keep `content/source`, `content/generated`, `content/authored`, and runtime bundles as separate layers; source imports stay immutable, generated outputs change intentionally through regeneration or documented pipeline work, and authored data owns project-specific tuning."
+    },
+    {
+      "id": "AI-CONSTRAINTS-004",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 7,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Keep the player game and internal studio as separate apps that share contracts, schemas, and helpers through packages instead of duplicating logic."
+    },
+    {
+      "id": "AI-CONSTRAINTS-005",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 8,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Static-first hosting and local-only save assumptions remain active until an explicit backend or cloud-save architecture decision updates the canonical docs."
+    },
+    {
+      "id": "AI-CONSTRAINTS-006",
+      "status": "normative",
+      "canonicalPath": "docs/ai/repository-constraints.md",
+      "canonicalLine": 9,
+      "scope": [
+        "repository-constraints",
+        "architecture-boundaries"
+      ],
+      "summary": "Guideline files remain English-only, and archive docs remain historical context rather than active implementation guidance."
+    },
+    {
+      "id": "AI-DOC-001",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 4,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Documentation precedence is `AGENTS.md`, then active normative docs in `docs/ai/`, then active task-specific normative docs, then active reference docs, and finally archive docs."
+    },
+    {
+      "id": "AI-DOC-002",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 5,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Every tracked guideline markdown file in the active documentation set must declare `doc-meta` status and scope."
+    },
+    {
+      "id": "AI-DOC-003",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 6,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Every normative bullet in an active normative doc must carry exactly one inline rule marker using the `RULE:<ID>` convention rendered as `[RULE:...]`."
+    },
+    {
+      "id": "AI-DOC-004",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 7,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Every active rule ID must appear exactly once in [rule-registry.json](./rule-registry.json) and must name a single canonical home."
+    },
+    {
+      "id": "AI-DOC-005",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 8,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Adding, changing, relocating, or removing active rules requires same-change updates to the canonical doc, [rule-registry.json](./rule-registry.json), and [rule-coverage.md](./rule-coverage.md)."
+    },
+    {
+      "id": "AI-DOC-006",
+      "status": "normative",
+      "canonicalPath": "docs/ai/documentation-governance.md",
+      "canonicalLine": 9,
+      "scope": [
+        "documentation-governance",
+        "rule-registry"
+      ],
+      "summary": "Temporary decision docs must be migrated into permanent canonical docs and then removed, archived, or converted into redirect stubs."
+    },
+    {
+      "id": "AI-ENTRY-001",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 9,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Read [docs/ai/README.md](./docs/ai/README.md) before any repo change."
+    },
+    {
+      "id": "AI-ENTRY-002",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 10,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Read the relevant normative domain docs before changing gameplay, UI, save, content, tooling, or documentation."
+    },
+    {
+      "id": "AI-ENTRY-003",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 11,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Do not use archive docs as the canonical source of truth; use them only to recover historical rationale."
+    },
+    {
+      "id": "AI-ENTRY-004",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 15,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Keep simulation, rendering, UI, platform, save, and content responsibilities separated; simulation remains the gameplay source of truth."
+    },
+    {
+      "id": "AI-ENTRY-005",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 16,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Keep player-facing text bilingual, store text-bearing source files in UTF-8, preserve accents and special characters, and update the affected canonical docs plus rule tracking when active guidance changes."
+    },
+    {
+      "id": "AI-QUALITY-001",
+      "status": "normative",
+      "canonicalPath": "docs/ai/quality-gates.md",
+      "canonicalLine": 4,
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "summary": "Documentation changes do not pass review until `node scripts/validate-docs.mjs` succeeds."
+    },
+    {
+      "id": "AI-QUALITY-002",
+      "status": "normative",
+      "canonicalPath": "docs/ai/quality-gates.md",
+      "canonicalLine": 5,
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "summary": "Save-model or runtime-state changes require deterministic tests for reconstruction, migrations, and affected progression behavior."
+    },
+    {
+      "id": "AI-QUALITY-003",
+      "status": "normative",
+      "canonicalPath": "docs/ai/quality-gates.md",
+      "canonicalLine": 6,
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "summary": "Content or schema changes require schema validation plus cross-reference validation for authored data and registry exposure."
+    },
+    {
+      "id": "AI-QUALITY-004",
+      "status": "normative",
+      "canonicalPath": "docs/ai/quality-gates.md",
+      "canonicalLine": 7,
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "summary": "UI changes require responsive and localization review, and browser or Playwright coverage only when the change is visually or interaction-wise risky."
+    },
+    {
+      "id": "AI-QUALITY-005",
+      "status": "normative",
+      "canonicalPath": "docs/ai/quality-gates.md",
+      "canonicalLine": 8,
+      "scope": [
+        "quality-gates",
+        "validation"
+      ],
+      "summary": "Broken active links, missing rule IDs, orphan normative docs, or active rules that exist only in archive placement are hard validation failures."
+    },
+    {
+      "id": "AI-WORKFLOW-001",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 4,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Start every change by reading [README.md](./README.md) plus the relevant normative domain docs before making design or implementation decisions."
+    },
+    {
+      "id": "AI-WORKFLOW-002",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 5,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Choose the safest edit surface in this order: tool workflow or authored data, then schemas or overrides, then generators, and only then runtime code."
+    },
+    {
+      "id": "AI-WORKFLOW-003",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 6,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "When runtime contracts, save shapes, or content schemas change, update the affected docs, tests, and migrations in the same change set."
+    },
+    {
+      "id": "AI-WORKFLOW-004",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 7,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "When UI changes land, preserve the deliberate split between desktop landscape and mobile portrait layouts and keep localization intact."
+    },
+    {
+      "id": "AI-WORKFLOW-005",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 8,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Run `node scripts/validate-docs.mjs` for documentation or rule changes, and run the relevant package checks for runtime, schema, content, or UI changes."
+    },
+    {
+      "id": "AI-WORKFLOW-006",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 9,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Use browser or Playwright checks only when the UI change is complex, highly interactive, or visually risky; simple nonvisual edits do not require them."
+    },
+    {
+      "id": "ARCH-CONTENT-001",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/content-pipeline.md",
+      "canonicalLine": 4,
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "summary": "`content/source` stores raw imported source payloads, `content/generated` stores normalized generated outputs, `content/authored` stores project-authored gameplay data, and runtime bundles store shipped production groupings."
+    },
+    {
+      "id": "ARCH-CONTENT-002",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/content-pipeline.md",
+      "canonicalLine": 5,
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "summary": "Canonical imported source data is never hand-edited; generated data changes through regeneration or explicitly documented pipeline work, and authored data owns project-specific tuning and references."
+    },
+    {
+      "id": "ARCH-CONTENT-003",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/content-pipeline.md",
+      "canonicalLine": 6,
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "summary": "Authored content must validate against shared schemas and cross-document references before exposure to apps."
+    },
+    {
+      "id": "ARCH-CONTENT-004",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/content-pipeline.md",
+      "canonicalLine": 7,
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "summary": "Consumers use the typed content registry instead of ad hoc direct JSON imports."
+    },
+    {
+      "id": "ARCH-CONTENT-005",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/content-pipeline.md",
+      "canonicalLine": 8,
+      "scope": [
+        "content-pipeline",
+        "data-ownership"
+      ],
+      "summary": "New content domains require schema coverage, registry validation, docs, and ownership declarations before they join the workflow."
+    },
+    {
+      "id": "ARCH-OWNERSHIP-001",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/dependency-and-ownership.md",
+      "canonicalLine": 4,
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "summary": "`contracts` owns portable domain types, `content-schema` owns validation schemas, `content-data` owns typed registry and cross-reference validation, `game-core` owns simulation and save helpers, and apps own presentation and bootstrapping."
+    },
+    {
+      "id": "ARCH-OWNERSHIP-002",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/dependency-and-ownership.md",
+      "canonicalLine": 5,
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "summary": "Dependency direction flows from apps into shared packages; gameplay packages must not import app-specific UI code."
+    },
+    {
+      "id": "ARCH-OWNERSHIP-003",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/dependency-and-ownership.md",
+      "canonicalLine": 6,
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "summary": "New systems must declare their owning layer and allowed dependencies before implementation starts."
+    },
+    {
+      "id": "ARCH-OWNERSHIP-004",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/dependency-and-ownership.md",
+      "canonicalLine": 7,
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "summary": "Shared schemas, helpers, and visual tokens belong in shared packages instead of being duplicated across apps."
+    },
+    {
+      "id": "ARCH-OWNERSHIP-005",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/dependency-and-ownership.md",
+      "canonicalLine": 8,
+      "scope": [
+        "dependency-direction",
+        "module-ownership"
+      ],
+      "summary": "Avoid monolithic or mixed-responsibility modules; keep files and modules intentionally scoped by domain."
+    },
+    {
+      "id": "ARCH-RUNTIME-001",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 4,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Simulation is the gameplay source of truth; render only draws, UI presents and dispatches intent, and platform owns lifecycle, layout, language, and persistence plumbing."
+    },
+    {
+      "id": "ARCH-RUNTIME-002",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 5,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Important gameplay rules must not depend on active-tab cadence, render loops, or browser background timer behavior."
+    },
+    {
+      "id": "ARCH-RUNTIME-003",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 6,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Combat stepping must remain deterministic from timestamps and saved session state."
+    },
+    {
+      "id": "ARCH-RUNTIME-004",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 7,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Type logic, reaction resolution, stat derivation, progression state, and battle flow belong to `game-core` or equivalent runtime layers rather than React or canvas code."
+    },
+    {
+      "id": "ARCH-RUNTIME-005",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 8,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Wild, boss, trainer, and gym flows remain explicit runtime paths instead of UI-only branches."
+    },
+    {
+      "id": "ARCH-SAVE-001",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/save-system.md",
+      "canonicalLine": 4,
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "summary": "V1 save is local-first with IndexedDB primary storage, manual export or import, reset support, and rotating local backups."
+    },
+    {
+      "id": "ARCH-SAVE-002",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/save-system.md",
+      "canonicalLine": 5,
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "summary": "Keep active state in memory, batch noisy writes, and flush on critical progression events plus page-hide or visibility-risk moments."
+    },
+    {
+      "id": "ARCH-SAVE-003",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/save-system.md",
+      "canonicalLine": 6,
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "summary": "Save data persists progression-critical domains including species or team state, quests, zones, flags, dialogue state, combat sessions, counters, and currency."
+    },
+    {
+      "id": "ARCH-SAVE-004",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/save-system.md",
+      "canonicalLine": 7,
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "summary": "Every save shape change ships with deterministic migration logic and targeted tests."
+    },
+    {
+      "id": "ARCH-SAVE-005",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/save-system.md",
+      "canonicalLine": 8,
+      "scope": [
+        "save-system",
+        "persistence"
+      ],
+      "summary": "Save data never stores renderer objects or UI-only state, and battle snapshots must keep the data required for deterministic reconstruction."
+    },
+    {
+      "id": "GAME-COMBAT-001",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/combat-overview.md",
+      "canonicalLine": 4,
+      "scope": [
+        "combat-systems",
+        "battle-loop"
+      ],
+      "summary": "Combat resolves through ordered team slots around a single current enemy, and empty slots still consume action windows."
+    },
+    {
+      "id": "GAME-COMBAT-002",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/combat-overview.md",
+      "canonicalLine": 5,
+      "scope": [
+        "combat-systems",
+        "battle-loop"
+      ],
+      "summary": "Slot order, typing, reactions, talents, and battle-level modifiers are first-class combat dimensions and must remain legible in the UI."
+    },
+    {
+      "id": "GAME-COMBAT-003",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/combat-overview.md",
+      "canonicalLine": 6,
+      "scope": [
+        "combat-systems",
+        "battle-loop"
+      ],
+      "summary": "Type and reaction resolution are deterministic runtime systems rather than presentation-only effects."
+    },
+    {
+      "id": "GAME-COMBAT-004",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/combat-overview.md",
+      "canonicalLine": 7,
+      "scope": [
+        "combat-systems",
+        "battle-loop"
+      ],
+      "summary": "Zone, boss or event, trainer, and gym fights are distinct supported combat modes, with gym battles built on trainer-battle rules."
+    },
+    {
+      "id": "GAME-PROGRESSION-001",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 4,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Captures unlock usable species instead of persistent individual units, and newly unlocked species always start at level 1."
+    },
+    {
+      "id": "GAME-PROGRESSION-002",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 5,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Capturing an evolved form unlocks the stage-1 species, and evolution unlocks the next species at level 1 as a prestige-like reinvestment path."
+    },
+    {
+      "id": "GAME-PROGRESSION-003",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 6,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Per-family capture mastery, per-species counters, quests, flags, and zone completion are persistent progression systems."
+    },
+    {
+      "id": "GAME-PROGRESSION-004",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 7,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Main quests drive progression and side quests drive optional rewards, but both use one core quest framework and may gate zones, NPC states, and systems."
+    },
+    {
+      "id": "GAME-PROGRESSION-005",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 8,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Offensive typing defaults, asymmetrical combat stats, cosmetic-only shiny or skin systems, and explicit rank or tuning data remain documented systems rather than hidden hardcoded exceptions."
+    },
+    {
+      "id": "GAME-TALENT-001",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/talent-system.md",
+      "canonicalLine": 4,
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "summary": "Each species has at most one fixed passive talent, and the player does not manually choose talents."
+    },
+    {
+      "id": "GAME-TALENT-002",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/talent-system.md",
+      "canonicalLine": 5,
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "summary": "Talents hook into explicit documented phases such as battle start, slot turn start, attack resolution, damage, enemy defeat or spawn, and stat or presentation derivation."
+    },
+    {
+      "id": "GAME-TALENT-003",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/talent-system.md",
+      "canonicalLine": 6,
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "summary": "Talent stacking, targeting, sequence effects, and priority must be deterministic and documented."
+    },
+    {
+      "id": "GAME-TALENT-004",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/talent-system.md",
+      "canonicalLine": 7,
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "summary": "Simple or common talents may be data-backed, but advanced behavior stays code-backed behind stable hooks instead of ad hoc exceptions."
+    },
+    {
+      "id": "GAME-TALENT-005",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/talent-system.md",
+      "canonicalLine": 8,
+      "scope": [
+        "talent-system",
+        "passive-effects"
+      ],
+      "summary": "Adding or changing a talent requires docs, tests, and an explicit choice of data-backed, code-backed, or hybrid ownership."
+    },
+    {
+      "id": "GAME-ZONE-001",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/zone-and-battle-systems.md",
+      "canonicalLine": 4,
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "summary": "Zones are typed nodes in a world graph; combat and pacifist zones share a common framework but do not share identical behavior assumptions."
+    },
+    {
+      "id": "GAME-ZONE-002",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/zone-and-battle-systems.md",
+      "canonicalLine": 5,
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "summary": "Visibility, accessibility, completion, adjacency, conditional unlocks, and backtracking are data-driven progression state and must be saved."
+    },
+    {
+      "id": "GAME-ZONE-003",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/zone-and-battle-systems.md",
+      "canonicalLine": 6,
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "summary": "Pacifist zones support structured activities such as dialogue, team management, gym entry, NPC unlocks, and future services without combat assumptions."
+    },
+    {
+      "id": "GAME-ZONE-004",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/zone-and-battle-systems.md",
+      "canonicalLine": 7,
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "summary": "Zone events, bosses, trainer battles, and gym battles are first-class systems implemented through explicit data and runtime handlers rather than bespoke one-offs."
+    },
+    {
+      "id": "GAME-ZONE-005",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/zone-and-battle-systems.md",
+      "canonicalLine": 8,
+      "scope": [
+        "zone-systems",
+        "battle-structures"
+      ],
+      "summary": "Battle entry constraints, timers, maluses, unlock effects, and locked reasons must be validated before start and made legible in the UI or world map."
+    },
+    {
+      "id": "LOC-001",
+      "status": "normative",
+      "canonicalPath": "docs/product/localization-policy.md",
+      "canonicalLine": 4,
+      "scope": [
+        "localization",
+        "player-facing-text"
+      ],
+      "summary": "All player-facing text must support both English and French from the start."
+    },
+    {
+      "id": "LOC-002",
+      "status": "normative",
+      "canonicalPath": "docs/product/localization-policy.md",
+      "canonicalLine": 5,
+      "scope": [
+        "localization",
+        "player-facing-text"
+      ],
+      "summary": "English is the fallback locale, and French auto-selection may follow browser or device language detection in the runtime layer."
+    },
+    {
+      "id": "LOC-003",
+      "status": "normative",
+      "canonicalPath": "docs/product/localization-policy.md",
+      "canonicalLine": 6,
+      "scope": [
+        "localization",
+        "player-facing-text"
+      ],
+      "summary": "Single-language gameplay or UI text is forbidden in active player-facing flows; localized content belongs in localized data structures."
+    },
+    {
+      "id": "LOC-004",
+      "status": "normative",
+      "canonicalPath": "docs/product/localization-policy.md",
+      "canonicalLine": 7,
+      "scope": [
+        "localization",
+        "player-facing-text"
+      ],
+      "summary": "Text-bearing source files must stay UTF-8, preserve accents and special characters, and treat missing translations as validation debt with safe fallback to English."
+    },
+    {
+      "id": "TEST-001",
+      "status": "normative",
+      "canonicalPath": "docs/testing/testing-strategy.md",
+      "canonicalLine": 4,
+      "scope": [
+        "testing-strategy",
+        "quality-policy"
+      ],
+      "summary": "Prioritize tests that protect docs and architecture contracts, content validation, save or migration safety, deterministic combat, progression, responsive layout, and localization fallback."
+    },
+    {
+      "id": "TEST-002",
+      "status": "normative",
+      "canonicalPath": "docs/testing/testing-strategy.md",
+      "canonicalLine": 5,
+      "scope": [
+        "testing-strategy",
+        "quality-policy"
+      ],
+      "summary": "Elapsed-time reconstruction coverage must include hidden tabs, minimized windows, device sleep, and long offline gaps."
+    },
+    {
+      "id": "TEST-003",
+      "status": "normative",
+      "canonicalPath": "docs/testing/testing-strategy.md",
+      "canonicalLine": 6,
+      "scope": [
+        "testing-strategy",
+        "quality-policy"
+      ],
+      "summary": "Content validation must catch invalid links, missing localized strings, and broken quest, battle, dialogue, or species references."
+    },
+    {
+      "id": "TEST-004",
+      "status": "normative",
+      "canonicalPath": "docs/testing/testing-strategy.md",
+      "canonicalLine": 7,
+      "scope": [
+        "testing-strategy",
+        "quality-policy"
+      ],
+      "summary": "Browser or Playwright checks are required only for complex, interactive, or visually risky UI changes; simple nonvisual changes do not require them."
+    },
+    {
+      "id": "TOOL-DATA-001",
+      "status": "normative",
+      "canonicalPath": "docs/tooling/editable-data-policy.md",
+      "canonicalLine": 4,
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "summary": "Important design values belong in structured editable data and dedicated tools rather than scattered engine constants."
+    },
+    {
+      "id": "TOOL-DATA-002",
+      "status": "normative",
+      "canonicalPath": "docs/tooling/editable-data-policy.md",
+      "canonicalLine": 5,
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "summary": "Safe manual edit surfaces are authored data and documented override files; source imports are immutable and generated outputs are regenerated artifacts unless the change explicitly targets the generator pipeline."
+    },
+    {
+      "id": "TOOL-DATA-003",
+      "status": "normative",
+      "canonicalPath": "docs/tooling/editable-data-policy.md",
+      "canonicalLine": 6,
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "summary": "Editable data must stay human-readable, shallow, validated, and documented when fields control balance or visuals."
+    },
+    {
+      "id": "TOOL-DATA-004",
+      "status": "normative",
+      "canonicalPath": "docs/tooling/editable-data-policy.md",
+      "canonicalLine": 7,
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "summary": "Tool-first editing is the default for normal content and tuning changes; direct file edits are acceptable only when tool coverage is missing or implementation work is required."
+    },
+    {
+      "id": "TOOL-DATA-005",
+      "status": "normative",
+      "canonicalPath": "docs/tooling/editable-data-policy.md",
+      "canonicalLine": 8,
+      "scope": [
+        "editable-data",
+        "tooling-policy"
+      ],
+      "summary": "New editable domains must define schema coverage, validation, defaults or reset strategy, docs, and ownership before they join the workflow."
+    },
+    {
+      "id": "UI-001",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 4,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "UI must stay compact, colorful, flat, simple, and fast to scan; filler text and redundant chrome are forbidden."
+    },
+    {
+      "id": "UI-002",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 5,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "Always-on gameplay uses compact HUD surfaces, while deep interactions use larger focus windows in the project PC-window language."
+    },
+    {
+      "id": "UI-003",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 6,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "Desktop landscape and mobile portrait are distinct intentional layouts rather than shrink-only variants."
+    },
+    {
+      "id": "UI-004",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 7,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "Every visible label must justify its footprint; prefer grouping, hierarchy, icons, and state cues before explanatory text."
+    },
+    {
+      "id": "UI-005",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 8,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "Visual styling uses restrained flat surfaces, disciplined spacing, readable color coding, and minimal decorative clutter while staying consistent with the Pokemon-adjacent direction."
+    }
+  ]
+}

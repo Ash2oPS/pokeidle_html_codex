@@ -1,3 +1,4 @@
+<!-- doc-meta: {"status":"reference","scope":["vertical-slice","delivery-scope"],"readFirst":["slice-scoping"]} -->
 # Vertical Slice V1
 
 ## Scope
@@ -28,4 +29,3 @@
 
 - ship one vertical slice that proves the architecture, the save pipeline, the responsive UI shell, and the authoring workflow
 - defer broad content volume and deep balance passes until the slice is stable
-

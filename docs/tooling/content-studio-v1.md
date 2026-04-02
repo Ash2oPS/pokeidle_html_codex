@@ -1,34 +1,18 @@
+<!-- doc-meta: {"status":"reference","scope":["content-studio","current-foundation"],"readFirst":["tooling-context"]} -->
 # Content Studio V1
 
 ## Product Shape
 
-- one internal web tool
-- multiple domain modules inside it
-- shared navigation, validation, and save flow
+- One internal web tool with multiple domain modules.
+- Shared contracts, schemas, registry loading, and visual tokens with the game.
 
-## Modules In Scope
+## Current Foundation
 
-- zone editor
-- Pokemon viewer
-- dialogue editor
+- Zone editor loads zone data and supports in-memory draft editing for names, timers, defeats, levels, and enemy pools.
+- Pokemon viewer reads generated species data and previews derived runtime stats.
+- Dialogue editor supports in-memory draft editing for bilingual dialogue content.
+- A persistent save flow for studio-authored changes is not implemented yet, so canonical content edits still require reviewed file changes.
 
-## Zone Editor
+## Direction
 
-- edit zone links
-- edit zone settings
-- edit enemy pools
-- edit zone timer values
-- edit completion kill counts
-
-## Pokemon Viewer
-
-- show sprites
-- show canonical base stats
-- show normalized gameplay data
-- simulate derived runtime stats by level
-
-## Dialogue Editor
-
-- edit bilingual dialogue content
-- keep structure compatible with towns, NPCs, and quests
-
+Future studio work should add validated save flow, safer relationship editing, search, and preview support without bypassing shared schemas or content ownership rules.

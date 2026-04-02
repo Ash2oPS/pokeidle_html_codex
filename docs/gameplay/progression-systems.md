@@ -1,32 +1,8 @@
+<!-- doc-meta: {"status":"normative","scope":["progression-systems","species-unlocks"],"readFirst":["progression-work","quest-work","capture-work"]} -->
 # Progression Systems
 
-## Species Unlocks
-
-- capture unlocks a species instead of granting a persistent individual unit
-- newly unlocked species start at level 1
-- capturing an evolved form unlocks the stage-1 species of the line
-
-## Evolution
-
-- evolving unlocks the next species in the line
-- the evolved species starts at level 1
-- evolution works like a reset or prestige layer with stronger long-term potential
-
-## Zones
-
-- most zones are combat zones
-- some zones are pacifist towns
-- adjacency and explicit unlock conditions both matter
-- earlier zones remain accessible
-
-## Quests
-
-- main quests drive story progression
-- side quests focus on optional rewards
-- both use the same core quest framework
-
-## Capture Mastery
-
-- per-family capture totals unlock permanent family bonuses
-- encounter, defeat, and capture counts are saved per species
-
+- Captures unlock usable species instead of persistent individual units, and newly unlocked species always start at level 1. [RULE:GAME-PROGRESSION-001]
+- Capturing an evolved form unlocks the stage-1 species, and evolution unlocks the next species at level 1 as a prestige-like reinvestment path. [RULE:GAME-PROGRESSION-002]
+- Per-family capture mastery, per-species counters, quests, flags, and zone completion are persistent progression systems. [RULE:GAME-PROGRESSION-003]
+- Main quests drive progression and side quests drive optional rewards, but both use one core quest framework and may gate zones, NPC states, and systems. [RULE:GAME-PROGRESSION-004]
+- Offensive typing defaults, asymmetrical combat stats, cosmetic-only shiny or skin systems, and explicit rank or tuning data remain documented systems rather than hidden hardcoded exceptions. [RULE:GAME-PROGRESSION-005]

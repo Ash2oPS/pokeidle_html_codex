@@ -10,9 +10,10 @@
     "dev:game": "corepack pnpm --filter @pokeidle/game dev",
     "dev:tools": "corepack pnpm --filter @pokeidle/tools dev",
     "generate:pokemon": "node scripts/import-pokemon-data.mjs",
+    "check:docs": "node scripts/validate-docs.mjs",
     "test": "corepack pnpm -r --if-present test",
     "build": "corepack pnpm -r --if-present build",
     "typecheck": "corepack pnpm -r --if-present typecheck",
-    "check": "corepack pnpm typecheck && corepack pnpm test"
+    "check": "npm run check:docs && corepack pnpm typecheck && corepack pnpm test"
   }
 }

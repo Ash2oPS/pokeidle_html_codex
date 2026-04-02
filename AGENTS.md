@@ -1,46 +1,16 @@
+<!-- doc-meta: {"status":"normative","scope":["all-changes","ai-entrypoint"],"readFirst":["all-changes"]} -->
 # AGENTS.md
 
 This repository is a bilingual Pokemon-inspired idle web game set in Sinnoh.
-The project is AI-assisted and must stay strongly constrained by documentation, data contracts, and clean architecture.
+Active normative docs are the source of truth for AI work. Archive docs are historical context only.
 
 ## Read First
 
-- Read [docs/product/preproduction-decisions.md](./docs/product/preproduction-decisions.md) before changing gameplay systems.
-- Read [docs/architecture/runtime-architecture.md](./docs/architecture/runtime-architecture.md) before changing simulation, rendering, UI, or save code.
-- Read [docs/ui/ui-principles.md](./docs/ui/ui-principles.md) before changing player-facing interfaces.
+- Read [docs/ai/README.md](./docs/ai/README.md) before any repo change. [RULE:AI-ENTRY-001]
+- Read the relevant normative domain docs before changing gameplay, UI, save, content, tooling, or documentation. [RULE:AI-ENTRY-002]
+- Do not use archive docs as the canonical source of truth; use them only to recover historical rationale. [RULE:AI-ENTRY-003]
 
-## Core Rules
+## Repo Non-Negotiables
 
-- Keep simulation, rendering, UI, save, and content tooling separated.
-- Do not create monolithic TypeScript files or mixed-responsibility modules.
-- Treat the simulation as the source of truth.
-- Keep gameplay logic out of React components and canvas rendering code.
-- Keep rendering logic out of save and content modules.
-
-## Data And Tooling Rules
-
-- Important game-design values are edited through tools, not scattered through code.
-- Keep authoring data, generated data, and runtime bundles as separate layers.
-- Do not edit canonical imported Pokemon data by hand.
-- Put project-specific balance and interpretation in explicit override files.
-
-## UI Rules
-
-- HUD interfaces must stay compact.
-- Avoid filler text and redundant labels.
-- Design desktop landscape and mobile portrait as separate deliberate layouts.
-- Large focus interfaces should use the project PC-window visual language.
-
-## Localization Rules
-
-- All player-facing text must support English and French.
-- English is the default fallback language.
-- Do not hardcode single-language strings into gameplay content or UI flow.
-- Store all text-bearing source files in UTF-8.
-- Keep French accents and special characters intact in authored content and UI copy.
-
-## Documentation Rules
-
-- Update documentation when architecture, content contracts, or workflow rules change.
-- Keep guideline files in English only.
-- If a temporary decision file exists, migrate it into permanent docs and remove the temporary file afterward.
+- Keep simulation, rendering, UI, platform, save, and content responsibilities separated; simulation remains the gameplay source of truth. [RULE:AI-ENTRY-004]
+- Keep player-facing text bilingual, store text-bearing source files in UTF-8, preserve accents and special characters, and update the affected canonical docs plus rule tracking when active guidance changes. [RULE:AI-ENTRY-005]

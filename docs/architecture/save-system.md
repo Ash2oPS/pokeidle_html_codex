@@ -1,56 +1,8 @@
+<!-- doc-meta: {"status":"normative","scope":["save-system","persistence"],"readFirst":["save-changes","migration-work","runtime-state-work"]} -->
 # Save System
 
-## V1 Strategy
-
-- local-only save
-- IndexedDB as the primary store
-- versioned save format from the first implementation
-- export and import support for manual backups
-- explicit reset action
-- keep a small rotating local backup history in addition to the primary save
-
-## Write Policy
-
-- keep the active state in memory
-- mark the save dirty on important changes
-- batch noisy updates
-- flush immediately after critical progression events
-- flush on visibility loss and page hide
-- expose a manual flush action for debugging and validation during development
-
-## Critical Save Domains
-
-- unlocked species
-- starter choice
-- ordered 6-slot team composition
-- per-species progress
-- per-family capture mastery
-- zone progression
-- quests and flags
-- active slice dialogue state
-- active combat session state
-- currency and rewards
-- per-species encounter, defeat, and capture counters
-
-## Migration Rule
-
-- every save shape change must be accompanied by a migration path
-- migrations must be deterministic and testable
-
-## Current V1 Foundation
-
-- primary save manager lives in the runtime layer
-- imported JSON save files are migrated through the same pipeline as loaded saves
-- export format is inline minified JSON
-- per-species encounter, defeat, and capture counters are part of the saved state
-- the save now persists:
-  - unlocked starter and unlocked species ids
-  - ordered team slots
-  - active wild or gym battle session snapshots
-- battle session snapshots include:
-  - current enemy snapshot
-  - slot index
-  - elapsed combat time
-  - last processed timestamp
-  - zone streak or gym enemy index
-  - deterministic RNG state for wild encounters
+- V1 save is local-first with IndexedDB primary storage, manual export or import, reset support, and rotating local backups. [RULE:ARCH-SAVE-001]
+- Keep active state in memory, batch noisy writes, and flush on critical progression events plus page-hide or visibility-risk moments. [RULE:ARCH-SAVE-002]
+- Save data persists progression-critical domains including species or team state, quests, zones, flags, dialogue state, combat sessions, counters, and currency. [RULE:ARCH-SAVE-003]
+- Every save shape change ships with deterministic migration logic and targeted tests. [RULE:ARCH-SAVE-004]
+- Save data never stores renderer objects or UI-only state, and battle snapshots must keep the data required for deterministic reconstruction. [RULE:ARCH-SAVE-005]
