@@ -5,7 +5,7 @@ import { uiTokens } from "@pokeidle/ui-tokens";
 import { DialogueEditorPanel } from "../modules/dialogue-editor/DialogueEditorPanel";
 import { PokemonViewerPanel } from "../modules/pokemon-viewer/PokemonViewerPanel";
 import { ZoneEditorPanel } from "../modules/zone-editor/ZoneEditorPanel";
-import "./app.css";
+import "./shell.css";
 
 type ModuleKey = "zones" | "pokemon" | "dialogues";
 

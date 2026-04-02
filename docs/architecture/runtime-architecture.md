@@ -17,8 +17,8 @@
 
 ## Game App Shape
 
-- `app`: bootstrapping, providers, top-level shell
-- `game`: playfield, HUD, focus windows, renderer adapters
+- `shell`: bootstrapping, providers, save wiring, top-level shell
+- `ui`: playfield, HUD, focus windows, renderer adapters
 - `content`: runtime data loading and adaptation
 - `platform`: lifecycle and environment hooks
 

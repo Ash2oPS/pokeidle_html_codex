@@ -10,16 +10,16 @@ import {
   syncSliceProgressionState,
 } from "@pokeidle/game-core";
 import type { SaveManagerState, SliceAction } from "@pokeidle/game-core";
-import { SaveWindow } from "../game/hud/SaveWindow";
-import { CompactHud, type WindowKey } from "../game/hud/CompactHud";
-import { CurrentZonePanel } from "../game/hud/CurrentZonePanel";
-import { BattleCanvas } from "../game/render/BattleCanvas";
-import { DialogueWindow } from "../game/windows/DialogueWindow";
-import { MapWindow } from "../game/windows/MapWindow";
-import { PlaceholderWindow } from "../game/windows/PlaceholderWindow";
-import { QuestsWindow } from "../game/windows/QuestsWindow";
+import { SaveWindow } from "../ui/hud/SaveWindow";
+import { CompactHud, type WindowKey } from "../ui/hud/CompactHud";
+import { CurrentZonePanel } from "../ui/hud/CurrentZonePanel";
+import { BattleCanvas } from "../ui/render/BattleCanvas";
+import { DialogueWindow } from "../ui/windows/DialogueWindow";
+import { MapWindow } from "../ui/windows/MapWindow";
+import { PlaceholderWindow } from "../ui/windows/PlaceholderWindow";
+import { QuestsWindow } from "../ui/windows/QuestsWindow";
 import { gameSaveManager } from "./save-manager";
-import "./app.css";
+import "./shell.css";
 
 const placeholderCopy = {
   en: {
