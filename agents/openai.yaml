@@ -1,4 +1,0 @@
-interface:
-  display_name: "PokeIdle Project Agents"
-  short_description: "Focused subagents for runtime UI, gameplay, design data, platform/save, and QA"
-  default_prompt: "Use the PokeIdle project agents for focused delegation. Keep cross-cutting changes, game-runtime.js wiring, and final validation decisions in the lead agent."
