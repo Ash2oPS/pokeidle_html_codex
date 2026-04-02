@@ -1,6 +1,6 @@
 import type { LayoutMode, Locale } from "@pokeidle/contracts";
 
-type WindowKey = "dex" | "team" | "quests" | "map";
+export type WindowKey = "dex" | "team" | "quests" | "map" | "save";
 
 interface CompactHudProps {
   locale: Locale;
@@ -19,7 +19,8 @@ const labels = {
     team: "Team",
     quests: "Quests",
     map: "Map",
-    enemy: "Enemy"
+    enemy: "Enemy",
+    save: "Save",
   },
   fr: {
     zone: "Zone 02",
@@ -30,15 +31,16 @@ const labels = {
     team: "Équipe",
     quests: "Quêtes",
     map: "Carte",
-    enemy: "Cible"
-  }
+    enemy: "Cible",
+    save: "Save",
+  },
 } as const;
 
 export function CompactHud({
   locale,
   layoutMode,
   activeWindow,
-  onToggleWindow
+  onToggleWindow,
 }: CompactHudProps) {
   const copy = labels[locale];
 
@@ -53,7 +55,7 @@ export function CompactHud({
       </header>
 
       <nav className={`hud-actions hud-actions--${layoutMode}`} aria-label="game menus">
-        {(["dex", "team", "quests", "map"] as const).map((window) => (
+        {(["dex", "team", "quests", "map", "save"] as const).map((window) => (
           <button
             key={window}
             className={window === activeWindow ? "hud-action is-active" : "hud-action"}

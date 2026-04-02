@@ -60,3 +60,5 @@ export interface DialogueDocument {
   title: LocalizedText;
   lines: DialogueLine[];
 }
+
+export * from "./save";
