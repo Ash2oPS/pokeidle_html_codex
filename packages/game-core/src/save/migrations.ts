@@ -2,6 +2,7 @@ import type {
   FamilyProgressState,
   GameSaveV1,
   QuestProgressState,
+  SliceActiveDialogueState,
   SpeciesBattleCounters,
   SpeciesProgressState,
   ZoneProgressState,
@@ -89,6 +90,21 @@ function migrateQuestState(value: unknown): QuestProgressState {
   };
 }
 
+function migrateActiveDialogueState(value: unknown): SliceActiveDialogueState | null {
+  const record = isRecord(value) ? value : null;
+
+  if (!record) {
+    return null;
+  }
+
+  return {
+    zoneId: readString(record.zoneId, DEFAULT_ACTIVE_ZONE_ID),
+    activityId: readString(record.activityId, "unknown-activity"),
+    dialogueId: readString(record.dialogueId, "unknown-dialogue"),
+    lineIndex: readNumber(record.lineIndex, 0),
+  };
+}
+
 function migrateRecord<T>(
   value: unknown,
   migrateEntry: (entry: unknown) => T,
@@ -152,6 +168,11 @@ export function migrateGameSave(raw: unknown): GameSaveV1 {
         DEFAULT_ACTIVE_ZONE_ID,
       ),
       pokedollars: readNumber(isRecord(unwrapped.player) ? unwrapped.player.pokedollars : undefined, 0),
+    },
+    slice: {
+      activeDialogue: migrateActiveDialogueState(
+        isRecord(unwrapped.slice) ? unwrapped.slice.activeDialogue : undefined,
+      ),
     },
     species: migrateRecord(unwrapped.species, migrateSpeciesState),
     families: migrateRecord(unwrapped.families, migrateFamilyState),

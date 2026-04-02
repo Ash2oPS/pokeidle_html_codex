@@ -33,3 +33,4 @@ export function pickLocalizedText(text: LocalizedText, locale: Locale): string {
 }
 
 export * from "./save";
+export * from "./slice";

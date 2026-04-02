@@ -6,32 +6,27 @@ interface CompactHudProps {
   locale: Locale;
   layoutMode: LayoutMode;
   activeWindow: WindowKey | null;
+  zoneLabel: string;
+  questLabel: string;
+  timerLabel: string;
+  slotsLabel: string;
+  sceneLabel: string;
   onToggleWindow: (window: WindowKey) => void;
 }
 
 const labels = {
   en: {
-    zone: "Zone 02",
-    quest: "Main 1/2",
-    timer: "7.8s",
-    slots: "3/6",
     dex: "Dex",
     team: "Team",
     quests: "Quests",
     map: "Map",
-    enemy: "Enemy",
     save: "Save",
   },
   fr: {
-    zone: "Zone 02",
-    quest: "Main 1/2",
-    timer: "7,8s",
-    slots: "3/6",
     dex: "Dex",
-    team: "Équipe",
-    quests: "Quêtes",
+    team: "Equipe",
+    quests: "Quetes",
     map: "Carte",
-    enemy: "Cible",
     save: "Save",
   },
 } as const;
@@ -40,6 +35,11 @@ export function CompactHud({
   locale,
   layoutMode,
   activeWindow,
+  zoneLabel,
+  questLabel,
+  timerLabel,
+  slotsLabel,
+  sceneLabel,
   onToggleWindow,
 }: CompactHudProps) {
   const copy = labels[locale];
@@ -47,11 +47,11 @@ export function CompactHud({
   return (
     <>
       <header className={`hud-top hud-top--${layoutMode}`}>
-        <div className="hud-chip hud-chip--zone">{copy.zone}</div>
-        <div className="hud-chip">{copy.enemy}</div>
-        <div className="hud-chip">{copy.timer}</div>
-        <div className="hud-chip">{copy.quest}</div>
-        <div className="hud-chip">{copy.slots}</div>
+        <div className="hud-chip hud-chip--zone">{zoneLabel}</div>
+        <div className="hud-chip">{sceneLabel}</div>
+        <div className="hud-chip">{timerLabel}</div>
+        <div className="hud-chip">{questLabel}</div>
+        <div className="hud-chip">{slotsLabel}</div>
       </header>
 
       <nav className={`hud-actions hud-actions--${layoutMode}`} aria-label="game menus">

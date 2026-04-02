@@ -44,6 +44,17 @@ export interface SavePlayerState {
   pokedollars: number;
 }
 
+export interface SliceActiveDialogueState {
+  zoneId: string;
+  activityId: string;
+  dialogueId: string;
+  lineIndex: number;
+}
+
+export interface SliceProgressState {
+  activeDialogue: SliceActiveDialogueState | null;
+}
+
 export interface GameSaveMeta {
   createdAt: string;
   updatedAt: string;
@@ -55,6 +66,7 @@ export interface GameSaveV1 {
   meta: GameSaveMeta;
   preferences: SavePreferencesState;
   player: SavePlayerState;
+  slice: SliceProgressState;
   species: Record<string, SpeciesProgressState>;
   families: Record<string, FamilyProgressState>;
   zones: Record<string, ZoneProgressState>;

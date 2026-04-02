@@ -1,7 +1,7 @@
 import type { GameSaveV1 } from "@pokeidle/contracts";
 
 export const CURRENT_SAVE_VERSION = 1 as const;
-export const DEFAULT_ACTIVE_ZONE_ID = "sandgem-town";
+export const DEFAULT_ACTIVE_ZONE_ID = "town-1";
 
 export function createDefaultGameSave(nowIso = new Date().toISOString()): GameSaveV1 {
   return {
@@ -17,6 +17,9 @@ export function createDefaultGameSave(nowIso = new Date().toISOString()): GameSa
     player: {
       activeZoneId: DEFAULT_ACTIVE_ZONE_ID,
       pokedollars: 0,
+    },
+    slice: {
+      activeDialogue: null,
     },
     species: {},
     families: {},

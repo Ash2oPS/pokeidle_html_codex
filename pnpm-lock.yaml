@@ -10,6 +10,9 @@ importers:
 
   apps/game:
     dependencies:
+      '@pokeidle/content-data':
+        specifier: workspace:*
+        version: link:../../packages/content-data
       '@pokeidle/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -125,6 +128,9 @@ importers:
 
   packages/game-core:
     dependencies:
+      '@pokeidle/content-data':
+        specifier: workspace:*
+        version: link:../content-data
       '@pokeidle/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -132,6 +138,9 @@ importers:
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.9(@types/node@22.19.15)
 
   packages/ui-tokens:
     devDependencies:

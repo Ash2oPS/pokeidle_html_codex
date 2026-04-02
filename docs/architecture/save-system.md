@@ -25,6 +25,7 @@
 - per-family capture mastery
 - zone progression
 - quests and flags
+- active slice dialogue state
 - currency and rewards
 - per-species encounter, defeat, and capture counters
 

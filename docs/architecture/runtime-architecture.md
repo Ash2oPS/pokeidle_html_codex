@@ -32,6 +32,6 @@
 
 - `contracts`: portable domain types and enums
 - `game-core`: runtime helpers and platform policies
+- `game-core`: also hosts the temporary slice-progression shell used before the full combat runtime exists
 - `content-schema`: zod schemas and validation contracts
 - `ui-tokens`: shared color, spacing, and typography tokens
-

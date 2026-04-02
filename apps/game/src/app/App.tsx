@@ -1,49 +1,50 @@
 import { useEffect, useMemo, useState } from "react";
+import { loadContentRegistry } from "@pokeidle/content-data";
 import type { LayoutMode, Locale } from "@pokeidle/contracts";
-import { detectPreferredLocale, resolveLayoutMode } from "@pokeidle/game-core";
-import type { SaveManagerState } from "@pokeidle/game-core";
-import { BattleCanvas } from "../game/render/BattleCanvas";
-import { CompactHud, type WindowKey } from "../game/hud/CompactHud";
+import {
+  applySliceAction,
+  deriveSliceView,
+  detectPreferredLocale,
+  pickLocalizedText,
+  resolveLayoutMode,
+  syncSliceProgressionState,
+} from "@pokeidle/game-core";
+import type { SaveManagerState, SliceAction } from "@pokeidle/game-core";
 import { SaveWindow } from "../game/hud/SaveWindow";
+import { CompactHud, type WindowKey } from "../game/hud/CompactHud";
+import { CurrentZonePanel } from "../game/hud/CurrentZonePanel";
+import { BattleCanvas } from "../game/render/BattleCanvas";
+import { DialogueWindow } from "../game/windows/DialogueWindow";
+import { MapWindow } from "../game/windows/MapWindow";
+import { PlaceholderWindow } from "../game/windows/PlaceholderWindow";
+import { QuestsWindow } from "../game/windows/QuestsWindow";
 import { gameSaveManager } from "./save-manager";
 import "./app.css";
 
-const focusContent = {
+const placeholderCopy = {
   en: {
-    dex: {
-      title: "Pokedex",
-      rows: ["Sinnoh Dex", "Unlocked: 0013", "Seen: 0024", "Caught: 0007"],
-    },
-    team: {
-      title: "Team",
-      rows: ["Slot A  Lv12", "Slot B  Lv09", "Slot C  Lv07", "Slots D-F empty"],
-    },
-    quests: {
-      title: "Quests",
-      rows: ["Main 1  Reach Oreburgh", "Main 2  Clear Route", "Side 1  Talk to NPC"],
-    },
-    map: {
-      title: "Map",
-      rows: ["Town 1  Clear", "Route 1  Active", "Route 2  Locked", "Town 2  Gym"],
-    },
+    dexTitle: "Pokedex",
+    dexRows: ["Sinnoh slice data", "Species pipeline later", "Tracking stays local"],
+    teamTitle: "Team",
+    teamRows: ["Team management is not wired yet", "Current slice validates towns", "Combat runtime comes next"],
+    sceneTown: "Town",
+    sceneCombat: "Combat",
+    sceneGym: "Gym",
+    noQuest: "No main quest",
+    slots: "Slots 3/6",
+    contentError: "Content registry failed to load.",
   },
   fr: {
-    dex: {
-      title: "Pokédex",
-      rows: ["Dex Sinnoh", "Débloqués : 0013", "Vus : 0024", "Capturés : 0007"],
-    },
-    team: {
-      title: "Équipe",
-      rows: ["Slot A  Nv12", "Slot B  Nv09", "Slot C  Nv07", "Slots D-F vides"],
-    },
-    quests: {
-      title: "Quêtes",
-      rows: ["Main 1  Atteindre Charbourg", "Main 2  Finir la route", "Side 1  Parler au PNJ"],
-    },
-    map: {
-      title: "Carte",
-      rows: ["Ville 1  Clear", "Route 1  Active", "Route 2  Locked", "Ville 2  Arène"],
-    },
+    dexTitle: "Pokedex",
+    dexRows: ["Donnees slice Sinnoh", "Pipeline especes plus tard", "Suivi sauvegarde en local"],
+    teamTitle: "Equipe",
+    teamRows: ["Gestion d'equipe pas encore branchee", "La slice valide villes et progression", "Le runtime combat arrive ensuite"],
+    sceneTown: "Ville",
+    sceneCombat: "Combat",
+    sceneGym: "Arene",
+    noQuest: "Pas de quete main",
+    slots: "Slots 3/6",
+    contentError: "Le registre de contenu a echoue au chargement.",
   },
 } as const;
 
@@ -59,11 +60,29 @@ function readLayoutMode(): LayoutMode {
   });
 }
 
+function getQuestChipLabel(locale: Locale, questTitle: string | null): string {
+  return questTitle ?? placeholderCopy[locale].noQuest;
+}
+
 export function App() {
   const [deviceLocale] = useState<Locale>(() => readLocale());
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => readLayoutMode());
-  const [activeWindow, setActiveWindow] = useState<WindowKey | null>("dex");
+  const [activeWindow, setActiveWindow] = useState<WindowKey | null>(null);
   const [saveState, setSaveState] = useState<SaveManagerState>(() => gameSaveManager.getState());
+  const [selectedMapZoneId, setSelectedMapZoneId] = useState<string>("town-1");
+  const registryState = useMemo(() => {
+    try {
+      return {
+        registry: loadContentRegistry(),
+        error: null,
+      };
+    } catch (error) {
+      return {
+        registry: null,
+        error: error instanceof Error ? error.message : "Content registry failed to load.",
+      };
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -80,19 +99,44 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const registry = registryState.registry;
+
+    if (!registry) {
+      return undefined;
+    }
+
     const unsubscribe = gameSaveManager.subscribe(setSaveState);
     const detachLifecycle = gameSaveManager.attachLifecycle();
 
-    void gameSaveManager.load();
+    void (async () => {
+      await gameSaveManager.load();
+      gameSaveManager.update((draft) => {
+        syncSliceProgressionState(draft, registry);
+      }, { immediate: true });
+    })();
 
     return () => {
       unsubscribe();
       detachLifecycle();
     };
-  }, []);
+  }, [registryState.registry]);
 
   const locale = saveState.snapshot.preferences.localeOverride ?? deviceLocale;
-  const content = useMemo(() => focusContent[locale], [locale]);
+  const text = placeholderCopy[locale];
+
+  const sliceView = useMemo(() => {
+    if (!registryState.registry) {
+      return null;
+    }
+
+    return deriveSliceView(saveState.snapshot, registryState.registry);
+  }, [registryState.registry, saveState.snapshot]);
+
+  useEffect(() => {
+    if (sliceView) {
+      setSelectedMapZoneId(sliceView.activeZone.zone.id);
+    }
+  }, [sliceView?.activeZone.zone.id]);
 
   const handleExport = () => {
     const blob = new Blob([gameSaveManager.exportToString()], { type: "application/json" });
@@ -104,69 +148,152 @@ export function App() {
     URL.revokeObjectURL(href);
   };
 
+  const runSliceAction = (action: SliceAction) => {
+    const registry = registryState.registry;
+
+    if (!registry) {
+      return;
+    }
+
+    gameSaveManager.update((draft) => {
+      applySliceAction(draft, registry, action);
+    }, { immediate: true });
+  };
+
+  if (registryState.error || !sliceView) {
+    return (
+      <main className="game-shell game-shell--error">
+        <section className="game-error">
+          <strong>{text.contentError}</strong>
+          <p>{registryState.error}</p>
+        </section>
+      </main>
+    );
+  }
+
+  const firstMainQuest =
+    sliceView.mainQuests.find((entry) => entry.progress.state === "active") ??
+    sliceView.mainQuests.find((entry) => entry.progress.state === "available") ??
+    sliceView.mainQuests.find((entry) => entry.progress.state === "completed");
+  const zoneLabel = pickLocalizedText(sliceView.activeZone.zone.name, locale);
+  const questLabel = getQuestChipLabel(
+    locale,
+    firstMainQuest ? pickLocalizedText(firstMainQuest.quest.title, locale) : null,
+  );
+  const timerLabel =
+    sliceView.activeZone.zone.kind === "combat"
+      ? `${sliceView.activeZone.zone.battle.enemyTimerSeconds}s`
+      : "--";
+  const sceneLabel =
+    sliceView.activeZone.sceneKind === "combat"
+      ? text.sceneCombat
+      : sliceView.activeZone.sceneKind === "gym"
+        ? text.sceneGym
+        : text.sceneTown;
+
   return (
     <main className={`game-shell game-shell--${layoutMode}`}>
-      <BattleCanvas layoutMode={layoutMode} />
+      <BattleCanvas
+        layoutMode={layoutMode}
+        sceneKind={sliceView.activeZone.sceneKind}
+        zoneLabel={zoneLabel}
+      />
       <CompactHud
         locale={locale}
         layoutMode={layoutMode}
         activeWindow={activeWindow}
+        zoneLabel={zoneLabel}
+        questLabel={questLabel}
+        timerLabel={timerLabel}
+        slotsLabel={text.slots}
+        sceneLabel={sceneLabel}
         onToggleWindow={(window) => {
           setActiveWindow((current) => (current === window ? null : window));
         }}
       />
 
+      <CurrentZonePanel
+        locale={locale}
+        view={sliceView}
+        onCompleteZone={(zoneId) => {
+          runSliceAction({ type: "complete_zone_debug", zoneId });
+        }}
+        onOpenTeam={() => setActiveWindow("team")}
+        onStartDialogue={(zoneId, activityId) => {
+          runSliceAction({ type: "start_dialogue_activity", zoneId, activityId });
+        }}
+        onWinBattle={(battleId) => {
+          runSliceAction({ type: "win_battle_debug", battleId });
+        }}
+      />
+
+      {sliceView.activeDialogue ? (
+        <DialogueWindow
+          activeDialogue={sliceView.activeDialogue}
+          locale={locale}
+          onClose={() => runSliceAction({ type: "close_dialogue" })}
+          onNext={() => runSliceAction({ type: "advance_dialogue" })}
+        />
+      ) : null}
+
       <aside className={activeWindow ? "focus-window is-visible" : "focus-window"}>
-        {activeWindow ? (
-          activeWindow === "save" ? (
-            <SaveWindow
-              locale={locale}
-              saveState={saveState}
-              onExport={handleExport}
-              onFlush={() => gameSaveManager.flush()}
-              onImport={(serializedSave) => gameSaveManager.importFromString(serializedSave)}
-              onIncrementCounter={(field) => {
-                gameSaveManager.incrementSpeciesCounters("chimchar", { [field]: 1 });
-              }}
-              onReset={async () => {
-                const confirmed = window.confirm(
-                  locale === "fr" ? "Reset la sauvegarde locale ?" : "Reset local save?",
-                );
+        {activeWindow === "save" ? (
+          <SaveWindow
+            locale={locale}
+            saveState={saveState}
+            onExport={handleExport}
+            onFlush={() => gameSaveManager.flush()}
+            onImport={(serializedSave) => gameSaveManager.importFromString(serializedSave)}
+            onIncrementCounter={(field) => {
+              gameSaveManager.incrementSpeciesCounters("chimchar", { [field]: 1 });
+            }}
+            onReset={async () => {
+              const confirmed = window.confirm(
+                locale === "fr" ? "Reset la sauvegarde locale ?" : "Reset local save?",
+              );
 
-                if (!confirmed) {
-                  return;
-                }
+              if (!confirmed) {
+                return;
+              }
 
-                await gameSaveManager.reset();
-              }}
-            />
-          ) : (
-            <>
-              <div className="focus-window__titlebar">
-                <strong>{content[activeWindow].title}</strong>
-                <div className="titlebar-actions">
-                  <button
-                    onClick={() =>
-                      gameSaveManager.setLocaleOverride(locale === "en" ? "fr" : "en")
-                    }
-                    type="button"
-                  >
-                    {locale.toUpperCase()}
-                  </button>
-                  <button onClick={() => setActiveWindow(null)} type="button">
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div className="focus-window__body">
-                {content[activeWindow].rows.map((row) => (
-                  <div key={row} className="focus-row">
-                    {row}
-                  </div>
-                ))}
-              </div>
-            </>
-          )
+              await gameSaveManager.reset();
+              if (registryState.registry) {
+                gameSaveManager.update((draft) => {
+                  syncSliceProgressionState(draft, registryState.registry!);
+                }, { immediate: true });
+              }
+            }}
+          />
+        ) : null}
+
+        {activeWindow === "map" ? (
+          <MapWindow
+            locale={locale}
+            selectedZoneId={selectedMapZoneId}
+            view={sliceView}
+            onSelectZone={setSelectedMapZoneId}
+            onTravel={(zoneId) => {
+              runSliceAction({ type: "travel_to_zone", zoneId });
+              setActiveWindow(null);
+            }}
+          />
+        ) : null}
+
+        {activeWindow === "quests" ? (
+          <QuestsWindow
+            locale={locale}
+            mainQuests={sliceView.mainQuests}
+            onClaim={(questId) => runSliceAction({ type: "claim_quest_reward", questId })}
+            sideQuests={sliceView.sideQuests}
+          />
+        ) : null}
+
+        {activeWindow === "dex" ? (
+          <PlaceholderWindow rows={text.dexRows} title={text.dexTitle} />
+        ) : null}
+
+        {activeWindow === "team" ? (
+          <PlaceholderWindow rows={text.teamRows} title={text.teamTitle} />
         ) : null}
       </aside>
     </main>
