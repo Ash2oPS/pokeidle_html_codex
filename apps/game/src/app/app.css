@@ -1,0 +1,187 @@
+:root {
+  color: #14314f;
+  background: #7ac9ff;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, #dff6ff 0, #dff6ff 12%, transparent 13%),
+    linear-gradient(180deg, #bce6ff 0%, #7ac9ff 52%, #5fa8f4 100%);
+}
+
+.battle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hud-top {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 2;
+}
+
+.hud-chip {
+  min-width: 74px;
+  padding: 8px 12px;
+  border: 2px solid #8db5ef;
+  border-radius: 16px;
+  background: rgba(245, 248, 255, 0.94);
+  box-shadow: 0 6px 0 rgba(28, 74, 131, 0.16);
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.hud-chip--zone {
+  background: #ffd85c;
+}
+
+.hud-actions {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+}
+
+.hud-actions--desktop-landscape {
+  right: 14px;
+  bottom: 14px;
+  grid-template-columns: repeat(4, minmax(74px, 1fr));
+}
+
+.hud-actions--mobile-portrait {
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.hud-action {
+  border: 2px solid #1f4f87;
+  border-radius: 16px;
+  background: #f5f8ff;
+  color: #14314f;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.hud-action.is-active {
+  background: #7bd37b;
+}
+
+.focus-window {
+  position: absolute;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.focus-window.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.game-shell--desktop-landscape .focus-window {
+  top: 86px;
+  right: 18px;
+  width: min(30vw, 360px);
+  bottom: 88px;
+}
+
+.game-shell--mobile-portrait .focus-window {
+  left: 14px;
+  right: 14px;
+  top: 78px;
+  bottom: 86px;
+}
+
+.focus-window__titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 2px solid #1f4f87;
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, #dbe8ff 0%, #bdd7ff 100%);
+  font-size: 0.88rem;
+}
+
+.titlebar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.titlebar-actions button {
+  min-width: 36px;
+  border: 2px solid #1f4f87;
+  border-radius: 10px;
+  background: #f5f8ff;
+  color: #14314f;
+  padding: 4px 6px;
+  font-weight: 800;
+}
+
+.focus-window__body {
+  display: grid;
+  gap: 8px;
+  height: calc(100% - 52px);
+  padding: 14px;
+  border: 2px solid #1f4f87;
+  border-radius: 0 0 22px 22px;
+  background: rgba(245, 248, 255, 0.96);
+}
+
+.focus-row {
+  padding: 10px 12px;
+  border: 2px solid #8db5ef;
+  border-radius: 14px;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 920px) {
+  .hud-top {
+    gap: 6px;
+  }
+
+  .hud-chip {
+    min-width: 0;
+    flex: 1 1 calc(33% - 6px);
+    font-size: 0.74rem;
+  }
+}

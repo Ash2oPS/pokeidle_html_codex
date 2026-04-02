@@ -1,0 +1,16 @@
+{
+  "name": "pokeidle-html-codex",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "corepack pnpm --parallel --filter @pokeidle/game --filter @pokeidle/tools dev",
+    "dev:game": "corepack pnpm --filter @pokeidle/game dev",
+    "dev:tools": "corepack pnpm --filter @pokeidle/tools dev",
+    "build": "corepack pnpm -r --if-present build",
+    "typecheck": "corepack pnpm -r --if-present typecheck",
+    "check": "corepack pnpm typecheck"
+  }
+}

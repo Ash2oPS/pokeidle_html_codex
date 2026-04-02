@@ -1,0 +1,30 @@
+version = 1
+name = "Pokeidle HTML Codex"
+
+[setup]
+script = ""
+
+[[actions]]
+name = "Dev"
+icon = "run"
+command = "corepack pnpm dev"
+
+[[actions]]
+name = "Dev Game"
+icon = "run"
+command = "corepack pnpm dev:game"
+
+[[actions]]
+name = "Dev Tools"
+icon = "run"
+command = "corepack pnpm dev:tools"
+
+[[actions]]
+name = "Check"
+icon = "run"
+command = "corepack pnpm check"
+
+[[actions]]
+name = "Build"
+icon = "run"
+command = "corepack pnpm build"

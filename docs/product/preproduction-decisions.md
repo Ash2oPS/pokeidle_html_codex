@@ -1,8 +1,7 @@
-# Temporary Project Decisions
+# Preproduction Decisions
 
-This file is a temporary source of truth for project setup.
-It must be used when creating the initial architecture and permanent documentation.
-It must be deleted after its content has been migrated into the proper project docs.
+This file consolidates the decisions made during preproduction.
+It is a permanent source of truth for early project setup and system boundaries.
 
 ## Project Scope
 
