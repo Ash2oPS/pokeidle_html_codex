@@ -1,0 +1,35 @@
+{
+  "id": "side-001",
+  "category": "side",
+  "title": {
+    "en": "Gym Warmup",
+    "fr": "Echauffement d'arene"
+  },
+  "summary": {
+    "en": "Talk to the gym guide, then defeat the Oreburgh Gym battle.",
+    "fr": "Parle au guide de l'arene, puis gagne le combat de Charbourg."
+  },
+  "prerequisiteQuestIds": ["main-002"],
+  "requiredFlags": ["talked-to-gym-guide"],
+  "objectives": [
+    {
+      "kind": "win_battle",
+      "id": "win-gym-001",
+      "description": {
+        "en": "Win the Oreburgh Gym battle.",
+        "fr": "Gagner le combat de l'arene de Charbourg."
+      },
+      "battleId": "gym-001"
+    }
+  ],
+  "rewards": [
+    {
+      "kind": "pokedollars",
+      "amount": 400
+    },
+    {
+      "kind": "set_flag",
+      "flag": "side-001-complete"
+    }
+  ]
+}

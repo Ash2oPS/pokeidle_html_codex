@@ -1,0 +1,44 @@
+{
+  "id": "main-002",
+  "category": "main",
+  "title": {
+    "en": "Reach Oreburgh",
+    "fr": "Atteindre Charbourg"
+  },
+  "summary": {
+    "en": "Complete both combat routes, then unlock Oreburgh City.",
+    "fr": "Complete les deux zones de combat, puis debloque Charbourg."
+  },
+  "prerequisiteQuestIds": ["main-001"],
+  "requiredFlags": ["talked-to-rowan"],
+  "objectives": [
+    {
+      "kind": "complete_zone",
+      "id": "clear-route-1",
+      "description": {
+        "en": "Complete Route 201.",
+        "fr": "Completer la Route 201."
+      },
+      "zoneId": "route-1"
+    },
+    {
+      "kind": "complete_zone",
+      "id": "clear-route-2",
+      "description": {
+        "en": "Complete Oreburgh Gate.",
+        "fr": "Completer la Porte de Charbourg."
+      },
+      "zoneId": "route-2"
+    }
+  ],
+  "rewards": [
+    {
+      "kind": "pokedollars",
+      "amount": 250
+    },
+    {
+      "kind": "set_flag",
+      "flag": "town-2-unlocked"
+    }
+  ]
+}

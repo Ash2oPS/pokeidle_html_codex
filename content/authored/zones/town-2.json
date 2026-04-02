@@ -1,0 +1,31 @@
+{
+  "id": "town-2",
+  "kind": "pacifist",
+  "name": {
+    "en": "Oreburgh City",
+    "fr": "Charbourg"
+  },
+  "activities": [
+    {
+      "kind": "dialogue_npc",
+      "id": "gym-guide-intro",
+      "npcId": "gym-guide",
+      "label": {
+        "en": "Gym Guide",
+        "fr": "Guide de l'arene"
+      },
+      "dialogueId": "town-2-gym-intro",
+      "grantsFlag": "talked-to-gym-guide",
+      "startsQuestId": "side-001"
+    },
+    {
+      "kind": "gym_battle",
+      "id": "oreburgh-gym",
+      "label": {
+        "en": "Oreburgh Gym",
+        "fr": "Arene de Charbourg"
+      },
+      "battleId": "gym-001"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "id": "town-1-intro",
+  "title": {
+    "en": "Rowan Briefing",
+    "fr": "Briefing de Rowan"
+  },
+  "participants": [
+    {
+      "id": "professor-rowan",
+      "name": {
+        "en": "Professor Rowan",
+        "fr": "Professeur Rowan"
+      }
+    },
+    {
+      "id": "assistant-dawn",
+      "name": {
+        "en": "Dawn",
+        "fr": "Aurore"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "id": "line-1",
+      "speakerId": "professor-rowan",
+      "text": {
+        "en": "Sinnoh will not wait. Fill your slots and push east.",
+        "fr": "Sinnoh n'attendra pas. Remplis tes slots et file vers l'est."
+      }
+    },
+    {
+      "id": "line-2",
+      "speakerId": "assistant-dawn",
+      "text": {
+        "en": "Clear the first road, then the gate. Oreburgh opens after that.",
+        "fr": "Nettoie d'abord la route, puis la porte. Charbourg s'ouvre apres."
+      }
+    }
+  ]
+}

@@ -10,6 +10,7 @@
     "preview": "vite preview --host"
   },
   "dependencies": {
+    "@pokeidle/content-data": "workspace:*",
     "@pokeidle/content-schema": "workspace:*",
     "@pokeidle/contracts": "workspace:*",
     "@pokeidle/ui-tokens": "workspace:*",

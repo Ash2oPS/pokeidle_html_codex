@@ -1,0 +1,35 @@
+{
+  "id": "main-001",
+  "category": "main",
+  "title": {
+    "en": "Meet Rowan",
+    "fr": "Voir Rowan"
+  },
+  "summary": {
+    "en": "Talk to Professor Rowan in Sandgem Town to receive your first route objective.",
+    "fr": "Parle au Professeur Rowan a Bonaugure pour recevoir ton premier objectif."
+  },
+  "prerequisiteQuestIds": [],
+  "requiredFlags": [],
+  "objectives": [
+    {
+      "kind": "talk_to_npc",
+      "id": "talk-rowan",
+      "description": {
+        "en": "Speak to Professor Rowan.",
+        "fr": "Parler au Professeur Rowan."
+      },
+      "npcId": "professor-rowan"
+    }
+  ],
+  "rewards": [
+    {
+      "kind": "pokedollars",
+      "amount": 100
+    },
+    {
+      "kind": "set_flag",
+      "flag": "main-001-complete"
+    }
+  ]
+}

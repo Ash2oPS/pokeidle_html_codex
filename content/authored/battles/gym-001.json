@@ -1,0 +1,11 @@
+{
+  "id": "gym-001",
+  "kind": "gym",
+  "name": {
+    "en": "Oreburgh Gym",
+    "fr": "Arene de Charbourg"
+  },
+  "timeLimitSeconds": 90,
+  "teamSizeLimit": 3,
+  "unlockFlagOnWin": "oreburgh-gym-cleared"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "route-2",
+  "kind": "combat",
+  "name": {
+    "en": "Oreburgh Gate",
+    "fr": "Porte de Charbourg"
+  },
+  "battle": {
+    "enemyPoolIds": ["zubat", "geodude", "machop"],
+    "enemyTimerSeconds": 10,
+    "defeatsRequired": 18
+  }
+}

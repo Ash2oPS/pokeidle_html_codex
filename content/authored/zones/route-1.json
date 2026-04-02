@@ -1,0 +1,13 @@
+{
+  "id": "route-1",
+  "kind": "combat",
+  "name": {
+    "en": "Route 201",
+    "fr": "Route 201"
+  },
+  "battle": {
+    "enemyPoolIds": ["starly", "bidoof", "shinx"],
+    "enemyTimerSeconds": 8,
+    "defeatsRequired": 12
+  }
+}

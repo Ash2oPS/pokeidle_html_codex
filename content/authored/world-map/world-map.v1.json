@@ -1,0 +1,80 @@
+{
+  "id": "sinnoh-v1",
+  "name": {
+    "en": "Sinnoh Slice",
+    "fr": "Tranche Sinnoh"
+  },
+  "nodes": [
+    {
+      "id": "node-town-1",
+      "zoneId": "town-1",
+      "position": {
+        "x": 8,
+        "y": 32
+      }
+    },
+    {
+      "id": "node-route-1",
+      "zoneId": "route-1",
+      "position": {
+        "x": 28,
+        "y": 30
+      }
+    },
+    {
+      "id": "node-route-2",
+      "zoneId": "route-2",
+      "position": {
+        "x": 48,
+        "y": 26
+      }
+    },
+    {
+      "id": "node-town-2",
+      "zoneId": "town-2",
+      "position": {
+        "x": 72,
+        "y": 22
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "town-1-route-1",
+      "fromZoneId": "town-1",
+      "toZoneId": "route-1",
+      "requiresCompletion": false
+    },
+    {
+      "id": "route-1-town-1",
+      "fromZoneId": "route-1",
+      "toZoneId": "town-1",
+      "requiresCompletion": false
+    },
+    {
+      "id": "route-1-route-2",
+      "fromZoneId": "route-1",
+      "toZoneId": "route-2",
+      "requiresCompletion": true
+    },
+    {
+      "id": "route-2-route-1",
+      "fromZoneId": "route-2",
+      "toZoneId": "route-1",
+      "requiresCompletion": false
+    },
+    {
+      "id": "route-2-town-2",
+      "fromZoneId": "route-2",
+      "toZoneId": "town-2",
+      "requiresCompletion": true,
+      "unlockFlag": "town-2-unlocked"
+    },
+    {
+      "id": "town-2-route-2",
+      "fromZoneId": "town-2",
+      "toZoneId": "route-2",
+      "requiresCompletion": false
+    }
+  ]
+}

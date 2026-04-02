@@ -1,24 +1,4 @@
-import type { PokemonSpeciesSummary } from "@pokeidle/contracts";
-
-const species: PokemonSpeciesSummary = {
-  id: "chimchar",
-  dexNumber: 390,
-  familyId: "chimchar-family",
-  name: {
-    en: "Chimchar",
-    fr: "Ouisticram"
-  },
-  primaryType: "fire",
-  spriteUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png",
-  baseStats: {
-    hp: 44,
-    attack: 58,
-    defense: 44,
-    specialAttack: 58,
-    specialDefense: 44,
-    speed: 61
-  }
-};
+import { mockPokemonSpecies } from "./mockPokemonSpecies";
 
 const levels = [1, 10, 25, 50];
 
@@ -27,13 +7,18 @@ function scaleStat(baseStat: number, level: number) {
 }
 
 export function PokemonViewerPanel() {
+  const species = mockPokemonSpecies;
+
   return (
     <section className="studio-window">
       <div className="studio-window__titlebar">
         <strong>Pokemon Viewer</strong>
-        <span>#{species.dexNumber}</span>
+        <span>Mock generated data</span>
       </div>
       <div className="studio-window__body">
+        <div className="studio-note">
+          Generated Pokemon data is not wired yet. This panel is intentionally isolated from authored V1 content.
+        </div>
         <div className="pokemon-viewer__header">
           <img alt={species.name.en} src={species.spriteUrl} />
           <div>

@@ -9,8 +9,9 @@
     "dev": "corepack pnpm --parallel --filter @pokeidle/game --filter @pokeidle/tools dev",
     "dev:game": "corepack pnpm --filter @pokeidle/game dev",
     "dev:tools": "corepack pnpm --filter @pokeidle/tools dev",
+    "test": "corepack pnpm -r --if-present test",
     "build": "corepack pnpm -r --if-present build",
     "typecheck": "corepack pnpm -r --if-present typecheck",
-    "check": "corepack pnpm typecheck"
+    "check": "corepack pnpm typecheck && corepack pnpm test"
   }
 }

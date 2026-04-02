@@ -1,0 +1,41 @@
+{
+  "id": "town-2-gym-intro",
+  "title": {
+    "en": "Gym Advice",
+    "fr": "Conseils d'arene"
+  },
+  "participants": [
+    {
+      "id": "gym-guide",
+      "name": {
+        "en": "Gym Guide",
+        "fr": "Guide de l'arene"
+      }
+    },
+    {
+      "id": "leader-roark",
+      "name": {
+        "en": "Roark",
+        "fr": "Pierrick"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "id": "line-1",
+      "speakerId": "gym-guide",
+      "text": {
+        "en": "This gym is timed. Bring a compact team or you waste windows.",
+        "fr": "Cette arene est chronometree. Prends une equipe compacte ou tu perdras des fenetres."
+      }
+    },
+    {
+      "id": "line-2",
+      "speakerId": "leader-roark",
+      "text": {
+        "en": "Beat me fast and Sinnoh opens wider.",
+        "fr": "Bats-moi vite et Sinnoh s'ouvrira davantage."
+      }
+    }
+  ]
+}

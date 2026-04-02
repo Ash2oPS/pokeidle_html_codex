@@ -1,0 +1,30 @@
+{
+  "id": "town-1",
+  "kind": "pacifist",
+  "name": {
+    "en": "Sandgem Town",
+    "fr": "Bonaugure"
+  },
+  "activities": [
+    {
+      "kind": "dialogue_npc",
+      "id": "rowan-intro",
+      "npcId": "professor-rowan",
+      "label": {
+        "en": "Rowan Lab",
+        "fr": "Labo de Rowan"
+      },
+      "dialogueId": "town-1-intro",
+      "grantsFlag": "talked-to-rowan",
+      "startsQuestId": "main-001"
+    },
+    {
+      "kind": "team_management",
+      "id": "team-terminal",
+      "label": {
+        "en": "Team Setup",
+        "fr": "Gestion d'equipe"
+      }
+    }
+  ]
+}
