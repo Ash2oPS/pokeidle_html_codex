@@ -24,7 +24,7 @@
       "readFirst": [
         "all-changes"
       ],
-      "ruleCount": 6
+      "ruleCount": 9
     },
     {
       "path": "docs/ai/documentation-governance.md",
@@ -128,7 +128,7 @@
         "combat-changes",
         "save-changes"
       ],
-      "ruleCount": 5
+      "ruleCount": 6
     },
     {
       "path": "docs/architecture/save-system.md",
@@ -169,7 +169,7 @@
         "quest-work",
         "capture-work"
       ],
-      "ruleCount": 5
+      "ruleCount": 6
     },
     {
       "path": "docs/gameplay/talent-system.md",
@@ -320,7 +320,7 @@
         "hud-work",
         "window-work"
       ],
-      "ruleCount": 5
+      "ruleCount": 6
     },
     {
       "path": "README.md",
@@ -455,7 +455,7 @@
         "documentation-governance",
         "rule-registry"
       ],
-      "summary": "Adding, changing, relocating, or removing active rules requires same-change updates to the canonical doc, [rule-registry.json](./rule-registry.json), and [rule-coverage.md](./rule-coverage.md)."
+      "summary": "Adding, changing, relocating, or removing active rules requires same-change updates to the canonical doc and [rule-registry.json](./rule-registry.json); update [rule-coverage.md](./rule-coverage.md) only when its audit narrative, source coverage matrix, or canonical ownership notes become inaccurate."
     },
     {
       "id": "AI-DOC-006",
@@ -631,7 +631,7 @@
         "change-workflow",
         "ai-process"
       ],
-      "summary": "Run `node scripts/validate-docs.mjs` for documentation or rule changes, and run the relevant package checks for runtime, schema, content, or UI changes."
+      "summary": "Run `node scripts/validate-docs.mjs` for documentation or rule changes, and run the matching package checks from the matrix below for runtime, schema, content, tooling, or UI changes."
     },
     {
       "id": "AI-WORKFLOW-006",
@@ -643,6 +643,39 @@
         "ai-process"
       ],
       "summary": "Use browser or Playwright checks only when the UI change is complex, highly interactive, or visually risky; simple nonvisual edits do not require them."
+    },
+    {
+      "id": "AI-WORKFLOW-007",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 10,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Treat ambiguity as a hard blocker for code, project, and documentation work when it affects the real goal, touched scope, expected result, change aggressiveness, or leaves multiple materially different valid interpretations; stop before additional writes when that ambiguity appears."
+    },
+    {
+      "id": "AI-WORKFLOW-008",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 11,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "When ambiguity blocks execution, ask one short clarification using this exact format on separate lines: `BLOCKER`, `Question: <one short, simple question>`, `Options:`, `- <option 1>`, `- <option 2>`, optional third option only if needed, `Recommended: <clear recommendation>`, `Impact: <short explanation of the consequences of each direction>`."
+    },
+    {
+      "id": "AI-WORKFLOW-009",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 12,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "Use the blocker format only for genuinely blocking project ambiguity; do not use it for trivial non-project requests or when one execution direction is already clear from the active docs and user context."
     },
     {
       "id": "ARCH-CONTENT-001",
@@ -664,7 +697,7 @@
         "content-pipeline",
         "data-ownership"
       ],
-      "summary": "Canonical imported source data is never hand-edited; generated data changes through regeneration or explicitly documented pipeline work, and authored data owns project-specific tuning and references."
+      "summary": "Canonical imported source data is never hand-edited; generated data changes through regeneration or explicitly documented pipeline work, authored data owns project-specific tuning and references, and Pokemon visual fields in generated data use the Platinum front sprite source rather than official artwork."
     },
     {
       "id": "ARCH-CONTENT-003",
@@ -808,6 +841,17 @@
         "simulation-boundaries"
       ],
       "summary": "Wild, boss, trainer, and gym flows remain explicit runtime paths instead of UI-only branches."
+    },
+    {
+      "id": "ARCH-RUNTIME-006",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/runtime-architecture.md",
+      "canonicalLine": 9,
+      "scope": [
+        "runtime-architecture",
+        "simulation-boundaries"
+      ],
+      "summary": "Combat animation and VFX cues are transient presentation events derived from resolved runtime attacks, are never persisted in save state, and must not replay offline catch-up as if it were live action."
     },
     {
       "id": "ARCH-SAVE-001",
@@ -962,6 +1006,17 @@
         "species-unlocks"
       ],
       "summary": "Offensive typing defaults, asymmetrical combat stats, cosmetic-only shiny or skin systems, and explicit rank or tuning data remain documented systems rather than hidden hardcoded exceptions."
+    },
+    {
+      "id": "GAME-PROGRESSION-006",
+      "status": "normative",
+      "canonicalPath": "docs/gameplay/progression-systems.md",
+      "canonicalLine": 9,
+      "scope": [
+        "progression-systems",
+        "species-unlocks"
+      ],
+      "summary": "Team composition forbids duplicate species, forbids multiple members of the same evolution family except the Eevee family, and evolution targets can unlock only once; when evolution runtime replaces a species, the evolved form must take the same team slot automatically."
     },
     {
       "id": "GAME-TALENT-001",
@@ -1269,7 +1324,18 @@
         "ui-principles",
         "player-facing-ui"
       ],
-      "summary": "Visual styling uses restrained flat surfaces, disciplined spacing, readable color coding, and minimal decorative clutter while staying consistent with the Pokemon-adjacent direction."
+      "summary": "Visual styling uses restrained flat surfaces, disciplined spacing, readable color coding, minimal decorative clutter, Platinum front sprites for Pokemon representations, and distinct desktop-ring versus mobile-arc battle staging while staying consistent with the Pokemon-adjacent direction."
+    },
+    {
+      "id": "UI-006",
+      "status": "normative",
+      "canonicalPath": "docs/ui/ui-principles.md",
+      "canonicalLine": 9,
+      "scope": [
+        "ui-principles",
+        "player-facing-ui"
+      ],
+      "summary": "Battle presentation keeps a constant attack rhythm across physical and special attacks, uses local renderer-owned transient VFX only, and may reduce mobile effect budgets without changing gameplay timing."
     }
   ]
 }

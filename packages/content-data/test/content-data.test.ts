@@ -98,7 +98,7 @@ function createValidRawContent() {
             speakerId: "guide",
             text: {
               en: "Go east.",
-              fr: "Va a l'est.",
+              fr: "Va à l'est.",
             },
           },
         ],
@@ -183,11 +183,12 @@ function createValidRawContent() {
         familyId: "starly-family",
         name: {
           en: "Starly",
-          fr: "Etourmi",
+          fr: "Étourmi",
         },
         defensiveTypes: ["normal", "flying"],
         defaultOffensiveType: "flying",
-        spriteUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/396.png",
+        frontSpriteUrl:
+          "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/platinum/396.png",
         baseStats: {
           hp: 40,
           attack: 55,

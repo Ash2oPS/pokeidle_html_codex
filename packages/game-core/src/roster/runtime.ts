@@ -3,6 +3,7 @@ import type { GameSaveV1, SpeciesProgressState } from "@pokeidle/contracts";
 
 export const STARTER_IDS = ["turtwig", "chimchar", "piplup"] as const;
 export const STARTER_BUNDLE_SPECIES_IDS = ["starly", "bidoof", "shinx", "zubat", "geodude", "machop"] as const;
+export const TEAM_MULTI_MEMBER_FAMILY_EXCEPTION_IDS = ["eevee-family"] as const;
 
 function createDefaultSpeciesProgress(): SpeciesProgressState {
   return {
@@ -25,9 +26,79 @@ export function ensureSpeciesProgress(save: GameSaveV1, speciesId: string): Spec
   return current;
 }
 
+function canFamilyRepeatInTeam(familyId: string): boolean {
+  return TEAM_MULTI_MEMBER_FAMILY_EXCEPTION_IDS.includes(
+    familyId as (typeof TEAM_MULTI_MEMBER_FAMILY_EXCEPTION_IDS)[number],
+  );
+}
+
+export function canAssignSpeciesToTeamSlot(
+  save: GameSaveV1,
+  registry: ContentRegistry,
+  slotIndex: number,
+  speciesId: string,
+): boolean {
+  if (slotIndex < 0 || slotIndex >= 6) {
+    return false;
+  }
+
+  if (!save.player.unlockedSpeciesIds.includes(speciesId)) {
+    return false;
+  }
+
+  const candidateSpecies = registry.speciesById[speciesId];
+
+  if (!candidateSpecies) {
+    return false;
+  }
+
+  for (let index = 0; index < 6; index += 1) {
+    if (index === slotIndex) {
+      continue;
+    }
+
+    const otherSpeciesId = save.player.teamSlots[index];
+
+    if (!otherSpeciesId) {
+      continue;
+    }
+
+    if (otherSpeciesId === speciesId) {
+      return false;
+    }
+
+    const otherSpecies = registry.speciesById[otherSpeciesId];
+
+    if (!otherSpecies) {
+      continue;
+    }
+
+    if (
+      otherSpecies.familyId === candidateSpecies.familyId &&
+      !canFamilyRepeatInTeam(candidateSpecies.familyId)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function getAssignableSpeciesIdsForTeamSlot(
+  save: GameSaveV1,
+  registry: ContentRegistry,
+  slotIndex: number,
+): string[] {
+  return save.player.unlockedSpeciesIds.filter((speciesId) =>
+    canAssignSpeciesToTeamSlot(save, registry, slotIndex, speciesId),
+  );
+}
+
 export function syncRosterState(save: GameSaveV1, registry: ContentRegistry): void {
   const validUnlocked = save.player.unlockedSpeciesIds.filter((speciesId) => registry.speciesById[speciesId]);
   const dedupedUnlocked = Array.from(new Set(validUnlocked));
+  const seenTeamSpeciesIds = new Set<string>();
+  const seenTeamFamilyIds = new Set<string>();
 
   dedupedUnlocked.forEach((speciesId) => {
     ensureSpeciesProgress(save, speciesId);
@@ -36,7 +107,28 @@ export function syncRosterState(save: GameSaveV1, registry: ContentRegistry): vo
   save.player.unlockedSpeciesIds = dedupedUnlocked;
   save.player.teamSlots = Array.from({ length: 6 }, (_, index) => {
     const slotValue = save.player.teamSlots[index];
-    return slotValue && registry.speciesById[slotValue] ? slotValue : null;
+
+    if (!slotValue || !registry.speciesById[slotValue] || !dedupedUnlocked.includes(slotValue)) {
+      return null;
+    }
+
+    if (seenTeamSpeciesIds.has(slotValue)) {
+      return null;
+    }
+
+    const species = registry.speciesById[slotValue]!;
+
+    if (seenTeamFamilyIds.has(species.familyId) && !canFamilyRepeatInTeam(species.familyId)) {
+      return null;
+    }
+
+    seenTeamSpeciesIds.add(slotValue);
+
+    if (!canFamilyRepeatInTeam(species.familyId)) {
+      seenTeamFamilyIds.add(species.familyId);
+    }
+
+    return slotValue;
   });
 
   Object.entries(save.species).forEach(([speciesId, progress]) => {
@@ -86,6 +178,10 @@ export function setTeamSlot(
   }
 
   if (speciesId !== null && !registry.speciesById[speciesId]) {
+    return;
+  }
+
+  if (speciesId !== null && !canAssignSpeciesToTeamSlot(save, registry, slotIndex, speciesId)) {
     return;
   }
 

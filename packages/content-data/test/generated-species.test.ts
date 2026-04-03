@@ -49,6 +49,16 @@ describe("generated pokemon dataset", () => {
     Object.values(registry.speciesById).forEach((species) => {
       expect(species.name.en.length).toBeGreaterThan(0);
       expect(species.name.fr.length).toBeGreaterThan(0);
+      expect(species.frontSpriteUrl).toContain("generation-iv/platinum");
+      expect(species.frontSpriteUrl).not.toContain("official-artwork");
+    });
+  });
+
+  it("requires a Platinum front sprite for every generated species", () => {
+    const registry = loadContentRegistry();
+
+    Object.values(registry.speciesById).forEach((species) => {
+      expect(species.frontSpriteUrl.length).toBeGreaterThan(0);
     });
   });
 

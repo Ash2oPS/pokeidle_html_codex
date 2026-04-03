@@ -1,10 +1,11 @@
-import type { PokemonSpeciesDefinition, SpeciesProgressState, Locale } from "@pokeidle/contracts";
+import type { Locale, PokemonSpeciesDefinition, SpeciesProgressState } from "@pokeidle/contracts";
 import { pickLocalizedText } from "@pokeidle/game-core";
 
 interface TeamWindowProps {
   locale: Locale;
   teamSlots: Array<string | null>;
   unlockedSpecies: PokemonSpeciesDefinition[];
+  assignableSpeciesIdsBySlot: string[][];
   speciesProgressById: Record<string, SpeciesProgressState>;
   onSetTeamSlot: (slotIndex: number, speciesId: string | null) => void;
 }
@@ -32,6 +33,7 @@ export function TeamWindow({
   locale,
   teamSlots,
   unlockedSpecies,
+  assignableSpeciesIdsBySlot,
   speciesProgressById,
   onSetTeamSlot,
 }: TeamWindowProps) {
@@ -47,6 +49,7 @@ export function TeamWindow({
           {teamSlots.map((speciesId, slotIndex) => {
             const species = speciesId ? unlockedSpecies.find((entry) => entry.id === speciesId) ?? null : null;
             const progress = speciesId ? speciesProgressById[speciesId] : undefined;
+            const assignableSpeciesIds = new Set(assignableSpeciesIdsBySlot[slotIndex] ?? []);
 
             return (
               <article key={`slot-${slotIndex + 1}`} className="team-slot-card">
@@ -59,16 +62,20 @@ export function TeamWindow({
                     value={speciesId ?? ""}
                   >
                     <option value="">{text.empty}</option>
-                    {unlockedSpecies.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {pickLocalizedText(entry.name, locale)}
-                      </option>
-                    ))}
+                    {unlockedSpecies
+                      .filter((entry) => assignableSpeciesIds.has(entry.id))
+                      .map((entry) => (
+                        <option key={entry.id} value={entry.id}>
+                          {pickLocalizedText(entry.name, locale)}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 {species ? (
                   <div className="team-slot-card__body">
-                    <img alt={pickLocalizedText(species.name, locale)} src={species.spriteUrl} />
+                    <div className="species-sprite-frame">
+                      <img alt={pickLocalizedText(species.name, locale)} src={species.frontSpriteUrl} />
+                    </div>
                     <div className="team-slot-card__info">
                       <strong>{pickLocalizedText(species.name, locale)}</strong>
                       <span>
@@ -86,11 +93,14 @@ export function TeamWindow({
         </div>
         <section className="team-window__roster">
           <div className="quest-window__section-title">{text.unlocked}</div>
-          <div className="focus-tag-list">
+          <div className="species-chip-grid">
             {unlockedSpecies.map((species) => (
-              <span key={species.id} className="focus-tag">
-                {pickLocalizedText(species.name, locale)}
-              </span>
+              <div key={species.id} className="species-chip-card">
+                <div className="species-sprite-frame species-sprite-frame--small">
+                  <img alt={pickLocalizedText(species.name, locale)} src={species.frontSpriteUrl} />
+                </div>
+                <span>{pickLocalizedText(species.name, locale)}</span>
+              </div>
             ))}
           </div>
         </section>

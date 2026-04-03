@@ -38,7 +38,7 @@ export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
           </select>
         </label>
         <div className="pokemon-viewer__header">
-          <img alt={species.name.en} src={species.spriteUrl} />
+          <img alt={species.name.en} src={species.frontSpriteUrl} />
           <div>
             <h2>{species.name.en}</h2>
             <p>{species.name.fr}</p>

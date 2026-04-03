@@ -1,4 +1,4 @@
-import type { PokemonSpeciesDefinition, Locale } from "@pokeidle/contracts";
+import type { Locale, PokemonSpeciesDefinition } from "@pokeidle/contracts";
 import { pickLocalizedText } from "@pokeidle/game-core";
 
 interface StarterChoiceWindowProps {
@@ -37,7 +37,9 @@ export function StarterChoiceWindow({
         <div className="starter-window__grid">
           {starters.map((species) => (
             <article key={species.id} className="starter-card">
-              <img alt={pickLocalizedText(species.name, locale)} src={species.spriteUrl} />
+              <div className="species-sprite-frame species-sprite-frame--large">
+                <img alt={pickLocalizedText(species.name, locale)} src={species.frontSpriteUrl} />
+              </div>
               <strong>{pickLocalizedText(species.name, locale)}</strong>
               <div className="focus-tag-list">
                 {species.defensiveTypes.map((type) => (

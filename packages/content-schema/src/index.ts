@@ -107,7 +107,7 @@ export const pokemonSpeciesDefinitionSchema = z.object({
   name: localizedTextSchema,
   defensiveTypes: z.array(idSchema).min(1),
   defaultOffensiveType: idSchema,
-  spriteUrl: z.string().url(),
+  frontSpriteUrl: z.string().url(),
   baseStats: baseStatsSchema,
   evolvesFromSpeciesId: idSchema.optional(),
   evolvesToSpeciesIds: z.array(idSchema),

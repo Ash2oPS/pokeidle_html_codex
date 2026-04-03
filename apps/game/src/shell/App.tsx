@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadContentRegistry } from "@pokeidle/content-data";
-import type { LayoutMode, Locale } from "@pokeidle/contracts";
+import type {
+  CombatResolvedAttackEvent,
+  LayoutMode,
+  Locale,
+} from "@pokeidle/contracts";
 import {
   STARTER_IDS,
   applySliceAction,
+  buildCombatSessionKey,
   canResumeBattle,
   canStartGymBattle,
   chooseStarter,
@@ -11,6 +16,7 @@ import {
   deriveCombatView,
   deriveSliceView,
   detectPreferredLocale,
+  getAssignableSpeciesIdsForTeamSlot,
   hasCombatStepDue,
   pickLocalizedText,
   resolveLayoutMode,
@@ -20,15 +26,18 @@ import {
   syncGameRuntimeState,
 } from "@pokeidle/game-core";
 import type { SaveManagerState, SliceAction } from "@pokeidle/game-core";
-import { SaveWindow } from "../ui/hud/SaveWindow";
 import { CompactHud, type WindowKey } from "../ui/hud/CompactHud";
 import { CurrentZonePanel } from "../ui/hud/CurrentZonePanel";
-import { BattleCanvas } from "../ui/render/BattleCanvas";
+import { SaveWindow } from "../ui/hud/SaveWindow";
+import { BattleCanvas, type BattleSlotPressPayload } from "../ui/render/BattleCanvas";
+import type { BattleAttackVisualEvent } from "../ui/render/attack-animation";
 import { DialogueWindow } from "../ui/windows/DialogueWindow";
 import { MapWindow } from "../ui/windows/MapWindow";
 import { PlaceholderWindow } from "../ui/windows/PlaceholderWindow";
 import { QuestsWindow } from "../ui/windows/QuestsWindow";
 import { StarterChoiceWindow } from "../ui/windows/StarterChoiceWindow";
+import { TeamSlotContextMenu } from "../ui/windows/TeamSlotContextMenu";
+import { TeamSlotPicker } from "../ui/windows/TeamSlotPicker";
 import { TeamWindow } from "../ui/windows/TeamWindow";
 import { gameSaveManager } from "./save-manager";
 import "./shell.css";
@@ -78,6 +87,12 @@ function getQuestChipLabel(locale: Locale, questTitle: string | null): string {
   return questTitle ?? uiCopy[locale].noQuest;
 }
 
+interface TeamSlotOverlayState {
+  slotIndex: number;
+  anchorX: number;
+  anchorY: number;
+}
+
 export function App() {
   const [deviceLocale] = useState<Locale>(() => readLocale());
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => readLayoutMode());
@@ -85,6 +100,9 @@ export function App() {
   const [saveState, setSaveState] = useState<SaveManagerState>(() => gameSaveManager.getState());
   const [selectedMapZoneId, setSelectedMapZoneId] = useState<string>("town-1");
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  const [liveAttackEvents, setLiveAttackEvents] = useState<CombatResolvedAttackEvent[]>([]);
+  const [slotMenuState, setSlotMenuState] = useState<TeamSlotOverlayState | null>(null);
+  const [slotPickerState, setSlotPickerState] = useState<TeamSlotOverlayState | null>(null);
   const latestSnapshotRef = useRef(saveState.snapshot);
   const registryState = useMemo(() => {
     try {
@@ -149,13 +167,36 @@ export function App() {
     }
 
     const intervalId = window.setInterval(() => {
-      const nowIso = new Date().toISOString();
-      setNowMs(Date.now());
+      const nowValue = Date.now();
+      const nowIso = new Date(nowValue).toISOString();
+      const session = latestSnapshotRef.current.battle.activeSession;
+      const deltaMs = session
+        ? Math.max(0, Date.parse(nowIso) - Date.parse(session.lastProcessedAt))
+        : 0;
+      const allowVisualEvents =
+        document.visibilityState === "visible" &&
+        deltaMs <= registry.progression.slotIntervalMs * 1.25;
+
+      setNowMs(nowValue);
 
       if (hasCombatStepDue(latestSnapshotRef.current, registry, nowIso)) {
+        const visualEvents: CombatResolvedAttackEvent[] = [];
         gameSaveManager.update((draft) => {
-          syncGameRuntimeState(draft, registry, nowIso);
+          syncGameRuntimeState(
+            draft,
+            registry,
+            nowIso,
+            allowVisualEvents
+              ? (event) => {
+                  visualEvents.push(event);
+                }
+              : undefined,
+          );
         });
+
+        if (visualEvents.length > 0) {
+          setLiveAttackEvents(visualEvents);
+        }
       }
     }, 250);
 
@@ -183,6 +224,15 @@ export function App() {
 
     return deriveCombatView(saveState.snapshot, registryState.registry, nowIso);
   }, [nowIso, registryState.registry, saveState.snapshot]);
+
+  const combatSessionKey = useMemo(
+    () => (combatView?.session ? buildCombatSessionKey(combatView.session) : null),
+    [combatView?.session],
+  );
+
+  useEffect(() => {
+    setLiveAttackEvents([]);
+  }, [combatSessionKey]);
 
   useEffect(() => {
     if (sliceView) {
@@ -223,6 +273,33 @@ export function App() {
     .map((speciesId) => registry.speciesById[speciesId])
     .filter((species): species is NonNullable<typeof species> => Boolean(species))
     .sort((left, right) => left.dexNumber - right.dexNumber);
+  const teamSlotVisuals = saveState.snapshot.player.teamSlots.map((speciesId) => {
+    if (!speciesId) {
+      return {
+        speciesId: null,
+        label: null,
+        frontSpriteUrl: null,
+      };
+    }
+
+    const species = registry.speciesById[speciesId] ?? null;
+
+    return {
+      speciesId,
+      label: species ? pickLocalizedText(species.name, locale) : speciesId,
+      frontSpriteUrl: species?.frontSpriteUrl ?? null,
+    };
+  });
+  const assignableSpeciesIdsBySlot = saveState.snapshot.player.teamSlots.map((_, slotIndex) =>
+    getAssignableSpeciesIdsForTeamSlot(saveState.snapshot, registry, slotIndex),
+  );
+  const pickerSpeciesBySlot = saveState.snapshot.player.teamSlots.map((speciesId, slotIndex) => {
+    const assignableIds = new Set(assignableSpeciesIdsBySlot[slotIndex] ?? []);
+
+    return unlockedSpecies.filter(
+      (species) => assignableIds.has(species.id) && species.id !== speciesId,
+    );
+  });
   const starterSpecies = STARTER_IDS
     .map((speciesId) => registry.speciesById[speciesId])
     .filter((species): species is NonNullable<typeof species> => Boolean(species));
@@ -267,6 +344,37 @@ export function App() {
     !saveState.snapshot.player.starterChoice &&
     !sliceView.activeDialogue;
 
+  const closeTeamSlotOverlays = () => {
+    setSlotMenuState(null);
+    setSlotPickerState(null);
+  };
+
+  useEffect(() => {
+    if (!slotMenuState && !slotPickerState) {
+      return undefined;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      closeTeamSlotOverlays();
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [slotMenuState, slotPickerState]);
+
+  useEffect(() => {
+    if (!combatView.session || activeWindow || sliceView.activeDialogue || showStarterChoice) {
+      closeTeamSlotOverlays();
+    }
+  }, [activeWindow, combatView.session, showStarterChoice, sliceView.activeDialogue]);
+
   const handleImport = async (serializedSave: string) => {
     await gameSaveManager.importFromString(serializedSave);
     gameSaveManager.update((draft) => {
@@ -286,6 +394,27 @@ export function App() {
       setTeamSlot(draft, registry, slotIndex, speciesId);
       syncGameRuntimeState(draft, registry);
     }, { immediate: true });
+  };
+
+  const handleSlotPress = ({ slotIndex, anchorClientX, anchorClientY }: BattleSlotPressPayload) => {
+    if (!combatView.session || activeWindow || sliceView.activeDialogue || showStarterChoice) {
+      return;
+    }
+
+    const matchesOpenSlot =
+      slotPickerState?.slotIndex === slotIndex || slotMenuState?.slotIndex === slotIndex;
+
+    if (matchesOpenSlot) {
+      closeTeamSlotOverlays();
+      return;
+    }
+
+    setSlotPickerState(null);
+    setSlotMenuState({
+      slotIndex,
+      anchorX: anchorClientX,
+      anchorY: anchorClientY,
+    });
   };
 
   const handleStartWildBattle = (zoneId: string) => {
@@ -310,20 +439,49 @@ export function App() {
     saveState.snapshot.player.starterChoice ??
     saveState.snapshot.player.unlockedSpeciesIds[0] ??
     "chimchar";
+  const attackVisualEvents = useMemo<BattleAttackVisualEvent[]>(
+    () =>
+      liveAttackEvents
+        .filter((event) => event.sessionKey === combatSessionKey)
+        .map((event) => {
+        const attackerSpecies = registry.speciesById[event.attackerSpeciesId] ?? null;
+        const enemySpecies = registry.speciesById[event.enemySpeciesId] ?? null;
+
+        return {
+          ...event,
+          attackerFrontSpriteUrl: attackerSpecies?.frontSpriteUrl ?? null,
+          attackerLabel: attackerSpecies ? pickLocalizedText(attackerSpecies.name, locale) : event.attackerSpeciesId,
+          enemyFrontSpriteUrl: enemySpecies?.frontSpriteUrl ?? null,
+          enemyLabel: enemySpecies ? pickLocalizedText(enemySpecies.name, locale) : event.enemySpeciesId,
+        };
+        }),
+    [combatSessionKey, liveAttackEvents, locale, registry.speciesById],
+  );
+  const activeSlotOverlay = slotPickerState ?? slotMenuState;
+  const activeSlotVisual = activeSlotOverlay
+    ? teamSlotVisuals[activeSlotOverlay.slotIndex] ?? null
+    : null;
 
   return (
     <main className={`game-shell game-shell--${layoutMode}`}>
       <BattleCanvas
         activeSlotIndex={combatView.activeSlotIndex}
+        attackEvents={attackVisualEvents}
+        combatSessionKey={combatSessionKey}
         enemyHpPercent={combatView.enemyHpPercent}
-        enemyLabel={combatView.enemySpecies ? pickLocalizedText(combatView.enemySpecies.name, locale) : null}
+        enemyVisual={
+          combatView.enemySpecies
+            ? {
+                label: pickLocalizedText(combatView.enemySpecies.name, locale),
+                frontSpriteUrl: combatView.enemySpecies.frontSpriteUrl,
+              }
+            : null
+        }
         layoutMode={layoutMode}
-        progressLabel={combatView.defeatProgressLabel}
         reactionLabel={reactionLabel}
         sceneKind={sceneKind}
-        teamSlots={saveState.snapshot.player.teamSlots}
-        timerLabel={combatView.remainingTimerLabel}
-        zoneLabel={zoneLabel}
+        teamSlotVisuals={teamSlotVisuals}
+        {...(combatView.session ? { onSlotPress: handleSlotPress } : {})}
       />
 
       <CompactHud
@@ -351,6 +509,7 @@ export function App() {
           return battle ? canStartGymBattle(saveState.snapshot, battle) : false;
         }}
         combatView={combatView}
+        layoutMode={layoutMode}
         locale={locale}
         onEnterWildBattle={handleStartWildBattle}
         onOpenTeam={() => setActiveWindow("team")}
@@ -371,10 +530,42 @@ export function App() {
       ) : null}
 
       {showStarterChoice ? (
-        <StarterChoiceWindow
+        <StarterChoiceWindow locale={locale} onChoose={handleChooseStarter} starters={starterSpecies} />
+      ) : null}
+
+      {slotMenuState ? (
+        <TeamSlotContextMenu
+          anchor={{ x: slotMenuState.anchorX, y: slotMenuState.anchorY }}
+          canOpenPicker={(pickerSpeciesBySlot[slotMenuState.slotIndex] ?? []).length > 0}
+          layoutMode={layoutMode}
           locale={locale}
-          onChoose={handleChooseStarter}
-          starters={starterSpecies}
+          onClear={() => {
+            handleSetTeamSlot(slotMenuState.slotIndex, null);
+            closeTeamSlotOverlays();
+          }}
+          onClose={closeTeamSlotOverlays}
+          onRequestChange={() => {
+            setSlotPickerState(slotMenuState);
+            setSlotMenuState(null);
+          }}
+          slotIndex={slotMenuState.slotIndex}
+          slotLabel={activeSlotVisual?.label ?? null}
+        />
+      ) : null}
+
+      {slotPickerState ? (
+        <TeamSlotPicker
+          anchor={{ x: slotPickerState.anchorX, y: slotPickerState.anchorY }}
+          availableSpecies={pickerSpeciesBySlot[slotPickerState.slotIndex] ?? []}
+          layoutMode={layoutMode}
+          locale={locale}
+          onChooseSpecies={(speciesId) => {
+            handleSetTeamSlot(slotPickerState.slotIndex, speciesId);
+            closeTeamSlotOverlays();
+          }}
+          onClose={closeTeamSlotOverlays}
+          slotIndex={slotPickerState.slotIndex}
+          speciesProgressById={saveState.snapshot.species}
         />
       ) : null}
 
@@ -437,12 +628,11 @@ export function App() {
           />
         ) : null}
 
-        {activeWindow === "dex" ? (
-          <PlaceholderWindow rows={text.dexRows} title={text.dexTitle} />
-        ) : null}
+        {activeWindow === "dex" ? <PlaceholderWindow rows={text.dexRows} title={text.dexTitle} /> : null}
 
         {activeWindow === "team" ? (
           <TeamWindow
+            assignableSpeciesIdsBySlot={assignableSpeciesIdsBySlot}
             locale={locale}
             onSetTeamSlot={handleSetTeamSlot}
             speciesProgressById={saveState.snapshot.species}

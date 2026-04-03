@@ -1,6 +1,8 @@
 import type { ContentRegistry } from "@pokeidle/content-data";
 import type {
   ActiveBattleSessionState,
+  CombatReactionOutcome,
+  CombatResolvedAttackEvent,
   BattleEnemyDefinition,
   BattleEnemyState,
   BattleDefinition,
@@ -10,9 +12,18 @@ import type {
   PokemonSpeciesDefinition,
   WildBattleSessionState,
 } from "@pokeidle/contracts";
-import { getSpeciesGuard, getSpeciesLevel, getSpeciesMaxHp, getSpeciesOffense, getXpToNextLevel } from "../pokemon/scaling";
+import {
+  getSpeciesAttackClass,
+  getSpeciesGuard,
+  getSpeciesLevel,
+  getSpeciesMaxHp,
+  getSpeciesOffense,
+  getXpToNextLevel,
+} from "../pokemon/scaling";
 import { countFilledTeamSlots, ensureSpeciesProgress } from "../roster/runtime";
 import { getTypeMultiplier } from "./type-chart";
+
+export type CombatVisualEventCollector = (event: CombatResolvedAttackEvent) => void;
 
 export interface CombatViewState {
   session: ActiveBattleSessionState | null;
@@ -23,6 +34,12 @@ export interface CombatViewState {
   defeatProgressLabel: string | null;
   remainingTimerLabel: string | null;
   reactionLabel: "wet" | null;
+}
+
+export function buildCombatSessionKey(session: ActiveBattleSessionState): string {
+  return session.kind === "wild"
+    ? `wild:${session.zoneId}:${session.startedAt}`
+    : `gym:${session.battleId}:${session.startedAt}`;
 }
 
 function createSeed(input: string): number {
@@ -144,11 +161,16 @@ function awardExperience(
 function updateReactionState(
   enemy: BattleEnemyState,
   attackType: string,
-): { multiplier: number; reactionState: BattleEnemyState["reactionState"] } {
+): {
+  multiplier: number;
+  reactionState: BattleEnemyState["reactionState"];
+  outcome: CombatReactionOutcome;
+} {
   if (enemy.reactionState === "wet" && attackType === "electric") {
     return {
       multiplier: 1.5,
       reactionState: null,
+      outcome: "wet-boost",
     };
   }
 
@@ -156,6 +178,7 @@ function updateReactionState(
     return {
       multiplier: 0.5,
       reactionState: null,
+      outcome: "wet-dampen",
     };
   }
 
@@ -163,34 +186,47 @@ function updateReactionState(
     return {
       multiplier: 1,
       reactionState: "wet",
+      outcome: "wet-applied",
     };
   }
 
   return {
     multiplier: 1,
     reactionState: enemy.reactionState,
+    outcome: "none",
   };
+}
+
+interface AttackResolutionResult {
+  enemyDefeated: boolean;
+  visualEvent: CombatResolvedAttackEvent | null;
 }
 
 function resolveAttackStep(
   save: GameSaveV1,
   registry: ContentRegistry,
   session: ActiveBattleSessionState,
-): boolean {
+): AttackResolutionResult {
   const actingSlotIndex = session.currentSlotIndex;
   const actingSpeciesId = save.player.teamSlots[actingSlotIndex];
 
   session.currentSlotIndex = (session.currentSlotIndex + 1) % 6;
 
   if (!actingSpeciesId) {
-    return false;
+    return {
+      enemyDefeated: false,
+      visualEvent: null,
+    };
   }
 
   const actingSpecies = registry.speciesById[actingSpeciesId];
   const enemySpecies = registry.speciesById[session.enemy.speciesId];
 
   if (!actingSpecies || !enemySpecies) {
-    return false;
+    return {
+      enemyDefeated: false,
+      visualEvent: null,
+    };
   }
 
   const actingProgress = ensureSpeciesProgress(save, actingSpeciesId);
@@ -205,6 +241,7 @@ function resolveAttackStep(
     session.enemy.defensiveTypes,
   );
   const reaction = updateReactionState(session.enemy, actingSpecies.defaultOffensiveType);
+  const enemyHpBefore = session.enemy.currentHp;
   const damage = Math.max(
     1,
     Math.round(
@@ -214,16 +251,40 @@ function resolveAttackStep(
         reaction.multiplier,
     ),
   );
+  const appliedDamage = Math.min(enemyHpBefore, damage);
 
   session.enemy.currentHp = Math.max(0, session.enemy.currentHp - damage);
   session.enemy.reactionState = reaction.reactionState;
+  const enemyDefeated = session.enemy.currentHp <= 0;
+  const eventKey = `${buildCombatSessionKey(session)}:${session.lastProcessedAt}:${actingSlotIndex}`;
+  const visualEvent: CombatResolvedAttackEvent = {
+    eventKey,
+    sessionKey: buildCombatSessionKey(session),
+    slotIndex: actingSlotIndex,
+    attackerSpeciesId: actingSpecies.id,
+    enemySpeciesId: enemySpecies.id,
+    offensiveType: actingSpecies.defaultOffensiveType,
+    attackClass: getSpeciesAttackClass(actingSpecies),
+    damage: appliedDamage,
+    didDefeatEnemy: enemyDefeated,
+    reactionOutcome: reaction.outcome,
+    enemyHpBefore,
+    enemyHpAfter: session.enemy.currentHp,
+    enemyMaxHp: session.enemy.maxHp,
+  };
 
-  if (session.enemy.currentHp > 0) {
-    return false;
+  if (!enemyDefeated) {
+    return {
+      enemyDefeated: false,
+      visualEvent,
+    };
   }
 
   awardExperience(save, actingSlotIndex, registry, session.kind === "wild" ? "wild" : "gym");
-  return true;
+  return {
+    enemyDefeated: true,
+    visualEvent,
+  };
 }
 
 function clearBattleSession(save: GameSaveV1): void {
@@ -310,6 +371,7 @@ function processSingleStep(
   save: GameSaveV1,
   registry: ContentRegistry,
   session: ActiveBattleSessionState,
+  visualEventCollector?: CombatVisualEventCollector,
 ): void {
   if (session.kind === "wild") {
     const zone = getCombatZone(registry, session.zoneId);
@@ -326,9 +388,13 @@ function processSingleStep(
       return;
     }
 
-    const enemyDefeated = resolveAttackStep(save, registry, session);
+    const result = resolveAttackStep(save, registry, session);
 
-    if (enemyDefeated) {
+    if (result.visualEvent) {
+      visualEventCollector?.(result.visualEvent);
+    }
+
+    if (result.enemyDefeated) {
       finalizeWildDefeat(save, registry, session);
     }
 
@@ -349,9 +415,13 @@ function processSingleStep(
     return;
   }
 
-  const enemyDefeated = resolveAttackStep(save, registry, session);
+  const result = resolveAttackStep(save, registry, session);
 
-  if (enemyDefeated) {
+  if (result.visualEvent) {
+    visualEventCollector?.(result.visualEvent);
+  }
+
+  if (result.enemyDefeated) {
     finalizeGymDefeat(save, registry, session);
   }
 }
@@ -416,6 +486,7 @@ export function syncCombatState(
   save: GameSaveV1,
   registry: ContentRegistry,
   nowIso = new Date().toISOString(),
+  visualEventCollector?: CombatVisualEventCollector,
 ): void {
   const session = save.battle.activeSession;
 
@@ -434,7 +505,7 @@ export function syncCombatState(
   let remainingMs = nowMs - lastProcessedMs;
 
   while (save.battle.activeSession && remainingMs >= intervalMs) {
-    processSingleStep(save, registry, save.battle.activeSession);
+    processSingleStep(save, registry, save.battle.activeSession, visualEventCollector);
     remainingMs -= intervalMs;
   }
 

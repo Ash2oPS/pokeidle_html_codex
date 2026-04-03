@@ -1,4 +1,5 @@
 import type {
+  AttackClass,
   CombatTuningDefinition,
   PokemonSpeciesDefinition,
   SpeciesProgressState,
@@ -21,6 +22,10 @@ export function getSpeciesOffense(
     scaleStat(species.baseStats.attack, level, tuning.levelStatScalar),
     scaleStat(species.baseStats.specialAttack, level, tuning.levelStatScalar),
   );
+}
+
+export function getSpeciesAttackClass(species: PokemonSpeciesDefinition): AttackClass {
+  return species.baseStats.specialAttack > species.baseStats.attack ? "special" : "physical";
 }
 
 export function getSpeciesGuard(

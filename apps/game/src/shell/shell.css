@@ -183,6 +183,12 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.zone-panel__compact-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .zone-panel__metric,
 .focus-row {
   padding: 10px 12px;
@@ -283,6 +289,15 @@ button {
   font-weight: 800;
 }
 
+.zone-panel--compact-mobile {
+  width: auto;
+}
+
+.zone-panel__body--compact-mobile {
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
 .focus-window {
   position: absolute;
   z-index: 3;
@@ -373,6 +388,122 @@ button {
   box-shadow: 0 12px 0 rgba(31, 79, 135, 0.14);
 }
 
+.slot-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.slot-surface {
+  position: absolute;
+  border: 2px solid #1f4f87;
+  border-radius: 22px;
+  background: rgba(245, 248, 255, 0.98);
+  box-shadow: 0 12px 0 rgba(31, 79, 135, 0.14);
+}
+
+.slot-surface--desktop {
+  max-height: min(460px, calc(100vh - 110px));
+}
+
+.slot-surface--mobile {
+  left: 14px;
+  right: 14px;
+  bottom: 86px;
+  max-height: min(58vh, 420px);
+}
+
+.slot-surface--picker {
+  width: min(320px, calc(100vw - 28px));
+}
+
+.slot-surface__titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #dbe8ff 0%, #bdd7ff 100%);
+  border-bottom: 2px solid #1f4f87;
+  font-size: 0.84rem;
+}
+
+.slot-surface__titlebar button {
+  border: 2px solid #1f4f87;
+  border-radius: 10px;
+  background: #f5f8ff;
+  color: #14314f;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.slot-surface__body {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+
+.slot-surface__meta {
+  padding: 10px 12px;
+  border: 2px solid #8db5ef;
+  border-radius: 14px;
+  background: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.slot-surface__actions {
+  display: grid;
+  gap: 8px;
+}
+
+.slot-surface__action {
+  border: 2px solid #1f4f87;
+  border-radius: 16px;
+  background: #f5f8ff;
+  color: #14314f;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.slot-surface__action--danger {
+  border-color: #ff8fa0;
+  color: #a22439;
+}
+
+.slot-surface__action:disabled {
+  opacity: 0.55;
+}
+
+.slot-picker__list {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+}
+
+.slot-picker__option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 2px solid #8db5ef;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #14314f;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.slot-picker__option-info {
+  display: grid;
+  gap: 3px;
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
 .starter-window {
   position: absolute;
   inset: 96px 18px 96px 18px;
@@ -426,10 +557,32 @@ button {
   justify-items: center;
 }
 
-.starter-card img,
-.team-slot-card__body img {
+.species-sprite-frame {
+  display: grid;
+  place-items: center;
   width: 96px;
   height: 96px;
+  border: 2px solid #8db5ef;
+  border-radius: 18px;
+  background: #f7fbff;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.species-sprite-frame--large {
+  width: 104px;
+  height: 104px;
+}
+
+.species-sprite-frame--small {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+}
+
+.species-sprite-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
@@ -469,6 +622,25 @@ button {
 .team-window__roster {
   display: grid;
   gap: 8px;
+}
+
+.species-chip-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
+.species-chip-card {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 8px 10px;
+  border: 2px solid #8db5ef;
+  border-radius: 16px;
+  background: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-align: center;
 }
 
 .dialogue-window__speaker {
@@ -633,11 +805,35 @@ button {
     width: auto;
   }
 
+  .zone-panel--compact-mobile {
+    bottom: 86px;
+  }
+
   .zone-panel__metrics,
   .dialogue-window__actions,
   .save-counter-grid,
   .save-actions {
     grid-template-columns: 1fr;
+  }
+
+  .zone-panel__compact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .zone-panel--compact-mobile .zone-panel__titlebar {
+    padding: 10px 12px;
+  }
+
+  .zone-panel--compact-mobile .zone-panel__metric {
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 10px;
+    font-size: 0.74rem;
+  }
+
+  .zone-panel--compact-mobile .zone-panel__metric strong {
+    font-size: 0.78rem;
   }
 
   .dialogue-window {
@@ -646,6 +842,10 @@ button {
     bottom: 240px;
     width: auto;
     transform: none;
+  }
+
+  .slot-surface--mobile {
+    bottom: 86px;
   }
 
   .map-window__node {

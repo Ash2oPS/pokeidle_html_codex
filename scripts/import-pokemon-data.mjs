@@ -123,6 +123,13 @@ function buildFamilyId(evolutionLinks, speciesId) {
   return `${cursor}-family`;
 }
 
+function resolvePlatinumFrontSpriteUrl(pokemonDocument) {
+  return (
+    pokemonDocument.sprites?.versions?.["generation-iv"]?.platinum?.front_default ??
+    null
+  );
+}
+
 function normalizeSpeciesRecord(speciesId, bundle) {
   const statsByName = Object.fromEntries(
     bundle.pokemon.stats.map((entry) => [entry.stat.name, entry.base_stat]),
@@ -137,12 +144,10 @@ function normalizeSpeciesRecord(speciesId, bundle) {
       : defensiveTypes[0];
   const evolutionLinks = collectEvolutionLinks(bundle.evolutionChain.chain);
   const currentLinks = evolutionLinks.get(speciesId);
-  const spriteUrl =
-    bundle.pokemon.sprites.other?.["official-artwork"]?.front_default ??
-    bundle.pokemon.sprites.front_default;
+  const frontSpriteUrl = resolvePlatinumFrontSpriteUrl(bundle.pokemon);
 
-  if (!spriteUrl) {
-    throw new Error(`Missing sprite for ${speciesId}`);
+  if (!frontSpriteUrl) {
+    throw new Error(`Missing Platinum front sprite for ${speciesId}`);
   }
 
   return {
@@ -155,7 +160,7 @@ function normalizeSpeciesRecord(speciesId, bundle) {
     },
     defensiveTypes,
     defaultOffensiveType,
-    spriteUrl,
+    frontSpriteUrl,
     baseStats: {
       hp: statsByName.hp ?? 1,
       attack: statsByName.attack ?? 1,

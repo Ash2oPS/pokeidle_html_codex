@@ -3,9 +3,11 @@ import type { BattleEnemyState, GameSaveV1 } from "@pokeidle/contracts";
 import { describe, expect, it } from "vitest";
 import {
   applySliceAction,
+  buildCombatSessionKey,
   canStartGymBattle,
   chooseStarter,
   ensureSpeciesProgress,
+  getSpeciesAttackClass,
   getSpeciesGuard,
   getSpeciesMaxHp,
   getSpeciesOffense,
@@ -126,6 +128,7 @@ describe("combat foundation runtime", () => {
 
   it("empty slots consume time and do not attack", () => {
     const { save, registry, nowIso } = createStarterSave();
+    const visualEvents: import("@pokeidle/contracts").CombatResolvedAttackEvent[] = [];
 
     save.player.teamSlots = [null, null, null, null, null, null];
     startWildBattle(save, registry, "route-1", nowIso);
@@ -134,11 +137,14 @@ describe("combat foundation runtime", () => {
     expect(session?.kind).toBe("wild");
     const initialHp = session?.enemy.currentHp ?? 0;
 
-    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z");
+    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z", (event) => {
+      visualEvents.push(event);
+    });
 
     expect(save.battle.activeSession?.currentSlotIndex).toBe(1);
     expect(save.battle.activeSession?.elapsedMs).toBe(1000);
     expect(save.battle.activeSession?.enemy.currentHp).toBe(initialHp);
+    expect(visualEvents).toHaveLength(0);
   });
 
   it("wild battles increment defeat count, grant money, and respawn the next enemy", () => {
@@ -198,7 +204,9 @@ describe("combat foundation runtime", () => {
     const { save, registry, nowIso } = createStarterSave();
 
     setSpeciesLevel(save, "piplup", 300);
-    save.player.teamSlots = ["piplup", "piplup", "piplup", null, null, null];
+    setSpeciesLevel(save, "shinx", 300);
+    setSpeciesLevel(save, "machop", 300);
+    save.player.teamSlots = ["piplup", "shinx", "machop", null, null, null];
 
     expect(startGymBattle(save, registry, "town-2", "gym-001", nowIso)).toBe(true);
 
@@ -226,16 +234,21 @@ describe("combat foundation runtime", () => {
 
   it("applies the wet then electric reaction multiplier exactly", () => {
     const { save, registry } = createStarterSave();
+    const visualEvents: import("@pokeidle/contracts").CombatResolvedAttackEvent[] = [];
 
     setSpeciesLevel(save, "piplup", 10);
     setSpeciesLevel(save, "shinx", 10);
     save.player.teamSlots = ["piplup", "shinx", null, null, null, null];
     createEnemyState(save, "starly", 2);
 
-    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z");
+    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z", (event) => {
+      visualEvents.push(event);
+    });
     const afterWater = save.battle.activeSession?.enemy.currentHp ?? 0;
 
-    syncCombatState(save, registry, "2026-04-02T10:00:02.000Z");
+    syncCombatState(save, registry, "2026-04-02T10:00:02.000Z", (event) => {
+      visualEvents.push(event);
+    });
 
     const enemyAfterElectric = save.battle.activeSession?.enemy as BattleEnemyState;
     const shinx = registry.speciesById["shinx"]!;
@@ -253,10 +266,15 @@ describe("combat foundation runtime", () => {
 
     expect(afterWater - enemyAfterElectric.currentHp).toBe(expectedDamage);
     expect(enemyAfterElectric.reactionState).toBeNull();
+    expect(visualEvents.map((event) => event.reactionOutcome)).toEqual([
+      "wet-applied",
+      "wet-boost",
+    ]);
   });
 
   it("applies the wet then fire reaction multiplier exactly", () => {
     const { save, registry } = createStarterSave();
+    const visualEvents: import("@pokeidle/contracts").CombatResolvedAttackEvent[] = [];
 
     unlockSpecies(save, registry, "chimchar");
     setSpeciesLevel(save, "piplup", 10);
@@ -264,10 +282,14 @@ describe("combat foundation runtime", () => {
     save.player.teamSlots = ["piplup", "chimchar", null, null, null, null];
     createEnemyState(save, "starly", 2);
 
-    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z");
+    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z", (event) => {
+      visualEvents.push(event);
+    });
     const afterWater = save.battle.activeSession?.enemy.currentHp ?? 0;
 
-    syncCombatState(save, registry, "2026-04-02T10:00:02.000Z");
+    syncCombatState(save, registry, "2026-04-02T10:00:02.000Z", (event) => {
+      visualEvents.push(event);
+    });
 
     const enemyAfterFire = save.battle.activeSession?.enemy as BattleEnemyState;
     const chimchar = registry.speciesById["chimchar"]!;
@@ -285,6 +307,49 @@ describe("combat foundation runtime", () => {
 
     expect(afterWater - enemyAfterFire.currentHp).toBe(expectedDamage);
     expect(enemyAfterFire.reactionState).toBeNull();
+    expect(visualEvents.map((event) => event.reactionOutcome)).toEqual([
+      "wet-applied",
+      "wet-dampen",
+    ]);
+  });
+
+  it("derives attack class from canonical attack and special attack stats", () => {
+    const registry = loadContentRegistry();
+
+    expect(getSpeciesAttackClass(registry.speciesById["chimchar"]!)).toBe("physical");
+    expect(getSpeciesAttackClass(registry.speciesById["piplup"]!)).toBe("special");
+  });
+
+  it("emits a complete visual event for resolved live hits", () => {
+    const { save, registry, nowIso } = createStarterSave();
+    const visualEvents: import("@pokeidle/contracts").CombatResolvedAttackEvent[] = [];
+
+    startWildBattle(save, registry, "route-1", nowIso);
+    const session = save.battle.activeSession;
+
+    if (!session) {
+      throw new Error("Expected an active battle session.");
+    }
+
+    const expectedSessionKey = buildCombatSessionKey(session);
+
+    syncCombatState(save, registry, "2026-04-02T10:00:01.000Z", (event) => {
+      visualEvents.push(event);
+    });
+
+    expect(visualEvents).toHaveLength(1);
+    expect(visualEvents[0]).toMatchObject({
+      sessionKey: expectedSessionKey,
+      slotIndex: 0,
+      attackerSpeciesId: "piplup",
+      offensiveType: "water",
+      attackClass: "special",
+      reactionOutcome: "wet-applied",
+    });
+    expect(visualEvents[0]?.eventKey).toContain(expectedSessionKey);
+    expect(visualEvents[0]?.damage).toBeGreaterThan(0);
+    expect(visualEvents[0]?.enemyHpBefore).toBe(visualEvents[0]?.enemyMaxHp);
+    expect(visualEvents[0]?.enemyHpAfter).toBeLessThan(visualEvents[0]?.enemyHpBefore ?? 0);
   });
 
   it("applies canonical type multipliers for mono and dual typings", () => {
@@ -297,7 +362,9 @@ describe("combat foundation runtime", () => {
     const { save, registry, nowIso } = createStarterSave();
 
     setSpeciesLevel(save, "piplup", 300);
-    save.player.teamSlots = ["piplup", "piplup", "piplup", null, null, null];
+    setSpeciesLevel(save, "shinx", 300);
+    setSpeciesLevel(save, "machop", 300);
+    save.player.teamSlots = ["piplup", "shinx", "machop", null, null, null];
 
     applySliceAction(save, registry, {
       type: "start_dialogue_activity",
@@ -326,7 +393,9 @@ describe("combat foundation runtime", () => {
     const { save, registry, nowIso } = createStarterSave();
 
     setSpeciesLevel(save, "piplup", 300);
-    save.player.teamSlots = ["piplup", "piplup", "piplup", null, null, null];
+    setSpeciesLevel(save, "shinx", 300);
+    setSpeciesLevel(save, "machop", 300);
+    save.player.teamSlots = ["piplup", "shinx", "machop", null, null, null];
 
     applySliceAction(save, registry, {
       type: "start_dialogue_activity",

@@ -105,6 +105,30 @@ export interface BattleEnemyState {
   reactionState: "wet" | null;
 }
 
+export type AttackClass = "physical" | "special";
+
+export type CombatReactionOutcome =
+  | "none"
+  | "wet-applied"
+  | "wet-boost"
+  | "wet-dampen";
+
+export interface CombatResolvedAttackEvent {
+  eventKey: string;
+  sessionKey: string;
+  slotIndex: number;
+  attackerSpeciesId: string;
+  enemySpeciesId: string;
+  offensiveType: string;
+  attackClass: AttackClass;
+  damage: number;
+  didDefeatEnemy: boolean;
+  reactionOutcome: CombatReactionOutcome;
+  enemyHpBefore: number;
+  enemyHpAfter: number;
+  enemyMaxHp: number;
+}
+
 export interface PokemonSpeciesDefinition {
   id: string;
   dexNumber: number;
@@ -112,7 +136,7 @@ export interface PokemonSpeciesDefinition {
   name: LocalizedText;
   defensiveTypes: string[];
   defaultOffensiveType: string;
-  spriteUrl: string;
+  frontSpriteUrl: string;
   baseStats: BaseStats;
   evolvesFromSpeciesId?: string | undefined;
   evolvesToSpeciesIds: string[];

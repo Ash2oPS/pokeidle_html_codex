@@ -54,3 +54,4 @@ This file records the five-pass consolidation that moved the repo from one large
 - No source rule was intentionally deleted during consolidation.
 - Historical wording remains in the archive even when multiple old bullets merged into one clearer active rule.
 - Active normative guidance now lives only in the indexed canonical docs and the rule registry.
+- This audit file changes only when its history, source coverage mapping, or canonical ownership notes materially change; routine rule text edits should update the canonical doc and rule registry without forcing churn here.

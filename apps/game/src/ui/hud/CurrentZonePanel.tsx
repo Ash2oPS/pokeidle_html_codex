@@ -1,9 +1,9 @@
-import type { CombatViewState } from "@pokeidle/game-core";
-import type { SliceViewState } from "@pokeidle/game-core";
+import type { LayoutMode, Locale } from "@pokeidle/contracts";
+import type { CombatViewState, SliceViewState } from "@pokeidle/game-core";
 import { pickLocalizedText } from "@pokeidle/game-core";
-import type { Locale } from "@pokeidle/contracts";
 
 interface CurrentZonePanelProps {
+  layoutMode: LayoutMode;
   locale: Locale;
   view: SliceViewState;
   combatView: CombatViewState;
@@ -26,6 +26,7 @@ const copy = {
     timer: "Timer",
     defeats: "Defeats",
     pool: "Pool",
+    enemy: "Enemy",
     actions: "Activities",
     talk: "Talk",
     team: "Team",
@@ -43,6 +44,7 @@ const copy = {
     timer: "Timer",
     defeats: "Victoires",
     pool: "Groupe",
+    enemy: "Ennemi",
     actions: "Activités",
     talk: "Parler",
     team: "Équipe",
@@ -54,6 +56,7 @@ const copy = {
 } as const;
 
 export function CurrentZonePanel({
+  layoutMode,
   locale,
   view,
   combatView,
@@ -67,6 +70,47 @@ export function CurrentZonePanel({
 }: CurrentZonePanelProps) {
   const text = copy[locale];
   const { zone, progress } = view.activeZone;
+  const compactBattlePanel = layoutMode === "mobile-portrait" && Boolean(combatView.session);
+  const liveTimerLabel =
+    combatView.remainingTimerLabel ??
+    (zone.kind === "combat" ? `${zone.battle.enemyTimerSeconds}s` : "--");
+  const liveProgressLabel =
+    combatView.defeatProgressLabel ??
+    (zone.kind === "combat" ? `0/${zone.battle.defeatsRequired}` : "--");
+  const liveEnemyLabel = combatView.enemySpecies
+    ? pickLocalizedText(combatView.enemySpecies.name, locale)
+    : "--";
+
+  if (compactBattlePanel) {
+    return (
+      <section className="zone-panel zone-panel--compact-mobile">
+        <div className="zone-panel__titlebar">
+          <strong>{text.title}</strong>
+          <span>{progress.completed ? text.completed : text.active}</span>
+        </div>
+        <div className="zone-panel__body zone-panel__body--compact-mobile">
+          <div className="zone-panel__header">
+            <strong>{pickLocalizedText(zone.name, locale)}</strong>
+            <span>{zone.kind === "combat" ? text.combat : text.pacifist}</span>
+          </div>
+          <div className="zone-panel__compact-grid">
+            <div className="zone-panel__metric">
+              <span>{text.timer}</span>
+              <strong>{liveTimerLabel}</strong>
+            </div>
+            <div className="zone-panel__metric">
+              <span>{text.defeats}</span>
+              <strong>{liveProgressLabel}</strong>
+            </div>
+            <div className="zone-panel__metric">
+              <span>{text.enemy}</span>
+              <strong>{liveEnemyLabel}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="zone-panel">
