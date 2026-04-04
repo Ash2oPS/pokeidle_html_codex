@@ -1,0 +1,43 @@
+- main [ref=e3]:
+  - generic "battle playfield" [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]: Route 201
+    - generic [ref=e7]: Combat
+    - generic [ref=e8]: Keunotor
+    - generic [ref=e9]: 8s
+    - generic [ref=e10]: 0/12
+    - generic [ref=e11]: Atteindre Charbourg
+    - generic [ref=e12]: Slots 6/6
+    - generic [ref=e236]: mouillé
+  - navigation "game menus" [ref=e13]:
+    - button "Dex" [ref=e14] [cursor=pointer]
+    - button "Équipe" [ref=e15] [cursor=pointer]
+    - button "Quêtes" [ref=e16] [cursor=pointer]
+    - button "Carte" [ref=e17] [cursor=pointer]
+    - button "Sauv." [ref=e18] [cursor=pointer]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - strong [ref=e21]: Zone active
+      - generic [ref=e22]: En cours
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - strong [ref=e25]: Route 201
+        - generic [ref=e26]: Zone combat
+      - generic [ref=e222]:
+        - generic [ref=e223]:
+          - generic [ref=e224]: Timer
+          - strong [ref=e225]: 8s
+        - generic [ref=e226]:
+          - generic [ref=e227]: Victoires
+          - strong [ref=e228]: "12"
+      - generic [ref=e229]:
+        - generic [ref=e230]: Groupe
+        - generic [ref=e231]:
+          - generic [ref=e232]: Étourmi
+          - generic [ref=e233]: Keunotor
+          - generic [ref=e234]: Lixy
+      - button "Reprendre" [active] [ref=e237] [cursor=pointer]
+      - generic [ref=e238]:
+        - generic [ref=e239]: Keunotor
+        - strong [ref=e240]: 8s
+  - complementary

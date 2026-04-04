@@ -1,0 +1,139 @@
+- main [ref=e3]:
+  - generic "battle playfield" [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]: Bonaugure
+    - generic [ref=e7]: Ville
+    - generic [ref=e8]: Aucun ennemi
+    - generic [ref=e9]: "--"
+    - generic [ref=e10]: "--"
+    - generic [ref=e11]: Atteindre Charbourg
+    - generic [ref=e12]: Slots 6/6
+  - navigation "game menus" [ref=e13]:
+    - button "Dex" [ref=e14] [cursor=pointer]
+    - button "Équipe" [active] [ref=e15] [cursor=pointer]
+    - button "Quêtes" [ref=e16] [cursor=pointer]
+    - button "Carte" [ref=e17] [cursor=pointer]
+    - button "Sauv." [ref=e18] [cursor=pointer]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - strong [ref=e21]: Zone active
+      - generic [ref=e22]: En cours
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - strong [ref=e25]: Bonaugure
+        - generic [ref=e26]: Zone ville
+      - generic [ref=e27]:
+        - generic [ref=e28]: Activités
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - strong [ref=e32]: Labo de Rowan
+            - button "Parler" [ref=e33] [cursor=pointer]
+          - generic [ref=e34]:
+            - strong [ref=e36]: Gestion d’équipe
+            - button "Équipe" [ref=e37] [cursor=pointer]
+  - complementary [ref=e76]:
+    - strong [ref=e78]: Équipe
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - article [ref=e81]:
+          - generic [ref=e82]:
+            - strong [ref=e83]: Slot 1
+            - combobox [ref=e84]:
+              - option "Vide"
+              - option "Tiplouf" [selected]
+              - option "Lixy"
+          - generic [ref=e85]:
+            - img "Tiplouf" [ref=e87]
+            - generic [ref=e88]:
+              - strong [ref=e89]: Tiplouf
+              - generic [ref=e90]: Niv 1
+              - generic [ref=e91]: Type water
+        - article [ref=e92]:
+          - generic [ref=e93]:
+            - strong [ref=e94]: Slot 2
+            - combobox [ref=e95]:
+              - option "Vide"
+              - option "Étourmi" [selected]
+              - option "Lixy"
+          - generic [ref=e96]:
+            - img "Étourmi" [ref=e98]
+            - generic [ref=e99]:
+              - strong [ref=e100]: Étourmi
+              - generic [ref=e101]: Niv 1
+              - generic [ref=e102]: Type flying
+        - article [ref=e103]:
+          - generic [ref=e104]:
+            - strong [ref=e105]: Slot 3
+            - combobox [ref=e106]:
+              - option "Vide"
+              - option "Keunotor" [selected]
+              - option "Lixy"
+          - generic [ref=e107]:
+            - img "Keunotor" [ref=e109]
+            - generic [ref=e110]:
+              - strong [ref=e111]: Keunotor
+              - generic [ref=e112]: Niv 1
+              - generic [ref=e113]: Type normal
+        - article [ref=e114]:
+          - generic [ref=e115]:
+            - strong [ref=e116]: Slot 4
+            - combobox [ref=e117]:
+              - option "Vide"
+              - option "Nosferapti" [selected]
+              - option "Lixy"
+          - generic [ref=e171]:
+            - img "Nosferapti" [ref=e173]
+            - generic [ref=e174]:
+              - strong [ref=e175]: Nosferapti
+              - generic [ref=e176]: Niv 1
+              - generic [ref=e177]: Type poison
+        - article [ref=e118]:
+          - generic [ref=e119]:
+            - strong [ref=e120]: Slot 5
+            - combobox [ref=e121]:
+              - option "Vide"
+              - option "Machoc" [selected]
+              - option "Lixy"
+          - generic [ref=e164]:
+            - img "Machoc" [ref=e166]
+            - generic [ref=e167]:
+              - strong [ref=e168]: Machoc
+              - generic [ref=e169]: Niv 1
+              - generic [ref=e170]: Type fighting
+        - article [ref=e122]:
+          - generic [ref=e123]:
+            - strong [ref=e124]: Slot 6
+            - combobox [ref=e125]:
+              - option "Vide"
+              - option "Racaillou" [selected]
+              - option "Lixy"
+          - generic [ref=e157]:
+            - img "Racaillou" [ref=e159]
+            - generic [ref=e160]:
+              - strong [ref=e161]: Racaillou
+              - generic [ref=e162]: Niv 1
+              - generic [ref=e163]: Type rock
+      - generic [ref=e126]:
+        - generic [ref=e127]: Débloqués
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - img "Nosferapti" [ref=e131]
+            - generic [ref=e132]: Nosferapti
+          - generic [ref=e133]:
+            - img "Machoc" [ref=e135]
+            - generic [ref=e136]: Machoc
+          - generic [ref=e137]:
+            - img "Racaillou" [ref=e139]
+            - generic [ref=e140]: Racaillou
+          - generic [ref=e141]:
+            - img "Tiplouf" [ref=e143]
+            - generic [ref=e144]: Tiplouf
+          - generic [ref=e145]:
+            - img "Étourmi" [ref=e147]
+            - generic [ref=e148]: Étourmi
+          - generic [ref=e149]:
+            - img "Keunotor" [ref=e151]
+            - generic [ref=e152]: Keunotor
+          - generic [ref=e153]:
+            - img "Lixy" [ref=e155]
+            - generic [ref=e156]: Lixy

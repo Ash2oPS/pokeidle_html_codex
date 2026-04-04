@@ -7,17 +7,17 @@ script = ""
 [[actions]]
 name = "Dev"
 icon = "run"
-command = "corepack pnpm dev"
+command = "node scripts/run-dev-action.mjs --url http://127.0.0.1:5173 --url http://127.0.0.1:5174 -- npx --yes pnpm dev"
 
 [[actions]]
 name = "Dev Game"
 icon = "run"
-command = "corepack pnpm dev:game"
+command = "node scripts/run-dev-action.mjs --url http://127.0.0.1:5173 -- npx --yes pnpm dev:game"
 
 [[actions]]
 name = "Dev Tools"
 icon = "run"
-command = "corepack pnpm dev:tools"
+command = "node scripts/run-dev-action.mjs --url http://127.0.0.1:5174 -- npx --yes pnpm dev:tools"
 
 [[actions]]
 name = "Check Docs"
@@ -27,9 +27,9 @@ command = "node scripts/validate-docs.mjs"
 [[actions]]
 name = "Check"
 icon = "run"
-command = "corepack pnpm check"
+command = "npx --yes pnpm check"
 
 [[actions]]
 name = "Build"
 icon = "run"
-command = "corepack pnpm build"
+command = "npx --yes pnpm build"

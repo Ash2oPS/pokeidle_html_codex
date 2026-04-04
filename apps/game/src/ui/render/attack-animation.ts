@@ -43,6 +43,7 @@ export interface AttackAnimationFrame {
   projectileSize: number;
   impactProgress: number;
   displayEnemyHpPercent: number;
+  displayEnemyHpValue: number;
   enemyOffsetX: number;
   enemyOffsetY: number;
   enemyScaleX: number;
@@ -225,6 +226,7 @@ export function sampleAttackAnimationFrame(
     event.enemyMaxHp > 0
       ? lerp(event.enemyHpBefore / event.enemyMaxHp, event.enemyHpAfter / event.enemyMaxHp, hpProgress)
       : 0;
+  const displayEnemyHpValue = Math.round(lerp(event.enemyHpBefore, event.enemyHpAfter, hpProgress));
 
   return {
     attackerCenterX,
@@ -236,6 +238,7 @@ export function sampleAttackAnimationFrame(
     projectileSize: budget.projectileSize,
     impactProgress,
     displayEnemyHpPercent,
+    displayEnemyHpValue,
     enemyOffsetX,
     enemyOffsetY,
     enemyScaleX,

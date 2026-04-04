@@ -1,0 +1,28 @@
+- generic [ref=e3]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: $0
+          - generic:
+            - generic:
+              - button "Buy Worker" [disabled] [ref=e6]:
+                - generic [ref=e7]: $6
+              - button "Speed Up" [disabled] [ref=e8]:
+                - generic [ref=e9]: $81
+              - button "Buy Hammer" [ref=e10]:
+                - generic [ref=e11]: Free
+        - generic:
+          - generic:
+            - generic: Buy Hammer
+    - generic:
+      - generic:
+        - generic:
+          - generic: "Merge Acrobats: Idle Loop"
+          - generic: Loading...
+          - progressbar
+    - generic:
+      - generic:
+        - generic: "Merge Acrobats: Idle Loop"
+        - button "Installer"

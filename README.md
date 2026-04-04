@@ -24,26 +24,28 @@ Pokemon-inspired idle web game set in Sinnoh.
 
 ## Getting Started
 
-Use `corepack` because `pnpm` may not be globally installed.
+Use `npx --yes pnpm` so the workspace does not depend on `corepack` or a global `pnpm` install.
 
 ```powershell
-corepack pnpm install
-corepack pnpm dev
+npx --yes pnpm install
+npx --yes pnpm dev
 ```
 
 Useful commands:
 
-- `corepack pnpm dev`: run game + tools
-- `corepack pnpm dev:game`: run only the game
-- `corepack pnpm dev:tools`: run only the tool studio
+- `npx --yes pnpm dev`: run game + tools
+- `npx --yes pnpm dev:game`: run only the game
+- `npx --yes pnpm dev:tools`: run only the tool studio
 - `npm run check:docs`: run documentation structure and rule validation
-- `corepack pnpm check`: run docs validation, workspace type checks, and tests
-- `corepack pnpm build`: build every workspace package and app
+- `npx --yes pnpm check`: run docs validation, workspace type checks, and tests
+- `npx --yes pnpm build`: build every workspace package and app
 
 ## Documentation Entry
 
 - [docs/ai/README.md](./docs/ai/README.md): canonical AI navigation and doc precedence
 - [docs/README.md](./docs/README.md): full documentation index
+- [docs/product/todo-system.md](./docs/product/todo-system.md): tracked-work workflow and maintenance rules
+- [docs/product/todo-backlog.md](./docs/product/todo-backlog.md): canonical open-work backlog
 
 ## Key Documents
 

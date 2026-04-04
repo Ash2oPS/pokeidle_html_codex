@@ -15,6 +15,7 @@ Archive docs never override active normative docs.
 
 - Any code or content change: [repository-constraints.md](./repository-constraints.md), [change-workflow.md](./change-workflow.md), [quality-gates.md](./quality-gates.md)
 - Documentation work: [documentation-governance.md](./documentation-governance.md), [rule-coverage.md](./rule-coverage.md), [../README.md](../README.md)
+- Project tracking or backlog work: [../product/todo-system.md](../product/todo-system.md), [../product/todo-backlog.md](../product/todo-backlog.md), [change-workflow.md](./change-workflow.md)
 - Gameplay work: [../gameplay/combat-overview.md](../gameplay/combat-overview.md), [../gameplay/zone-and-battle-systems.md](../gameplay/zone-and-battle-systems.md), [../gameplay/progression-systems.md](../gameplay/progression-systems.md), [../gameplay/talent-system.md](../gameplay/talent-system.md)
 - Architecture and save work: [../architecture/runtime-architecture.md](../architecture/runtime-architecture.md), [../architecture/dependency-and-ownership.md](../architecture/dependency-and-ownership.md), [../architecture/content-pipeline.md](../architecture/content-pipeline.md), [../architecture/save-system.md](../architecture/save-system.md)
 - Tooling and content work: [../tooling/editable-data-policy.md](../tooling/editable-data-policy.md), [../tooling/content-studio-v1.md](../tooling/content-studio-v1.md), [../architecture/content-pipeline.md](../architecture/content-pipeline.md)

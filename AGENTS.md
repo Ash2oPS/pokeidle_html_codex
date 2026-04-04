@@ -8,6 +8,7 @@ Active normative docs are the source of truth for AI work. Archive docs are hist
 
 - Read [docs/ai/README.md](./docs/ai/README.md) before any repo change. [RULE:AI-ENTRY-001]
 - Read the relevant normative domain docs before changing gameplay, UI, save, content, tooling, or documentation. [RULE:AI-ENTRY-002]
+- Keep [docs/product/todo-system.md](./docs/product/todo-system.md) and [docs/product/todo-backlog.md](./docs/product/todo-backlog.md) as the canonical tracked-work system, and update them when accepted scope or completion status changes. [RULE:AI-ENTRY-006]
 - Do not use archive docs as the canonical source of truth; use them only to recover historical rationale. [RULE:AI-ENTRY-003]
 
 ## Repo Non-Negotiables

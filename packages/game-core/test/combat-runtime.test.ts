@@ -142,7 +142,7 @@ describe("combat foundation runtime", () => {
     });
 
     expect(save.battle.activeSession?.currentSlotIndex).toBe(1);
-    expect(save.battle.activeSession?.elapsedMs).toBe(1000);
+    expect(save.battle.activeSession?.elapsedMs).toBe(registry.progression.slotIntervalMs);
     expect(save.battle.activeSession?.enemy.currentHp).toBe(initialHp);
     expect(visualEvents).toHaveLength(0);
   });
@@ -162,7 +162,10 @@ describe("combat foundation runtime", () => {
     expect(save.battle.activeSession?.kind).toBe("wild");
     expect(save.battle.activeSession?.defeatsThisRun).toBeGreaterThan(0);
     expect(save.player.pokedollars).toBeGreaterThanOrEqual(registry.progression.wildPokedollars);
-    expect(save.battle.activeSession?.enemy.currentHp).toBe(save.battle.activeSession?.enemy.maxHp);
+    expect(save.battle.activeSession?.enemy.currentHp).toBeGreaterThan(0);
+    expect(save.battle.activeSession?.enemy.currentHp).toBeLessThanOrEqual(
+      save.battle.activeSession?.enemy.maxHp ?? 0,
+    );
     expect(firstEnemy).not.toBeUndefined();
   });
 

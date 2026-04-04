@@ -22,6 +22,8 @@ export interface BattleSlotLayout {
   angleDeg: number;
   centerX: number;
   centerY: number;
+  labelCenterX: number;
+  labelCenterY: number;
   frameSize: number;
   spriteSize: number;
   badgeRadius: number;
@@ -102,12 +104,18 @@ export function buildBattleSceneLayout(
     },
     slots: slotAngles.map((angleDeg, slotIndex) => {
       const point = polarToCartesian(enemyCenterX, enemyCenterY, slotRadius, angleDeg);
+      const labelOffset = layoutMode === "desktop-landscape" ? 54 : 44;
+      const labelVectorLength = Math.hypot(point.x - enemyCenterX, point.y - enemyCenterY) || 1;
+      const labelDirectionX = (point.x - enemyCenterX) / labelVectorLength;
+      const labelDirectionY = (point.y - enemyCenterY) / labelVectorLength;
 
       return {
         slotIndex,
         angleDeg,
         centerX: point.x,
         centerY: point.y,
+        labelCenterX: point.x + labelDirectionX * labelOffset,
+        labelCenterY: point.y + labelDirectionY * labelOffset,
         frameSize: slotFrameSize,
         spriteSize: slotSpriteSize,
         badgeRadius: layoutMode === "desktop-landscape" ? 11 : 10,

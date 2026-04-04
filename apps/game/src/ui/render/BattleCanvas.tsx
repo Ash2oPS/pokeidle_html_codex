@@ -16,11 +16,17 @@ import { getVfxSprite } from "./vfx-sprite-atlas";
 export interface BattleSlotVisual {
   speciesId: string | null;
   label: string | null;
+  levelLabel: string | null;
   frontSpriteUrl: string | null;
 }
 
 interface BattleEnemyVisual {
+  speciesId: string;
   label: string;
+  levelLabel: string;
+  currentHp: number;
+  maxHp: number;
+  hpUnitLabel: string;
   frontSpriteUrl: string;
 }
 
@@ -41,6 +47,10 @@ interface BattleCanvasProps {
   reactionLabel: string | null;
   teamSlotVisuals: BattleSlotVisual[];
   onSlotPress?: (payload: BattleSlotPressPayload) => void;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function getScenePalette(sceneKind: BattleCanvasProps["sceneKind"]) {
@@ -199,16 +209,46 @@ function drawSlotBadge(
 
 function drawEnemyChipAndHp(
   context: CanvasRenderingContext2D,
-  label: string,
+  width: number,
+  height: number,
+  info: {
+    label: string;
+    levelLabel: string | null;
+    hpLabel: string;
+  },
   hpPercent: number,
   layoutMode: LayoutMode,
   enemyLayout: ReturnType<typeof buildBattleSceneLayout>["enemy"],
   palette: ReturnType<typeof getScenePalette>,
 ) {
-  const chipWidth = layoutMode === "desktop-landscape" ? 156 : 128;
-  const chipHeight = 24;
-  const chipX = enemyLayout.centerX - chipWidth / 2;
-  const chipY = enemyLayout.labelY - chipHeight / 2;
+  const titleFont =
+    layoutMode === "desktop-landscape"
+      ? "700 12px 'Trebuchet MS', sans-serif"
+      : "700 11px 'Trebuchet MS', sans-serif";
+  const metaFont =
+    layoutMode === "desktop-landscape"
+      ? "600 10px 'Trebuchet MS', sans-serif"
+      : "600 9px 'Trebuchet MS', sans-serif";
+  const titleText = info.levelLabel ? `${info.label} ${info.levelLabel}` : info.label;
+
+  context.save();
+  context.font = titleFont;
+  const titleWidth = context.measureText(titleText).width;
+  context.font = metaFont;
+  const hpTextWidth = context.measureText(info.hpLabel).width;
+  context.restore();
+
+  const chipWidth = clamp(
+    Math.max(enemyLayout.hpWidth + 18, titleWidth + 18, hpTextWidth + 18),
+    layoutMode === "desktop-landscape" ? 176 : 144,
+    layoutMode === "desktop-landscape" ? 240 : 188,
+  );
+  const chipHeight = layoutMode === "desktop-landscape" ? 52 : 48;
+  const chipX = clamp(enemyLayout.centerX - chipWidth / 2, 8, width - chipWidth - 8);
+  const chipY = clamp(enemyLayout.labelY - 18, 8, height - chipHeight - 8);
+  const barX = chipX + 8;
+  const barY = chipY + chipHeight - 16;
+  const barWidth = chipWidth - 16;
 
   drawRoundedFrame(
     context,
@@ -222,18 +262,20 @@ function drawEnemyChipAndHp(
     2,
   );
   context.fillStyle = uiTokens.colors.ink;
-  context.font = "700 12px 'Trebuchet MS', sans-serif";
+  context.font = titleFont;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(label, enemyLayout.centerX, enemyLayout.labelY);
+  context.fillText(titleText, chipX + chipWidth / 2, chipY + 14);
+  context.font = metaFont;
+  context.fillText(info.hpLabel, chipX + chipWidth / 2, chipY + 28);
 
   context.fillStyle = "#dfeafb";
   context.beginPath();
   context.roundRect(
-    enemyLayout.centerX - enemyLayout.hpWidth / 2,
-    enemyLayout.hpY,
-    enemyLayout.hpWidth,
-    12,
+    barX,
+    barY,
+    barWidth,
+    10,
     999,
   );
   context.fill();
@@ -241,13 +283,71 @@ function drawEnemyChipAndHp(
   context.fillStyle = "#ff8fa0";
   context.beginPath();
   context.roundRect(
-    enemyLayout.centerX - enemyLayout.hpWidth / 2,
-    enemyLayout.hpY,
-    enemyLayout.hpWidth * Math.max(0, Math.min(1, hpPercent)),
-    12,
+    barX,
+    barY,
+    barWidth * Math.max(0, Math.min(1, hpPercent)),
+    10,
     999,
   );
   context.fill();
+}
+
+function drawSlotInfoChip(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  layoutMode: LayoutMode,
+  slot: ReturnType<typeof buildBattleSceneLayout>["slots"][number],
+  visual: BattleSlotVisual,
+  stroke: string,
+) {
+  if (!visual.label || !visual.levelLabel) {
+    return;
+  }
+
+  const titleFont =
+    layoutMode === "desktop-landscape"
+      ? "700 11px 'Trebuchet MS', sans-serif"
+      : "700 10px 'Trebuchet MS', sans-serif";
+  const metaFont =
+    layoutMode === "desktop-landscape"
+      ? "600 10px 'Trebuchet MS', sans-serif"
+      : "600 9px 'Trebuchet MS', sans-serif";
+
+  context.save();
+  context.font = titleFont;
+  const titleWidth = context.measureText(visual.label).width;
+  context.font = metaFont;
+  const metaWidth = context.measureText(visual.levelLabel).width;
+  context.restore();
+
+  const chipWidth = clamp(
+    Math.max(titleWidth + 16, metaWidth + 16),
+    layoutMode === "desktop-landscape" ? 64 : 58,
+    layoutMode === "desktop-landscape" ? 116 : 100,
+  );
+  const chipHeight = layoutMode === "desktop-landscape" ? 32 : 28;
+  const chipX = clamp(slot.labelCenterX - chipWidth / 2, 8, width - chipWidth - 8);
+  const chipY = clamp(slot.labelCenterY - chipHeight / 2, 8, height - chipHeight - 8);
+
+  drawRoundedFrame(
+    context,
+    chipX,
+    chipY,
+    chipWidth,
+    chipHeight,
+    12,
+    "rgba(255, 255, 255, 0.94)",
+    stroke,
+    2,
+  );
+  context.fillStyle = uiTokens.colors.ink;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.font = titleFont;
+  context.fillText(visual.label, chipX + chipWidth / 2, chipY + 11);
+  context.font = metaFont;
+  context.fillText(visual.levelLabel, chipX + chipWidth / 2, chipY + chipHeight - 9);
 }
 
 function drawAttackTrail(
@@ -567,6 +667,7 @@ export function BattleCanvas({
         const visual = props.teamSlotVisuals[slot.slotIndex] ?? {
           speciesId: null,
           label: null,
+          levelLabel: null,
           frontSpriteUrl: null,
         };
         const frameX = slot.centerX - slot.frameSize / 2;
@@ -605,6 +706,16 @@ export function BattleCanvas({
           isActive ? palette.activeStroke : "#ffffff",
           slot.slotIndex + 1,
         );
+
+        drawSlotInfoChip(
+          context,
+          width,
+          height,
+          props.layoutMode,
+          slot,
+          visual,
+          isActive ? palette.activeStroke : palette.slotStroke,
+        );
       });
 
       context.fillStyle = "rgba(20, 49, 79, 0.14)";
@@ -624,8 +735,19 @@ export function BattleCanvas({
         playback?.event.enemyFrontSpriteUrl || props.enemyVisual?.frontSpriteUrl || null;
       const enemyLabel =
         playback?.event.enemyLabel || props.enemyVisual?.label || null;
+      const enemyLevelLabel =
+        playback && props.enemyVisual && props.enemyVisual.speciesId !== playback.event.enemySpeciesId
+          ? null
+          : props.enemyVisual?.levelLabel ?? null;
       const enemyHp =
         activeFrame?.displayEnemyHpPercent ?? props.enemyHpPercent;
+      const enemyHpValue =
+        activeFrame?.displayEnemyHpValue ?? props.enemyVisual?.currentHp ?? 0;
+      const enemyHpMaxValue =
+        playback?.event.enemyMaxHp ?? props.enemyVisual?.maxHp ?? 0;
+      const enemyHpLabel = `${Math.max(0, enemyHpValue)} / ${enemyHpMaxValue} ${
+        props.enemyVisual?.hpUnitLabel ?? "HP"
+      }`;
       const enemyCenterX = layout.enemy.centerX + (activeFrame?.enemyOffsetX ?? 0);
       const enemyCenterY = layout.enemy.centerY + (activeFrame?.enemyOffsetY ?? 0);
       const enemyScaleX = activeFrame?.enemyScaleX ?? 1;
@@ -672,7 +794,20 @@ export function BattleCanvas({
       }
 
       if (enemyLabel) {
-        drawEnemyChipAndHp(context, enemyLabel, enemyHp, props.layoutMode, layout.enemy, palette);
+        drawEnemyChipAndHp(
+          context,
+          width,
+          height,
+          {
+            label: enemyLabel,
+            levelLabel: enemyLevelLabel,
+            hpLabel: enemyHpLabel,
+          },
+          enemyHp,
+          props.layoutMode,
+          layout.enemy,
+          palette,
+        );
       }
 
       if (playback && activeFrame) {

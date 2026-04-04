@@ -21,6 +21,7 @@
 - Combat or battle-flow work: [gameplay/combat-overview.md](./gameplay/combat-overview.md), [gameplay/talent-system.md](./gameplay/talent-system.md), [gameplay/zone-and-battle-systems.md](./gameplay/zone-and-battle-systems.md), [testing/testing-strategy.md](./testing/testing-strategy.md)
 - UI or localization work: [ui/ui-principles.md](./ui/ui-principles.md), [product/localization-policy.md](./product/localization-policy.md), [ai/quality-gates.md](./ai/quality-gates.md)
 - Documentation work: [ai/documentation-governance.md](./ai/documentation-governance.md), [ai/rule-coverage.md](./ai/rule-coverage.md), [ai/quality-gates.md](./ai/quality-gates.md)
+- Project tracking or backlog work: [product/todo-system.md](./product/todo-system.md), [product/todo-backlog.md](./product/todo-backlog.md), [ai/change-workflow.md](./ai/change-workflow.md)
 
 ## Canonical Documents
 
@@ -47,6 +48,8 @@
 ## Supporting Reference Docs
 
 - [product/product-pillars.md](./product/product-pillars.md)
+- [product/todo-system.md](./product/todo-system.md)
+- [product/todo-backlog.md](./product/todo-backlog.md)
 - [product/vertical-slice-v1.md](./product/vertical-slice-v1.md)
 - [tooling/content-studio-v1.md](./tooling/content-studio-v1.md)
 - [ai/rule-coverage.md](./ai/rule-coverage.md)

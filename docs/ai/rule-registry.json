@@ -12,7 +12,7 @@
       "readFirst": [
         "all-changes"
       ],
-      "ruleCount": 5
+      "ruleCount": 6
     },
     {
       "path": "docs/ai/change-workflow.md",
@@ -24,7 +24,7 @@
       "readFirst": [
         "all-changes"
       ],
-      "ruleCount": 9
+      "ruleCount": 10
     },
     {
       "path": "docs/ai/documentation-governance.md",
@@ -242,6 +242,32 @@
       "readFirst": [
         "feature-scoping",
         "product-context"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/product/todo-backlog.md",
+      "status": "reference",
+      "scope": [
+        "project-tracking",
+        "todo-backlog"
+      ],
+      "readFirst": [
+        "backlog-work",
+        "roadmap-updates"
+      ],
+      "ruleCount": 0
+    },
+    {
+      "path": "docs/product/todo-system.md",
+      "status": "reference",
+      "scope": [
+        "project-tracking",
+        "todo-governance"
+      ],
+      "readFirst": [
+        "backlog-work",
+        "roadmap-updates"
       ],
       "ruleCount": 0
     },
@@ -494,7 +520,7 @@
       "id": "AI-ENTRY-003",
       "status": "normative",
       "canonicalPath": "AGENTS.md",
-      "canonicalLine": 11,
+      "canonicalLine": 12,
       "scope": [
         "all-changes",
         "ai-entrypoint"
@@ -505,7 +531,7 @@
       "id": "AI-ENTRY-004",
       "status": "normative",
       "canonicalPath": "AGENTS.md",
-      "canonicalLine": 15,
+      "canonicalLine": 16,
       "scope": [
         "all-changes",
         "ai-entrypoint"
@@ -516,12 +542,23 @@
       "id": "AI-ENTRY-005",
       "status": "normative",
       "canonicalPath": "AGENTS.md",
-      "canonicalLine": 16,
+      "canonicalLine": 17,
       "scope": [
         "all-changes",
         "ai-entrypoint"
       ],
       "summary": "Keep player-facing text bilingual, store text-bearing source files in UTF-8, preserve accents and special characters, and update the affected canonical docs plus rule tracking when active guidance changes."
+    },
+    {
+      "id": "AI-ENTRY-006",
+      "status": "normative",
+      "canonicalPath": "AGENTS.md",
+      "canonicalLine": 11,
+      "scope": [
+        "all-changes",
+        "ai-entrypoint"
+      ],
+      "summary": "Keep [docs/product/todo-system.md](./docs/product/todo-system.md) and [docs/product/todo-backlog.md](./docs/product/todo-backlog.md) as the canonical tracked-work system, and update them when accepted scope or completion status changes."
     },
     {
       "id": "AI-QUALITY-001",
@@ -615,7 +652,7 @@
       "id": "AI-WORKFLOW-004",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 7,
+      "canonicalLine": 8,
       "scope": [
         "change-workflow",
         "ai-process"
@@ -626,7 +663,7 @@
       "id": "AI-WORKFLOW-005",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 8,
+      "canonicalLine": 9,
       "scope": [
         "change-workflow",
         "ai-process"
@@ -637,7 +674,7 @@
       "id": "AI-WORKFLOW-006",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 9,
+      "canonicalLine": 10,
       "scope": [
         "change-workflow",
         "ai-process"
@@ -648,7 +685,7 @@
       "id": "AI-WORKFLOW-007",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 10,
+      "canonicalLine": 11,
       "scope": [
         "change-workflow",
         "ai-process"
@@ -659,7 +696,7 @@
       "id": "AI-WORKFLOW-008",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 11,
+      "canonicalLine": 12,
       "scope": [
         "change-workflow",
         "ai-process"
@@ -670,12 +707,23 @@
       "id": "AI-WORKFLOW-009",
       "status": "normative",
       "canonicalPath": "docs/ai/change-workflow.md",
-      "canonicalLine": 12,
+      "canonicalLine": 13,
       "scope": [
         "change-workflow",
         "ai-process"
       ],
       "summary": "Use the blocker format only for genuinely blocking project ambiguity; do not use it for trivial non-project requests or when one execution direction is already clear from the active docs and user context."
+    },
+    {
+      "id": "AI-WORKFLOW-010",
+      "status": "normative",
+      "canonicalPath": "docs/ai/change-workflow.md",
+      "canonicalLine": 7,
+      "scope": [
+        "change-workflow",
+        "ai-process"
+      ],
+      "summary": "When accepted work is added, completed, deferred, split, or reprioritized, update [../product/todo-backlog.md](../product/todo-backlog.md) in the same change set, and update [../product/todo-system.md](../product/todo-system.md) if the tracking workflow itself changes."
     },
     {
       "id": "ARCH-CONTENT-001",

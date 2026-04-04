@@ -56,4 +56,18 @@ describe("buildBattleSceneLayout", () => {
     ).toBe(5);
     expect(findBattleSlotAtPoint(desktopLayout, 20, 20, 6)).toBeNull();
   });
+
+  it("keeps slot info anchors outside the combat ring", () => {
+    const layout = buildBattleSceneLayout("desktop-landscape", 1280, 720);
+
+    layout.slots.forEach((slot, slotIndex) => {
+      const slotRadius = radiusFromEnemy(layout, slotIndex);
+      const labelRadius = Math.hypot(
+        slot.labelCenterX - layout.enemy.centerX,
+        slot.labelCenterY - layout.enemy.centerY,
+      );
+
+      expect(labelRadius).toBeGreaterThan(slotRadius);
+    });
+  });
 });

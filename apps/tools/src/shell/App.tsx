@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
-import { loadContentRegistry } from "@pokeidle/content-data";
+import { loadContentRegistry, type ContentRegistry } from "@pokeidle/content-data";
+import type { DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
 import { uiTokens } from "@pokeidle/ui-tokens";
 import { DialogueEditorPanel } from "../modules/dialogue-editor/DialogueEditorPanel";
 import { PokemonViewerPanel } from "../modules/pokemon-viewer/PokemonViewerPanel";
@@ -15,21 +16,28 @@ const moduleLabels: Record<ModuleKey, string> = {
   dialogues: "dialogues",
 };
 
+interface RegistryState {
+  registry: ContentRegistry | null;
+  error: string | null;
+}
+
+function readRegistryState(): RegistryState {
+  try {
+    return {
+      registry: loadContentRegistry(),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      registry: null,
+      error: error instanceof Error ? error.message : "Content registry failed to load.",
+    };
+  }
+}
+
 export function App() {
   const [activeModule, setActiveModule] = useState<ModuleKey>("zones");
-  const registryState = useMemo(() => {
-    try {
-      return {
-        registry: loadContentRegistry(),
-        error: null,
-      };
-    } catch (error) {
-      return {
-        registry: null,
-        error: error instanceof Error ? error.message : "Content registry failed to load.",
-      };
-    }
-  }, []);
+  const [registryState, setRegistryState] = useState<RegistryState>(() => readRegistryState());
 
   if (registryState.error || !registryState.registry) {
     return (
@@ -43,12 +51,50 @@ export function App() {
   }
 
   const { registry } = registryState;
-  const authoredCounts = [
-    `${Object.keys(registry.zonesById).length} zones`,
-    `${Object.keys(registry.dialoguesById).length} dialogues`,
-    `${Object.keys(registry.questsById).length} quests`,
-    `${Object.keys(registry.battlesById).length} battles`,
-  ].join(" · ");
+  const authoredCounts = useMemo(
+    () =>
+      [
+        `${Object.keys(registry.zonesById).length} zones`,
+        `${Object.keys(registry.dialoguesById).length} dialogues`,
+        `${Object.keys(registry.questsById).length} quests`,
+        `${Object.keys(registry.battlesById).length} battles`,
+      ].join(" · "),
+    [registry],
+  );
+
+  const handleZoneSaved = (zone: ZoneDefinition) => {
+    setRegistryState((current) =>
+      current.registry
+        ? {
+            error: null,
+            registry: {
+              ...current.registry,
+              zonesById: {
+                ...current.registry.zonesById,
+                [zone.id]: zone,
+              },
+            },
+          }
+        : current,
+    );
+  };
+
+  const handleDialogueSaved = (dialogue: DialogueDocument) => {
+    setRegistryState((current) =>
+      current.registry
+        ? {
+            error: null,
+            registry: {
+              ...current.registry,
+              dialoguesById: {
+                ...current.registry.dialoguesById,
+                [dialogue.id]: dialogue,
+              },
+            },
+          }
+        : current,
+    );
+  };
 
   return (
     <main
@@ -79,9 +125,13 @@ export function App() {
       </aside>
 
       <section className="studio-main">
-        {activeModule === "zones" ? <ZoneEditorPanel registry={registry} /> : null}
+        {activeModule === "zones" ? (
+          <ZoneEditorPanel onSavedZone={handleZoneSaved} registry={registry} />
+        ) : null}
         {activeModule === "pokemon" ? <PokemonViewerPanel registry={registry} /> : null}
-        {activeModule === "dialogues" ? <DialogueEditorPanel registry={registry} /> : null}
+        {activeModule === "dialogues" ? (
+          <DialogueEditorPanel onSavedDialogue={handleDialogueSaved} registry={registry} />
+        ) : null}
       </section>
     </main>
   );

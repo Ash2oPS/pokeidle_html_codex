@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadContentRegistry } from "@pokeidle/content-data";
 import type {
   CombatResolvedAttackEvent,
@@ -53,6 +53,8 @@ const uiCopy = {
     noEnemy: "No enemy",
     idleProgress: "--",
     slotsPrefix: "Slots",
+    levelShort: "Lv.",
+    hpShort: "HP",
     reactionWet: "wet",
     contentError: "Content registry failed to load.",
   },
@@ -66,6 +68,8 @@ const uiCopy = {
     noEnemy: "Aucun ennemi",
     idleProgress: "--",
     slotsPrefix: "Slots",
+    levelShort: "Niv.",
+    hpShort: "PV",
     reactionWet: "mouillé",
     contentError: "Le registre de contenu a échoué au chargement.",
   },
@@ -87,6 +91,10 @@ function getQuestChipLabel(locale: Locale, questTitle: string | null): string {
   return questTitle ?? uiCopy[locale].noQuest;
 }
 
+function formatLevelLabel(levelPrefix: string, level: number): string {
+  return `${levelPrefix} ${level}`;
+}
+
 interface TeamSlotOverlayState {
   slotIndex: number;
   anchorX: number;
@@ -103,7 +111,6 @@ export function App() {
   const [liveAttackEvents, setLiveAttackEvents] = useState<CombatResolvedAttackEvent[]>([]);
   const [slotMenuState, setSlotMenuState] = useState<TeamSlotOverlayState | null>(null);
   const [slotPickerState, setSlotPickerState] = useState<TeamSlotOverlayState | null>(null);
-  const latestSnapshotRef = useRef(saveState.snapshot);
   const registryState = useMemo(() => {
     try {
       return {
@@ -117,10 +124,6 @@ export function App() {
       };
     }
   }, []);
-
-  useEffect(() => {
-    latestSnapshotRef.current = saveState.snapshot;
-  }, [saveState.snapshot]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -166,10 +169,42 @@ export function App() {
       return undefined;
     }
 
-    const intervalId = window.setInterval(() => {
+    let timeoutId: number | null = null;
+    let cancelled = false;
+
+    const scheduleNextTick = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const session = gameSaveManager.getState().snapshot.battle.activeSession;
+
+      if (!session) {
+        return;
+      }
+
+      const remainingMs = Math.max(
+        0,
+        Date.parse(session.lastProcessedAt) + registry.progression.slotIntervalMs - Date.now(),
+      );
+
+      timeoutId = window.setTimeout(runTick, Math.min(100, remainingMs));
+    };
+
+    const runTick = () => {
+      if (cancelled) {
+        return;
+      }
+
       const nowValue = Date.now();
       const nowIso = new Date(nowValue).toISOString();
-      const session = latestSnapshotRef.current.battle.activeSession;
+      const snapshot = gameSaveManager.getState().snapshot;
+      const session = snapshot.battle.activeSession;
+
+      if (!session) {
+        return;
+      }
+
       const deltaMs = session
         ? Math.max(0, Date.parse(nowIso) - Date.parse(session.lastProcessedAt))
         : 0;
@@ -179,7 +214,7 @@ export function App() {
 
       setNowMs(nowValue);
 
-      if (hasCombatStepDue(latestSnapshotRef.current, registry, nowIso)) {
+      if (hasCombatStepDue(snapshot, registry, nowIso)) {
         const visualEvents: CombatResolvedAttackEvent[] = [];
         gameSaveManager.update((draft) => {
           syncGameRuntimeState(
@@ -198,10 +233,18 @@ export function App() {
           setLiveAttackEvents(visualEvents);
         }
       }
-    }, 250);
+
+      scheduleNextTick();
+    };
+
+    scheduleNextTick();
 
     return () => {
-      window.clearInterval(intervalId);
+      cancelled = true;
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [registryState.registry, saveState.snapshot.battle.activeSession]);
 
@@ -278,15 +321,18 @@ export function App() {
       return {
         speciesId: null,
         label: null,
+        levelLabel: null,
         frontSpriteUrl: null,
       };
     }
 
     const species = registry.speciesById[speciesId] ?? null;
+    const progress = saveState.snapshot.species[speciesId] ?? null;
 
     return {
       speciesId,
       label: species ? pickLocalizedText(species.name, locale) : speciesId,
+      levelLabel: formatLevelLabel(text.levelShort, progress?.level ?? 1),
       frontSpriteUrl: species?.frontSpriteUrl ?? null,
     };
   });
@@ -470,9 +516,14 @@ export function App() {
         combatSessionKey={combatSessionKey}
         enemyHpPercent={combatView.enemyHpPercent}
         enemyVisual={
-          combatView.enemySpecies
+          combatView.enemySpecies && combatView.session
             ? {
+                speciesId: combatView.enemySpecies.id,
                 label: pickLocalizedText(combatView.enemySpecies.name, locale),
+                levelLabel: formatLevelLabel(text.levelShort, combatView.session.enemy.level),
+                currentHp: combatView.session.enemy.currentHp,
+                maxHp: combatView.session.enemy.maxHp,
+                hpUnitLabel: text.hpShort,
                 frontSpriteUrl: combatView.enemySpecies.frontSpriteUrl,
               }
             : null

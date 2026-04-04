@@ -1,0 +1,54 @@
+- main [ref=e3]:
+  - generic "battle playfield" [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]: Bonaugure
+    - generic [ref=e7]: Ville
+    - generic [ref=e8]: Aucun ennemi
+    - generic [ref=e9]: "--"
+    - generic [ref=e10]: "--"
+    - generic [ref=e11]: Atteindre Charbourg
+    - generic [ref=e12]: Slots 0/6
+  - navigation "game menus" [ref=e13]:
+    - button "Dex" [ref=e14] [cursor=pointer]
+    - button "Équipe" [ref=e15] [cursor=pointer]
+    - button "Quêtes" [ref=e16] [cursor=pointer]
+    - button "Carte" [ref=e17] [cursor=pointer]
+    - button "Sauv." [ref=e18] [cursor=pointer]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - strong [ref=e21]: Zone active
+      - generic [ref=e22]: En cours
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - strong [ref=e25]: Bonaugure
+        - generic [ref=e26]: Zone ville
+      - generic [ref=e27]:
+        - generic [ref=e28]: Activités
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - strong [ref=e32]: Labo de Rowan
+            - button "Parler" [ref=e33] [cursor=pointer]
+          - generic [ref=e34]:
+            - strong [ref=e36]: Gestion d’équipe
+            - button "Équipe" [ref=e37] [cursor=pointer]
+  - generic [ref=e49]:
+    - strong [ref=e51]: Choix du starter
+    - generic [ref=e52]:
+      - paragraph [ref=e53]: Choisis un starter pour débloquer ta première vraie équipe.
+      - generic [ref=e54]:
+        - article [ref=e55]:
+          - img "Tortipouss" [ref=e57]
+          - strong [ref=e58]: Tortipouss
+          - generic [ref=e60]: grass
+          - button "Choisir" [ref=e61] [cursor=pointer]
+        - article [ref=e62]:
+          - img "Ouisticram" [ref=e64]
+          - strong [ref=e65]: Ouisticram
+          - generic [ref=e67]: fire
+          - button "Choisir" [ref=e68] [cursor=pointer]
+        - article [ref=e69]:
+          - img "Tiplouf" [ref=e71]
+          - strong [ref=e72]: Tiplouf
+          - generic [ref=e74]: water
+          - button "Choisir" [ref=e75] [cursor=pointer]
+  - complementary

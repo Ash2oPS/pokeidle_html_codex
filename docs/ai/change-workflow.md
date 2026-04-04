@@ -4,6 +4,7 @@
 - Start every change by reading [README.md](./README.md) plus the relevant normative domain docs before making design or implementation decisions. [RULE:AI-WORKFLOW-001]
 - Choose the safest edit surface in this order: tool workflow or authored data, then schemas or overrides, then generators, and only then runtime code. [RULE:AI-WORKFLOW-002]
 - When runtime contracts, save shapes, or content schemas change, update the affected docs, tests, and migrations in the same change set. [RULE:AI-WORKFLOW-003]
+- When accepted work is added, completed, deferred, split, or reprioritized, update [../product/todo-backlog.md](../product/todo-backlog.md) in the same change set, and update [../product/todo-system.md](../product/todo-system.md) if the tracking workflow itself changes. [RULE:AI-WORKFLOW-010]
 - When UI changes land, preserve the deliberate split between desktop landscape and mobile portrait layouts and keep localization intact. [RULE:AI-WORKFLOW-004]
 - Run `node scripts/validate-docs.mjs` for documentation or rule changes, and run the matching package checks from the matrix below for runtime, schema, content, tooling, or UI changes. [RULE:AI-WORKFLOW-005]
 - Use browser or Playwright checks only when the UI change is complex, highly interactive, or visually risky; simple nonvisual edits do not require them. [RULE:AI-WORKFLOW-006]
@@ -16,13 +17,13 @@
 | Changed area | Minimum commands |
 | --- | --- |
 | Docs or rule files only | `node scripts/validate-docs.mjs` |
-| `apps/game` UI or runtime wiring | `corepack pnpm --filter @pokeidle/game typecheck`<br>`corepack pnpm --filter @pokeidle/game build` |
-| `apps/tools` studio UI or workflows | `corepack pnpm --filter @pokeidle/tools typecheck`<br>`corepack pnpm --filter @pokeidle/tools build` |
-| `packages/game-core` simulation, combat, save, or progression logic | `corepack pnpm --filter @pokeidle/game-core typecheck`<br>`corepack pnpm --filter @pokeidle/game-core test` |
-| `packages/content-data` authored data exposure or validation logic | `corepack pnpm --filter @pokeidle/content-data typecheck`<br>`corepack pnpm --filter @pokeidle/content-data test` |
-| `packages/content-schema` schema changes | `corepack pnpm --filter @pokeidle/content-schema typecheck` |
-| `packages/contracts` shared contract changes | `corepack pnpm --filter @pokeidle/contracts typecheck` |
-| `packages/ui-tokens` shared UI token changes | `corepack pnpm --filter @pokeidle/ui-tokens typecheck` |
-| Multi-package or uncertain blast radius | `corepack pnpm check` |
+| `apps/game` UI or runtime wiring | `npx --yes pnpm --filter @pokeidle/game typecheck`<br>`npx --yes pnpm --filter @pokeidle/game build` |
+| `apps/tools` studio UI or workflows | `npx --yes pnpm --filter @pokeidle/tools typecheck`<br>`npx --yes pnpm --filter @pokeidle/tools build` |
+| `packages/game-core` simulation, combat, save, or progression logic | `npx --yes pnpm --filter @pokeidle/game-core typecheck`<br>`npx --yes pnpm --filter @pokeidle/game-core test` |
+| `packages/content-data` authored data exposure or validation logic | `npx --yes pnpm --filter @pokeidle/content-data typecheck`<br>`npx --yes pnpm --filter @pokeidle/content-data test` |
+| `packages/content-schema` schema changes | `npx --yes pnpm --filter @pokeidle/content-schema typecheck` |
+| `packages/contracts` shared contract changes | `npx --yes pnpm --filter @pokeidle/contracts typecheck` |
+| `packages/ui-tokens` shared UI token changes | `npx --yes pnpm --filter @pokeidle/ui-tokens typecheck` |
+| Multi-package or uncertain blast radius | `npx --yes pnpm check` |
 
-If one change touches multiple areas, run the union of their commands. When the blast radius is unclear, default to `corepack pnpm check`.
+If one change touches multiple areas, run the union of their commands. When the blast radius is unclear, default to `npx --yes pnpm check`.

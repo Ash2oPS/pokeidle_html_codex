@@ -1,5 +1,41 @@
 Original prompt: PLEASE IMPLEMENT THIS PLAN: Game Shell V1 branche sur le contenu reel
 
+2026-04-04
+
+- Implemented a real local save flow for the current content studio editors:
+  - zone editor now saves validated changes back to `content/authored/zones/*.json`
+  - dialogue editor now saves validated changes back to `content/authored/dialogues/*.json`
+  - the studio now shows `Unsaved changes`, `Saving`, `Saved`, and save-error states plus `Save` / `Revert` actions
+  - switching edited documents now warns before discarding unsaved work
+  - `Ctrl+S` / `Cmd+S` triggers save in the active editable panel
+- Added a local Vite-backed studio save endpoint for the tools app so authored JSON can be written from the editor during local dev or preview use.
+- Verified:
+  - `npx --yes pnpm --filter @pokeidle/tools typecheck`
+  - `npx --yes pnpm --filter @pokeidle/tools build`
+  - browser save and reload checks on zone and dialogue editors against a local tools server on `http://127.0.0.1:4274`
+
+Notes:
+
+- The smoke test restored the temporary verification edits immediately after confirming persistence.
+- The console error seen during browser verification was only the expected missing `favicon.ico` 404 from the dev server.
+
+- Analyzed the active docs, current repo structure, recent implementation log, and remaining placeholders to initialize a canonical tracked-work system.
+- Added permanent TODO documentation:
+  - `docs/product/todo-system.md` for backlog rules, horizons, and maintenance workflow
+  - `docs/product/todo-backlog.md` for the live open-work list split into short term, medium term, long term, watchlist, and parking lot
+- Wired the tracked-work system into the active AI entry docs:
+  - `AGENTS.md`
+  - `docs/ai/README.md`
+  - `docs/ai/change-workflow.md`
+  - `docs/README.md`
+  - `README.md`
+- Regenerated `docs/ai/rule-registry.json` and verified `node scripts/validate-docs.mjs --write-registry`
+
+Notes:
+
+- `docs/product/todo-backlog.md` is now the canonical list of open work.
+- `progress.md` remains the append-only log of completed work.
+
 2026-04-02
 
 - Implemented a slice progression runtime in `packages/game-core/src/slice` with pure functions:
@@ -169,3 +205,10 @@ Notes:
   - duplicate evolution-family members are forbidden except for the Eevee family
   - roster sync now sanitizes invalid legacy team states by clearing later conflicting slots
   - evolution runtime is still pending, but the canonical doc now states that successful evolution must replace the source species in the same slot and cannot unlock an already owned evolution species
+
+2026-04-04
+
+- Added richer in-world combat labels in the battle canvas:
+  - allied slots now show compact name and level chips anchored near each Pokemon
+  - the enemy world label now shows name, level, and numeric current/max HP above the bar
+- Kept the change renderer-owned only, with no gameplay timing or save-model changes

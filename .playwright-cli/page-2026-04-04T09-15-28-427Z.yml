@@ -1,0 +1,63 @@
+- main [ref=e3]:
+  - generic "battle playfield" [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]: Bonaugure
+    - generic [ref=e7]: Ville
+    - generic [ref=e8]: Aucun ennemi
+    - generic [ref=e9]: "--"
+    - generic [ref=e10]: "--"
+    - generic [ref=e11]: Atteindre Charbourg
+    - generic [ref=e12]: Slots 6/6
+  - navigation "game menus" [ref=e13]:
+    - button "Dex" [ref=e14] [cursor=pointer]
+    - button "Équipe" [ref=e15] [cursor=pointer]
+    - button "Quêtes" [ref=e16] [cursor=pointer]
+    - button "Carte" [active] [ref=e17] [cursor=pointer]
+    - button "Sauv." [ref=e18] [cursor=pointer]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - strong [ref=e21]: Zone active
+      - generic [ref=e22]: En cours
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - strong [ref=e25]: Bonaugure
+        - generic [ref=e26]: Zone ville
+      - generic [ref=e27]:
+        - generic [ref=e28]: Activités
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - strong [ref=e32]: Labo de Rowan
+            - button "Parler" [ref=e33] [cursor=pointer]
+          - generic [ref=e34]:
+            - strong [ref=e36]: Gestion d’équipe
+            - button "Équipe" [ref=e37] [cursor=pointer]
+  - complementary [ref=e76]:
+    - strong [ref=e179]: Carte
+    - generic [ref=e180]:
+      - generic [ref=e181]:
+        - img [ref=e182]
+        - button "Bonaugure Active" [ref=e189] [cursor=pointer]:
+          - strong [ref=e190]: Bonaugure
+          - generic [ref=e191]: Active
+        - button "Route 201 Accessible" [ref=e192] [cursor=pointer]:
+          - strong [ref=e193]: Route 201
+          - generic [ref=e194]: Accessible
+        - button "Porte de Charbourg Bloquée" [ref=e195] [cursor=pointer]:
+          - strong [ref=e196]: Porte de Charbourg
+          - generic [ref=e197]: Bloquée
+        - button "Charbourg Bloquée" [ref=e198] [cursor=pointer]:
+          - strong [ref=e199]: Charbourg
+          - generic [ref=e200]: Bloquée
+      - generic [ref=e201]:
+        - generic [ref=e202]:
+          - generic [ref=e203]: Détails
+          - strong [ref=e204]: Bonaugure
+        - generic [ref=e205]:
+          - generic [ref=e206]: Ville
+          - strong [ref=e207]: Active
+        - generic [ref=e208]:
+          - strong [ref=e209]: Voisins
+          - generic [ref=e210]:
+            - generic [ref=e211]: Route 201
+            - generic [ref=e212]: Route 201
+        - button "Voyager" [disabled] [ref=e213] [cursor=pointer]

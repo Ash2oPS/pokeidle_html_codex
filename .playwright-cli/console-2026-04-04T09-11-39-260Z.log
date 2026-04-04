@@ -1,0 +1,2 @@
+[     542ms] [WARNING] THREE.FBXLoader: Vertex has more than 4 skinning weights assigned to vertex. Deleting additional weights. @ http://127.0.0.1:4173/assets/index-sTyqyjLO.js:4065
+[     606ms] [WARNING] THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead. @ http://127.0.0.1:4173/assets/index-sTyqyjLO.js:17

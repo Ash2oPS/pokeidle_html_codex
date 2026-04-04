@@ -8,11 +8,10 @@
 
 ## Current Foundation
 
-- Zone editor loads zone data and supports in-memory draft editing for names, timers, defeats, levels, and enemy pools.
+- Zone editor loads zone data and supports validated save for names, timers, defeats, levels, and enemy pools back to `content/authored/zones/*.json`.
 - Pokemon viewer reads generated species data and previews derived runtime stats.
-- Dialogue editor supports in-memory draft editing for bilingual dialogue content.
-- A persistent save flow for studio-authored changes is not implemented yet, so canonical content edits still require reviewed file changes.
+- Dialogue editor supports validated save for bilingual dialogue titles and lines back to `content/authored/dialogues/*.json`.
 
 ## Direction
 
-Future studio work should add validated save flow, safer relationship editing, search, and preview support without bypassing shared schemas or content ownership rules.
+Future studio work should add safer relationship editing, search, preview support, and save coverage for future editable domains without bypassing shared schemas or content ownership rules.

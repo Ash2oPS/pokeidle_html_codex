@@ -1,0 +1,13 @@
+Re-optimizing dependencies because vite config has changed
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m530[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4274[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.178:[1m4274[22m/[39m
+[2m11:35:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shell/App.tsx[22m
+[2m11:36:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shell/App.tsx[22m
+[2m11:36:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shell/App.tsx[22m
+[2m11:37:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shell/App.tsx[22m
+undefined
+D:\Projects\web\pokeidle_html_codex\apps\tools:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 4294967295: vite --host --port 4274

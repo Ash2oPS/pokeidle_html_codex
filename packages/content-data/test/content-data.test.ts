@@ -203,7 +203,7 @@ function createValidRawContent() {
     ],
     progression: {
       id: "combat-v1",
-      slotIntervalMs: 1000,
+      slotIntervalMs: 800,
       levelStatScalar: 0.18,
       enemyHpMultiplier: 6,
       damageConstant: 12,
