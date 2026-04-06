@@ -1,17 +1,19 @@
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import { loadContentRegistry, type ContentRegistry } from "@pokeidle/content-data";
-import type { DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
+import type { BattleDefinition, DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
 import { uiTokens } from "@pokeidle/ui-tokens";
+import { BattleEditorPanel } from "../modules/battle-editor/BattleEditorPanel";
 import { DialogueEditorPanel } from "../modules/dialogue-editor/DialogueEditorPanel";
 import { PokemonViewerPanel } from "../modules/pokemon-viewer/PokemonViewerPanel";
 import { ZoneEditorPanel } from "../modules/zone-editor/ZoneEditorPanel";
 import "./shell.css";
 
-type ModuleKey = "zones" | "pokemon" | "dialogues";
+type ModuleKey = "zones" | "battles" | "pokemon" | "dialogues";
 
 const moduleLabels: Record<ModuleKey, string> = {
   zones: "zones",
+  battles: "battles",
   pokemon: "pokemon",
   dialogues: "dialogues",
 };
@@ -55,10 +57,11 @@ export function App() {
     () =>
       [
         `${Object.keys(registry.zonesById).length} zones`,
+        `${Object.keys(registry.battlesById).length} battles`,
         `${Object.keys(registry.dialoguesById).length} dialogues`,
         `${Object.keys(registry.questsById).length} quests`,
-        `${Object.keys(registry.battlesById).length} battles`,
-      ].join(" · "),
+        `${Object.keys(registry.gymsById).length} canon gyms`,
+      ].join(" | "),
     [registry],
   );
 
@@ -89,6 +92,23 @@ export function App() {
               dialoguesById: {
                 ...current.registry.dialoguesById,
                 [dialogue.id]: dialogue,
+              },
+            },
+          }
+        : current,
+    );
+  };
+
+  const handleBattleSaved = (battle: BattleDefinition) => {
+    setRegistryState((current) =>
+      current.registry
+        ? {
+            error: null,
+            registry: {
+              ...current.registry,
+              battlesById: {
+                ...current.registry.battlesById,
+                [battle.id]: battle,
               },
             },
           }
@@ -127,6 +147,9 @@ export function App() {
       <section className="studio-main">
         {activeModule === "zones" ? (
           <ZoneEditorPanel onSavedZone={handleZoneSaved} registry={registry} />
+        ) : null}
+        {activeModule === "battles" ? (
+          <BattleEditorPanel onSavedBattle={handleBattleSaved} registry={registry} />
         ) : null}
         {activeModule === "pokemon" ? <PokemonViewerPanel registry={registry} /> : null}
         {activeModule === "dialogues" ? (

@@ -37,7 +37,17 @@ function createSyntheticEeveeRegistry(baseRegistry: ContentRegistry): ContentReg
       speed: 55,
     },
     evolvesToSpeciesIds: ["vaporeon"],
+    captureRate: 45,
+    growthRate: "medium-fast",
+    eggGroups: ["field"],
+    formIds: [],
     talentId: null,
+    source: {
+      source: "test-fixture",
+      sourceVersion: "v1",
+      sourceId: "species:eevee",
+      reviewStatus: "imported",
+    },
   };
   const vaporeonSpecies: PokemonSpeciesDefinition = {
     id: "vaporeon",
@@ -57,7 +67,17 @@ function createSyntheticEeveeRegistry(baseRegistry: ContentRegistry): ContentReg
     },
     evolvesFromSpeciesId: "eevee",
     evolvesToSpeciesIds: [],
+    captureRate: 45,
+    growthRate: "medium-fast",
+    eggGroups: ["field"],
+    formIds: [],
     talentId: null,
+    source: {
+      source: "test-fixture",
+      sourceVersion: "v1",
+      sourceId: "species:vaporeon",
+      reviewStatus: "imported",
+    },
   };
 
   registry.speciesById[eeveeSpecies.id] = eeveeSpecies;

@@ -1,6 +1,7 @@
 {
   "id": "town-1",
   "kind": "pacifist",
+  "canonicalLocationId": "sandgem-town",
   "name": {
     "en": "Sandgem Town",
     "fr": "Bonaugure"

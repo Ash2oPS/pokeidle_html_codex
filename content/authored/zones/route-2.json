@@ -1,6 +1,7 @@
 {
   "id": "route-2",
   "kind": "combat",
+  "canonicalLocationId": "oreburgh-gate",
   "name": {
     "en": "Oreburgh Gate",
     "fr": "Porte de Charbourg"

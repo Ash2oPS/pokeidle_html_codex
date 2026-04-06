@@ -1,6 +1,7 @@
 {
   "id": "gym-001",
   "kind": "gym",
+  "canonicalGymId": "oreburgh-gym",
   "name": {
     "en": "Oreburgh Gym",
     "fr": "Arène de Charbourg"

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ContentRegistry } from "@pokeidle/content-data";
+import type { PokemonFormDefinition } from "@pokeidle/contracts";
 import { scaleStat } from "@pokeidle/game-core";
 
 interface PokemonViewerPanelProps {
@@ -15,6 +16,13 @@ export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
   );
   const [activeSpeciesId, setActiveSpeciesId] = useState<string>(speciesList[0]?.id ?? "");
   const species = speciesList.find((entry) => entry.id === activeSpeciesId) ?? speciesList[0];
+  const relatedForms = useMemo(
+    () =>
+      species?.formIds
+        .map((formId) => registry.formsById[formId])
+        .filter((form): form is PokemonFormDefinition => Boolean(form)) ?? [],
+    [registry, species],
+  );
 
   if (!species) {
     return null;
@@ -24,7 +32,9 @@ export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
     <section className="studio-window">
       <div className="studio-window__titlebar">
         <strong>Pokemon Viewer</strong>
-        <span>{speciesList.length} generated species</span>
+        <span>
+          {speciesList.length} species | {Object.keys(registry.formsById).length} forms
+        </span>
       </div>
       <div className="studio-window__body">
         <label className="studio-field">
@@ -51,6 +61,34 @@ export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
           </div>
         </div>
         <div className="studio-data-list">
+          <div className="studio-data-list__row">
+            <span>Capture Rate</span>
+            <strong>{species.captureRate}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Growth Rate</span>
+            <strong>{species.growthRate}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Egg Groups</span>
+            <strong>{species.eggGroups.join(", ") || "none"}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Review Status</span>
+            <strong>{species.source.reviewStatus}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Source</span>
+            <strong>{species.source.source}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Source Id</span>
+            <strong>{species.source.sourceId}</strong>
+          </div>
+          <div className="studio-data-list__row">
+            <span>Forms</span>
+            <strong>{species.formIds.length}</strong>
+          </div>
           {Object.entries(species.baseStats).map(([key, value]) => (
             <div key={key} className="studio-data-list__row">
               <span>{key}</span>
@@ -73,6 +111,26 @@ export function PokemonViewerPanel({ registry }: PokemonViewerPanelProps) {
               <span>{scaleStat(species.baseStats.speed, level, registry.progression.levelStatScalar)}</span>
             </div>
           ))}
+        </div>
+        <div className="studio-stack">
+          <span className="studio-stack__label">Linked Forms</span>
+          <div className="studio-data-list">
+            {relatedForms.length > 0 ? (
+              relatedForms.map((form) => (
+                <div key={form.id} className="studio-data-list__row">
+                  <span>{form.id}</span>
+                  <strong>
+                    {form.formName.en} | {form.defensiveTypes.join("/")}
+                  </strong>
+                </div>
+              ))
+            ) : (
+              <div className="studio-data-list__row">
+                <span>forms</span>
+                <strong>none</strong>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

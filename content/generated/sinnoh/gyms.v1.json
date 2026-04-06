@@ -1,0 +1,642 @@
+[
+  {
+    "id": "oreburgh-gym",
+    "locationId": "oreburgh-city",
+    "leaderId": "roark",
+    "leaderName": {
+      "en": "Roark",
+      "fr": "Pierrick"
+    },
+    "badgeName": {
+      "en": "Coal Badge",
+      "fr": "Badge Charbon"
+    },
+    "specialtyTypeId": "rock",
+    "teams": [
+      {
+        "id": "oreburgh-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "oreburgh-city",
+        "enemyTeam": [
+          {
+            "speciesId": "geodude",
+            "level": 12
+          },
+          {
+            "speciesId": "onix",
+            "level": 12
+          },
+          {
+            "speciesId": "cranidos",
+            "level": 14
+          }
+        ]
+      },
+      {
+        "id": "oreburgh-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "aerodactyl",
+            "level": 62
+          },
+          {
+            "speciesId": "probopass",
+            "level": 61
+          },
+          {
+            "speciesId": "golem",
+            "level": 61
+          },
+          {
+            "speciesId": "rampardos",
+            "level": 63
+          },
+          {
+            "speciesId": "tyranitar",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "oreburgh-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Roark"
+    }
+  },
+  {
+    "id": "eterna-gym",
+    "locationId": "eterna-city",
+    "leaderId": "gardenia",
+    "leaderName": {
+      "en": "Gardenia",
+      "fr": "Flo"
+    },
+    "badgeName": {
+      "en": "Forest Badge",
+      "fr": "Badge Forêt"
+    },
+    "specialtyTypeId": "grass",
+    "teams": [
+      {
+        "id": "eterna-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "eterna-city",
+        "enemyTeam": [
+          {
+            "speciesId": "turtwig",
+            "level": 20
+          },
+          {
+            "speciesId": "cherrim",
+            "level": 20
+          },
+          {
+            "speciesId": "roserade",
+            "level": 22
+          }
+        ]
+      },
+      {
+        "id": "eterna-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "jumpluff",
+            "level": 61
+          },
+          {
+            "speciesId": "cherrim",
+            "level": 62
+          },
+          {
+            "speciesId": "bellossom",
+            "level": 61
+          },
+          {
+            "speciesId": "torterra",
+            "level": 63
+          },
+          {
+            "speciesId": "roserade",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "eterna-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Gardenia"
+    }
+  },
+  {
+    "id": "hearthome-gym",
+    "locationId": "hearthome-city",
+    "leaderId": "fantina",
+    "leaderName": {
+      "en": "Fantina",
+      "fr": "Kiméra"
+    },
+    "badgeName": {
+      "en": "Relic Badge",
+      "fr": "Badge Relique"
+    },
+    "specialtyTypeId": "ghost",
+    "teams": [
+      {
+        "id": "hearthome-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "hearthome-city",
+        "enemyTeam": [
+          {
+            "speciesId": "duskull",
+            "level": 24
+          },
+          {
+            "speciesId": "haunter",
+            "level": 24
+          },
+          {
+            "speciesId": "mismagius",
+            "level": 26
+          }
+        ]
+      },
+      {
+        "id": "hearthome-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "banette",
+            "level": 61
+          },
+          {
+            "speciesId": "mismagius",
+            "level": 63
+          },
+          {
+            "speciesId": "drifblim",
+            "level": 61
+          },
+          {
+            "speciesId": "dusknoir",
+            "level": 62
+          },
+          {
+            "speciesId": "gengar",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "hearthome-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Fantina"
+    }
+  },
+  {
+    "id": "veilstone-gym",
+    "locationId": "veilstone-city",
+    "leaderId": "maylene",
+    "leaderName": {
+      "en": "Maylene",
+      "fr": "Mélina"
+    },
+    "badgeName": {
+      "en": "Cobble Badge",
+      "fr": "Badge Pavé"
+    },
+    "specialtyTypeId": "fighting",
+    "teams": [
+      {
+        "id": "veilstone-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "veilstone-city",
+        "enemyTeam": [
+          {
+            "speciesId": "meditite",
+            "level": 28
+          },
+          {
+            "speciesId": "machoke",
+            "level": 29
+          },
+          {
+            "speciesId": "lucario",
+            "level": 32
+          }
+        ]
+      },
+      {
+        "id": "veilstone-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "hitmontop",
+            "level": 62
+          },
+          {
+            "speciesId": "medicham",
+            "level": 63
+          },
+          {
+            "speciesId": "breloom",
+            "level": 62
+          },
+          {
+            "speciesId": "machamp",
+            "level": 64
+          },
+          {
+            "speciesId": "lucario",
+            "level": 66
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "veilstone-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Maylene"
+    }
+  },
+  {
+    "id": "pastoria-gym",
+    "locationId": "pastoria-city",
+    "leaderId": "crasher-wake",
+    "leaderName": {
+      "en": "Crasher Wake",
+      "fr": "Lovis"
+    },
+    "badgeName": {
+      "en": "Fen Badge",
+      "fr": "Badge Marais"
+    },
+    "specialtyTypeId": "water",
+    "teams": [
+      {
+        "id": "pastoria-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "pastoria-city",
+        "enemyTeam": [
+          {
+            "speciesId": "gyarados",
+            "level": 33
+          },
+          {
+            "speciesId": "quagsire",
+            "level": 34
+          },
+          {
+            "speciesId": "floatzel",
+            "level": 37
+          }
+        ]
+      },
+      {
+        "id": "pastoria-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "sharpedo",
+            "level": 61
+          },
+          {
+            "speciesId": "quagsire",
+            "level": 61
+          },
+          {
+            "speciesId": "floatzel",
+            "level": 63
+          },
+          {
+            "speciesId": "gyarados",
+            "level": 62
+          },
+          {
+            "speciesId": "ludicolo",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "pastoria-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Crasher_Wake"
+    }
+  },
+  {
+    "id": "canalave-gym",
+    "locationId": "canalave-city",
+    "leaderId": "byron",
+    "leaderName": {
+      "en": "Byron",
+      "fr": "Charles"
+    },
+    "badgeName": {
+      "en": "Mine Badge",
+      "fr": "Badge Mine"
+    },
+    "specialtyTypeId": "steel",
+    "teams": [
+      {
+        "id": "canalave-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "canalave-city",
+        "enemyTeam": [
+          {
+            "speciesId": "magneton",
+            "level": 37
+          },
+          {
+            "speciesId": "steelix",
+            "level": 38
+          },
+          {
+            "speciesId": "bastiodon",
+            "level": 41
+          }
+        ]
+      },
+      {
+        "id": "canalave-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "skarmory",
+            "level": 61
+          },
+          {
+            "speciesId": "magnezone",
+            "level": 62
+          },
+          {
+            "speciesId": "steelix",
+            "level": 61
+          },
+          {
+            "speciesId": "bastiodon",
+            "level": 63
+          },
+          {
+            "speciesId": "aggron",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "canalave-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Byron"
+    }
+  },
+  {
+    "id": "snowpoint-gym",
+    "locationId": "snowpoint-city",
+    "leaderId": "candice",
+    "leaderName": {
+      "en": "Candice",
+      "fr": "Gladys"
+    },
+    "badgeName": {
+      "en": "Icicle Badge",
+      "fr": "Badge Glaçon"
+    },
+    "specialtyTypeId": "ice",
+    "teams": [
+      {
+        "id": "snowpoint-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "snowpoint-city",
+        "enemyTeam": [
+          {
+            "speciesId": "sneasel",
+            "level": 40
+          },
+          {
+            "speciesId": "piloswine",
+            "level": 40
+          },
+          {
+            "speciesId": "abomasnow",
+            "level": 42
+          },
+          {
+            "speciesId": "froslass",
+            "level": 44
+          }
+        ]
+      },
+      {
+        "id": "snowpoint-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "weavile",
+            "level": 62
+          },
+          {
+            "speciesId": "mamoswine",
+            "level": 61
+          },
+          {
+            "speciesId": "abomasnow",
+            "level": 61
+          },
+          {
+            "speciesId": "froslass",
+            "level": 63
+          },
+          {
+            "speciesId": "glaceon",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "snowpoint-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Candice"
+    }
+  },
+  {
+    "id": "sunyshore-gym",
+    "locationId": "sunyshore-city",
+    "leaderId": "volkner",
+    "leaderName": {
+      "en": "Volkner",
+      "fr": "Tanguy"
+    },
+    "badgeName": {
+      "en": "Beacon Badge",
+      "fr": "Badge Phare"
+    },
+    "specialtyTypeId": "electric",
+    "teams": [
+      {
+        "id": "sunyshore-gym-main",
+        "label": {
+          "en": "Gym Battle",
+          "fr": "Combat d'arène"
+        },
+        "availability": "main",
+        "battleKind": "gym",
+        "battleLocationId": "sunyshore-city",
+        "enemyTeam": [
+          {
+            "speciesId": "jolteon",
+            "level": 46
+          },
+          {
+            "speciesId": "raichu",
+            "level": 46
+          },
+          {
+            "speciesId": "luxray",
+            "level": 48
+          },
+          {
+            "speciesId": "electivire",
+            "level": 50
+          }
+        ]
+      },
+      {
+        "id": "sunyshore-gym-rematch",
+        "label": {
+          "en": "Battleground Rematch",
+          "fr": "Revanche au Café des Combats"
+        },
+        "availability": "postgame",
+        "battleKind": "rematch",
+        "battleLocationId": "battleground",
+        "enemyTeam": [
+          {
+            "speciesId": "jolteon",
+            "level": 61
+          },
+          {
+            "speciesId": "raichu",
+            "level": 61
+          },
+          {
+            "speciesId": "luxray",
+            "level": 62
+          },
+          {
+            "speciesId": "lanturn",
+            "level": 63
+          },
+          {
+            "speciesId": "electivire",
+            "level": 65
+          }
+        ]
+      }
+    ],
+    "source": {
+      "source": "bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "sunyshore-gym|sinnoh-gyms.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://bulbapedia.bulbagarden.net/wiki/Volkner"
+    }
+  }
+]

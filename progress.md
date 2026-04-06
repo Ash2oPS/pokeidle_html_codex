@@ -1,5 +1,44 @@
 Original prompt: PLEASE IMPLEMENT THIS PLAN: Game Shell V1 branche sur le contenu reel
 
+2026-04-05
+
+- Implemented the first canonical Pokemon and Sinnoh data foundation phase:
+  - expanded generated Pokemon canon from the 30-species slice to the full `001 -> 493` set
+  - added canonical generated forms, Sinnoh locations, encounter tables, and gyms
+  - introduced structured Bulbapedia snapshot inputs and broadened the PokeAPI source cache used by the import pipeline
+  - kept the current runtime on authored `world-map`, `zones`, and `battles` while adding `canonicalLocationId` and `canonicalGymId` bridges
+- Extended shared contracts, schemas, and registry validation for:
+  - canonical source metadata and review states
+  - Pokemon forms
+  - Sinnoh canonical locations, encounter tables, and gyms
+  - species capture rate, growth rate, egg groups, and linked form ids
+  - authored zone and battle bridges to canonical ids
+- Expanded the content studio foundation:
+  - added a validated battle editor for authored battle overrides
+  - moved the studio save plugin onto shared schemas instead of duplicated local Zod shapes
+  - extended the Pokemon viewer with read-only provenance, review status, and linked form metadata
+- Updated active docs and tracking:
+  - added `docs/architecture/canon-data-model.md`
+  - updated content pipeline, editable data, studio, AI navigation, and TODO docs
+  - regenerated `docs/ai/rule-registry.json`
+- Added or refreshed validation coverage for:
+  - canonical registry cross-references
+  - generated species, forms, Sinnoh locations, encounters, and gyms
+  - mojibake rejection on localized strings
+
+- Verified:
+  - `node scripts/import-pokemon-data.mjs`
+  - `npx --yes pnpm --filter @pokeidle/content-schema typecheck`
+  - `npx --yes pnpm --filter @pokeidle/content-data test`
+  - `npx --yes pnpm --filter @pokeidle/tools typecheck`
+  - `npx --yes pnpm --filter @pokeidle/game-core test`
+  - `node scripts/validate-docs.mjs --write-registry`
+
+Notes:
+
+- A quick screenshot attempt for the tools app was blocked by an existing Vite startup issue in the repo workspace: the dev server fails while resolving `packages/content-schema/src/index.ts` as a `.ts` ESM import during tools startup.
+- The canonical runtime migration is still intentionally deferred; the new canon layer is available through the registry and authored bridges only in this phase.
+
 2026-04-04
 
 - Implemented a real local save flow for the current content studio editors:

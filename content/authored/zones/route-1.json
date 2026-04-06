@@ -1,6 +1,7 @@
 {
   "id": "route-1",
   "kind": "combat",
+  "canonicalLocationId": "route-201",
   "name": {
     "en": "Route 201",
     "fr": "Route 201"

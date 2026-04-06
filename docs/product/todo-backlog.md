@@ -3,10 +3,11 @@
 
 Open work lives here. Completed milestones belong in [../../progress.md](../../progress.md).
 
-Last reviewed: 2026-04-04
+Last reviewed: 2026-04-05
 
 ## Short Term
 
+- `content / canon`: Review imported Sinnoh locations, encounter conditions, and gym records record-by-record until disputed or reviewed states reflect real confidence instead of raw import status.
 - `gameplay / dex`: Replace the current Dex placeholder with a real Pokedex surface tied to unlocked species and progression.
 - `gameplay / progression`: Implement capture-driven species unlock flow so progression no longer stops at the starter bundle.
 - `gameplay / progression`: Implement evolution runtime with same-slot replacement and one-time evolution unlock behavior.
@@ -17,9 +18,10 @@ Last reviewed: 2026-04-04
 
 - `combat / talents`: Ship the first real talent tranche on stable documented hooks with tests.
 - `combat / typing`: Surface offensive typing defaults and any switching rules as explicit gameplay and UI behavior instead of deferred design debt.
-- `ui / dex`: Expand the Dex beyond the first unlock view with fuller species, mastery, or capture-progress presentation.
-- `tooling / studio`: Extend validated save coverage when future editable modules such as quests or battles are added to the studio.
+- `gameplay / canon`: Migrate runtime zone, gym, and encounter consumers from slice-authored placeholders onto canonical location and encounter data.
+- `tooling / studio`: Extend validated studio coverage from battles to quests and future canonical review workflows.
 - `tooling / ux`: Add safer relationship editing, search, and preview support across the studio modules.
+- `ui / dex`: Expand the Dex beyond the first unlock view with fuller species, mastery, or capture-progress presentation.
 - `ui / mobile`: Revisit the dense mobile combat HUD after the next progression surfaces land.
 
 ## Long Term

@@ -1,0 +1,2509 @@
+[
+  {
+    "id": "canalave-city",
+    "pokeApiLocationId": 1,
+    "name": {
+      "en": "Canalave City",
+      "fr": "Joliberges"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-218",
+      "iron-island"
+    ],
+    "areas": [
+      {
+        "id": "canalave-city-area",
+        "pokeApiLocationAreaId": 1,
+        "name": {
+          "en": "Canalave City",
+          "fr": "Joliberges"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/1|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/1/"
+    }
+  },
+  {
+    "id": "eterna-city",
+    "pokeApiLocationId": 2,
+    "name": {
+      "en": "Eterna City",
+      "fr": "Vestigion"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-205",
+      "route-206",
+      "route-211",
+      "eterna-forest",
+      "old-chateau"
+    ],
+    "areas": [
+      {
+        "id": "eterna-city-area",
+        "pokeApiLocationAreaId": 2,
+        "name": {
+          "en": "Eterna City",
+          "fr": "Vestigion"
+        }
+      },
+      {
+        "id": "eterna-city-west-gate",
+        "pokeApiLocationAreaId": 788,
+        "name": {
+          "en": "Eterna City (west gate)",
+          "fr": "Vestigion (porte ouest)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/2|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/2/"
+    }
+  },
+  {
+    "id": "pastoria-city",
+    "pokeApiLocationId": 3,
+    "name": {
+      "en": "Pastoria City",
+      "fr": "Verchamps"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-212",
+      "route-213",
+      "great-marsh",
+      "valor-lakefront"
+    ],
+    "areas": [
+      {
+        "id": "pastoria-city-area",
+        "pokeApiLocationAreaId": 3,
+        "name": {
+          "en": "Pastoria City",
+          "fr": "Verchamps"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/3|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/3/"
+    }
+  },
+  {
+    "id": "sunyshore-city",
+    "pokeApiLocationId": 4,
+    "name": {
+      "en": "Sunyshore City",
+      "fr": "Rivamar"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-222",
+      "route-223"
+    ],
+    "areas": [
+      {
+        "id": "sunyshore-city-area",
+        "pokeApiLocationAreaId": 4,
+        "name": {
+          "en": "Sunyshore City",
+          "fr": "Rivamar"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/4|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/4/"
+    }
+  },
+  {
+    "id": "pokemon-league",
+    "pokeApiLocationId": 5,
+    "name": {
+      "en": "Pokémon League",
+      "fr": "Ligue Pokémon"
+    },
+    "regionId": "sinnoh",
+    "kind": "league",
+    "adjacentLocationIds": [
+      "route-223",
+      "victory-road"
+    ],
+    "areas": [
+      {
+        "id": "pokemon-league-area",
+        "pokeApiLocationAreaId": 5,
+        "name": {
+          "en": "Sinnoh League",
+          "fr": "Ligue Pokémon"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/5|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/5/"
+    }
+  },
+  {
+    "id": "oreburgh-mine",
+    "pokeApiLocationId": 6,
+    "name": {
+      "en": "Oreburgh Mine",
+      "fr": "Mine Charbourg"
+    },
+    "regionId": "sinnoh",
+    "kind": "mine",
+    "adjacentLocationIds": [
+      "oreburgh-city"
+    ],
+    "areas": [
+      {
+        "id": "oreburgh-mine-1f",
+        "pokeApiLocationAreaId": 6,
+        "name": {
+          "en": "Oreburgh mine (1F)",
+          "fr": "Mine Charbourg (RdC)"
+        }
+      },
+      {
+        "id": "oreburgh-mine-b1f",
+        "pokeApiLocationAreaId": 7,
+        "name": {
+          "en": "Oreburgh mine (B1F)",
+          "fr": "Mine Charbourg (sous-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/6|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/6/"
+    }
+  },
+  {
+    "id": "valley-windworks",
+    "pokeApiLocationId": 7,
+    "name": {
+      "en": "Valley Windworks",
+      "fr": "Les Eoliennes"
+    },
+    "regionId": "sinnoh",
+    "kind": "industrial",
+    "adjacentLocationIds": [
+      "floaroma-town",
+      "route-205"
+    ],
+    "areas": [
+      {
+        "id": "valley-windworks-area",
+        "pokeApiLocationAreaId": 8,
+        "name": {
+          "en": "Valley Windworks",
+          "fr": "Les Eoliennes"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/7|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/7/"
+    }
+  },
+  {
+    "id": "eterna-forest",
+    "pokeApiLocationId": 8,
+    "name": {
+      "en": "Eterna Forest",
+      "fr": "Forêt Vestigion"
+    },
+    "regionId": "sinnoh",
+    "kind": "forest",
+    "adjacentLocationIds": [
+      "eterna-city",
+      "route-205"
+    ],
+    "areas": [
+      {
+        "id": "eterna-forest-area",
+        "pokeApiLocationAreaId": 9,
+        "name": {
+          "en": "Eterna Forest",
+          "fr": "Forêt Vestigion"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/8|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/8/"
+    }
+  },
+  {
+    "id": "fuego-ironworks",
+    "pokeApiLocationId": 9,
+    "name": {
+      "en": "Fuego Ironworks",
+      "fr": "Forge Fuego"
+    },
+    "regionId": "sinnoh",
+    "kind": "industrial",
+    "adjacentLocationIds": [
+      "route-205"
+    ],
+    "areas": [
+      {
+        "id": "fuego-ironworks-area",
+        "pokeApiLocationAreaId": 10,
+        "name": {
+          "en": "Fuego Ironworks",
+          "fr": "Forge Fuego"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/9|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/9/"
+    }
+  },
+  {
+    "id": "mt-coronet",
+    "pokeApiLocationId": 10,
+    "name": {
+      "en": "Mt. Coronet",
+      "fr": "Mont Couronné"
+    },
+    "regionId": "sinnoh",
+    "kind": "mountain",
+    "adjacentLocationIds": [
+      "route-207",
+      "route-208",
+      "route-210",
+      "route-211",
+      "route-216",
+      "spear-pillar",
+      "distortion-world"
+    ],
+    "areas": [
+      {
+        "id": "mt-coronet-1f-route-207",
+        "pokeApiLocationAreaId": 11,
+        "name": {
+          "en": "Mount Coronet (1F Road 207)",
+          "fr": "Mont Couronné (RdC côté route 207)"
+        }
+      },
+      {
+        "id": "mt-coronet-2f",
+        "pokeApiLocationAreaId": 12,
+        "name": {
+          "en": "Mount Coronet (2F)",
+          "fr": "Mont Couronné (1er ét.)"
+        }
+      },
+      {
+        "id": "mt-coronet-3f",
+        "pokeApiLocationAreaId": 13,
+        "name": {
+          "en": "Mount Coronet (3F)",
+          "fr": "Mont Couronné (2e ét.)"
+        }
+      },
+      {
+        "id": "mt-coronet-exterior-snowfall",
+        "pokeApiLocationAreaId": 14,
+        "name": {
+          "en": "Mount Coronet (exterior snowfall)",
+          "fr": "Mont Couronné (extérieur neige)"
+        }
+      },
+      {
+        "id": "mt-coronet-exterior-blizzard",
+        "pokeApiLocationAreaId": 15,
+        "name": {
+          "en": "Mount Coronet (exterior blizzard)",
+          "fr": "Mont Couronné (extérieur blizzard)"
+        }
+      },
+      {
+        "id": "mt-coronet-4f",
+        "pokeApiLocationAreaId": 16,
+        "name": {
+          "en": "Mount Coronet (4F)",
+          "fr": "Mont Couronné (3e ét.)"
+        }
+      },
+      {
+        "id": "mt-coronet-4f-small-room",
+        "pokeApiLocationAreaId": 17,
+        "name": {
+          "en": "Mount Coronet (4F small room)",
+          "fr": "Mont Couronné (3e ét., petite salle)"
+        }
+      },
+      {
+        "id": "mt-coronet-5f",
+        "pokeApiLocationAreaId": 18,
+        "name": {
+          "en": "Mount Coronet (5F)",
+          "fr": "Mont Couronné (4e ét.)"
+        }
+      },
+      {
+        "id": "mt-coronet-6f",
+        "pokeApiLocationAreaId": 19,
+        "name": {
+          "en": "Mount Coronet (6F)",
+          "fr": "Mont Couronné (5e ét.)"
+        }
+      },
+      {
+        "id": "mt-coronet-1f-from-exterior",
+        "pokeApiLocationAreaId": 20,
+        "name": {
+          "en": "Mount Coronet (1F from exterior)",
+          "fr": "Mont Couronné (RdC depuis l'extérieur)"
+        }
+      },
+      {
+        "id": "mt-coronet-1f-route-216",
+        "pokeApiLocationAreaId": 21,
+        "name": {
+          "en": "Mount Coronet (1F Road 216)",
+          "fr": "Mont Couronné (RdC côté route 216)"
+        }
+      },
+      {
+        "id": "mt-coronet-1f-route-211",
+        "pokeApiLocationAreaId": 22,
+        "name": {
+          "en": "Mount Coronet (1F Road 211)",
+          "fr": "Mont Couronné (RdC côté route 211)"
+        }
+      },
+      {
+        "id": "mt-coronet-b1f",
+        "pokeApiLocationAreaId": 23,
+        "name": {
+          "en": "Mount Coronet (B1F)",
+          "fr": "Mont Couronné (sous-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/10|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/10/"
+    }
+  },
+  {
+    "id": "great-marsh",
+    "pokeApiLocationId": 11,
+    "name": {
+      "en": "Great Marsh",
+      "fr": "Grand Marais"
+    },
+    "regionId": "sinnoh",
+    "kind": "marsh",
+    "adjacentLocationIds": [
+      "pastoria-city"
+    ],
+    "areas": [
+      {
+        "id": "great-marsh-area-1",
+        "pokeApiLocationAreaId": 24,
+        "name": {
+          "en": "Great Marsh Area 1",
+          "fr": "Grand Marais Zone 1"
+        }
+      },
+      {
+        "id": "great-marsh-area-2",
+        "pokeApiLocationAreaId": 25,
+        "name": {
+          "en": "Great Marsh Area 2",
+          "fr": "Grand Marais Zone 2"
+        }
+      },
+      {
+        "id": "great-marsh-area-3",
+        "pokeApiLocationAreaId": 26,
+        "name": {
+          "en": "Great Marsh Area 3",
+          "fr": "Grand Marais Zone 3"
+        }
+      },
+      {
+        "id": "great-marsh-area-4",
+        "pokeApiLocationAreaId": 27,
+        "name": {
+          "en": "Great Marsh Area 4",
+          "fr": "Grand Marais Zone 4"
+        }
+      },
+      {
+        "id": "great-marsh-area-5",
+        "pokeApiLocationAreaId": 28,
+        "name": {
+          "en": "Great Marsh Area 5",
+          "fr": "Grand Marais Zone 5"
+        }
+      },
+      {
+        "id": "great-marsh-area-6",
+        "pokeApiLocationAreaId": 29,
+        "name": {
+          "en": "Great Marsh Area 6",
+          "fr": "Grand Marais Zone 6"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/11|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/11/"
+    }
+  },
+  {
+    "id": "solaceon-ruins",
+    "pokeApiLocationId": 12,
+    "name": {
+      "en": "Solaceon Ruins",
+      "fr": "Ruines Bonville"
+    },
+    "regionId": "sinnoh",
+    "kind": "ruins",
+    "adjacentLocationIds": [
+      "solaceon-town"
+    ],
+    "areas": [
+      {
+        "id": "solaceon-ruins-2f",
+        "pokeApiLocationAreaId": 30,
+        "name": {
+          "en": "Solaceon Ruins (2F)",
+          "fr": "Ruines Bonville (étage)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-1f",
+        "pokeApiLocationAreaId": 31,
+        "name": {
+          "en": "Solaceon Ruins (1F)",
+          "fr": "Ruines Bonville (RdC)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b1f-a",
+        "pokeApiLocationAreaId": 32,
+        "name": {
+          "en": "Solaceon Ruins (B1F A)",
+          "fr": "Ruines Bonville (1er s-sol A)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b1f-b",
+        "pokeApiLocationAreaId": 33,
+        "name": {
+          "en": "Solaceon Ruins (B1F B)",
+          "fr": "Ruines Bonville (1er s-sol B)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b1f-c",
+        "pokeApiLocationAreaId": 34,
+        "name": {
+          "en": "Solaceon Ruins (B1F C)",
+          "fr": "Ruines Bonville (1er s-sol C)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b2f-a",
+        "pokeApiLocationAreaId": 35,
+        "name": {
+          "en": "Solaceon Ruins (B2F A)",
+          "fr": "Ruines Bonville (2e s-sol A)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b2f-b",
+        "pokeApiLocationAreaId": 36,
+        "name": {
+          "en": "Solaceon Ruins (B2F B)",
+          "fr": "Ruines Bonville (2e s-sol B)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b2f-c",
+        "pokeApiLocationAreaId": 37,
+        "name": {
+          "en": "Solaceon Ruins (B2F C)",
+          "fr": "Ruines Bonville (2e s-sol C)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b3f-a",
+        "pokeApiLocationAreaId": 38,
+        "name": {
+          "en": "Solaceon Ruins (B3F A)",
+          "fr": "Ruines Bonville (3e s-sol A)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b3f-b",
+        "pokeApiLocationAreaId": 39,
+        "name": {
+          "en": "Solaceon Ruins (B3F B)",
+          "fr": "Ruines Bonville (3e s-sol B)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b3f-c",
+        "pokeApiLocationAreaId": 40,
+        "name": {
+          "en": "Solaceon Ruins (B3F C)",
+          "fr": "Ruines Bonville (3e s-sol C)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b3f-d",
+        "pokeApiLocationAreaId": 41,
+        "name": {
+          "en": "Solaceon Ruins (B3F D)",
+          "fr": "Ruines Bonville (3e s-sol D)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b3f-e",
+        "pokeApiLocationAreaId": 42,
+        "name": {
+          "en": "Solaceon Ruins (B3F E)",
+          "fr": "Ruines Bonville (3e s-sol E)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b4f-a",
+        "pokeApiLocationAreaId": 43,
+        "name": {
+          "en": "Solaceon Ruins (B4F A)",
+          "fr": "Ruines Bonville (4e s-sol A)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b4f-b",
+        "pokeApiLocationAreaId": 44,
+        "name": {
+          "en": "Solaceon Ruins (B4F B)",
+          "fr": "Ruines Bonville (4e s-sol B)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b4f-c",
+        "pokeApiLocationAreaId": 45,
+        "name": {
+          "en": "Solaceon Ruins (B4F C)",
+          "fr": "Ruines Bonville (4e s-sol C)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b4f-d",
+        "pokeApiLocationAreaId": 46,
+        "name": {
+          "en": "Solaceon Ruins (B4F D)",
+          "fr": "Ruines Bonville (4e s-sol D)"
+        }
+      },
+      {
+        "id": "solaceon-ruins-b5f",
+        "pokeApiLocationAreaId": 47,
+        "name": {
+          "en": "Solaceon Ruins (B5F)",
+          "fr": "Ruines Bonville (5e s-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/12|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/12/"
+    }
+  },
+  {
+    "id": "victory-road",
+    "pokeApiLocationId": 13,
+    "name": {
+      "en": "Victory Road",
+      "fr": "Route Victoire"
+    },
+    "regionId": "sinnoh",
+    "kind": "cave",
+    "adjacentLocationIds": [
+      "pokemon-league"
+    ],
+    "areas": [
+      {
+        "id": "victory-road-1f",
+        "pokeApiLocationAreaId": 48,
+        "name": {
+          "en": "Victory Road (1F)",
+          "fr": "Route Victoire (RdC)"
+        }
+      },
+      {
+        "id": "victory-road-2f",
+        "pokeApiLocationAreaId": 49,
+        "name": {
+          "en": "Victory Road (2F)",
+          "fr": "Route Victoire (étage)"
+        }
+      },
+      {
+        "id": "victory-road-b1f",
+        "pokeApiLocationAreaId": 50,
+        "name": {
+          "en": "Victory Road (B1F)",
+          "fr": "Route Victoire (sous-sol)"
+        }
+      },
+      {
+        "id": "victory-road-inside-b1f",
+        "pokeApiLocationAreaId": 51,
+        "name": {
+          "en": "Victory Road (inside B1F)",
+          "fr": "Route Victoire (intérieur sous-sol)"
+        }
+      },
+      {
+        "id": "victory-road-inside",
+        "pokeApiLocationAreaId": 52,
+        "name": {
+          "en": "Victory Road (inside)",
+          "fr": "Route Victoire (intérieur)"
+        }
+      },
+      {
+        "id": "victory-road-inside-exit",
+        "pokeApiLocationAreaId": 53,
+        "name": {
+          "en": "Victory Road (inside exit)",
+          "fr": "Route Victoire (intérieur, sortie)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/13|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/13/"
+    }
+  },
+  {
+    "id": "ravaged-path",
+    "pokeApiLocationId": 14,
+    "name": {
+      "en": "Ravaged Path",
+      "fr": "Chemin Rocheux"
+    },
+    "regionId": "sinnoh",
+    "kind": "cave",
+    "adjacentLocationIds": [
+      "route-204"
+    ],
+    "areas": [
+      {
+        "id": "ravaged-path-area",
+        "pokeApiLocationAreaId": 54,
+        "name": {
+          "en": "Ravaged Path",
+          "fr": "Chemin Rocheux"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/14|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/14/"
+    }
+  },
+  {
+    "id": "oreburgh-gate",
+    "pokeApiLocationId": 15,
+    "name": {
+      "en": "Oreburgh Gate",
+      "fr": "Entrée Charbourg"
+    },
+    "regionId": "sinnoh",
+    "kind": "gate",
+    "adjacentLocationIds": [
+      "route-203",
+      "oreburgh-city"
+    ],
+    "areas": [
+      {
+        "id": "oreburgh-gate-1f",
+        "pokeApiLocationAreaId": 55,
+        "name": {
+          "en": "Oreburgh Gate (1F)",
+          "fr": "Entrée Charbourg (RdC)"
+        }
+      },
+      {
+        "id": "oreburgh-gate-b1f",
+        "pokeApiLocationAreaId": 56,
+        "name": {
+          "en": "Oreburgh Gate (B1F)",
+          "fr": "Entrée Charbourg (sous-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/15|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/15/"
+    }
+  },
+  {
+    "id": "wayward-cave",
+    "pokeApiLocationId": 20,
+    "name": {
+      "en": "Wayward Cave",
+      "fr": "Grotte Revèche"
+    },
+    "regionId": "sinnoh",
+    "kind": "cave",
+    "adjacentLocationIds": [
+      "route-206"
+    ],
+    "areas": [
+      {
+        "id": "wayward-cave-1f",
+        "pokeApiLocationAreaId": 113,
+        "name": {
+          "en": "Wayward Cave (1F)",
+          "fr": "Grotte Revèche (RdC)"
+        }
+      },
+      {
+        "id": "wayward-cave-b1f",
+        "pokeApiLocationAreaId": 114,
+        "name": {
+          "en": "Wayward Cave (B1F)",
+          "fr": "Grotte Revèche (sous-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/20|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/20/"
+    }
+  },
+  {
+    "id": "ruin-maniac-cave",
+    "pokeApiLocationId": 22,
+    "name": {
+      "en": "Ruin Maniac Cave",
+      "fr": "Grotte Ruinem."
+    },
+    "regionId": "sinnoh",
+    "kind": "cave",
+    "adjacentLocationIds": [
+      "route-214"
+    ],
+    "areas": [
+      {
+        "id": "ruin-maniac-cave-0-9-different-unown-caught",
+        "pokeApiLocationAreaId": 115,
+        "name": {
+          "en": "Ruin Maniac Cave (0–9 different Unown caught)",
+          "fr": "Grotte Ruinemaniac (de 0 à 9 Zarbi différents capturés)"
+        }
+      },
+      {
+        "id": "ruin-maniac-cave-10-25-different-unown-caught",
+        "pokeApiLocationAreaId": 116,
+        "name": {
+          "en": "Ruin Maniac Cave (10–25 different Unown caught)",
+          "fr": "Grotte Ruinemaniac (de 10 à 25 Zarbi différents capturés)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/22|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/22/"
+    }
+  },
+  {
+    "id": "trophy-garden",
+    "pokeApiLocationId": 23,
+    "name": {
+      "en": "Trophy Garden",
+      "fr": "Jardin Trophée"
+    },
+    "regionId": "sinnoh",
+    "kind": "garden",
+    "adjacentLocationIds": [
+      "route-212",
+      "route-221"
+    ],
+    "areas": [
+      {
+        "id": "trophy-garden-area",
+        "pokeApiLocationAreaId": 118,
+        "name": {
+          "en": "Trophy Garden",
+          "fr": "Jardin Trophée"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/23|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/23/"
+    }
+  },
+  {
+    "id": "iron-island",
+    "pokeApiLocationId": 24,
+    "name": {
+      "en": "Iron Island",
+      "fr": "Ile de Fer"
+    },
+    "regionId": "sinnoh",
+    "kind": "island",
+    "adjacentLocationIds": [
+      "canalave-city"
+    ],
+    "areas": [
+      {
+        "id": "iron-island-area",
+        "pokeApiLocationAreaId": 119,
+        "name": {
+          "en": "Iron Island area",
+          "fr": "Ile de Fer (alentours)"
+        }
+      },
+      {
+        "id": "iron-island-1f",
+        "pokeApiLocationAreaId": 120,
+        "name": {
+          "en": "Iron Island (1F)",
+          "fr": "Ile de Fer (RdC)"
+        }
+      },
+      {
+        "id": "iron-island-b1f-left",
+        "pokeApiLocationAreaId": 121,
+        "name": {
+          "en": "Iron Island (B1F left)",
+          "fr": "Ile de Fer (1er s-sol gauche)"
+        }
+      },
+      {
+        "id": "iron-island-b1f-right",
+        "pokeApiLocationAreaId": 122,
+        "name": {
+          "en": "Iron Island (B1F right)",
+          "fr": "Ile de Fer (1er s-sol droit)"
+        }
+      },
+      {
+        "id": "iron-island-b2f-right",
+        "pokeApiLocationAreaId": 123,
+        "name": {
+          "en": "Iron Island (B2F right)",
+          "fr": "Ile de Fer (2e s-sol droit)"
+        }
+      },
+      {
+        "id": "iron-island-b2f-left",
+        "pokeApiLocationAreaId": 124,
+        "name": {
+          "en": "Iron Island (B2F left)",
+          "fr": "Ile de Fer (2e s-sol gauche)"
+        }
+      },
+      {
+        "id": "iron-island-b3f",
+        "pokeApiLocationAreaId": 125,
+        "name": {
+          "en": "Iron Island (B3F)",
+          "fr": "Ile de Fer (3e s-sol)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/24|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/24/"
+    }
+  },
+  {
+    "id": "old-chateau",
+    "pokeApiLocationId": 25,
+    "name": {
+      "en": "Old Chateau",
+      "fr": "Vieux Château"
+    },
+    "regionId": "sinnoh",
+    "kind": "mansion",
+    "adjacentLocationIds": [
+      "eterna-city"
+    ],
+    "areas": [
+      {
+        "id": "old-chateau-entrance",
+        "pokeApiLocationAreaId": 126,
+        "name": {
+          "en": "Old Chateau (entrance)",
+          "fr": "Vieux Château (entrée)"
+        }
+      },
+      {
+        "id": "old-chateau-dining-room",
+        "pokeApiLocationAreaId": 127,
+        "name": {
+          "en": "Old Chateau (dining room)",
+          "fr": "Vieux Château (salle à manger)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-private-room",
+        "pokeApiLocationAreaId": 128,
+        "name": {
+          "en": "Old Chateau (2F private room)",
+          "fr": "Vieux Château (étage pièce privée)"
+        }
+      },
+      {
+        "id": "old-chateau-2f",
+        "pokeApiLocationAreaId": 129,
+        "name": {
+          "en": "Old Chateau (2F)",
+          "fr": "Vieux Château (étage)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-leftmost-room",
+        "pokeApiLocationAreaId": 130,
+        "name": {
+          "en": "Old Chateau (2F leftmost room)",
+          "fr": "Vieux Château (étage pièce tout à gauche)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-left-room",
+        "pokeApiLocationAreaId": 131,
+        "name": {
+          "en": "Old Chateau (2F left room)",
+          "fr": "Vieux Château (étage pièce centre gauche)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-middle-room",
+        "pokeApiLocationAreaId": 132,
+        "name": {
+          "en": "Old Chateau (2F middle room)",
+          "fr": "Vieux Château (étage pièce du centre)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-right-room",
+        "pokeApiLocationAreaId": 133,
+        "name": {
+          "en": "Old Chateau (2F right room)",
+          "fr": "Vieux Château (étage pièce centre droite)"
+        }
+      },
+      {
+        "id": "old-chateau-2f-rightmost-room",
+        "pokeApiLocationAreaId": 134,
+        "name": {
+          "en": "Old Chateau (2F rightmost room)",
+          "fr": "Vieux Château (étage pièce tout à droite)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/25|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/25/"
+    }
+  },
+  {
+    "id": "lake-verity",
+    "pokeApiLocationId": 26,
+    "name": {
+      "en": "Lake Verity",
+      "fr": "Lac Vérité"
+    },
+    "regionId": "sinnoh",
+    "kind": "lake",
+    "adjacentLocationIds": [
+      "verity-lakefront"
+    ],
+    "areas": [
+      {
+        "id": "lake-verity-before-galactic-intervention",
+        "pokeApiLocationAreaId": 135,
+        "name": {
+          "en": "Lake Verity (before Galactic intervention)",
+          "fr": "Lac Vérité (avant la team Galaxie)"
+        }
+      },
+      {
+        "id": "lake-verity-after-galactic-intervention",
+        "pokeApiLocationAreaId": 136,
+        "name": {
+          "en": "Lake Verity (after Galactic intervention)",
+          "fr": "Lac Vérité (après la team Galaxie)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/26|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/26/"
+    }
+  },
+  {
+    "id": "lake-valor",
+    "pokeApiLocationId": 27,
+    "name": {
+      "en": "Lake Valor",
+      "fr": "Lac Courage"
+    },
+    "regionId": "sinnoh",
+    "kind": "lake",
+    "adjacentLocationIds": [
+      "valor-lakefront",
+      "route-214"
+    ],
+    "areas": [
+      {
+        "id": "lake-valor-area",
+        "pokeApiLocationAreaId": 137,
+        "name": {
+          "en": "Lake Valor",
+          "fr": "Lac Courage"
+        }
+      },
+      {
+        "id": "lake-valor-cavern",
+        "pokeApiLocationAreaId": 830,
+        "name": {
+          "en": "Lake Valor Cavern",
+          "fr": "Lac Courage (caverne)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/27|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/27/"
+    }
+  },
+  {
+    "id": "lake-acuity",
+    "pokeApiLocationId": 28,
+    "name": {
+      "en": "Lake Acuity",
+      "fr": "Lac Savoir"
+    },
+    "regionId": "sinnoh",
+    "kind": "lake",
+    "adjacentLocationIds": [
+      "acuity-lakefront",
+      "snowpoint-city"
+    ],
+    "areas": [
+      {
+        "id": "lake-acuity-area",
+        "pokeApiLocationAreaId": 138,
+        "name": {
+          "en": "Lake Acuity",
+          "fr": "Lac Savoir"
+        }
+      },
+      {
+        "id": "lake-acuity-cavern",
+        "pokeApiLocationAreaId": 829,
+        "name": {
+          "en": "Lake Acuity Cavern",
+          "fr": "Lac Savoir (caverne)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/28|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/28/"
+    }
+  },
+  {
+    "id": "valor-lakefront",
+    "pokeApiLocationId": 29,
+    "name": {
+      "en": "Valor Lakefront",
+      "fr": "Rive Lac Courage"
+    },
+    "regionId": "sinnoh",
+    "kind": "lakefront",
+    "adjacentLocationIds": [
+      "pastoria-city",
+      "route-213",
+      "route-214",
+      "route-222",
+      "lake-valor"
+    ],
+    "areas": [
+      {
+        "id": "valor-lakefront-area",
+        "pokeApiLocationAreaId": 139,
+        "name": {
+          "en": "Valor Lakefront",
+          "fr": "Rive Lac Courage"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/29|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/29/"
+    }
+  },
+  {
+    "id": "acuity-lakefront",
+    "pokeApiLocationId": 30,
+    "name": {
+      "en": "Acuity Lakefront",
+      "fr": "Rive Lac Savoir"
+    },
+    "regionId": "sinnoh",
+    "kind": "lakefront",
+    "adjacentLocationIds": [
+      "route-211",
+      "route-217",
+      "lake-acuity",
+      "snowpoint-city"
+    ],
+    "areas": [
+      {
+        "id": "acuity-lakefront-area",
+        "pokeApiLocationAreaId": 140,
+        "name": {
+          "en": "Acuity Lakefront",
+          "fr": "Rive Lac Savoir"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/30|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/30/"
+    }
+  },
+  {
+    "id": "route-201",
+    "pokeApiLocationId": 31,
+    "name": {
+      "en": "Route 201",
+      "fr": "Route 201"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "twinleaf-town",
+      "sandgem-town"
+    ],
+    "areas": [
+      {
+        "id": "route-201-area",
+        "pokeApiLocationAreaId": 141,
+        "name": {
+          "en": "Road 201",
+          "fr": "Route 201"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/31|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/31/"
+    }
+  },
+  {
+    "id": "route-202",
+    "pokeApiLocationId": 32,
+    "name": {
+      "en": "Route 202",
+      "fr": "Route 202"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "sandgem-town",
+      "jubilife-city"
+    ],
+    "areas": [
+      {
+        "id": "route-202-area",
+        "pokeApiLocationAreaId": 142,
+        "name": {
+          "en": "Road 202",
+          "fr": "Route 202"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/32|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/32/"
+    }
+  },
+  {
+    "id": "route-203",
+    "pokeApiLocationId": 33,
+    "name": {
+      "en": "Route 203",
+      "fr": "Route 203"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "jubilife-city",
+      "oreburgh-gate"
+    ],
+    "areas": [
+      {
+        "id": "route-203-area",
+        "pokeApiLocationAreaId": 143,
+        "name": {
+          "en": "Road 203",
+          "fr": "Route 203"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/33|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/33/"
+    }
+  },
+  {
+    "id": "route-204",
+    "pokeApiLocationId": 34,
+    "name": {
+      "en": "Route 204",
+      "fr": "Route 204"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "jubilife-city",
+      "floaroma-town",
+      "ravaged-path"
+    ],
+    "areas": [
+      {
+        "id": "route-204-south-towards-jubilife-city",
+        "pokeApiLocationAreaId": 144,
+        "name": {
+          "en": "Road 204 (south, towards Jubilife City)",
+          "fr": "Route 204 (sud, vers Féli-Cité)"
+        }
+      },
+      {
+        "id": "route-204-north-towards-floaroma-town",
+        "pokeApiLocationAreaId": 145,
+        "name": {
+          "en": "Road 204 (north, towards Floaroma Town)",
+          "fr": "Route 204 (nord, vers Floraville)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/34|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/34/"
+    }
+  },
+  {
+    "id": "route-205",
+    "pokeApiLocationId": 35,
+    "name": {
+      "en": "Route 205",
+      "fr": "Route 205"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "floaroma-town",
+      "valley-windworks",
+      "eterna-city",
+      "fuego-ironworks"
+    ],
+    "areas": [
+      {
+        "id": "route-205-south-towards-floaroma-town",
+        "pokeApiLocationAreaId": 146,
+        "name": {
+          "en": "Road 205 (south, towards Floaroma Town)",
+          "fr": "Route 205 (sud, vers Floraville)"
+        }
+      },
+      {
+        "id": "route-205-east-towards-eterna-city",
+        "pokeApiLocationAreaId": 147,
+        "name": {
+          "en": "Road 205 (east, towards Eterna City)",
+          "fr": "Route 205 (est, vers Vestigion)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/35|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/35/"
+    }
+  },
+  {
+    "id": "route-206",
+    "pokeApiLocationId": 36,
+    "name": {
+      "en": "Route 206",
+      "fr": "Route 206"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "eterna-city",
+      "route-207",
+      "wayward-cave"
+    ],
+    "areas": [
+      {
+        "id": "route-206-area",
+        "pokeApiLocationAreaId": 148,
+        "name": {
+          "en": "Road 206",
+          "fr": "Route 206"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/36|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/36/"
+    }
+  },
+  {
+    "id": "route-207",
+    "pokeApiLocationId": 37,
+    "name": {
+      "en": "Route 207",
+      "fr": "Route 207"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "route-206",
+      "oreburgh-city",
+      "mt-coronet"
+    ],
+    "areas": [
+      {
+        "id": "route-207-area",
+        "pokeApiLocationAreaId": 149,
+        "name": {
+          "en": "Road 207",
+          "fr": "Route 207"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/37|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/37/"
+    }
+  },
+  {
+    "id": "route-208",
+    "pokeApiLocationId": 38,
+    "name": {
+      "en": "Route 208",
+      "fr": "Route 208"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "mt-coronet",
+      "hearthome-city"
+    ],
+    "areas": [
+      {
+        "id": "route-208-area",
+        "pokeApiLocationAreaId": 150,
+        "name": {
+          "en": "Road 208",
+          "fr": "Route 208"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/38|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/38/"
+    }
+  },
+  {
+    "id": "route-209",
+    "pokeApiLocationId": 39,
+    "name": {
+      "en": "Route 209",
+      "fr": "Route 209"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "hearthome-city",
+      "solaceon-town",
+      "lost-tower"
+    ],
+    "areas": [
+      {
+        "id": "route-209-area",
+        "pokeApiLocationAreaId": 151,
+        "name": {
+          "en": "Road 209",
+          "fr": "Route 209"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/39|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/39/"
+    }
+  },
+  {
+    "id": "lost-tower",
+    "pokeApiLocationId": 40,
+    "name": {
+      "en": "Lost Tower",
+      "fr": "Tour Perdue"
+    },
+    "regionId": "sinnoh",
+    "kind": "tower",
+    "adjacentLocationIds": [
+      "route-209",
+      "solaceon-town"
+    ],
+    "areas": [
+      {
+        "id": "lost-tower-1f",
+        "pokeApiLocationAreaId": 152,
+        "name": {
+          "en": "Lost Tower (1F)",
+          "fr": "Tour Perdue (RdC)"
+        }
+      },
+      {
+        "id": "lost-tower-2f",
+        "pokeApiLocationAreaId": 153,
+        "name": {
+          "en": "Lost Tower (2F)",
+          "fr": "Tour Perdue (1er ét.)"
+        }
+      },
+      {
+        "id": "lost-tower-3f",
+        "pokeApiLocationAreaId": 154,
+        "name": {
+          "en": "Lost Tower (3F)",
+          "fr": "Tour Perdue (2e ét.)"
+        }
+      },
+      {
+        "id": "lost-tower-4f",
+        "pokeApiLocationAreaId": 155,
+        "name": {
+          "en": "Lost Tower (4F)",
+          "fr": "Tour Perdue (3e ét.)"
+        }
+      },
+      {
+        "id": "lost-tower-5f",
+        "pokeApiLocationAreaId": 156,
+        "name": {
+          "en": "Lost Tower (5F)",
+          "fr": "Tour Perdue (4e ét.)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/40|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/40/"
+    }
+  },
+  {
+    "id": "route-210",
+    "pokeApiLocationId": 41,
+    "name": {
+      "en": "Route 210",
+      "fr": "Route 210"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "solaceon-town",
+      "celestic-town",
+      "verity-lakefront"
+    ],
+    "areas": [
+      {
+        "id": "route-210-south-towards-solaceon-town",
+        "pokeApiLocationAreaId": 157,
+        "name": {
+          "en": "Road 210 (south, towards Solaceon Town)",
+          "fr": "Route 210 (sud, vers Bonville)"
+        }
+      },
+      {
+        "id": "route-210-west-towards-celestic-town",
+        "pokeApiLocationAreaId": 158,
+        "name": {
+          "en": "Road 210 (west, towards Celestic Town)",
+          "fr": "Route 210 (ouest, vers Celestia)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/41|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/41/"
+    }
+  },
+  {
+    "id": "route-211",
+    "pokeApiLocationId": 42,
+    "name": {
+      "en": "Route 211",
+      "fr": "Route 211"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "eterna-city",
+      "celestic-town",
+      "mt-coronet",
+      "acuity-lakefront"
+    ],
+    "areas": [
+      {
+        "id": "route-211-west-towards-eterna-city",
+        "pokeApiLocationAreaId": 159,
+        "name": {
+          "en": "Road 211 (west, towards Eterna City)",
+          "fr": "Route 211 (ouest, vers Vestigion)"
+        }
+      },
+      {
+        "id": "route-211-east-towards-celestic-town",
+        "pokeApiLocationAreaId": 160,
+        "name": {
+          "en": "Road 211 (east, towards Celestic Town)",
+          "fr": "Route 211 (est, vers Celestia)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/42|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/42/"
+    }
+  },
+  {
+    "id": "route-212",
+    "pokeApiLocationId": 43,
+    "name": {
+      "en": "Route 212",
+      "fr": "Route 212"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "hearthome-city",
+      "pastoria-city",
+      "trophy-garden"
+    ],
+    "areas": [
+      {
+        "id": "route-212-north-towards-hearthome-city",
+        "pokeApiLocationAreaId": 161,
+        "name": {
+          "en": "Road 212 (north, towards Hearthome City)",
+          "fr": "Route 212 (nord, vers Unionpolis)"
+        }
+      },
+      {
+        "id": "route-212-east-towards-pastoria-city",
+        "pokeApiLocationAreaId": 162,
+        "name": {
+          "en": "Road 212 (east, towards Pastoria City)",
+          "fr": "Route 212 (est, vers Verchamps)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/43|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/43/"
+    }
+  },
+  {
+    "id": "route-213",
+    "pokeApiLocationId": 44,
+    "name": {
+      "en": "Route 213",
+      "fr": "Route 213"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "pastoria-city",
+      "valor-lakefront"
+    ],
+    "areas": [
+      {
+        "id": "route-213-area",
+        "pokeApiLocationAreaId": 163,
+        "name": {
+          "en": "Road 213",
+          "fr": "Route 213"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/44|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/44/"
+    }
+  },
+  {
+    "id": "route-214",
+    "pokeApiLocationId": 45,
+    "name": {
+      "en": "Route 214",
+      "fr": "Route 214"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "veilstone-city",
+      "valor-lakefront",
+      "lake-valor"
+    ],
+    "areas": [
+      {
+        "id": "route-214-area",
+        "pokeApiLocationAreaId": 164,
+        "name": {
+          "en": "Road 214",
+          "fr": "Route 214"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/45|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/45/"
+    }
+  },
+  {
+    "id": "route-215",
+    "pokeApiLocationId": 46,
+    "name": {
+      "en": "Route 215",
+      "fr": "Route 215"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "veilstone-city"
+    ],
+    "areas": [
+      {
+        "id": "route-215-area",
+        "pokeApiLocationAreaId": 165,
+        "name": {
+          "en": "Road 215",
+          "fr": "Route 215"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/46|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/46/"
+    }
+  },
+  {
+    "id": "route-216",
+    "pokeApiLocationId": 47,
+    "name": {
+      "en": "Route 216",
+      "fr": "Route 216"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "mt-coronet",
+      "route-217"
+    ],
+    "areas": [
+      {
+        "id": "route-216-area",
+        "pokeApiLocationAreaId": 166,
+        "name": {
+          "en": "Road 216",
+          "fr": "Route 216"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/47|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/47/"
+    }
+  },
+  {
+    "id": "route-217",
+    "pokeApiLocationId": 48,
+    "name": {
+      "en": "Route 217",
+      "fr": "Route 217"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "route-216",
+      "acuity-lakefront",
+      "snowpoint-city"
+    ],
+    "areas": [
+      {
+        "id": "route-217-area",
+        "pokeApiLocationAreaId": 167,
+        "name": {
+          "en": "Road 217",
+          "fr": "Route 217"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/48|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/48/"
+    }
+  },
+  {
+    "id": "route-218",
+    "pokeApiLocationId": 49,
+    "name": {
+      "en": "Route 218",
+      "fr": "Route 218"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "jubilife-city",
+      "canalave-city"
+    ],
+    "areas": [
+      {
+        "id": "route-218-area",
+        "pokeApiLocationAreaId": 168,
+        "name": {
+          "en": "Road 218",
+          "fr": "Route 218"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/49|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/49/"
+    }
+  },
+  {
+    "id": "route-219",
+    "pokeApiLocationId": 50,
+    "name": {
+      "en": "Route 219",
+      "fr": "Route 219"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "sandgem-town",
+      "route-220"
+    ],
+    "areas": [
+      {
+        "id": "route-219-area",
+        "pokeApiLocationAreaId": 169,
+        "name": {
+          "en": "Road 219",
+          "fr": "Route 219"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/50|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/50/"
+    }
+  },
+  {
+    "id": "route-221",
+    "pokeApiLocationId": 51,
+    "name": {
+      "en": "Route 221",
+      "fr": "Route 221"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "route-220",
+      "trophy-garden"
+    ],
+    "areas": [
+      {
+        "id": "route-221-area",
+        "pokeApiLocationAreaId": 170,
+        "name": {
+          "en": "Road 221",
+          "fr": "Route 221"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/51|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/51/"
+    }
+  },
+  {
+    "id": "route-222",
+    "pokeApiLocationId": 52,
+    "name": {
+      "en": "Route 222",
+      "fr": "Route 222"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "valor-lakefront",
+      "sunyshore-city"
+    ],
+    "areas": [
+      {
+        "id": "route-222-area",
+        "pokeApiLocationAreaId": 171,
+        "name": {
+          "en": "Road 222",
+          "fr": "Route 222"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/52|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/52/"
+    }
+  },
+  {
+    "id": "twinleaf-town",
+    "pokeApiLocationId": 58,
+    "name": {
+      "en": "Twinleaf Town",
+      "fr": "Bonaugure"
+    },
+    "regionId": "sinnoh",
+    "kind": "town",
+    "adjacentLocationIds": [
+      "route-201"
+    ],
+    "areas": [
+      {
+        "id": "twinleaf-town-area",
+        "pokeApiLocationAreaId": 177,
+        "name": {
+          "en": "Twinleaf Town",
+          "fr": "Bonaugure"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/58|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/58/"
+    }
+  },
+  {
+    "id": "celestic-town",
+    "pokeApiLocationId": 59,
+    "name": {
+      "en": "Celestic Town",
+      "fr": "Célestia"
+    },
+    "regionId": "sinnoh",
+    "kind": "town",
+    "adjacentLocationIds": [
+      "route-210",
+      "route-211",
+      "mt-coronet"
+    ],
+    "areas": [
+      {
+        "id": "celestic-town-area",
+        "pokeApiLocationAreaId": 178,
+        "name": {
+          "en": "Celestic Town",
+          "fr": "Célestia"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/59|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/59/"
+    }
+  },
+  {
+    "id": "route-220",
+    "pokeApiLocationId": 61,
+    "name": {
+      "en": "Sea Route 220",
+      "fr": "Chenal 220"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "route-219",
+      "route-221"
+    ],
+    "areas": [
+      {
+        "id": "route-220-area",
+        "pokeApiLocationAreaId": 180,
+        "name": {
+          "en": "Road 220",
+          "fr": "Route 220"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/61|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/61/"
+    }
+  },
+  {
+    "id": "route-223",
+    "pokeApiLocationId": 62,
+    "name": {
+      "en": "Sea Route 223",
+      "fr": "Chenal 223"
+    },
+    "regionId": "sinnoh",
+    "kind": "route",
+    "adjacentLocationIds": [
+      "sunyshore-city",
+      "pokemon-league"
+    ],
+    "areas": [
+      {
+        "id": "route-223-area",
+        "pokeApiLocationAreaId": 181,
+        "name": {
+          "en": "Road 223",
+          "fr": "Route 223"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/62|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/62/"
+    }
+  },
+  {
+    "id": "sandgem-town",
+    "pokeApiLocationId": 163,
+    "name": {
+      "en": "Sandgem Town",
+      "fr": "Littorella"
+    },
+    "regionId": "sinnoh",
+    "kind": "town",
+    "adjacentLocationIds": [
+      "route-201",
+      "route-202",
+      "route-219"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/163|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/163/"
+    }
+  },
+  {
+    "id": "floaroma-town",
+    "pokeApiLocationId": 164,
+    "name": {
+      "en": "Floaroma Town",
+      "fr": "Floraville"
+    },
+    "regionId": "sinnoh",
+    "kind": "town",
+    "adjacentLocationIds": [
+      "route-204",
+      "route-205",
+      "floaroma-meadow",
+      "valley-windworks"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/164|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/164/"
+    }
+  },
+  {
+    "id": "solaceon-town",
+    "pokeApiLocationId": 165,
+    "name": {
+      "en": "Solaceon Town",
+      "fr": "Bonville"
+    },
+    "regionId": "sinnoh",
+    "kind": "town",
+    "adjacentLocationIds": [
+      "route-209",
+      "route-210",
+      "solaceon-ruins",
+      "lost-tower"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/165|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/165/"
+    }
+  },
+  {
+    "id": "jubilife-city",
+    "pokeApiLocationId": 167,
+    "name": {
+      "en": "Jubilife City",
+      "fr": "Féli-Cité"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-202",
+      "route-203",
+      "route-204",
+      "route-218"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/167|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/167/"
+    }
+  },
+  {
+    "id": "oreburgh-city",
+    "pokeApiLocationId": 168,
+    "name": {
+      "en": "Oreburgh City",
+      "fr": "Charbourg"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "oreburgh-gate",
+      "oreburgh-mine",
+      "route-207"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/168|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/168/"
+    }
+  },
+  {
+    "id": "hearthome-city",
+    "pokeApiLocationId": 169,
+    "name": {
+      "en": "Hearthome City",
+      "fr": "Unionpolis"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-208",
+      "route-209",
+      "route-212"
+    ],
+    "areas": [
+      {
+        "id": "hearthome-city-area",
+        "pokeApiLocationAreaId": 771,
+        "name": {
+          "en": "Hearthome City",
+          "fr": "Unionpolis"
+        }
+      },
+      {
+        "id": "hearthome-city-west-gate",
+        "pokeApiLocationAreaId": 789,
+        "name": {
+          "en": "Hearthome City (west gate)",
+          "fr": "Unionpolis (porte ouest)"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/169|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/169/"
+    }
+  },
+  {
+    "id": "veilstone-city",
+    "pokeApiLocationId": 170,
+    "name": {
+      "en": "Veilstone City",
+      "fr": "Voilaroc"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-214",
+      "route-215",
+      "galactic-hq"
+    ],
+    "areas": [
+      {
+        "id": "veilstone-city-area",
+        "pokeApiLocationAreaId": 772,
+        "name": {
+          "en": "Veilstone City",
+          "fr": "Voilaroc"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/170|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/170/"
+    }
+  },
+  {
+    "id": "snowpoint-city",
+    "pokeApiLocationId": 171,
+    "name": {
+      "en": "Snowpoint City",
+      "fr": "Frimapic"
+    },
+    "regionId": "sinnoh",
+    "kind": "city",
+    "adjacentLocationIds": [
+      "route-217",
+      "lake-acuity",
+      "acuity-lakefront"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/171|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/171/"
+    }
+  },
+  {
+    "id": "spear-pillar",
+    "pokeApiLocationId": 172,
+    "name": {
+      "en": "Spear Pillar",
+      "fr": "Colonnes Lances"
+    },
+    "regionId": "sinnoh",
+    "kind": "summit",
+    "adjacentLocationIds": [
+      "mt-coronet",
+      "distortion-world"
+    ],
+    "areas": [
+      {
+        "id": "spear-pillar-area",
+        "pokeApiLocationAreaId": 831,
+        "name": {
+          "en": "Spear Pillar",
+          "fr": "Colonnes Lances"
+        }
+      }
+    ],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/172|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/172/"
+    }
+  },
+  {
+    "id": "floaroma-meadow",
+    "pokeApiLocationId": 175,
+    "name": {
+      "en": "Floaroma Meadow",
+      "fr": "Pré Floraville"
+    },
+    "regionId": "sinnoh",
+    "kind": "meadow",
+    "adjacentLocationIds": [
+      "floaroma-town"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/175|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/175/"
+    }
+  },
+  {
+    "id": "galactic-hq",
+    "pokeApiLocationId": 181,
+    "name": {
+      "en": "Galactic HQ",
+      "fr": "QG Galaxie"
+    },
+    "regionId": "sinnoh",
+    "kind": "facility",
+    "adjacentLocationIds": [
+      "veilstone-city"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/181|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/181/"
+    }
+  },
+  {
+    "id": "verity-lakefront",
+    "pokeApiLocationId": 182,
+    "name": {
+      "en": "Verity Lakefront",
+      "fr": "Rive Lac Vérité"
+    },
+    "regionId": "sinnoh",
+    "kind": "lakefront",
+    "adjacentLocationIds": [
+      "route-210",
+      "lake-verity"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/182|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/182/"
+    }
+  },
+  {
+    "id": "distortion-world",
+    "pokeApiLocationId": 219,
+    "name": {
+      "en": "Distortion World",
+      "fr": "Monde Distorsion"
+    },
+    "regionId": "sinnoh",
+    "kind": "legendary",
+    "adjacentLocationIds": [
+      "mt-coronet",
+      "spear-pillar"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/219|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/219/"
+    }
+  },
+  {
+    "id": "battleground",
+    "pokeApiLocationId": 222,
+    "name": {
+      "en": "Battleground",
+      "fr": "Café Combats"
+    },
+    "regionId": "sinnoh",
+    "kind": "facility",
+    "adjacentLocationIds": [
+      "hearthome-city"
+    ],
+    "areas": [],
+    "source": {
+      "source": "pokeapi+bulbapedia-snapshot",
+      "sourceVersion": "platinum",
+      "sourceId": "location/222|sinnoh-main-locations.v1",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/location/222/"
+    }
+  }
+]

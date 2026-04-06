@@ -90,6 +90,20 @@
       "ruleCount": 0
     },
     {
+      "path": "docs/architecture/canon-data-model.md",
+      "status": "normative",
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "readFirst": [
+        "content-changes",
+        "generator-work",
+        "canon-review"
+      ],
+      "ruleCount": 6
+    },
+    {
       "path": "docs/architecture/content-pipeline.md",
       "status": "normative",
       "scope": [
@@ -726,6 +740,72 @@
       "summary": "When accepted work is added, completed, deferred, split, or reprioritized, update [../product/todo-backlog.md](../product/todo-backlog.md) in the same change set, and update [../product/todo-system.md](../product/todo-system.md) if the tracking workflow itself changes."
     },
     {
+      "id": "ARCH-CANON-001",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 4,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "Canon Pokemon and Sinnoh data uses `Pokemon Platinum` as the only gameplay baseline for this phase, uses `PokeAPI` as the primary technical source for Pokemon data, uses structured `Bulbapedia` snapshots only as verification or complement for world, encounters, and gyms, and never injects external prose into runtime data."
+    },
+    {
+      "id": "ARCH-CANON-002",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 5,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "The canonical generated model is split into stable species records, linked form records, Sinnoh locations with nested location areas, exact encounter tables, and gym definitions so imports, validation, and runtime consumers can reason about each domain explicitly."
+    },
+    {
+      "id": "ARCH-CANON-003",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 6,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "Every canonical generated record must carry per-record provenance with source identity, source version, source record id, and review status; reviewed or disputed records additionally require reviewer metadata, and disputed records require an explicit note."
+    },
+    {
+      "id": "ARCH-CANON-004",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 7,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "Canonical generated encounters represent exact `Platinum` wild data for the main Sinnoh region in the primary pre-postgame state, while canonical gym data may also include rematch or postgame team variants as separate canonical teams."
+    },
+    {
+      "id": "ARCH-CANON-005",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 8,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "Gameplay adaptation never mutates canonical generated facts in place; project-specific pacing, simplification, balance, or team overrides live in authored records that reference canonical ids such as `canonicalLocationId` and `canonicalGymId`."
+    },
+    {
+      "id": "ARCH-CANON-006",
+      "status": "normative",
+      "canonicalPath": "docs/architecture/canon-data-model.md",
+      "canonicalLine": 9,
+      "scope": [
+        "canon-data",
+        "canonical-imports"
+      ],
+      "summary": "Canon imports must come from immutable source payloads or structured source snapshots in `content/source`, and shared validation must reject broken UTF-8, mojibake, missing localized names, missing provenance, or broken cross-references before registry exposure."
+    },
+    {
       "id": "ARCH-CONTENT-001",
       "status": "normative",
       "canonicalPath": "docs/architecture/content-pipeline.md",
@@ -734,7 +814,7 @@
         "content-pipeline",
         "data-ownership"
       ],
-      "summary": "`content/source` stores raw imported source payloads, `content/generated` stores normalized generated outputs, `content/authored` stores project-authored gameplay data, and runtime bundles store shipped production groupings."
+      "summary": "`content/source` stores raw imported payloads and immutable structured source snapshots, `content/generated` stores normalized canonical outputs, `content/authored` stores project-authored gameplay data and overrides, and runtime bundles store shipped production groupings."
     },
     {
       "id": "ARCH-CONTENT-002",
@@ -745,7 +825,7 @@
         "content-pipeline",
         "data-ownership"
       ],
-      "summary": "Canonical imported source data is never hand-edited; generated data changes through regeneration or explicitly documented pipeline work, authored data owns project-specific tuning and references, and Pokemon visual fields in generated data use the Platinum front sprite source rather than official artwork."
+      "summary": "Canonical generated data follows the documented canon baseline, changes through regeneration or explicitly documented pipeline work, and keeps Pokemon visual fields on Platinum-facing sprite sources rather than official artwork."
     },
     {
       "id": "ARCH-CONTENT-003",
@@ -756,7 +836,7 @@
         "content-pipeline",
         "data-ownership"
       ],
-      "summary": "Authored content must validate against shared schemas and cross-document references before exposure to apps."
+      "summary": "Generated canon and authored content must validate against shared schemas, provenance requirements, and cross-document references before exposure to apps."
     },
     {
       "id": "ARCH-CONTENT-004",
@@ -778,7 +858,7 @@
         "content-pipeline",
         "data-ownership"
       ],
-      "summary": "New content domains require schema coverage, registry validation, docs, and ownership declarations before they join the workflow."
+      "summary": "New content domains require schema coverage, registry validation, docs, and explicit ownership declarations before they join the workflow."
     },
     {
       "id": "ARCH-OWNERSHIP-001",
@@ -1284,7 +1364,7 @@
         "editable-data",
         "tooling-policy"
       ],
-      "summary": "Safe manual edit surfaces are authored data and documented override files; source imports are immutable and generated outputs are regenerated artifacts unless the change explicitly targets the generator pipeline."
+      "summary": "Safe manual edit surfaces are authored data and documented override files; source imports are immutable and generated canonical data is regenerated output unless the change explicitly targets the import or validation pipeline."
     },
     {
       "id": "TOOL-DATA-003",
@@ -1295,7 +1375,7 @@
         "editable-data",
         "tooling-policy"
       ],
-      "summary": "Editable data must stay human-readable, shallow, validated, and documented when fields control balance or visuals."
+      "summary": "Editable data must stay human-readable, shallow, validated, and documented when fields control balance, visuals, or canonical traceability."
     },
     {
       "id": "TOOL-DATA-004",
@@ -1317,7 +1397,7 @@
         "editable-data",
         "tooling-policy"
       ],
-      "summary": "New editable domains must define schema coverage, validation, defaults or reset strategy, docs, and ownership before they join the workflow."
+      "summary": "New editable domains must define schema coverage, validation, defaults or reset strategy, docs, ownership, and whether they edit authored overrides or canonical review state before they join the workflow."
     },
     {
       "id": "UI-001",

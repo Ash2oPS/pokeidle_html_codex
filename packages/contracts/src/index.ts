@@ -5,6 +5,19 @@ export interface LocalizedText {
   fr: string;
 }
 
+export type CanonReviewStatus = "imported" | "reviewed" | "disputed";
+
+export interface CanonicalSourceMetadata {
+  source: string;
+  sourceVersion: string;
+  sourceId: string;
+  sourceUrl?: string | undefined;
+  reviewStatus: CanonReviewStatus;
+  reviewedBy?: string | undefined;
+  reviewedAt?: string | undefined;
+  notes?: string | undefined;
+}
+
 export type LayoutMode = "desktop-landscape" | "mobile-portrait";
 
 export interface WorldMapNode {
@@ -69,6 +82,7 @@ export type ZoneActivityDefinition =
 export interface CombatZoneDefinition {
   id: string;
   kind: "combat";
+  canonicalLocationId?: string | undefined;
   name: LocalizedText;
   battle: ZoneBattleSettings;
 }
@@ -76,6 +90,7 @@ export interface CombatZoneDefinition {
 export interface PacifistZoneDefinition {
   id: string;
   kind: "pacifist";
+  canonicalLocationId?: string | undefined;
   name: LocalizedText;
   activities: ZoneActivityDefinition[];
 }
@@ -140,7 +155,94 @@ export interface PokemonSpeciesDefinition {
   baseStats: BaseStats;
   evolvesFromSpeciesId?: string | undefined;
   evolvesToSpeciesIds: string[];
+  captureRate: number;
+  growthRate: string;
+  eggGroups: string[];
+  formIds: string[];
   talentId: string | null;
+  source: CanonicalSourceMetadata;
+}
+
+export interface PokemonFormDefinition {
+  id: string;
+  speciesId: string;
+  pokemonId: string;
+  name: LocalizedText;
+  formName: LocalizedText;
+  isDefault: boolean;
+  isBattleOnly: boolean;
+  defensiveTypes: string[];
+  defaultOffensiveType: string;
+  frontSpriteUrl: string;
+  baseStats: BaseStats;
+  source: CanonicalSourceMetadata;
+}
+
+export interface CanonLocationAreaDefinition {
+  id: string;
+  pokeApiLocationAreaId: number;
+  name: LocalizedText;
+}
+
+export interface CanonLocationDefinition {
+  id: string;
+  pokeApiLocationId: number;
+  name: LocalizedText;
+  regionId: string;
+  kind: string;
+  adjacentLocationIds: string[];
+  areas: CanonLocationAreaDefinition[];
+  source: CanonicalSourceMetadata;
+}
+
+export interface CanonEncounterSlotDefinition {
+  speciesId: string;
+  formId?: string | undefined;
+  minLevel: number;
+  maxLevel: number;
+  chance: number;
+  conditionIds: string[];
+}
+
+export interface CanonEncounterMethodDefinition {
+  methodId: string;
+  rate: number;
+  slots: CanonEncounterSlotDefinition[];
+}
+
+export interface CanonEncounterTableDefinition {
+  id: string;
+  locationId: string;
+  locationAreaId: string;
+  versionId: string;
+  methods: CanonEncounterMethodDefinition[];
+  source: CanonicalSourceMetadata;
+}
+
+export interface CanonGymEnemyDefinition {
+  speciesId: string;
+  formId?: string | undefined;
+  level: number;
+}
+
+export interface CanonGymTeamDefinition {
+  id: string;
+  label: LocalizedText;
+  availability: "main" | "postgame";
+  battleKind: "gym" | "rematch";
+  battleLocationId: string;
+  enemyTeam: CanonGymEnemyDefinition[];
+}
+
+export interface CanonGymDefinition {
+  id: string;
+  locationId: string;
+  leaderId: string;
+  leaderName: LocalizedText;
+  badgeName: LocalizedText;
+  specialtyTypeId: string;
+  teams: CanonGymTeamDefinition[];
+  source: CanonicalSourceMetadata;
 }
 
 export interface CombatTuningDefinition {
@@ -235,6 +337,7 @@ export type BattleKind = "trainer" | "gym";
 export interface BattleDefinition {
   id: string;
   kind: BattleKind;
+  canonicalGymId?: string | undefined;
   name: LocalizedText;
   timeLimitSeconds: number;
   teamSizeLimit?: number | undefined;

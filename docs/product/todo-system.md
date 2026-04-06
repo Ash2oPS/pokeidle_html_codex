@@ -26,5 +26,6 @@
 
 - Add an item as soon as requested or accepted work is not already represented in the backlog.
 - Move an item between sections when priority changes instead of duplicating it.
+- Replace setup-only backlog items with the next real outcome once a foundation phase lands, such as review, migration, or follow-up tooling work.
 - Remove an item once the work is complete, and log the completion in [../../progress.md](../../progress.md) when the result is substantial enough to keep historical traceability.
 - Delete invalid or obsolete items instead of keeping dead backlog noise.

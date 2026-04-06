@@ -16,8 +16,8 @@
 ## Task-Based Reading Paths
 
 - Any repo change: [ai/README.md](./ai/README.md), [ai/repository-constraints.md](./ai/repository-constraints.md), [ai/change-workflow.md](./ai/change-workflow.md)
-- Architecture or save work: [architecture/runtime-architecture.md](./architecture/runtime-architecture.md), [architecture/dependency-and-ownership.md](./architecture/dependency-and-ownership.md), [architecture/save-system.md](./architecture/save-system.md), [testing/testing-strategy.md](./testing/testing-strategy.md)
-- Content, progression, or tooling work: [architecture/content-pipeline.md](./architecture/content-pipeline.md), [tooling/editable-data-policy.md](./tooling/editable-data-policy.md), [gameplay/progression-systems.md](./gameplay/progression-systems.md), [tooling/content-studio-v1.md](./tooling/content-studio-v1.md)
+- Architecture, canonical content, or save work: [architecture/runtime-architecture.md](./architecture/runtime-architecture.md), [architecture/dependency-and-ownership.md](./architecture/dependency-and-ownership.md), [architecture/content-pipeline.md](./architecture/content-pipeline.md), [architecture/canon-data-model.md](./architecture/canon-data-model.md), [architecture/save-system.md](./architecture/save-system.md), [testing/testing-strategy.md](./testing/testing-strategy.md)
+- Content, progression, or tooling work: [architecture/content-pipeline.md](./architecture/content-pipeline.md), [architecture/canon-data-model.md](./architecture/canon-data-model.md), [tooling/editable-data-policy.md](./tooling/editable-data-policy.md), [gameplay/progression-systems.md](./gameplay/progression-systems.md), [tooling/content-studio-v1.md](./tooling/content-studio-v1.md)
 - Combat or battle-flow work: [gameplay/combat-overview.md](./gameplay/combat-overview.md), [gameplay/talent-system.md](./gameplay/talent-system.md), [gameplay/zone-and-battle-systems.md](./gameplay/zone-and-battle-systems.md), [testing/testing-strategy.md](./testing/testing-strategy.md)
 - UI or localization work: [ui/ui-principles.md](./ui/ui-principles.md), [product/localization-policy.md](./product/localization-policy.md), [ai/quality-gates.md](./ai/quality-gates.md)
 - Documentation work: [ai/documentation-governance.md](./ai/documentation-governance.md), [ai/rule-coverage.md](./ai/rule-coverage.md), [ai/quality-gates.md](./ai/quality-gates.md)
@@ -35,6 +35,7 @@
 | [architecture/runtime-architecture.md](./architecture/runtime-architecture.md) | normative | runtime ownership and simulation rules |
 | [architecture/dependency-and-ownership.md](./architecture/dependency-and-ownership.md) | normative | package ownership and dependency direction |
 | [architecture/content-pipeline.md](./architecture/content-pipeline.md) | normative | source/generated/authored boundaries |
+| [architecture/canon-data-model.md](./architecture/canon-data-model.md) | normative | canonical Pokemon and Sinnoh data rules |
 | [architecture/save-system.md](./architecture/save-system.md) | normative | save persistence and migration rules |
 | [gameplay/combat-overview.md](./gameplay/combat-overview.md) | normative | combat loop and combat dimensions |
 | [gameplay/talent-system.md](./gameplay/talent-system.md) | normative | passive talent model and hooks |

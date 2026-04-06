@@ -1,6 +1,7 @@
 {
   "id": "town-2",
   "kind": "pacifist",
+  "canonicalLocationId": "oreburgh-city",
   "name": {
     "en": "Oreburgh City",
     "fr": "Charbourg"

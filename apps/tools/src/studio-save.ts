@@ -1,10 +1,11 @@
-import type { DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
+import type { BattleDefinition, DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
 
-export type StudioEditableDomain = "zones" | "dialogues";
+export type StudioEditableDomain = "zones" | "dialogues" | "battles";
 
 interface StudioDocumentMap {
   zones: ZoneDefinition;
   dialogues: DialogueDocument;
+  battles: BattleDefinition;
 }
 
 interface StudioSaveSuccessResponse<TDomain extends StudioEditableDomain> {

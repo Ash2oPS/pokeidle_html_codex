@@ -2,11 +2,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
+import type { BattleDefinition, DialogueDocument, ZoneDefinition } from "@pokeidle/contracts";
+import {
+  battleDefinitionSchema,
+  dialogueDocumentSchema,
+  zoneDefinitionSchema,
+} from "../../../../packages/content-schema/src/index";
 import type { Connect, Plugin } from "vite";
 import { z } from "zod";
 
-type StudioEditableDomain = "zones" | "dialogues";
+type StudioEditableDomain = "zones" | "dialogues" | "battles";
 
 interface StudioSaveRequestBody {
   domain?: unknown;
@@ -16,7 +21,7 @@ interface StudioSaveRequestBody {
 
 interface StudioSaveSuccessResponse {
   ok: true;
-  document: DialogueDocument | ZoneDefinition;
+  document: BattleDefinition | DialogueDocument | ZoneDefinition;
   filePath: string;
 }
 
@@ -26,85 +31,10 @@ interface StudioSaveErrorResponse {
 }
 
 const idSchema = z.string().min(1);
-const localizedTextSchema = z.object({
-  en: z.string().min(1),
-  fr: z.string().min(1),
-});
-
-const zoneDialogueNpcActivitySchema = z.object({
-  kind: z.literal("dialogue_npc"),
-  id: idSchema,
-  npcId: idSchema,
-  label: localizedTextSchema,
-  dialogueId: idSchema,
-  grantsFlag: idSchema.optional(),
-  startsQuestId: idSchema.optional(),
-});
-
-const zoneTeamManagementActivitySchema = z.object({
-  kind: z.literal("team_management"),
-  id: idSchema,
-  label: localizedTextSchema,
-});
-
-const zoneGymBattleActivitySchema = z.object({
-  kind: z.literal("gym_battle"),
-  id: idSchema,
-  label: localizedTextSchema,
-  battleId: idSchema,
-});
-
-const zoneActivityDefinitionSchema = z.discriminatedUnion("kind", [
-  zoneDialogueNpcActivitySchema,
-  zoneTeamManagementActivitySchema,
-  zoneGymBattleActivitySchema,
-]);
-
-const zoneBattleSettingsSchema = z.object({
-  enemyPoolIds: z.array(idSchema).min(1),
-  enemyTimerSeconds: z.number().positive(),
-  defeatsRequired: z.number().int().positive(),
-  enemyLevel: z.number().int().positive(),
-});
-
-const zoneDefinitionSchema = z.discriminatedUnion("kind", [
-  z.object({
-    id: idSchema,
-    kind: z.literal("combat"),
-    name: localizedTextSchema,
-    battle: zoneBattleSettingsSchema,
-  }),
-  z.object({
-    id: idSchema,
-    kind: z.literal("pacifist"),
-    name: localizedTextSchema,
-    activities: z.array(zoneActivityDefinitionSchema).min(1),
-  }),
-]);
-
-const dialogueParticipantSchema = z.object({
-  id: idSchema,
-  name: localizedTextSchema,
-});
-
-const dialogueLineSchema = z.object({
-  id: idSchema,
-  speakerId: idSchema,
-  text: localizedTextSchema,
-});
-
-const dialogueDocumentSchema = z.object({
-  id: idSchema,
-  title: localizedTextSchema,
-  participants: z.array(dialogueParticipantSchema).min(1),
-  lines: z.array(dialogueLineSchema).min(1),
-});
-
 const battleSummarySchema = z.object({
   id: idSchema,
   kind: z.enum(["trainer", "gym"]),
 });
-
 const worldMapSummarySchema = z.object({
   nodes: z.array(
     z.object({
@@ -112,7 +42,6 @@ const worldMapSummarySchema = z.object({
     }),
   ),
 });
-
 const idOnlySchema = z.object({
   id: idSchema,
 });
@@ -121,6 +50,7 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(currentFilePath), "../../../../");
 const contentRoot = path.join(repoRoot, "content");
 const authoredRoot = path.join(contentRoot, "authored");
+const generatedRoot = path.join(contentRoot, "generated");
 
 const editableDomainConfig = {
   zones: {
@@ -130,6 +60,10 @@ const editableDomainConfig = {
   dialogues: {
     folder: path.join(authoredRoot, "dialogues"),
     schema: dialogueDocumentSchema,
+  },
+  battles: {
+    folder: path.join(authoredRoot, "battles"),
+    schema: battleDefinitionSchema,
   },
 } as const;
 
@@ -176,11 +110,31 @@ class StudioSaveRequestError extends Error {
   }
 }
 
+interface SafeParseSuccess<T> {
+  success: true;
+  data: T;
+}
+
+interface SafeParseFailure {
+  success: false;
+  error: {
+    issues: Array<{
+      path: PropertyKey[];
+      message: string;
+    }>;
+  };
+}
+
+interface SafeParseSchema<T> {
+  safeParse(value: unknown): SafeParseSuccess<T> | SafeParseFailure;
+}
+
 async function saveStudioDocumentFromRequest(
   body: StudioSaveRequestBody,
 ): Promise<StudioSaveSuccessResponse> {
   const domain = parseEditableDomain(body.domain);
   const documentId = parseDocumentId(body.documentId);
+
   if (domain === "zones") {
     const parsedDocument = parseStudioDocument(zoneDefinitionSchema, body.document, domain);
 
@@ -192,17 +146,24 @@ async function saveStudioDocumentFromRequest(
 
     await validateZoneDocument(parsedDocument);
 
-    const targetPath = resolveDocumentPath(editableDomainConfig.zones.folder, documentId);
-    await fs.writeFile(targetPath, `${JSON.stringify(parsedDocument, null, 2)}\n`, "utf8");
-
-    return {
-      ok: true,
-      document: parsedDocument as ZoneDefinition,
-      filePath: path.relative(repoRoot, targetPath).split(path.sep).join("/"),
-    };
+    return persistStudioDocument(domain, documentId, parsedDocument);
   }
 
-  const parsedDocument = parseStudioDocument(dialogueDocumentSchema, body.document, domain);
+  if (domain === "dialogues") {
+    const parsedDocument = parseStudioDocument(dialogueDocumentSchema, body.document, domain);
+
+    if (parsedDocument.id !== documentId) {
+      throw new StudioSaveRequestError(
+        `Document id mismatch: request targeted "${documentId}" but payload contained "${parsedDocument.id}".`,
+      );
+    }
+
+    validateDialogueDocument(parsedDocument);
+
+    return persistStudioDocument(domain, documentId, parsedDocument);
+  }
+
+  const parsedDocument = parseStudioDocument(battleDefinitionSchema, body.document, domain);
 
   if (parsedDocument.id !== documentId) {
     throw new StudioSaveRequestError(
@@ -210,31 +171,39 @@ async function saveStudioDocumentFromRequest(
     );
   }
 
-  validateDialogueDocument(parsedDocument);
+  await validateBattleDocument(parsedDocument);
 
-  const targetPath = resolveDocumentPath(editableDomainConfig.dialogues.folder, documentId);
-  await fs.writeFile(targetPath, `${JSON.stringify(parsedDocument, null, 2)}\n`, "utf8");
+  return persistStudioDocument(domain, documentId, parsedDocument);
+}
+
+async function persistStudioDocument(
+  domain: StudioEditableDomain,
+  documentId: string,
+  document: BattleDefinition | DialogueDocument | ZoneDefinition,
+): Promise<StudioSaveSuccessResponse> {
+  const targetPath = resolveDocumentPath(editableDomainConfig[domain].folder, documentId);
+  await fs.writeFile(targetPath, `${JSON.stringify(document, null, 2)}\n`, "utf8");
 
   return {
     ok: true,
-    document: parsedDocument as DialogueDocument,
+    document,
     filePath: path.relative(repoRoot, targetPath).split(path.sep).join("/"),
   };
 }
 
 function parseEditableDomain(value: unknown): StudioEditableDomain {
-  if (value === "zones" || value === "dialogues") {
+  if (value === "zones" || value === "dialogues" || value === "battles") {
     return value;
   }
 
   throw new StudioSaveRequestError("Invalid editable domain.");
 }
 
-function parseStudioDocument<TSchema extends z.ZodTypeAny>(
-  schema: TSchema,
+function parseStudioDocument<TDocument>(
+  schema: SafeParseSchema<TDocument>,
   value: unknown,
   domain: StudioEditableDomain,
-): z.infer<TSchema> {
+): TDocument {
   const parsedDocument = schema.safeParse(value);
 
   if (!parsedDocument.success) {
@@ -272,13 +241,26 @@ function resolveDocumentPath(folderPath: string, documentId: string): string {
 }
 
 async function validateZoneDocument(
-  document: z.infer<typeof zoneDefinitionSchema>,
+  document: ZoneDefinition,
 ): Promise<void> {
   await validateZoneWorldMapMembership(document.id);
 
+  if (document.canonicalLocationId) {
+    const canonLocationIds = await readIdSetFromArrayFile(
+      path.join(generatedRoot, "sinnoh", "locations.v1.json"),
+      idOnlySchema,
+    );
+
+    if (!canonLocationIds.has(document.canonicalLocationId)) {
+      throw new StudioSaveRequestError(
+        `Invalid zone "${document.id}": canonicalLocationId "${document.canonicalLocationId}" does not exist.`,
+      );
+    }
+  }
+
   if (document.kind === "combat") {
     const speciesIds = await readIdSetFromArrayFile(
-      path.join(contentRoot, "generated", "pokemon", "species.v1.json"),
+      path.join(generatedRoot, "pokemon", "species.v1.json"),
       idOnlySchema,
     );
 
@@ -333,8 +315,46 @@ async function validateZoneDocument(
   });
 }
 
+async function validateBattleDocument(
+  document: BattleDefinition,
+): Promise<void> {
+  const speciesIds = await readIdSetFromArrayFile(
+    path.join(generatedRoot, "pokemon", "species.v1.json"),
+    idOnlySchema,
+  );
+
+  if (!document.enemyTeam?.length) {
+    throw new StudioSaveRequestError(
+      `Invalid battle "${document.id}": enemyTeam must contain at least one enemy.`,
+    );
+  }
+
+  document.enemyTeam.forEach((enemy) => {
+    if (!speciesIds.has(enemy.speciesId)) {
+      throw new StudioSaveRequestError(
+        `Invalid battle "${document.id}": enemyTeam speciesId "${enemy.speciesId}" does not exist.`,
+      );
+    }
+  });
+
+  if (document.kind !== "gym") {
+    return;
+  }
+
+  const canonGymIds = await readIdSetFromArrayFile(
+    path.join(generatedRoot, "sinnoh", "gyms.v1.json"),
+    idOnlySchema,
+  );
+
+  if (!document.canonicalGymId || !canonGymIds.has(document.canonicalGymId)) {
+    throw new StudioSaveRequestError(
+      `Invalid battle "${document.id}": canonicalGymId "${document.canonicalGymId ?? "(missing)"}" does not exist.`,
+    );
+  }
+}
+
 function validateDialogueDocument(
-  document: z.infer<typeof dialogueDocumentSchema>,
+  document: DialogueDocument,
 ): void {
   const participantIds = new Set(document.participants.map((participant) => participant.id));
 
@@ -370,26 +390,26 @@ async function readBattleKindMap(directoryPath: string): Promise<Map<string, "tr
   return new Map(entries.map((entry) => [entry.id, entry.kind]));
 }
 
-async function readIdSetFromDirectory<TSchema extends z.ZodType<{ id: string }>>(
+async function readIdSetFromDirectory<TSchema extends { id: string }>(
   directoryPath: string,
-  schema: TSchema,
+  schema: SafeParseSchema<TSchema>,
 ): Promise<Set<string>> {
   const entries = await readParsedDirectory(directoryPath, schema);
   return new Set(entries.map((entry) => entry.id));
 }
 
-async function readIdSetFromArrayFile<TSchema extends z.ZodType<{ id: string }>>(
+async function readIdSetFromArrayFile<TSchema extends { id: string }>(
   filePath: string,
-  schema: TSchema,
-): Promise<Set<string>> {
+  schema: SafeParseSchema<TSchema>,
+) {
   const entries = await readParsedArrayFile(filePath, schema);
   return new Set(entries.map((entry) => entry.id));
 }
 
-async function readParsedDirectory<TSchema extends z.ZodTypeAny>(
+async function readParsedDirectory<TSchema>(
   directoryPath: string,
-  schema: TSchema,
-): Promise<z.infer<TSchema>[]> {
+  schema: SafeParseSchema<TSchema>,
+): Promise<TSchema[]> {
   const entries = await fs.readdir(directoryPath, { withFileTypes: true });
   const jsonFileNames = entries
     .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
@@ -401,10 +421,10 @@ async function readParsedDirectory<TSchema extends z.ZodTypeAny>(
   );
 }
 
-async function readParsedArrayFile<TSchema extends z.ZodTypeAny>(
+async function readParsedArrayFile<TSchema>(
   filePath: string,
-  schema: TSchema,
-): Promise<z.infer<TSchema>[]> {
+  schema: SafeParseSchema<TSchema>,
+): Promise<TSchema[]> {
   const parsed = await readJsonFile(filePath);
 
   if (!Array.isArray(parsed)) {
@@ -418,18 +438,18 @@ async function readParsedArrayFile<TSchema extends z.ZodTypeAny>(
   );
 }
 
-async function readParsedFile<TSchema extends z.ZodTypeAny>(
+async function readParsedFile<TSchema>(
   filePath: string,
-  schema: TSchema,
-): Promise<z.infer<TSchema>> {
+  schema: SafeParseSchema<TSchema>,
+): Promise<TSchema> {
   return parseWithSchema(schema, await readJsonFile(filePath), path.relative(repoRoot, filePath));
 }
 
-function parseWithSchema<TSchema extends z.ZodTypeAny>(
-  schema: TSchema,
+function parseWithSchema<TSchema>(
+  schema: SafeParseSchema<TSchema>,
   value: unknown,
   label: string,
-): z.infer<TSchema> {
+): TSchema {
   const parsed = schema.safeParse(value);
 
   if (!parsed.success) {

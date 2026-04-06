@@ -1,0 +1,1718 @@
+[
+  {
+    "id": "pichu-spiky-eared",
+    "speciesId": "pichu",
+    "pokemonId": "pichu",
+    "name": {
+      "en": "Spiky-eared Pichu",
+      "fr": "Pichu Troizépi"
+    },
+    "formName": {
+      "en": "Spiky-eared",
+      "fr": "Troizépi"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "electric"
+    ],
+    "defaultOffensiveType": "electric",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172-spiky-eared.png",
+    "baseStats": {
+      "hp": 20,
+      "attack": 40,
+      "defense": 15,
+      "specialAttack": 35,
+      "specialDefense": 35,
+      "speed": 60
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/pichu-spiky-eared",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/pichu-spiky-eared/"
+    }
+  },
+  {
+    "id": "unown-b",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown B",
+      "fr": "Zarbi B"
+    },
+    "formName": {
+      "en": "B",
+      "fr": "B"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-b.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-b",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-b/"
+    }
+  },
+  {
+    "id": "unown-c",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown C",
+      "fr": "Zarbi C"
+    },
+    "formName": {
+      "en": "C",
+      "fr": "C"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-c.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-c",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-c/"
+    }
+  },
+  {
+    "id": "unown-d",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown D",
+      "fr": "Zarbi D"
+    },
+    "formName": {
+      "en": "D",
+      "fr": "D"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-d.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-d",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-d/"
+    }
+  },
+  {
+    "id": "unown-e",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown E",
+      "fr": "Zarbi E"
+    },
+    "formName": {
+      "en": "E",
+      "fr": "E"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-e.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-e",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-e/"
+    }
+  },
+  {
+    "id": "unown-f",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown F",
+      "fr": "Zarbi F"
+    },
+    "formName": {
+      "en": "F",
+      "fr": "F"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-f.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-f",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-f/"
+    }
+  },
+  {
+    "id": "unown-g",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown G",
+      "fr": "Zarbi G"
+    },
+    "formName": {
+      "en": "G",
+      "fr": "G"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-g.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-g",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-g/"
+    }
+  },
+  {
+    "id": "unown-h",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown H",
+      "fr": "Zarbi H"
+    },
+    "formName": {
+      "en": "H",
+      "fr": "H"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-h.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-h",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-h/"
+    }
+  },
+  {
+    "id": "unown-i",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown I",
+      "fr": "Zarbi I"
+    },
+    "formName": {
+      "en": "I",
+      "fr": "I"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-i.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-i",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-i/"
+    }
+  },
+  {
+    "id": "unown-j",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown J",
+      "fr": "Zarbi J"
+    },
+    "formName": {
+      "en": "J",
+      "fr": "J"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-j.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-j",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-j/"
+    }
+  },
+  {
+    "id": "unown-k",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown K",
+      "fr": "Zarbi K"
+    },
+    "formName": {
+      "en": "K",
+      "fr": "K"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-k.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-k",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-k/"
+    }
+  },
+  {
+    "id": "unown-l",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown L",
+      "fr": "Zarbi L"
+    },
+    "formName": {
+      "en": "L",
+      "fr": "L"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-l.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-l",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-l/"
+    }
+  },
+  {
+    "id": "unown-m",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown M",
+      "fr": "Zarbi M"
+    },
+    "formName": {
+      "en": "M",
+      "fr": "M"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-m.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-m",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-m/"
+    }
+  },
+  {
+    "id": "unown-n",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown N",
+      "fr": "Zarbi N"
+    },
+    "formName": {
+      "en": "N",
+      "fr": "N"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-n.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-n",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-n/"
+    }
+  },
+  {
+    "id": "unown-o",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown O",
+      "fr": "Zarbi O"
+    },
+    "formName": {
+      "en": "O",
+      "fr": "O"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-o.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-o",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-o/"
+    }
+  },
+  {
+    "id": "unown-p",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown P",
+      "fr": "Zarbi P"
+    },
+    "formName": {
+      "en": "P",
+      "fr": "P"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-p.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-p",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-p/"
+    }
+  },
+  {
+    "id": "unown-q",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown Q",
+      "fr": "Zarbi Q"
+    },
+    "formName": {
+      "en": "Q",
+      "fr": "Q"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-q.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-q",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-q/"
+    }
+  },
+  {
+    "id": "unown-r",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown R",
+      "fr": "Zarbi R"
+    },
+    "formName": {
+      "en": "R",
+      "fr": "R"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-r.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-r",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-r/"
+    }
+  },
+  {
+    "id": "unown-s",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown S",
+      "fr": "Zarbi S"
+    },
+    "formName": {
+      "en": "S",
+      "fr": "S"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-s.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-s",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-s/"
+    }
+  },
+  {
+    "id": "unown-t",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown T",
+      "fr": "Zarbi T"
+    },
+    "formName": {
+      "en": "T",
+      "fr": "T"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-t.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-t",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-t/"
+    }
+  },
+  {
+    "id": "unown-u",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown U",
+      "fr": "Zarbi U"
+    },
+    "formName": {
+      "en": "U",
+      "fr": "U"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-u.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-u",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-u/"
+    }
+  },
+  {
+    "id": "unown-v",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown V",
+      "fr": "Zarbi V"
+    },
+    "formName": {
+      "en": "V",
+      "fr": "V"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-v.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-v",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-v/"
+    }
+  },
+  {
+    "id": "unown-w",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown W",
+      "fr": "Zarbi W"
+    },
+    "formName": {
+      "en": "W",
+      "fr": "W"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-w.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-w",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-w/"
+    }
+  },
+  {
+    "id": "unown-x",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown X",
+      "fr": "Zarbi X"
+    },
+    "formName": {
+      "en": "X",
+      "fr": "X"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-x.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-x",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-x/"
+    }
+  },
+  {
+    "id": "unown-y",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown Y",
+      "fr": "Zarbi Y"
+    },
+    "formName": {
+      "en": "Y",
+      "fr": "Y"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-y.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-y",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-y/"
+    }
+  },
+  {
+    "id": "unown-z",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown Z",
+      "fr": "Zarbi Z"
+    },
+    "formName": {
+      "en": "Z",
+      "fr": "Z"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-z.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-z",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-z/"
+    }
+  },
+  {
+    "id": "unown-exclamation",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown !",
+      "fr": "Zarbi !"
+    },
+    "formName": {
+      "en": "!",
+      "fr": "!"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-exclamation.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-exclamation",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-exclamation/"
+    }
+  },
+  {
+    "id": "unown-question",
+    "speciesId": "unown",
+    "pokemonId": "unown",
+    "name": {
+      "en": "Unown ?",
+      "fr": "Zarbi ?"
+    },
+    "formName": {
+      "en": "?",
+      "fr": "?"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-question.png",
+    "baseStats": {
+      "hp": 48,
+      "attack": 72,
+      "defense": 48,
+      "specialAttack": 72,
+      "specialDefense": 48,
+      "speed": 48
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/unown-question",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/unown-question/"
+    }
+  },
+  {
+    "id": "burmy-sandy",
+    "speciesId": "burmy",
+    "pokemonId": "burmy",
+    "name": {
+      "en": "Sandy Burmy",
+      "fr": "Cheniti Sable"
+    },
+    "formName": {
+      "en": "Sandy Cloak",
+      "fr": "Cape Sable"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "bug"
+    ],
+    "defaultOffensiveType": "bug",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/412-sandy.png",
+    "baseStats": {
+      "hp": 40,
+      "attack": 29,
+      "defense": 45,
+      "specialAttack": 29,
+      "specialDefense": 45,
+      "speed": 36
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/burmy-sandy",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/burmy-sandy/"
+    }
+  },
+  {
+    "id": "burmy-trash",
+    "speciesId": "burmy",
+    "pokemonId": "burmy",
+    "name": {
+      "en": "Trash Burmy",
+      "fr": "Cheniti Déchet"
+    },
+    "formName": {
+      "en": "Trash Cloak",
+      "fr": "Cape Déchet"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "bug"
+    ],
+    "defaultOffensiveType": "bug",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/412-trash.png",
+    "baseStats": {
+      "hp": 40,
+      "attack": 29,
+      "defense": 45,
+      "specialAttack": 29,
+      "specialDefense": 45,
+      "speed": 36
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/burmy-trash",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/burmy-trash/"
+    }
+  },
+  {
+    "id": "cherrim-sunshine",
+    "speciesId": "cherrim",
+    "pokemonId": "cherrim",
+    "name": {
+      "en": "Sunshine Cherrim",
+      "fr": "Ceriflor Ensoleillé"
+    },
+    "formName": {
+      "en": "Sunshine Form",
+      "fr": "Temps Ensoleillé"
+    },
+    "isDefault": false,
+    "isBattleOnly": true,
+    "defensiveTypes": [
+      "grass"
+    ],
+    "defaultOffensiveType": "grass",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/421-sunshine.png",
+    "baseStats": {
+      "hp": 70,
+      "attack": 60,
+      "defense": 70,
+      "specialAttack": 87,
+      "specialDefense": 78,
+      "speed": 85
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/cherrim-sunshine",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/cherrim-sunshine/"
+    }
+  },
+  {
+    "id": "shellos-east",
+    "speciesId": "shellos",
+    "pokemonId": "shellos",
+    "name": {
+      "en": "East Shellos",
+      "fr": "Sancoki Orient"
+    },
+    "formName": {
+      "en": "East Sea",
+      "fr": "Mer Orient"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "water"
+    ],
+    "defaultOffensiveType": "water",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/422-east.png",
+    "baseStats": {
+      "hp": 76,
+      "attack": 48,
+      "defense": 48,
+      "specialAttack": 57,
+      "specialDefense": 62,
+      "speed": 34
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/shellos-east",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/shellos-east/"
+    }
+  },
+  {
+    "id": "gastrodon-east",
+    "speciesId": "gastrodon",
+    "pokemonId": "gastrodon",
+    "name": {
+      "en": "East Gastrodon",
+      "fr": "Tritosor Orient"
+    },
+    "formName": {
+      "en": "East Sea",
+      "fr": "Mer Orient"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "water",
+      "ground"
+    ],
+    "defaultOffensiveType": "water",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/423-east.png",
+    "baseStats": {
+      "hp": 111,
+      "attack": 83,
+      "defense": 68,
+      "specialAttack": 92,
+      "specialDefense": 82,
+      "speed": 39
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/gastrodon-east",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/gastrodon-east/"
+    }
+  },
+  {
+    "id": "arceus-fighting",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Fighting Arceus",
+      "fr": "Arceus Combat"
+    },
+    "formName": {
+      "en": "Fighting Type",
+      "fr": "Combat"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "fighting"
+    ],
+    "defaultOffensiveType": "fighting",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-fighting.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-fighting",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-fighting/"
+    }
+  },
+  {
+    "id": "arceus-flying",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Flying Arceus",
+      "fr": "Arceus Vol"
+    },
+    "formName": {
+      "en": "Flying Type",
+      "fr": "Vol"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "flying"
+    ],
+    "defaultOffensiveType": "flying",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-flying.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-flying",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-flying/"
+    }
+  },
+  {
+    "id": "arceus-poison",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Poison Arceus",
+      "fr": "Arceus Poison"
+    },
+    "formName": {
+      "en": "Poison Type",
+      "fr": "Poison"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "poison"
+    ],
+    "defaultOffensiveType": "poison",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-poison.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-poison",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-poison/"
+    }
+  },
+  {
+    "id": "arceus-ground",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Ground Arceus",
+      "fr": "Arceus Sol"
+    },
+    "formName": {
+      "en": "Ground Type",
+      "fr": "Sol"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "ground"
+    ],
+    "defaultOffensiveType": "ground",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-ground.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-ground",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-ground/"
+    }
+  },
+  {
+    "id": "arceus-rock",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Rock Arceus",
+      "fr": "Arceus Roche"
+    },
+    "formName": {
+      "en": "Rock Type",
+      "fr": "Roche"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "rock"
+    ],
+    "defaultOffensiveType": "rock",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-rock.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-rock",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-rock/"
+    }
+  },
+  {
+    "id": "arceus-bug",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Bug Arceus",
+      "fr": "Arceus Insecte"
+    },
+    "formName": {
+      "en": "Bug Type",
+      "fr": "Insecte"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "bug"
+    ],
+    "defaultOffensiveType": "bug",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-bug.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-bug",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-bug/"
+    }
+  },
+  {
+    "id": "arceus-ghost",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Ghost Arceus",
+      "fr": "Arceus Spectre"
+    },
+    "formName": {
+      "en": "Ghost Type",
+      "fr": "Spectre"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "ghost"
+    ],
+    "defaultOffensiveType": "ghost",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-ghost.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-ghost",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-ghost/"
+    }
+  },
+  {
+    "id": "arceus-steel",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Steel Arceus",
+      "fr": "Arceus Acier"
+    },
+    "formName": {
+      "en": "Steel Type",
+      "fr": "Acier"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "steel"
+    ],
+    "defaultOffensiveType": "steel",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-steel.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-steel",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-steel/"
+    }
+  },
+  {
+    "id": "arceus-fire",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Fire Arceus",
+      "fr": "Arceus Feu"
+    },
+    "formName": {
+      "en": "Fire Type",
+      "fr": "Feu"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "fire"
+    ],
+    "defaultOffensiveType": "fire",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-fire.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-fire",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-fire/"
+    }
+  },
+  {
+    "id": "arceus-water",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Water Arceus",
+      "fr": "Arceus Eau"
+    },
+    "formName": {
+      "en": "Water Type",
+      "fr": "Eau"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "water"
+    ],
+    "defaultOffensiveType": "water",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-water.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-water",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-water/"
+    }
+  },
+  {
+    "id": "arceus-grass",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Grass Arceus",
+      "fr": "Arceus Plante"
+    },
+    "formName": {
+      "en": "Grass Type",
+      "fr": "Plante"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "grass"
+    ],
+    "defaultOffensiveType": "grass",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-grass.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-grass",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-grass/"
+    }
+  },
+  {
+    "id": "arceus-electric",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Electric Arceus",
+      "fr": "Arceus Électrik"
+    },
+    "formName": {
+      "en": "Electric Type",
+      "fr": "Électrik"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "electric"
+    ],
+    "defaultOffensiveType": "electric",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-electric.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-electric",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-electric/"
+    }
+  },
+  {
+    "id": "arceus-psychic",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Psychic Arceus",
+      "fr": "Arceus Psy"
+    },
+    "formName": {
+      "en": "Psychic Type",
+      "fr": "Psy"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "psychic"
+    ],
+    "defaultOffensiveType": "psychic",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-psychic.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-psychic",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-psychic/"
+    }
+  },
+  {
+    "id": "arceus-ice",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Ice Arceus",
+      "fr": "Arceus Glace"
+    },
+    "formName": {
+      "en": "Ice Type",
+      "fr": "Glace"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "ice"
+    ],
+    "defaultOffensiveType": "ice",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-ice.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-ice",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-ice/"
+    }
+  },
+  {
+    "id": "arceus-dragon",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Dragon Arceus",
+      "fr": "Arceus Dragon"
+    },
+    "formName": {
+      "en": "Dragon Type",
+      "fr": "Dragon"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "dragon"
+    ],
+    "defaultOffensiveType": "dragon",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-dragon.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-dragon",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-dragon/"
+    }
+  },
+  {
+    "id": "arceus-dark",
+    "speciesId": "arceus",
+    "pokemonId": "arceus",
+    "name": {
+      "en": "Dark Arceus",
+      "fr": "Arceus Ténèbres"
+    },
+    "formName": {
+      "en": "Dark Type",
+      "fr": "Ténèbres"
+    },
+    "isDefault": false,
+    "isBattleOnly": false,
+    "defensiveTypes": [
+      "dark"
+    ],
+    "defaultOffensiveType": "dark",
+    "frontSpriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493-dark.png",
+    "baseStats": {
+      "hp": 120,
+      "attack": 120,
+      "defense": 120,
+      "specialAttack": 120,
+      "specialDefense": 120,
+      "speed": 120
+    },
+    "source": {
+      "source": "pokeapi",
+      "sourceVersion": "platinum",
+      "sourceId": "pokemon-form/arceus-dark",
+      "reviewStatus": "imported",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-form/arceus-dark/"
+    }
+  }
+]
